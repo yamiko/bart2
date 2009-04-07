@@ -212,7 +212,7 @@ class GenericPeopleController < ApplicationController
 		@defaulted = "#{defaulter}" == "0" ? nil : true
 		@task = main_next_task(Location.current_location, @person.patient, session_date)		
 		@arv_number = PatientService.get_patient_identifier(@person, 'ARV Number')
-		@patient_bean = PatientService.get_patient (@person)  
+		@patient_bean = PatientService.get_patient(@person)  
 		
 		
 		@art_start_date = PatientService.date_antiretrovirals_started(@person.patient) rescue nil
