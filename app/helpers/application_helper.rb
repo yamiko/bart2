@@ -338,8 +338,8 @@ module ApplicationHelper
 		session_date = session[:datetime].to_date rescue Date.today
 		arv_start_date = PatientService.patient_art_start_date(patient).to_date rescue nil
 		
-		duration = (session_date.to_date - arv_start_date.to_date).to_i/28  
-		puts duration
+		duration = ((session_date.to_date - arv_start_date.to_date).to_i/28)  
+		
 #		(session_date.year * 12 + session_date.month) - (arv_start_date.year * 12 + arv_start_date.month)
 		
 		if (duration >= 6)
@@ -347,7 +347,7 @@ module ApplicationHelper
 			# eligible for viral load test
 			last_viral_load = Observation.find(:last, :conditions => ["person_id = ? and concept_id = ?", patient.patient_id, Concept.find_by_name("Viral load").concept_id]).obs_datetime.to_date	rescue nil
 			
-			if (last_viral_load.blank?)
+			if (last_viral_load.blank?) 
 				
 				#popup
 				#patient has been on arv for 6 or more months and has not had viral load taken
@@ -356,7 +356,12 @@ module ApplicationHelper
 
 			else
 			
-				if ((duration/24) > 0) && (last_viral_load < arv_start_date +(duration - duration % 24).months - 2.weeks)
+				if (duration >= 6) && (duration < 24) && (last_viral_load < arv_start_date + 3.months )
+				
+						return true
+						
+				elsif((duration >= 24) && ( last_viral_load < (arv_start_date + (duration - duration % 24 ).months)))
+				#elsif((duration >= 24) && (( arv_start_date + (arv_start_date + (duration - duration % 24 ).months)) % 24 == 0)
 				
 					#popup
 					#patient has been on arv for 2 or more years and last viral load is from before the milestone
