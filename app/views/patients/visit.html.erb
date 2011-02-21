@@ -124,6 +124,10 @@ Guardian(s):&nbsp;<%=person.relationships.map{|r|Person.find(r.person_b).name}.j
       <th>Visit by</th>
       <td><%=visit.visit_by%></td>
     </tr>
+    <tr>
+      <th>Appointment date</th>
+      <td><%=visit.appointment_date.to_date.strftime('%A, %B %d %Y') rescue '&nbsp;'%></td>
+    </tr>
     <% end %>
   </table>
 </div>
