@@ -31,6 +31,20 @@ module Report
     return date_range
   end
 
+  def self.cohort_range(date)
+    year = date.year
+    if date >= "#{year}-01-01".to_date and date <= "#{year}-03-31".to_date
+      quarter = "Q1 #{year}"
+    elsif date >= "#{year}-04-01".to_date and date <= "#{year}-06-30".to_date
+      quarter = "Q2 #{year}"
+    elsif date >= "#{year}-07-01".to_date and date <= "#{year}-09-30".to_date
+      quarter = "Q3 #{year}"
+    elsif date >= "#{year}-10-01".to_date and date <= "#{year}-12-31".to_date
+      quarter = "Q4 #{year}"
+    end
+    self.generate_cohort_date_range(quarter)
+  end
+
   def self.generate_cohort_quarters(start_date, end_date)
     cohort_quarters   = []
     current_quarter   = ""
