@@ -358,9 +358,9 @@ class CohortTool < ActiveRecord::Base
     cohort.total_registered = SurvivalAnalysis.report(cohort)
   end
 
-  def self.week_day_visits(visits)
+  def self.visits_by_week(visits)
 
-    weekly_visits = visits.inject({}) do |week, visit|
+    visits_by_week = visits.inject({}) do |week, visit|
 
       day       = visit.encounter_datetime.strftime("%a")
       beginning = visit.encounter_datetime.beginning_of_week.to_date
@@ -374,7 +374,64 @@ class CohortTool < ActiveRecord::Base
       week
     end
 
-    return weekly_visits
+    return visits_by_week
+  end
+
+  def self.visits_by_week_day(visits)
+    week_day_visits = {}
+    visits          = CohortTool.visits_by_week(visits)
+    weeks           = visits.keys.sort
+    week_days       = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+    week_days.each_with_index do |day, index|
+      weeks.map do  |week|
+        visits_number = 0
+        visit_date    = week.to_date.strftime("%d-%b-%Y")
+        js_date       = week.to_time.to_i * 1000
+        this_day      = visits[week][day]
+
+
+        unless this_day.nil?
+          visits_number = this_day.count
+          visit_date    = this_day.first.encounter_datetime.to_date.strftime("%d-%b-%Y")
+          js_date       = this_day.first.encounter_datetime.to_time.to_i * 1000
+        else
+        this_day      = (week.to_date + index.days)
+        visit_date    = this_day.strftime("%d-%b-%Y")
+        js_date       = this_day.to_time.to_i * 1000
+        end
+
+        (week_day_visits[day].nil?) ? week_day_visits[day] = [[js_date, visits_number, visit_date]] : week_day_visits[day].push([js_date, visits_number, visit_date])
+      end
+    end
+    week_day_visits
+  end
+
+  def self.visiting_patients_by_day(visits)
+
+    patients = visits.inject({}) do |patient, visit|
+
+      visit_date = visit.encounter_datetime.strftime("%d-%b-%Y")
+
+      # get a patient of a given visit
+      new_patient   = { :patient_id   => (visit.patient.patient_id || ""),
+                        :arv_number   => (visit.patient.arv_number || ""),
+                        :name         => (visit.patient.name || ""),
+                        :national_id  => (visit.patient.national_id || ""),
+                        :gender       => (visit.patient.gender || ""),
+                        :age          => (visit.patient.person.age || ""),
+                        :birthdate    => (visit.patient.person.birthdate.strftime("%d-%b-%Y") || ""),
+                        :phone_number => (visit.patient.person.phone_numbers[:cell_phone_number] || ""),
+                        :start_date   => (visit.patient.encounters.last.encounter_datetime.strftime("%d-%b-%Y") || "")
+      }
+
+      #add a patient to the day
+      (patient[visit_date].nil?) ? patient[visit_date] = [new_patient] : patient[visit_date].push(new_patient)
+
+      patient
+    end
+
+    patients
   end
 
   def self.adherence(quarter="Q1 2009")

@@ -49,7 +49,6 @@ class DrugController < ApplicationController
     number_of_tins = params[:number_of_tins].to_f
     number_of_pills_per_tin = params[:number_of_pills_per_tin].to_f
     number_of_pills = (number_of_tins * number_of_pills_per_tin)
-   
     Pharmacy.new_delivery(drug_id,number_of_pills,delivery_date,nil,expiry_date)
     #add a notice
     flash[:notice] = "#{params[:drug_name]} successfully entered"
