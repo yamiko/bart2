@@ -1,8 +1,9 @@
-<%= render :partial => 'clinic/nav', :locals => {:active => 'supervision'} %>
+<%= render :partial => 'clinic/navreport', :locals => {:active => 'reports', :label => 'Supervision'} %>
 <script type="text/javascript">
   jQuery(document).ready(function($) {
   }) 
 </script>
+<div id="tab" style="height: 461px;">
 <table id="tab_content">
 <% @supervision_tools.each do |report_name,report_type| %>
 <tr>
@@ -10,5 +11,6 @@
 </tr>
 <%end rescue nil%>
 </table>
+</div>
 
 
