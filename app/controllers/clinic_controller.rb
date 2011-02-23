@@ -10,7 +10,7 @@ class ClinicController < ApplicationController
   end
 
   def reports
-    @reports = [["Cohort","/cohort_tool/cohort_menu"],["Drug management","/drug/management"]]
+    @reports = [["Cohort","/cohort_tool/cohort_menu"],["Supervision","/clinic/supervision"], ["Data Cleaning Tools", "/report/data_cleaning"], ["Stock report","/drug/date_select"]]
     render :template => 'clinic/reports', :layout => 'clinic' 
   end
 
@@ -38,7 +38,7 @@ class ClinicController < ApplicationController
   end
 
   def administration
-    @reports = [['/report/data_cleaning','Data Clining Tools']]
+    @reports = [['/drug/management','Drug Management']]
     @landing_dashboard = 'clinic_administration'
     render :template => 'clinic/administration', :layout => 'clinic' 
   end
