@@ -348,4 +348,14 @@ EOF
     self.person.sex
   end
 
+  def drug_given_before(date = Date.today)
+    encounter_type = EncounterType.find_by_name('TREATMENT')
+    Encounter.find(:first,
+               :joins => 'INNER JOIN orders ON orders.encounter_id = encounter.encounter_id
+               INNER JOIN drug_order ON orders.order_id = orders.order_id', 
+               :conditions => ["quantity IS NOT NULL AND encounter_type = ? AND 
+               encounter.patient_id = ? AND DATE(encounter_datetime) < ?",
+               encounter_type.id,self.id,date],:order => 'encounter_datetime DESC').orders rescue []
+  end
+
 end
