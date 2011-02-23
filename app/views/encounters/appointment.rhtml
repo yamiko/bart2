@@ -9,7 +9,11 @@
   .tt_controls_next_appointment_date #keyboard{
     top:80px;
   }
+
 </style>
+
+<%= javascript_include_tag "dateformat" %>
+
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
   
@@ -33,8 +37,37 @@
       $('dateselector_day').value = visit_date.getDate(); 
       $('touchscreenInput1').value = visit_date.getFullYear() + '-' + DateUtil.months[visit_date.getMonth()] + '-' + visit_date.getDate()
     }
+
+    $('dateselector_nextYear').setAttribute('onmousedown','ds.incrementYear();showDate()')
+    $('dateselector_nextMonth').setAttribute('onmousedown','ds.incrementMonth();showDate()')
+    $('dateselector_nextDay').setAttribute('onmousedown','ds.incrementDay();showDate()')
+
+    $('dateselector_preYear').setAttribute('onmousedown','ds.decrementYear();showDate()')
+    $('dateselector_preMonth').setAttribute('onmousedown','ds.decrementMonth();showDate()')
+    $('dateselector_preDay').setAttribute('onmousedown','ds.decrementDay();showDate()')
+
+    showDate();
   }
   
+  function showDate() {
+    year = $('dateselector_year').value
+    month = $('dateselector_month').value 
+    day = $('dateselector_day').value 
+    if (day.toString().length == 1)
+      day = '0' + day.toString()
+
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    for (i = 0 ; i < months.length ; i++) {
+      if (months[i] == month)
+        month = (i + 1).toString()
+    }
+
+   if (month.length == 1)
+    month = '0' + month
+
+   $('helpText1').innerHTML = 'Next Appointment Date ' + dateFormat((new Date(year + '-' + month + '-' + day)),"dddd, mmmm dS, yyyy");
+  }
+
   function calculateGivenRange(start_date,end_date) {
     if (start_date && end_date)
       gotoNextPage();

@@ -28,7 +28,7 @@ class Cohort
         @start_date.to_date.strftime("%Y-%m-%d"), @end_date.to_date.strftime("%Y-%m-%d")]).length rescue 0
   end
 
-  def outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date, program_id = nil, min_age=nil, max_age=nil,states = [])
+  def outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date, program_id = @@program_id, min_age=nil, max_age=nil,states = [])
 
     if min_age or max_age
       conditions = "AND TRUNCATE(DATEDIFF(p.date_enrolled, person.birthdate)/365,0) >= #{min_age}

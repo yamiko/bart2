@@ -1,6 +1,6 @@
 class Mastercard 
 
- attr_accessor :date, :weight, :height, :bmi, :outcome, :reg, :s_eff, :sk , :pn, :hp, :pills, :gave, :cpt, :cd4,:estimated_date,:next_app, :tb_status, :doses_missed, :visit_by, :date_of_outcome, :reg_type, :adherence, :patient_visits, :sputum_count, :end_date, :art_status, :encounter_id , :notes
+ attr_accessor :date, :weight, :height, :bmi, :outcome, :reg, :s_eff, :sk , :pn, :hp, :pills, :gave, :cpt, :cd4,:estimated_date,:next_app, :tb_status, :doses_missed, :visit_by, :date_of_outcome, :reg_type, :adherence, :patient_visits, :sputum_count, :end_date, :art_status, :encounter_id , :notes, :appointment_date
 
  attr_accessor :patient_id,:arv_number, :national_id ,:name ,:age ,:sex, :init_wt, :init_ht ,:init_bmi ,:transfer_in ,:address, :landmark, :occupation, :guardian, :agrees_to_followup, :hiv_test_location, :hiv_test_date, :reason_for_art_eligibility, :date_of_first_line_regimen ,:tb_within_last_two_yrs, :eptb ,:ks,:pulmonary_tb
 
@@ -75,12 +75,16 @@ class Mastercard
         :conditions =>["voided = 0 AND person_id = ? AND Date(obs_datetime) = ?",
         patient_obj.patient_id,encounter_date.to_date],:order =>"obs_datetime")
     end    
-    ["HEIGHT","WEIGHT","REGIMEN","TB STATUS","SYMPTOMS","VISIT","BMI","PILLS BROUGHT",'ADHERENCE','NOTES','DRUGS GIVEN'].map do |field|
+    ["APPOINTMENT", "HEIGHT","WEIGHT","REGIMEN","TB STATUS","SYMPTOMS","VISIT","BMI","PILLS BROUGHT",'ADHERENCE','NOTES','DRUGS GIVEN'].map do |field|
       gave_hash = Hash.new(0) 
       observations.map do |obs|
          visit_date = obs.obs_datetime.to_date
          patient_visits[visit_date] = self.new() if patient_visits[visit_date].blank?
          case field
+          when 'APPOINTMENT'
+            concept_name = obs.concept.name.name rescue nil
+            next unless concept_name == 'APPOINTMENT DATE'
+            patient_visits[visit_date].appointment_date = obs.value_datetime
           when 'HEIGHT'
             concept_name = obs.concept.name.name rescue nil
             next unless concept_name == 'HEIGHT (CM)'
