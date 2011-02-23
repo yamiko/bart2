@@ -1,18 +1,3 @@
-<style>
-#summary{
-  position:relative;
-  float:center;
-  width:100%;
-  padding-left:10px;
-  padding-right:10px;
-}
-
-#summary td , th{
-  border-style:solid;
-  border-width:thin;
-  padding:5px;  
-}
-</style>
 <script >
     tt_cancel_destination = "/clinic/supervision"
 </script>
@@ -52,6 +37,9 @@
    <td align="center"><%=attributes["start_date"]%></td>
 </tr>
 <%end rescue nil%>
+  <script>
+    insertBlankRow ();
+  </script>
 </table>
 </div>
 
