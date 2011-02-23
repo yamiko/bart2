@@ -45,7 +45,10 @@ class Mastercard
       treatment_encounter.orders.map{|order|
         drugs << Drug.find(order.drug_order.drug_inventory_id) unless order.drug_order.quantity == 0
         drugs.map do |drug|
-          visits.date_of_first_line_regimen = treatment_encounter.encounter_datetime.to_date if drug.arv?
+          concept_name = drug.concept.name.name rescue nil
+          if drug.arv? and concept_name == 'STAVUDINE LAMIVUDINE AND NEVIRAPINE'
+            visits.date_of_first_line_regimen = treatment_encounter.encounter_datetime.to_date 
+          end
         end
       }.compact
     end
