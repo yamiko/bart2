@@ -365,7 +365,7 @@ EOF
     refer_patient = Encounter.find(:first,
                :joins => 'INNER JOIN obs USING (encounter_id)', 
                :conditions => ["encounter_type = ? AND concept_id = ? AND person_id = ? AND value_coded = ? AND DATE(obs_datetime) = ?",
-               encounter_type.id,refer_concept,self.id,yes_concept,date.to_date],:order => 'encounter_datetime DESC').blank?
+               encounter_type.id,refer_concept,self.id,yes_concept,date.to_date],:order => 'encounter_datetime DESC')
     return false if refer_patient.blank?
     return true
   end
