@@ -1,6 +1,7 @@
 class DrugController < ApplicationController
   def management
-    @activities = [["New stock","delivery"],["Edit stock","edit_stock"],["Stock report","date_select"],["Print Barcode","print_barcode"]]
+    @activities = [["New stock","delivery"],["Edit stock","edit_stock"], ["Print Barcode","print_barcode"]]
+    
 #TODO
 #need to redo the SQL query
     encounter_type = PharmacyEncounterType.find_by_name("Tins currently in stock").id
@@ -28,7 +29,7 @@ class DrugController < ApplicationController
       @stock[drug_name]["consumption_per"] = sprintf('%.2f',((@stock[drug_name]["dispensed"].to_f / @stock[drug_name]["current_stock"].to_f) * 100.to_f)).   to_s + " %" rescue "0 %"
     }
 
-    render :layout => "menu" 
+    render :template => 'drug/management', :layout => 'clinic'
   end
 
   def name

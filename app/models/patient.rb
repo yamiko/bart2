@@ -348,4 +348,36 @@ EOF
     self.person.sex
   end
 
+  def last_art_visit_before(date = Date.today)
+    art_encounters = ['ART_INITIAL','HIV RECEPTION','VITALS','HIV STAGING','ART VISIT','ART ADHERENCE','TREATMENT','DISPENSING']
+    art_encounter_type_ids = EncounterType.find(:all,:conditions => ["name IN (?)",art_encounters]).map{|e|e.encounter_type_id}
+    Encounter.find(:first,
+                   :conditions => ["DATE(encounter_datetime) < ? AND patient_id = ? AND encounter_type IN (?)",date,
+                   self.id,art_encounter_type_ids],
+                   :order => 'encounter_datetime DESC').encounter_datetime.to_date rescue nil
+  end
+  
+  def drug_given_before(date = Date.today)
+    encounter_type = EncounterType.find_by_name('TREATMENT')
+    lart_visit = self.last_art_visit_before(date)
+    return [] if lart_visit.blank?
+    Encounter.find(:first,
+               :joins => 'INNER JOIN orders ON orders.encounter_id = encounter.encounter_id
+               INNER JOIN drug_order ON orders.order_id = orders.order_id', 
+               :conditions => ["quantity IS NOT NULL AND encounter_type = ? AND 
+               encounter.patient_id = ? AND DATE(encounter_datetime) = ?",
+               encounter_type.id,self.id,lart_visit],:order => 'encounter_datetime DESC').orders rescue []
+  end
+
+  def prescribe_arv_this_visit(date = Date.today)
+    encounter_type = EncounterType.find_by_name('TREATMENT')
+    yes_concept = ConceptName.find_by_name('YES').concept_id
+    refer_concept = ConceptName.find_by_name('PRESCRIBE ARVS THIS VISIT').concept_id
+    refer_patient = Encounter.find(:first,
+               :joins => 'INNER JOIN obs USING (encounter_id)', 
+               :conditions => ["encounter_type = ? AND concept_id = ? AND person_id = ? AND value_coded = ? AND DATE(obs_datetime) = ?",
+               encounter_type.id,refer_concept,self.id,yes_concept,date.to_date],:order => 'encounter_datetime DESC')
+    return false if refer_patient.blank?
+    return true
+  end
 end

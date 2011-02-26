@@ -1,0 +1,19 @@
+<%= render :partial => 'clinic/navreport', :locals => {:active => 'reports', :label => 'Data Cleaning Tools'} %>
+<script type="text/javascript">
+//  jQuery(document).ready(function($) {
+//  }) 
+</script>
+<%= stylesheet_link_tag 'extra_buttons' %>
+<div id="tab" style="height: 461px;">
+<table id="tcontent">
+<% @reports.each do |helptext,report_type| %>
+<tr>
+  <td>  
+        <%= link_to_onmousedown "#{helptext}",{:controller =>"cohort_tool", :action => 'select',
+                                                        :report_type => "#{report_type}", :dashboard => "#{@landing_dashboard}"}, :class => 'report_button' %> 
+        
+  </td>
+</tr>
+<%end rescue nil%>
+</table>
+</div>

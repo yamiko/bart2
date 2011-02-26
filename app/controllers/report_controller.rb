@@ -209,7 +209,7 @@ class ReportController < ApplicationController
                     'Data Consistency Check'=>'data_consistency_check'
                  }
     @landing_dashboard = params[:dashboard]
-      render :layout => "menu"
+    render :template => 'report/data_cleaning', :layout => 'clinic'
   end
 
   def appointment_dates

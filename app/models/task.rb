@@ -101,7 +101,11 @@ class Task < ActiveRecord::Base
             enc = e
           end
         end
-        skip = true unless enc.present?
+        skip = true if enc.present?
+      end
+
+      if task.encounter_type == 'ART ADHERENCE' and patient.drug_given_before(session_date).blank?
+        skip = true
       end
       
       # Reverse the condition if the task wants the negative (for example, if the patient doesn't have a specific program yet, then run this task)
@@ -182,12 +186,13 @@ class Task < ActiveRecord::Base
     elsif art_visit.blank? and task.encounter_type == art_encounters[4]
       return task
     end
-=begin
+
+
     art_adherance = Encounter.find(:first,
                                    :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                                    patient.id,EncounterType.find_by_name(art_encounters[5]).id,session_date],
                                    :order =>'encounter_datetime DESC',:limit => 1)
-
+    
     if art_adherance.blank? and task.encounter_type != art_encounters[5]
       t = Task.find_by_description("If a patient/guardian has skipped a station")
       t.url = t.url.gsub(/\{encounter_type\}/, "#{art_encounters[5].gsub(' ','_')}") 
@@ -195,18 +200,20 @@ class Task < ActiveRecord::Base
     elsif art_adherance.blank? and task.encounter_type == art_encounters[5]
       return task
     end
-=end
-    art_treatment = Encounter.find(:first,
-                                   :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
-                                   patient.id,EncounterType.find_by_name(art_encounters[6]).id,session_date],
-                                   :order =>'encounter_datetime DESC',:limit => 1)
 
-    if art_visit.blank? and task.encounter_type != art_encounters[6]
-      t = Task.find_by_description("If a patient/guardian has skipped a station")
-      t.url = t.url.gsub(/\{encounter_type\}/, "#{art_encounters[6].gsub(' ','_')}") 
-      return t
-    elsif art_visit.blank? and task.encounter_type == art_encounters[6]
-      return task
+
+    if patient.prescribe_arv_this_visit(session_date)
+      art_treatment = Encounter.find(:first,
+                                     :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
+                                     patient.id,EncounterType.find_by_name(art_encounters[6]).id,session_date],
+                                     :order =>'encounter_datetime DESC',:limit => 1)
+      if art_treatment.blank? and task.encounter_type != art_encounters[6]
+        t = Task.find_by_description("If a patient/guardian has skipped a station")
+        t.url = t.url.gsub(/\{encounter_type\}/, "#{art_encounters[6].gsub(' ','_')}") 
+        return t
+      elsif art_treatment.blank? and task.encounter_type == art_encounters[6]
+        return task
+      end
     end
 
 
