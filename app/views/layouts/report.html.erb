@@ -87,6 +87,12 @@
       
         <%= yield %>
 
+      <% if session[:mastercard_ids].length.to_i != 0 %>
+         <% session[:mastercard_ids] = session[:mastercard_ids].uniq.sort! rescue ""%>
+        <form action="/patients/mastercard?source=data_cleaning"  method="post" id="myform">
+        </form>
+      <% end %>
+
         <div id="footer" class="dark">
           <div id="buttons" class="buttons" style="top:0px">
             <button id="logout" class="red left" style="position :relative; float:right;"><span>Finish</span></button>

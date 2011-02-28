@@ -8,9 +8,9 @@
       tstUsername = "<%= User.current_user.username unless User.current_user.nil? %>";
       tstCurrentDate = "<%= Time.now.strftime("%Y/%m/%d") %>";
       var tt_cancel_destination = null;
-
-      var total  = <%="#{session[:mastercard_ids].length.to_i}"%>;
-      var current = <%="#{session[:mastercard_counter].to_i + 1}"%>;
+      
+      var total  = <%="#{session[:mastercard_ids].length.to_i}" rescue 0%>;
+      var current = <%="#{session[:mastercard_counter].to_i + 1}" rescue 0%>;
 
       function next()
       {
@@ -64,12 +64,14 @@
         <div id="footer">
           <div id="buttons" class="buttonsDiv" style="top:0px">
             <button id="finishButton" class="button navButton green" onclick="if (tt_cancel_destination) window.location = tt_cancel_destination;"><span>Finish</span></button>
-                  <% if 'mastercard' == params[:action].to_s && session[:mastercard_ids].length.to_i != 0%>
+                  <% if 'mastercard' == params[:action].to_s %>
+                    <% if session[:mastercard_ids].length.to_i != 0 %>
                     <div id="navigator" style="position:relative; height:70px;width : 65%">
                         <button id="back" class="<%=@prev_button_class%>" style="position:relative; float:left;" onclick="prev()"><span>Previous</span></button>
                         <span style="position:relative;float:left; top:4px; padding : 0px 10px 0 20px"><h1 id="navigation_value"> ----- </h1></span>
                         <button id="forward" class="<%=@next_button_class%>" style="position:relative; float:left;" onclick="next()"><span>Next</span></button>
                     </div>
+                  <%end%>
                   <%end%>
            </div>
             <div id="tt_extraButtons"/>
