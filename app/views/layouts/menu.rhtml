@@ -66,6 +66,9 @@
             <button id="finishButton" class="button navButton green" onclick="if (tt_cancel_destination) window.location = tt_cancel_destination;"><span>Finish</span></button>
                   <% if 'mastercard' == params[:action].to_s %>
                     <% if session[:mastercard_ids].length.to_i != 0 %>
+                        <script>
+                                tt_cancel_destination = "/clinic/reports";
+                        </script
                     <div id="navigator" style="position:relative; height:70px;width : 65%">
                         <button id="back" class="<%=@prev_button_class%>" style="position:relative; float:left;" onclick="prev()"><span>Previous</span></button>
                         <span style="position:relative;float:left; top:4px; padding : 0px 10px 0 20px"><h1 id="navigation_value"> ----- </h1></span>
