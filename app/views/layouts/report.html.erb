@@ -16,9 +16,14 @@
     <script type="text/javascript">
       jQuery(document).ready(function($) {    
         $('#logout').click(function() { window.location = '/Report/data_cleaning' })
-        $('#find').click(function() { window.location = '/cohort_tool/select?report_type='+ "<%=@report_type%>"})
+        $('#find').click(function() {submit_mastercard();})
         //if ($('#staging')) $('#staging').click(function() { window.location = 'http://staging/clinic' })        
       })
+
+    function submit_mastercard()
+    {
+        document.forms["myform"].submit();
+    }
 
     //the function is to be called at the end of the table i.e. to insert the last row
     function insertBlankRow ()
