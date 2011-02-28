@@ -199,7 +199,26 @@ class PatientsController < ApplicationController
     @patient_id = params[:patient_id]
     render :layout => "menu"
   end
-  
+
+  def export_to_csv
+    @users = User.find(:all)
+
+    csv_string = FasterCSV.generate do |csv|
+      # header row
+      csv << ["id", "first_name", "last_name"]
+
+      # data rows
+      @users.each do |user|
+        csv << [user.id, user.username, user.salt]
+      end
+    end
+
+    # send it to the browsah
+    send_data csv_string,
+            :type => 'text/csv; charset=iso-8859-1; header=present',
+            :disposition => "attachment; filename=users.csv"
+  end
+   
 
   
 private
