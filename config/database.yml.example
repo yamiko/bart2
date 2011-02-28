@@ -21,3 +21,11 @@ test: &TEST
 
 cucumber:
   <<: *TEST
+
+migration:
+  adapter: mysql
+  database: test
+  username: root
+  password: password
+  host: localhost
+
