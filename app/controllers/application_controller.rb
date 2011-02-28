@@ -1,6 +1,8 @@
 class ApplicationController < ActionController::Base
   include AuthenticatedSystem
 
+  require "fastercsv"
+
   helper :all
   helper_method :next_task
   filter_parameter_logging :password
