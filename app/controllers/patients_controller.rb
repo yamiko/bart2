@@ -112,9 +112,28 @@ class PatientsController < ApplicationController
     @arv_start_number = params[:arv_start_number]
     @arv_end_number = params[:arv_end_number]
     
-    @patient_id = params[:patient_id] 
-    @data_demo = Mastercard.demographics(Patient.find(@patient_id))
-    @visits = Mastercard.visits(Patient.find(@patient_id))
+    if params[:patient_id].blank?
+       if !params[:current].blank?
+          session[:mastercard_counter] = params[:current].to_i - 1
+       end
+          @prev_button_class = "yellow"
+          @next_button_class = "yellow"
+       if params[:current].to_i ==  1
+            @prev_button_class = "gray"
+       elsif params[:current].to_i ==  session[:mastercard_ids].length
+            @next_button_class = "gray"
+       else
+
+       end
+       @patient_id = session[:mastercard_ids][session[:mastercard_counter]]
+       @data_demo = Mastercard.demographics(Patient.find(@patient_id))
+       @visits = Mastercard.visits(Patient.find(@patient_id))
+    else
+      session[:mastercard_ids] = []
+      @patient_id = params[:patient_id]
+      @data_demo = Mastercard.demographics(Patient.find(@patient_id))
+      @visits = Mastercard.visits(Patient.find(@patient_id))
+    end
     render :layout => "menu"
   end
   
