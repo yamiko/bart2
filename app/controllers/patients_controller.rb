@@ -2,6 +2,7 @@ class PatientsController < ApplicationController
   before_filter :find_patient, :except => [:void]
   
   def show
+    session[:mastercard_ids] = []
     session_date = session[:datetime].to_date rescue Date.today
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
@@ -107,14 +108,40 @@ class PatientsController < ApplicationController
 
   def mastercard
     #the parameter are used to re-construct the url when the mastercard is called from a Data cleaning report
-    @source = params[:source]
     @quarter = params[:quarter]
     @arv_start_number = params[:arv_start_number]
     @arv_end_number = params[:arv_end_number]
+    @show_mastercard_counter = false
     
-    @patient_id = params[:patient_id] 
-    @data_demo = Mastercard.demographics(Patient.find(@patient_id))
-    @visits = Mastercard.visits(Patient.find(@patient_id))
+    if params[:patient_id].blank?
+
+       @show_mastercard_counter = true
+
+       if !params[:current].blank?
+          session[:mastercard_counter] = params[:current].to_i - 1
+       end
+          @prev_button_class = "yellow"
+          @next_button_class = "yellow"
+       if params[:current].to_i ==  1
+            @prev_button_class = "gray"
+       elsif params[:current].to_i ==  session[:mastercard_ids].length
+            @next_button_class = "gray"
+       else
+
+       end
+       @patient_id = session[:mastercard_ids][session[:mastercard_counter]]
+       @data_demo = Mastercard.demographics(Patient.find(@patient_id))
+       @visits = Mastercard.visits(Patient.find(@patient_id))
+
+    elsif session[:mastercard_ids].length.to_i != 0
+      @patient_id = params[:patient_id]
+      @data_demo = Mastercard.demographics(Patient.find(@patient_id))
+      @visits = Mastercard.visits(Patient.find(@patient_id))
+    else
+      @patient_id = params[:patient_id]
+      @data_demo = Mastercard.demographics(Patient.find(@patient_id))
+      @visits = Mastercard.visits(Patient.find(@patient_id))
+    end
     render :layout => "menu"
   end
   
@@ -180,7 +207,26 @@ class PatientsController < ApplicationController
     @patient_id = params[:patient_id]
     render :layout => "menu"
   end
-  
+
+  def export_to_csv
+    @users = User.find(:all)
+
+    csv_string = FasterCSV.generate do |csv|
+      # header row
+      csv << ["id", "first_name", "last_name"]
+
+      # data rows
+      @users.each do |user|
+        csv << [user.id, user.username, user.salt]
+      end
+    end
+
+    # send it to the browsah
+    send_data csv_string,
+            :type => 'text/csv; charset=iso-8859-1; header=present',
+            :disposition => "attachment; filename=users.csv"
+  end
+   
 
   
 private
