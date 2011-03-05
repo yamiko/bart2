@@ -141,7 +141,7 @@ class PatientsController < ApplicationController
 
   def mastercard_modify
     if request.method == :get
-      @patient_id = params[:patient_id]
+      @patient_id = params[:id]
       case params[:field]
         when 'arv_number'
           @edit_page = "arv_number"
