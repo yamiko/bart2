@@ -77,6 +77,13 @@ class PeopleController < ApplicationController
     session[:datetime] = nil
     redirect_to :action => "index" and return
   end
+
+  def find_by_identifier
+    if request.post?
+      redirect_to :action => 'search' ,
+        :identifier => "#{Location.current_arv_code} #{params[:arv_number]}" and return
+    end
+  end
   
 private
   
