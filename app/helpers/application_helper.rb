@@ -85,7 +85,12 @@ module ApplicationHelper
   
   def relationship_options(patient)
     rels = @patient.relationships.all
-    options_array = rels.map{|rel| [rel.relation.name + " (#{rel.type.b_is_to_a})", rel.relation.name]}
+    # filter out voided relationship target
+    options_array = []
+    rels.each do |rel|
+      options_array << [rel.relation.name + " (#{rel.type.b_is_to_a})", rel.relation.name] unless rel.relation.blank?
+    end
+   # options_array = rels.map{|rel| next if rel.relation.blank? [rel.relation.name + " (#{rel.type.b_is_to_a})", rel.relation.name]}
     options_for_select(options_array)  
   end
   
