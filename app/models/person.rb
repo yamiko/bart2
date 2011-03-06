@@ -133,7 +133,7 @@ class Person < ActiveRecord::Base
   end
 
   def self.search_by_identifier(identifier)
-    PatientIdentifier.find_all_by_identifier(identifier).map{|id| id.patient.person} unless identifier.blank?
+    PatientIdentifier.find_all_by_identifier(identifier).map{|id| id.patient.person} unless identifier.blank? rescue nil
   end
 
   def self.search(params)
