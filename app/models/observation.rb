@@ -99,7 +99,11 @@ class Observation < ActiveRecord::Base
   def answer_string(tags=[])
     coded_answer_name = self.answer_concept.concept_names.tagged(tags).first.name rescue nil
     coded_answer_name ||= self.answer_concept.concept_names.first.name rescue nil
-    "#{coded_answer_name}#{self.value_text}#{self.value_numeric}#{self.value_datetime.strftime("%d/%b/%Y") rescue nil}#{self.value_boolean && (self.value_boolean == true ? 'Yes' : 'No' rescue nil)}#{' ['+order.to_s+']' if order_id && tags.include?('order')}"
+    coded_name = "#{coded_answer_name}#{self.value_text}#{self.value_numeric}#{self.value_datetime.strftime("%d/%b/%Y") rescue nil}#{self.value_boolean && (self.value_boolean == true ? 'Yes' : 'No' rescue nil)}#{' ['+order.to_s+']' if order_id && tags.include?('order')}"
+    #the following code is a hack
+    #we need to find a better way because value_coded can also be a location - not only a concept
+    return coded_name unless coded_name.blank?
+    ConceptName.find_by_concept_id(self.value_coded).name rescue ''
   end
 
   def self.patients_with_multiple_start_reasons(start_date , end_date)
