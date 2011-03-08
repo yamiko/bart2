@@ -135,7 +135,8 @@ class Mastercard
           when "PILLS BROUGHT"
             concept_name = obs.concept.name.name rescue []
             next unless concept_name == 'AMOUNT OF DRUG BROUGHT TO CLINIC'
-            patient_visits[visit_date].pills = obs.value_numeric
+            patient_visits[visit_date].pills = [] if patient_visits[visit_date].pills.blank?
+            patient_visits[visit_date].pills << [Drug.find(obs.order.drug_order.drug_inventory_id).name,obs.value_numeric]
           when "ADHERENCE"
             concept_name = obs.concept.name.name rescue []
             next unless concept_name == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'

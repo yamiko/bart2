@@ -76,9 +76,15 @@
      :helpText => "Prescribe ARVs this visit?" } %>
   <!--   If no, and ON ANTIRETROVIRALS, then program state = treatment stopped? -->  
 
-  <%= touch_yes_no_unknown_tag "REFER TO ART CLINICIAN", @patient, nil,
-    {:optional => false,
-     :helpText => "Refer to clinician?" } %>
+  <% if Location.current_location.name.match(/Nurse/i) %>
+    <%= touch_yes_no_unknown_tag "REFER TO ART CLINICIAN", @patient, nil,
+      {:optional => false,
+      :helpText => "Refer to clinician?" } %>
+  <%else%>
+    <%= hidden_field_tag "observations[][value_coded_or_text]",'NO' %>
+    <%= hidden_field_tag "observations[][concept_name]",'REFER TO ART CLINICIAN' %>
+    <%= hidden_field_tag "observations[][patient_id]",@patient.id %>
+  <%end%>
 
   <%= touch_text_field_tag("CLINICAL NOTES CONSTRUCT", @patient, nil,
     {:optional => true,:helpText => "Clinical notes (optional)"}, time=DateTime.now()) %>

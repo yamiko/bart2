@@ -140,7 +140,14 @@ background-position: 0% -30px;
       <td><%= data.adherence || '&nbsp;'%></td>
       <td><%= data.tb_status || '&nbsp;'%></td>
       <td><%= data.s_eff || '&nbsp;'%></td>
-      <td><%= data.pills || '&nbsp;'%></td>
+      <td>
+      <% pills = ''
+      (data.pills || []).each do | drug_name,count |
+        pills += "<br/>#{drug_name}: #{count}" unless pills.blank?
+        pills = "#{drug_name}: #{count}" if pills.blank?
+      end %>
+      <%= pills || '&nbsp;'%>
+      </td>
       <td>
       <% gave = ''
       (data.gave || []).each do | name , quantity |

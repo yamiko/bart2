@@ -368,7 +368,7 @@ EOF
   end
 
   def prescribe_arv_this_visit(date = Date.today)
-    encounter_type = EncounterType.find_by_name('TREATMENT')
+    encounter_type = EncounterType.find_by_name('ART VISIT')
     yes_concept = ConceptName.find_by_name('YES').concept_id
     refer_concept = ConceptName.find_by_name('PRESCRIBE ARVS THIS VISIT').concept_id
     refer_patient = Encounter.find(:first,
