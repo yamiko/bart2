@@ -309,7 +309,7 @@ class Patient < ActiveRecord::Base
     dispense_finish = true ; dispensed_drugs_concept_ids = []
     
     ( order.encounter.orders || [] ).each do | order |
-      dispense_finish = false if order.drug_order.quantity >= order.drug_order.amount_needed
+      dispense_finish = false if order.drug_order.amount_needed > 0
       dispensed_drugs_concept_ids << Drug.find(order.drug_order.drug_inventory_id).concept_id
     end
 
