@@ -126,6 +126,10 @@ class ProgramsController < ApplicationController
       end
     else
       patient_program = PatientProgram.find(params[:id])
+      unless patient_program.date_completed.blank?
+        redirect_to :controller => :patients, :action => :programs, 
+          :patient_id => patient_program.patient.id, :error => "Patient have completed this program" and return
+      end
       @patient = patient_program.patient
       @patient_program_id = patient_program.patient_program_id
       program_workflow = ProgramWorkflow.all(:conditions => ['program_id = ?', patient_program.program_id], :include => :concept)
