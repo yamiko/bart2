@@ -5,7 +5,8 @@
   var current_state_input_box = null
   function set_workflow_for_states() {
     var workflow_id = <%= @program_workflow_id %>
-    $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/programs/states?workflow=" + workflow_id);
+    var current_state = '<%=@current_state%>'
+    $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/programs/states?workflow=" + workflow_id + "&current_state=" + current_state);
     current_state_input_box = $('touchscreenInput'+tstCurrentPage)
     listSuggestions(tstCurrentPage); 
   }

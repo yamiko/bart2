@@ -66,6 +66,7 @@ class PatientsController < ApplicationController
     @restricted.each do |restriction|
       @programs = restriction.filter_programs(@programs)
     end
+    flash.now[:error] = params[:error] unless params[:error].blank?
     render :template => 'dashboards/programs', :layout => 'dashboard' 
   end
 

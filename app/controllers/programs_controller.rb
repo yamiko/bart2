@@ -12,6 +12,21 @@ class ProgramsController < ApplicationController
   end
 
   def create
+    active_programs = PatientProgram.find(:all,:conditions =>["voided = 0 AND patient_id = ? AND location_id = ? AND program_id = ?",
+                                    @patient.id,Location.current_health_center.id,params[:program_id]])
+    invalid_date = false
+    initial_date = params[:initial_date].to_date
+    active_programs.map{ | program |
+      next if program.date_completed.blank? and program.date_enrolled.blank?
+      invalid_date = (initial_date >= program.date_enrolled.to_date and initial_date < program.date_completed.to_date)
+    }
+
+    if invalid_date
+      error = "Patient was already enrolled in that program around that time: #{initial_date}"
+      redirect_to :controller => "patients" ,:action => "programs",
+        :error => error,:patient_id => @patient.id  and return
+    end
+    
     @patient_program = @patient.patient_programs.build(
       :program_id => params[:program_id],
       :date_enrolled => params[:initial_date],
@@ -53,13 +68,18 @@ class ProgramsController < ApplicationController
   
   def states
     @states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ?', params[:workflow]], :include => :concept)
-    @names = @states.map{|state| "<li value='#{state.id}'>#{state.concept.name.name}</li>" }
+    @names = @states.map{|state| "<li value='#{state.id}'>#{state.concept.name.name}</li>" unless state.concept.name.name == params[:current_state]}
     render :text => @names.join('')  
   end
 
   def update
     if request.method == :post
       patient_program = PatientProgram.find(params[:patient_program_id])
+      #we don't want to have more than one open states - so we have to close the current active on before opening/creating a new one
+      current_active_state = patient_program.patient_states.last
+      current_active_state.end_date = params[:current_date].to_date
+      current_active_state.save
+
       patient_state = patient_program.patient_states.build(
         :state => params[:current_state],
         :start_date => params[:current_date]) 
@@ -106,6 +126,10 @@ class ProgramsController < ApplicationController
       end
     else
       patient_program = PatientProgram.find(params[:id])
+      unless patient_program.date_completed.blank?
+        redirect_to :controller => :patients, :action => :programs, 
+          :patient_id => patient_program.patient.id, :error => "Patient have completed this program" and return
+      end
       @patient = patient_program.patient
       @patient_program_id = patient_program.patient_program_id
       program_workflow = ProgramWorkflow.all(:conditions => ['program_id = ?', patient_program.program_id], :include => :concept)
@@ -114,6 +138,7 @@ class ProgramsController < ApplicationController
       @names = @states.map{|state| state.concept.name.name }
       @program_date_completed = patient_program.date_completed.to_date rescue nil
       @program_name = patient_program.program.name
+      @current_state = patient_program.patient_states.last.program_workflow_state.concept.name.name if patient_program.patient_states.last.end_date.blank?
     end
   end 
 
