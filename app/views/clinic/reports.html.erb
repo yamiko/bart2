@@ -5,11 +5,13 @@
 </script>
 <%= stylesheet_link_tag 'extra_buttons' %>
 <div id="tab" style="height: 461px;">
-<table id="tcontent">
-<% @reports.each do |name,path| %>
-<tr>
-  <td><a href="<%=path%>" class='report_button'><%=name%></a></td>
-</tr>
-<%end rescue nil%>
-</table>
+<%unless Encounter.initial_encounter.nil?%>
+  <table id="tcontent">
+  <% @reports.each do |name,path| %>
+  <tr>
+    <td><a href="<%=path%>" class='report_button'><%=name%></a></td>
+  </tr>
+  <%end rescue nil%>
+  </table>
+<%end%>
 </div>
