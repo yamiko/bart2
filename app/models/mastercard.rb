@@ -85,6 +85,7 @@ class Mastercard
       gave_hash = Hash.new(0) 
       observations.map do |obs|
          visit_date = obs.obs_datetime.to_date
+         next if obs.encounter.name == 'TRANSFER OUT'
          patient_visits[visit_date] = self.new() if patient_visits[visit_date].blank?
          case field
           when 'APPOINTMENT'

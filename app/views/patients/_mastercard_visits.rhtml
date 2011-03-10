@@ -14,6 +14,7 @@
    -moz-user-select:none;
  }
 
+  td { height: auto; }
 
   .scrollTableContainer
  {
@@ -43,7 +44,7 @@
 
   html>/**/body div.scrollTableContainer table>tbody {
   overflow: auto;
-  height: 300px;
+  height: 220px;
   overflow-x: hidden;
   }
 
@@ -58,23 +59,20 @@
     vertical-align:top;
   }
 
-
-
-
   a.rounded {
-background: transparent url("images/buttons/btn_right_hover_green.png") no-repeat scroll right top;
-clear: left;
-font-size: 0.8em;
-}
+    background: transparent url("images/buttons/btn_right_hover_green.png") no-repeat scroll right top;
+    clear: left;
+    font-size: 0.8em;
+  }
 
-a span {
-display: block;
-padding: 0 0 0 15px;
-position: relative;
-white-space: nowrap;
-height: 30px;
-line-height: 30px;
-}
+  a span {
+    display: block;
+    padding: 0 0 0 15px;
+    position: relative;
+    white-space: nowrap;
+    height: 30px;
+    line-height: 30px;
+  }
 
 a.rounded span {
 /*background: transparent url("/images/buttons/btn_left_hover_green.png") no-repeat scroll left top;
@@ -118,13 +116,14 @@ background-position: 0% -30px;
   <th width=85>S. Eff</th>
   <th width=100>Pills</th>
   <th width=200>Gave</th>
-  <th width=85>CPT</th>
+  <th width=85 style="border-width:1px 0px 1px 1px;">CPT</th>
+  <th width=85 style="border-width:1px 1px 1px 0px;">&nbsp;</th>
 </tr>
 </thead>
 <tbody>
 <tr>
   <% date = Date.today
-   @visits.map{|date,data| 
+   @visits.sort.map{|date,data| 
     unless data.reg.blank?
       outcome = 'ON ART' 
     end
@@ -156,8 +155,12 @@ background-position: 0% -30px;
       end %>
       <%= gave || '&nbsp;'%>
       </td>
-      <td>&nbsp;</td>
+      <td style="border-width:1px 0px 1px 1px;">&nbsp;</td>
+      <td style="border-width:1px 1px 1px 0px;">&nbsp;</td>
   <%}%>
+</tr>
+<tr style="border-width:0px;height:auto;">
+  <td style="border-width:0px;height:auto;"><%= '&nbsp;'%></td>
 </tr>
 </tbody>
 </table>

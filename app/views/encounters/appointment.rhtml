@@ -16,10 +16,19 @@
 
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
+ 
+  function dateCreate(date_str){
+    date_array = []
+    date_array.push(parseInt(date_str.substring(0,4)))
+    date_array.push(parseInt(date_str.substring(5,7)) - 1)
+    date_array.push(parseInt(date_str.substring(8,10)))
+    return new Date(date_array[0],date_array[1],date_array[2])
+  }
   
   function calculate_dates(start_date,end_date) {
     if (start_date == '' && end_date == ''){
-      ds.date = new Date(); 
+      visit_date = dateCreate('<%=session[:datetime].to_date rescue Date.today %>')
+      /*
       ds.date.setDate(ds.date.getDate() + (7 * parseInt($('time_until_next_visit').value)));
       $('dateselector_year').value = ds.date.getFullYear();
       $('dateselector_month').value = DateUtil.months[ds.date.getMonth()];
@@ -27,9 +36,17 @@
       $('next_appointment_date').value = ds.date
       ds.init();
       $('touchscreenInput1').value = ds.date.getFullYear() + '-' + DateUtil.months[ds.date.getMonth()] + '-' + ds.date.getDate()
+      */
+      auto_expire_date = new Date(visit_date.getFullYear(),visit_date.getMonth(),visit_date.getDate() + (7 * parseInt($('time_until_next_visit').value)));
+      week = (parseInt((auto_expire_date - visit_date) / (7 * 24 * 60 * 60 * 1000))) 
+      visit_date.setDate(visit_date.getDate() + (7 * week));
+      $('dateselector_year').value = visit_date.getFullYear();
+      $('dateselector_month').value = DateUtil.months[visit_date.getMonth()];
+      $('dateselector_day').value = visit_date.getDate(); 
+      $('touchscreenInput1').value = visit_date.getFullYear() + '-' + DateUtil.months[visit_date.getMonth()] + '-' + visit_date.getDate() 
     }else{
-      visit_date = new Date(start_date);
-      auto_expire_date = new Date(end_date);
+      visit_date = dateCreate(start_date)
+      auto_expire_date = dateCreate(end_date)
       week = parseInt((auto_expire_date - visit_date) / (7 * 24 * 60 * 60 * 1000))
       visit_date.setDate(visit_date.getDate() + (7 * week));
       $('dateselector_year').value = visit_date.getFullYear();
@@ -64,8 +81,10 @@
 
    if (month.length == 1)
     month = '0' + month
+    
 
-   $('helpText1').innerHTML = 'Next Appointment Date ' + dateFormat((new Date(year + '-' + month + '-' + day)),"dddd, mmmm dS, yyyy");
+   new_date = dateCreate(year + '-' + month + '-' + day) 
+   $('helpText1').innerHTML = 'Next Appointment Date ' + dateFormat(new_date,"dddd, mmmm dS, yyyy");
   }
 
   function calculateGivenRange(start_date,end_date) {
