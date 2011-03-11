@@ -40,7 +40,11 @@
  
   function growthIndicators(){
      //These values pulled from the tt_onLoad bit in the third form...
-     currentHeight = document.getElementById('height').value;
+     try{ 
+      currentHeight = document.getElementById('height').value;
+     }catch(e){
+      currentHeight = <%= @patient.current_height %>
+     }
      currentWeight = document.getElementById('weight').value;
      medianWeightHeight = [<%= WeightHeightForAge.median_weight_height(@patient.person.age, @patient.person.gender).join(',') rescue nil -%>];
      currentWeightPercentile = (currentWeight/(medianWeightHeight[0])*100).toFixed(0);
@@ -159,7 +163,13 @@
       <%= hidden_field_tag("observations[][concept_name]", "WEIGHT (KG)") %>
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
       <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-  
+
+    <% if @patient.person.age > 18 and not @patient.current_height.blank? %>
+      <%= hidden_field_tag "observations[][value_numeric]",@patient.current_height %>
+      <%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>
+      <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
+      <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+    <% else %>
     <label for='height'>Height (CM)</label>
       <%= text_field_tag "observations[][value_numeric]", nil,
         {:id => "height",
@@ -175,6 +185,7 @@
       <%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
       <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+    <% end %>
 
     <% if ask_blood_pressure %>
 
