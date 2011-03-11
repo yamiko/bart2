@@ -6,7 +6,7 @@
     inputElement = document.getElementById('tt_page_enter_arv_number').getElementsByTagName("input")[0]
     prefix = document.createElement("span")
     style = document.createAttribute("style")
-    style.value = "position: absolute; z-index: 100; left: 0px; font-size: 44px;"
+    style.value = "position: absolute; z-index: 100; left: 0px; font-size: 35px;"
     prefix.setAttributeNode(style)
     inputElement.setAttribute("style","text-align:right;width:99%;")
     prefix.innerHTML = "<%=Location.current_arv_code rescue 'NNO' %>"
