@@ -105,8 +105,7 @@ class Cohort
                                 INNER JOIN person ON person.person_id = p.patient_id
                                 WHERE p.program_id = 1 AND gender ='F' 
                                 AND patient_start_date(patient_id) >= '#{start_date}' AND patient_start_date(patient_id) <= '#{end_date}' 
-                                AND ((obs.concept_id = #{pregnant_concept_id} AND obs.value_coded = #{yes_concept_id} ) OR (obs.concept_id = #{pmtct_concept_id} 
-                                AND obs.value_coded = #{yes_concept_id})) AND (DATEDIFF(DATE(obs.obs_datetime), date_enrolled) >= 0) 
+                                AND ((obs.concept_id = #{pregnant_concept_id} AND obs.value_coded = #{yes_concept_id} )) AND (DATEDIFF(DATE(obs.obs_datetime), date_enrolled) >= 0) 
                                 AND DATEDIFF(DATE(obs.obs_datetime),date_enrolled) <= 30
                                 GROUP BY patient_id").length
   end
