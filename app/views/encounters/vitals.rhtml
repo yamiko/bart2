@@ -164,7 +164,7 @@
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
       <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 
-    <% if @patient.person.age > 18 and not @patient.current_height.blank? %>
+    <% if @patient.person.age > 18 and not @patient.current_height == 0 %>
       <%= hidden_field_tag "observations[][value_numeric]",@patient.current_height %>
       <%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
