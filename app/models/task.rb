@@ -115,7 +115,7 @@ class Task < ActiveRecord::Base
       next if skip
 
       if location.name.match(/HIV|ART/i)
-        task = self.validate_task(patient,task,session_date.to_date)
+        task = self.validate_task(patient,task,location,session_date.to_date)
       end
 
       # Nothing failed, this is the next task, lets replace any macros
@@ -129,12 +129,17 @@ class Task < ActiveRecord::Base
     end
   end 
   
-  def self.validate_task(patient,task,session_date = Date.today)
+  def self.validate_task(patient, task, location, session_date = Date.today)
     #return task unless task.has_program_id == 1
     return task if task.encounter_type == 'REGISTRATION'
     return task if task.url == "/patients/show/{patient}"
 
     art_encounters = ['ART_INITIAL','HIV RECEPTION','VITALS','HIV STAGING','ART VISIT','ART ADHERENCE','TREATMENT','DISPENSING']
+
+    #if the following happens - that means the patient is a transfer in and the reception are trying to stage from the transfer in sheet
+    if task.encounter_type == 'HIV STAGING' and location.name.match(/RECEPTION/i)
+      return task 
+    end
 
     if patient.encounters.find_by_encounter_type(EncounterType.find_by_name(art_encounters[0]).id).blank? and task.encounter_type != art_encounters[0]
       t = Task.find_by_description("If a patient/guardian has skipped a station")
