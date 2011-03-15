@@ -79,13 +79,11 @@
             <button id="logout" class="red left"><span>Logout</span></button>
             <button id="find" class="green"><span>Find Name</span></button>
             <button id="find_by_id" class="green" style="width:245px;"><span>Find By ARV Number</span></button>
-            <% if User.current_user.admin? %>
             <!--button id="staging" class="yellow"><span>Staging</span></button-->
-			        <% if development_environment? %>
-                <button id="new_desk" class="yellow"><span>Swap desk</span></button>
-			        <% end %>
-              <button id="set_date" class=""><span>Set date</span></button>
+            <% if development_environment? %>
+              <button id="new_desk" class="yellow"><span>Swap desk</span></button>
             <% end %>
+            <button id="set_date" class=""><span>Set date</span></button>
           </div>          
         </div>    
       </div>  
