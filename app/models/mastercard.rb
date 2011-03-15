@@ -81,11 +81,15 @@ class Mastercard
         :conditions =>["voided = 0 AND person_id = ? AND Date(obs_datetime) = ?",
         patient_obj.patient_id,encounter_date.to_date],:order =>"obs_datetime")
     end    
-    ["APPOINTMENT", "HEIGHT","WEIGHT","REGIMEN","TB STATUS","SYMPTOMS","VISIT","BMI","PILLS BROUGHT",'ADHERENCE','NOTES','DRUGS GIVEN'].map do |field|
+
+    clinic_encounters = ["APPOINTMENT", "HEIGHT","WEIGHT","REGIMEN","TB STATUS","SYMPTOMS","VISIT","BMI","PILLS BROUGHT",'ADHERENCE','NOTES','DRUGS GIVEN']
+    clinic_encounters.map do |field|
       gave_hash = Hash.new(0) 
       observations.map do |obs|
+         encounter_name = obs.encounter.name rescue []
+         next if encounter_name.blank?
+         next unless clinic_encounters.include?(encounter_name)
          visit_date = obs.obs_datetime.to_date
-         next if obs.encounter.name == 'TRANSFER OUT'
          patient_visits[visit_date] = self.new() if patient_visits[visit_date].blank?
          case field
           when 'APPOINTMENT'
