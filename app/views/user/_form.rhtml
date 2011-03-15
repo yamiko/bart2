@@ -19,11 +19,10 @@
 
       <p><label for="person_name_family_name">Last name</label><br/>
       <%= text_field 'person_name', 'family_name', :ajaxURL => '/search/PersonName?field=family_name&value=', :value => @user_last_name, :allowFreeText => true%></p>
-
-      <p><label for="user_username">Username</label><br/>
-      <%= text_field 'user', 'username', :textCase => "lower",:value => @user_name,:tt_onload =>"$('touchscreenInput5').value = ($('user_first_name').value.substring(0,3)+$('user_last_name').value.substring(0,3)).toLowerCase()" ,:validationRule =>"\\w{6}\\w*" ,:validationMessage => "Username must have at least SIX letters", :textCase => "lower" %></p>
-
-
+      <% if User.current_user.admin? %>
+        <p><label for="user_username">Username</label><br/>
+        <%= text_field 'user', 'username', :textCase => "lower",:value => @user_name,:tt_onload =>"$('touchscreenInput5').value = ($('user_first_name').value.substring(0,3)+$('user_last_name').value.substring(0,3)).toLowerCase()" ,:validationRule =>"\\w{6}\\w*" ,:validationMessage => "Username must have at least SIX letters", :textCase => "lower" %></p>
+      <%end%>
   <%when "destroy"%>
       <!--p><label for="user_voided">Remove User?</label--><br/>
       <!--%= select(:user, :voided, %w{Yes No}, :include_blank => 'true')%-->
@@ -47,7 +46,7 @@
       <%= text_field 'person_name', 'family_name', :ajaxURL => '/search/PersonName?field=family_name&value=', :value => @user_last_name, :allowFreeText => true%></p>
 
       <p><label for="user_role_role_id">User Role</label></br>
-      <%= text_field 'user_role', 'role_id', :xhelpText => 'User role', :ajaxURL => '/search/Role?field=role&value='%></p>
+      <%= text_field 'user_role', 'role_id', :xhelpText => 'User role', :ajaxURL => '/user/role/Role?field=role&value='%></p>
         
 
       <!--p><label for="user_role_admin_role">Is user a system administrator?</label><br/-->

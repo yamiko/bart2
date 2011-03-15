@@ -29,7 +29,18 @@ class UserController < ApplicationController
       end      
     end
   end          
+ 
+ def role
+  roles = Role.find(:all)
+  roles = roles.map{| r | "<li value='#{r.role}'>#{r.role.gsub('_',' ').capitalize}</li>" } 
+  render :text => roles.join('') and return
+ end
   
+ def username
+  users = User.find(:all,:conditions => ["username LIKE (?)","%#{params[:username]}%"])
+  users = users.map{| u | "<li value='#{u.username}'>#{u.username}</li>" } 
+  render :text => users.join('') and return
+ end
   
  def health_centres
      redirect_to(:controller => "patient", :action => "menu")
@@ -79,12 +90,12 @@ class UserController < ApplicationController
  end
 
   def show
-    unless session[:user_edit].nil?
-     @user = User.find(session[:user_edit])
+    unless params[:id].blank?
+     @user = User.find(params[:id])
     else
      @user = User.find(:first, :order => 'date_created DESC')
-     session[:user_edit]=@user.user_id
     end  
+    render :layout => 'menu'
   end
 
   def new
@@ -92,8 +103,6 @@ class UserController < ApplicationController
   end
 
   def create
-      session[:user_edit] = nil
-
     if (params[:user][:password] != params[:user_confirm][:password])
       flash[:notice] = 'Password Mismatch'
     #  flash[:notice] = nil
@@ -137,23 +146,37 @@ class UserController < ApplicationController
   end
 
   def edit
-    @user = User.find(session[:user_edit])
+    @user = User.find(params[:id])
   end
 
   def update
+    #find_by_person_id(params[:id])
     @user = User.find(params[:id])
-       if @user.update_attributes(params[:user])
-        flash[:notice] = 'User was successfully updated.'
-       redirect_to :action => 'show', :id => @user
-    else
-      flash[:notice] = "OOps! User was not updated!."
-      render :action => 'edit'
-    end
+    PersonName.find(:all,:conditions =>["voided = 0 AND person_id = ?",@user.id]).each do | person_name |
+      person_name.voided = 1
+      person_name.voided_by = User.current_user.id
+      person_name.date_voided = Time.now()
+      person_name.void_reason = 'Edited name'
+      person_name.save
+    end rescue nil
+
+    person_name = PersonName.new()
+    person_name.family_name = params[:person_name]["family_name"]
+    person_name.given_name = params[:person_name]["given_name"]
+    person_name.person_id = @user.id
+    person_name
+    if person_name.save
+      flash[:notice] = 'User was successfully updated.'
+      redirect_to :action => 'show', :id => @user.id and return
+    end rescue nil
+
+    flash[:notice] = "OOps! User was not updated!."
+    render :action => 'show', :id => @user.id
   end
 
   def destroy
    unless request.get?
-   @user = User.find(session[:user_edit])
+   @user = User.find(params[:id])
     if @user.update_attributes(:voided => 1, :void_reason => params[:user][:void_reason],:voided_by => session[:user_id],:date_voided => Time.now.to_s)
       flash[:notice]='User has successfully been removed.'
       redirect_to :action => 'voided_list'
@@ -199,10 +222,9 @@ class UserController < ApplicationController
   end
  
   def search_user
-   session[:user_edit] = nil
    unless request.get?
-     session[:user_edit] = User.find_by_username(params[:user][:username]).user_id
-     redirect_to :action =>"show"
+     @user = User.find_by_username(params[:user][:username])
+     redirect_to :action =>"show", :id => @user.id
    end
   end
   
@@ -217,7 +239,7 @@ class UserController < ApplicationController
       else
         if @user.update_attributes(params[:user])
           flash[:notice] = "Password successfully changed"
-          redirect_to :action => "show"
+          redirect_to :action => "show",:id => @user.id
           return
         else
           flash[:notice] = "Password change failed"  
