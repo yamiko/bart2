@@ -137,6 +137,7 @@ class UserController < ApplicationController
         user_role.user_id=@user.user_id
         user_role.save
      # end
+      @user.update_attributes(params[:user])
       flash[:notice] = 'User was successfully created.'
       redirect_to :action => 'show'
     else
@@ -152,6 +153,10 @@ class UserController < ApplicationController
   def update
     #find_by_person_id(params[:id])
     @user = User.find(params[:id])
+    if params[:user]['username']
+      @user.update_attributes(:username => params[:user]['username'])
+    end
+
     PersonName.find(:all,:conditions =>["voided = 0 AND person_id = ?",@user.id]).each do | person_name |
       person_name.voided = 1
       person_name.voided_by = User.current_user.id
