@@ -88,7 +88,7 @@ class Mastercard
       observations.map do |obs|
          encounter_name = obs.encounter.name rescue []
          next if encounter_name.blank?
-         next unless clinic_encounters.include?(encounter_name)
+         #next unless clinic_encounters.include?(encounter_name)
          visit_date = obs.obs_datetime.to_date
          patient_visits[visit_date] = self.new() if patient_visits[visit_date].blank?
          case field

@@ -404,22 +404,22 @@ EOF
     count_drug_count = []
     (adherence).each do | adh |
       unless count_drug_count.blank?
-        if adh.value_numeric < count_drug_count[0].last
+        if adh.value_numeric < count_drug_count[1]
           count_drug_count = [adh.order.drug_order.drug_inventory_id,adh.value_numeric]
         end
       end
-      count_drug_count << [adh.order.drug_order.drug_inventory_id,adh.value_numeric] if count_drug_count.blank?
+      count_drug_count = [adh.order.drug_order.drug_inventory_id,adh.value_numeric] if count_drug_count.blank?
     end
 
     #from the drug dispensed on that day,we pick the drug "plus it's daily dose" that match the drug with the lowest pill count    
     equivalent_daily_dose = 1
     (drug_dispensed).each do | dispensed_drug |
       drug_order = dispensed_drug.order.drug_order
-      if count_drug_count[0].first == drug_order.drug_inventory_id
+      if count_drug_count[0] == drug_order.drug_inventory_id
         equivalent_daily_dose = drug_order.equivalent_daily_dose
       end
     end
-    (count_drug_count[0].last / equivalent_daily_dose).to_i
+    (count_drug_count[1] / equivalent_daily_dose).to_i
   end
 
 end

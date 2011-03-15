@@ -10,7 +10,7 @@ class Observation < ActiveRecord::Base
   belongs_to :answer_concept_name, :class_name => "ConceptName", :foreign_key => "value_coded_name_id", :conditions => {:voided => 0}
   has_many :concept_names, :through => :concept
 
-  named_scope :recent, lambda {|number| {:order => 'obs_datetime desc', :limit => number}}
+  named_scope :recent, lambda {|number| {:order => 'obs_datetime DESC,date_created DESC', :limit => number}}
   named_scope :question, lambda {|concept|
     concept_id = concept.to_i
     concept_id = ConceptName.first(:conditions => {:name => concept}).concept_id rescue 0 if concept_id == 0

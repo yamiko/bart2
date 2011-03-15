@@ -141,6 +141,11 @@ class Task < ActiveRecord::Base
       return task 
     end
 
+    #if the following happens - that means the patient was refered to see a clinician
+    if task.description.match(/REFER/i) and location.name.match(/Clinician/i)
+      return task 
+    end
+
     if patient.encounters.find_by_encounter_type(EncounterType.find_by_name(art_encounters[0]).id).blank? and task.encounter_type != art_encounters[0]
       t = Task.find_by_description("If a patient/guardian has skipped a station")
       t.url = t.url.gsub(/\{encounter_type\}/, "#{art_encounters[0].gsub(' ','_')}") 
