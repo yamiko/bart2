@@ -16,7 +16,7 @@ class Person < ActiveRecord::Base
       find(:all, :conditions => ['concept_id = ?', concept_name.concept_id]) rescue []
     end
   end
-  
+
   def after_void(reason = nil)
     self.patient.void(reason) rescue nil
     self.names.each{|row| row.void(reason) }
@@ -229,7 +229,7 @@ class Person < ActiveRecord::Base
     person = Person.create(person_params)
 
     if birthday_params["birth_year"] == "Unknown"
-      person.set_birthdate_by_age(birthday_params["age_estimate"],self.session_datetime)
+      person.set_birthdate_by_age(birthday_params["age_estimate"],self.session_datetime || Date.today)
     else
       person.set_birthdate(birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
     end

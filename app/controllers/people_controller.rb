@@ -45,7 +45,7 @@ class PeopleController < ApplicationController
   end
  
   def create
-    Person.session_datetime = session[:datetime].to_date rescue nil
+    Person.session_datetime = session[:datetime].to_date rescue Date.today
     person = Person.create_from_form(params[:person])
     if params[:person][:patient]
       person.patient.national_id_label
