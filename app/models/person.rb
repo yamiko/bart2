@@ -3,6 +3,8 @@ class Person < ActiveRecord::Base
   set_primary_key "person_id"
   include Openmrs
 
+  cattr_accessor :session_datetime
+
   has_one :patient, :foreign_key => :patient_id, :dependent => :destroy, :conditions => {:voided => 0}
   has_many :names, :class_name => 'PersonName', :foreign_key => :person_id, :dependent => :destroy, :order => 'person_name.preferred DESC', :conditions => {:voided => 0}
   has_many :addresses, :class_name => 'PersonAddress', :foreign_key => :person_id, :dependent => :destroy, :order => 'person_address.preferred DESC', :conditions => {:voided => 0}
@@ -227,7 +229,7 @@ class Person < ActiveRecord::Base
     person = Person.create(person_params)
 
     if birthday_params["birth_year"] == "Unknown"
-      person.set_birthdate_by_age(birthday_params["age_estimate"])
+      person.set_birthdate_by_age(birthday_params["age_estimate"],self.session_datetime)
     else
       person.set_birthdate(birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
     end
