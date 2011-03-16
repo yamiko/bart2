@@ -49,7 +49,6 @@
   
   function calculate_dates(start_date,end_date) {
     if (start_date == '' && end_date == ''){
-      visit_date = dateCreate('<%=session[:datetime].to_date rescue Date.today %>')
       /*
       ds.date.setDate(ds.date.getDate() + (7 * parseInt($('time_until_next_visit').value)));
       $('dateselector_year').value = ds.date.getFullYear();
@@ -59,6 +58,7 @@
       ds.init();
       $('touchscreenInput1').value = ds.date.getFullYear() + '-' + DateUtil.months[ds.date.getMonth()] + '-' + ds.date.getDate()
       */
+      visit_date = dateCreate('<%=session[:datetime].to_date rescue Date.today %>')
       auto_expire_date = new Date(visit_date.getFullYear(),visit_date.getMonth(),visit_date.getDate() + (7 * parseInt($('time_until_next_visit').value)));
       week = (parseInt((auto_expire_date - visit_date) / (7 * 24 * 60 * 60 * 1000))) 
       visit_date.setDate(visit_date.getDate() + (7 * week));
@@ -72,7 +72,10 @@
       auto_expire_date = dateCreate(end_date)
       week = parseInt((auto_expire_date - visit_date) / (7 * 24 * 60 * 60 * 1000))
       visit_date.setDate(visit_date.getDate() + (7 * week));
-      visit_date = handleAppointments(visit_date)
+
+      visit_date = assignCloseToExpireDate(visit_date,auto_expire_date); //make sure the next appoint date is close to
+      visit_date = handleAppointments(visit_date) //make sure that the date does not fall on a holiday/non-clinic day
+
       $('dateselector_year').value = visit_date.getFullYear();
       $('dateselector_month').value = DateUtil.months[visit_date.getMonth()];
       $('dateselector_day').value = visit_date.getDate(); 
@@ -90,6 +93,17 @@
     showDate();
   }
   
+  function assignCloseToExpireDate(set_date,auto_expire_date) {
+    if (set_date < auto_expire_date){
+      while (set_date < auto_expire_date) {
+        set_date = new Date(set_date.getFullYear(),set_date.getMonth(),set_date.getDate() + 1)
+      }
+      //Give the patient a 2 day buffer
+      set_date = new Date(set_date.getFullYear(),set_date.getMonth(),set_date.getDate() - 2)
+    }
+    return set_date
+  }
+
   function showDate() {
     year = $('dateselector_year').value
     month = $('dateselector_month').value 
