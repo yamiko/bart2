@@ -95,7 +95,14 @@ Guardian(s):&nbsp;<%=person.relationships.map{|r|Person.find(r.person_b).name}.j
     </tr>
     <tr>
       <th>Adherence</th>
-      <td><%=visit.adherence%></td>
+      <td>
+        <% adherence = ''
+        (visit.adherence || []).each do | name , percentage |
+          adherence += "<br/>#{name} (#{percentage})" unless adherence.blank?
+          adherence = "#{name} (#{percentage})" if adherence.blank?
+        end %>
+        <%= adherence || '&nbsp;'%>
+      </td>
     </tr>
     <tr>
       <th>TB Status</th>

@@ -145,7 +145,9 @@ class Mastercard
           when "ADHERENCE"
             concept_name = obs.concept.name.name rescue []
             next unless concept_name == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'
-            patient_visits[visit_date].adherence = obs.value_text + '%' unless obs.value_text.blank?
+            next if obs.value_text.blank?
+            patient_visits[visit_date].adherence = [] if patient_visits[visit_date].adherence.blank?
+            patient_visits[visit_date].adherence << [Drug.find(obs.order.drug_order.drug_inventory_id).name,(obs.value_text + '%')]
           when "NOTES"
             concept_name = obs.concept.name.name.strip rescue []
             next unless concept_name == 'CLINICAL NOTES CONSTRUCT'

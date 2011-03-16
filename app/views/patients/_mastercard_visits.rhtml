@@ -136,7 +136,14 @@ background-position: 0% -30px;
       <td><%= data.bmi || '&nbsp;'%></td>
       <td><%= outcome || '&nbsp;'%></td>
       <td><%= data.reg || '&nbsp;'%></td>
-      <td><%= data.adherence || '&nbsp;'%></td>
+      <td>
+      <% adherence = ''
+      (data.adherence || []).each do | name , percentage |
+        adherence += "<br/>#{name} (#{percentage})" unless adherence.blank?
+        adherence = "#{name} (#{percentage})" if adherence.blank?
+      end %>
+      <%= adherence || '&nbsp;'%>
+      </td>
       <td><%= data.tb_status || '&nbsp;'%></td>
       <td><%= data.s_eff || '&nbsp;'%></td>
       <td>
