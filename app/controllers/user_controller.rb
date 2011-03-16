@@ -31,7 +31,7 @@ class UserController < ApplicationController
   end          
  
  def role
-  roles = Role.find(:all)
+  roles = Role.find(:all,:conditions => ["role LIKE (?)","%#{params[:value]}%"])
   roles = roles.map{| r | "<li value='#{r.role}'>#{r.role.gsub('_',' ').capitalize}</li>" } 
   render :text => roles.join('') and return
  end
