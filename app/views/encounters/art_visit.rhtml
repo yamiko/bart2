@@ -30,16 +30,17 @@
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
-  <%
-    obs_date = session[:datetime].to_date rescue Date.today
-    patient_pregnant = Observation.find(:first,:conditions =>["concept_id = ? AND person_id = ? AND DATE(obs_datetime) = ?",
+  <% if @patient.person.gender == 'F' && @patient.person.age > 14 
+      obs_date = session[:datetime].to_date rescue Date.today
+      patient_pregnant = Observation.find(:first,:conditions =>["concept_id = ? AND person_id = ? AND DATE(obs_datetime) = ?",
                        ConceptName.find_by_name('IS PATIENT PREGNANT?').concept_id,
                        @patient.id,obs_date])
-  %>
-  <% if @patient.person.gender == 'F' && @patient.person.age > 14 && patient_pregnant.blank? %>
-    <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
-      {:optional => true,
-       :helpText => "Is patient pregnant?" } %>
+  
+      if patient_pregnant.blank? %>
+        <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
+        {:optional => true,
+        :helpText => "Is patient pregnant?" } %>
+      <% end %>    
   <% end %>    
   
   <% if ask_standard_art_side_effects %>
