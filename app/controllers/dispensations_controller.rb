@@ -18,8 +18,15 @@ class DispensationsController < ApplicationController
     end
     @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
     session_date = session[:datetime] || Time.now()
+    @drug = Drug.find(params[:drug_id]) rescue nil
+
+    #TODO look for another place to put this block of code
+    if @drug.blank? or params[:quantity].blank?
+      flash[:error] = "There is no drug with barcode: #{params[:identifier]}"
+      redirect_to "/patients/treatment/#{@patient.patient_id}" and return
+    end if (params[:identifier])
+
     @encounter = @patient.current_dispensation_encounter(session_date)
-    @drug = Drug.find(params[:drug_id])
     
     @order = @patient.current_treatment_encounter(session_date).drug_orders.find(:first,:conditions => ['drug_order.drug_inventory_id = ?', 
              params[:drug_id]]).order rescue []
