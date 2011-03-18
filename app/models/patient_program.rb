@@ -26,19 +26,19 @@ class PatientProgram < ActiveRecord::Base
   def debug
     puts self.to_yaml
     return
-    puts "Name: #{self.program.concept.name.name}" rescue nil
+    puts "Name: #{self.program.concept.fullname}" rescue nil
     puts "Date enrolled: #{self.date_enrolled}"
 
   end
 
   def to_s
-    "#{self.program.concept.name.name rescue nil} (at #{location.name rescue nil})"
+    "#{self.program.concept.fullname rescue nil} (at #{location.name rescue nil})"
   end
   
   def transition(params)
     ActiveRecord::Base.transaction do
       # Find the state by name
-      selected_state = self.program.program_workflows.map(&:program_workflow_states).flatten.select{|pws| pws.concept.name.name == params[:state]}.first rescue nil
+      selected_state = self.program.program_workflows.map(&:program_workflow_states).flatten.select{|pws| pws.concept.fullname == params[:state]}.first rescue nil
       state = self.patient_states.last
       if (state && selected_state == state.program_workflow_state)
         # do nothing as we are already there

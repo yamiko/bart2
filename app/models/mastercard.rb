@@ -47,7 +47,7 @@ class Mastercard
           drugs << Drug.find(order.drug_order.drug_inventory_id) unless order.drug_order.quantity == 0
 
         drugs.map do |drug|
-          concept_name = drug.concept.name.name rescue nil
+          concept_name = drug.concept.fullname rescue nil
           if drug.arv? and concept_name == 'STAVUDINE LAMIVUDINE AND NEVIRAPINE'
             visits.date_of_first_line_regimen = treatment_encounter.encounter_datetime.to_date 
           end
@@ -93,29 +93,29 @@ class Mastercard
          patient_visits[visit_date] = self.new() if patient_visits[visit_date].blank?
          case field
           when 'APPOINTMENT'
-            concept_name = obs.concept.name.name rescue nil
+            concept_name = obs.concept.fullname rescue nil
             next unless concept_name == 'APPOINTMENT DATE'
             patient_visits[visit_date].appointment_date = obs.value_datetime
           when 'HEIGHT'
-            concept_name = obs.concept.name.name rescue nil
+            concept_name = obs.concept.fullname rescue nil
             next unless concept_name == 'HEIGHT (CM)'
             patient_visits[visit_date].height = obs.value_numeric
           when "WEIGHT"
-            concept_name = obs.concept.name.name rescue []
+            concept_name = obs.concept.fullname rescue []
             next unless concept_name == 'WEIGHT (KG)'
             patient_visits[visit_date].weight = obs.value_numeric
           when "BMI"
-            concept_name = obs.concept.name.name rescue []
+            concept_name = obs.concept.fullname rescue []
             next unless concept_name == 'BODY MASS INDEX, MEASURED'
             patient_visits[visit_date].bmi = obs.value_numeric
           when "VISIT"
-            concept_name = obs.concept.name.name rescue []
+            concept_name = obs.concept.fullname rescue []
             next unless concept_name == 'RESPONSIBLE PERSON PRESENT' or concept_name == 'PATIENT PRESENT FOR CONSULTATION'
             patient_visits[visit_date].visit_by = '' if patient_visits[visit_date].visit_by.blank?
             patient_visits[visit_date].visit_by+= "P" if concept_name == 'PATIENT PRESENT FOR CONSULTATION' and obs.value_coded == yes.concept_id
             patient_visits[visit_date].visit_by+= "G" if concept_name == 'RESPONSIBLE PERSON PRESENT' and !obs.value_text.blank?
           when "TB STATUS"
-            concept_name = obs.concept.name.name rescue []
+            concept_name = obs.concept.fullname rescue []
             next unless concept_name == 'TB STATUS'
             status = ConceptName.find(obs.value_coded_name_id).name rescue nil
             patient_visits[visit_date].tb_status = status
@@ -124,32 +124,32 @@ class Mastercard
             patient_visits[visit_date].tb_status = 'noRx' if status == 'CONFIRMED TB NOT ON TREATMENT'
             patient_visits[visit_date].tb_status = 'Rx' if status == 'CONFIRMED TB ON TREATMENT'
           when "DRUGS GIVEN"
-            concept_name = obs.concept.name.name rescue []
+            concept_name = obs.concept.fullname rescue []
             next unless concept_name == 'AMOUNT DISPENSED'
             patient_visits[visit_date].gave = [] if patient_visits[visit_date].gave.blank?
             patient_visits[visit_date].gave << [Drug.find(obs.value_drug).name,obs.value_numeric]
           when "REGIMEN"
-            concept_name = obs.concept.name.name rescue []
+            concept_name = obs.concept.fullname rescue []
             next unless concept_name == 'ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT'
             patient_visits[visit_date].reg =  obs.value_text 
           when "SYMPTOMS"
-            concept_name = obs.concept.name.name rescue []
+            concept_name = obs.concept.fullname rescue []
             next unless concept_name == 'SYMPTOM PRESENT'
             symptoms = obs.to_s.split(':').map{|sy|sy.strip.capitalize unless sy == 'SYMPTOM PRESENT'}.compact rescue []
             patient_visits[visit_date].s_eff = symptoms.join("<br/>") unless symptoms.blank?
           when "PILLS BROUGHT"
-            concept_name = obs.concept.name.name rescue []
+            concept_name = obs.concept.fullname rescue []
             next unless concept_name == 'AMOUNT OF DRUG BROUGHT TO CLINIC'
             patient_visits[visit_date].pills = [] if patient_visits[visit_date].pills.blank?
             patient_visits[visit_date].pills << [Drug.find(obs.order.drug_order.drug_inventory_id).name,obs.value_numeric]
           when "ADHERENCE"
-            concept_name = obs.concept.name.name rescue []
+            concept_name = obs.concept.fullname rescue []
             next unless concept_name == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'
             next if obs.value_text.blank?
             patient_visits[visit_date].adherence = [] if patient_visits[visit_date].adherence.blank?
             patient_visits[visit_date].adherence << [Drug.find(obs.order.drug_order.drug_inventory_id).name,(obs.value_text + '%')]
           when "NOTES"
-            concept_name = obs.concept.name.name.strip rescue []
+            concept_name = obs.concept.fullname.strip rescue []
             next unless concept_name == 'CLINICAL NOTES CONSTRUCT'
             patient_visits[visit_date].notes+= '<br/>' + obs.value_text unless patient_visits[visit_date].notes.blank?
             patient_visits[visit_date].notes = obs.value_text if patient_visits[visit_date].notes.blank?
@@ -175,7 +175,7 @@ class Mastercard
     patient_states.each do |state| 
       visit_date = state.start_date.to_date
       patient_visits[visit_date] = self.new() if patient_visits[visit_date].blank?
-      patient_visits[visit_date].outcome = state.program_workflow_state.concept.name.name rescue 'Unknown state'
+      patient_visits[visit_date].outcome = state.program_workflow_state.concept.fullname rescue 'Unknown state'
     end
 
 

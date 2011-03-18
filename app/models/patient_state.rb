@@ -14,7 +14,7 @@ class PatientState < ActiveRecord::Base
   end
   
   def to_s
-    s = program_workflow_state.concept.name.name rescue 'Unknown state'
+    s = program_workflow_state.concept.fullname rescue 'Unknown state'
     s << " #{start_date.strftime('%d/%b/%Y')}" if start_date
     s << "-#{end_date.strftime('%d/%b/%Y')}" if end_date
     s

@@ -62,13 +62,13 @@ class ProgramsController < ApplicationController
   
   def workflows
     @workflows = ProgramWorkflow.all(:conditions => ['program_id = ?', params[:program]], :include => :concept)
-    @names = @workflows.map{|workflow| "<li value='#{workflow.id}'>#{workflow.concept.name.name}</li>" }
+    @names = @workflows.map{|workflow| "<li value='#{workflow.id}'>#{workflow.concept.fullname}</li>" }
     render :text => @names.join('')
   end
   
   def states
     @states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ?', params[:workflow]], :include => :concept)
-    @names = @states.map{|state| "<li value='#{state.id}'>#{state.concept.name.name}</li>" unless state.concept.name.name == params[:current_state]}
+    @names = @states.map{|state| "<li value='#{state.id}'>#{state.concept.fullname}</li>" unless state.concept.fullname == params[:current_state]}
     render :text => @names.join('')  
   end
 
@@ -84,7 +84,7 @@ class ProgramsController < ApplicationController
         :state => params[:current_state],
         :start_date => params[:current_date]) 
       if patient_state.save
-        if patient_state.program_workflow_state.concept.name.name == 'PATIENT TRANSFERRED OUT' 
+        if patient_state.program_workflow_state.concept.fullname == 'PATIENT TRANSFERRED OUT' 
           encounter = Encounter.new(params[:encounter])
           encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
           encounter.save
@@ -109,7 +109,7 @@ class ProgramsController < ApplicationController
           Observation.create(observation)
         end  
        
-        updated_state = patient_state.program_workflow_state.concept.name.name 
+        updated_state = patient_state.program_workflow_state.concept.fullname 
         if updated_state == 'PATIENT TRANSFERRED OUT' or updated_state == 'PATIENT DIED'
           #could not get the commented block of code to update - so I just kinda wrote a hack :(
           # will improve during code clean up!
@@ -135,10 +135,10 @@ class ProgramsController < ApplicationController
       program_workflow = ProgramWorkflow.all(:conditions => ['program_id = ?', patient_program.program_id], :include => :concept)
       @program_workflow_id = program_workflow.first.program_workflow_id
       @states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ?', @program_workflow_id], :include => :concept)
-      @names = @states.map{|state| state.concept.name.name }
+      @names = @states.map{|state| state.concept.fullname }
       @program_date_completed = patient_program.date_completed.to_date rescue nil
       @program_name = patient_program.program.name
-      @current_state = patient_program.patient_states.last.program_workflow_state.concept.name.name if patient_program.patient_states.last.end_date.blank?
+      @current_state = patient_program.patient_states.last.program_workflow_state.concept.fullname if patient_program.patient_states.last.end_date.blank?
     end
   end 
 
