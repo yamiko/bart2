@@ -30,7 +30,7 @@ class Mastercard
     visits.hiv_test_location = visits.hiv_test_location.to_s.split(':')[1].strip rescue nil
     visits.guardian = patient_obj.person.relationships.map{|r|Person.find(r.person_b).name}.join(' : ') rescue 'NONE'
     visits.reason_for_art_eligibility = patient_obj.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue nil
-    visits.reason_for_art_eligibility = visits.reason_for_art_eligibility.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',')
+    visits.reason_for_art_eligibility = visits.reason_for_art_eligibility.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue nil
     visits.transfer_in = patient_obj.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
     visits.transfer_in.blank? == true ? visits.transfer_in = 'NO' : visits.transfer_in = 'YES'
 
@@ -141,7 +141,7 @@ class Mastercard
             concept_name = obs.concept.fullname rescue []
             next unless concept_name == 'AMOUNT OF DRUG BROUGHT TO CLINIC'
             patient_visits[visit_date].pills = [] if patient_visits[visit_date].pills.blank?
-            patient_visits[visit_date].pills << [Drug.find(obs.order.drug_order.drug_inventory_id).name,obs.value_numeric]
+            patient_visits[visit_date].pills << [Drug.find(obs.order.drug_order.drug_inventory_id).name,obs.value_numeric] rescue []
           when "ADHERENCE"
             concept_name = obs.concept.fullname rescue []
             next unless concept_name == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'
