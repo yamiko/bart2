@@ -131,6 +131,16 @@ class Task < ActiveRecord::Base
   def self.validate_task(patient, task, location, session_date = Date.today)
     #return task unless task.has_program_id == 1
     return task if task.encounter_type == 'REGISTRATION'
+
+    #check if the latest HIV program is closed - if yes, the app should redirect the user to update state screen
+    if patient.encounters.find_by_encounter_type(EncounterType.find_by_name('ART_INITIAL').id)
+      latest_hiv_program = [] ; patient.patient_programs.collect{ | p |next unless p.program_id == 1 ; latest_hiv_program << p } 
+      if latest_hiv_program.last.closed?
+        task.url = '/patients/programs/{patient}' ; task.encounter_type = 'Program enrolment'
+        return task
+      end rescue nil
+    end
+
     return task if task.url == "/patients/show/{patient}"
 
     art_encounters = ['ART_INITIAL','HIV RECEPTION','VITALS','HIV STAGING','ART VISIT','ART ADHERENCE','TREATMENT','DISPENSING']
@@ -151,11 +161,6 @@ class Task < ActiveRecord::Base
       return task
     elsif patient.encounters.find_by_encounter_type(EncounterType.find_by_name(art_encounters[0]).id).blank? and task.encounter_type == art_encounters[0]
       return task
-    elsif patient.encounters.find_by_encounter_type(EncounterType.find_by_name(art_encounters[0]).id) and task.encounter_type == art_encounters[0]
-      if patient.patient_programs.last.closed?
-        task.url = '/patients/programs/{patient}' ; task.encounter_type = 'Program enrolment'
-        return task
-      end rescue nil
     end
     
     hiv_reception = Encounter.find(:first,
