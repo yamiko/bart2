@@ -80,5 +80,9 @@ class PatientProgram < ActiveRecord::Base
       :group => 'concept_id, program_id',
       :include => :concept).map(&:concept)
   end
-      
+
+  def closed?
+    (self.date_completed.blank? == false)
+  end
+        
 end

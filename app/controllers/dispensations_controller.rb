@@ -46,7 +46,7 @@ class DispensationsController < ApplicationController
       :value_numeric => params[:quantity],
       :obs_datetime => session[:datetime] || Time.now())
     if obs.save
-      @patient.patient_programs.find_by_program_id(Program.find_by_name("HIV PROGRAM")).transition(
+      @patient.patient_programs.find_last_by_program_id(Program.find_by_name("HIV PROGRAM")).transition(
                :state => "ON ANTIRETROVIRALS",:start_date => session[:datetime] || Time.now()) if @drug.arv? rescue nil
       @order.drug_order.total_drug_supply(@patient, @encounter,session_date.to_date)
       dispension_completed = @patient.set_received_regimen(@encounter, @order) if @order.drug_order.drug.arv?
