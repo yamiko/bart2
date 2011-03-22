@@ -95,10 +95,8 @@ class Task < ActiveRecord::Base
   
       if task.has_encounter_type_today.present?
         enc = nil
-        todays_encounters.each do | e |
-          if (e.name == task.has_encounter_type_today)
-            enc = e
-          end
+        if todays_encounters.collect{|e|e.name}.include?(task.has_encounter_type_today)
+          enc = task.has_encounter_type_today
         end
         skip = true unless enc.present?
       end
@@ -114,7 +112,7 @@ class Task < ActiveRecord::Base
       next if skip
 
       if location.name.match(/HIV|ART/i)
-        task = self.validate_task(patient,task,location,session_date.to_date)
+       task = self.validate_task(patient,task,location,session_date.to_date)
       end
 
       # Nothing failed, this is the next task, lets replace any macros
@@ -218,7 +216,6 @@ class Task < ActiveRecord::Base
       return task
     end
 
-
     unless patient.drug_given_before(session_date).blank?
       art_adherance = Encounter.find(:first,
                                      :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
@@ -234,7 +231,6 @@ class Task < ActiveRecord::Base
       end
     end
 
-
     if patient.prescribe_arv_this_visit(session_date)
       art_treatment = Encounter.find(:first,
                                      :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
@@ -248,7 +244,6 @@ class Task < ActiveRecord::Base
         return task
       end
     end
-
 
     task
   end 
