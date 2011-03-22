@@ -13,7 +13,7 @@ class ProgramsController < ApplicationController
 
   def create
     active_programs = PatientProgram.find(:all,:conditions =>["voided = 0 AND patient_id = ? AND location_id = ? AND program_id = ?",
-                                    @patient.id,Location.current_health_center.id,params[:program_id]])
+                                    @patient.id,params[:location_id],params[:program_id]])
     invalid_date = false
     initial_date = params[:initial_date].to_date
     active_programs.map{ | program |
@@ -22,7 +22,7 @@ class ProgramsController < ApplicationController
     }
 
     if invalid_date
-      error = "Patient was already enrolled in that program around that time: #{initial_date}"
+      error = "Already enrolled in that program around that time: #{initial_date}"
       redirect_to :controller => "patients" ,:action => "programs",
         :error => error,:patient_id => @patient.id  and return
     end
@@ -139,6 +139,13 @@ class ProgramsController < ApplicationController
       @program_date_completed = patient_program.date_completed.to_date rescue nil
       @program_name = patient_program.program.name
       @current_state = patient_program.patient_states.last.program_workflow_state.concept.fullname if patient_program.patient_states.last.end_date.blank?
+
+      closed_states = []
+      patient_program.patient_states.each do | state |
+        next if state.end_date.blank?
+        closed_states << "#{state.start_date.to_date}:#{state.end_date.to_date}"
+      end
+      @invalid_date_ranges = closed_states.join(',')
     end
   end 
 

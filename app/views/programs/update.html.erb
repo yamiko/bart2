@@ -16,6 +16,35 @@
     if(program_date_completed != ""){return false}
     return true
   } 
+
+  function validStartDate(){
+    closed_states = '<%= @invalid_date_ranges %>'
+    set_start_date = dateCreate($('tt_page_current_state_start_date').getElementsByTagName("input")[0].value)
+    
+    if (closed_states == '')
+      return true
+    
+    dates = closed_states.split(',')
+    return_str = true
+    for (i = 0 ; i < dates.length ; i++) {
+      start_date = dateCreate(dates[i].split(':')[0])
+      end_date = dateCreate(dates[i].split(':')[1])
+      if (set_start_date >= start_date && set_start_date < end_date)
+        return_str = false
+      
+    }
+    return return_str
+  } 
+
+  function dateCreate(date_str){
+    date_array = []
+    date_array.push(parseInt(date_str.substring(0,4)))
+    date_array.push(parseInt(date_str.substring(5,7)) - 1)
+    date_array.push(parseInt(date_str.substring(8,10)))
+    return new Date(date_array[0],date_array[1],date_array[2])
+  }
+
+
 </script>
 <form id='program' action="/programs/update" method = 'post'>
   <%= hidden_field_tag :patient_id, @patient.id %>
@@ -38,6 +67,8 @@
          :tt_onLoad => "changeNextButtonCaption();",
          :helpText => "Current state start date",
          :max => "#{(Date.today).strftime('%Y-%m-%d')}",
+         :validationJS =>"validStartDate()",
+         :validationMessage => "Start date is overlaping with other states start dates",
          :tt_pageStyleClass => "Date DatesOnly"} %>
 
   <script>
