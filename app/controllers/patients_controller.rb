@@ -39,6 +39,8 @@ class PatientsController < ApplicationController
     	redirect_to :'clinic'
     	return
     else
+      next_form = next_task(@patient)
+      redirect_to next_form and return if next_form.match(/Reception/i)
 		  @relationships = @patient.relationships rescue []
 		  @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
 		  @restricted.each do |restriction|
