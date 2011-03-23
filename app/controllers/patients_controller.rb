@@ -34,7 +34,7 @@ class PatientsController < ApplicationController
     render :template => 'dashboards/treatment', :layout => 'dashboard' 
   end
 
-  def view_relationships
+  def guardians
     if @patient.blank?
     	redirect_to :'clinic'
     	return
