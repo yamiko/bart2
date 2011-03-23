@@ -34,6 +34,20 @@ class PatientsController < ApplicationController
     render :template => 'dashboards/treatment', :layout => 'dashboard' 
   end
 
+  def view_relationships
+    if @patient.blank?
+    	redirect_to :'clinic'
+    	return
+    else
+		  @relationships = @patient.relationships rescue []
+		  @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
+		  @restricted.each do |restriction|
+		    @relationships = restriction.filter_relationships(@relationships)
+		  end
+    	render :template => 'dashboards/relationships', :layout => 'dashboard' 
+  	end
+  end
+
   def relationships
     if @patient.blank?
     	redirect_to :'clinic'
