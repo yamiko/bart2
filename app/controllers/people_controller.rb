@@ -78,7 +78,7 @@ class PeopleController < ApplicationController
     redirect_to :action => "index" and return
   end
 
-  def find_by_identifier
+  def find_by_arv_number
     if request.post?
       redirect_to :action => 'search' ,
         :identifier => "#{Location.current_arv_code} #{params[:arv_number]}" and return

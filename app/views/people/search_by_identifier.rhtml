@@ -2,28 +2,24 @@
 <script type="text/javascript">
   var tt_cancel_destination = "/clinic"
 
-  function arvCode(){
-    inputElement = document.getElementById('tt_page_enter_arv_number').getElementsByTagName("input")[0]
-    prefix = document.createElement("span")
-    style = document.createAttribute("style")
-    style.value = "position: absolute; z-index: 100; left: 0px; font-size: 35px;"
-    prefix.setAttributeNode(style)
-    inputElement.setAttribute("style","text-align:right;width:99%;")
-    prefix.innerHTML = "<%=Location.current_arv_code rescue 'NNO' %>"
-    inputElement.parentNode.insertBefore(prefix, inputElement)
-    style.value+= 'left:30px;'
-    prefix.setAttributeNode(style)
+  function searchByOther(){
+    document.location = '/people/find_by_arv_number'
+  }
 
+  function addButton() {
+    keyboard = document.getElementsByClassName('abcKeyboard')[0]
+    keyboard = keyboard.getElementsByClassName('buttonLine')[0]
+    keyboard.innerHTML+= "<button id='back' class='keyboardButton' onmousedown='searchByOther();'><span>ARV number</span></button>"
   }
 </script>
 
 <style>
-#date,#star,#abc,#slash,#Unknown,#percent,#comma,#minus,#plus,#decimal {
-  display:none;
-}
+
+#space { display:inline; }
+
 </style>
 
 
-<form method = 'post' action = '/people/find_by_identifier'>
-   <%= text_field_tag :arv_number, nil , :field_type => 'number' , :helpText => 'Enter ARV Number',:tt_onLoad =>'arvCode()'%>
+<form method = 'post' action = 'search'>
+   <%= text_field_tag :identifier, nil , :helpText => 'Enter identifier', :tt_onLoad => 'addButton()' %>
 </form> 
