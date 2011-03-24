@@ -381,8 +381,14 @@ function populateInputPage(pageNum) {
 																						tstFormElements[i].attributes[a].value);
 				}
 			break;
+
+    case "TEXTAREA":
+			touchscreenInputNode = inputDiv.appendChild(document.createElement("textarea"));
+			touchscreenInputNode.setAttribute('type','textarea');
+			break;
+      
 	}
-	
+
 	setTouchscreenAttributes(touchscreenInputNode, tstFormElements[i], pageNum);
 
 	if (tstFormElements[i].value) {
@@ -471,6 +477,13 @@ function setTouchscreenAttributes(aInputNode, aFormElement, aPageNum) {
   aInputNode.setAttribute('class','touchscreenTextInput');
   aInputNode.setAttribute("v", aFormElement.getAttribute("validationRegexp"));  
 	if (aInputNode.type == "password") aInputNode.value = "";
+
+  if (aInputNode.type == 'textarea') {
+    aFormElement.setAttribute('touchscreenTextAreaID',aPageNum);
+    aInputNode.setAttribute('refersToTouchscreenTextAreaID',aPageNum);
+    aInputNode.setAttribute('id','touchscreenTextArea'+aPageNum);
+    aInputNode.setAttribute('class','touchscreenTextArea');
+  }
 }
 
 function getInfoBar(inputElement, aPageNum) {
@@ -1548,7 +1561,10 @@ function getDatePicker() {
 
 	var defaultDate = joinDateValues(inputElement);
 	var arrDate = defaultDate.split('/');
-	document.getElementById("touchscreenInput"+tstCurrentPage).value = defaultDate;
+
+  try {
+	  document.getElementById("touchscreenInput"+tstCurrentPage).value = defaultDate;
+  }catch(e){document.getElementById("touchscreenTextArea"+tstCurrentPage).value = defaultDate;}
 	
 	if (!isNaN(Date.parse(defaultDate))) {
 		ds = new DateSelector({element: keyboardDiv, target: tstInputTarget, year: arrDate[2], month: arrDate[1], date: arrDate[0], format: "dd/MM/yyyy" });
@@ -1688,6 +1704,11 @@ function listSuggestions(inputTargetPageNumber) {
 		return;
 	}
 	var inputElement = document.getElementById('touchscreenInput'+inputTargetPageNumber); 
+
+  if (inputElement == null) {
+	  var inputElement = document.getElementById('touchscreenTextArea'+inputTargetPageNumber); 
+  }
+
 
 	if(inputElement.getAttribute("ajaxURL") != null && inputElement.getAttribute("ajaxURL")){
 		ajaxRequest(document.getElementById('options'),inputElement.getAttribute("ajaxURL")+inputElement.value);
