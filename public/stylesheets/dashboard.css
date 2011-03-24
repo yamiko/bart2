@@ -69,6 +69,7 @@ button {
   font-weight:bold;
   font-size:1.2em;
   margin: 0 4px;
+  -moz-user-select:none;
 }
 
 #footer {
