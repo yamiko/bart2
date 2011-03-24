@@ -1265,7 +1265,9 @@ function cancelConfirmValue() {
 }
 
 function clearInput(){
-  document.getElementById('touchscreenInput'+tstCurrentPage).value = "";
+  try{
+    document.getElementById('touchscreenInput'+tstCurrentPage).value = "";
+  }catch(e){ document.getElementById('touchscreenTextArea'+tstCurrentPage).value = ""; }
 
   if(doListSuggestions){
     listSuggestions(tstCurrentPage);
