@@ -89,7 +89,7 @@
     <%= hidden_field_tag "observations[][patient_id]",@patient.id %>
   <%end%>
 
-  <%= touch_text_field_tag("CLINICAL NOTES CONSTRUCT", @patient, nil,
+  <%= touch_text_area_tag("CLINICAL NOTES CONSTRUCT", @patient, nil,
     {:optional => true,:helpText => "Clinical notes (optional)"}, time=DateTime.now()) %>
 
   <%= submit_tag "Finish" %>    
