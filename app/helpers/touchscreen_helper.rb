@@ -138,8 +138,8 @@ module TouchscreenHelper
 
   def touch_text_area_tag(concept, patient, value, options={}, time=DateTime.now())
     content = ""
-    content << text_area_tag("observations[][value_text]", value, options) 
     content << touch_meta_tag(concept, patient, time, 'value_text', options)
+    content << text_area_tag("observations[][value_text]", value, options) 
     content
   end
 end
