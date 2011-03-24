@@ -2,7 +2,14 @@ class PeopleController < ApplicationController
   def index
     redirect_to "/clinic"
   end
- 
+
+  def test
+    if request.post?
+      raise params.inspect
+    end
+    @patient = Patient.find(:last)
+  end
+   
   def new
   end
   

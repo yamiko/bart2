@@ -1010,21 +1010,9 @@ function tt_update(sourceElement){
  
       }
       break;
-    case "SELECT":
-    /*
-      var val_arr = new Array();
-      if (targetElement.multiple)
-        val_arr = sourceElement.value.split(tstMultipleSplitChar);
-      else
-        val_arr.push(sourceElement.value);
-      for(i=0;i<targetElement.options.length;i++){
-        if(optionIncludedInValue(targetElement.options[i].value, val_arr)){
-          targetElement.options[i].selected = true;
-          if (!targetElement.multiple) break;
-        } else targetElement.options[i].selected = false;
-      }   
+    case "TEXTAREA":
+      targetElement.value = sourceValue;
       break;
-      */
   }
 }
 
@@ -1104,8 +1092,10 @@ function joinDateValues(aDateElement) {
 
 // args: page number to load, validate: true/false
 function gotoPage(destPage, validate){
-	var currentPage = tstCurrentPage; 
-	var currentInput = document.getElementById("touchscreenInput"+currentPage);
+	var currentPage = tstCurrentPage;
+  var currentInput = document.getElementById("touchscreenInput"+currentPage);
+  if (currentInput == null)
+    currentInput = document.getElementById("touchscreenTextArea"+currentPage); 
 
 	if (currentInput) {
 //    if (document.getElementById'dateselector') != null && typeof ds != 'undefined')
@@ -1113,6 +1103,7 @@ function gotoPage(destPage, validate){
 		if (validate) {
 			if (!inputIsValid()) return;
 		}
+
 		tt_update(currentInput);
 		tstPageValues[currentPage] = currentInput.value;
 		var currentPageIndex = document.getElementById("progressAreaPage"+currentPage);
@@ -1893,7 +1884,10 @@ function validateRule(aNumber) {
 
 // Touchscreen Input element
 var TTInput = function(aPageNum) {
-	this.element = document.getElementById("touchscreenInput"+aPageNum);
+  this.element = document.getElementById("touchscreenInput"+aPageNum);
+  if (this.element == null) 
+    this.element = document.getElementById("touchscreenTextArea"+aPageNum); 
+
 	this.formElement = tstFormElements[tstPages[aPageNum]]
 	this.value = this.element.value;
 
