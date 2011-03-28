@@ -68,7 +68,11 @@ class ProgramsController < ApplicationController
   
   def states
     @states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ?', params[:workflow]], :include => :concept)
-    @names = @states.map{|state| "<li value='#{state.id}'>#{state.concept.fullname}</li>" unless state.concept.fullname == params[:current_state]}
+    @names = @states.map{|state|
+      name = state.concept.fullname rescue nil
+      next if name.blank? 
+      "<li value='#{state.id}'>#{name}</li>" unless name == params[:current_state]
+    }
     render :text => @names.join('')  
   end
 
@@ -135,17 +139,26 @@ class ProgramsController < ApplicationController
       program_workflow = ProgramWorkflow.all(:conditions => ['program_id = ?', patient_program.program_id], :include => :concept)
       @program_workflow_id = program_workflow.first.program_workflow_id
       @states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ?', @program_workflow_id], :include => :concept)
-      @names = @states.map{|state| state.concept.fullname }
+      @names = @states.map{|state|
+        concept = state.concept
+        next if concept.blank?
+        concept.fullname 
+      }
+
+      @names = @names.compact unless @names.blank?
       @program_date_completed = patient_program.date_completed.to_date rescue nil
       @program_name = patient_program.program.name
       @current_state = patient_program.patient_states.last.program_workflow_state.concept.fullname if patient_program.patient_states.last.end_date.blank?
 
       closed_states = []
-      patient_program.patient_states.each do | state |
-        next if state.end_date.blank?
-        closed_states << "#{state.start_date.to_date}:#{state.end_date.to_date}"
+      current_programs = PatientProgram.find(:all,:conditions => ["patient_id = ?",@patient.id])
+      current_programs.each do | patient_program |
+        patient_program.patient_states.each do | state |
+          next if state.end_date.blank?
+          closed_states << "#{state.start_date.to_date}:#{state.end_date.to_date}"
+        end
+        @invalid_date_ranges = closed_states.join(',')
       end
-      @invalid_date_ranges = closed_states.join(',')
     end
   end 
 
