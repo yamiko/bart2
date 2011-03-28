@@ -67,9 +67,16 @@
     <div id="alerts" class="panel">
       <!-- h2>Alerts</h2 -->
       <ul class="list small" style="height:139px;">
+        <% for alert in @alerts do %>
+          <li class="data <%= cycle('even', 'odd') %>">  
+            <div class="patient_state"><%=h alert %></div>
+          </li>  
+        <% end %>
+        <% if @alerts.blank? %>
         <li class="data even">
           <div class="alert">There are no alerts for this patient</div>
         </li>
+        <% end %>
       </ul>
     </div>
     <div id="encounters" class="panel" style="float:right;">
