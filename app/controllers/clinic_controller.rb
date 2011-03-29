@@ -26,6 +26,7 @@ class ClinicController < ApplicationController
   end
 
   def properties
+    @settings = [["Set clinic days","#"],["Set clinic holidays","/properties/set_clinic_holidays"], ["Set site code", "#"]]
     render :template => 'clinic/properties', :layout => 'clinic' 
   end
 

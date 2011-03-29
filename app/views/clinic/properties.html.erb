@@ -3,7 +3,36 @@
   jQuery(document).ready(function($) {
   }) 
 </script>
+<style type="text/css">
+  #stats {
+    width:98%;
+    border:1px solid black;
+    margin:10px;
+    background:white;
+  } 
+  #stats td{
+    text-align:right;
+  }
+
+  #stats a { 
+    width:175px;
+    float:right;
+  }
+</style>
+<%= stylesheet_link_tag 'extra_buttons' %>
+
 <div id="tab" style="height: 461px;">
-  <div class="panel">
-  </div>        
+  <div class="panel" style="width:980px">
+    <h2>Set application settings</h2>
+    <div style="height:970px;overflow:auto;">
+      <table id="stats" style="height: 400px;" cellpadding="10">
+        <% @settings.each do |name,path| %>
+          <tr>
+            <td><a href="<%="#{path}"%>" class='report_button'><%=name%></a></td>
+          </tr>
+        <%end%>
+      </table>
+    </div>
+  </div>
 </div>
+
