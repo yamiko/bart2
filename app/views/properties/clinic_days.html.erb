@@ -1,0 +1,166 @@
+<script>
+   var tt_cancel_destination = "/clinic/properties"
+</script>
+<style>
+  table , div {
+     -moz-user-select: none;
+  }
+
+  h1 { padding-left:10px; }
+
+  .user_info {
+    background-color: #DDDDDD;
+    height: 461px;
+    border-bottom: 1px solid black;
+    border-top: 1px solid black;
+    margin-top: 1px;
+    font-size:25px;
+  }
+
+  .userdata {
+    background: none repeat scroll 0 0 white;
+    border: 1px solid black;
+    margin: 10px;
+    width: 98%;
+    height: 97%;
+  }
+
+  .weekday { text-align:left; padding-left:10px; }
+
+  .userdata td, .userdata th {
+    border-width: 0px;
+    border-style:solid;
+  }
+ 
+  .check_box { 
+    text-align:center;
+  }
+  
+  #monday , #tuesday , #wednesday , #thursday , #friday , #saturday , #sunday {
+    font-size:25px;
+    text-align:center;
+  }
+   
+  .blue { background-color:#E6E6FF; }
+
+  .user_info button {
+    margin-top: 10px;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 0 4px;
+    float:right;
+  }
+
+#accept {}
+</style>
+
+<body onload = 'addAttribute();'>
+<h1><%=Location.current_health_center.name %><br />clinic week day(s):&nbsp;<span id='age_group'>All ages</span></h1>
+<div class = 'user_info'>
+<table class = 'userdata'>
+  <% date = Date.today %>
+  <tr>
+    <td class='blue weekday'>Monday</td>
+    <td class='blue check_box'><%=text_field_tag :monday , nil ,:size => 1 ,:maxlength => 1 ,:onfocus => "this.blur()" ,:onmousedown => "selectDay('monday');" %></td>
+  </tr>
+  <tr>
+    <td class='white weekday'>Tuesday</td>
+    <td class='white check_box'><%=text_field_tag :tuesday ,nil ,:size => 1 ,:maxlength => 1 ,:onfocus => "this.blur()", :onmousedown => "selectDay('tuesday');"  %></td>
+  </tr>
+  <tr>
+    <td class='blue weekday'>Wednesday</td>
+    <td class='blue check_box'><%=text_field_tag :wednesday , nil , :size => 1  ,:maxlength => 1 ,:onfocus => "this.blur()" , :onmousedown => "selectDay('wednesday');" %></td>
+  </tr>
+  <tr>
+    <td class='white weekday'>Thursday</td>
+    <td class='white check_box'><%=text_field_tag :thursday , nil , :size => 1 ,:maxlength => 1 ,:onfocus => "this.blur()", :onmousedown => "selectDay('thursday');" %></td>
+  </tr>
+  <tr>
+    <td class='blue weekday'>Friday</td>
+    <td class='blue check_box'><%=text_field_tag :friday , nil , :size => 1 ,:maxlength => 1 ,:onfocus => "this.blur()", :onmousedown => "selectDay('friday');" %></td>
+  </tr>
+  <tr>
+    <td class='white weekday'>Saturday</td>
+    <td class='white check_box'><%=text_field_tag :saturday , nil , :size => 1 ,:maxlength => 1 ,:onfocus => "this.blur()", :onmousedown => "selectDay('saturday');" %></td>
+  </tr>
+  <tr>
+    <td class='blue weekday'>Sunday</td>
+    <td class='blue check_box'><%=text_field_tag :sunday , nil ,:size => 1 ,:maxlength => 1 ,:onfocus => "this.blur()", :onmousedown => "selectDay('sunday');" %></td>
+  </tr>
+</table>
+<br />
+</div>
+</body>
+
+
+<script>
+  var clinic_weekdays = []
+  function selectDay(weekday) {
+    check_box = document.getElementById(weekday);
+    if (check_box.value == '') {
+      check_box.value = "X"
+      clinic_weekdays.push(weekday) 
+      setClinicDays();
+    }else{ check_box.value = '' ; removeDay(weekday); }
+  }
+
+  function removeDay(weekday) {
+    set_weekdays = clinic_weekdays ; clinic_weekdays = [] ;
+    for (i = 0 ; i < set_weekdays.length ; i++){
+      if (set_weekdays[i] != weekday) { clinic_weekdays.push(set_weekdays[i]) };
+    }
+    setClinicDays();
+  }
+
+  function setClinicDays() {
+    if (clinic_weekdays != ''){
+      finish_button = document.getElementById('finishButton');
+      finish_button.setAttribute("onmousedown",'setWeekDays();');
+      finish_button.innerHTML = "<span>Create</span>"
+      tt_cancel_destination = null;
+    }else{
+      tt_cancel_destination = "/clinic/properties"
+      finish_button = document.getElementById('finishButton');
+      finish_button.innerHTML = "<span>Finish</span>"
+      finish_button.setAttribute('onmousedown',tt_cancel_destination);
+    }
+  }
+
+  function setWeekDays(){
+    submitForm = document.createElement("FORM");
+    submitForm.setAttribute("type","hidden");
+    document.body.appendChild(submitForm);
+    submitForm.method = "POST";
+    newElement = document.createElement("input")
+    newElement.setAttribute("name",'weekdays')
+    newElement.setAttribute("type","hidden");
+    submitForm.appendChild(newElement);
+    newElement.value = clinic_weekdays.join(',');
+
+    newElement = document.createElement("input")
+    newElement.setAttribute("name",'age_group')
+    newElement.setAttribute("type","hidden");
+    submitForm.appendChild(newElement);
+    newElement.value = document.getElementById('age_group').innerHTML;
+
+    submitForm.action= "/properties/clinic_days";
+    submitForm.submit();
+  }
+
+  function addAttribute() {
+    buttons_div = document.getElementById('buttons')
+    buttons_div.innerHTML+= "<button onmousedown='switchView();' id='switch' class='button navButton'><span>Children</span></button>";
+  }
+
+  function switchView(){
+    switch_button = document.getElementById('switch')
+    header = document.getElementById('age_group')
+    if (header.innerHTML == 'All ages') {
+      switch_button.innerHTML = "<span>All ages</span>"
+      header.innerHTML = 'Children'
+    }else{
+      switch_button.innerHTML = "<span>Children</span>"
+      header.innerHTML = 'All ages'
+    }
+  }
+</script>

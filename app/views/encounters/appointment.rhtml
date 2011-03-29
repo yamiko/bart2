@@ -16,11 +16,11 @@
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
   var number_of_days_to_add = <%= @patient.number_of_days_to_add_to_next_appointment_date(session[:datetime] || Date.today) %>
-  var clinic_days = "<%= GlobalProperty.find_by_property('clinic_days').property_value rescue 'Monday,Tuesday,Wednesday,Thursday,Friday' %>"
+  var clinic_days = "<%= GlobalProperty.find_by_property('clinic.days').property_value rescue 'Monday,Tuesday,Wednesday,Thursday,Friday' %>"
   clinic_days = clinic_days.split(',');
 
   <%
-    clinic_holidays = GlobalProperty.find_by_property('clinic_holidays').property_value rescue '1900-12-25,1900-03-03' 
+    clinic_holidays = GlobalProperty.find_by_property('clinic.holidays').property_value rescue '1900-12-25,1900-03-03' 
     clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',')
   %>
   var holidays = '<%= clinic_holidays %>' 
