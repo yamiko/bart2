@@ -71,7 +71,7 @@
         date_set.push(dates[i])
     }
 
-    if (date_set == []){ 
+    if (date_set == [] || date_set == ''){ 
       tt_cancel_destination = "/clinic/properties";
       finish_button = document.getElementById('finishButton');
       finish_button.setAttribute('onmousedown',tt_cancel_destination);
