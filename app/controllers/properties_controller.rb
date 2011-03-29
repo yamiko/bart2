@@ -4,7 +4,7 @@ class PropertiesController < ApplicationController
   end
 
   def create_clinic_holidays
-    if request.post?
+    if request.post? and params[:holidays]
       clinic_holidays = GlobalProperty.find_by_property('clinic.holidays')
       if clinic_holidays.blank?
         clinic_holidays = GlobalProperty.new()  
@@ -14,8 +14,9 @@ class PropertiesController < ApplicationController
       clinic_holidays.property_value = params[:holidays]
       clinic_holidays.save 
       flash[:notice] = 'Date(s) successfully created.'
+      redirect_to '/properties/clinic_holidays' and return
     end
-    redirect_to '/properties/clinic_holidays' and return
+    redirect_to '/properties/set_clinic_holidays' and return
   end
 
   def clinic_holidays
@@ -25,7 +26,7 @@ class PropertiesController < ApplicationController
   end
 
   def clinic_days
-    if request.post?
+    if request.post? and params[:age_group]
       if params[:age_group] == 'Children'
         clinic_days = GlobalProperty.find_by_property('peads.clinic.days')
       else
