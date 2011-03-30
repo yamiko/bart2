@@ -18,6 +18,10 @@ class Encounter < ActiveRecord::Base
     self.encounter_datetime = Time.now if self.encounter_datetime.blank?
   end
 
+  def after_save
+    self.add_location_obs
+  end
+
   def after_void(reason = nil)
     self.orders.each{|row| Pharmacy.voided_stock_adjustment(order) if row.order_type_id == 1 } rescue []
     self.observations.each{|row| row.void(reason) } rescue []
