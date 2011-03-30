@@ -385,6 +385,11 @@ function populateInputPage(pageNum) {
     case "TEXTAREA":
 			touchscreenInputNode = inputDiv.appendChild(document.createElement("textarea"));
 			touchscreenInputNode.setAttribute('type','textarea');
+      // since we are not cloning this, we need to copy every attribute
+      for (var a=0; a<tstFormElements[i].attributes.length; a++) {
+        touchscreenInputNode.setAttribute(tstFormElements[i].attributes[a].name, 
+                                          tstFormElements[i].attributes[a].value);
+      }
 			break;
       
 	}

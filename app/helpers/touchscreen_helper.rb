@@ -137,6 +137,10 @@ module TouchscreenHelper
   end
 
   def touch_text_area_tag(concept, patient, value, options={}, time=DateTime.now())
+    options = {
+      :field_type => 'alpha',
+      :allowFreeText => true
+    }.merge(options)                 
     content = ""
     content << touch_meta_tag(concept, patient, time, 'value_text', options)
     content << text_area_tag("observations[][value_text]", value, options) 
