@@ -68,7 +68,7 @@ class PropertiesController < ApplicationController
       location = Location.find(Location.current_health_center.id)
       location.neighborhood_cell = params[:site_code]
       if location.save
-        flash[:notice] = "Site code successfully created.  (#{params[:site_code]})"
+        redirect_to "/clinic/properties" and return
       else
         flash[:error] = "Site code not created.  (#{params[:site_code]})"
       end
