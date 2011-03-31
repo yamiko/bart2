@@ -4,7 +4,7 @@ class PropertiesController < ApplicationController
   end
 
   def create_clinic_holidays
-    if request.post? and params[:holidays]
+    if request.post? and not params[:holidays].blank?
       clinic_holidays = GlobalProperty.find_by_property('clinic.holidays')
       if clinic_holidays.blank?
         clinic_holidays = GlobalProperty.new()  
@@ -26,7 +26,7 @@ class PropertiesController < ApplicationController
   end
 
   def clinic_days
-    if request.post? and params[:age_group]
+    if request.post? and not params[:age_group].blank?
       if params[:age_group] == 'Children'
         clinic_days = GlobalProperty.find_by_property('peads.clinic.days')
       else
