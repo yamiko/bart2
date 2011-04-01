@@ -61,6 +61,8 @@
       removeDate(set_date);
     }else{ 
       tt_cancel_destination = null;
+      finish_button = document.getElementById('finishButton');
+      finish_button.setAttribute('onmousedown','setHoliday();');
       date_set.push(set_date);
       td.style.background = 'tomato'; 
     }
