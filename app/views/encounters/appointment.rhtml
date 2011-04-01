@@ -23,7 +23,7 @@
 
   <% 
     
-    limit = 0 , booked_dates = ''
+    limit = 0 ; booked_dates = ''
 
     unless params[:end_date].blank?
       limit = GlobalProperty.find_by_property('clinic.appointment.limit').property_value rescue 0
