@@ -49,13 +49,20 @@
     <th class='blue'>Year</th>
 </table-->
 <table class = 'userdata'>
-  <% @holidays.map do | date | %>
+  <%row_class = 'blue'
+    @holidays.map do | date | 
+      if row_class == 'blue'
+        row_class = 'white'
+      else
+        row_class = 'blue'
+      end
+  %>
   <tr>
     <!--th class='blue'>Username:&nbsp;</th-->
-    <td class='blue'><%=date.strftime('%A')%></td>
-    <td class='blue'><%=date.strftime('%d')%></td>
-    <td class='blue'><%=date.strftime('%B')%></td>
-    <td class='blue'><%=date.strftime('%Y')%></td>
+    <td class=<%=row_class%>><%=date.strftime('%A')%></td>
+    <td class=<%=row_class%>><%=date.strftime('%d')%></td>
+    <td class=<%=row_class%>><%=date.strftime('%B')%></td>
+    <td class=<%=row_class%>><%=date.strftime('%Y')%></td>
   </tr>
   <% end %>
 </table>
