@@ -36,7 +36,9 @@
 </style>
 
 <script>
-  var tt_cancel_destination = "/clinic/properties";
+  try { var tt_cancel_destination = "/clinic/properties";
+  } catch(e) { tt_cancel_destination = "/clinic/properties" }
+
   var date_set = [];
   current_table_caption = null
 
