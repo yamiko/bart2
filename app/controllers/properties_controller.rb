@@ -74,4 +74,20 @@ class PropertiesController < ApplicationController
       end
     end
   end
+
+  def site_appointment_limit
+    if request.post? and not params[:appointment_limit].blank?
+      appointment_limit = GlobalProperty.find_by_property('clinic.appointment.limit')
+
+      if appointment_limit.blank?
+        appointment_limit = GlobalProperty.new()  
+        appointment_limit.property = 'clinic.appointment.limit'
+        appointment_limit.description = 'number of appointments allowed per clinic day'
+      end
+      appointment_limit.property_value = params[:appointment_limit]
+      appointment_limit.save 
+      redirect_to "/clinic/properties" and return
+    end
+  end
+
 end
