@@ -69,7 +69,7 @@
   function removeDate(set_date) {
     dates = date_set ; date_set = []
     for (i = 0 ; i < dates.length ; i++) {
-      if (dates[i] == set_date)
+      if (dates[i] != set_date)
         date_set.push(dates[i])
     }
 
