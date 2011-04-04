@@ -64,7 +64,7 @@ module Openmrs
     obs = Observation.new()
     obs.person_id = self.patient_id
     obs.encounter_id = self.id
-    obs.concept_id = ConceptName.find_by_name("CLINIC LOCATION").concept_id
+    obs.concept_id = ConceptName.find_by_name("WORKSTATION LOCATION").concept_id
     obs.value_text = Location.current_location.name
     obs.obs_datetime = self.encounter_datetime
     obs.save
