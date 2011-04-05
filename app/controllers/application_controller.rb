@@ -6,8 +6,8 @@ class ApplicationController < ActionController::Base
   helper :all
   helper_method :next_task
   filter_parameter_logging :password
-  before_filter :login_required, :except => ['login', 'logout','demographics']
-  before_filter :location_required, :except => ['login', 'logout', 'location','demographics']
+  before_filter :login_required, :except => ['login', 'logout','demographics','create_remote']
+  before_filter :location_required, :except => ['login', 'logout', 'location','demographics','create_remote']
   
   def rescue_action_in_public(exception)
     @message = exception.message

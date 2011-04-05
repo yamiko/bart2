@@ -134,6 +134,38 @@ class Person < ActiveRecord::Base
     return demographics
   end
 
+  def remote_demographics
+    demo = self.demographics
+
+    demographics = {
+                   "person" =>
+                   {"attributes" => {
+                      "occupation" => demo['person']['occupation'],
+                      "cell_phone_number" => demo['person']['cell_phone_number'],
+                    } ,
+                    "addresses" => 
+                     { "address2"=> demo['person']['addresses']['location'], 
+                       "city_village" => demo['person']['addresses']['city_village'], 
+                       "county_district" => ""
+                     },
+                    "age_estimate" => self.birthdate_estimated ,
+                    "birth_month"=> self.birthdate.month ,
+                    "patient" =>{"identifiers"=>
+                                {"National id"=> demo['person']['patient']['identifiers']['National id'] }
+                               },
+                    "gender" => self.gender.first ,
+                    "birth_day" => self.birthdate.day ,
+                    "date_changed" => demo['person']['date_changed'] ,
+                    "names"=>
+                      {
+                        "family_name2" =>"", 
+                        "family_name" => demo['person']['names']['family_name'] , 
+                        "given_name" => demo['person']['names']['given_name']
+                      },
+                    "birth_year" => self.birthdate.year }
+                    }
+  end
+
   def self.search_by_identifier(identifier)
     PatientIdentifier.find_all_by_identifier(identifier).map{|id| id.patient.person} unless identifier.blank? rescue nil
   end
@@ -205,17 +237,42 @@ class Person < ActiveRecord::Base
 
   def self.find_by_demographics(person_demographics)
     national_id = person_demographics["person"]["patient"]["identifiers"]["National id"] rescue nil
-    results = Person.search_by_identifier(national_id) unless national_id.nil?
-    return results unless results.blank?
+    person = Person.search_by_identifier(national_id) unless national_id.nil?
+    return {} if person.blank? 
 
-    gender = person_demographics["person"]["gender"] rescue nil
-    given_name = person_demographics["person"]["names"]["given_name"] rescue nil
-    family_name = person_demographics["person"]["names"]["family_name"] rescue nil
+    person_demographics = person.demographics
 
-    search_params = {:gender => gender, :given_name => given_name, :family_name => family_name }
+    results = {}
+    result_hash = {}
 
-    results = Person.search(search_params)
+    result_hash = {
+      "gender" =>  person_demographics["person"]["gender"],
+      "names" => {"given_name" =>  person_demographics["person"]["names"]["given_name"],
+                  "family_name" =>  person_demographics["person"]["names"]["family_name"],
+                  "family_name2" => nil
+                  },
+      "birth_year" => person_demographics['person']['birth_year'],
+      "birth_month" => person_demographics['person']['birth_month'],
+      "birth_day" => person_demographics['person']['birth_day'],
+      "addresses" => {"city_village" => person_demographics['person']['addresses']['city_village'],
+                      "address2" => nil,
+                      "state_province" => nil,
+                      "county_district" => nil
+                      },
+      "attributes" => {"occupation" => person_demographics['person']['occupation'],
+                      "home_phone_number" => nil,
+                      "office_phone_number" => nil,
+                      "cell_phone_number" => nil
+                      },
+      "patient" => {"identifiers" => {"National id" => person_demographics['person']['patient']['identifiers']['National id'],
+                                      "ARV Number" => ['person']['patient']['identifiers']['ARV Number']
+                                      }
+                   },
+      "date_changed" => person_demographics['person']['date_changed']
 
+    }
+    results["person"] = result_hash
+    return results
   end
 
   def self.create_from_form(params)
