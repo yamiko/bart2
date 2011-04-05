@@ -108,6 +108,8 @@ class Patient < ActiveRecord::Base
   end
   
   def visit_label(date = Date.today)
+    print_moh_visit_labels = GlobalProperty.find_by_property('print.moh.visit.labels').property_value rescue 'false'
+    return Mastercard.mastercard_visit_label(self,date) if print_moh_visit_labels == 'true'
     label = ZebraPrinter::StandardLabel.new
     label.font_size = 3
     label.font_horizontal_multiplier = 1
@@ -123,7 +125,7 @@ class Patient < ActiveRecord::Base
     }
     label.print(1)
   end
-  
+   
   def get_identifier(type = 'National id')
     identifier_type = PatientIdentifierType.find_by_name(type)
     return if identifier_type.blank?
