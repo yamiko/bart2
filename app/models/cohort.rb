@@ -158,7 +158,7 @@ class Cohort
         cohort_report['Confirmed HIV infection in infants (PCR)'] += 1
       elsif reason[0..11].strip == 'WHO STAGE I' or reason.match(/CD/i)
         cohort_report['WHO stage 1 or 2, CD4 below threshold'] += 1
-      elsif reason[0..12].strip == 'WHO STAGE II' or reason.match(/lymphocytes/i)
+      elsif reason[0..12].strip == 'WHO STAGE II' or reason.match(/lymphocytes/i) or reason.match(/LYMPHOCYTE/i)
         cohort_report['WHO stage 2, total lymphocytes'] += 1
       elsif reason[0..13].strip == 'WHO STAGE III'
         cohort_report['WHO stage 3'] += 1
@@ -184,7 +184,7 @@ class Cohort
         cohort_report['Total Confirmed HIV infection in infants (PCR)'] += 1
       elsif reason[0..11].strip == 'WHO STAGE I' or reason.match(/CD/i)
         cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] += 1
-      elsif reason[0..12].strip == 'WHO STAGE II' or reason.match(/lymphocytes/i)
+      elsif reason[0..12].strip == 'WHO STAGE II' or reason.match(/lymphocytes/i) or reason.match(/LYMPHOCYTE/i)
         cohort_report['Total WHO stage 2, total lymphocytes'] += 1
       elsif reason[0..13].strip == 'WHO STAGE III'
         cohort_report['Total WHO stage 3'] += 1
@@ -194,7 +194,6 @@ class Cohort
         cohort_report['Total Unknown reason'] += 1
       end
     end
-    
 
     cohort_report['TB within the last 2 years'] = self.tb_within_the_last_2_yrs
     cohort_report['Total TB within the last 2 years'] = self.tb_within_the_last_2_yrs(@@first_registration_date,@end_date)
@@ -436,10 +435,13 @@ class Cohort
                           INNER JOIN encounter e ON e.patient_id = p.patient_id
                           INNER JOIN obs ON obs.encounter_id = obs.encounter_id 
                           INNER JOIN concept_name n ON obs.value_coded = n.concept_id
-                          WHERE p.voided = 0 AND s.voided = 0 
-                          AND (patient_start_date(e.patient_id) >= '#{@@first_registration_date}' AND patient_start_date(e.patient_id) <= '#{@end_date}')
+                          WHERE p.voided = 0 AND s.voided = 0
+                          AND obs.obs_datetime = e.encounter_datetime
+                          AND (patient_start_date(e.patient_id) >= '#{@@first_registration_date}'
+                          AND patient_start_date(e.patient_id) <= '#{@end_date}')
                           AND obs.concept_id = #{tb_status_concept_id} AND e.encounter_type = #{art_visit_encounter_id}
-                          AND p.program_id = #{@@program_id} ORDER BY e.encounter_datetime DESC, patient_state_id DESC , start_date DESC) K
+                          AND p.program_id = #{@@program_id}
+                          ORDER BY e.encounter_datetime DESC, patient_state_id DESC , start_date DESC) K
                           GROUP BY K.patient_id
                           ORDER BY K.encounter_datetime DESC , K.obs_datetime DESC").map{| state | status << state.name }
 
@@ -448,7 +450,7 @@ class Cohort
         tb_status_hash['TB STATUS']['Not Suspected'] += 1
       elsif state == 'TB SUSPECTED' or state == 'susp'
         tb_status_hash['TB STATUS']['Suspected'] += 1
-      elsif state == 'RX' or state == 'CONFIRMED TB ON TREATMENT'
+      elsif state == 'RX' or state == 'CONFIRMED TB ON TREATMENT' or state == 'Rx' or state == 'ONFIRMED TB ON TREATMENT'
         tb_status_hash['TB STATUS']['On Treatment'] += 1
       elsif state == 'noRX' or state == 'CONFIRMED TB NOT ON TREATMENT'
         tb_status_hash['TB STATUS']['Not on treatment'] += 1
