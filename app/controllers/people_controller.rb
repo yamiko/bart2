@@ -9,11 +9,52 @@ class PeopleController < ApplicationController
   def identifiers
   end
 
+  def create_remote
+    person_params = {"occupation"=> params[:occupation],
+ "age_estimate"=> params['patient_age']['age_estimate'],
+ "cell_phone_number"=> params['cell_phone']['identifier'],
+ "birth_month"=> params[:patient_month],
+ "addresses"=>{ "address2" => params['p_address']['identifier'],
+ "city_village"=> params['patientaddress']['city_village'],
+ "county_district"=> params[:birthplace] },
+ "gender" => params['patient']['gender'],
+ "birth_day" => params[:patient_day],
+ "names"=> {"family_name2"=>"Unknown",
+ "family_name"=> params['patient_name']['family_name'],
+ "given_name"=> params['patient_name']['given_name'] },
+ "birth_year"=> params[:patient_year] }
+
+    #raise person_params.to_yaml
+    if User.current_user.blank?
+      User.current_user = User.find(1)
+    end rescue []
+
+    if Location.current_location.blank?
+      Location.current_location = Location.find(GlobalProperty.find_by_property('current_health_center_id').property_value)
+    end rescue []
+
+    person = Person.create_from_form(person_params)
+    if person
+      patient = Patient.new()
+      patient.patient_id = person.id
+      patient.save
+      patient.national_id_label 
+    end
+    #render :text => person.demographics.to_json
+    render :text => person.remote_demographics.to_json
+  end
+
   def demographics
     # Search by the demographics that were passed in and then return demographics
     people = Person.find_by_demographics(params)
     result = people.empty? ? {} : people.first.demographics
     render :text => result.to_json
+  end
+  
+  def art_information
+    national_id = params["person"]["patient"]["identifiers"]["National id"] rescue nil
+    art_info = Patient.art_info_for_remote(national_id)
+    render :text => art_info.to_json
   end
  
   def search

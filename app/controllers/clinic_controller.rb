@@ -36,7 +36,8 @@ class ClinicController < ApplicationController
                   ["Set clinic days","/properties/clinic_days"],
                   ["View clinic holidays","/properties/clinic_holidays"],
                   ["Set clinic holidays","/properties/set_clinic_holidays"], 
-                  ["Set site code", "/properties/site_code"]
+                  ["Set site code", "/properties/site_code"],
+                  ["Set appointment limit", "/properties/set_appointment_limit"]
                 ]
     render :template => 'clinic/properties', :layout => 'clinic' 
   end

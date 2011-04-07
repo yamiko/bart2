@@ -37,11 +37,18 @@
   } 
 
   function dateCreate(date_str){
-    date_array = []
-    date_array.push(parseInt(date_str.substring(0,4)))
-    date_array.push(parseInt(date_str.substring(5,7)) - 1)
-    date_array.push(parseInt(date_str.substring(8,10)))
-    return new Date(date_array[0],date_array[1],date_array[2])
+    intyear = 0 ; intmonth = 0 ; intday = 0;
+    intyear = parseInt(date_str.substring(0,4))
+    intmonth = (parseInt(date_str.substring(5,7)) - 1)
+    intday = (parseInt(date_str.substring(8,10)))
+
+    if (intmonth == -1)
+      intmonth = (parseInt(date_str.substring(5,7).substring(1,2)) - 1)
+
+    if (intday == 0)
+      intday = parseInt(date_str.substring(8,10).substring(1,2))
+
+    return new Date(intyear,intmonth,intday)
   }
 
 

@@ -36,7 +36,9 @@
 </style>
 
 <script>
-  var tt_cancel_destination = "/clinic/properties";
+  try { var tt_cancel_destination = "/clinic/properties";
+  } catch(e) { tt_cancel_destination = "/clinic/properties" }
+
   var date_set = [];
   current_table_caption = null
 
@@ -59,6 +61,8 @@
       removeDate(set_date);
     }else{ 
       tt_cancel_destination = null;
+      finish_button = document.getElementById('finishButton');
+      finish_button.setAttribute('onmousedown','setHoliday();');
       date_set.push(set_date);
       td.style.background = 'tomato'; 
     }
@@ -67,7 +71,7 @@
   function removeDate(set_date) {
     dates = date_set ; date_set = []
     for (i = 0 ; i < dates.length ; i++) {
-      if (dates[i] == set_date)
+      if (dates[i] != set_date)
         date_set.push(dates[i])
     }
 
