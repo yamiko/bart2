@@ -54,7 +54,7 @@
   <%= select_tag 'current_state', params[:current_state],
       {:id => 'initial_state',
        :field_type => 'alpha',
-       :helpText => "Current state",
+       :helpText => "New state",
        :tt_onLoad => "resetNextButtonCaption();set_workflow_for_states();", 
        :ajaxURL => "",
        :validationJS =>"validProgram()",
@@ -65,10 +65,10 @@
         {:id => 'current_date',
          :field_type => 'date',
          :tt_onLoad => "changeNextButtonCaption();",
-         :helpText => "Current state start date",
+         :helpText => "New state start date",
          :max => "#{(Date.today).strftime('%Y-%m-%d')}",
          :validationJS =>"validStartDate()",
-         :validationMessage => "Start date is overlaping with other states start dates",
+         :validationMessage => "Start date is overlapping with other states start dates",
          :tt_pageStyleClass => "Date DatesOnly"} %>
 
   <script>
@@ -86,7 +86,7 @@
   <%= select_tag 'transfer_out_location_id', nil,
       {:id => 'transfer_out_location_id',
        :field_type => 'alpha',
-       :helpText => "Transfer out location",
+       :helpText => "Transfer out to location",
        :ajaxURL => '/programs/locations?q=',
        :condition => "current_state_input_box.value == 'PATIENT TRANSFERRED OUT'",
        :allowFreeText => true } %>
@@ -95,7 +95,7 @@
       {:id => "transfer_within_responsibility",
        :optional => false,
        :condition => "current_state_input_box.value == 'PATIENT TRANSFERRED OUT'",
-       :helpText => "Transfer within responsibility" } %>
+       :helpText => "Transfer within responsibility (e.g. District)" } %>
 
 
   <%= hidden_field_tag "encounter[encounter_type_name]", "TRANSFER OUT" %>
