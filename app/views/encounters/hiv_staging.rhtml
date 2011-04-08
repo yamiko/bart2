@@ -152,19 +152,20 @@
         presumedSeverHiv == null} catch (e) {
       } finally {presumedSeverHiv = null}
 
-      try{
-        if (ageInMonths <= 17 && firstPositiveHivTestType == "HIV RAPID TEST, QUALITATIVE" && presumedSeverHiv)
+      try {
+        if (ageInMonths <= 17 && firstPositiveHivTestType == "HIV RAPID TEST, QUALITATIVE" && presumedSeverHiv) {
           reasonForArtEligibility = "PRESUMED SEVERE HIV";
-        else if (ageInMonths <= 12 && firstPositiveHivTestType == "HIV DNA POLYMERASE CHAIN REACTION")
+        } else if (ageInMonths <= 12 && firstPositiveHivTestType == "HIV DNA POLYMERASE CHAIN REACTION") {
           reasonForArtEligibility = "HIV DNA POLYMERASE CHAIN REACTION";
-        else if (whoStage >= 3)
+        } else if (whoStage >= 3) {
           reasonForArtEligibility = whoStageConcept(whoStage, "PEDS");  
-        else if ($('cd4_count_less_than_250') && $('cd4_count_less_than_250').value == "YES")
+        } else if ($('cd4_count_less_than_250') && $('cd4_count_less_than_250').value == "YES") {
           reasonForArtEligibility = "CD4 COUNT LESS THAN 250";
-        else if ($('cd4_percent_less_than_25') && $('cd4_percent_less_than_25').value == "YES")
-          reasonForArtEligibility = "CD4 PERCENT LESS THAN 25";
-        else if (whoStage >= 2 && lymphocyteCount < lymphocyteThresholds[age])
+        } else if ($('cd4_percent_less_than_25') && $('cd4_percent_less_than_25').value == "YES") {
+          if ($('new_cd4_percent_available').value == 'YES'){ reasonForArtEligibility = "CD4 PERCENT LESS THAN 25"; }
+        } else if (whoStage >= 2 && lymphocyteCount < lymphocyteThresholds[age]) {
           reasonForArtEligibility = "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2";              
+        }
       }catch(e){}
     }  
     $('reason_for_art_eligibility').value = reasonForArtEligibility;
