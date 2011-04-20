@@ -54,7 +54,7 @@
 #accept {}
 </style>
 
-<body onload = 'addAttribute();'>
+<body onload = 'setSelectedDays();addAttribute();'>
 <h1><%=Location.current_health_center.name %><br />clinic week day(s):&nbsp;<span id='age_group'>All ages</span></h1>
 <div class = 'user_info'>
 <table class = 'userdata'>
@@ -94,29 +94,66 @@
 
 
 <script>
-  var clinic_weekdays = []
+  var clinic_weekdays = [];
+  var peads_clinic_weekdays = [];
+
+
+  function setSelectedDays() {
+    selected_days = "<%=@clinic_days%>";
+    peads_selected_days = "<%=@peads_clinic_days%>";
+
+    if (selected_days != ''){
+      clinic_weekdays = [];
+      selected_days = selected_days.split(',');
+      for(i = 0 ; i < selected_days.length ; i++){
+        selectDay(selected_days[i].toLowerCase());
+      }
+    }
+    if (peads_selected_days != ''){
+      peads_clinic_weekdays = []
+      peads_selected_days = peads_selected_days.split(',');
+      for(i = 0 ; i < peads_selected_days.length ; i++){
+        if(selected_days == ''){
+          selectDay(peads_selected_days[i].toLowerCase());
+        }
+        peads_clinic_weekdays.push(peads_selected_days[i].toLowerCase());
+      }
+    }
+  }
+
   function selectDay(weekday) {
     check_box = document.getElementById(weekday);
     if (check_box.value == '') {
+      if(document.getElementById('age_group').innerHTML == 'All ages'){
+        clinic_weekdays.push(weekday) 
+      } else { 
+        peads_clinic_weekdays.push(weekday) 
+      }
       check_box.value = "X"
-      clinic_weekdays.push(weekday) 
       setClinicDays();
     }else{ check_box.value = '' ; removeDay(weekday); }
   }
 
   function removeDay(weekday) {
-    set_weekdays = clinic_weekdays ; clinic_weekdays = [] ;
-    for (i = 0 ; i < set_weekdays.length ; i++){
-      if (set_weekdays[i] != weekday) { clinic_weekdays.push(set_weekdays[i]) };
+    if(document.getElementById('age_group').innerHTML == 'All ages'){
+      set_weekdays = clinic_weekdays ; clinic_weekdays = [] ;
+      for (i = 0 ; i < set_weekdays.length ; i++){
+        if (set_weekdays[i].toLowerCase() != weekday) { clinic_weekdays.push(set_weekdays[i]) };
+      }
+    }else{
+      set_weekdays = peads_clinic_weekdays ; peads_clinic_weekdays = [] ;
+      for (i = 0 ; i < set_weekdays.length ; i++){
+        if (set_weekdays[i].toLowerCase() != weekday) { peads_clinic_weekdays.push(set_weekdays[i]) };
+      }
     }
     setClinicDays();
   }
 
   function setClinicDays() {
-    if (clinic_weekdays != ''){
+    if (clinic_weekdays != '' || peads_clinic_weekdays != ''){
       finish_button = document.getElementById('finishButton');
       finish_button.setAttribute("onmousedown",'setWeekDays();');
-      finish_button.innerHTML = "<span>Create</span>"
+      finish_button.innerHTML = "<span>Done</span>"
       tt_cancel_destination = null;
     }else{
       tt_cancel_destination = "/clinic/properties"
@@ -127,21 +164,65 @@
   }
 
   function setWeekDays(){
+    selected_days = "<%=@clinic_days%>";
+    peads_selected_days = "<%=@peads_clinic_days%>";
+
+    clinic_weekdays_count = 0;
+    peads_clinic_weekdays_count = 0
+    peads_wkdays_change = true
+    wkdays_change = true
+
+    if (selected_days != ''){
+      selected_days = selected_days.split(',')
+      for(x = 0 ; x < clinic_weekdays.length ; x++){
+        for(i = 0 ; i < selected_days.length ; i++){
+          if(selected_days[i].toLowerCase() == clinic_weekdays[x]){
+            clinic_weekdays_count+=1
+          }
+        }
+      }
+      if(clinic_weekdays_count == clinic_weekdays.length && clinic_weekdays_count == selected_days.length){
+        wkdays_change = false
+        //clinic_weekdays = []
+      }
+    }
+
+    if (peads_selected_days != ''){
+      peads_selected_days = peads_selected_days.split(',')
+      for(x = 0 ; x < peads_clinic_weekdays.length ; x++){
+        for(i = 0 ; i < peads_selected_days.length ; i++){
+          if(peads_selected_days[i].toLowerCase() == peads_clinic_weekdays[x]){
+            peads_clinic_weekdays_count+=1
+          }
+        }
+      }
+      if((peads_clinic_weekdays_count == peads_clinic_weekdays.length && peads_clinic_weekdays_count == peads_selected_days.length) == true){
+        peads_wkdays_change = false
+        //peads_clinic_weekdays = []
+      }
+    }
+
+    if(peads_wkdays_change == false && wkdays_change == false){
+      document.location = "/clinic/properties/"
+      return
+    }
+ 
     submitForm = document.createElement("FORM");
     submitForm.setAttribute("type","hidden");
-    document.body.appendChild(submitForm);
     submitForm.method = "POST";
+    document.body.appendChild(submitForm);
+
     newElement = document.createElement("input")
     newElement.setAttribute("name",'weekdays')
     newElement.setAttribute("type","hidden");
-    submitForm.appendChild(newElement);
     newElement.value = clinic_weekdays.join(',');
+    submitForm.appendChild(newElement);
 
     newElement = document.createElement("input")
-    newElement.setAttribute("name",'age_group')
+    newElement.setAttribute("name",'peadswkdays')
     newElement.setAttribute("type","hidden");
+    newElement.value = peads_clinic_weekdays.join(',');
     submitForm.appendChild(newElement);
-    newElement.value = document.getElementById('age_group').innerHTML;
 
     submitForm.action= "/properties/clinic_days";
     submitForm.submit();
@@ -155,6 +236,12 @@
   function switchView(){
     switch_button = document.getElementById('switch')
     header = document.getElementById('age_group')
+
+    wkdays =  ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
+    for(i = 0 ; i < wkdays.length ; i++){
+      document.getElementById(wkdays[i]).value = '';
+    }
+
     if (header.innerHTML == 'All ages') {
       switch_button.innerHTML = "<span>All ages</span>"
       header.innerHTML = 'Children'
@@ -162,5 +249,17 @@
       switch_button.innerHTML = "<span>Children</span>"
       header.innerHTML = 'All ages'
     }
+
+
+    if (header.innerHTML == 'All ages') {
+      for(i = 0 ; i < clinic_weekdays.length ; i++){
+        document.getElementById(clinic_weekdays[i]).value = 'X';
+      }
+    }else{
+      for(i = 0 ; i < peads_clinic_weekdays.length ; i++){
+        document.getElementById(peads_clinic_weekdays[i]).value = 'X';
+      }
+    }
+
   }
 </script>

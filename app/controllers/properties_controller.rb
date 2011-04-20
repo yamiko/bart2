@@ -1,5 +1,6 @@
 class PropertiesController < ApplicationController
   def set_clinic_holidays
+    @clinic_holidays = GlobalProperty.find_by_property('clinic.holidays').property_value rescue nil
     render :layout => "menu"
   end
 
@@ -26,25 +27,33 @@ class PropertiesController < ApplicationController
   end
 
   def clinic_days
-    if request.post? and not params[:age_group].blank?
-      if params[:age_group] == 'Children'
-        clinic_days = GlobalProperty.find_by_property('peads.clinic.days')
-      else
-        clinic_days = GlobalProperty.find_by_property('clinic.days')
-      end
+    if request.post? #and (not params[:weekdays].blank? or not params[:peadswkdays].blank?)
+      ['peads','all'].each do | age_group |
+        if age_group == 'peads'
+          #next if params[:peadswkdays].blank?
+          clinic_days = GlobalProperty.find_by_property('peads.clinic.days')
+          weekdays = params[:peadswkdays]
+        else
+          #next if params[:weekdays].blank?
+          clinic_days = GlobalProperty.find_by_property('clinic.days')
+          weekdays = params[:weekdays]
+        end
 
-      if clinic_days.blank?
-        clinic_days = GlobalProperty.new()  
-        clinic_days.property = 'clinic.days'
-        clinic_days.property = 'peads.clinic.days' if params[:age_group] == 'Children'
-        clinic_days.description = 'Week days when the clinic is open'
+        if clinic_days.blank?
+          clinic_days = GlobalProperty.new()  
+          clinic_days.property = 'clinic.days'
+          clinic_days.property = 'peads.clinic.days' if age_group == 'peads'
+          clinic_days.description = 'Week days when the clinic is open'
+        end
+        weekdays = weekdays.split(',').collect{ |wd|wd.capitalize }
+        clinic_days.property_value = weekdays.join(',') 
+        clinic_days.save 
       end
-      weekdays = params[:weekdays].split(',').collect{ |wd|wd.capitalize }
-      clinic_days.property_value = weekdays.join(',') 
-      clinic_days.save 
-      flash[:notice] = "Week day(s) successfully created.  (#{params[:age_group]})"
-      redirect_to "/properties/show_clinic_days" and return
+      flash[:notice] = "Week day(s) successfully created."
+      redirect_to "/properties/clinic_days" and return
     end
+    @peads_clinic_days = GlobalProperty.find_by_property('peads.clinic.days').property_value rescue nil
+    @clinic_days = GlobalProperty.find_by_property('clinic.days').property_value rescue nil
     render :layout => "menu"
   end
 

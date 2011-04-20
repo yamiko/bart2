@@ -236,20 +236,50 @@
   }
 
   function setHoliday(){
-     submitForm = document.createElement("FORM");
-     submitForm.setAttribute("type","hidden");
-     document.body.appendChild(submitForm);
-     submitForm.method = "POST";
-     newElement = document.createElement("input")
-     newElement.setAttribute("name",'holidays')
-     newElement.setAttribute("type","hidden");
-     submitForm.appendChild(newElement);
-     newElement.value = date_set.join(',');
-     submitForm.action= "/properties/create_clinic_holidays";
-     submitForm.submit();
+    selected_dates = "<%= @clinic_holidays %>"
+    if (selected_dates != ''){
+      change_attribute = 0;
+      selected_dates = selected_dates.split(',')
+      for(i = 0 ; i < selected_dates.length ; i++){
+        for(x = 0 ; x < date_set.length ; x++){
+          if(selected_dates[i].substring(5,10) == date_set[x].substring(5,10)){
+            change_attribute+= 1;
+          }
+        }
+      }
+
+      if (change_attribute == selected_dates.length && change_attribute == date_set.length){
+        document.location = "/clinic/properties";
+        return;
+      }
+    }
+
+
+    submitForm = document.createElement("FORM");
+    submitForm.setAttribute("type","hidden");
+    document.body.appendChild(submitForm);
+    submitForm.method = "POST";
+    newElement = document.createElement("input")
+    newElement.setAttribute("name",'holidays')
+    newElement.setAttribute("type","hidden");
+    submitForm.appendChild(newElement);
+    newElement.value = date_set.join(',');
+    submitForm.action= "/properties/create_clinic_holidays";
+    submitForm.submit();
+  }
+
+  function setSelectedDates() {
+    selected_dates = "<%= @clinic_holidays %>"
+    if(selected_dates == '')
+      return 
+
+    selected_dates = selected_dates.split(',')
+    for(i = 0 ; i < selected_dates.length ; i++){
+      addDate(selected_dates[i]);
+    }
   }
 </script>
 
-<body onload="setAttributes();">
+<body onload="setAttributes();setSelectedDates()">
 <%= calender %>
 </body>
