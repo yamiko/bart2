@@ -4,9 +4,14 @@ class ProgramsController < ApplicationController
   def new
     session[:return_to] = nil
     session[:return_to] = params[:return_to] unless params[:return_to].blank?
-    program_names = PatientProgram.find(:all,:conditions =>["voided = 0 AND patient_id = ? AND location_id = ?",
-                                    params[:patient_id],Location.current_health_center.id]).map{|pat_program|
-                                    pat_program.program.name if pat_program.date_completed.blank?}
+    program_names = PatientProgram.find(:all,
+                                    :joins => "INNER JOIN location l ON l.location_id = patient_program.location_id
+                                               INNER JOIN program p ON p.program_id = patient_program.program_id",
+                                    :select => "p.name program_name ,l.name location_name,patient_program.date_completed date_completed",
+                                    :conditions =>["voided = 0 AND patient_id = ?",params[:patient_id]]
+                                    ).map{|pat_program|
+                                      [pat_program.program_name,pat_program.location_name] if pat_program.date_completed.blank?
+                                    }
     @enrolled_program_names = program_names.to_json                                
     @patient_program = PatientProgram.new
   end
@@ -55,7 +60,8 @@ class ProgramsController < ApplicationController
   end  
   
   def locations
-    @locations = Location.most_common_program_locations(params[:q] || '')
+    #@locations = Location.most_common_program_locations(params[:q] || '')
+    @locations = Location.most_common_locations(params[:q] || '')
     @names = @locations.map{|location| "<li value='#{location.location_id}'>#{location.name}</li>" }
     render :text => @names.join('')
   end

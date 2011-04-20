@@ -7,6 +7,7 @@
 <script>
   var tt_cancel_destination = "/patients/programs/<%= @patient.patient_id %>"  
   var enrolled_program_names = <%=@enrolled_program_names%>
+  var selected_program = null
   
   function set_program_for_workflows() {
     var program_id = encodeURIComponent($('program_id').value); 
@@ -20,10 +21,20 @@
     listSuggestions(tstCurrentPage); 
   }
  
-  function validProgram(){
+  function selectedProgram(){
     selected_program = ($('tt_page_select_program').getElementsByTagName("input")[0].value)
+    return true
+  }
+ 
+  function validProgram(){
+    if(enrolled_program_names == '')
+      return true
+
+    selected_location = ($('tt_page_location').getElementsByTagName("input")[0].value)
     for (var i = 0 ; i < enrolled_program_names.length ; i++ ){
-      if(enrolled_program_names[i] == selected_program){return false}
+      if(enrolled_program_names[i][0] == selected_program && enrolled_program_names[i][1] == selected_location){
+        return false
+      }
     }
     return true
   }
@@ -39,11 +50,13 @@
   <%= select_tag 'program_id', options_for_select(
     Program.all.inject({}){|result, element| result[element.name] = element.program_id; result }, nil), 
     {:helpText => "Select Program",
-     :validationJS =>"validProgram()",
+     :validationJS =>"selectedProgram()",
      :validationMessage => "Patient already enrolled in program" } %> 
 
   <%= select_tag 'location_id', params[:location_id],
     {:id => 'location_id', 
+     :validationJS =>"validProgram()",
+     :validationMessage => "Patient already enrolled in program",
      :field_type => 'alpha', 
      :helpText => "Location", 
      :ajaxURL => '/programs/locations?q=', 
