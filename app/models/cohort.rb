@@ -269,7 +269,7 @@ class Cohort
 
   def patients_reinitiated_on_art(start_date = @start_date, end_date = @end_date)
     patients = []
-    yes_concept = ConceptName.find_by_name('YES')
+    no_concept = ConceptName.find_by_name('NO')
     date_art_last_taken_concept = ConceptName.find_by_name('DATE ART LAST TAKEN')
     taken_arvs_concept = ConceptName.find_by_name('HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS')
     PatientProgram.find_by_sql("SELECT 
@@ -278,17 +278,21 @@ class Cohort
                                 INNER JOIN patient_program p ON p.patient_id = obs.person_id
                                 INNER JOIN patient_state s ON p.patient_program_id = s.patient_program_id
                                 WHERE p.program_id = #{@@program_id} 
-                                AND (obs.concept_id = #{date_art_last_taken_concept.concept_id} OR obs.concept_id = #{taken_arvs_concept.id})
-                                AND patient_start_date(patient_id) >= '#{start_date}' AND patient_start_date(patient_id) <= '#{end_date}' 
-                                GROUP BY patient_id 
-                                ORDER BY obs.obs_datetime DESC").map do | ob | 
-                                  if ob.concept_id == date_art_last_taken_concept.id
-                                    patients << ob.patient_id if ob.value_coded == yes_concept.id
-                                  else
-                                    unless 4 >= ((ob.date_art_last_taken.to_date - ob.visit_date.to_date) / 7).to_i 
+                                AND (obs.concept_id = #{date_art_last_taken_concept.concept_id}
+                                OR obs.concept_id = #{taken_arvs_concept.concept_id})
+                                AND patient_start_date(patient_id) >= '#{start_date}'
+                                AND patient_start_date(patient_id) <= '#{end_date}'
+                                GROUP BY patient_id
+                                ORDER BY obs.obs_datetime DESC").map do | ob |
+                                  if ob.concept_id.to_s == date_art_last_taken_concept.concept_id.to_s
+                                    unless 4 >= ((ob.visit_date.to_date -
+                                                  ob.date_art_last_taken.to_date) / 7).to_i
                                       patients << ob.patient_id
                                     end
-                                  end  
+                                  else
+                                    patients << ob.patient_id if ob.value_coded.to_s ==
+                                                                 no_concept.concept_id.to_s
+                                  end
                                 end
     patients.length
   end
