@@ -88,6 +88,7 @@ class Mastercard
       observations.map do |obs|
          encounter_name = obs.encounter.name rescue []
          next if encounter_name.blank?
+         next if encounter_name.match(/REGISTRATION/i)
          #next unless clinic_encounters.include?(encounter_name)
          visit_date = obs.obs_datetime.to_date
          patient_visits[visit_date] = self.new() if patient_visits[visit_date].blank?
@@ -228,7 +229,7 @@ class Mastercard
     label.draw_text("#{visit.tb_status}",110,160,0,2,1,1,false)
     label.draw_text("#{self.adherence_to_show(visit.adherence).gsub('%', '\\\\%') rescue nil}",185,160,0,2,1,1,false)
     label.draw_text("#{visit_data['outcome']}",577,160,0,2,1,1,false)
-    label.draw_text("#{date}",655,160,0,2,1,1,false)
+    label.draw_text("#{visit_data['outcome_date']}",655,130,0,2,1,1,false)
     starting_index = 25
     start_line = 160
 
@@ -236,8 +237,8 @@ class Mastercard
       data = values.last rescue nil
       next if data.blank?
       bold = false
-      bold = true if key.include?("side_eff") and data !="None"
-      bold = true if key.include?("arv_given") 
+      #bold = true if key.include?("side_eff") and data !="None"
+      #bold = true if key.include?("arv_given") 
       starting_index = values.first.to_i
       starting_line = start_line 
       starting_line = start_line + 30 if key.include?("2")
@@ -298,8 +299,9 @@ class Mastercard
     data["outcome"] = visit.outcome rescue nil
     if visit.appointment_date and (data["outcome"].match(/ON ANTIRETROVIRALS/i) || data["outcome"].blank?)
       data["outcome"] = "Next: #{visit.appointment_date.strftime('%b %d %Y')}" 
+    else
+      data["outcome_date"] = "#{visit.date_of_outcome.to_date.strftime('%b %d %Y')}" if visit.date_of_outcome
     end
-    data["outcome_date"] = "#{visit.date_of_outcome.to_date.strftime('%b %d %Y')}" if visit.date_of_outcome
 
     count = 1
     visit.s_eff.split(",").each{|side_eff|
@@ -309,7 +311,15 @@ class Mastercard
 
     count = 1
     (visit.gave).each do | drug, pills |
-      data["arv_given#{count}"] = "255","#{drug} (#{pills})}"[0..26]
+      string = "#{drug} (#{pills})"
+      if string.length > 26
+        line = string[0..25]
+        line2 = string[26..-1] 
+        data["arv_given#{count}"] = "255",line
+        data["arv_given#{count+=1}"] = "255",line2
+      else
+        data["arv_given#{count}"] = "255",string
+      end
       count+= 1
     end rescue []
 

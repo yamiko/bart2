@@ -32,7 +32,6 @@ class ClinicController < ApplicationController
 
   def properties
     @settings = [
-                  ["View clinic days","/properties/show_clinic_days"],
                   ["Set clinic days","/properties/clinic_days"],
                   ["View clinic holidays","/properties/clinic_holidays"],
                   ["Set clinic holidays","/properties/set_clinic_holidays"], 
