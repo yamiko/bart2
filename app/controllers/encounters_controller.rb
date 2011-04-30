@@ -49,7 +49,7 @@ class EncountersController < ApplicationController
       observation[:encounter_id] = encounter.id
       observation[:obs_datetime] = encounter.encounter_datetime || Time.now()
       observation[:person_id] ||= encounter.patient_id
-      observation[:concept_name] ||= "DIAGNOSIS" if encounter.type.name == "DIAGNOSIS"
+      observation[:concept_name] ||= "DIAGNOSIS" if encounter.type.name == "OUTPATIENT DIAGNOSIS"
       # Handle multiple select
       if observation[:value_coded_or_text_multiple] && observation[:value_coded_or_text_multiple].is_a?(Array)
         observation[:value_coded_or_text_multiple].compact!
@@ -132,10 +132,13 @@ class EncountersController < ApplicationController
   def diagnoses
     search_string = (params[:search_string] || '').upcase
     filter_list = params[:filter_list].split(/, */) rescue []
+    logger.debug("BEFORE")
     outpatient_diagnosis = ConceptName.find_by_name("DIAGNOSIS").concept
+    logger.debug("AFTER" + outpatient_diagnosis.name)
     diagnosis_concepts = ConceptClass.find_by_name("Diagnosis", :include => {:concepts => :name}).concepts rescue []    
     # TODO Need to check a global property for which concept set to limit things to
     if (false)
+/bin/bash: -c: line 1: syntax error: unexpected end of file
       diagnosis_concept_set = ConceptName.find_by_name('MALAWI NATIONAL DIAGNOSIS').concept
       diagnosis_concepts = Concept.find(:all, :joins => :concept_sets, :conditions => ['concept_set = ?', concept_set.id], :include => [:name])
     end  
