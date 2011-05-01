@@ -129,7 +129,9 @@ class Task < ActiveRecord::Base
   def self.validate_task(patient, task, location, session_date = Date.today)
     #return task unless task.has_program_id == 1
     return task if task.encounter_type == 'REGISTRATION'
-
+    # allow EID patients at HIV clinic, but don't validate tasks
+    return task if task.has_program_id == 4
+    
     #check if the latest HIV program is closed - if yes, the app should redirect the user to update state screen
     if patient.encounters.find_by_encounter_type(EncounterType.find_by_name('ART_INITIAL').id)
       latest_hiv_program = [] ; patient.patient_programs.collect{ | p |next unless p.program_id == 1 ; latest_hiv_program << p } 
