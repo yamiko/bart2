@@ -97,16 +97,16 @@ EOF
       setup do
         @evan = patient(:evan)
         @encounter = Encounter.make(
-          :encounter_type => encounter_type(:outpatient_diagnosis).encounter_type_id)
+          :encounter_type => EncounterType[:outpatient_diagnosis].encounter_type_id)
         @diagnosis = Observation.make(
           :encounter_id => @encounter.id, 
-          :concept_id => concept(:diagnosis).concept_id,
-          :value_coded => concept(:extrapulmonary_tuberculosis_without_lymphadenopathy).concept_id,
-          :value_coded_name_id => concept_name(:extrapulmonary_tuberculosis_without_lymphadenopathy).concept_name_id,
+          :concept_id => Concept[:diagnosis].concept_id,
+          :value_coded => Concept[:extrapulmonary_tuberculosis_without_lymphadenopathy].concept_id,
+          :value_coded_name_id => ConceptName[:extrapulmonary_tuberculosis_without_lymphadenopathy].concept_name_id,
           :value_text => nil)
         @diagnosis_non_coded = Observation.make(
           :encounter_id => @encounter.id, 
-          :concept_id => concept(:diagnosis_non_coded).concept_id,
+          :concept_id => Concept[:diagnosis_non_coded].concept_id,
           :value_text => "HE IS TOO SUAVE")
       end
     
