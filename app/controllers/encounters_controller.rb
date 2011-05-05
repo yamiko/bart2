@@ -49,7 +49,7 @@ class EncountersController < ApplicationController
       observation[:encounter_id] = encounter.id
       observation[:obs_datetime] = encounter.encounter_datetime || Time.now()
       observation[:person_id] ||= encounter.patient_id
-      observation[:concept_name] ||= "DIAGNOSIS" if encounter.type.name == "DIAGNOSIS"
+      observation[:concept_name] ||= "DIAGNOSIS" if encounter.type.name == "OUTPATIENT DIAGNOSIS"
       # Handle multiple select
       if observation[:value_coded_or_text_multiple] && observation[:value_coded_or_text_multiple].is_a?(Array)
         observation[:value_coded_or_text_multiple].compact!
