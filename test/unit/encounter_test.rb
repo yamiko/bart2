@@ -23,7 +23,7 @@ class EncounterTest < ActiveSupport::TestCase
     end
     
     should "return the encounter type name and the encounter name" do
-      encounter = Encounter.make(:encounter_type => encounter_type(:vitals).id)
+      encounter = Encounter.make(:encounter_type => EncounterType.find_by_name('vitals').id)
       assert_equal encounter.name, "VITALS"
     end
     
@@ -33,11 +33,12 @@ class EncounterTest < ActiveSupport::TestCase
     end
 
     should "be able to report the numbers of unique encounters for a given date" do
-      Encounter.make(:encounter_type => encounter_type(:vitals).id)
-      Encounter.make(:encounter_type => encounter_type(:vitals).id)
-      Encounter.make(:encounter_type => encounter_type(:adultinitial).id)
-      Encounter.make(:encounter_type => encounter_type(:pedsreturn).id)
-      assert_equal Encounter.count_by_type_for_date(Date.today), {"VITALS" => 2, "ADULTINITIAL" => 1, "PEDSRETURN" => 1}
+      Encounter.make(:encounter_type => EncounterType.find_by_name('vitals').id)
+      Encounter.make(:encounter_type => EncounterType.find_by_name('vitals').id)
+      Encounter.make(:encounter_type => EncounterType.find_by_name('adultinitial').id)
+      Encounter.make(:encounter_type => EncounterType.find_by_name('pedsreturn').id)
+      assert_equal Encounter.count_by_type_for_date(Date.today),
+                   {"VITALS" => 2, "ADULTINITIAL" => 1, "PEDSRETURN" => 1}
     end  
     
   end

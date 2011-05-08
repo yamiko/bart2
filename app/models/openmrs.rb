@@ -20,6 +20,14 @@ module Openmrs
         end  
       end
     end
+
+    # Shortcut for  looking up OpenMRS models by name using symbols or name
+    # e.g. Concept[:diagonis] instead of Concept.find_by_name('diagnosis')
+    #      Location[:my_hospital] => Location.find_by_name('neno district hospital')
+    def [](name)
+      name = name.to_s.gsub('_', ' ')
+      self.find_by_name(name)
+    end
   end  
 
   def self.included(base)

@@ -31,6 +31,7 @@ class ActiveSupport::TestCase
   self.set_fixture_class :order_type => OrderType
   self.set_fixture_class :patient_identifier_type => PatientIdentifierType
   self.set_fixture_class :patient => Patient
+  self.set_fixture_class :program => Program
   self.set_fixture_class :person_address => PersonAddress
   self.set_fixture_class :person_name => PersonName
   self.set_fixture_class :users => User
@@ -90,11 +91,11 @@ class ActiveSupport::TestCase
   end
   
   def diagnose(patient, value_coded, value_coded_name_id = nil)
-    value_coded_name_id ||= Concept.find(value_coded).name.concept_name_id
-    encounter = Encounter.make(:encounter_type => encounter_type(:outpatient_diagnosis), 
+    value_coded_name_id ||= Concept.find(value_coded).concept_names.first.concept_name_id
+    encounter = Encounter.make(:encounter_type => EncounterType[:outpatient_diagnosis],
       :patient_id => patient.id)
     encounter.observations.create(:obs_datetime => Time.now, 
-      :person_id => patient.id, :concept_id => concept(:diagnosis), 
+      :person_id => patient.id, :concept_id => Concept[:diagnosis],
       :value_coded => value_coded, :value_coded_name_id => value_coded_name_id)
   end
 end

@@ -227,22 +227,30 @@ class PatientsController < ApplicationController
   end
 
   def export_to_csv
-    @users = User.find(:all)
+    ( Patient.find(:all,:limit => 10) || [] ).each do | patient |
+      csv_string = FasterCSV.generate do |csv|
+        # header row
+        csv << ["ARV number", "National ID"]
+        csv << [patient.arv_number, patient.national_id]
+        csv << ["Name", "Age","Sex","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
+        transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
+        transfer_in.blank? == true ? transfer_in = 'NO' : transfer_in = 'YES'
+        csv << [patient.name,patient.person.age, patient.person.sex,patient.initial_weight,patient.initial_height,patient.initial_bmi,transfer_in]
+        csv << ["Location", "Land-mark","Occupation","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
 
-    csv_string = FasterCSV.generate do |csv|
-      # header row
-      csv << ["id", "first_name", "last_name"]
-
-      # data rows
-      @users.each do |user|
-        csv << [user.id, user.username, user.salt]
+=begin
+        # data rows
+        @users.each do |user|
+          csv << [user.id, user.username, user.salt]
+        end
+=end
       end
+      # send it to the browsah
+      send_data csv_string.gsub(' ','_'),
+              :type => 'text/csv; charset=iso-8859-1; header=present',
+              :disposition => "attachment:wq
+              ; filename=patient-#{patient.id}.csv"
     end
-
-    # send it to the browsah
-    send_data csv_string,
-            :type => 'text/csv; charset=iso-8859-1; header=present',
-            :disposition => "attachment; filename=users.csv"
   end
    
 
