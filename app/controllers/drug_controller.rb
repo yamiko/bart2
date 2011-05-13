@@ -125,7 +125,7 @@ class DrugController < ApplicationController
       drug_name1=""
       drug_name2=""
       drug_quantity = pill_count
-      drug_barcode = "#{drug.id}&#{drug_quantity}"
+      drug_barcode = "#{drug.id}-#{drug_quantity}"
       drug_string_length =drug_name.length
 
       if drug_name.length > 27
