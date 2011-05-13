@@ -119,7 +119,7 @@ class DrugController < ApplicationController
   end
   
   def print
-      pill_count = params[:pill_count]
+      pill_count = params[:quantity]
       drug = Drug.find(params[:drug_id])
       drug_name = drug.name
       drug_name1=""
