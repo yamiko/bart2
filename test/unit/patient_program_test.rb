@@ -34,7 +34,7 @@ class PatientProgramTest < ActiveSupport::TestCase
 
     should "allow overlap of different program" do
       program1 = Factory(:program)
-      program2 = Factory(:program)
+      program2 = Factory(:program, :program_id => 102)
       patient_program1 = Factory(:patient_program)
       patient_program1.program = program1
       patient_program1.save

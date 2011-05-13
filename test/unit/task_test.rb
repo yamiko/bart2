@@ -16,6 +16,7 @@ class TaskTest < ActiveSupport::TestCase
     end  
     
     should "find the next task" do
+      assert_equal 'Task', Task.next_task(Location.current_location, @patient).class.to_s
       assert_equal @default, Task.next_task(Location.current_location, @patient).url
     end
     

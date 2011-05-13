@@ -2,14 +2,21 @@ class Cohort
 
   attr_accessor :start_date, :end_date
 
-  @@first_registration_date = PatientProgram.find(:first,:conditions =>["program_id = ? AND voided = 0",1],
-                                                :order => 'date_enrolled ASC').date_enrolled.to_date rescue nil
-  @@program_id = Program.find_by_name('HIV PROGRAM').program_id
+  @@first_registration_date = nil
+  @@program_id = nil
 
   # Initialize class
   def initialize(start_date, end_date)
     @start_date = start_date #"#{start_date} 00:00:00"
     @end_date = "#{end_date} 23:59:59"
+
+    @@first_registration_date = PatientProgram.find(
+      :first,
+      :conditions =>["program_id = ? AND voided = 0",1],
+      :order => 'date_enrolled ASC'
+    ).date_enrolled.to_date rescue nil
+
+    @@program_id = Program.find_by_name('ARV PROGRAM').program_id
   end
 
   # Get patients reinitiated on art count
