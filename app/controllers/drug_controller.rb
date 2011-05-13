@@ -112,6 +112,13 @@ class DrugController < ApplicationController
 
   def print_barcode
     if request.post?
+      print_and_redirect("/drug/print?drug_id=#{params[:drug_id]}&quantity=#{params[:pill_count]}", "/drug/print_barcode")
+    else
+      @drugs = Drug.find(:all,:conditions =>["name IS NOT NULL"])
+    end
+  end
+  
+  def print
       pill_count = params[:pill_count]
       drug = Drug.find(params[:drug_id])
       drug_name = drug.name
@@ -138,14 +145,6 @@ class DrugController < ApplicationController
         label.draw_text("Quantity: #{drug_quantity}", 40, 130, 0, 2, 2, 2,false)
         label.draw_barcode(40, 180, 0, 1, 5, 15, 100,true, "#{drug_barcode}")
       end
-
-      print_and_redirect("/drug/print", "/drug/print_barcode")
-    else
-      @drugs = Drug.find(:all,:conditions =>["name IS NOT NULL"])
-    end
-  end
-  
-  def print
-    send_data(label.print(1),:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{drug_barcode}.lbl", :disposition => "inline")
+      send_data(label.print(1),:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{drug_barcode}.lbl", :disposition => "inline")
   end
 end
