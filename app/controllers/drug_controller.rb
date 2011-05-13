@@ -109,4 +109,43 @@ class DrugController < ApplicationController
   def date_select
 #    render :text => "aaaaa" and return
   end
+
+  def print_barcode
+    if request.post?
+      pill_count = params[:pill_count]
+      drug = Drug.find(params[:drug_id])
+      drug_name = drug.name
+      drug_name1=""
+      drug_name2=""
+      drug_quantity = pill_count
+      drug_barcode = "#{drug.id}&#{drug_quantity}"
+      drug_string_length =drug_name.length
+
+      if drug_name.length > 27
+        drug_name1=drug_name.match(/(.*) ([A-Z].*)/)[1]
+        drug_name2=drug_name.match(/(.*) ([A-Z].*)/)[2]
+      end
+
+      if drug_string_length <= 27
+        label = ZebraPrinter::StandardLabel.new
+        label.draw_text("#{drug_name}", 40, 30, 0, 2, 2, 2, false)
+        label.draw_text("Quantity: #{drug_quantity}", 40, 80, 0, 2, 2, 2,false)
+        label.draw_barcode(40, 130, 0, 1, 5, 15, 120,true, "#{drug_barcode}")
+      else
+        label = ZebraPrinter::StandardLabel.new
+        label.draw_text("#{drug_name1}", 40, 30, 0, 2, 2, 2, false)
+        label.draw_text("#{drug_name2}", 40, 80, 0, 2, 2, 2, false)
+        label.draw_text("Quantity: #{drug_quantity}", 40, 130, 0, 2, 2, 2,false)
+        label.draw_barcode(40, 180, 0, 1, 5, 15, 100,true, "#{drug_barcode}")
+      end
+
+      print_and_redirect("/drug/print", "/drug/print_barcode")
+    else
+      @drugs = Drug.find(:all,:conditions =>["name IS NOT NULL"])
+    end
+  end
+  
+  def print
+    send_data(label.print(1),:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{drug_barcode}.lbl", :disposition => "inline")
+  end
 end
