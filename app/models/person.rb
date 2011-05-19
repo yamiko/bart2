@@ -91,8 +91,7 @@ class Person < ActiveRecord::Base
     self.birthdate_estimated = 1
   end
 
-  def demographics
-
+  def self.demographics
 
     if self.birthdate_estimated==1
       birth_day = "Unknown"
@@ -240,8 +239,7 @@ class Person < ActiveRecord::Base
     person = Person.search_by_identifier(national_id) unless national_id.nil?
     return {} if person.blank? 
 
-    person_demographics = person.demographics
-
+    person_demographics = Person.demographics
     results = {}
     result_hash = {}
 

@@ -14,8 +14,8 @@ class PersonTest < ActiveSupport::TestCase
 
       p.birthdate = nil    
       assert_nil p.age("2008-06-07".to_date)
-    end  
-      
+    end
+
     should "return the age and increase it by one if the birthdate was estimated and you are checking during the year it was created" do 
       p = Person.make(:birthdate => "2000-07-01".to_date, :birthdate_estimated => 1)
       p.date_created = "2008-01-01".to_date
@@ -120,7 +120,7 @@ class PersonTest < ActiveSupport::TestCase
       name_data = {
           "given_name" => "Evan",
           "family_name" => "Waters",
-          "family_name2" => ""
+          "family_name2" => "Murray"
       }
       assert_equal p.demographics["person"]["names"], name_data
     end
@@ -157,7 +157,7 @@ class PersonTest < ActiveSupport::TestCase
         "names" => {
           "given_name" => "Evan",
           "family_name" => "Waters",
-          "family_name2" => "",
+          "family_name2" => "Murray",
         },
         "addresses" => {
           "county_district" => "",
@@ -258,7 +258,7 @@ class PersonTest < ActiveSupport::TestCase
 =end
 
     should "be able to retrieve person data by their demographic details" do
-      assert_equal Person.find_by_demographics(person(:evan).demographics).first, person(:evan)
+      assert_equal Person.find_by_demographics(person(:evan)), person(:evan)
     end
 
     should "be able to retrieve person data with their national id" do

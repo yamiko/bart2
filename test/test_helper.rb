@@ -7,7 +7,9 @@ require 'mocha'
 require 'colorfy_strings'
 require 'factory_girl'
 
-Dir[File.join(RAILS_ROOT, 'test', 'factories', '**', '*')].each {|f| require f }
+Dir.glob(File.dirname(__FILE__) + "/factory/*").each do |factory|
+  require factory
+end
 
 alias :running :lambda
 
@@ -44,7 +46,7 @@ class ActiveSupport::TestCase
 
   setup do    
     User.current_user = User.find_by_username('registration')
-    Location.current_location = Location.find_by_name('Neno District Hospital - Registration')  
+    Location.current_location = Location.find_by_name('Neno District Hospital - Registration')
   end
 
   def assert_difference(object, method = nil, difference = 1)
@@ -79,10 +81,10 @@ class ActiveSupport::TestCase
   # logged_in_as :mikmck, :registration { }
   def logged_in_as(login, place, &block)
      @request.session[:user_id] = users(login).user_id
-     @request.session[:location_id] = location(place).location_id
+     @request.session[:location_id] = location(:location_00004).location_id
      yield block
   end 
-  
+
   def prescribe(patient, obs, drug, dose = 1, frequency = "ONCE A DAY", prn = 0, start_date = nil, end_date = nil)
     start_date ||= Time.now
     end_date ||= Time.now + 3.days

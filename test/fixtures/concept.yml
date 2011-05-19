@@ -81642,3 +81642,22 @@ concept_02174:
   datatype_id: 4
   concept_id: 2174
   date_created: 2007-05-12 18:15:03 +02:00
+concept_00259:
+  retire_reason: 
+  retired_by:
+  is_set: 0
+  changed_by: 1
+  uuid: e0182b20-df1a-11de-a277-0026181bbd4d
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2011-05-12 18:15:03 +02:00
+  form_text:
+  description: 
+  retired: 0
+  datatype_id: 4
+  concept_id: 259
+  date_created: 2011-05-12 18:15:03 +02:00
