@@ -239,7 +239,7 @@ class Person < ActiveRecord::Base
     person = Person.search_by_identifier(national_id) unless national_id.nil?
     return {} if person.blank? 
 
-    person_demographics = Person.demographics
+    person_demographics = person.demographics
     results = {}
     result_hash = {}
 

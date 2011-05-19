@@ -56862,7 +56862,7 @@ concept_name_05270:
   concept_id: 3914
   date_created: 2008-12-03 13:37:38 +02:00
 concept_name_03326: 
-  name: OUTPATIENT DIAGNOSIS, NON-CODED
+  name: DIAGNOSIS, NON-CODED
   voided: 0
   uuid: e0f84c78-df1a-11de-a277-0026181bb84d
   creator: 1

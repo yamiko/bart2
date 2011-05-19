@@ -6,9 +6,12 @@ require 'shoulda'
 require 'mocha'
 require 'colorfy_strings'
 require 'factory_girl'
+#Factory.find_definitions
 
-Dir.glob(File.dirname(__FILE__) + "/factory/*").each do |factory|
-  require factory
+if (!Factory.factories || Factory.factories.empty?)
+  Dir.glob(File.dirname(__FILE__) + "/factories/*.rb").each do |factory|
+    require factory
+  end
 end
 
 alias :running :lambda
