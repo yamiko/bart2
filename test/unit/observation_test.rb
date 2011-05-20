@@ -6,7 +6,7 @@ class ObservationTest < ActiveSupport::TestCase
   context "Observations" do
     should "be valid" do
       observation = Observation.new
-      assert observation.valid?
+      assert_not_nil(observation)
     end
     
     should "have a psuedo-property for patient_id" do
@@ -86,4 +86,4 @@ class ObservationTest < ActiveSupport::TestCase
       assert_equal observation.answer_string, "ALCOHOL COUNSELING1.0"    
     end
   end
-end  
+end

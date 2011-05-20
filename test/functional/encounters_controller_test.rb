@@ -20,7 +20,7 @@ class EncountersControllerTest < ActionController::TestCase
         logged_in_as :mikmck, :registration do
           get :diagnoses, {:search_string => 'EXTRAPULMONARY'}
           assert_response :success
-          assert_contains assigns(:suggested_answers), concept_name(:extrapulmonary_tuberculosis_without_lymphadenopathy).name
+          assert_contains assigns(:suggested_answers), concept_name(:concept_name_03112).name
         end  
       end
     end            

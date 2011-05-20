@@ -2,7 +2,8 @@ require File.dirname(__FILE__) + '/../test_helper'
 
 class PharmacyTest < ActiveSupport::TestCase
   context "Pharmacy" do
-    fixtures :pharmacy_encounter_type, :drug, :encounter_type, :encounter, :orders, :drug_order, :users
+    fixtures :pharmacy_encounter_type, :drug, :encounter_type,
+             :encounter, :orders, :drug_order, :users
 
     should "be valid" do
       pharmacy = Pharmacy.make
@@ -25,6 +26,7 @@ class PharmacyTest < ActiveSupport::TestCase
     should "edit stock" do
       Pharmacy.new_delivery(2,10000,(Date.today - 6.month))
       Pharmacy.drug_dispensed_stock_adjustment(2,2000,Date.today,"Given to another clinic")  
+      raise"#{Pharmacy.current_stock(2)}"
       assert_equal 8000.0,Pharmacy.current_stock(2)
     end
 

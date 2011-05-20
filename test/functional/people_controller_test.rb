@@ -1,7 +1,9 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
 class PeopleControllerTest < ActionController::TestCase
-  fixtures :person, :person_name, :person_name_code, :person_address, :person_attribute_type, :patient, :patient_identifier, :patient_identifier_type
+  fixtures :person, :person_name, :person_name_code, :person_address,
+           :person_attribute_type, :patient, :patient_identifier,
+           :patient_identifier_type, :concept_name
 
   def setup  
     @controller = PeopleController.new
@@ -38,7 +40,7 @@ class PeopleControllerTest < ActionController::TestCase
 
     should "lookup demographics by posting a national id and return full demographic data" do
       logged_in_as :mikmck, :registration do
-        get :demographics, {:person => {:patient => { :identifiers => {"National id" => "P1701210013" }}}}
+        get :demographics, {:patient => { :identifiers => {"National id" => "P1701210013" }}}
         assert_response :success
       end  
     end
@@ -56,8 +58,8 @@ class PeopleControllerTest < ActionController::TestCase
         assert_response :success
       end  
     end
-
 =begin
+#to be commented
       # should "search for patients at remote sites and create them locally if they match **** UNDERCONSTRUCTION****" do
     should "search login at remote sites" do
       #logged_in_as :mikmck, :registration do
@@ -126,7 +128,7 @@ class PeopleControllerTest < ActionController::TestCase
         assert_response :redirect
       end  
     end
-    
+
     should "look up people for display on the default page" do
       logged_in_as :mikmck, :registration do      
         get :index
@@ -149,6 +151,7 @@ class PeopleControllerTest < ActionController::TestCase
             :birth_day => 28,
             :gender => 'M',
             :cell_phone_number => 'Unknown',
+            :occupation => 'Unknown',
             :names => {:given_name => 'Bruce', :family_name => 'Wayne'},
             :addresses => {:county_district => 'Homeland', :city_village => 'Coolsville', :address1 => 'The Street' }
           }
@@ -159,7 +162,7 @@ class PeopleControllerTest < ActionController::TestCase
         assert_response :redirect
       end  
     end
-    
+
     should "allow for estimated birthdates" do
       logged_in_as :mikmck, :registration do      
         post :create, {
@@ -168,6 +171,7 @@ class PeopleControllerTest < ActionController::TestCase
             :age_estimate => 17,
             :gender => 'M',
             :cell_phone_number => 'Unknown',
+            :occupation => 'Unknown',
             :names => {:given_name => 'Bruce', :family_name => 'Wayne'},
             :addresses => {:county_district => 'Homeland', :city_village => 'Coolsville', :address1 => 'The Street' }
           }
@@ -184,6 +188,7 @@ class PeopleControllerTest < ActionController::TestCase
           :age_estimate => 17,
           :gender => 'M',
           :cell_phone_number => 'Unknown',
+          :occupation => 'Unknown',
           :names => {:given_name => 'Bruce', :family_name => 'Wayne'},
           :addresses => {:county_district => 'Homeland', :city_village => 'Coolsville', :address1 => 'The Street' }
           }  
@@ -191,7 +196,7 @@ class PeopleControllerTest < ActionController::TestCase
         assert_no_difference(Patient, :count) { post :create, options }
         options[:person].merge!(:patient => "")
         assert_difference(Patient, :count) { post :create, options }
-      end  
-    end            
+      end
+    end
   end
 end

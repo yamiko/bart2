@@ -34412,14 +34412,14 @@ concept_name_00259:
   voided: 0
   uuid: e0d3a5d0-df1a-11de-a277-0026181bb84d
   creator: 1
-  voided_by: 
-  void_reason: 
+  voided_by:
+  void_reason:
   date_voided: 
   concept_name_id: 259
   locale: en
   concept_id: 247
   date_created: 2004-01-01 00:00:00 +02:00
-concept_name_08969: 
+concept_name_08969:
   name: OTHER CHRONIC LUNG DISEASE
   voided: 0
   uuid: e12a0f1a-df1a-11de-a277-0026181bb84d
@@ -56862,7 +56862,7 @@ concept_name_05270:
   concept_id: 3914
   date_created: 2008-12-03 13:37:38 +02:00
 concept_name_03326: 
-  name: OUTPATIENT DIAGNOSIS, NON-CODED
+  name: DIAGNOSIS, NON-CODED
   voided: 0
   uuid: e0f84c78-df1a-11de-a277-0026181bb84d
   creator: 1
@@ -107300,7 +107300,7 @@ concept_name_06935:
 concept_name_08616: 
   name: NON-CARDIAC DIAGNOSIS COMMENT
   voided: 0
-  uuid: e1276012-df1a-11de-a277-0026181bb84d
+  uuid: e1276012-q31a-11de-a277-0026181bb84d
   creator: 1
   voided_by: 
   void_reason: 
@@ -107308,4 +107308,16 @@ concept_name_08616:
   concept_name_id: 8616
   locale: en
   concept_id: 6244
+  date_created: 2009-06-01 17:44:44 +02:00
+concept_name_10620: 
+  name: WORKSTATION LOCATION
+  voided: 0
+  uuid: e1276012-df1a-11de-a277-0026181bb84d
+  creator: 1
+  voided_by:
+  void_reason:
+  date_voided: 
+  concept_name_id: 10620
+  locale: en
+  concept_id: 7758
   date_created: 2009-06-01 17:44:44 +02:00

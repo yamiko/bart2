@@ -106,7 +106,7 @@ EOF
           :value_text => nil)
         @diagnosis_non_coded = Observation.make(
           :encounter_id => @encounter.id, 
-          :concept_id => Concept[:diagnosis_non_coded].concept_id,
+          :concept_id => concept(:concept_03106).concept_id,
           :value_text => "HE IS TOO SUAVE")
       end
     
@@ -117,7 +117,7 @@ EOF
       should "not include non-diagnosis observations" do
         Observation.make(
           :encounter_id => @encounter.id, 
-          :concept_id => concept(:height).concept_id,
+          :concept_id => concept(:concept_02218).concept_id,
           :value_numeric => 100)
         assert_equal [@diagnosis, @diagnosis_non_coded], @evan.current_diagnoses
       end
