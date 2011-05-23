@@ -141,6 +141,7 @@ EOF
 
     should "have lynx installed" do
       lynx = backtick('which lynx')
+      raise"#{lynx}"
       assert_not_nil lynx.match(/lynx/)
     end
 

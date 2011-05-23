@@ -26,7 +26,7 @@ class Pharmacy < ActiveRecord::Base
       drug_id = order.drug_order.drug_inventory_id ; quantity = order.drug_order.quantity
       self.drug_dispensed_stock_adjustment(drug_id,quantity,encounter.encounter_datetime.to_date)
     end
-  end 
+  end
 
   def self.drug_dispensed_stock_adjustment(drug_id,quantity,encounter_date,reason = nil)
     encounter_type = PharmacyEncounterType.find_by_name("Tins currently in stock").id
@@ -182,7 +182,6 @@ class Pharmacy < ActiveRecord::Base
 
     total_stock_to_given_date  = total_stock_to_given_date.sum
     total_dispensed_to_given_date = Pharmacy.dispensed_drugs_since(drug_id,first_date,end_date)
-
     return total_stock_to_given_date - total_dispensed_to_given_date
   end
 
