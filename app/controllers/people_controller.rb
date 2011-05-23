@@ -72,10 +72,21 @@ class PeopleController < ApplicationController
         found_person =  Person.create_from_form(found_person_data) unless found_person_data.nil?
       end
       if found_person
-        redirect_to search_complete_url(found_person.id, params[:relation]) and return
+        #redirect_to search_complete_url(found_person.id, params[:relation]) and return
+        redirect_to :action => 'confirm', :found_person_id => found_person.id, :relation => params[:relation] and return
       end
     end
     @people = Person.search(params)    
+  end
+  
+  def confirm
+    if request.post?
+      redirect_to search_complete_url(params[:found_person_id], params[:relation]) and return
+    end
+    @found_person_id = params[:found_person_id] 
+    @relation = params[:relation]
+    @person = Person.find(@found_person_id) rescue nil
+    render :layout => 'menu'
   end
  
   # This method is just to allow the select box to submit, we could probably do this better
