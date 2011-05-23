@@ -114,7 +114,7 @@ class Person < ActiveRecord::Base
       "names" => {
         "given_name" => self.names[0].given_name,
         "family_name" => self.names[0].family_name,
-        "family_name2" => ""
+        "family_name2" => self.names[0].family_name2
       },
       "addresses" => {
         "county_district" => "",
@@ -157,8 +157,8 @@ class Person < ActiveRecord::Base
                     "date_changed" => demo['person']['date_changed'] ,
                     "names"=>
                       {
-                        "family_name2" =>"", 
-                        "family_name" => demo['person']['names']['family_name'] , 
+                        "family_name2" => demo['person']['names']['family_name2'],
+                        "family_name" => demo['person']['names']['family_name'] ,
                         "given_name" => demo['person']['names']['given_name']
                       },
                     "birth_year" => self.birthdate.year }
@@ -236,18 +236,34 @@ class Person < ActiveRecord::Base
 
   def self.find_by_demographics(person_demographics)
     national_id = person_demographics["person"]["patient"]["identifiers"]["National id"] rescue nil
+    results = Person.search_by_identifier(national_id) unless national_id.nil?
+    return results unless results.blank?
+
+    gender = person_demographics["person"]["gender"] rescue nil
+    given_name = person_demographics["person"]["names"]["given_name"] rescue nil
+    family_name = person_demographics["person"]["names"]["family_name"] rescue nil
+
+    search_params = {:gender => gender, :given_name => given_name, :family_name => family_name }
+
+    results = Person.search(search_params)
+
+=begin
+    national_id = person_demographics["person"]["patient"]["identifiers"]["National id"] rescue nil
     person = Person.search_by_identifier(national_id) unless national_id.nil?
     return {} if person.blank? 
 
-    person_demographics = person.demographics
+    #person_demographics = person.demographics
     results = {}
     result_hash = {}
-
+    gender = person_demographics["person"]["gender"] rescue nil
+    given_name = person_demographics["person"]["names"]["given_name"] rescue nil
+    family_name = person_demographics["person"]["names"]["family_name"] rescue nil
+   # raise"#{gender}"
     result_hash = {
       "gender" =>  person_demographics["person"]["gender"],
       "names" => {"given_name" =>  person_demographics["person"]["names"]["given_name"],
                   "family_name" =>  person_demographics["person"]["names"]["family_name"],
-                  "family_name2" => nil
+                  "family_name2" => person_demographics["person"]["names"]["family_name2"]
                   },
       "birth_year" => person_demographics['person']['birth_year'],
       "birth_month" => person_demographics['person']['birth_month'],
@@ -271,6 +287,7 @@ class Person < ActiveRecord::Base
     }
     results["person"] = result_hash
     return results
+=end
   end
 
   def self.create_from_form(params)

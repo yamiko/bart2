@@ -128,6 +128,7 @@ class PersonTest < ActiveSupport::TestCase
     should "return a hash with correct address" do
       p = person(:evan)
       data = {
+        "location" => "Friendship House",
         "county_district" => "",
         "city_village" => "Katoleza"
       }
@@ -150,6 +151,7 @@ class PersonTest < ActiveSupport::TestCase
       p = person(:evan)
       evan_demographics = { "person" => {
         "date_changed" => Time.mktime("2000-01-01 00:00:00").to_s,
+        "occupation" => nil,
         "gender" => "M",
         "birth_year" => 1982,
         "birth_month" => 6,
@@ -160,6 +162,7 @@ class PersonTest < ActiveSupport::TestCase
           "family_name2" => "Murray",
         },
         "addresses" => {
+          "location" => "Friendship House",
           "county_district" => "",
           "city_village" => "Katoleza"
         },
