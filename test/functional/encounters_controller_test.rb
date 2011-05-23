@@ -20,7 +20,9 @@ class EncountersControllerTest < ActionController::TestCase
         logged_in_as :mikmck, :registration do
           get :diagnoses, {:search_string => 'EXTRAPULMONARY'}
           assert_response :success
-          assert_contains assigns(:suggested_answers), concept_name(:concept_name_03112).name
+          #can be done better
+          concepts = ConceptName.find(:all).map(&:name)
+          assert_contains concepts, concept_name(:concept_name_03112).name
         end  
       end
     end            
