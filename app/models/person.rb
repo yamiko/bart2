@@ -91,7 +91,7 @@ class Person < ActiveRecord::Base
     self.birthdate_estimated = 1
   end
 
-  def self.demographics
+  def demographics
 
     if self.birthdate_estimated==1
       birth_day = "Unknown"
