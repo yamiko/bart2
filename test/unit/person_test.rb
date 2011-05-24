@@ -261,7 +261,7 @@ class PersonTest < ActiveSupport::TestCase
 =end
 
     should "be able to retrieve person data by their demographic details" do
-      assert_equal Person.find_by_demographics(person(:evan)), person(:evan)
+      assert_equal Person.find_by_demographics(person(:evan).demographics).first, person(:evan)
     end
 
     should "be able to retrieve person data with their national id" do
