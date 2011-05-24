@@ -90,6 +90,112 @@ class Patient < ActiveRecord::Base
     id = self.national_id(force)
     id[0..4] + "-" + id[5..8] + "-" + id[9..-1] rescue id
   end
+  
+  def demographics_label
+    demographics = Mastercard.demographics(self)
+    label = ZebraPrinter::StandardLabel.new
+    label.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",450,300,0,1,1,1,false)
+    label.draw_text("#{self.arv_number}",575,30,0,3,1,1,false)
+    label.draw_text("PATIENT DETAILS",25,30,0,3,1,1,false)
+    label.draw_text("Name:  #{demographics.name} (#{demographics.sex})",25,60,0,3,1,1,false)
+    label.draw_text("DOB:   #{self.person.birthdate_formatted}",25,90,0,3,1,1,false)
+    label.draw_text("Phone: #{phone_number rescue nil}",25,120,0,3,1,1,false)
+    if demographics.address.length > 48
+      label.draw_text("Addr:  #{demographics.address[0..47]}",25,150,0,3,1,1,false)
+      label.draw_text("    :  #{demographics.address[48..-1]}",25,180,0,3,1,1,false)
+      last_line = 180
+    else
+      label.draw_text("Addr:  #{demographics.address}",25,150,0,3,1,1,false)
+      last_line = 150
+    end  
+
+    if last_line == 180 and demographics.guardian.length < 48
+      label.draw_text("Guard: #{demographics.guardian}",25,210,0,3,1,1,false)
+      last_line = 210
+    elsif last_line == 180 and demographics.guardian.length > 48
+      label.draw_text("Guard: #{demographics.guardian[0..47]}",25,210,0,3,1,1,false)
+      label.draw_text("     : #{demographics.guardian[48..-1]}",25,240,0,3,1,1,false)
+      last_line = 240
+    elsif last_line == 150 and demographics.guardian.length > 48
+      label.draw_text("Guard: #{demographics.guardian[0..47]}",25,180,0,3,1,1,false)
+      label.draw_text("     : #{demographics.guardian[48..-1]}",25,210,0,3,1,1,false)
+      last_line = 210
+    elsif last_line == 150 and demographics.guardian.length < 48
+      label.draw_text("Guard: #{demographics.guardian}",25,180,0,3,1,1,false)
+      last_line = 180
+    end  
+   
+    label.draw_text("TI:    #{demographics.transfer_in ||= 'No'}",25,last_line+=30,0,3,1,1,false)
+    label.draw_text("FUP:   (#{demographics.agrees_to_followup})",25,last_line+=30,0,3,1,1,false)
+
+      
+    label2 = ZebraPrinter::StandardLabel.new
+    #Vertical lines
+=begin
+     label2.draw_line(45,40,5,242)
+     label2.draw_line(805,40,5,242)
+     label2.draw_line(365,40,5,242)
+     label2.draw_line(575,40,5,242)
+    
+     #horizontal lines
+     label2.draw_line(45,40,795,3)
+     label2.draw_line(45,80,795,3)
+     label2.draw_line(45,120,795,3)
+     label2.draw_line(45,200,795,3)
+     label2.draw_line(45,240,795,3)
+     label2.draw_line(45,280,795,3)
+=end
+    label2.draw_line(25,170,795,3)
+    #label data
+    label2.draw_text("STATUS AT ART INITIATION",25,30,0,3,1,1,false)
+    label2.draw_text("(DSA:#{self.date_started_art.strftime('%d-%b-%Y') rescue 'N/A'})",370,30,0,2,1,1,false)
+    label2.draw_text("#{self.arv_number}",580,20,0,3,1,1,false)
+    label2.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",25,300,0,1,1,1,false)
+
+    label2.draw_text("RFS: #{demographics.reason_for_art_eligibility}",25,70,0,2,1,1,false)
+    label2.draw_text("#{cd4_count rescue nil} #{cd4_count_date rescue nil}",25,110,0,2,1,1,false)
+    label2.draw_text("1st + Test:",25,150,0,2,1,1,false)
+ 
+    label2.draw_text("TB: #{tb_status rescue nil}",380,70,0,2,1,1,false)
+    label2.draw_text("KS:#{self.requested_observation('Kaposi\'s sarcoma') rescue nil}",380,110,0,2,1,1,false)
+    label2.draw_text("Preg:#{pregnant rescue nil}",380,150,0,2,1,1,false)
+    label2.draw_text("#{first_line_drugs[0..32] rescue nil}",25,190,0,2,1,1,false)
+    label2.draw_text("#{first_line_alt_drugs[0..32] rescue nil}",25,230,0,2,1,1,false)
+    label2.draw_text("#{second_line_drugs[0..32] rescue nil}",25,270,0,2,1,1,false)
+
+    label2.draw_text("HEIGHT: #{self.initial_height}",570,70,0,2,1,1,false)
+    label2.draw_text("WEIGHT: #{self.initial_weight}",570,110,0,2,1,1,false)
+    label2.draw_text("Init Age: #{self.age_at_initiation(demographics.date_of_first_line_regimen) rescue nil}",570,150,0,2,1,1,false)
+
+    line = 190
+    extra_lines = []
+    label2.draw_text("STAGE DEFINING CONDITIONS",450,190,0,3,1,1,false)
+    hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",EncounterType.find_by_name("HIV Staging").id,self.id])
+    (hiv_staging.observations).each{|obs|
+      name = obs.to_s.split(':')[0].strip rescue nil
+      condition = obs.to_s.split(':')[1].strip.humanize rescue nil
+      next if name == 'WORKSTATION LOCATION' or name == ''
+      next if name == 'REASON FOR ART ELIGIBILITY'
+      line+=25
+      if line <= 290
+        label2.draw_text(condition[0..35],450,line,0,1,1,1,false) 
+      end
+      extra_lines << condition[0..79] if line > 290
+    } rescue []
+
+    if line > 310 and !extra_lines.blank?
+     line = 30 
+     label3 = ZebraPrinter::StandardLabel.new
+     label3.draw_text("STAGE DEFINING CONDITIONS",25,line,0,3,1,1,false)
+     label3.draw_text("#{self.arv_number}",370,line,0,2,1,1,false)
+     label3.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",450,300,0,1,1,1,false)
+     extra_lines.each{|condition| 
+       label3.draw_text(condition,25,line+=30,0,2,1,1,false)
+     } rescue []
+    end
+    return "#{label.print(1)} #{label2.print(1)} #{label3.print(1)}" if !extra_lines.blank?
+    return "#{label.print(1)} #{label2.print(1)}"
+  end
 
   def national_id_label
     return unless self.national_id
@@ -322,7 +428,7 @@ class Patient < ActiveRecord::Base
     PatientIdentifier.identifier(self.patient_id, arv_number_id).identifier rescue nil
   end
 
-  def age_at_initiation(initiation_date)
+  def age_at_initiation(initiation_date = nil)
     patient = Person.find(self.id)
     return patient.age(initiation_date) unless initiation_date.nil?
   end

@@ -109,6 +109,15 @@ class PatientsController < ApplicationController
     print_and_redirect("/patients/mastercard_record_label/?patient_id=#{@patient.id}&date=#{params[:date]}", "/patients/visit?date=#{params[:date]}&patient_id=#{params[:patient_id]}")  
   end
   
+  def print_demographics
+    print_and_redirect("/patients/patient_demographics_label/#{@patient.id}", "/patients/mastercard?patient_id=#{params[:id]}")  
+  end
+  
+  def patient_demographics_label
+    print_string = Patient.find(params[:id]).demographics_label 
+    send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:id]}#{rand(10000)}.lbl", :disposition => "inline")
+  end
+  
   def national_id_label
     print_string = @patient.national_id_label rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a national id label for that patient")
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", :disposition => "inline")
