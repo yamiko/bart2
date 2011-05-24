@@ -21,7 +21,7 @@
 </script>
 
 
-<form action = "/people/set_datetime" method = "post">
+<form action = "/people/set_datetime/<%=@patient_id%>" method = "post">
 
   <%= text_field_tag (:set_year,nil,{:field_type => 'number', :absoluteMin => "1940", :absoluteMax => Time.now.year, :helpText => 'Year'}) %>
 

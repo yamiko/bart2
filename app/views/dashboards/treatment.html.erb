@@ -30,15 +30,13 @@
   function showAppointmentButton(){
     amount_needed = 0 //<%#=amount_needed%>
     try {
-      first_dispension = document.getElementsByClassName("subtotal")[1].getElementsByTagName("span")[0].innerHTML.split(" ")[0]
+      first_dispension = document.getElementsByClassName("subtotal") 
     }catch(e){ first_dispension = null }
     
-    if(first_dispension == null)
+    if(first_dispension.length == 0)
       return
 
-    if(parseFloat(first_dispension) < 0 || parseFloat(first_dispension) > 0){
-      document.getElementById('set_appointment').style.display='inline';
-    }else{ document.getElementById('set_appointment').style.display='none'; }
+    document.getElementById('set_appointment').style.display='inline';
   } 
 </script>
 

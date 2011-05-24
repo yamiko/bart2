@@ -20,6 +20,16 @@
         $('#mastercard').click(function() { window.location = '/patients/mastercard?patient_id=<%= @patient.id -%>?source=<%= @source -%>' })
         $('#finish').click(function() { window.location = "/clinic" })
         $('#additional').click(function() { window.location = '/encounter_types?patient_id=<%= @patient.id -%>' })
+        $('#set_date').click(function() { window.location = "/people/set_datetime/<%=@patient.id%>" })
+
+        session_datetime = '<%=session[:datetime].to_date rescue '' %>'
+        if (session_datetime != ''){
+          document.getElementById('set_date').innerHTML = '<span>Reset date</span>'
+          $('#set_date').click(function() { window.location = '/people/reset_datetime/<%=@patient.id%>' })        
+        } else {
+          document.getElementById('set_date').innerHTML = '<span>Set date</span>'
+          $('#set_date').click(function() { window.location = '/people/set_datetime/<%=@patient.id%>' })        
+        }
 
         // Show the flash
         var flash = $('#flash');
@@ -56,6 +66,7 @@
             <button id="print" class="yellow"><span>Print ID</span></button>
             <button id="visit" class="yellow"><span>Print Visit</span></button>    
             <button id="mastercard" class="yellow"><span>Mastercard</span></button>    
+            <button id="set_date" class="yellow"><span>Set date</span></button>    
           </div>          
         </div>    
       </div>  

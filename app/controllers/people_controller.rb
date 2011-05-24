@@ -121,13 +121,22 @@ class PeopleController < ApplicationController
                                         params[:set_day].to_i,0,0,1) 
         session[:datetime] = date_of_encounter if date_of_encounter.to_date != Date.today 
       end
-      redirect_to :action => "index"
+      unless params[:id].blank?
+        redirect_to "/patients/show/#{params[:id]}" and return
+      else
+        redirect_to :action => "index"
+      end
     end
+    @patient_id = params[:id]
   end
 
   def reset_datetime
     session[:datetime] = nil
-    redirect_to :action => "index" and return
+    if params[:id].blank?
+      redirect_to :action => "index" and return
+    else
+      redirect_to "/patients/show/#{params[:id]}" and return
+    end
   end
 
   def find_by_arv_number
