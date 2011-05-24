@@ -80,21 +80,24 @@
     skip = true
     while (skip) {
       for (i = 0 ; i < clinic_days.length ; i++) {
-        if (clinic_days[i] == dateFormat(suggest_date,'dddd'))
+        if (clinic_days[i] == dateFormat(suggest_date,'dddd')){
           skip = isHoliday(suggest_date);
+          break
+        }
       }
       if (skip)
         suggest_date = new Date(suggest_date.getFullYear(),suggest_date.getMonth(),suggest_date.getDate() - 1)
+
 
       if (skip == false){
         below_limit = isBelowLimit(suggest_date);
         if (below_limit == false) {
           suggest_date = new Date(suggest_date.getFullYear(),suggest_date.getMonth(),suggest_date.getDate() - 1)
           skip = true
+        } else { 
+          return suggest_date
         }
       }
-
-
     }
     return suggest_date
   }
@@ -141,7 +144,6 @@
 
       visit_date = assignCloseToExpireDate(visit_date,auto_expire_date); //make sure the next appoint date is close to
       visit_date = handleAppointments(visit_date) //make sure that the date does not fall on a holiday/non-clinic day
-
       $('dateselector_year').value = visit_date.getFullYear();
       $('dateselector_month').value = DateUtil.months[visit_date.getMonth()];
       $('dateselector_day').value = visit_date.getDate(); 
