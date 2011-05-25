@@ -93,9 +93,31 @@ class Patient < ActiveRecord::Base
   
   def demographics_label
     demographics = Mastercard.demographics(self)
+    hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+                  EncounterType.find_by_name("HIV Staging").id,self.id])
+
+    tb_within_last_two_yrs = "tb within last 2 yrs" unless demographics.tb_within_last_two_yrs.blank?
+    eptb = "eptb" unless demographics.eptb.blank?
+    pulmonary_tb = "Pulmonary tb" unless demographics.pulmonary_tb.blank?
+ 
+    cd4_count_date = nil ; cd4_count = nil ; pregnant = 'N/A'
+
+    (hiv_staging.observations).map do | obs |
+     concept_name = obs.to_s.split(':')[0].strip rescue nil 
+     next if concept_name.blank?
+     case concept_name
+      when 'CD4 COUNT DATETIME'
+       cd4_count_date = obs.value_datetime.to_date
+      when 'CD4 COUNT'
+       cd4_count = obs.value_numeric 
+      when 'IS PATIENT PREGNANT?'
+       pregnant = obs.to_s.split(':')[1] rescue nil
+      end
+    end rescue []
+
     label = ZebraPrinter::StandardLabel.new
     label.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",450,300,0,1,1,1,false)
-    label.draw_text("#{self.arv_number}",575,30,0,3,1,1,false)
+    label.draw_text("#{demographics.arv_number}",575,30,0,3,1,1,false)
     label.draw_text("PATIENT DETAILS",25,30,0,3,1,1,false)
     label.draw_text("Name:  #{demographics.name} (#{demographics.sex})",25,60,0,3,1,1,false)
     label.draw_text("DOB:   #{self.person.birthdate_formatted}",25,90,0,3,1,1,false)
@@ -149,19 +171,19 @@ class Patient < ActiveRecord::Base
     #label data
     label2.draw_text("STATUS AT ART INITIATION",25,30,0,3,1,1,false)
     label2.draw_text("(DSA:#{self.date_started_art.strftime('%d-%b-%Y') rescue 'N/A'})",370,30,0,2,1,1,false)
-    label2.draw_text("#{self.arv_number}",580,20,0,3,1,1,false)
+    label2.draw_text("#{demographics.arv_number}",580,20,0,3,1,1,false)
     label2.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",25,300,0,1,1,1,false)
 
     label2.draw_text("RFS: #{demographics.reason_for_art_eligibility}",25,70,0,2,1,1,false)
-    label2.draw_text("#{cd4_count rescue nil} #{cd4_count_date rescue nil}",25,110,0,2,1,1,false)
+    label2.draw_text("#{cd4_count} #{cd4_count_date}",25,110,0,2,1,1,false)
     label2.draw_text("1st + Test:",25,150,0,2,1,1,false)
- 
-    label2.draw_text("TB: #{tb_status rescue nil}",380,70,0,2,1,1,false)
-    label2.draw_text("KS:#{self.requested_observation('Kaposi\'s sarcoma') rescue nil}",380,110,0,2,1,1,false)
-    label2.draw_text("Preg:#{pregnant rescue nil}",380,150,0,2,1,1,false)
-    label2.draw_text("#{first_line_drugs[0..32] rescue nil}",25,190,0,2,1,1,false)
-    label2.draw_text("#{first_line_alt_drugs[0..32] rescue nil}",25,230,0,2,1,1,false)
-    label2.draw_text("#{second_line_drugs[0..32] rescue nil}",25,270,0,2,1,1,false)
+
+    label2.draw_text("TB: #{tb_within_last_two_yrs} #{eptb} #{pulmonary_tb}",380,70,0,2,1,1,false)
+    label2.draw_text("KS:#{demographics.ks rescue nil}",380,110,0,2,1,1,false)
+    label2.draw_text("Preg:#{pregnant}",380,150,0,2,1,1,false)
+    label2.draw_text("#{demographics.first_line_drugs.join(',')[0..32] rescue nil}",25,190,0,2,1,1,false)
+    label2.draw_text("#{demographics.alt_first_line_drugs.join(',')[0..32] rescue nil}",25,230,0,2,1,1,false)
+    label2.draw_text("#{demographics.second_line_drugs.join(',')[0..32] rescue nil}",25,270,0,2,1,1,false)
 
     label2.draw_text("HEIGHT: #{self.initial_height}",570,70,0,2,1,1,false)
     label2.draw_text("WEIGHT: #{self.initial_weight}",570,110,0,2,1,1,false)
@@ -170,12 +192,12 @@ class Patient < ActiveRecord::Base
     line = 190
     extra_lines = []
     label2.draw_text("STAGE DEFINING CONDITIONS",450,190,0,3,1,1,false)
-    hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",EncounterType.find_by_name("HIV Staging").id,self.id])
     (hiv_staging.observations).each{|obs|
       name = obs.to_s.split(':')[0].strip rescue nil
       condition = obs.to_s.split(':')[1].strip.humanize rescue nil
       next if name == 'WORKSTATION LOCATION' or name == ''
       next if name == 'REASON FOR ART ELIGIBILITY'
+      next unless name == 'WHO STAGES CRITERIA PRESENT'
       line+=25
       if line <= 290
         label2.draw_text(condition[0..35],450,line,0,1,1,1,false) 
@@ -251,17 +273,17 @@ class Patient < ActiveRecord::Base
   end
   
   def initial_weight
-    obs = person.observations.recent(1).question("WEIGHT (KG)").all
+    obs = person.observations.old(1).question("WEIGHT (KG)").all
     obs.last.value_numeric rescue 0
   end
   
   def initial_height
-    obs = person.observations.recent(1).question("HEIGHT (CM)").all
+    obs = person.observations.old(1).question("HEIGHT (CM)").all
     obs.last.value_numeric rescue 0
   end
 
   def initial_bmi
-    obs = person.observations.recent(1).question("BMI").all
+    obs = person.observations.old(1).question("BMI").all
     obs.last.value_numeric rescue nil
   end
 
