@@ -402,4 +402,22 @@ class Person < ActiveRecord::Base
     end
   end
 
+
+  def phone_numbers
+    phone_numbers = {}
+    phone_numbers['Cell phone number'] = PersonAttribute.find(:first,
+                                         :conditions => ["person_id = ? AND person_attribute_type_id = ?",
+                                         self.id,PersonAttributeType.find_by_name("Cell Phone Number").id]).value rescue nil
+
+    phone_numbers['Office phone number'] = PersonAttribute.find(:first,
+                                         :conditions => ["person_id = ? AND person_attribute_type_id = ?",
+                                         self.id,PersonAttributeType.find_by_name("Office Phone Number").id]).value rescue nil
+
+    phone_numbers['Home phone number'] = PersonAttribute.find(:first,
+                                         :conditions => ["person_id = ? AND person_attribute_type_id = ?",
+                                         self.id,PersonAttributeType.find_by_name("Home Phone Number").id]).value rescue nil
+
+    phone_numbers
+  end
+
 end

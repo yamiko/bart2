@@ -115,13 +115,19 @@ class Patient < ActiveRecord::Base
       end
     end rescue []
 
+     phone_numbers = self.person.phone_numbers
+     phone_number = phone_numbers["Office phone number"] if not phone_numbers["Office phone number"].downcase == "not available" and not phone_numbers["Office phone number"].downcase == "unknown" rescue nil
+     phone_number= phone_numbers["Home phone number"] if not phone_numbers["Home phone number"].downcase == "not available" and not phone_numbers["Home phone number"].downcase == "unknown" rescue nil
+     phone_number = phone_numbers["Cell phone number"] if not phone_numbers["Cell phone number"].downcase == "not available" and not phone_numbers["Cell phone number"].downcase == "unknown" rescue nil
+
+
     label = ZebraPrinter::StandardLabel.new
     label.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",450,300,0,1,1,1,false)
     label.draw_text("#{demographics.arv_number}",575,30,0,3,1,1,false)
     label.draw_text("PATIENT DETAILS",25,30,0,3,1,1,false)
-    label.draw_text("Name:  #{demographics.name} (#{demographics.sex})",25,60,0,3,1,1,false)
-    label.draw_text("DOB:   #{self.person.birthdate_formatted}",25,90,0,3,1,1,false)
-    label.draw_text("Phone: #{phone_number rescue nil}",25,120,0,3,1,1,false)
+    label.draw_text("Name:   #{demographics.name} (#{demographics.sex})",25,60,0,3,1,1,false)
+    label.draw_text("DOB:    #{self.person.birthdate_formatted}",25,90,0,3,1,1,false)
+    label.draw_text("Phone: #{phone_number}",25,120,0,3,1,1,false)
     if demographics.address.length > 48
       label.draw_text("Addr:  #{demographics.address[0..47]}",25,150,0,3,1,1,false)
       label.draw_text("    :  #{demographics.address[48..-1]}",25,180,0,3,1,1,false)
@@ -176,7 +182,7 @@ class Patient < ActiveRecord::Base
 
     label2.draw_text("RFS: #{demographics.reason_for_art_eligibility}",25,70,0,2,1,1,false)
     label2.draw_text("#{cd4_count} #{cd4_count_date}",25,110,0,2,1,1,false)
-    label2.draw_text("1st + Test:",25,150,0,2,1,1,false)
+    label2.draw_text("1st + Test: #{demographics.hiv_test_date}",25,150,0,2,1,1,false)
 
     label2.draw_text("TB: #{tb_within_last_two_yrs} #{eptb} #{pulmonary_tb}",380,70,0,2,1,1,false)
     label2.draw_text("KS:#{demographics.ks rescue nil}",380,110,0,2,1,1,false)
@@ -195,8 +201,6 @@ class Patient < ActiveRecord::Base
     (hiv_staging.observations).each{|obs|
       name = obs.to_s.split(':')[0].strip rescue nil
       condition = obs.to_s.split(':')[1].strip.humanize rescue nil
-      next if name == 'WORKSTATION LOCATION' or name == ''
-      next if name == 'REASON FOR ART ELIGIBILITY'
       next unless name == 'WHO STAGES CRITERIA PRESENT'
       line+=25
       if line <= 290
