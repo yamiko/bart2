@@ -17,7 +17,11 @@
     return (today > set_date)
   }
 
-  var tt_cancel_destination = "/clinic"
+  <% if @patient_id %>
+    var tt_cancel_destination = "/patients/show/<%=@patient_id%>"
+  <% else %>
+    var tt_cancel_destination = "/clinic"
+  <% end %>
 </script>
 
 
