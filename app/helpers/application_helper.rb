@@ -32,6 +32,10 @@ module ApplicationHelper
     GlobalProperty.find_by_property("demographics.mothers_surname").property_value == "yes" rescue false
   end
   
+  def ask_middle_name
+    GlobalProperty.find_by_property("demographics.middle_name").property_value == "yes" rescue false
+
+  end
   def ask_blood_pressure
     GlobalProperty.find_by_property("vitals.blood_pressure").property_value == "yes" rescue false
   end
