@@ -1,5 +1,7 @@
 <style>
 
+  .tt_controls_age_estimate #Unknown { display:none; }
+
   .tt_controls_month_of_birth #keyboard { display:none; }
 
   #tt_page_month_of_birth .options{height:19em;}
@@ -132,7 +134,7 @@
 
   Gender: <%= f.select :gender, {"" => "", "Male" => "M", "Female" => "F"}, {:selected => params[:gender]}, {:id => 'gender', :helpText => 'Gender', :condition => '$("gender").value == "" || skipped[tstCurrentPage] == 1', :tt_onLoad => 'seen(tstCurrentPage);' } %>
 
-  <%= text_field_tag "person[names][family_name2]", params[:family_name2], {:id => 'family_name2', :field_type => 'alpha', :helpText => 'Mother\'s Surname', :ajaxURL => '/person_names/family_name2?search_string=', :allowFreeText => true, :condition => '$("family_name2").value == "" || skipped[tstCurrentPage] == 1', :tt_onLoad => 'seen(tstCurrentPage);' } if ask_mothers_surname %>
+  <%= text_field_tag "person[names][middle_name]", params[:middle_name], {:id => 'middle_name', :field_type => 'alpha', :helpText => 'Middle name', :ajaxURL => '/person_names/middle_name?search_string=', :allowFreeText => true, :condition => '$("middle_name").value == "" || skipped[tstCurrentPage] == 1', :tt_onLoad => 'seen(tstCurrentPage);' } if ask_middle_name %>
 
   <%= text_field_tag "person[birth_year]", nil, {:helpText => 'Year of Birth', :field_type => 'number', :absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year, :tt_pageStyleClass => "Numeric NumbersOnly", :tt_onLoad => 'seen(tstCurrentPage);',:validationJS => "setDOB();" }  %>
 
