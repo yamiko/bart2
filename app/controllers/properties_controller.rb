@@ -27,14 +27,12 @@ class PropertiesController < ApplicationController
   end
 
   def clinic_days
-    if request.post? #and (not params[:weekdays].blank? or not params[:peadswkdays].blank?)
+    if request.post? 
       ['peads','all'].each do | age_group |
         if age_group == 'peads'
-          #next if params[:peadswkdays].blank?
           clinic_days = GlobalProperty.find_by_property('peads.clinic.days')
           weekdays = params[:peadswkdays]
         else
-          #next if params[:weekdays].blank?
           clinic_days = GlobalProperty.find_by_property('clinic.days')
           weekdays = params[:weekdays]
         end
