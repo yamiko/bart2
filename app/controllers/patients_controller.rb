@@ -71,19 +71,17 @@ class PatientsController < ApplicationController
 
   def personal
     @links = []
-    use_filing_number = GlobalProperty.find_by_property('use.filing.number').property_value rescue 'false'
-    show_lab_results = GlobalProperty.find_by_property('show.lab.results').property_value rescue 'false'
     patient = Patient.find(params[:id])
-    if use_filing_number == 'true' and not patient.get_identifier('Filing Number').blank?
+
+    @links << ["Visit summary (Print)","/patients/dashboard_print_visit/#{patient.id}"]
+    @links << ["National ID (Print)","/patients/dashboard_print_national_id/#{patient.id}"]
+
+    if use_filing_number and not patient.get_identifier('Filing Number').blank?
       @links << ["Filing number (Print)","/patients/print_filing_number/#{patient.id}"]
     end 
 
-    if use_filing_number == 'true' and patient.get_identifier('Filing Number').blank?
+    if use_filing_number and patient.get_identifier('Filing Number').blank?
       @links << ["Filing number (Create)","/patients/set_filing_number/#{patient.id}"]
-    end 
-
-    if show_lab_results == 'true' 
-      @links << ["Lab results","#"]
     end 
 
     render :template => 'dashboards/personal', :layout => 'dashboard' 
@@ -115,6 +113,14 @@ class PatientsController < ApplicationController
   
   def print_registration
     print_and_redirect("/patients/national_id_label/?patient_id=#{@patient.id}", next_task(@patient))  
+  end
+  
+  def dashboard_print_national_id
+    print_and_redirect("/patients/national_id_label?patient_id=#{params[:id]}", "/patients/personal/#{params[:id]}")  
+  end
+  
+  def dashboard_print_visit
+    print_and_redirect("/patients/visit_label/?patient_id=#{params[:id]}", "/patients/personal/#{params[:id]}")  
   end
   
   def print_visit

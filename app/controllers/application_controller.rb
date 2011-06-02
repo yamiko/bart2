@@ -36,7 +36,15 @@ class ApplicationController < ActionController::Base
     @patient_id = patient_id
     render :template => 'print/print', :layout => nil
   end
-   
+
+  def show_lab_results
+    GlobalProperty.find_by_property('show.lab.results').property_value == "yes" rescue false
+  end
+
+  def use_filing_number
+    GlobalProperty.find_by_property('use.filing.number').property_value == "yes" rescue false
+  end    
+
 private
 
   def find_patient
