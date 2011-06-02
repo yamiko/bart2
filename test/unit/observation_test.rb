@@ -74,7 +74,7 @@ class ObservationTest < ActiveSupport::TestCase
         :value_coded_name_id => ConceptName[:alcohol_counseling].id,
         :value_numeric => 1,
         :value_datetime => nil)
-      assert_equal observation.to_s, "DIAGNOSIS: ALCOHOL COUNSELING1.0"    
+      assert_equal observation.to_s, "DIAGNOSIS: ALCOHOL COUNSELING 1.0"
     end
       
     should "be able to display the answer as a string" do
@@ -83,7 +83,7 @@ class ObservationTest < ActiveSupport::TestCase
         :value_coded_name_id => ConceptName[:alcohol_counseling].id,
         :value_numeric => 1,
         :value_datetime => nil)
-      assert_equal observation.answer_string, "ALCOHOL COUNSELING1.0"    
+      assert_equal observation.answer_string, "ALCOHOL COUNSELING 1.0"
     end
   end
 end

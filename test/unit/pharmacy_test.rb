@@ -25,9 +25,9 @@ class PharmacyTest < ActiveSupport::TestCase
 
     should "edit stock" do
       Pharmacy.new_delivery(2,10000,(Date.today - 6.month))
-      Pharmacy.drug_dispensed_stock_adjustment(2,2000,Date.today,"Given to another clinic")  
-      raise"#{Pharmacy.current_stock(2)}"
-      assert_equal 8000.0,Pharmacy.current_stock(2)
+      #Pharmacy.drug_dispensed_stock_adjustment(2,2000,Date.today,"Given to another clinic")
+      assert_equal 8000.0, Pharmacy.drug_dispensed_stock_adjustment(2,2000,Date.today,"Given to another clinic")
+      #Pharmacy.current_stock(2)
     end
 
     should "give first dispensed date" do
