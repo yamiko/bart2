@@ -104,8 +104,7 @@ class PeopleController < ApplicationController
       unless (params[:relation].blank?)
         redirect_to search_complete_url(person.id, params[:relation]) and return
       else
-        use_filing_number = GlobalProperty.find_by_property('use.filing.number').property_value rescue 'false'
-        if use_filing_number == 'true'
+        if use_filing_number 
           person.patient.set_filing_number 
           archived_patient = person.patient.patient_to_be_archived
           message = Patient.printing_message(person.patient,archived_patient,creating_new_patient = true) 

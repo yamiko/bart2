@@ -742,7 +742,7 @@ EOF
 
   def self.next_filing_number_to_be_archived(current_patient , next_filing_number)
     ActiveRecord::Base.transaction do
-      global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10'
+      global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10000'
       active_filing_number_identifier_type = PatientIdentifierType.find_by_name("Filing Number")
       dormant_filing_number_identifier_type = PatientIdentifierType.find_by_name('Archived Filing Number')
 
