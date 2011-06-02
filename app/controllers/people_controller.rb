@@ -108,7 +108,7 @@ class PeopleController < ApplicationController
         if use_filing_number == 'true'
           person.patient.set_filing_number 
           archived_patient = person.patient.patient_to_be_archived
-          message = printing_message(person.patient,archived_patient,creating_new_patient = true) 
+          message = Patient.printing_message(person.patient,archived_patient,creating_new_patient = true) 
           unless message.blank?
             print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}" , next_task(person.patient),message,true,person.id) 
           else
@@ -123,73 +123,6 @@ class PeopleController < ApplicationController
       redirect_to :action => "index"
     end
   end
-
-  def printing_filing_number_label(number=nil)
-   return number[5..5] + " " + number[6..7] + " " + number[8..-1] unless number.nil?
-  end
-
-  def printing_message(new_patient , archived_patient , creating_new_filing_number_for_patient = false)
-   arv_code = Location.current_arv_code
-   new_patient_name = new_patient.name
-   new_filing_number = printing_filing_number_label(new_patient.get_identifier('Filing Number'))
-   unless archived_patient.blank?
-     old_active_filing_number = printing_filing_number_label(new_patient.get_identifier('Filing Number'))
-     new_archive_filing_number = printing_filing_number_label(archived_patient.get_identifier('Archived Filing Number'))
-   end
-
-   if new_patient and archived_patient 
-     table = <<EOF
-<div id='patients_info_div'>
-<table id = 'filing_info'>
-<tr>
-  <th class='filing_instraction'>Filing actions required</th>
-  <th class='filing_instraction'>Name</th>
-  <th style="text-align:left;">Old label</th>
-  <th style="text-align:left;">New label</th>
-</tr>
-
-<tr>
-  <td style='text-align:left;'>Active → Dormant</td>
-  <td class = 'filing_instraction'>#{archived_patient.name}</td>
-  <td class = 'old_label'>#{old_active_filing_number}</td>
-  <td class='new_label'>#{new_archive_filing_number}</td>
-</tr>
-
-<tr>
-  <td style='text-align:left;'>Add → Active</td>
-  <td class = 'filing_instraction'>#{new_patient_name}</td>
-  <td class = 'old_label'>&nbsp;</td>
-  <td class='new_label'>#{new_filing_number}</td>
-</tr>
-</table>
-</div>
-EOF
-   elsif new_patient 
-     table = <<EOF
-<div id='patients_info_div'>
-<table id = 'filing_info'>
-<tr>
-  <th class='filing_instraction'>Filing actions required</th>
-  <th class='filing_instraction'>Name</th>
-  <th>&nbsp;</th>
-  <th style="text-align:left;">New label</th>
-</tr>
-
-<tr>
-  <td style='text-align:left;'>Add → Active</td>
-  <td class = 'filing_instraction'>#{new_patient_name}</td>
-  <td class = 'filing_instraction'>&nbsp;</td>
-  <td class='new_label'>#{new_filing_number}</td>
-</tr>
-</table>
-</div>
-EOF
-    end
-
-
-    return table
-  end
-
 
   def set_datetime
     if request.post?

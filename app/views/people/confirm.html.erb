@@ -14,6 +14,19 @@
   #cancelhButton {
     float:left;
   }
+
+  .messageBar {
+    background-color: tomato;
+    font-size: 2em;
+    left: 270px;
+    position: absolute;
+    text-align: center;
+    top: 10px;
+    width: 450px;
+    z-index: 999;
+    display:none;
+    height:210px;
+}
 </style>
 
 <%= javascript_include_tag "jquery" %>
@@ -33,6 +46,24 @@
   }
 
   function continueToNext(){
+    <%if @person.patient.get_identifier('Archived Filing Number').blank? %>
+      go();
+    <%else%>
+      messageBar = document.getElementById("messageBar");
+      messageBar.style.display = 'block';
+    <%end%>
+  }
+
+  function setNewFilingNumber() { 
+    document.location = "/patients/set_new_filing_number/<%=@person.id%>"
+  }
+
+  function hideMessage() { 
+    messageBar = document.getElementById("messageBar");
+    messageBar.style.display = 'none';
+  }
+
+  function go() {
     document.forms[0].submit();
   }
 
@@ -99,6 +130,13 @@
   <tr>
     <th>National ID:</th><td><%=@person.patient.national_id_with_dashes%></td>
   </tr>
+  <%
+  use_filing_number = GlobalProperty.find_by_property('use.filing.number').property_value rescue 'false'
+  if Location.current_location.name.match(/HIV|ART/) and use_filing_number == 'true'%>
+    <tr>
+      <th>Filing number:</th><td><%=@person.patient.get_identifier('Filing Number') || @person.patient.get_identifier('Archived Filing Number')%></td>
+    </tr>
+  <%end%>
   <%if Location.current_location.name.match(/HIV|ART/) %>
     <tr>
       <th>ARV number:</th><td><%=@person.patient.arv_number || 'N/A' %></td>
@@ -114,9 +152,14 @@
 
 <div class = 'charts'>
   <h3>Weight graph - History</h3><br />
-  <div id="charts" class="panel" style="width:700px;height:350px;"></div>
+  <div id="charts" class="panel" style="width:700px;height:330px;"></div>
   <div id="placeholder_details" style="height:50px;padding-top:15px;"></div>
 </div>
 
-
+<div id="messageBar" class="messageBar">
+  Patient files in archive cabinets <br /> Move to active cabinets?
+  <br /><br />
+  <button onmousedown="hideMessage();go();"><span>No</span></button>&nbsp;
+  <button onmousedown="hideMessage();setNewFilingNumber();"><span>Yes</span></button>
+</div>
 </body>

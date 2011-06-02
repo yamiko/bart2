@@ -73,9 +73,13 @@ class PatientsController < ApplicationController
     @links = []
     use_filing_number = GlobalProperty.find_by_property('use.filing.number').property_value rescue 'false'
     show_lab_results = GlobalProperty.find_by_property('show.lab.results').property_value rescue 'false'
-    
-    if use_filing_number == 'true' 
-      @links << ["Filing number (Print)","/cohort_tool/cohort_menu"]
+    patient = Patient.find(params[:id])
+    if use_filing_number == 'true' and not patient.get_identifier('Filing Number').blank?
+      @links << ["Filing number (Print)","/patients/print_filing_number/#{patient.id}"]
+    end 
+
+    if use_filing_number == 'true' and patient.get_identifier('Filing Number').blank?
+      @links << ["Filing number (Create)","/patients/set_filing_number/#{patient.id}"]
     end 
 
     if show_lab_results == 'true' 
@@ -124,7 +128,11 @@ class PatientsController < ApplicationController
   def print_demographics
     print_and_redirect("/patients/patient_demographics_label/#{@patient.id}", "/patients/mastercard?patient_id=#{params[:id]}")  
   end
-  
+ 
+  def print_filing_number
+    print_and_redirect("/patients/filing_number_label/#{params[:id]}", "/patients/personal/#{params[:id]}")  
+  end
+   
   def patient_demographics_label
     print_string = Patient.find(params[:id]).demographics_label 
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:id]}#{rand(10000)}.lbl", :disposition => "inline")
@@ -133,6 +141,12 @@ class PatientsController < ApplicationController
   def national_id_label
     print_string = @patient.national_id_label rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a national id label for that patient")
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", :disposition => "inline")
+  end
+ 
+  def filing_number_label
+    patient = Patient.find(params[:id])
+    label_commands = patient.filing_number_label
+    send_data(label_commands,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbl", :disposition => "inline")
   end
  
   def filing_number_and_national_id
@@ -252,6 +266,32 @@ class PatientsController < ApplicationController
     @encounter_type = params[:skipped]
     @patient_id = params[:patient_id]
     render :layout => "menu"
+  end
+
+  def set_filing_number
+    patient = Patient.find(params[:id])
+    patient.set_filing_number
+
+    archived_patient = patient.patient_to_be_archived
+    message = Patient.printing_message(patient,archived_patient,true)
+    unless message.blank?
+      print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/patients/personal/#{patient.id}",message,true,patient.id)
+    else
+      print_and_redirect("/patients/filing_number_label/#{patient.id}", "/patients/personal/#{patient.id}")
+    end
+  end
+
+  def set_new_filing_number
+    patient = Patient.find(params[:id])
+    patient.set_new_filing_number
+
+    archived_patient = patient.patient_to_be_archived
+    message = Patient.printing_message(patient,archived_patient)
+    unless message.blank?
+      print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/people/confirm?found_person_id=#{patient.id}",message,true,patient.id)
+    else
+      print_and_redirect("/patients/filing_number_label/#{patient.id}", "/people/confirm?found_person_id=#{patient.id}")
+    end
   end
 
   def export_to_csv
