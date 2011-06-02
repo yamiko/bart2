@@ -83,7 +83,7 @@ class PatientsController < ApplicationController
     end 
 
     if show_lab_results == 'true' 
-      @links << ["Lab results","/cohort_tool/cohort_menu"]
+      @links << ["Lab results","#"]
     end 
 
     render :template => 'dashboards/personal', :layout => 'dashboard' 
