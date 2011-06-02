@@ -70,6 +70,18 @@ class PatientsController < ApplicationController
   end
 
   def personal
+    @links = []
+    use_filing_number = GlobalProperty.find_by_property('use.filing.number').property_value rescue 'false'
+    show_lab_results = GlobalProperty.find_by_property('show.lab.results').property_value rescue 'false'
+    
+    if use_filing_number == 'true' 
+      @links << ["Filing number (Print)","/cohort_tool/cohort_menu"]
+    end 
+
+    if show_lab_results == 'true' 
+      @links << ["Lab results","/cohort_tool/cohort_menu"]
+    end 
+
     render :template => 'dashboards/personal', :layout => 'dashboard' 
   end
 
@@ -122,7 +134,14 @@ class PatientsController < ApplicationController
     print_string = @patient.national_id_label rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a national id label for that patient")
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", :disposition => "inline")
   end
-  
+ 
+  def filing_number_and_national_id
+    patient = Patient.find(params[:patient_id])
+    label_commands = patient.national_id_label + patient.filing_number_label
+
+    send_data(label_commands,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbl", :disposition => "inline")
+  end
+ 
   def visit_label
     print_string = @patient.visit_label rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a visit label for that patient")
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", :disposition => "inline")

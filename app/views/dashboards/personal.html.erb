@@ -1,3 +1,36 @@
 <%= render :partial => 'dashboards/nav', :locals => {:active => 'personal'} %>
+
+<%= stylesheet_link_tag 'extra_buttons' %>
+<style type="text/css">
+  #stats {
+    width:98%;
+    border:1px solid black;
+    margin:10px;
+    background:white;
+  }
+  #stats td{
+    text-align:right;
+  }
+
+  #stats a {
+    width:155px;
+    float:right;
+  }
+</style>
+
 <div id="tab">
+  <div class="panel" style="width:980px">
+    <h2>Select task</h2>
+    <div style="height:970px;overflow:auto;">
+    <table id="stats" style="height: 400px;" cellpadding="10">
+      <% if  Encounter.count > 0 %>
+        <% (@links || []).each do |name,path| %>
+          <tr>
+            <td><a href="<%=path%>" class='report_button'><%=name%></a></td>
+          </tr>
+        <%end%>
+      <%end%>
+    </table>
+    </div>
+  </div>
 </div>

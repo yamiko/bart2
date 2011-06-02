@@ -239,6 +239,21 @@ class Patient < ActiveRecord::Base
     label.print(1)
   end
   
+  def filing_number_label(num = 1)
+    file = self.get_identifier('Filing Number')[0..9]
+    file_type = file.strip[3..4]
+    version_number=file.strip[2..2]
+    number = file
+    len = number.length - 5
+    number = number[len..len] + "   " + number[(len + 1)..(len + 2)]  + " " +  number[(len + 3)..(number.length)]
+
+    label = ZebraPrinter::StandardLabel.new
+    label.draw_text("#{number}",75, 30, 0, 4, 4, 4, false)
+    label.draw_text("Filing area #{file_type}",75, 150, 0, 2, 2, 2, false)
+    label.draw_text("Version number: #{version_number}",75, 200, 0, 2, 2, 2, false)
+    label.print(num)
+  end  
+
   def visit_label(date = Date.today)
     print_moh_visit_labels = GlobalProperty.find_by_property('print.moh.visit.labels').property_value rescue 'false'
     return Mastercard.mastercard_visit_label(self,date) if print_moh_visit_labels == 'true'
@@ -263,7 +278,7 @@ class Patient < ActiveRecord::Base
     return if identifier_type.blank?
     identifiers = self.patient_identifiers.find_all_by_identifier_type(identifier_type.id)
     return if identifiers.blank?
-    identifiers.map{|i|i.identifier}.join(' , ') rescue nil
+    identifiers.map{|i|i.identifier}[0] rescue nil
   end
   
   def current_weight
@@ -644,4 +659,102 @@ EOF
     return results
   end
 
+  def set_filing_number
+    #return unless self.needs_filing_number?
+    filing_number_identifier_type = PatientIdentifierType.find_by_name("Filing number")
+
+    if self.get_identifier('Archived Filing Number')
+     #voids the record- if patient has a dormant filing number
+       archive_identifier_type = PatientIdentifierType.find_by_name("Archived Filing Number").id
+       current_archive_filing_numbers = self.patient_identifiers.collect{|identifier|
+                                       identifier if identifier.identifier_type == archive_identifier_type and not identifier.voided 
+                                     }.compact
+       current_archive_filing_numbers.each do | filing_number |
+         filing_number.voided = 1
+         filing_number.void_reason = "patient assign new active filing number"
+         filing_number.voided_by = User.current_user.id
+         filing_number.date_voided = Time.now()
+         filing_number.save
+       end
+    end
+
+    next_filing_number = PatientIdentifier.next_filing_number # gets the new filing number! 
+    # checks if the the new filing number has passed the filing number limit...
+    # move dormant patient from active to dormant filing area ... if needed
+    Patient.next_filing_number_to_be_archived(self,next_filing_number) 
+  end 
+
+  def self.next_filing_number_to_be_archived(current_patient , next_filing_number)
+    ActiveRecord::Base.transaction do
+      global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10'
+      active_filing_number_identifier_type = PatientIdentifierType.find_by_name("Filing Number")
+      dormant_filing_number_identifier_type = PatientIdentifierType.find_by_name('Archived Filing Number')
+
+      if (next_filing_number[5..-1].to_i >= global_property_value.to_i)
+        encounter_type_name = ['REGISTRATION','VITALS','ART_INITIAL','ART VISIT',
+                              'TREATMENT','HIV RECEPTION','HIV STAGING','DISPENSING','APPOINTMENT']
+        encounter_type_ids = EncounterType.find(:all,:conditions => ["name IN (?)",encounter_type_name]).map{|n|n.id} 
+      
+        all_filing_numbers = PatientIdentifier.find(:all, :conditions =>["identifier_type = ?",
+                             PatientIdentifierType.find_by_name("Filing Number").id],:group=>"patient_id")
+        patient_ids = all_filing_numbers.collect{|i|i.patient_id}
+        patient_to_be_archived = Encounter.find_by_sql(["
+          SELECT patient_id, MAX(encounter_datetime) AS last_encounter_id
+          FROM encounter 
+          WHERE patient_id IN (?)
+          AND encounter_type IN (?) 
+          GROUP BY patient_id
+          ORDER BY last_encounter_id
+          LIMIT 1",patient_ids,encounter_type_ids]).first.patient rescue nil
+        if patient_to_be_archived.blank?
+          patient_to_be_archived = PatientIdentifier.find(:last,:conditions =>["identifier_type = ?",
+                                   PatientIdentifierType.find_by_name("Filing Number").id],
+                                   :group=>"patient_id",:order => "identifier DESC").patient rescue nil
+        end
+      end
+
+      if patient_to_be_archived
+        filing_number = PatientIdentifier.new()
+        filing_number.patient_id = patient_to_be_archived.id
+        filing_number.identifier_type = dormant_filing_number_identifier_type.id
+        filing_number.identifier = PatientIdentifier.next_filing_number("Archived Filing Number")
+        filing_number.save
+       
+        #assigning "patient_to_be_archived" filing number to the new patient
+        filing_number= PatientIdentifier.new()
+        filing_number.patient_id = current_patient.id
+        filing_number.identifier_type = active_filing_number_identifier_type.id
+        filing_number.identifier = patient_to_be_archived.get_identifier('Filing Number')
+        filing_number.save
+
+        #void current filing number
+        current_filing_numbers =  PatientIdentifier.find(:all,:conditions=>["patient_id=? AND identifier_type = ?",
+                                  patient_to_be_archived.id,PatientIdentifierType.find_by_name("Filing Number").id])
+        current_filing_numbers.each do | filing_number |
+          filing_number.voided = 1
+          filing_number.voided_by = User.current_user.id
+          filing_number.void_reason = "Archived - filing number given to:#{current_patient.id}"
+          filing_number.date_voided = Time.now()
+          filing_number.save
+        end
+      else
+        filing_number = PatientIdentifier.new()
+        filing_number.patient_id = current_patient.id
+        filing_number.identifier_type = active_filing_number_identifier_type.id
+        filing_number.identifier = next_filing_number
+        filing_number.save
+      end
+    end
+
+    true
+  end
+
+  def patient_to_be_archived
+    active_identifier_type = PatientIdentifierType.find_by_name("Filing Number")
+    PatientIdentifier.find_by_sql(["
+      SELECT * FROM patient_identifier 
+      WHERE voided = 1 AND identifier_type = ? AND void_reason = ? ORDER BY date_created DESC",
+      active_identifier_type.id,"Archived - filing number given to:#{self.id}"]).first.patient rescue nil
+  end
+  
 end
