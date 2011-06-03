@@ -119,9 +119,9 @@ class Person < ActiveRecord::Base
       "addresses" => {
         "county_district" => "",
         "city_village" => self.addresses[0].city_village,
-        "location" => self.addresses[0].address2
+        "address2" => self.addresses[0].address2
       },
-    "occupation" => self.get_attribute('Occupation')}}
+    "attributes" => {"occupation" => self.get_attribute('Occupation')}}}
  
     if not self.patient.patient_identifiers.blank? 
       demographics["person"]["patient"] = {"identifiers" => {}}
@@ -311,19 +311,19 @@ class Person < ActiveRecord::Base
 
     person.person_attributes.create(
       :person_attribute_type_id => PersonAttributeType.find_by_name("Occupation").person_attribute_type_id,
-      :value => params["occupation"])
+      :value => params["occupation"]) unless params["occupation"].blank? rescue nil
  
     person.person_attributes.create(
       :person_attribute_type_id => PersonAttributeType.find_by_name("Cell Phone Number").person_attribute_type_id,
-      :value => params["cell_phone_number"])
+      :value => params["cell_phone_number"]) unless params["cell_phone_number"].blank? rescue nil
  
     person.person_attributes.create(
       :person_attribute_type_id => PersonAttributeType.find_by_name("Office Phone Number").person_attribute_type_id,
-      :value => params["office_phone_number"]) unless params["office_phone_number"].blank?
+      :value => params["office_phone_number"]) unless params["office_phone_number"].blank? rescue nil
  
     person.person_attributes.create(
       :person_attribute_type_id => PersonAttributeType.find_by_name("Home Phone Number").person_attribute_type_id,
-      :value => params["home_phone_number"]) unless params["home_phone_number"].blank?
+      :value => params["home_phone_number"]) unless params["home_phone_number"].blank? rescue nil
  
 # TODO handle the birthplace attribute
  
