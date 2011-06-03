@@ -128,7 +128,7 @@ class PersonTest < ActiveSupport::TestCase
     should "return a hash with correct address" do
       p = person(:evan)
       data = {
-        "location" => "Friendship House",
+        "address2" => "Friendship House",
         "county_district" => "",
         "city_village" => "Katoleza"
       }
@@ -149,6 +149,23 @@ class PersonTest < ActiveSupport::TestCase
 
     should "return a hash that represents a patients demographics" do
       p = person(:evan)
+
+      evan_demographics = {"person"=> {
+        "addresses"=> {"address2"=>"Friendship House",
+                       "city_village"=>"Katoleza",
+                       "county_district"=>""},
+        "birth_month"=>6,
+        "attributes"=>{"occupation"=>nil},
+        "patient"=> {"identifiers"=> {"National id"=>"P1701210013",
+                                      "Pre ART Number"=>"PART-311",
+                                      "ARV Number"=>"ARV-311"}},
+        "gender"=>"M",
+        "birth_day"=>9,
+        "date_changed"=>"Sat Jan 01 00:00:00 +0200 2000",
+        "names"=>
+              {"family_name2"=>"Murray", "family_name"=>"Waters", "given_name"=>"Evan"},
+        "birth_year"=>1982}}
+=begin
       evan_demographics = { "person" => {
         "date_changed" => Time.mktime("2000-01-01 00:00:00").to_s,
         "occupation" => nil,
@@ -162,7 +179,7 @@ class PersonTest < ActiveSupport::TestCase
           "family_name2" => "Murray",
         },
         "addresses" => {
-          "location" => "Friendship House",
+          "address2" => "Friendship House",
           "county_district" => "",
           "city_village" => "Katoleza"
         },
@@ -174,6 +191,7 @@ class PersonTest < ActiveSupport::TestCase
           }
         }
       }}
+=end
     assert_equal p.demographics, evan_demographics
     end
 
