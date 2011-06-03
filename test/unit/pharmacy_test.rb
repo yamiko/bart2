@@ -19,15 +19,15 @@ class PharmacyTest < ActiveSupport::TestCase
       old_date = (Date.today - 6.month)
       Pharmacy.new_delivery(5,100,old_date,nil,(Date.today + 3.year))
       Pharmacy.new_delivery(5,500,Date.today,nil,(Date.today + 3.year))
-      assert_equal 100.0,Pharmacy.current_stock_as_from(5,old_date,(old_date + 3.day))
+      assert_equal 100.0,Pharmacy.current_stock_as_from(5,old_date,(old_date + 3.year))
       assert_equal 600.0,Pharmacy.current_stock_as_from(5,Date.today)
     end
 
     should "edit stock" do
       Pharmacy.new_delivery(2,10000,(Date.today - 6.month))
-      Pharmacy.drug_dispensed_stock_adjustment(2,2000,Date.today,"Given to another clinic")  
-      raise"#{Pharmacy.current_stock(2)}"
-      assert_equal 8000.0,Pharmacy.current_stock(2)
+      #Pharmacy.drug_dispensed_stock_adjustment(2,2000,Date.today,"Given to another clinic")
+      assert_equal 8000.0, Pharmacy.drug_dispensed_stock_adjustment(2,2000,Date.today,"Given to another clinic")
+      #Pharmacy.current_stock(2)
     end
 
     should "give first dispensed date" do

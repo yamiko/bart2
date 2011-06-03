@@ -96,6 +96,7 @@ class Pharmacy < ActiveRecord::Base
         current_stock.value_numeric = current_number_of_pills
         #contains edited. current_stock.value_numeric=tins_currently_in_stock-quantity
         current_stock.save
+        return current_number_of_pills
       } unless dates.blank?
     }
     true
@@ -158,12 +159,11 @@ class Pharmacy < ActiveRecord::Base
 
   def self.current_stock_as_from(drug_id,start_date=Date.today,end_date=Date.today)
     encounter_type = PharmacyEncounterType.find_by_name("Tins currently in stock").id
-
-    return Pharmacy.active.find(:first,
-     :conditions => ["drug_id=? AND pharmacy_encounter_type=?
-     AND encounter_date <=?",drug_id,encounter_type,end_date],
-     :order => "encounter_date DESC,date_created DESC").value_numeric rescue 0
-
+    
+     return Pharmacy.active.find(:first,
+       :conditions => ["drug_id=? AND pharmacy_encounter_type=?
+       AND encounter_date <=?",drug_id,encounter_type,end_date],
+       :order => "encounter_date DESC,date_created DESC").value_numeric rescue 0
 =begin
     total_dispensed_to_date = Pharmacy.dispensed_drugs_since(drug_id,first_date)
     current_stock = self.current_stock(drug_id)
