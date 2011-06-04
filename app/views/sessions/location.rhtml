@@ -1,6 +1,11 @@
   <%= javascript_include_tag "barcode" %>
   <script>
-    var tt_cancel_destination = "/logout"
+    <% 
+    if params[:from] == 'clinic'%>
+      var tt_cancel_destination = "/clinic"
+    <%else%>
+      var tt_cancel_destination = "/logout"
+    <%end%>
     barcodeId = 'touchscreenInput0';
     barcodeFocusOnce = true;
     barcodeScanAction = gotoNextPage;

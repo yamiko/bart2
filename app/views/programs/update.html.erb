@@ -1,3 +1,9 @@
+<style>
+  .tt_controls_new_state_start_date #num , #Unknown {
+    display:none;
+  }
+</style>
+
 <script>
   var tt_cancel_destination = "/patients/programs/<%= @patient.patient_id %>"
   var program_date_completed = "<%= @program_date_completed %>"
@@ -12,14 +18,14 @@
   }
 
   function validProgram(){
-    selected_state = ($('tt_page_current_state').getElementsByTagName("input")[0].value)
+    selected_state = ($('tt_page_new_state').getElementsByTagName("input")[0].value)
     if(program_date_completed != ""){return false}
     return true
   } 
 
   function validStartDate(){
     closed_states = '<%= @invalid_date_ranges %>'
-    set_start_date = dateCreate($('tt_page_current_state_start_date').getElementsByTagName("input")[0].value)
+    set_start_date = dateCreate($('tt_page_new_state_start_date').getElementsByTagName("input")[0].value)
     
     if (closed_states == '')
       return true

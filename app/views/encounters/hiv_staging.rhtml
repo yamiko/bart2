@@ -297,6 +297,8 @@
       {:id => "cd4_count",
        :condition => '$("new_cd4_count_available").value == "YES"',
        :helpText => "CD4 Count",
+       :max => 1000 ,
+       :min => 1 ,
        :tt_onComplete => 'updateCD4Count()'} %>
 
     <%= touch_hidden_tag "CD4 COUNT LESS THAN 250", @patient, "", :id => "cd4_count_less_than_250" %>

@@ -24,6 +24,18 @@ class EncountersController < ApplicationController
       params[:observations] = observations unless observations.blank?
     end
     
+    if params['encounter']['encounter_type_name'] == 'HIV STAGING'
+      observations = []
+      (params[:observations] || []).each do |observation|
+        if observation['concept_name'] == 'CD4 COUNT'
+          observation['value_modifier'] = observation['value_numeric'].match(/<|>/)[0] rescue nil
+          observation['value_numeric'] = observation['value_numeric'].match(/[0-9](.*)/i)[0] rescue nil
+        end
+        observations << observation
+      end
+      params[:observations] = observations unless observations.blank?
+    end
+
     @patient = Patient.find(params[:encounter][:patient_id])
 
     # Go to the dashboard if this is a non-encounter

@@ -16,7 +16,7 @@ class Cohort
       :order => 'date_enrolled ASC'
     ).date_enrolled.to_date rescue nil
 
-    @@program_id = Program.find_by_name('ARV PROGRAM').program_id
+    @@program_id = Program.find_by_name('HIV PROGRAM').program_id
   end
 
   # Get patients reinitiated on art count

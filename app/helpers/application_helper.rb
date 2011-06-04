@@ -32,6 +32,11 @@ module ApplicationHelper
     GlobalProperty.find_by_property("demographics.mothers_surname").property_value == "yes" rescue false
   end
   
+  def ask_middle_name
+    GlobalProperty.find_by_property("demographics.middle_name").property_value == "yes" rescue false
+
+  end
+
   def ask_blood_pressure
     GlobalProperty.find_by_property("vitals.blood_pressure").property_value == "yes" rescue false
   end
@@ -43,6 +48,14 @@ module ApplicationHelper
   def ask_standard_art_side_effects
     GlobalProperty.find_by_property("art_visit.standard_art_side_effects").property_value == "yes" rescue false
   end  
+
+  def show_lab_results
+    GlobalProperty.find_by_property('show.lab.results').property_value == "yes" rescue false
+  end
+  
+  def use_filing_number
+    GlobalProperty.find_by_property('use.filing.number').property_value == "yes" rescue false
+  end
 
   def month_name_options
     i=0

@@ -6,8 +6,8 @@ class ApplicationController < ActionController::Base
   helper :all
   helper_method :next_task
   filter_parameter_logging :password
-  before_filter :login_required, :except => ['login', 'logout','demographics','create_remote']
-  before_filter :location_required, :except => ['login', 'logout', 'location','demographics','create_remote']
+  before_filter :login_required, :except => ['login', 'logout','demographics','create_remote', 'mastercard_printable']
+  before_filter :location_required, :except => ['login', 'logout', 'location','demographics','create_remote', 'mastercard_printable']
   
   def rescue_action_in_public(exception)
     @message = exception.message
@@ -28,13 +28,27 @@ class ApplicationController < ActionController::Base
     return "/patients/show/#{patient.id}" 
   end
 
-  def print_and_redirect(print_url, redirect_url, message = "Printing, please wait...")
+  def print_and_redirect(print_url, redirect_url, message = "Printing, please wait...", show_next_button = false, patient_id = nil)
     @print_url = print_url
     @redirect_url = redirect_url
     @message = message
+    @show_next_button = show_next_button
+    @patient_id = patient_id
     render :template => 'print/print', :layout => nil
   end
-  
+
+  def show_lab_results
+    GlobalProperty.find_by_property('show.lab.results').property_value == "yes" rescue false
+  end
+
+  def use_filing_number
+    GlobalProperty.find_by_property('use.filing.number').property_value == "yes" rescue false
+  end    
+
+  def generic_locations
+    GlobalProperty.find_by_property('generic.locations').property_value.split(',') rescue []
+  end    
+
 private
 
   def find_patient

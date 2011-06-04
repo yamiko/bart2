@@ -90,6 +90,138 @@ class Patient < ActiveRecord::Base
     id = self.national_id(force)
     id[0..4] + "-" + id[5..8] + "-" + id[9..-1] rescue id
   end
+  
+  def demographics_label
+    demographics = Mastercard.demographics(self)
+    hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+                  EncounterType.find_by_name("HIV Staging").id,self.id])
+
+    tb_within_last_two_yrs = "tb within last 2 yrs" unless demographics.tb_within_last_two_yrs.blank?
+    eptb = "eptb" unless demographics.eptb.blank?
+    pulmonary_tb = "Pulmonary tb" unless demographics.pulmonary_tb.blank?
+ 
+    cd4_count_date = nil ; cd4_count = nil ; pregnant = 'N/A'
+
+    (hiv_staging.observations).map do | obs |
+     concept_name = obs.to_s.split(':')[0].strip rescue nil 
+     next if concept_name.blank?
+     case concept_name
+      when 'CD4 COUNT DATETIME'
+       cd4_count_date = obs.value_datetime.to_date
+      when 'CD4 COUNT'
+       cd4_count = obs.value_numeric 
+      when 'IS PATIENT PREGNANT?'
+       pregnant = obs.to_s.split(':')[1] rescue nil
+      end
+    end rescue []
+
+     phone_numbers = self.person.phone_numbers
+     phone_number = phone_numbers["Office phone number"] if not phone_numbers["Office phone number"].downcase == "not available" and not phone_numbers["Office phone number"].downcase == "unknown" rescue nil
+     phone_number= phone_numbers["Home phone number"] if not phone_numbers["Home phone number"].downcase == "not available" and not phone_numbers["Home phone number"].downcase == "unknown" rescue nil
+     phone_number = phone_numbers["Cell phone number"] if not phone_numbers["Cell phone number"].downcase == "not available" and not phone_numbers["Cell phone number"].downcase == "unknown" rescue nil
+
+
+    label = ZebraPrinter::StandardLabel.new
+    label.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",450,300,0,1,1,1,false)
+    label.draw_text("#{demographics.arv_number}",575,30,0,3,1,1,false)
+    label.draw_text("PATIENT DETAILS",25,30,0,3,1,1,false)
+    label.draw_text("Name:   #{demographics.name} (#{demographics.sex})",25,60,0,3,1,1,false)
+    label.draw_text("DOB:    #{self.person.birthdate_formatted}",25,90,0,3,1,1,false)
+    label.draw_text("Phone: #{phone_number}",25,120,0,3,1,1,false)
+    if demographics.address.length > 48
+      label.draw_text("Addr:  #{demographics.address[0..47]}",25,150,0,3,1,1,false)
+      label.draw_text("    :  #{demographics.address[48..-1]}",25,180,0,3,1,1,false)
+      last_line = 180
+    else
+      label.draw_text("Addr:  #{demographics.address}",25,150,0,3,1,1,false)
+      last_line = 150
+    end  
+
+    if last_line == 180 and demographics.guardian.length < 48
+      label.draw_text("Guard: #{demographics.guardian}",25,210,0,3,1,1,false)
+      last_line = 210
+    elsif last_line == 180 and demographics.guardian.length > 48
+      label.draw_text("Guard: #{demographics.guardian[0..47]}",25,210,0,3,1,1,false)
+      label.draw_text("     : #{demographics.guardian[48..-1]}",25,240,0,3,1,1,false)
+      last_line = 240
+    elsif last_line == 150 and demographics.guardian.length > 48
+      label.draw_text("Guard: #{demographics.guardian[0..47]}",25,180,0,3,1,1,false)
+      label.draw_text("     : #{demographics.guardian[48..-1]}",25,210,0,3,1,1,false)
+      last_line = 210
+    elsif last_line == 150 and demographics.guardian.length < 48
+      label.draw_text("Guard: #{demographics.guardian}",25,180,0,3,1,1,false)
+      last_line = 180
+    end  
+   
+    label.draw_text("TI:    #{demographics.transfer_in ||= 'No'}",25,last_line+=30,0,3,1,1,false)
+    label.draw_text("FUP:   (#{demographics.agrees_to_followup})",25,last_line+=30,0,3,1,1,false)
+
+      
+    label2 = ZebraPrinter::StandardLabel.new
+    #Vertical lines
+=begin
+     label2.draw_line(45,40,5,242)
+     label2.draw_line(805,40,5,242)
+     label2.draw_line(365,40,5,242)
+     label2.draw_line(575,40,5,242)
+    
+     #horizontal lines
+     label2.draw_line(45,40,795,3)
+     label2.draw_line(45,80,795,3)
+     label2.draw_line(45,120,795,3)
+     label2.draw_line(45,200,795,3)
+     label2.draw_line(45,240,795,3)
+     label2.draw_line(45,280,795,3)
+=end
+    label2.draw_line(25,170,795,3)
+    #label data
+    label2.draw_text("STATUS AT ART INITIATION",25,30,0,3,1,1,false)
+    label2.draw_text("(DSA:#{self.date_started_art.strftime('%d-%b-%Y') rescue 'N/A'})",370,30,0,2,1,1,false)
+    label2.draw_text("#{demographics.arv_number}",580,20,0,3,1,1,false)
+    label2.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",25,300,0,1,1,1,false)
+
+    label2.draw_text("RFS: #{demographics.reason_for_art_eligibility}",25,70,0,2,1,1,false)
+    label2.draw_text("#{cd4_count} #{cd4_count_date}",25,110,0,2,1,1,false)
+    label2.draw_text("1st + Test: #{demographics.hiv_test_date}",25,150,0,2,1,1,false)
+
+    label2.draw_text("TB: #{tb_within_last_two_yrs} #{eptb} #{pulmonary_tb}",380,70,0,2,1,1,false)
+    label2.draw_text("KS:#{demographics.ks rescue nil}",380,110,0,2,1,1,false)
+    label2.draw_text("Preg:#{pregnant}",380,150,0,2,1,1,false)
+    label2.draw_text("#{demographics.first_line_drugs.join(',')[0..32] rescue nil}",25,190,0,2,1,1,false)
+    label2.draw_text("#{demographics.alt_first_line_drugs.join(',')[0..32] rescue nil}",25,230,0,2,1,1,false)
+    label2.draw_text("#{demographics.second_line_drugs.join(',')[0..32] rescue nil}",25,270,0,2,1,1,false)
+
+    label2.draw_text("HEIGHT: #{self.initial_height}",570,70,0,2,1,1,false)
+    label2.draw_text("WEIGHT: #{self.initial_weight}",570,110,0,2,1,1,false)
+    label2.draw_text("Init Age: #{self.age_at_initiation(demographics.date_of_first_line_regimen) rescue nil}",570,150,0,2,1,1,false)
+
+    line = 190
+    extra_lines = []
+    label2.draw_text("STAGE DEFINING CONDITIONS",450,190,0,3,1,1,false)
+    (hiv_staging.observations).each{|obs|
+      name = obs.to_s.split(':')[0].strip rescue nil
+      condition = obs.to_s.split(':')[1].strip.humanize rescue nil
+      next unless name == 'WHO STAGES CRITERIA PRESENT'
+      line+=25
+      if line <= 290
+        label2.draw_text(condition[0..35],450,line,0,1,1,1,false) 
+      end
+      extra_lines << condition[0..79] if line > 290
+    } rescue []
+
+    if line > 310 and !extra_lines.blank?
+     line = 30 
+     label3 = ZebraPrinter::StandardLabel.new
+     label3.draw_text("STAGE DEFINING CONDITIONS",25,line,0,3,1,1,false)
+     label3.draw_text("#{self.arv_number}",370,line,0,2,1,1,false)
+     label3.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",450,300,0,1,1,1,false)
+     extra_lines.each{|condition| 
+       label3.draw_text(condition,25,line+=30,0,2,1,1,false)
+     } rescue []
+    end
+    return "#{label.print(1)} #{label2.print(1)} #{label3.print(1)}" if !extra_lines.blank?
+    return "#{label.print(1)} #{label2.print(1)}"
+  end
 
   def national_id_label
     return unless self.national_id
@@ -107,6 +239,21 @@ class Patient < ActiveRecord::Base
     label.print(1)
   end
   
+  def filing_number_label(num = 1)
+    file = self.get_identifier('Filing Number')[0..9]
+    file_type = file.strip[3..4]
+    version_number=file.strip[2..2]
+    number = file
+    len = number.length - 5
+    number = number[len..len] + "   " + number[(len + 1)..(len + 2)]  + " " +  number[(len + 3)..(number.length)]
+
+    label = ZebraPrinter::StandardLabel.new
+    label.draw_text("#{number}",75, 30, 0, 4, 4, 4, false)
+    label.draw_text("Filing area #{file_type}",75, 150, 0, 2, 2, 2, false)
+    label.draw_text("Version number: #{version_number}",75, 200, 0, 2, 2, 2, false)
+    label.print(num)
+  end  
+
   def visit_label(date = Date.today)
     print_moh_visit_labels = GlobalProperty.find_by_property('print.moh.visit.labels').property_value rescue 'false'
     return Mastercard.mastercard_visit_label(self,date) if print_moh_visit_labels == 'true'
@@ -131,7 +278,7 @@ class Patient < ActiveRecord::Base
     return if identifier_type.blank?
     identifiers = self.patient_identifiers.find_all_by_identifier_type(identifier_type.id)
     return if identifiers.blank?
-    identifiers.map{|i|i.identifier}.join(' , ') rescue nil
+    identifiers.map{|i|i.identifier}[0] rescue nil
   end
   
   def current_weight
@@ -145,17 +292,17 @@ class Patient < ActiveRecord::Base
   end
   
   def initial_weight
-    obs = person.observations.recent(1).question("WEIGHT (KG)").all
+    obs = person.observations.old(1).question("WEIGHT (KG)").all
     obs.last.value_numeric rescue 0
   end
   
   def initial_height
-    obs = person.observations.recent(1).question("HEIGHT (CM)").all
+    obs = person.observations.old(1).question("HEIGHT (CM)").all
     obs.last.value_numeric rescue 0
   end
 
   def initial_bmi
-    obs = person.observations.recent(1).question("BMI").all
+    obs = person.observations.old(1).question("BMI").all
     obs.last.value_numeric rescue nil
   end
 
@@ -322,7 +469,7 @@ class Patient < ActiveRecord::Base
     PatientIdentifier.identifier(self.patient_id, arv_number_id).identifier rescue nil
   end
 
-  def age_at_initiation(initiation_date)
+  def age_at_initiation(initiation_date = nil)
     patient = Person.find(self.id)
     return patient.age(initiation_date) unless initiation_date.nil?
   end
@@ -510,6 +657,296 @@ EOF
 
     results["person"] = result_hash
     return results
+  end
+
+  def set_new_filing_number
+    ActiveRecord::Base.transaction do
+      global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10'
+
+      filing_number_identifier_type = PatientIdentifierType.find_by_name("Filing number")
+      archive_identifier_type = PatientIdentifierType.find_by_name("Archived Filing Number")
+
+      next_filing_number = PatientIdentifier.next_filing_number('Filing Number')
+      if (next_filing_number[5..-1].to_i >= global_property_value.to_i)
+        encounter_type_name = ['REGISTRATION','VITALS','ART_INITIAL','ART VISIT',
+                            'TREATMENT','HIV RECEPTION','HIV STAGING','DISPENSING','APPOINTMENT']
+        encounter_type_ids = EncounterType.find(:all,:conditions => ["name IN (?)",encounter_type_name]).map{|n|n.id} 
+    
+        all_filing_numbers = PatientIdentifier.find(:all, :conditions =>["identifier_type = ?",
+                           filing_number_identifier_type.id],:group=>"patient_id")
+        patient_ids = all_filing_numbers.collect{|i|i.patient_id}
+        patient_to_be_archived = Encounter.find_by_sql(["
+          SELECT patient_id, MAX(encounter_datetime) AS last_encounter_id
+          FROM encounter 
+          WHERE patient_id IN (?)
+          AND encounter_type IN (?) 
+          GROUP BY patient_id
+          ORDER BY last_encounter_id
+          LIMIT 1",patient_ids,encounter_type_ids]).first.patient rescue nil
+
+        if patient_to_be_archived.blank?
+          patient_to_be_archived = PatientIdentifier.find(:last,:conditions =>["identifier_type = ?",
+                                 filing_number_identifier_type.id],
+                                 :group=>"patient_id",:order => "identifier DESC").patient rescue nil
+        end
+      end
+
+      if self.get_identifier('Archived Filing Number')
+       #voids the record- if patient has a dormant filing number
+         current_archive_filing_numbers = self.patient_identifiers.collect{|identifier|
+                                         identifier if identifier.identifier_type == archive_identifier_type.id and identifier.voided 
+                                       }.compact
+         current_archive_filing_numbers.each do | filing_number |
+           filing_number.voided = 1
+           filing_number.void_reason = "patient assign new active filing number"
+           filing_number.voided_by = User.current_user.id
+           filing_number.date_voided = Time.now()
+           filing_number.save
+         end
+      end
+     
+      unless patient_to_be_archived.blank?
+        filing_number = PatientIdentifier.new()
+        filing_number.patient_id = self.id
+        filing_number.identifier = patient_to_be_archived.get_identifier('Filing Number')
+        filing_number.identifier_type = filing_number_identifier_type.id
+        filing_number.save
+
+        current_active_filing_numbers = patient_to_be_archived.patient_identifiers.collect{|identifier|
+                                         identifier if identifier.identifier_type == filing_number_identifier_type.id and not identifier.voided 
+                                       }.compact
+         current_active_filing_numbers.each do | filing_number |
+           filing_number.voided = 1
+           filing_number.void_reason = "Archived - filing number given to:#{self.id}"
+           filing_number.voided_by = User.current_user.id
+           filing_number.date_voided = Time.now()
+           filing_number.save
+         end
+      else
+        filing_number = PatientIdentifier.new()
+        filing_number.patient_id = self.id
+        filing_number.identifier = next_filing_number
+        filing_number.identifier_type = filing_number_identifier_type.id
+        filing_number.save
+      end 
+      true
+    end
+  end
+
+  def set_filing_number
+    next_filing_number = PatientIdentifier.next_filing_number # gets the new filing number! 
+    # checks if the the new filing number has passed the filing number limit...
+    # move dormant patient from active to dormant filing area ... if needed
+    Patient.next_filing_number_to_be_archived(self,next_filing_number) 
+  end 
+
+  def self.next_filing_number_to_be_archived(current_patient , next_filing_number)
+    ActiveRecord::Base.transaction do
+      global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10000'
+      active_filing_number_identifier_type = PatientIdentifierType.find_by_name("Filing Number")
+      dormant_filing_number_identifier_type = PatientIdentifierType.find_by_name('Archived Filing Number')
+
+      if (next_filing_number[5..-1].to_i >= global_property_value.to_i)
+        encounter_type_name = ['REGISTRATION','VITALS','ART_INITIAL','ART VISIT',
+                              'TREATMENT','HIV RECEPTION','HIV STAGING','DISPENSING','APPOINTMENT']
+        encounter_type_ids = EncounterType.find(:all,:conditions => ["name IN (?)",encounter_type_name]).map{|n|n.id} 
+      
+        all_filing_numbers = PatientIdentifier.find(:all, :conditions =>["identifier_type = ?",
+                             PatientIdentifierType.find_by_name("Filing Number").id],:group=>"patient_id")
+        patient_ids = all_filing_numbers.collect{|i|i.patient_id}
+        patient_to_be_archived = Encounter.find_by_sql(["
+          SELECT patient_id, MAX(encounter_datetime) AS last_encounter_id
+          FROM encounter 
+          WHERE patient_id IN (?)
+          AND encounter_type IN (?) 
+          GROUP BY patient_id
+          ORDER BY last_encounter_id
+          LIMIT 1",patient_ids,encounter_type_ids]).first.patient rescue nil
+        if patient_to_be_archived.blank?
+          patient_to_be_archived = PatientIdentifier.find(:last,:conditions =>["identifier_type = ?",
+                                   PatientIdentifierType.find_by_name("Filing Number").id],
+                                   :group=>"patient_id",:order => "identifier DESC").patient rescue nil
+        end
+      end
+
+      if patient_to_be_archived
+        filing_number = PatientIdentifier.new()
+        filing_number.patient_id = patient_to_be_archived.id
+        filing_number.identifier_type = dormant_filing_number_identifier_type.id
+        filing_number.identifier = PatientIdentifier.next_filing_number("Archived Filing Number")
+        filing_number.save
+       
+        #assigning "patient_to_be_archived" filing number to the new patient
+        filing_number= PatientIdentifier.new()
+        filing_number.patient_id = current_patient.id
+        filing_number.identifier_type = active_filing_number_identifier_type.id
+        filing_number.identifier = patient_to_be_archived.get_identifier('Filing Number')
+        filing_number.save
+
+        #void current filing number
+        current_filing_numbers =  PatientIdentifier.find(:all,:conditions=>["patient_id=? AND identifier_type = ?",
+                                  patient_to_be_archived.id,PatientIdentifierType.find_by_name("Filing Number").id])
+        current_filing_numbers.each do | filing_number |
+          filing_number.voided = 1
+          filing_number.voided_by = User.current_user.id
+          filing_number.void_reason = "Archived - filing number given to:#{current_patient.id}"
+          filing_number.date_voided = Time.now()
+          filing_number.save
+        end
+      else
+        filing_number = PatientIdentifier.new()
+        filing_number.patient_id = current_patient.id
+        filing_number.identifier_type = active_filing_number_identifier_type.id
+        filing_number.identifier = next_filing_number
+        filing_number.save
+      end
+    end
+
+    true
+  end
+
+  def patient_to_be_archived
+    active_identifier_type = PatientIdentifierType.find_by_name("Filing Number")
+    PatientIdentifier.find_by_sql(["
+      SELECT * FROM patient_identifier 
+      WHERE voided = 1 AND identifier_type = ? AND void_reason = ? ORDER BY date_created DESC",
+      active_identifier_type.id,"Archived - filing number given to:#{self.id}"]).first.patient rescue nil
+  end
+
+  def old_filing_number(type = 'Filing Number')
+    identifier_type = PatientIdentifierType.find_by_name(type)
+    PatientIdentifier.find_by_sql(["
+      SELECT * FROM patient_identifier 
+      WHERE patient_id = ?
+      AND identifier_type = ? 
+      AND voided = 1
+      ORDER BY date_created DESC
+      LIMIT 1",self.id,identifier_type.id]).first.identifier rescue nil
+  end
+
+  def self.printing_filing_number_label(number=nil)
+   return number[5..5] + " " + number[6..7] + " " + number[8..-1] unless number.nil?
+  end
+
+  def self.printing_message(new_patient , archived_patient , creating_new_filing_number_for_patient = false)
+   arv_code = Location.current_arv_code
+   new_patient_name = new_patient.name
+   new_filing_number = self.printing_filing_number_label(new_patient.get_identifier('Filing Number'))
+   old_archive_filing_number = self.printing_filing_number_label(new_patient.old_filing_number('Archived Filing Number'))
+   unless archived_patient.blank?
+     old_active_filing_number = self.printing_filing_number_label(archived_patient.old_filing_number)
+     new_archive_filing_number = self.printing_filing_number_label(archived_patient.get_identifier('Archived Filing Number'))
+   end
+
+   if new_patient and archived_patient and creating_new_filing_number_for_patient 
+     table = <<EOF
+<div id='patients_info_div'>
+<table id = 'filing_info'>
+<tr>
+  <th class='filing_instraction'>Filing actions required</th>
+  <th class='filing_instraction'>Name</th>
+  <th style="text-align:left;">Old label</th>
+  <th style="text-align:left;">New label</th>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Active → Dormant</td>
+  <td class = 'filing_instraction'>#{archived_patient.name}</td>
+  <td class = 'old_label'>#{old_active_filing_number}</td>
+  <td class='new_label'>#{new_archive_filing_number}</td>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Add → Active</td>
+  <td class = 'filing_instraction'>#{new_patient_name}</td>
+  <td class = 'old_label'>#{old_archive_filing_number}</td>
+  <td class='new_label'>#{new_filing_number}</td>
+</tr>
+</table>
+</div>
+EOF
+   elsif new_patient and creating_new_filing_number_for_patient
+     table = <<EOF
+<div id='patients_info_div'>
+<table id = 'filing_info'>
+<tr>
+  <th class='filing_instraction'>Filing actions required</th>
+  <th class='filing_instraction'>Name</th>
+  <th>&nbsp;</th>
+  <th style="text-align:left;">New label</th>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Add → Active</td>
+  <td class = 'filing_instraction'>#{new_patient_name}</td>
+  <td class = 'filing_instraction'>&nbsp;</td>
+  <td class='new_label'>#{new_filing_number}</td>
+</tr>
+</table>
+</div>
+EOF
+   elsif new_patient and archived_patient and not creating_new_filing_number_for_patient
+     table = <<EOF
+<div id='patients_info_div'>
+<table id = 'filing_info'>
+<tr>
+  <th class='filing_instraction'>Filing actions required</th>
+  <th class='filing_instraction'>Name</th>
+  <th style="text-align:left;">Old label</th>
+  <th style="text-align:left;">New label</th>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Active → Dormant</td>
+  <td class = 'filing_instraction'>#{archived_patient.name}</td>
+  <td class = 'old_label'>#{old_active_filing_number}</td>
+  <td class='new_label'>#{new_archive_filing_number}</td>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Add → Active</td>
+  <td class = 'filing_instraction'>#{new_patient_name}</td>
+  <td class = 'old_label'>#{old_archive_filing_number}</td>
+  <td class='new_label'>#{new_filing_number}</td>
+</tr>
+</table>
+</div>
+EOF
+   elsif new_patient and not creating_new_filing_number_for_patient
+     table = <<EOF
+<div id='patients_info_div'>
+<table id = 'filing_info'>
+<tr>
+  <th class='filing_instraction'>Filing actions required</th>
+  <th class='filing_instraction'>Name</th>
+  <th>Old label</th>
+  <th style="text-align:left;">New label</th>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Add → Active</td>
+  <td class = 'filing_instraction'>#{new_patient_name}</td>
+  <td class = 'old_label'>#{old_archive_filing_number}</td>
+  <td class='new_label'>#{new_filing_number}</td>
+</tr>
+</table>
+</div>
+EOF
+    end
+
+
+    return table
+  end   
+
+  def id_identifiers
+    identifier_type = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_types = PatientIdentifierType.find(:all,
+                                                  :conditions=>["name IN (?)",identifier_type]
+                                                 ).collect{| type |type.id }
+    
+    PatientIdentifier.find(:all,
+                           :conditions=>["patient_id=? AND identifier_type IN (?)",
+                           self.id,identifier_types]).collect{| i | i.identifier } 
   end
 
 end

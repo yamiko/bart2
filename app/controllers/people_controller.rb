@@ -72,10 +72,21 @@ class PeopleController < ApplicationController
         found_person =  Person.create_from_form(found_person_data) unless found_person_data.nil?
       end
       if found_person
-        redirect_to search_complete_url(found_person.id, params[:relation]) and return
+        #redirect_to search_complete_url(found_person.id, params[:relation]) and return
+        redirect_to :action => 'confirm', :found_person_id => found_person.id, :relation => params[:relation] and return
       end
     end
     @people = Person.search(params)    
+  end
+  
+  def confirm
+    if request.post?
+      redirect_to search_complete_url(params[:found_person_id], params[:relation]) and return
+    end
+    @found_person_id = params[:found_person_id] 
+    @relation = params[:relation]
+    @person = Person.find(@found_person_id) rescue nil
+    render :layout => 'menu'
   end
  
   # This method is just to allow the select box to submit, we could probably do this better
@@ -91,9 +102,20 @@ class PeopleController < ApplicationController
     if params[:person][:patient]
       person.patient.national_id_label
       unless (params[:relation].blank?)
-        print_and_redirect("/patients/national_id_label/?patient_id=#{person.patient.id}", search_complete_url(person.id, params[:relation]))      
+        redirect_to search_complete_url(person.id, params[:relation]) and return
       else
-        print_and_redirect("/patients/national_id_label/?patient_id=#{person.patient.id}", next_task(person.patient))
+        if use_filing_number 
+          person.patient.set_filing_number 
+          archived_patient = person.patient.patient_to_be_archived
+          message = Patient.printing_message(person.patient,archived_patient,creating_new_patient = true) 
+          unless message.blank?
+            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}" , next_task(person.patient),message,true,person.id) 
+          else
+            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}", next_task(person.patient)) 
+          end
+        else
+          print_and_redirect("/patients/national_id_label?patient_id=#{person.id}", next_task(person.patient))
+        end
       end  
     else
       # Does this ever get hit?
@@ -110,13 +132,22 @@ class PeopleController < ApplicationController
                                         params[:set_day].to_i,0,0,1) 
         session[:datetime] = date_of_encounter if date_of_encounter.to_date != Date.today 
       end
-      redirect_to :action => "index"
+      unless params[:id].blank?
+        redirect_to next_task(Patient.find(params[:id])) 
+      else
+        redirect_to :action => "index"
+      end
     end
+    @patient_id = params[:id]
   end
 
   def reset_datetime
     session[:datetime] = nil
-    redirect_to :action => "index" and return
+    if params[:id].blank?
+      redirect_to :action => "index" and return
+    else
+      redirect_to "/patients/show/#{params[:id]}" and return
+    end
   end
 
   def find_by_arv_number

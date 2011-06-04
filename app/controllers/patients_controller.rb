@@ -23,9 +23,9 @@ class PatientsController < ApplicationController
     type = EncounterType.find_by_name('TREATMENT')
     session_date = session[:datetime].to_date rescue Date.today
     @prescriptions = Order.find(:all,
-                     :joins => "INNER JOIN encounter e USING (encounter_id)",
-                     :conditions => ["encounter_type = ? AND e.patient_id = ? AND DATE(encounter_datetime) = ?",
-                     type.id,@patient.id,session_date])
+      :joins => "INNER JOIN encounter e USING (encounter_id)",
+      :conditions => ["encounter_type = ? AND e.patient_id = ? AND DATE(encounter_datetime) = ?",
+        type.id,@patient.id,session_date])
     @historical = @patient.orders.historical.prescriptions.all
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|
@@ -70,6 +70,21 @@ class PatientsController < ApplicationController
   end
 
   def personal
+    @links = []
+    patient = Patient.find(params[:id])
+
+    @links << ["Demographics (Print)","/patients/print_demographics/#{patient.id}"]
+    @links << ["Visit summary (Print)","/patients/dashboard_print_visit/#{patient.id}"]
+    @links << ["National ID (Print)","/patients/dashboard_print_national_id/#{patient.id}"]
+
+    if use_filing_number and not patient.get_identifier('Filing Number').blank?
+      @links << ["Filing number (Print)","/patients/print_filing_number/#{patient.id}"]
+    end 
+
+    if use_filing_number and patient.get_identifier('Filing Number').blank?
+      @links << ["Filing number (Create)","/patients/set_filing_number/#{patient.id}"]
+    end 
+
     render :template => 'dashboards/personal', :layout => 'dashboard' 
   end
 
@@ -101,6 +116,14 @@ class PatientsController < ApplicationController
     print_and_redirect("/patients/national_id_label/?patient_id=#{@patient.id}", next_task(@patient))  
   end
   
+  def dashboard_print_national_id
+    print_and_redirect("/patients/national_id_label?patient_id=#{params[:id]}", "/patients/personal/#{params[:id]}")  
+  end
+  
+  def dashboard_print_visit
+    print_and_redirect("/patients/visit_label/?patient_id=#{params[:id]}", "/patients/personal/#{params[:id]}")  
+  end
+  
   def print_visit
     print_and_redirect("/patients/visit_label/?patient_id=#{@patient.id}", next_task(@patient))  
   end
@@ -109,11 +132,37 @@ class PatientsController < ApplicationController
     print_and_redirect("/patients/mastercard_record_label/?patient_id=#{@patient.id}&date=#{params[:date]}", "/patients/visit?date=#{params[:date]}&patient_id=#{params[:patient_id]}")  
   end
   
+  def print_demographics
+    print_and_redirect("/patients/patient_demographics_label/#{@patient.id}", "/patients/mastercard?patient_id=#{params[:id]}")  
+  end
+ 
+  def print_filing_number
+    print_and_redirect("/patients/filing_number_label/#{params[:id]}", "/patients/personal/#{params[:id]}")  
+  end
+   
+  def patient_demographics_label
+    print_string = Patient.find(params[:id]).demographics_label 
+    send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:id]}#{rand(10000)}.lbl", :disposition => "inline")
+  end
+  
   def national_id_label
     print_string = @patient.national_id_label rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a national id label for that patient")
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", :disposition => "inline")
   end
-  
+ 
+  def filing_number_label
+    patient = Patient.find(params[:id])
+    label_commands = patient.filing_number_label
+    send_data(label_commands,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbl", :disposition => "inline")
+  end
+ 
+  def filing_number_and_national_id
+    patient = Patient.find(params[:patient_id])
+    label_commands = patient.national_id_label + patient.filing_number_label
+
+    send_data(label_commands,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbl", :disposition => "inline")
+  end
+ 
   def visit_label
     print_string = @patient.visit_label rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a visit label for that patient")
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", :disposition => "inline")
@@ -133,42 +182,68 @@ class PatientsController < ApplicationController
     
     if params[:patient_id].blank?
 
-       @show_mastercard_counter = true
-
-       if !params[:current].blank?
-          session[:mastercard_counter] = params[:current].to_i - 1
-       end
-          @prev_button_class = "yellow"
-          @next_button_class = "yellow"
-       if params[:current].to_i ==  1
-            @prev_button_class = "gray"
-       elsif params[:current].to_i ==  session[:mastercard_ids].length
-            @next_button_class = "gray"
-       else
-
-       end
-       @patient_id = session[:mastercard_ids][session[:mastercard_counter]]
-       @data_demo = Mastercard.demographics(Patient.find(@patient_id))
-       @visits = Mastercard.visits(Patient.find(@patient_id))
-
+      @patient_id = session[:mastercard_ids][session[:mastercard_counter]]
+       
     elsif session[:mastercard_ids].length.to_i != 0
       @patient_id = params[:patient_id]
+    else
+      @patient_id = params[:patient_id]
+    end
+
+    unless params.include?("source")
+      @source = params[:source] rescue nil
+    else
+      @source = nil
+    end
+
+    render :layout => false
+  end
+
+  def mastercard_printable
+    #the parameter are used to re-construct the url when the mastercard is called from a Data cleaning report
+    @quarter = params[:quarter]
+    @arv_start_number = params[:arv_start_number]
+    @arv_end_number = params[:arv_end_number]
+    @show_mastercard_counter = false
+
+    if params[:patient_id].blank?
+
+      @show_mastercard_counter = true
+
+      if !params[:current].blank?
+        session[:mastercard_counter] = params[:current].to_i - 1
+      end
+      @prev_button_class = "yellow"
+      @next_button_class = "yellow"
+      if params[:current].to_i ==  1
+        @prev_button_class = "gray"
+      elsif params[:current].to_i ==  session[:mastercard_ids].length
+        @next_button_class = "gray"
+      else
+
+      end
+      @patient_id = session[:mastercard_ids][session[:mastercard_counter]]
       @data_demo = Mastercard.demographics(Patient.find(@patient_id))
       @visits = Mastercard.visits(Patient.find(@patient_id))
+
+      # elsif session[:mastercard_ids].length.to_i != 0
+      #  @patient_id = params[:patient_id]
+      #  @data_demo = Mastercard.demographics(Patient.find(@patient_id))
+      #  @visits = Mastercard.visits(Patient.find(@patient_id))
     else
       @patient_id = params[:patient_id]
       @data_demo = Mastercard.demographics(Patient.find(@patient_id))
       @visits = Mastercard.visits(Patient.find(@patient_id))
     end
-    render :layout => "menu"
+    render :layout => false
   end
-  
+
   def visit
     @patient_id = params[:patient_id] 
     @date = params[:date].to_date
     @patient = Patient.find(@patient_id)
     @visits = Mastercard.visits(@patient,@date)
-    render :layout => "summary"
+    render :layout => false
   end
 
   def next_available_arv_number
@@ -178,7 +253,7 @@ class PatientsController < ApplicationController
   
   def assigned_arv_number
     assigned_arv_number = PatientIdentifier.find(:all,:conditions => ["voided = 0 AND identifier_type = ?",
-    PatientIdentifierType.find_by_name("ARV Number").id]).collect{|i|
+        PatientIdentifierType.find_by_name("ARV Number").id]).collect{|i|
       i.identifier.gsub(Location.current_arv_code,'').strip.to_i
     } rescue nil
     render :text => assigned_arv_number.sort.to_json rescue nil 
@@ -188,34 +263,34 @@ class PatientsController < ApplicationController
     if request.method == :get
       @patient_id = params[:id]
       case params[:field]
-        when 'arv_number'
-          @edit_page = "arv_number"
-        when "name"
+      when 'arv_number'
+        @edit_page = "arv_number"
+      when "name"
       end
     else
       @patient_id = params[:patient_id]
       case params[:field]
-        when 'arv_number'
-          type = params['identifiers'][0][:identifier_type]
-          patient = Patient.find(params[:patient_id])
-          patient_identifiers = PatientIdentifier.find(:all,
-                                :conditions => ["voided = 0 AND identifier_type = ? AND patient_id = ?",type.to_i,patient.id])
+      when 'arv_number'
+        type = params['identifiers'][0][:identifier_type]
+        patient = Patient.find(params[:patient_id])
+        patient_identifiers = PatientIdentifier.find(:all,
+          :conditions => ["voided = 0 AND identifier_type = ? AND patient_id = ?",type.to_i,patient.id])
 
-          patient_identifiers.map{|identifier|  
-            identifier.voided = 1
-            identifier.void_reason = "given another number"
-            identifier.date_voided  = Time.now()
-            identifier.voided_by = User.current_user.id  
-            identifier.save
-          }
+        patient_identifiers.map{|identifier|
+          identifier.voided = 1
+          identifier.void_reason = "given another number"
+          identifier.date_voided  = Time.now()
+          identifier.voided_by = User.current_user.id
+          identifier.save
+        }
               
-          identifier = params['identifiers'][0][:identifier].strip
-          if identifier.match(/(.*)[A-Z]/i).blank?
-            params['identifiers'][0][:identifier] = "#{Location.current_arv_code} #{identifier}"
-          end
-          patient.patient_identifiers.create(params[:identifiers])
-          redirect_to :action => "mastercard",:patient_id => patient.id and return
-        when "name"
+        identifier = params['identifiers'][0][:identifier].strip
+        if identifier.match(/(.*)[A-Z]/i).blank?
+          params['identifiers'][0][:identifier] = "#{Location.current_arv_code} #{identifier}"
+        end
+        patient.patient_identifiers.create(params[:identifiers])
+        redirect_to :action => "mastercard",:patient_id => patient.id and return
+      when "name"
       end
     end
   end
@@ -224,6 +299,32 @@ class PatientsController < ApplicationController
     @encounter_type = params[:skipped]
     @patient_id = params[:patient_id]
     render :layout => "menu"
+  end
+
+  def set_filing_number
+    patient = Patient.find(params[:id])
+    patient.set_filing_number
+
+    archived_patient = patient.patient_to_be_archived
+    message = Patient.printing_message(patient,archived_patient,true)
+    unless message.blank?
+      print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/patients/personal/#{patient.id}",message,true,patient.id)
+    else
+      print_and_redirect("/patients/filing_number_label/#{patient.id}", "/patients/personal/#{patient.id}")
+    end
+  end
+
+  def set_new_filing_number
+    patient = Patient.find(params[:id])
+    patient.set_new_filing_number
+
+    archived_patient = patient.patient_to_be_archived
+    message = Patient.printing_message(patient,archived_patient)
+    unless message.blank?
+      print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/people/confirm?found_person_id=#{patient.id}",message,true,patient.id)
+    else
+      print_and_redirect("/patients/filing_number_label/#{patient.id}", "/people/confirm?found_person_id=#{patient.id}")
+    end
   end
 
   def export_to_csv
@@ -247,15 +348,37 @@ class PatientsController < ApplicationController
       end
       # send it to the browsah
       send_data csv_string.gsub(' ','_'),
-              :type => 'text/csv; charset=iso-8859-1; header=present',
-              :disposition => "attachment:wq
+        :type => 'text/csv; charset=iso-8859-1; header=present',
+        :disposition => "attachment:wq
               ; filename=patient-#{patient.id}.csv"
     end
   end
-   
+
+  def print_mastercard
+    if @patient
+      t1 = Thread.new{
+        Kernel.system "htmldoc --webpage --landscape --linkstyle plain --left 1cm --right 1cm --top 1cm --bottom 1cm -f /tmp/output-" +
+          session[:user_id].to_s + ".pdf http://" + request.env["HTTP_HOST"] + "\"/patients/mastercard_printable?patient_id=" +
+          @patient.id.to_s + "\"\n"
+      }
+
+      t2 = Thread.new{
+        sleep(5)
+        Kernel.system "lpr /tmp/output-" + session[:user_id].to_s + ".pdf\n"
+      }
+
+      t3 = Thread.new{
+        sleep(10)
+        Kernel.system "rm /tmp/output-" + session[:user_id].to_s + ".pdf\n"
+      }
+
+    end
+
+    redirect_to "/patients/mastercard?patient_id=#{@patient.id}" and return
+  end
 
   
-private
+  private
   
   
 end

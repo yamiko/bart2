@@ -20,8 +20,20 @@
     $('clearButton').innerHTML = "<span>New Search</span>";  
     $('clearButton').setAttribute("onmousedown","newSearch();");  
   }
+
+  function newSearch() {
+    document.location = "/people/search?relation=<%=h params[:relation] -%>"
+  }
+
+  function setAttributes() {
+    <%if params[:given_name] and params[:family_name] %>
+      buttondiv = document.getElementById("buttons");
+      buttondiv.innerHTML+= "<div id='tt_extraButtons'></div>"
+      buttondiv.innerHTML+= "<button class='button navButton' id='newSearch' onmousedown='newSearch();'><span>New search</span></button>"
+    <%end%>
+  }
 </script>
- 
+<body onload = "setAttributes();"> 
 <% if (params[:gender].blank? || params[:given_name].blank? || params[:family_name].blank?) && (params[:identifier].blank?) %>
  
   <% form_tag "search", :method => :get do %>
@@ -73,3 +85,4 @@
     <input type="hidden" name="relation" value="<%=h params[:relation] -%>" />
   <% end -%>
 <% end -%>
+</body>

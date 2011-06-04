@@ -1,37 +1,4 @@
 class DrugController < ApplicationController
-  def management
-    @activities = [["New stock","delivery"],["Edit stock","edit_stock"], ["Print Barcode","print_barcode"]]
-    
-#TODO
-#need to redo the SQL query
-    encounter_type = PharmacyEncounterType.find_by_name("Tins currently in stock").id
-    new_deliveries = Pharmacy.active.find(:all,
-      :conditions =>["pharmacy_encounter_type=?",encounter_type],
-      :order => "encounter_date DESC,date_created DESC")
-
-    current_stock = {}
-    new_deliveries.each{|delivery|
-      current_stock[delivery.drug_id] = delivery if current_stock[delivery.drug_id].blank?
-      break if current_stock.length == 5
-    }
-
-    @stock = {}
-    current_stock.each{|delivery_id , delivery|
-      start_date = Pharmacy.active.find(:first,:conditions =>["drug_id =?",
-                   delivery.drug_id],:order => "encounter_date").encounter_date.to_date rescue nil
-      next if start_date.blank?
-
-      drug = Drug.find(delivery.drug_id)
-      drug_name = drug.name
-      @stock[drug_name] = {"current_stock" => 0,"dispensed" => 0,"prescribed" => 0, "consumption_per" => ""}
-      @stock[drug_name]["current_stock"] = Pharmacy.current_stock_as_from(drug.id,start_date)
-      @stock[drug_name]["dispensed"] = Pharmacy.dispensed_drugs_since(drug.id,start_date)
-      @stock[drug_name]["consumption_per"] = sprintf('%.2f',((@stock[drug_name]["dispensed"].to_f / @stock[drug_name]["current_stock"].to_f) * 100.to_f)).   to_s + " %" rescue "0 %"
-    }
-
-    #render :template => 'drug/management', :layout => 'clinic'
-    render :layout => "menu"
-  end
 
   def name
     @names = Drug.find(:all,:conditions =>["name LIKE ?","%" + params[:search_string] + "%"]).collect{|drug| drug.name}
@@ -54,7 +21,6 @@ class DrugController < ApplicationController
     #add a notice
     flash[:notice] = "#{params[:drug_name]} successfully entered"
     redirect_to :action => "management" ; return 
-    render :text => "#{expiry_date} .. #{delivery_date} ... #{params[:number_of_tins]} ... #{params[:number_of_pills_per_tin]}"; return
   end
 
   def edit_stock
@@ -72,37 +38,21 @@ class DrugController < ApplicationController
   end
 
   def stock_report
-    obs = params[:observations]
-    @start_date = obs[0]['value_datetime'].to_date
-    @end_date = obs[1]['value_datetime'].to_date
+    @start_date = params[:start_date].to_date
+    @end_date = params[:end_date].to_date
 
 #TODO
 #need to redo the SQL query
-    encounter_type = PharmacyEncounterType.find_by_name("Tins currently in stock").id
-    new_deliveries = Pharmacy.active.find(:all,
-      :conditions =>["pharmacy_encounter_type=?",encounter_type],
-      :order => "encounter_date DESC,date_created DESC")
-
-    current_stock = {}
-    new_deliveries.each{|delivery|
-      current_stock[delivery.drug_id] = delivery if current_stock[delivery.drug_id].blank?
-    }
-
+=begin
     @stock = {}
     current_stock.each{|delivery_id , delivery|
-      first_date = Pharmacy.active.find(:first,:conditions =>["drug_id =?",
-                   delivery.drug_id],:order => "encounter_date").encounter_date.to_date rescue nil
-      next if first_date.blank?
-      next if first_date > @start_date
-
-      drug = Drug.find(delivery.drug_id)
-      drug_name = drug.name
       @stock[drug_name] = {"current_stock" => 0,"dispensed" => 0,"prescribed" => 0, "consumption_per" => ""}
       @stock[drug_name]["current_stock"] = Pharmacy.current_stock_as_from(drug.id,@start_date,@end_date)
       @stock[drug_name]["dispensed"] = Pharmacy.dispensed_drugs_since(drug.id,@start_date,@end_date)
       #@stock[drug_name]["prescribed"] = Pharmacy.prescribed_drugs_since(drug.id,@start_date,@end_date)
       @stock[drug_name]["consumption_per"] = sprintf('%.2f',((@stock[drug_name]["dispensed"].to_f / @stock[drug_name]["current_stock"].to_f) * 100.to_f)).   to_s + " %" rescue "0 %"
     }
+=end
     render :layout => "menu" 
   end
 
@@ -129,8 +79,8 @@ class DrugController < ApplicationController
       drug_string_length =drug_name.length
 
       if drug_name.length > 27
-        drug_name1=drug_name.match(/(.*) ([A-Z].*)/)[1]
-        drug_name2=drug_name.match(/(.*) ([A-Z].*)/)[2]
+        drug_name1 = drug_name[0..25]
+        drug_name2 = drug_name[26..-1]
       end
 
       if drug_string_length <= 27

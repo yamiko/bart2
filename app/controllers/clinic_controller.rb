@@ -41,6 +41,16 @@ class ClinicController < ApplicationController
     render :template => 'clinic/properties', :layout => 'clinic' 
   end
 
+  def management
+     @reports = [
+                    ["New stock","delivery"],
+                    ["Edit stock","edit_stock"],
+                    ["Print Barcode","print_barcode"],
+                    ["Report","date_select"]
+                  ] 
+    render :template => 'clinic/management', :layout => 'clinic' 
+  end
+
   def printing
     render :template => 'clinic/printing', :layout => 'clinic' 
   end
@@ -50,7 +60,7 @@ class ClinicController < ApplicationController
   end
 
   def administration
-    @reports = [['/clinic/users','User accounts/settings'],['/drug/management','Drug Management']]
+    @reports = [['/clinic/users','User accounts/settings'],['/clinic/management','Drug Management']]
     @landing_dashboard = 'clinic_administration'
     render :template => 'clinic/administration', :layout => 'clinic' 
   end
