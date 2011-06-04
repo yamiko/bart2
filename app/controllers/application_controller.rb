@@ -45,6 +45,10 @@ class ApplicationController < ActionController::Base
     GlobalProperty.find_by_property('use.filing.number').property_value == "yes" rescue false
   end    
 
+  def generic_locations
+    GlobalProperty.find_by_property('generic.locations').property_value.split(',') rescue []
+  end    
+
 private
 
   def find_patient
