@@ -73,6 +73,7 @@ class PatientsController < ApplicationController
     @links = []
     patient = Patient.find(params[:id])
 
+    @links << ["Demographics (Print)","/patients/print_demographics/#{patient.id}"]
     @links << ["Visit summary (Print)","/patients/dashboard_print_visit/#{patient.id}"]
     @links << ["National ID (Print)","/patients/dashboard_print_national_id/#{patient.id}"]
 

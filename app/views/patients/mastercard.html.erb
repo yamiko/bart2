@@ -58,18 +58,7 @@
 }
 </style>
 
-<script>
-  function changeAttributes(){
-    buttondiv = document.getElementById("buttons");
-    buttondiv.innerHTML+="<button id='print' class='yellow' style='float:left;' onclick='print();'><span>Print demographics</span></button>"
-  }
-
-  function print(){
-    document.location = "/patients/print_demographics/<%=@patient.id%>"
-  }
-</script>
-
-<body onload = "changeAttributes();">
+<body>
 <table class="mastercard" id="demographics">
   <%= render(:partial => "mastercard_demographics", :object => @data) %>
 </table>
