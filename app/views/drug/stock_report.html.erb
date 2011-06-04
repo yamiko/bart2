@@ -7,6 +7,10 @@ body{
   -moz-user-select:none
 }
 
+h3 , h2 {
+  padding-left: 10px;
+}
+
 td { border-top:1px dotted silver }
 
 tr.header{
@@ -59,7 +63,7 @@ table{
 <%=javascript_include_tag "jquery.dataTables.min" %>
 
 <script>
-  var tt_cancel_destination = '/drug/management';
+  var tt_cancel_destination = '/clinic/management';
   function dataT(){
    $('#data_table').dataTable();
   }

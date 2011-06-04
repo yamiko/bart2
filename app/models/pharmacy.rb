@@ -4,20 +4,15 @@ class Pharmacy < ActiveRecord::Base
   include Openmrs
 
   named_scope :active, :conditions => ['voided = 0']
-=begin
-  def after_save
-    super
-    encounter_type = PharmacyEncounterType.find_by_name("New deliveries").id
-    if self.pharmacy_encounter_type == encounter_type
-     Pharmacy.reset(self.drug_id)
-    end
-  end
-=end
 
-  def self.voided_stock_adjustment(order)
-  end
+  def self.total_removed(drug_id , start_date = Date.today , end_date = Date.today)
+    pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins removed')
 
-  def self.dispensed_stock_adjustment(encounter)
+    self.active.find(:first,:select => "SUM(value_numeric) total_removed",
+                      :conditions => ["pharmacy_encounter_type = ? AND drug_id = ?
+                      AND encounter_date >= ? AND encounter_date <= ?",
+                      pharmacy_encounter_type.id , drug_id , start_date , end_date],
+                      :group => "drug_id").total_removed.to_f rescue 0
   end
 
   def self.drug_dispensed_stock_adjustment(drug_id,quantity,encounter_date,reason = nil)
@@ -31,9 +26,6 @@ class Pharmacy < ActiveRecord::Base
     encounter.save
   end
 
-  def self.reset(drug_id=nil,current_number_of_pills=0)
-  end
-     
   def self.date_ranges(date)    
     current_range =[]
     current_range << Report.cohort_range(date).last
@@ -44,10 +36,31 @@ class Pharmacy < ActiveRecord::Base
     current_range[1..-1] rescue nil
   end
 
-  def Pharmacy.dispensed_drugs_since(drug_id,date,end_date = Date.today)
+  def Pharmacy.dispensed_drugs_since(drug_id, start_date = Date.today , end_date = Date.today)
+    return 0 if start_date.blank? or end_date.blank?
+    dispensed_encounter = EncounterType.find_by_name('DISPENSING')
+    amount_dispensed_concept_id = ConceptName.find_by_name('AMOUNT DISPENSED').concept_id
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    Encounter.find(:first,:joins => "INNER JOIN obs USING(encounter_id)",
+                   :select => "SUM(value_numeric) total_dispensed" ,
+                   :conditions => ["concept_id = ? AND encounter_type = ?
+                   AND obs_datetime >= ? AND obs_datetime <= ? AND value_drug = ?",
+                   amount_dispensed_concept_id,dispensed_encounter.id,
+                   start_date,end_date,drug_id],
+                   :group => "value_drug").total_dispensed.to_f rescue 0
   end
 
   def Pharmacy.dispensed_drugs_to_date(drug_id)
+    dispensed_encounter = EncounterType.find_by_name('DISPENSING')
+    amount_dispensed_concept_id = ConceptName.find_by_name('AMOUNT DISPENSED').concept_id
+
+    Encounter.find(:first,:joins => "INNER JOIN obs USING(encounter_id)",
+                   :select => "SUM(value_numeric) total_dispensed" ,
+                   :conditions => ["concept_id = ? AND encounter_type = ? AND value_drug = ?",
+                   amount_dispensed_concept_id,dispensed_encounter.id,drug_id],
+                   :group => "value_drug").total_dispensed.to_f rescue 0
   end
 
   def Pharmacy.prescribed_drugs_since(drug_id,start_date,end_date = Date.today)
@@ -56,7 +69,11 @@ class Pharmacy < ActiveRecord::Base
   def self.current_stock(drug_id)
   end
 
-  def self.current_stock_as_from(drug_id,start_date=Date.today,end_date=Date.today)
+  def self.current_stock_as_from(drug_id, start_date = Date.today, end_date = Date.today)
+    total_delivered = self.total_delivered(drug_id, start_date, end_date)
+    total_dispensed = self.dispensed_drugs_since(drug_id, start_date, end_date)
+    total_removed = self.total_removed(drug_id, start_date, end_date)
+    (total_delivered - (total_dispensed + total_removed))
   end
 
 
@@ -78,16 +95,20 @@ class Pharmacy < ActiveRecord::Base
     delivery.save
   end
 
-  def Pharmacy.total_delivered(drug_id,start_date=nil,end_date=nil)
+  def self.total_delivered(drug_id, start_date = Date.today ,end_date = Date.today)
+    pharmacy_encounter_type = PharmacyEncounterType.find_by_name('New deliveries')
+
+    self.active.find(:first,:select => "SUM(value_numeric) total_delivered",
+                      :conditions => ["pharmacy_encounter_type = ? AND drug_id = ?
+                      AND encounter_date >= ? AND encounter_date <= ?",
+                      pharmacy_encounter_type.id , drug_id , start_date , end_date],
+                      :group => "drug_id").total_delivered.to_f rescue 0
   end
 
   def self.first_delivery_date(drug_id)
     encounter_type = PharmacyEncounterType.find_by_name("New deliveries").id
     Pharmacy.active.find(:first,:conditions => ["drug_id=? AND pharmacy_encounter_type=?",drug_id,encounter_type],
     :order => "encounter_date ASC,date_created ASC").encounter_date rescue nil
-  end
-
-  def self.remove_stock(encounter_id)
   end
 
 end
