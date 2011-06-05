@@ -46,7 +46,8 @@ class ClinicController < ApplicationController
                     ["New stock","delivery"],
                     ["Edit stock","edit_stock"],
                     ["Print Barcode","print_barcode"],
-                    ["Report","date_select"]
+                    ["Expiring drugs","date_select"],
+                    ["Stock report","date_select"]
                   ] 
     render :template => 'clinic/management', :layout => 'clinic' 
   end

@@ -55,7 +55,8 @@ class DrugController < ApplicationController
   end
 
   def date_select
-#    render :text => "aaaaa" and return
+    @goto = params[:goto]
+    @goto = 'stock_report' if @goto.blank?
   end
 
   def print_barcode
@@ -94,5 +95,12 @@ class DrugController < ApplicationController
         label.draw_barcode(40, 180, 0, 1, 5, 15, 100,true, "#{drug_barcode}")
       end
       send_data(label.print(1),:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{drug_barcode}.lbl", :disposition => "inline")
+  end
+
+  def expiring
+    @start_date = params[:start_date].to_date
+    @end_date = params[:end_date].to_date
+    @expiring_drugs = Pharmacy.expiring_drugs(@start_date,@end_date)
+    render :layout => "menu"
   end
 end
