@@ -10,7 +10,10 @@
     confirmYesNo("Void this item?", function() {
       hideConfirmation();
       $.post('/encounters/void/' + node.parent().attr('encounter'), {}, function(data, status) {
-        if (status == 'success') node.parent().remove();
+        if (status == 'success') {
+          document.getElementById('observations').innerHTML = '';
+          node.parent().remove();
+        }
       })
     }, function() { hideConfirmation(); });
   }
