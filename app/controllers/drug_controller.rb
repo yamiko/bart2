@@ -103,4 +103,12 @@ class DrugController < ApplicationController
     @expiring_drugs = Pharmacy.expiring_drugs(@start_date,@end_date)
     render :layout => "menu"
   end
+  
+  def removed_from_shelves
+    @start_date = params[:start_date].to_date
+    @end_date = params[:end_date].to_date
+    @drugs_removed = Pharmacy.removed_from_shelves(@start_date,@end_date)
+    render :layout => "menu"
+  end
+
 end
