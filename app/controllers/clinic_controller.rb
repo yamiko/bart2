@@ -41,6 +41,18 @@ class ClinicController < ApplicationController
     render :template => 'clinic/properties', :layout => 'clinic' 
   end
 
+  def management
+     @reports = [
+                    ["New stock","delivery"],
+                    ["Edit stock","edit_stock"],
+                    ["Print Barcode","print_barcode"],
+                    ["Expiring drugs","date_select"],
+                    ["Removed from shelves","date_select"],
+                    ["Stock report","date_select"]
+                  ] 
+    render :template => 'clinic/management', :layout => 'clinic' 
+  end
+
   def printing
     render :template => 'clinic/printing', :layout => 'clinic' 
   end

@@ -68,10 +68,8 @@
 <%
 count = @results.length + 3 unless @results.blank?
 @results.map do | result , path | %>
-<tr>
   <script>
     setInnerHtmlData("<%=count%>","<%=result%>","<%=path%>");
   </script>
   <%count-=1%>
-</tr>
 <%end%>

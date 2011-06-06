@@ -6,8 +6,8 @@ class ApplicationController < ActionController::Base
   helper :all
   helper_method :next_task
   filter_parameter_logging :password
-  before_filter :login_required, :except => ['login', 'logout','demographics','create_remote']
-  before_filter :location_required, :except => ['login', 'logout', 'location','demographics','create_remote']
+  before_filter :login_required, :except => ['login', 'logout','demographics','create_remote', 'mastercard_printable']
+  before_filter :location_required, :except => ['login', 'logout', 'location','demographics','create_remote', 'mastercard_printable']
   
   def rescue_action_in_public(exception)
     @message = exception.message
@@ -51,6 +51,10 @@ class ApplicationController < ActionController::Base
 
   def use_filing_number
     GlobalProperty.find_by_property('use.filing.number').property_value == "yes" rescue false
+  end    
+
+  def generic_locations
+    GlobalProperty.find_by_property('generic.locations').property_value.split(',') rescue []
   end    
 
 private

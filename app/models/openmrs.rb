@@ -53,7 +53,7 @@ module Openmrs
   def after_void(reason = nil)
   end
   
-  def void(reason = nil)
+  def void(reason = "Voided through #{BART_VERSION}")
     unless voided?
       self.date_voided = Time.now
       self.voided = 1
