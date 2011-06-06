@@ -16,6 +16,8 @@ td { border-top:1px dotted silver }
 tr.header{
   background-color: lightgray;
   font-weight: bold;
+  text-align: left;
+  padding-left: 10px;
 }
 
 table{
@@ -46,8 +48,8 @@ table{
 }
 
 .caldata {
-  text-align:right; 
-  text-align:right;
+  text-align: left;
+  padding-left: 10px;
 }
 
 #data_table_length{display:none;}
@@ -70,46 +72,46 @@ table{
   dataT();
 </script>
 </head>
-<h2>Drug stock report</h2><h3>From: <%= @start_date.strftime("%A, %Y %b %d")%> 
+<h2>Drugs removed</h2><h3>From: <%= @start_date.strftime("%A, %Y %b %d")%> 
 <br/>To: <%=@end_date.strftime("%A, %Y %b %d")%></br></h3>
 <%#= render :partial => "header" %>
 </br>
 <table id="data_table">
  <thead>
   <tr class="header">
-    <th>Drug name</th>
-    <th class="caldata">Current stock</th>
-    <!--th class="caldata">Prescribed</th-->
-    <th class="caldata">Dispensed</th>
-    <th class="caldata">Consumed (%)</th>
+    <th class="caldata">Drug name</th>
+    <th class="caldata">Date removed</th>
+    <th class="caldata">Reason</th>
+    <th class="caldata">Amount removed</th>
+    <th class="caldata">Remaing stock</th>
   </tr>
  </thead>
  </tbody>
   <%color = "blue"
     count = 1
     original_form_count = 0
-    @stock.each{|name,values|
+    @drugs_removed.each{| name , values |
       if color == "blue"
         color = "white"
       else
         color = "blue"
       end
       current_stock = values["current_stock"]
-      prescribed = values["prescribed"]
-      dispensed = values["dispensed"]
-      consumption_per = values["consumption_per"]
+      date_removed = values["date_removed"]
+      reason = values["reason"]
+      amount_removed = values["amount_removed"]
       %>
       </script>
    <tr>
-    <td class="color_<%=color%>"><%=name%></td>
-    <td class="color_<%=color%> caldata" id="current_stock_<%=count%>"><%=current_stock%></td>
-    <!--td class="color_<%#=color%> caldata" id="prescribed_<%#=count%>"><%#=prescribed%></td-->
-    <td class="color_<%=color%> caldata" id="dispensed_<%=count%>"><%=dispensed%></td>
-    <td class="color_<%=color%> caldata" id="consumption_per_<%=count%>"><%=consumption_per%></td>
+    <td class="color_<%=color%>"><%=name.split(':')[1]%></td>
+    <td class="color_<%=color%> caldata" id="dispensed_<%=count%>"><%=date_removed%></td>
+    <td class="color_<%=color%> caldata" id="dispensed_<%=count%>"><%=reason%></td>
+    <td class="color_<%=color%> caldata" id="current_stock_<%=count%>"><%=amount_removed%></td>
+    <td class="color_<%=color%> caldata" id="consumption_per_<%=count%>"><%=current_stock%></td>
    </tr>
    <% count+=1
       original_form_count+=1
-    } unless @stock.blank?%>
+    } unless @drugs_removed.blank?%>
  </tbody>
 </table>
 </html>

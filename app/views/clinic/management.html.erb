@@ -44,6 +44,12 @@
   function setInnerHtmlData(id,result,path) {
     td = document.getElementById(id);
     path = "/drug/" + path;
+    if(result.match(/expiring/i))
+      path+='?goto=expiring'
+
+    if(result.match(/shelves/i))
+      path+='?goto=removed_from_shelves'
+
     td.innerHTML = "<a href =" + path + ">" +  result + "</a>"
   }
 </script>
