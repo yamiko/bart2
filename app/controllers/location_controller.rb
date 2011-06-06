@@ -8,33 +8,8 @@ class LocationController < ApplicationController
     end
     
     def search
-            field_name = "name"
-            search_string = params[:search_string]
-            
-            if params[:act].to_s == "delete"  || params[:act].to_s == "print" then
-                sql = "SELECT * 
-                       FROM location
-                       WHERE location_id IN (SELECT location_id 
-	                                  FROM location_tag_map 
-	                                  WHERE location_tag_id = (SELECT location_tag_id 
-				                                   FROM location_tag 
-				                                   WHERE tag = 'Workstation location'))
-                       ORDER BY name ASC"
-            elsif params[:act].to_s == "create" then
-               #sql = "SELECT * FROM location WHERE name LIKE '%#{search_string}%' ORDER BY name ASC"
-                sql = "SELECT * 
-                       FROM location
-                       WHERE location_id NOT IN (SELECT location_id 
-	                                  FROM location_tag_map 
-	                                  WHERE location_tag_id = (SELECT location_tag_id 
-				                                   FROM location_tag 
-				                                   WHERE tag = 'Workstation location'))  AND name LIKE '%#{search_string}%'
-                       ORDER BY name ASC"
-            end
-            
-            @names = Location.find_by_sql(sql).collect{|name| name.send(field_name)}
-            render :text => "<li>" + @names.map{|n| n } .join("</li><li>") + "</li>"
-            
+            @names = Location.search(params[:search_string].to_s, params[:act].to_s)
+            render :text => "<li>" + @names.map{|n| n } .join("</li><li>") + "</li>"           
     end
 
     def create
