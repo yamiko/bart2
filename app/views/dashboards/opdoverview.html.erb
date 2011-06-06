@@ -1,0 +1,90 @@
+<%= render :partial => 'dashboards/nav', :locals => {:active => 'overview'} %>
+<script type="text/javascript">
+</script>
+
+<style type="text/css">
+
+  body {
+   font-family: "Nimbus Sans L","Arial Narrow",sans-serif;
+  }
+
+  #stats {
+    width:98%;
+    margin:10px;
+    background:white;
+  }
+
+  #stats a {
+    background-color: grey;
+    border-bottom: 1px outset black;
+    border-style: outset;
+    border-top: 1px outset black;
+    color: white;
+    display: block;
+    padding: 10px 16px 10px 10px;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  #stats th {
+    width: 310px;
+    text-align: left;
+  }
+
+  #stats td {
+    width: 310px;
+  }
+
+  #table_div {
+    overflow:auto;
+    height: 400px;
+    background-color: white;
+    border-style: solid;
+    border-width: 1px;
+  }
+
+  #tab {
+    /*height: 561px;*/
+  }
+
+  .row_blue {
+    background-color: #E6E6FF;
+  }
+</style>
+
+<script>
+  function setInnerHtmlData(id,path,result) {
+    td = document.getElementById(id);
+    path += "?dashboard=<%=@landing_dashboard%>"
+    td.innerHTML = "<a href =" + path + ">" +  result + "</a>"
+  }
+</script>
+
+<div id="tab">
+  <div class="panel" style="width:98%;">
+    <h2>Patient's encounters</h2>
+    <div id="table_div">
+      <table id="stats">
+        <th>Encounter name</th>
+        <th style="text-align:right;padding-right:10px;">Total</th>
+      <%
+        color = 'white'
+      %>
+      <% (@encounters || []).each do | name , count |%>
+        <%
+          if color == 'white'
+            color = 'blue'
+          else
+            color = 'white'
+          end
+        %>
+        <tr>
+          <td class = "row_<%=color%>" id = ""><%=name%></td>
+          <td class = "row_<%=color%>" id = "" style="text-align:right;padding-right:10px;"><%=count%></td>
+        </tr>
+      <%end%>
+      </table>
+    </div>
+  </div>
+</div>
+
