@@ -18,6 +18,31 @@ class PatientsController < ApplicationController
     render :template => 'dashboards/overview', :layout => 'dashboard' 
   end
 
+  def opdshow
+    session_date = session[:datetime].to_date rescue Date.today
+    encounter_types = EncounterType.find(:all,:conditions =>["name IN (?)",
+                      ['REGISTRATION','OUTPATIENT DIAGNOSIS']]).map{|e|e.id}
+    @encounters = Encounter.find(:all,:select => "name encounter_type_name, count(*) c",
+                                 :joins => "INNER JOIN encounter_type ON encounter_type_id = encounter_type",
+                                 :conditions =>["encounter_type IN (?) AND DATE(encounter_datetime) = ?",
+                                 encounter_types,session_date],
+                                 :group => 'encounter_type').collect{|rec| [ rec.encounter_type_name , rec.c ] }
+     
+    render :template => 'dashboards/opdoverview', :layout => 'dashboard' 
+  end
+
+  def opdtreatment
+    @activities = [
+                    ["Visit card","/cohort_tool/cohort_menu"],
+                    ["National ID (Print)","/patients/dashboard_print_national_id?id=#{params[:id]}&redirect=patients/opdtreatment"],
+                    ["Referrals", "/report/data_cleaning"],
+                    ["Give drugs", "/report/data_cleaning"],
+                    ["Vitals", "/report/data_cleaning"],
+                    ["Outpatient diagnosis","/encounters/new?id=show&patient_id=#{params[:id]}&encounter_type=outpatient_diagnosis"]
+                  ]
+    render :template => 'dashboards/opdtreatment', :layout => 'dashboard' 
+  end
+
   def treatment
     #@prescriptions = @patient.orders.current.prescriptions.all
     type = EncounterType.find_by_name('TREATMENT')
@@ -117,7 +142,12 @@ class PatientsController < ApplicationController
   end
   
   def dashboard_print_national_id
-    print_and_redirect("/patients/national_id_label?patient_id=#{params[:id]}", "/patients/personal/#{params[:id]}")  
+    unless params[:redirect].blank?
+      redirect = "/#{params[:redirect]}/#{params[:id]}"
+    else
+      redirect = "/patients/personal/#{params[:id]}"
+    end
+    print_and_redirect("/patients/national_id_label?patient_id=#{params[:id]}", redirect)  
   end
   
   def dashboard_print_visit

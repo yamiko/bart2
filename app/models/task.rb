@@ -111,7 +111,7 @@ class Task < ActiveRecord::Base
       # We need to skip this task for some reason
       next if skip
 
-      if location.name.match(/HIV|ART/i)
+      if location.name.match(/HIV|ART/i) and not location.name.match(/Outpatient/i)
        task = self.validate_task(patient,task,location,session_date.to_date)
       end
 
