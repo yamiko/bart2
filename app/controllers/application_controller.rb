@@ -36,6 +36,14 @@ class ApplicationController < ActionController::Base
     @patient_id = patient_id
     render :template => 'print/print', :layout => nil
   end
+  
+  def print_location_and_redirect(print_url, redirect_url, message = "Printing, please wait...", show_next_button = false, patient_id = nil)
+    @print_url = print_url
+    @redirect_url = redirect_url
+    @message = message
+    @show_next_button = show_next_button
+    render :template => 'print/print_location', :layout => nil
+  end
 
   def show_lab_results
     GlobalProperty.find_by_property('show.lab.results').property_value == "yes" rescue false
