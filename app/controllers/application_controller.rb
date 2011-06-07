@@ -54,7 +54,6 @@ class ApplicationController < ActionController::Base
   end    
 
   def generic_locations
-    #GlobalProperty.find_by_property('generic.locations').property_value.split(',') rescue []
     Location.workstation_locations
   end    
 

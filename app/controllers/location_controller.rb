@@ -43,7 +43,7 @@ class LocationController < ApplicationController
                flash[:notice] = "<span style='color:red; display:block; background-color:#DDDDDD;'>location #{clinic_name[:clinic_name]} addition failed</span>"
             end
         end
-        redirect_to "/location/management" and return
+        redirect_to "/clinic/location_management" and return
     end
     
     def delete
@@ -58,7 +58,7 @@ class LocationController < ApplicationController
         else
            flash[:notice] = "<span style='color:red; display:block; background-color:#DDDDDD;'>location #{clinic_name[:clinic_name]} deletion failed</span>"
         end
-        redirect_to "/location/management" and return 
+        redirect_to "/clinic/location_management" and return 
     end
     
     def new
@@ -66,7 +66,7 @@ class LocationController < ApplicationController
     end
     def print
       location_name = params[:location_name][:clinic_name].to_s
-      print_location_and_redirect("/location/location_label?location_name=#{location_name}", "/location/management")
+      print_location_and_redirect("/location/location_label?location_name=#{location_name}", "/clinic/location_management")
     end
     
     def location_label
