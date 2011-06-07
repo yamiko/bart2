@@ -99,5 +99,25 @@ UNLOCK TABLES;
 INSERT INTO `location_tag` (`tag`, `description`, `creator`, `date_created`, `retired`, `retired_by`, `date_retired`, `retire_reason`, `uuid`)
                VALUES ('Workstation Location', NULL, 1, '2011-04-27 14:58:31', 0, NULL, NULL, NULL, '');
 INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
-	((SELECT location_id FROM location WHERE name='HIV RECEPTION'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
+	((SELECT location_id FROM location WHERE name = 'Registration'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
+INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
+	((SELECT location_id FROM location WHERE name = 'Vitals'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
+INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
+	((SELECT location_id FROM location WHERE name = 'Outpatient'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
+INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
+	((SELECT location_id FROM location WHERE name = 'HIV Reception'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
+INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
+	((SELECT location_id FROM location WHERE name = 'HIV Clinician Station'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
+INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
+	((SELECT location_id FROM location WHERE name = 'HIV Nurse Station'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
+INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
+	((SELECT location_id FROM location WHERE name = 'HIV Clinician Station'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
+INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
+	((SELECT location_id FROM location WHERE name = 'HIV Nurse Station'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
+INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
+	((SELECT location_id FROM location WHERE name = 'Chronic Cough'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
+INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
+	((SELECT location_id FROM location WHERE name = 'TB Reception'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
+INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
+	((SELECT location_id FROM location WHERE name = 'TB Sputum Submission Station'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
 -- Dump completed on 2010-03-17 15:18:37
