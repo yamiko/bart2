@@ -85,7 +85,15 @@
       <% @min = Time.now
          @max = Time.now
          @obs = @patient.person.observations.find_by_concept_name("WEIGHT (KG)")
+		@minWeight = 0
+		@maxWeight = 0
          @obs.sort_by{|obs| obs.obs_datetime}.each do |obs|
+			if obs.value_numeric <= @minWeight			
+				@minWeight = obs.value_numeric
+			end
+			if obs.value_numeric >= @maxWeight
+				@maxWeight =obs.value_numeric
+			end  
            @min = obs.obs_datetime if obs.obs_datetime < @min %>
         [<%= obs.obs_datetime.to_f -%>, <%= obs.value_numeric -%>],<% end %>
     ];
@@ -118,7 +126,7 @@
 
     var plot_options = {      
       grid: { clickable: false, backgroundColor: "white", color:"black" },
-      yaxis: { min: 0, max: 120},
+      yaxis: { min: <%= @minWeight %> - 5, max: <%= @maxWeight %> + 5},
       xaxis: { min: max-range, max: max, ticks: patient_ticks}
     }
     

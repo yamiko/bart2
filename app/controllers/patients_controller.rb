@@ -163,7 +163,7 @@ class PatientsController < ApplicationController
   end
   
   def print_demographics
-    print_and_redirect("/patients/patient_demographics_label/#{@patient.id}", "/patients/mastercard?patient_id=#{params[:id]}")  
+    print_and_redirect("/patients/patient_demographics_label/#{@patient.id}", "/patients/personal/#{params[:id]}")  
   end
  
   def print_filing_number
