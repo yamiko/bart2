@@ -62,9 +62,22 @@ class ClinicController < ApplicationController
   end
 
   def administration
-    @reports = [['/clinic/users','User accounts/settings'],['/drug/management','Drug Management'], ['/location/management','Location Management']]
+    @reports =  [
+                  ['/clinic/users','User accounts/settings'],
+                  ['/clinic/management','Drug Management'], 
+                  ['/clinic/location_management','Location Management']
+                ]
     @landing_dashboard = 'clinic_administration'
     render :template => 'clinic/administration', :layout => 'clinic' 
   end
 
+  def location_management
+    @reports =  [
+                  ['/location/new?act=create','Add location'],
+                  ['/location.new?act=delete','Delete location'], 
+                  ['/location/new?act=print','Print location']
+                ]
+    render :template => 'clinic/location_management', :layout => 'clinic' 
+  end
+  
 end
