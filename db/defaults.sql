@@ -111,10 +111,6 @@ INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
 INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
 	((SELECT location_id FROM location WHERE name = 'HIV Nurse Station'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
 INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
-	((SELECT location_id FROM location WHERE name = 'HIV Clinician Station'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
-INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
-	((SELECT location_id FROM location WHERE name = 'HIV Nurse Station'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
-INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
 	((SELECT location_id FROM location WHERE name = 'Chronic Cough'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
 INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
 	((SELECT location_id FROM location WHERE name = 'TB Reception'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
