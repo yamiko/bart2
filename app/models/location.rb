@@ -67,5 +67,56 @@ class Location < ActiveRecord::Base
   def self.current_arv_code
     current_health_center.neighborhood_cell rescue nil
   end
+  
+  def location_label
+    return unless self.location_id
+    label = ZebraPrinter::StandardLabel.new
+    label.font_size = 2
+    label.font_horizontal_multiplier = 2
+    label.font_vertical_multiplier = 2
+    label.left_margin = 50
+    label.draw_barcode(50,180,0,1,5,15,120,false,"#{self.location_id}")
+    label.draw_multi_text("#{self.name}")
+    label.print(1)
+  end
+
+  def self.workstation_locations
+      field_name = "name"
+
+      sql = "SELECT *
+             FROM location
+             WHERE location_id IN (SELECT location_id
+                          FROM location_tag_map
+                          WHERE location_tag_id = (SELECT location_tag_id
+                                 FROM location_tag
+                                 WHERE tag = 'Workstation Location'))
+             ORDER BY name ASC"
+
+      Location.find_by_sql(sql).collect{|name| name.send(field_name)} rescue []
+  end
+
+  def self.search(search_string, act)
+      field_name = "name"
+      if act == "delete"  || act == "print" then
+          sql = "SELECT *
+                 FROM location
+                 WHERE location_id IN (SELECT location_id
+                              FROM location_tag_map
+                              WHERE location_tag_id = (SELECT location_tag_id
+	                                   FROM location_tag
+	                                   WHERE tag = 'Workstation Location'))
+                 ORDER BY name ASC"
+      elsif act == "create" then
+          sql = "SELECT *
+                 FROM location
+                 WHERE location_id NOT IN (SELECT location_id
+                              FROM location_tag_map
+                              WHERE location_tag_id = (SELECT location_tag_id
+	                                   FROM location_tag
+	                                   WHERE tag = 'Workstation Location'))  AND name LIKE '%#{search_string}%'
+                 ORDER BY name ASC"
+      end
+      self.find_by_sql(sql).collect{|name| name.send(field_name)}
+  end
 
 end

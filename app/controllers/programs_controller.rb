@@ -62,9 +62,8 @@ class ProgramsController < ApplicationController
   def locations
     #@locations = Location.most_common_program_locations(params[:q] || '')
     @locations = Location.most_common_locations(params[:q] || '')
-    generic_location = GlobalProperty.find_by_property('generic.locations').property_value.split(',') rescue []
     @names = @locations.map do | location | 
-      next if generic_location.include?(location.name)
+      next if generic_locations.include?(location.name)
       "<li value='#{location.location_id}'>#{location.name}</li>" 
     end
     render :text => @names.join('')

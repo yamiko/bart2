@@ -27,8 +27,10 @@ class SessionsController < ApplicationController
     # First try by id, then by name
     location = Location.find(params[:location]) rescue nil
     location ||= Location.find_by_name(params[:location]) rescue nil
-    
-    unless location
+
+    valid_location = (generic_locations.include?(location.name)) rescue false
+
+    unless location and valid_location
       flash[:error] = "Invalid workstation location"
       render :action => 'location'
       return    

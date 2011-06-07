@@ -63,10 +63,12 @@
         <div id="footer" class="dark">
           <div id="buttons" class="buttons" style="top:0px">
             <button id="finish" class="green"><span>Finish</span></button>
-            <button id="additional" class="yellow"><span>Tasks</span></button>
-            <button id="mastercard" class="yellow"><span>Mastercard</span></button>    
-            <% if show_lab_results %>
-              <button id="lab_results" class="yellow"><span>Lab results</span></button>    
+            <% unless Location.current_location.name.match('Outpatient department') %>
+              <button id="additional" class="yellow"><span>Tasks</span></button>
+              <button id="mastercard" class="yellow"><span>Mastercard</span></button>    
+              <% if show_lab_results %>
+                <button id="lab_results" class="yellow"><span>Lab results</span></button>    
+              <%end%>
             <%end%>
             <button id="set_date" class="yellow"><span>Set date</span></button>    
           </div>          

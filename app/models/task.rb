@@ -42,7 +42,7 @@ class Task < ActiveRecord::Base
         # For example, if there are mutliple REFER TO CLINICIAN = yes, than only take the most recent one
         if (task.has_obs_scope == 'RECENT')
           o = patient.person.observations.recent(1).first(:conditions => ['encounter_id IN (?) AND concept_id =? AND DATE(obs_datetime)=?', todays_encounters.map(&:encounter_id), task.has_obs_concept_id,session_date])
-          obs = 0 if (o.value_coded == task.has_obs_value_coded && o.value_drug == task.has_obs_value_drug &&
+          obs = 0 if (!o.nil? && o.value_coded == task.has_obs_value_coded && o.value_drug == task.has_obs_value_drug &&
             o.value_datetime == task.has_obs_value_datetime && o.value_numeric == task.has_obs_value_numeric &&
             o.value_text == task.has_obs_value_text )
         end
@@ -111,7 +111,7 @@ class Task < ActiveRecord::Base
       # We need to skip this task for some reason
       next if skip
 
-      if location.name.match(/HIV|ART/i)
+      if location.name.match(/HIV|ART/i) and not location.name.match(/Outpatient/i)
        task = self.validate_task(patient,task,location,session_date.to_date)
       end
 

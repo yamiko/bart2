@@ -95,40 +95,32 @@ width:85%;
 
 <script type="text/javascript">
 var tt_cancel_destination = "/clinic/administration"
-//jQuery(document).ready(function($) {  })
+  function changeAttributes(){
+    buttondiv = document.getElementById("buttons");
+    buttondiv.innerHTML+="<button id='print' class='yellow' style='float:left;' onclick='print();'><span>Print demographics</span></button>"
+  }
+
+  function print(){
+    document.location = "/location/print_location/<%=2%>"
+  }
 </script>
+
 </head>
 <div id="tab" style="height: 461px;">
   <div id='main'>
-    <div id="left">
-      <table id="stats"  cellpadding="10">
-        <tr>
-          <th  style="text-align:left;">Drug</th>
-          <th>Current stock</th>
-          <th>Dispensed</th>
-          <!--th>Consumed (%)</th-->
-        </tr>
-        <% @stock.each do |name,value| %>
-        <tr class="<%= cycle('even', 'odd') %>">
-          <td style="text-align:left;"><%= name %></a></td>
-          <td><%= value['current_stock'] %></a></td>
-          <td><%= value['dispensed'] %></a></td>
-          <!--td><%#= value['consumption_per'] %></a></td-->
-        </tr>
-        <%end%>
-      </table>
-    </div>
     <div id="right"-->
       <table id="activity_buttons">
-        <% @activities.each do |name,path| %>
         <tr>
-          <td><a href="<%=path%>" class='report_buttons'><%=name%></a></td>
+          <td><a href = "/location/new?act=create" class='report_buttons'>Add Location</a></td>
         </tr>
-        <%end%>
+        <tr>
+          <td><a href = "/location/new?act=delete" class='report_buttons'>Delete Location</a></td>
+        </tr>
+        <tr>
+          <td><a href = "/location/new?act=print" class='report_buttons'>Print Location</a></td>
+        </tr>
+
       </table>
     </div>
 </div>
 </div>
-<!--form action='/clinic/reports'-->
-  <%#= touch_hidden_tag "CD4 COUNT LESS THAN 250", "", "", :id => "cd4_count_less_than_250" %>
-<!--/form-->
