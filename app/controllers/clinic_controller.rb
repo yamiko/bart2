@@ -15,6 +15,8 @@ class ClinicController < ApplicationController
 
     @user = User.find(session[:user_id]).name rescue ""
 
+    @roles = User.find(session[:user_id]).user_roles.collect{|r| r.role} rescue []
+
     render :template => 'clinic/index', :layout => false
   end
 

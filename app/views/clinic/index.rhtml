@@ -1,54 +1,59 @@
 <html>
-    <head>
-        <title>Clinic</title>
-        <script type="text/javascript" language="javascript" src="/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js" defer ></script>
-        <meta http-equiv='content-type' content='text/html;charset=UTF-8' />
-        <script language="javascript">
-            tstUsername = "<%= User.current_user rescue "" %>";
-            tstCurrentDate = "<%= @date %>";
-            tt_cancel_destination = '/logout';
-            tt_cancel_show = '/people/search';
-        </script>
-    </head>
-    <body><div id='content'>
-            <div id='description' style='color:#777;position:absolute;margin-top:-70px;'></div><center>
-                <form id = 'home' action=''>
-                    <table cellpadding=10>
-                        <tr>
-                            <th colspan=2>Home Page</th>
-                        </tr>
-                        <h1 id='project_name'>
-                          bart
-                        </h1>
+  <head>
+    <title>Clinic</title>
+    <script type="text/javascript" language="javascript" src="/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js" defer ></script>
+    <meta http-equiv='content-type' content='text/html;charset=UTF-8' />
+    <script language="javascript">
+      tstUsername = "<%= User.current_user rescue "" %>";
+      tstCurrentDate = "<%= @date %>";
+      tt_cancel_destination = '/logout';
+      tt_cancel_show = '/people/search';
+    </script>
+  </head>
+  <body><div id='content'>
+      <div id='description' style='color:#777;position:absolute;margin-top:-70px;'></div><center>
+        <form id = 'home' action=''>
+          <table cellpadding=10>
+            <tr>
+              <th colspan=2>Home Page</th>
+            </tr>
+            <h1 id='project_name'>
+              bart
+            </h1>
 
-                        <div id="facility"><%= @facility %></div>
-                        <div id="location"><%= @location %></div>
-                        <div id="date"><%= @date %></div>
-                        <div id="user"><%= @user %></div>
+            <div id="facility"><%= @facility %></div>
+            <div id="location"><%= @location %></div>
+            <div id="date"><%= @date %></div>
+            <div id="user"><%= @user %></div>
 
-                        <select id="tabs">
-                            <option value='/clinic/overview_tab'>Overview</option>
-                            <option value='/clinic/reports_tab'>Reports</option>
-                            <option value='/clinic/properties_tab'>Properties</option>
-                            <option value='/clinic/administration_tab'>Administration</option>
-                        </select>
-                        <select id="links">
-                            <option link='/logout'>Logout</option>
-                            <option link='/people/search' ttSize="320px">Find or Register Patient</option>
-                            <option link='/location?from=clinic'>New Desk</option>
-                            <option link='<%= ((session[:datetime].to_date rescue '') != '' ? 
-                                "/people/reset_datetime" : "/people/set_datetime") %>'  ttSize="160px">
-                              <%= ((session[:datetime].to_date rescue '') != '' ? "Reset Time" : "Set Date") %></option>
-                            <!--option link='regimen.html'>Regimen</option-->
-                        </select>
-                        <tr>
-                            <td align='center'>
-                                <input type='submit' value='Finish' />
-                            </td>
-                        </tr>
-                    </table>
-                </form>
-            </center>
-        </div>
-    </body>
+            <select id="tabs">
+              <option value='/clinic/overview_tab'>Overview</option>
+              <option value='/clinic/reports_tab'>Reports</option>
+              
+              <% unless @roles.include?("Nurse") || @roles.include?("Registration Clerk") || @roles.include?("regstration_clerk") %>
+
+                <option value='/clinic/properties_tab'>Properties</option>
+                <option value='/clinic/administration_tab'>Administration</option>
+
+              <% end %>
+            </select>
+            <select id="links">
+              <option link='/logout'>Logout</option>
+              <option link='/people/search' ttSize="320px">Find or Register Patient</option>
+              <option link='/location?from=clinic'>New Desk</option>
+              <option link='<%= ((session[:datetime].to_date rescue '') != '' ?
+                          "/people/reset_datetime" : "/people/set_datetime") %>'  ttSize="160px">
+                <%= ((session[:datetime].to_date rescue '') != '' ? "Reset Time" : "Set Date") %></option>
+              <!--option link='regimen.html'>Regimen</option-->
+            </select>
+            <tr>
+              <td align='center'>
+                <input type='submit' value='Finish' />
+              </td>
+            </tr>
+          </table>
+        </form>
+      </center>
+    </div>
+  </body>
 </html>
