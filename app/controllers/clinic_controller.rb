@@ -114,8 +114,11 @@ class ClinicController < ApplicationController
   end
 
   def administration_tab
-    @reports = [['/clinic/users_tab','User accounts/settings'],
-      ['/drug/management','Drug Management'], ['/location/management','Location Management']]
+    @reports =  [
+                  ['/clinic/users_tab','User accounts/settings'],
+                  ['/clinic/management_tab','Drug Management'],
+                  ['/clinic/location_management_tab','Location Management']
+                ]
     @landing_dashboard = 'clinic_administration'
     render :layout => false
   end
@@ -143,5 +146,26 @@ class ClinicController < ApplicationController
                 ]
     render :template => 'clinic/location_management', :layout => 'clinic' 
   end
-  
+
+  def location_management_tab
+    @reports =  [
+                  ['/location/new?act=create','Add location'],
+                  ['/location/new?act=delete','Delete location'],
+                  ['/location/new?act=print','Print location']
+                ]
+    render :layout => false
+  end
+
+  def management_tab
+    @reports = [
+      ["New stock","delivery"],
+      ["Edit stock","edit_stock"],
+      ["Print Barcode","print_barcode"],
+      ["Expiring drugs","date_select"],
+      ["Removed from shelves","date_select"],
+      ["Stock report","date_select"]
+    ]
+    render :layout => false
+  end
+
 end

@@ -20,7 +20,7 @@ class DrugController < ApplicationController
     Pharmacy.new_delivery(drug_id,number_of_pills,delivery_date,nil,expiry_date)
     #add a notice
     #flash[:notice] = "#{params[:drug_name]} successfully entered"
-    redirect_to "/clinic/management" 
+    redirect_to "/clinic"   # /management"
   end
 
   def edit_stock
@@ -33,7 +33,7 @@ class DrugController < ApplicationController
       date = encounter_datetime || Date.today 
       Pharmacy.drug_dispensed_stock_adjustment(drug_id,pills,date,edit_reason)
       #flash[:notice] = "#{params[:drug_name]} successfully edited"
-      redirect_to "/clinic/management" 
+      redirect_to "/clinic"   # /management"
     end
   end
 

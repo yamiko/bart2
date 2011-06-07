@@ -25,22 +25,29 @@
     overflow:auto;
     height: 320px;
     background-color: white;
-    border: #eee 1px solid;
+    border: 1px #eee solid;
     border-width: 1px;
   }
 
 </style>
 
 <script>
-  function setInnerHtmlData(id,path,result, target) {
+  function setInnerHtmlData(id,result,path) {
     td = document.getElementById(id);
-    path += "?dashboard=<%=@landing_dashboard%>"
-    td.innerHTML = "<a href ='" + path + "' target='" + target + "'>" +  result + "</a>"
+    path = "/drug/" + path;
+    if(result.match(/expiring/i))
+      path+='?goto=expiring'
+
+    if(result.match(/shelves/i))
+      path+='?goto=removed_from_shelves'
+
+    td.innerHTML = "<a href =" + path + ">" +  result + "</a>"
   }
 </script>
 
+<base target="_parent">
 <div id="tab">
-  <h2>Select administration task</h2>
+  <h2>Drug management</h2>
   <div id="table_div">
 
     <table id="stats">
@@ -62,12 +69,13 @@
 
     <%
     count = @reports.length  unless @reports.blank?
-    @reports.sort.reverse.map do | path, name | %>
+    @reports.sort.reverse.map do | name , path | %>
       <script>
-        setInnerHtmlData("<%=count%>","<%=path%>","<%=name%>", "_self");
+        setInnerHtmlData("<%=count%>","<%=name%>","<%=path%>");
       </script>
       <%count-=1%>
     <%end%>
 
   </div>
 </div>
+</base>
