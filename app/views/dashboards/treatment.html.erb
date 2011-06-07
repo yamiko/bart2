@@ -79,9 +79,9 @@
       <% end %>
     </ul>
     <button id="set_appointment" class="silver" style="float:right;margin-top:10px;"><span>Set appointment</span></button>    
-    <button id="dispense" class="silver" style="float:right;margin-top:10px;"><span>Dispense</span></button>    
-    <button id="prescribe" class="silver" style="float:right;margin-top:10px;"><span>Prescribe</span></button>    
     <button id="regimen" class="silver" style="float:right;margin-top:10px;"><span>Regimen</span></button>    
+    <button id="prescribe" class="silver" style="float:right;margin-top:10px;"><span>Prescribe</span></button>    
+    <button id="dispense" class="silver" style="float:right;margin-top:10px;"><span>Dispense</span></button>    
     <div style="padding-top:20px;">
       <form id='barcodeForm' action="/dispensations/create?patient_id=<%= @patient.id -%>" method="post">
         <div style="float:left;margin-top:-6px;"><label for="barcode" style="margin-top:-5px;"><img src="/images/barcode.jpg" style="vertical-align:top;background:white;"/></label></div>
