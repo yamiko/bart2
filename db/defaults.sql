@@ -118,5 +118,5 @@ INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
 	((SELECT location_id FROM location WHERE name = 'TB Sputum Submission Station'),(SELECT location_tag_id FROM location_tag WHERE tag = "Workstation Location") );
 
 /* Remove unwanted relationships */;
-DELETE FROM relationship_type WHERE b_is_to_a IN ("Parent", "Child", "Sibling", "Spouse/Partner", "Village Health Worker", "Other");
+DELETE FROM relationship_type WHERE b_is_to_a NOT IN ("Parent", "Child", "Sibling", "Spouse/Partner", "Village Health Worker", "Other");
 -- Dump completed on 2010-03-17 15:18:37
