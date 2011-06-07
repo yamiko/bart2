@@ -63,10 +63,8 @@ class Pharmacy < ActiveRecord::Base
                    :group => "value_drug").total_dispensed.to_f rescue 0
   end
 
-  def Pharmacy.prescribed_drugs_since(drug_id,start_date,end_date = Date.today)
-  end
-
   def self.current_stock(drug_id)
+    self.current_stock_as_from(drug_id, self.first_delivery_date(drug_id), Date.today)
   end
 
   def self.current_stock_as_from(drug_id, start_date = Date.today, end_date = Date.today)
@@ -152,6 +150,25 @@ class Pharmacy < ActiveRecord::Base
       }
     end
     removed_from_shelves_hash
+  end
+
+  def Pharmacy.prescribed_drugs_since(drug_id,start_date,end_date = Date.today)
+    treatment_encounter_type = EncounterType.find_by_name('TREATMENT')
+    drug_orders = DrugOrder.find(:all,
+                                 :joins => "INNER JOIN orders ON drug_order.order_id = orders.order_id
+                                 INNER JOIN encounter e ON e.encounter_id = orders.encounter_id",
+                                 :conditions => ["encounter_type = ? AND drug_inventory_id = ?
+                                 AND encounter_datetime >= ? AND encounter_datetime <= ?" ,
+                                 treatment_encounter_type.id , drug_id , 
+                                 start_date.to_date.strftime('%Y-%m-%d 00:00:00') , 
+                                 end_date.to_date.strftime('%Y-%m-%d 23:59:59') ])
+
+    return 0 if drug_orders.blank?
+    prescribed_drugs = 0
+    (drug_orders).each do | drug_order |
+      prescribed_drugs += (drug_order.duration * drug_order.equivalent_daily_dose)
+    end
+    prescribed_drugs
   end
 
 end

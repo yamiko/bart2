@@ -47,8 +47,9 @@ class DrugController < ApplicationController
     ids = Pharmacy.active.find(:all).collect{|p|p.drug_id} rescue []
     Drug.find(:all,:conditions =>["drug_id IN (?)",ids]).each do | drug |
       @stock[drug.name] = {"current_stock" => 0,"dispensed" => 0,"prescribed" => 0, "consumption_per" => ""}
+      @stock[drug.name]["prescribed"] = Pharmacy.prescribed_drugs_since(drug.id, @start_date , @end_date)
       @stock[drug.name]["current_stock"] = Pharmacy.current_stock_as_from(drug.id, Pharmacy.first_delivery_date(drug.id) , @end_date)
-      @stock[drug.name]["dispensed"] = Pharmacy.dispensed_drugs_since(drug.id, Pharmacy.first_delivery_date(drug.id) , @end_date)
+      @stock[drug.name]["dispensed"] = Pharmacy.dispensed_drugs_since(drug.id, @start_date , @end_date)
       @stock[drug.name]["consumption_per"] = sprintf('%.2f',((@stock[drug.name]["dispensed"].to_f / @stock[drug.name]["current_stock"].to_f) * 100.to_f)).to_s + " %" rescue "0 %"
     end rescue []
     render :layout => "menu" 
