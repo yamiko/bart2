@@ -1,0 +1,32 @@
+<style type="text/css">
+  #stats {
+    width:98%;
+    border:1px solid black;
+    margin:10px;
+    background:white;
+  }
+  #stats a {
+    width:375px;
+  }
+</style>
+<%= stylesheet_link_tag 'extra_buttons' %>
+<base target="_parent">
+<h2>Data Cleaning Tools</h2>
+<div>
+  <table id="stats" style="" cellpadding="8">
+    <% @reports.each do |helptext,report_type| %>
+      <tr>
+        <td align="center">
+          <%#= link_to_onmousedown "#{helptext}",
+            {
+            :controller =>"cohort_tool", :action => 'select',
+            :report_type => "#{report_type}", :dashboard => "#{@landing_dashboard}"
+          },:class => 'report_button', :target => "_parent" %>
+          <a href="/cohort_tool/select?report_type=<%= report_type %>&dashboard=<%= @landing_dashboard %>"
+             class="report_button"><%= helptext %> </a>
+        </td>
+      </tr>
+    <%end rescue nil%>
+  </table>
+</div>
+</base>
