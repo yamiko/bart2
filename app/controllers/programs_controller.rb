@@ -91,12 +91,14 @@ class ProgramsController < ApplicationController
       #we don't want to have more than one open states - so we have to close the current active on before opening/creating a new one
       current_active_state = patient_program.patient_states.last
       current_active_state.end_date = params[:current_date].to_date
-      current_active_state.save
 
       patient_state = patient_program.patient_states.build(
         :state => params[:current_state],
         :start_date => params[:current_date]) 
       if patient_state.save
+		# Close and save current_active_state if a new state has been created 		
+		current_active_state.save
+
         if patient_state.program_workflow_state.concept.fullname == 'PATIENT TRANSFERRED OUT' 
           encounter = Encounter.new(params[:encounter])
           encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
