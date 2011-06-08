@@ -123,7 +123,10 @@ class ProgramsController < ApplicationController
         end  
        
         updated_state = patient_state.program_workflow_state.concept.fullname 
-        if updated_state == 'PATIENT TRANSFERRED OUT' or updated_state == 'PATIENT DIED'
+		
+		# Changed the terminal state conditions from hardcoded ones to terminal indicator from the updated state object
+        # if updated_state == 'PATIENT TRANSFERRED OUT' or updated_state == 'PATIENT DIED'
+        if patient_state.program_workflow_state.terminal == 1
           #could not get the commented block of code to update - so I just kinda wrote a hack :(
           # will improve during code clean up!
           #unless patient_program.update_attributes({:date_completed => Time.now()})
