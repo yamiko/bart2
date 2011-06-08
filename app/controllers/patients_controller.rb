@@ -21,13 +21,13 @@ class PatientsController < ApplicationController
   def opdshow
     session_date = session[:datetime].to_date rescue Date.today
     encounter_types = EncounterType.find(:all,:conditions =>["name IN (?)",
-                      ['REGISTRATION','OUTPATIENT DIAGNOSIS']]).map{|e|e.id}
-    @encounters = Encounter.find(:all,:select => "name encounter_type_name, count(*) c",
+                      ['REGISTRATION','OUTPATIENT DIAGNOSIS','REFER PATIENT OUT?','DISPENSING']]).map{|e|e.id}
+    @encounters = Encounter.find(:all,:select => "encounter_id , name encounter_type_name, count(*) c",
                                  :joins => "INNER JOIN encounter_type ON encounter_type_id = encounter_type",
                                  :conditions =>["encounter_type IN (?) AND DATE(encounter_datetime) = ?",
                                  encounter_types,session_date],
-                                 :group => 'encounter_type').collect{|rec| [ rec.encounter_type_name , rec.c ] }
-     
+                                 :group => 'encounter_type').collect{|rec| [ rec.encounter_id , rec.encounter_type_name , rec.c ] }
+    
     render :template => 'dashboards/opdoverview', :layout => 'dashboard' 
   end
 
@@ -35,8 +35,8 @@ class PatientsController < ApplicationController
     @activities = [
                     ["Visit card","/cohort_tool/cohort_menu"],
                     ["National ID (Print)","/patients/dashboard_print_national_id?id=#{params[:id]}&redirect=patients/opdtreatment"],
-                    ["Referrals", "/report/data_cleaning"],
-                    ["Give drugs", "/report/data_cleaning"],
+                    ["Referrals", "/patients/referral/#{params[:id]}"],
+                    ["Give drugs", "/patients/opddrug_dispensing/#{params[:id]}"],
                     ["Vitals", "/report/data_cleaning"],
                     ["Outpatient diagnosis","/encounters/new?id=show&patient_id=#{params[:id]}&encounter_type=outpatient_diagnosis"]
                   ]
