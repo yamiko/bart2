@@ -28081,25 +28081,6 @@ concept_03165:
   datatype_id: 4
   concept_id: 3165
   date_created: 2008-06-13 11:59:31 +02:00
-concept_03052: 
-  retire_reason: 
-  retired_by: 
-  is_set: 0
-  changed_by: 
-  uuid: e01f9284-df1a-11de-a277-0026181bb84d
-  creator: 1
-  date_retired: 
-  class_id: 11
-  version: ""
-  short_name: 
-  default_charge: 
-  date_changed: 2009-03-19 06:00:06 +02:00
-  form_text: 
-  description: 
-  retired: 0
-  datatype_id: 2
-  concept_id: 3052
-  date_created: 2008-04-17 11:54:03 +02:00
 concept_03278: 
   retire_reason: 
   retired_by: 
@@ -81661,3 +81642,22 @@ concept_00259:
   datatype_id: 4
   concept_id: 259
   date_created: 2011-05-12 18:15:03 +02:00
+concept_03052:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: e01f9284-df1a-11de-a277-0026181bb84d
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2009-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 3052
+  date_created: 2008-04-17 11:54:03 +02:00
