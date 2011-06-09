@@ -8,7 +8,7 @@ class ProgramsController < ApplicationController
                                     :joins => "INNER JOIN location l ON l.location_id = patient_program.location_id
                                                INNER JOIN program p ON p.program_id = patient_program.program_id",
                                     :select => "p.name program_name ,l.name location_name,patient_program.date_completed date_completed",
-                                    :conditions =>["voided = 0 AND patient_id = ?",params[:patient_id]]
+                                    :conditions =>["voided = 0 AND patient_id = ? AND date_completed IS NULL",params[:patient_id]]
                                     ).map{|pat_program|
                                       [pat_program.program_name,pat_program.location_name] if pat_program.date_completed.blank?
                                     }
@@ -22,8 +22,10 @@ class ProgramsController < ApplicationController
     invalid_date = false
     initial_date = params[:initial_date].to_date
     active_programs.map{ | program |
-      next if program.date_completed.blank? and program.date_enrolled.blank?
-      invalid_date = (initial_date >= program.date_enrolled.to_date and initial_date < program.date_completed.to_date)
+		if !(program.date_completed.blank? and program.date_enrolled.blank?)
+			#raise "Initial date -> " + initial_date.to_s + " Date enrolled -> " + program.date_enrolled.to_date.to_s + " Date completed -> " + program.date_completed.to_date.to_s
+      		invalid_date = (initial_date >= program.date_enrolled.to_date and initial_date < program.date_completed.to_date)
+		end
     }
 
     if invalid_date
@@ -91,12 +93,14 @@ class ProgramsController < ApplicationController
       #we don't want to have more than one open states - so we have to close the current active on before opening/creating a new one
       current_active_state = patient_program.patient_states.last
       current_active_state.end_date = params[:current_date].to_date
-      current_active_state.save
 
       patient_state = patient_program.patient_states.build(
         :state => params[:current_state],
         :start_date => params[:current_date]) 
       if patient_state.save
+		# Close and save current_active_state if a new state has been created 		
+		current_active_state.save
+
         if patient_state.program_workflow_state.concept.fullname == 'PATIENT TRANSFERRED OUT' 
           encounter = Encounter.new(params[:encounter])
           encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
@@ -123,19 +127,25 @@ class ProgramsController < ApplicationController
         end  
        
         updated_state = patient_state.program_workflow_state.concept.fullname 
-        if updated_state == 'PATIENT TRANSFERRED OUT' or updated_state == 'PATIENT DIED'
+		
+		# Changed the terminal state conditions from hardcoded ones to terminal indicator from the updated state object
+        # if updated_state == 'PATIENT TRANSFERRED OUT' or updated_state == 'PATIENT DIED'
+        if patient_state.program_workflow_state.terminal == 1
           #could not get the commented block of code to update - so I just kinda wrote a hack :(
           # will improve during code clean up!
           #unless patient_program.update_attributes({:date_completed => Time.now()})
            # flash[:notice] = "OOps! Program completed date was not updated!."
           #end
-          date_completed = session[:datetime].to_time rescue Time.now()
+
+          # date_completed = session[:datetime].to_time rescue Time.now()
+          date_completed = params[:current_date].to_date rescue Time.now()
           PatientProgram.update_all "date_completed = '#{date_completed.strftime('%Y-%m-%d %H:%M:%S')}'",
                                      "patient_program_id = #{patient_program.patient_program_id}"
         end
         redirect_to :controller => :patients, :action => :programs_dashboard, :patient_id => params[:patient_id]
       else
-        redirect_to :controller => :patients, :action => :programs_dashboard, :patient_id => params[:patient_id]
+        redirect_to :controller => :patients, :action => :programs_dashboard, :patient_id => params[:patient_id],
+          :error => "Unable to update state"
       end
     else
       patient_program = PatientProgram.find(params[:id])
