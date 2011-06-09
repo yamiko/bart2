@@ -3,7 +3,8 @@ class PatientState < ActiveRecord::Base
   set_primary_key "patient_state_id"
   include Openmrs
   belongs_to :patient_program, :conditions => {:voided => 0}
-  belongs_to :program_workflow_state, :foreign_key => :state, :class_name => 'ProgramWorkflowState', :conditions => {:retired => 0}
+  belongs_to :program_workflow_state, :foreign_key => :state, :class_name => 'ProgramWorkflowState'
+#, :conditions => {:retired => 0}
 
   named_scope :current, :conditions => ['start_date IS NOT NULL AND DATE(start_date) <= CURRENT_DATE() AND (end_date IS NULL OR DATE(end_date) > CURRENT_DATE())']
 
@@ -14,7 +15,8 @@ class PatientState < ActiveRecord::Base
   end
   
   def to_s
-    s = program_workflow_state.concept.fullname rescue 'Unknown state'
+	workflow_state = ProgramWorkflowState.find_state state
+	s = workflow_state.concept.fullname
     s << " #{start_date.strftime('%d/%b/%Y')}" if start_date
     s << "-#{end_date.strftime('%d/%b/%Y')}" if end_date
     s
