@@ -75,7 +75,7 @@ class PropertiesController < ApplicationController
       location = Location.find(Location.current_health_center.id)
       location.neighborhood_cell = params[:site_code]
       if location.save
-        redirect_to "/clinic/properties" and return
+        redirect_to "/clinic" and return  # /properties
       else
         flash[:error] = "Site code not created.  (#{params[:site_code]})"
       end
@@ -93,7 +93,8 @@ class PropertiesController < ApplicationController
       end
       appointment_limit.property_value = params[:appointment_limit]
       appointment_limit.save 
-      redirect_to "/clinic/properties" and return
+      # redirect_to "/clinic/properties" and return
+      redirect_to "/clinic" and return
     end
   end
 

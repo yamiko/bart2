@@ -1,0 +1,116 @@
+<%= stylesheet_link_tag "dashboard" %>
+<%= stylesheet_link_tag fancy_or_high_contrast_touch %>
+<script src="/javascripts/touchscreenYesNo.js" type="text/javascript"></script>
+<%= javascript_include_tag "barcode" %>
+<style type="text/css">
+  .subtotal { margin-left:32px; font-size: 0.8em;}
+  .warning { color: red; font-weight: bold; }
+  #set_appointment { display:none; }
+  h2 {
+    margin: 0px;
+  }
+</style>
+<script src="/javascripts/jquery-1.3.2.min.js" type="text/javascript"></script>
+<script language="javascript" type="text/javascript" src="/javascripts/jquery.flot.js"></script>
+<script type="text/javascript">
+  barcodeId = 'barcode';
+
+  function voiding(node) {
+    confirmYesNo("Void this item?", function() {
+      hideConfirmation();
+      node = node.parent();
+      $.post('/prescriptions/void/?patient_id=<%= @patient.id -%>&order_id=' + node.attr('prescription'), {}, function(data, status) {
+        if (status == 'success') node.remove();
+      })
+    }, function() { hideConfirmation(); });
+  }
+
+  jQuery(document).ready(function($) {
+    $('#set_appointment').click(function() { window.parent.location = "/encounter_types/show?encounter_type=Appointment&id=show&patient_id=<%= @patient.id -%>" })
+    $('#treatment li.data div.void').click(function() { voiding($(this)); return false; });
+  })
+
+
+  function showAppointmentButton(){
+    amount_needed = 0 //<%#=amount_needed%>
+    try {
+      first_dispension = document.getElementsByClassName("subtotal")
+    }catch(e){ first_dispension = null }
+
+    if(first_dispension.length == 0)
+      return
+
+    document.getElementById('set_appointment').style.display='inline';
+  }
+</script>
+
+<body onload="showAppointmentButton();">
+  <div id="treatment" style="display: table; width: 100%;">
+    <div style="display: table-row">
+      <div style="display: table-cell;">
+
+        <div style="display: table; border-spacing: 10px; width: 100%;">
+          <div style="display: table-row">
+            <div style="display: table-cell; width: 50%;">
+
+              <% current_day = session[:datetime].strftime('%Y-%m-%d') rescue 'Today'%>
+              <h2><%=current_day%>'s Treatment (possibly filtered)</h2>
+              <ul id="prescriptions" class="list" style="height:200px;width:100%;">
+                <% @prescriptions.each do |order| %>
+                  <li class="data <%= cycle('even', 'odd') %>" prescription="<%= order.id %>">
+                    <div class="void"><img src="/images/cancel_flat_small.png"/></div>
+                    <div class="summary">
+                      <%= order.to_s.gsub(/\n/, '<br/>') -%>
+                      <% units = order.drug_order.units %>
+                      <% amount_needed = order.drug_order.amount_needed -%>
+                      <% amounts_dispensed = order.drug_order.total_drug_supply(@patient, @encounter, session[:datetime] || Date.today) rescue [] %>
+                      <% (amounts_dispensed || []).each do |amount_dispensed| %>
+                        <div class="subtotal dispensation"><%=h amount_dispensed.to_s %> <%= units %></div>
+                      <% end %>
+                      <div class="subtotal">TOTAL SUPPLY OF DRUG RECEIVED BY PATIENT: <%= order.drug_order.quantity.to_s %> <%= units %></div>
+                      <div class="subtotal">NEED TO DISPENSE: <span class="<%= 'warning' if amount_needed > 0 %>"><%= amount_needed.to_s %> <%= units %></span></div>
+                    </div>
+                  </li>
+                <% end %>
+                <% if @prescriptions.blank? %>
+                  <li class="data">No prescriptions are available for this patient today</li>
+                <% end %>
+              </ul>
+
+            </div>
+            <div style="display: table-cell; width: 50%;">
+
+              <h2>Historical Treatment</h2>
+              <ul id="prescriptions" class="list" style="height:200px;width:100%;">
+                <% @historical.reverse.each do |order| %>
+                  <li class="data <%= cycle('even', 'odd') %>" prescription="<%= order.id %>">
+                    <div class="void"><img src="/images/cancel_flat_small.png"/></div>
+                    <div class="summary"><%= order.to_s.gsub(/\n/, '<br/>') -%></div>
+                  </li>
+                <% end %>
+                <% if @prescriptions.blank? %>
+                  <li class="data">No prescriptions are available for this patient today</li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div style="display: table-row">
+      <div style="display: table-cell">
+
+        <button id="set_appointment" class="silver" style="float:right;margin-top:5px;"><span>Set appointment</span></button>
+        <div style="padding:10px;">
+          <form id='barcodeForm' action="/dispensations/create?patient_id=<%= @patient.id -%>" method="post" target="_parent">
+            <div style="float:left;margin-top:-6px;"><label for="barcode" style="margin-top:-5px;"><img src="/images/barcode.jpg" style="vertical-align:top;background:white;"/></label></div>
+                <%= text_field_tag :identifier, '', {:id => 'barcode', :class => 'touchscreenTextInput', :style => 'position:absolute;width:230px' } %>
+                <%= submit_tag "Submit", :style => "display:none" %>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</body>

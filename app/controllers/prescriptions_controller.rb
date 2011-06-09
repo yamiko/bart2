@@ -47,7 +47,7 @@ class PrescriptionsController < ApplicationController
         end  
       end  
     end 
-    redirect_to (params[:auto] == '1' ? "/prescriptions/auto?patient_id=#{@patient.id}" : "/patients/treatment/#{@patient.id}")
+    redirect_to (params[:auto] == '1' ? "/prescriptions/auto?patient_id=#{@patient.id}" : "/patients/treatment_dashboard/#{@patient.id}")
   end
   
   def auto
@@ -149,6 +149,15 @@ class PrescriptionsController < ApplicationController
     @orders = DrugOrder.find_common_orders(@diagnosis.value_coded)
     @options = @orders.map{|o| [o.order_id, o.script] } + @options
     render :layout => false
+  end
+  
+  # Look up all of the matching drugs for the given drug name
+  def name
+    search_string = (params[:search_string] || '').upcase
+    @drugs = Drug.find(:all, 
+      :select => "name", 
+      :conditions => ["name LIKE ?", '%' + search_string + '%'])
+    render :text => "<li>" + @drugs.map{|drug| drug.name }.join("</li><li>") + "</li>"
   end
   
 end

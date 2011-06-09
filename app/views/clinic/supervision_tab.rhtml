@@ -1,0 +1,28 @@
+<style type="text/css">
+  #stats {
+    width:98%;
+    border:1px solid #eee;
+    margin:10px;
+    background:white;
+  }
+
+  #stats a {
+    width:300px;
+  }
+</style>
+<%= stylesheet_link_tag 'extra_buttons' %>
+<base target="_parent">
+<div>
+  <h2>Supervision tools</h2>
+  <div style="overflow:auto; width: 100%;">
+    <table id="stats" style="" cellpadding="10">
+      <% @supervision_tools.each do |report_name,report_type| %>
+        <tr>
+          <td align="center"><a href="<%="/cohort_tool/select?report_type=#{report_type}&dashboard=#{@landing_dashboard}"%>"
+                 class='report_button'><%=report_name%></a></td>
+        </tr>
+      <%end rescue nil%>
+    </table>
+  </div>
+</div>
+</base>
