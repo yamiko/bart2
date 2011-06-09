@@ -291,37 +291,21 @@ class PatientsController < ApplicationController
 
   def mastercard_modify
     if request.method == :get
-      @patient_id = params[:id]
-      case params[:field]
-      when 'arv_number'
-        @edit_page = "arv_number"
-      when "name"
-      end
-    else
-      @patient_id = params[:patient_id]
-      case params[:field]
-      when 'arv_number'
-        type = params['identifiers'][0][:identifier_type]
-        patient = Patient.find(params[:patient_id])
-        patient_identifiers = PatientIdentifier.find(:all,
-          :conditions => ["voided = 0 AND identifier_type = ? AND patient_id = ?",type.to_i,patient.id])
+        @patient_id = params[:id]
+        @patient = Patient.find(params[:id])
+        @edit_page = Patient.edit_mastercard_attribute(params[:field].to_s)
 
-        patient_identifiers.map{|identifier|
-          identifier.voided = 1
-          identifier.void_reason = "given another number"
-          identifier.date_voided  = Time.now()
-          identifier.voided_by = User.current_user.id
-          identifier.save
-        }
-              
-        identifier = params['identifiers'][0][:identifier].strip
-        if identifier.match(/(.*)[A-Z]/i).blank?
-          params['identifiers'][0][:identifier] = "#{Location.current_arv_code} #{identifier}"
+        if @edit_page == "guardian"
+          @guardian = {}
+          @patient.person.relationships.map{|r| @guardian[Person.find(r.person_b).name] = Person.find(r.person_b).id.to_s;'' }
+          if  @guardian == {}
+              redirect_to :controller => "relationships" , :action => "search",:patient_id => @patient_id
+          end
         end
-        patient.patient_identifiers.create(params[:identifiers])
-        redirect_to :action => "mastercard",:patient_id => patient.id and return
-      when "name"
-      end
+   else
+        @patient_id = params[:patient_id]
+        Patient.save_mastercard_attribute(params)
+        redirect_to :action => "mastercard",:patient_id => @patient_id and return
     end
   end
 
