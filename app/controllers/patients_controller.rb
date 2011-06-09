@@ -18,14 +18,19 @@ class PatientsController < ApplicationController
     render :template => 'dashboards/overview', :layout => 'dashboard' 
   end
 
+  def opdcard
+    @patient = Patient.find(params[:id])
+    render :layout => 'menu' 
+  end
+
   def opdshow
     session_date = session[:datetime].to_date rescue Date.today
     encounter_types = EncounterType.find(:all,:conditions =>["name IN (?)",
                       ['REGISTRATION','OUTPATIENT DIAGNOSIS','REFER PATIENT OUT?','DISPENSING']]).map{|e|e.id}
     @encounters = Encounter.find(:all,:select => "encounter_id , name encounter_type_name, count(*) c",
                                  :joins => "INNER JOIN encounter_type ON encounter_type_id = encounter_type",
-                                 :conditions =>["encounter_type IN (?) AND DATE(encounter_datetime) = ?",
-                                 encounter_types,session_date],
+                                 :conditions =>["patient_id = ? AND encounter_type IN (?) AND DATE(encounter_datetime) = ?",
+                                 params[:id],encounter_types,session_date],
                                  :group => 'encounter_type').collect{|rec| [ rec.encounter_id , rec.encounter_type_name , rec.c ] }
     
     render :template => 'dashboards/opdoverview', :layout => 'dashboard' 
@@ -33,7 +38,7 @@ class PatientsController < ApplicationController
 
   def opdtreatment
     @activities = [
-                    ["Visit card","/cohort_tool/cohort_menu"],
+                    ["Visit card","/patients/opdcard/#{params[:id]}"],
                     ["National ID (Print)","/patients/dashboard_print_national_id?id=#{params[:id]}&redirect=patients/opdtreatment"],
                     ["Referrals", "/patients/referral/#{params[:id]}"],
                     ["Give drugs", "/patients/opddrug_dispensing/#{params[:id]}"],
@@ -406,8 +411,11 @@ class PatientsController < ApplicationController
 
     redirect_to "/patients/mastercard?patient_id=#{@patient.id}" and return
   end
-
   
+  def demographics
+    render :layout => false
+  end
+   
   private
   
   
