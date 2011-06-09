@@ -23,7 +23,7 @@ class DispensationsController < ApplicationController
     #TODO look for another place to put this block of code
     if @drug.blank? or params[:quantity].blank?
       flash[:error] = "There is no drug with barcode: #{params[:identifier]}"
-      redirect_to "/patients/treatment/#{@patient.patient_id}" and return
+      redirect_to "/patients/treatment_dashboard/#{@patient.patient_id}" and return
     end if (params[:identifier])
 
     @encounter = @patient.current_dispensation_encounter(session_date)
@@ -33,7 +33,7 @@ class DispensationsController < ApplicationController
     # Do we have an order for the specified drug?
     if @order.blank?
       flash[:error] = "There is no prescription for #{@drug.name}"
-      redirect_to "/patients/treatment/#{@patient.patient_id}" and return
+      redirect_to "/patients/treatment_dashboard/#{@patient.patient_id}" and return
     end
     # Try to dispense the drug    
       
@@ -52,14 +52,14 @@ class DispensationsController < ApplicationController
       dispension_completed = @patient.set_received_regimen(@encounter, @order) if @order.drug_order.drug.arv?
       #Pharmacy.dispensed_stock_adjustment(@patient.current_treatment_encounter(session_date.to_date))
       if dispension_completed.blank?
-        redirect_to "/patients/treatment/#{@patient.patient_id}"
+        redirect_to "/patients/treatment_dashboard/#{@patient.patient_id}"
       else
         redirect_to :controller => 'encounters',:action => 'new',:start_date => @order.start_date.to_date,
           :patient_id => @patient.id,:id =>"show",:encounter_type => "appointment" ,:end_date => @order.auto_expire_date.to_date
       end
     else
       flash[:error] = "Could not dispense the drug for the prescription"
-      redirect_to "/patients/treatment/#{@patient.patient_id}"
+      redirect_to "/patients/treatment_dashboard/#{@patient.patient_id}"
     end
   end  
   

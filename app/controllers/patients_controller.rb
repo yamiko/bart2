@@ -15,7 +15,11 @@ class PatientsController < ApplicationController
       @prescriptions = restriction.filter_orders(@prescriptions)
       @programs = restriction.filter_programs(@programs)
     end
-    render :template => 'dashboards/overview', :layout => 'dashboard' 
+    # render :template => 'dashboards/overview', :layout => 'dashboard'
+
+    @date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
+
+    render :template => 'patients/index', :layout => false
   end
 
   def opdcard
@@ -62,7 +66,8 @@ class PatientsController < ApplicationController
       @prescriptions = restriction.filter_orders(@prescriptions)
       @historical = restriction.filter_orders(@historical)
     end
-    render :template => 'dashboards/treatment', :layout => 'dashboard' 
+    # render :template => 'dashboards/treatment', :layout => 'dashboard'
+    render :template => 'dashboards/treatment_tab', :layout => false
   end
 
   def guardians
@@ -75,7 +80,7 @@ class PatientsController < ApplicationController
 		  @restricted.each do |restriction|
 		    @relationships = restriction.filter_relationships(@relationships)
 		  end
-    	render :template => 'dashboards/relationships', :layout => 'dashboard' 
+    	render :template => 'dashboards/relationships_tab', :layout => false
   	end
   end
 
@@ -115,7 +120,7 @@ class PatientsController < ApplicationController
       @links << ["Filing number (Create)","/patients/set_filing_number/#{patient.id}"]
     end 
 
-    render :template => 'dashboards/personal', :layout => 'dashboard' 
+    render :template => 'dashboards/personal_tab', :layout => false
   end
 
   def history
@@ -129,7 +134,7 @@ class PatientsController < ApplicationController
       @programs = restriction.filter_programs(@programs)
     end
     flash.now[:error] = params[:error] unless params[:error].blank?
-    render :template => 'dashboards/programs', :layout => 'dashboard' 
+    render :template => 'dashboards/programs_tab', :layout => false
   end
 
   def graph
@@ -150,13 +155,13 @@ class PatientsController < ApplicationController
     unless params[:redirect].blank?
       redirect = "/#{params[:redirect]}/#{params[:id]}"
     else
-      redirect = "/patients/personal/#{params[:id]}"
+      redirect = "/patients/show/#{params[:id]}"
     end
     print_and_redirect("/patients/national_id_label?patient_id=#{params[:id]}", redirect)  
   end
   
   def dashboard_print_visit
-    print_and_redirect("/patients/visit_label/?patient_id=#{params[:id]}", "/patients/personal/#{params[:id]}")  
+    print_and_redirect("/patients/visit_label/?patient_id=#{params[:id]}", "/patients/show/#{params[:id]}")
   end
   
   def print_visit
@@ -168,7 +173,7 @@ class PatientsController < ApplicationController
   end
   
   def print_demographics
-    print_and_redirect("/patients/patient_demographics_label/#{@patient.id}", "/patients/personal/#{params[:id]}")  
+    print_and_redirect("/patients/patient_demographics_label/#{@patient.id}", "/patients/show/#{params[:id]}")
   end
  
   def print_filing_number
@@ -416,6 +421,74 @@ class PatientsController < ApplicationController
     render :layout => false
   end
    
+  def index
+    session[:mastercard_ids] = []
+    session_date = session[:datetime].to_date rescue Date.today
+    @encounters = @patient.encounters.find_by_date(session_date)
+    @prescriptions = @patient.orders.unfinished.prescriptions.all
+    @programs = @patient.patient_programs.all
+    @alerts = @patient.alerts
+    # This code is pretty hacky at the moment
+    @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
+    @restricted.each do |restriction|
+      @encounters = restriction.filter_encounters(@encounters)
+      @prescriptions = restriction.filter_orders(@prescriptions)
+      @programs = restriction.filter_programs(@programs)
+    end
+
+    @date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
+
+    render :template => 'patients/index', :layout => false
+  end
+
+  def overview
+    session[:mastercard_ids] = []
+    session_date = session[:datetime].to_date rescue Date.today
+    @encounters = @patient.encounters.find_by_date(session_date)
+    @prescriptions = @patient.orders.unfinished.prescriptions.all
+    @programs = @patient.patient_programs.all
+    @alerts = @patient.alerts
+    # This code is pretty hacky at the moment
+    @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
+    @restricted.each do |restriction|
+      @encounters = restriction.filter_encounters(@encounters)
+      @prescriptions = restriction.filter_orders(@prescriptions)
+      @programs = restriction.filter_programs(@programs)
+    end
+
+    render :template => 'dashboards/overview_tab', :layout => false
+  end
+
+  def visit_history
+    session[:mastercard_ids] = []
+    session_date = session[:datetime].to_date rescue Date.today
+    @encounters = @patient.encounters.find_by_date(session_date)
+    @prescriptions = @patient.orders.unfinished.prescriptions.all
+    @programs = @patient.patient_programs.all
+    @alerts = @patient.alerts
+    # This code is pretty hacky at the moment
+    @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
+    @restricted.each do |restriction|
+      @encounters = restriction.filter_encounters(@encounters)
+      @prescriptions = restriction.filter_orders(@prescriptions)
+      @programs = restriction.filter_programs(@programs)
+    end
+
+    render :template => 'dashboards/visit_history_tab', :layout => false
+  end
+
+  def treatment_dashboard
+    render :template => 'dashboards/treatment_dashboard', :layout => false
+  end
+
+  def guardians_dashboard
+    render :template => 'dashboards/relationships_dashboard', :layout => false
+  end
+
+  def programs_dashboard
+    render :template => 'dashboards/programs_dashboard', :layout => false
+  end
+
   private
   
   

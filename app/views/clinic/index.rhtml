@@ -38,10 +38,10 @@
               <% end %>
             </select>
             <select id="links">
-              <option link='/logout'>Logout</option>
-              <option link='/people/search' ttSize="320px">Find or Register Patient</option>
-              <option link='/location?from=clinic'>New Desk</option>
-              <option link='<%= ((session[:datetime].to_date rescue '') != '' ?
+              <option value='/logout'>Logout</option>
+              <option value='/people/search' ttSize="320px">Find or Register Patient</option>
+              <option value='/location?from=clinic'>New Desk</option>
+              <option value='<%= ((session[:datetime].to_date rescue '') != '' ?
                           "/people/reset_datetime" : "/people/set_datetime") %>'  ttSize="160px">
                 <%= ((session[:datetime].to_date rescue '') != '' ? "Reset Time" : "Set Date") %></option>
               <!--option link='regimen.html'>Regimen</option-->

@@ -41,7 +41,7 @@ class RegimensController < ApplicationController
       end
     end  
     # Send them back to treatment for now, eventually may want to go to workflow
-    redirect_to "/patients/treatment?patient_id=#{@patient.id}"
+    redirect_to "/patients/treatment_dashboard?patient_id=#{@patient.id}"
   end    
   
   def suggested
