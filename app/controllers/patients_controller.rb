@@ -37,10 +37,14 @@ class PatientsController < ApplicationController
                                  params[:id],encounter_types,session_date],
                                  :group => 'encounter_type').collect{|rec| [ rec.encounter_id , rec.encounter_type_name , rec.c ] }
     
-    render :template => 'dashboards/opdoverview', :layout => 'dashboard' 
+    render :template => 'dashboards/opdoverview_tab', :layout => false
   end
 
   def opdtreatment
+    render :template => 'dashboards/opdtreatment_dashboard', :layout => false
+  end
+
+  def opdtreatment_tab
     @activities = [
                     ["Visit card","/patients/opdcard/#{params[:id]}"],
                     ["National ID (Print)","/patients/dashboard_print_national_id?id=#{params[:id]}&redirect=patients/opdtreatment"],
@@ -49,7 +53,7 @@ class PatientsController < ApplicationController
                     ["Vitals", "/report/data_cleaning"],
                     ["Outpatient diagnosis","/encounters/new?id=show&patient_id=#{params[:id]}&encounter_type=outpatient_diagnosis"]
                   ]
-    render :template => 'dashboards/opdtreatment', :layout => 'dashboard' 
+    render :template => 'dashboards/opdtreatment_tab', :layout => false
   end
 
   def treatment

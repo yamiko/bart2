@@ -18,7 +18,7 @@
               <th colspan=2>Home Page</th>
             </tr>
             <h1 id='project_name'>
-              bart
+              <%= (@location.downcase == "outpatient" ? "opd" : "bart") %>
             </h1>
 
             <div id="facility"><%= @facility %></div>
