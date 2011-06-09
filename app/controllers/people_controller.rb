@@ -159,7 +159,7 @@ class PeopleController < ApplicationController
   
 private
   
-  def search_complete_url(found_person_id, primary_person_id) 
+  def search_complete_url(found_person_id, primary_person_id)
     unless (primary_person_id.blank?)
       # Notice this swaps them!
       new_relationship_url(:patient_id => primary_person_id, :relation => found_person_id)

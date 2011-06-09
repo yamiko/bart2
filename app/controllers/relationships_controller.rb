@@ -3,6 +3,7 @@ class RelationshipsController < ApplicationController
   
   def new
     render :layout => 'application'
+    # render :template => 'dashboards/relationships_dashboard', :layout => false
   end
 
   def search
@@ -18,7 +19,7 @@ class RelationshipsController < ApplicationController
       :relationship => params[:relationship])
     if @relationship.save
       redirect_to session[:return_to] and return unless session[:return_to].blank?
-      redirect_to :controller => :patients, :action => :relationships, :patient_id => @patient.patient_id
+      redirect_to :controller => :patients, :action => :guardians_dashboard, :patient_id => @patient.patient_id
     else 
       render :action => "new" 
     end
