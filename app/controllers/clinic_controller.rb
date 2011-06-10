@@ -97,10 +97,19 @@ class ClinicController < ApplicationController
     @reports = [
       ["Cohort","/cohort_tool/cohort_menu"],
       ["Supervision","/clinic/supervision_tab"],
-      ["Data Cleaning Tools", "/report/data_cleaning_tab"],
-      ["Stock report","/drug/date_select"]
+      ["Data Cleaning Tools", "/clinic/data_cleaning_tab"]
     ]
+    render :layout => false
+  end
 
+  def data_cleaning_tab
+    @reports = [
+                 ['Missing Prescriptions' , '/cohort_tool/select?report_type=dispensations_without_prescriptions'],
+                 ['Missing Dispensations' , '/cohort_tool/select?report_type=prescriptions_without_dispensations'],
+                 ['Multiple Start Reasons at Different times' , '/cohort_tool/select?report_type=patients_with_multiple_start_reasons'],
+                 ['Out of range ARV number' , '/cohort_tool/select?report_type=out_of_range_arv_number'],
+                 ['Data Consistency Check' , '/cohort_tool/select?report_type=data_consistency_check']
+               ] 
     render :layout => false
   end
 
@@ -126,13 +135,13 @@ class ClinicController < ApplicationController
   end
 
   def supervision_tab
-    @supervision_tools = [["Data that was Updated","summary_of_records_that_were_updated"],
-      ["Drug Adherence Level","adherence_histogram_for_all_patients_in_the_quarter"],
-      ["Visits by Day", "visits_by_day"],
-      ["Non-eligible Patients in Cohort", "non_eligible_patients_in_cohort"]]
-
+    @reports = [
+                 ["Data that was Updated","/cohort_tool/select?report_type=summary_of_records_that_were_updated"],
+                 ["Drug Adherence Level","/cohort_tool/select?report_type=adherence_histogram_for_all_patients_in_the_quarter"],
+                 ["Visits by Day", "/cohort_tool/select?report_type=visits_by_day"],
+                 ["Non-eligible Patients in Cohort", "/cohort_tool/select?report_type=non_eligible_patients_in_cohort"]
+               ]
     @landing_dashboard = 'clinic_supervision'
-
     render :layout => false
   end
 

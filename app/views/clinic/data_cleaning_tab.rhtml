@@ -34,13 +34,20 @@
 <script>
   function setInnerHtmlData(id,result,path) {
     td = document.getElementById(id);
+    path = "/drug/" + path;
+    if(result.match(/expiring/i))
+      path+='?goto=expiring'
+
+    if(result.match(/shelves/i))
+      path+='?goto=removed_from_shelves'
+
     td.innerHTML = "<a href =" + path + ">" +  result + "</a>"
   }
 </script>
-<%#="/cohort_tool/select?report_type=#{report_type}&dashboard=#{@landing_dashboard}"%>
+
 <base target="_parent">
 <div id="tab">
-  <h2>Supervision tools</h2>
+  <h2>Data cleaning tools</h2>
   <div id="table_div">
 
     <table id="stats">
