@@ -9,7 +9,6 @@ class Mastercard
   def self.demographics(patient_obj)
     visits = self.new()
     person_demographics = patient_obj.person.demographics
-    
     visits.patient_id = patient_obj.id
     visits.arv_number = patient_obj.get_identifier('ARV Number')
     visits.address = person_demographics['person']['addresses']['city_village']
@@ -19,7 +18,7 @@ class Mastercard
     visits.age =patient_obj.person.age
     visits.occupation = person_demographics['person']['attributes']['occupation']
     visits.address = person_demographics['person']['addresses']['city_village']
-    visits.landmark = person_demographics['person']['addresses']['location']
+    visits.landmark = person_demographics['person']['addresses']['address2']
     visits.init_wt = patient_obj.initial_weight
     visits.init_ht = patient_obj.initial_height
     visits.bmi = patient_obj.initial_bmi

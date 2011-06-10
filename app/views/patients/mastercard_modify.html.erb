@@ -7,6 +7,34 @@ var tt_cancel_destination = "/patients/mastercard?patient_id=" + "<%=@patient_id
     <%= render(:partial => "/patients/arv_number" ) %>
   <% end %>
 
+  <% if @edit_page == "name" %>
+    <%= render(:partial => "/patients/mastercard_modify_name" ) %>
+  <% end %>
+
+  <% if @edit_page == "age" %>
+    <%= render(:partial => "/patients/mastercard_modify_age" ) %>
+  <% end %>
+
+  <% if @edit_page == "sex" %>
+    <%= render(:partial => "/patients/mastercard_modify_sex" ) %>
+  <% end %>
+
+  <% if @edit_page == "location" %>
+    <%= render(:partial => "/patients/mastercard_modify_location" ) %>
+  <% end %>
+
+  <% if @edit_page == "occupation" %>
+    <%= render(:partial => "/patients/mastercard_modify_occupation" ) %>
+  <% end %>
+
+  <% if @edit_page == "guardian" %>
+    <%= render(:partial => "/patients/mastercard_modify_guardian" ) %>
+  <% end %>
+
+  <% if @edit_page == "address" %>
+    <%= render(:partial => "/patients/mastercard_modify_address" ) %>
+  <% end %>
+
   <%= hidden_field_tag "patient_id", @patient_id %>
   <%= hidden_field_tag "field", @edit_page %>
 </form>

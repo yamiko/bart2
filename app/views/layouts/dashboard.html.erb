@@ -64,7 +64,7 @@
         <div id="footer" class="dark">
           <div id="buttons" class="buttons" style="top:0px">
             <button id="finish" class="green"><span>Finish</span></button>
-            <% unless Location.current_location.name.match('Outpatient department') %>
+            <% unless Location.current_location.name.match('Outpatient') %>
               <button id="additional" class="yellow"><span>Tasks</span></button>
               <button id="mastercard" class="yellow"><span>Mastercard</span></button>    
               <% if show_lab_results %>

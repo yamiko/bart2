@@ -949,4 +949,67 @@ EOF
                            self.id,identifier_types]).collect{| i | i.identifier } 
   end
 
+  def self.edit_mastercard_attribute(attribute_name)
+        edit_page = attribute_name
+  end
+
+  def self.save_mastercard_attribute(params)
+        patient = Patient.find(params[:patient_id])
+        case params[:field]
+            when 'arv_number'
+                type = params['identifiers'][0][:identifier_type]
+                #patient = Patient.find(params[:patient_id])
+                patient_identifiers = PatientIdentifier.find(:all,
+                :conditions => ["voided = 0 AND identifier_type = ? AND patient_id = ?",type.to_i,patient.id])
+
+                patient_identifiers.map{|identifier|
+                identifier.voided = 1
+                identifier.void_reason = "given another number"
+                identifier.date_voided  = Time.now()
+                identifier.voided_by = User.current_user.id
+                identifier.save
+                }
+
+                identifier = params['identifiers'][0][:identifier].strip
+                if identifier.match(/(.*)[A-Z]/i).blank?
+                  params['identifiers'][0][:identifier] = "#{Location.current_arv_code} #{identifier}"
+                end
+                patient.patient_identifiers.create(params[:identifiers])
+            when "name"
+                names_params =  {"given_name" => params[:given_name].to_s,"family_name" => params[:family_name].to_s}
+                patient.person.names.first.update_attributes(names_params) if names_params
+            when "age"
+                birthday_params = params[:person]
+
+                if !birthday_params.empty?
+                    if birthday_params["birth_year"] == "Unknown"
+                        patient.person.set_birthdate_by_age(birthday_params["age_estimate"])
+                    else
+                        patient.person.set_birthdate(birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
+                    end
+                patient.person.birthdate_estimated = 1 if params["birthdate_estimated"] == 'true'
+                patient.person.save
+              end
+            when "sex"
+                gender ={"gender" => params[:gender].to_s}
+                patient.person.update_attributes(gender) if !gender.empty?
+            when "location"
+                location = params[:person][:addresses]
+                patient.person.addresses.first.update_attributes(location) if location
+            when "occupation"
+                attribute = params[:person][:attributes]
+                occupation_attribute = PersonAttributeType.find_by_name("Occupation")
+                exists_person_attribute = PersonAttribute.find(:first, :conditions => ["person_id = ? AND person_attribute_type_id = ?", patient.person.id, occupation_attribute.person_attribute_type_id]) rescue nil 
+                if exists_person_attribute
+                  exists_person_attribute.update_attributes({'value' => attribute[:occupation].to_s})
+                end
+            when "guardian"
+                names_params =  {"given_name" => params[:given_name].to_s,"family_name" => params[:family_name].to_s}
+                Person.find(params[:guardian_id].to_s).names.first.update_attributes(names_params) rescue '' if names_params
+            when "address"
+                address2 = params[:person][:addresses]
+                patient.person.addresses.first.update_attributes(address2) if address2
+        end
+  end
+
 end

@@ -1,0 +1,132 @@
+<style>
+  #table_one {
+    border-style: solid;
+    border-width: 1px 0px 1px 0px;
+    width: 100%;
+  }
+
+  #table_one td {
+    background-color: #CCCCCC;
+    padding-left: 10px;
+    border: medium none;
+    color: #000000;
+    font-family: Arial,sans-serif;
+    font-size: 13px;
+    padding-right: 2px;
+    text-align: left;
+    -moz-user-select: none;
+    height: auto;
+  }
+
+  .color_white {width:15%;}
+
+  .color_blue {
+    width: 15%;
+    background-color: #E6E6FF;
+  }
+
+  #table_one_header td{
+    background-color:lightgrey;
+  }
+</style>
+
+
+<div id='demographic'>
+<h2>OPD CARD</h2>
+<table id='table_one'>
+  <tr>
+   <td>National ID</td>
+   <td><%= link_to "Name:", "/patient/mastercard_modify?field=name" -%></td>
+   <td>Birthdate</td>
+   <td><%= link_to "Age:", "/patient/mastercard_modify?field=age" -%></td>
+   <td><%= link_to "Sex:", "/patient/mastercard_modify?field=sex" -%></td>
+   <td><%= link_to "TA:", "/patient/mastercard_modify?field=ta" -%></td>
+  </tr>
+  <tr class="master_data">
+   <td class='demo_data'><%= @patient.national_id_with_dashes rescue nil-%></td>
+   <td class='demo_data'><%= @patient.name rescue nil-%></td>
+   <td class='demo_data'><%= @patient.person.birthdate_formatted rescue nil-%></td>
+   <td class='demo_data'><%= @patient.person.age rescue nil-%></td>
+   <td class='demo_data'><%= @patient.person.sex rescue nil-%></td>
+   <td class='demo_data' colspan="10"><%= @patient.traditional_authority rescue nil-%></td>
+  </tr>
+  <tr>
+   <td><%= link_to "Location:", "/patient/mastercard_modify?field=location" -%></td>
+   <td colspan="3"><%= link_to "Landmark / Address (Physical / PO Box):", "/patient/mastercard_modify?field=address" -%></td>
+   <td colspan="5"><%= link_to "Occupation:", "/patient/mastercard_modify?field=occupation" -%></td>
+  </tr>
+  <tr class="master_data">
+   <td class='demo_data'><%= @patient.person.addresses[0].city_village rescue nil-%></td>
+   <td class='demo_data' colspan="3"><%= @patient.landmark rescue nil-%></td>
+   <td class='demo_data' colspan="5"><%= @patient.occupation rescue nil-%></td>
+  </tr>
+</table>
+</div>
+<div id='visits'>
+<% @visits = Outpatient.visits(@patient) rescue []
+  if @visits.blank? %>
+  <table id="table_two"><tr><td style="text-align:center;">No visits</td></tr></table>
+<% else %><br />
+  <table cellspacing="0" cellpadding="0" border="0" width="100%">
+  <tr>
+    <td>
+       <table cellspacing="0" cellpadding="1" border="0" width="100%" id="table_one_header">
+         <tr>
+            <td width="15%" style="text-align:left;">Visit date</td>
+            <td width="15%" style="text-align:left;">Patient present</td>
+            <td width="15%" style="text-align:left;">Diagnosis</td>
+            <td width="15%" style="text-align:left;">Treatment</td>
+            <td width="15%" style="text-align:left;">Referal</td>
+         </tr>
+       </table>
+    </td>
+  </tr>
+  <tr>
+    <td>
+       <div style="width:100%; height:349px; overflow:auto;">
+         <table cellspacing="0" cellpadding="1" border="0" width="100%" >
+         <%total = 0  
+           color = 'blue'
+           @visits.sort.each{|date,value|
+             if color == 'blue'
+               color = 'white'
+             else
+               color='blue'
+             end  
+           %>
+           <tr>
+              <td class='color_<%=color%>' style="text-align:left;"><%= date.strftime('%d/%m/%Y') %></td>
+              <td class='color_<%=color%>'><%= value.patient_present || '&nbsp;' %></td>
+              <td class='color_<%=color%>'>
+                <%
+                  visit_value = nil    
+                  (value.primary_diagnosis || []).map do | val | 
+                    if visit_value.blank?
+                      visit_value = val
+                    else visit_value+="<br />#{visit_value}" end
+                  end
+                %>
+                <%= visit_value || '&nbsp;' %>
+              </td>
+              <td class='color_<%=color%>'>
+                <%
+                  visit_value = nil    
+                  (value.treatment || []).map do | val | 
+                    if visit_value.blank?
+                      visit_value = val
+                    else visit_value+="<br />#{visit_value}" end
+                  end
+                %>
+                <%= visit_value || '&nbsp;' %>
+              </td>
+              <td class='color_<%=color%>'><%= value.referal_destination || '&nbsp;' %></td>
+           </tr>
+         <%}%>
+         </table><hr /> 
+       </div>
+    </td>
+  </tr>
+</table>
+
+<% end %>
+</div>

@@ -6,7 +6,7 @@
  *
  * (c) 2011 Baobab Health Trust (http://www.baobabhealth.org)
  *
- * For lincense details, see the README.md file
+ * For license details, see the README.md file
  *
  * This file is part the Baobab Touchscreen Toolkit API
  * 
@@ -20,6 +20,8 @@ var barcodeFocusOnce = false;
 var barcodeId = null;
 var focusOnce = false;
 var tabSelected = false;
+var ttActiveTab = null;
+var tstSuppressBarcode = false
 
 var title = "";
 var tt_cancel_show = (typeof(tt_cancel_show) == "undefined" ? null : tt_cancel_show);
@@ -158,7 +160,7 @@ function generateHomepage(){
         var date = __$("date").innerHTML.trim().match(/^(\d{4})(\/|-)(\d{2})(\/|-)(\d{2})/);
 
         if(date){
-            current_date = parseInt(date[5]) + "-" + months[parseInt(date[3]) - 1] + "-" + date[1];
+            current_date = eval(date[5]) + "-" + months[eval(date[3]) - 1] + "-" + date[1];
         }
     }
 
@@ -216,6 +218,13 @@ function generateHomepage(){
     var barcodeinput = document.createElement("input");
     barcodeinput.type = "text";
     barcodeinput.id = "barcode";
+
+    if (tstSuppressBarcode == true) {
+        scanlabel.style.color = "white";
+        barcodeinput.style.color = "white";
+        scaninput.style.color = "white";
+    }
+
     barcodeinput.className = "touchscreenTextInput";
     barcodeinput.onkeydown = function(event){
         return;
@@ -297,12 +306,12 @@ function generateHomepage(){
             button.style.margin = "0px";
             button.style.marginTop = "5px";
             button.innerHTML = "<span>" + childlinks[j].innerHTML.trim() + "</span>";
-            button.setAttribute("link", childlinks[j].getAttribute("link"));
+            button.setAttribute("link", childlinks[j].value);
             if (j == 0) {
                 button.className = "red left";
                 button.id = "btnCancel";
                 button.onclick = function(){
-                    if(__$("btnCancel").getAttribute("link") != null){
+                    if(__$("btnCancel").getAttribute("link") != ""){
                         window.location = __$("btnCancel").getAttribute("link");
                     } else {
                         window.location = tt_cancel_destination;
@@ -312,7 +321,7 @@ function generateHomepage(){
                 button.className = "green";
                 button.id = "btnNext";
                 button.onclick = function(){
-                    if(__$("btnNext").getAttribute("link") != null){
+                    if(__$("btnNext").getAttribute("link") != ""){
                         window.location = __$("btnNext").getAttribute("link");
                     } else {
                         window.location = tt_cancel_show;
@@ -351,7 +360,7 @@ function generateHomepage(){
 }
 
 function generateDashboard(){
-    // Requires a container DIV with id "home"
+    // Requires a container DIV with id "dashboard"
     if(!__$('dashboard')) return;
 
     __$('dashboard').style.display = "none";
@@ -525,7 +534,7 @@ function generateDashboard(){
     }
 
     var links = document.createElement("div");
-    links.id = "links";
+    links.id = "buttonlinks";
 
     content.appendChild(links);
 
@@ -539,33 +548,37 @@ function generateDashboard(){
 
     content.appendChild(nav);
 
-    var finish = document.createElement("button");
-    finish.id = "btnNext";
-    finish.innerHTML = "<span>Finish</span>";
-    finish.className = "green";
-    finish.style.cssFloat = "right";
-    finish.style.margin = "10px";
-    finish.onclick = function(){
-        if(tt_cancel_destination){
-            window.location = tt_cancel_destination;
+    if(tt_cancel_show){
+        var finish = document.createElement("button");
+        finish.id = "btnNext";
+        finish.innerHTML = "<span>Finish</span>";
+        finish.className = "green";
+        finish.style.cssFloat = "right";
+        finish.style.margin = "10px";
+        finish.onclick = function(){
+            if(tt_cancel_show){
+                window.location = tt_cancel_show;
+            }
         }
+
+        nav.appendChild(finish);
     }
-
-    nav.appendChild(finish);
-
-    var logout = document.createElement("button");
-    logout.id = "btnCancel";
-    logout.innerHTML = "<span>Cancel</span>";
-    logout.className = "red";
-    logout.style.cssFloat = "left";
-    logout.style.margin = "10px";
-    logout.onclick = function(){
-        if(tt_cancel_show){
-            window.location = tt_cancel_show;
+    
+    if(tt_cancel_destination){
+        var logout = document.createElement("button");
+        logout.id = "btnCancel";
+        logout.innerHTML = "<span>Cancel</span>";
+        logout.className = "red";
+        logout.style.cssFloat = "left";
+        logout.style.margin = "10px";
+        logout.onclick = function(){
+            if(tt_cancel_destination){
+                window.location = tt_cancel_destination;
+            }
         }
-    }
 
-    nav.appendChild(logout);
+        nav.appendChild(logout);
+    }
 
     if(__$("tabs")){
         var children = __$("tabs").options;
@@ -583,6 +596,14 @@ function generateDashboard(){
     if(__$("links")){
         var childlinks = __$("links").options;
 
+        if(childlinks.length <= 4){
+            __$("buttonlinks").style.height = "30%";
+            __$("patient-dashboard-main").style.width = "100%";
+        } else {
+            __$("patient-dashboard-main").style.width = "73%";
+            __$("buttonlinks").style.height = "90%";
+        }
+
         for(var j = 0; j < childlinks.length; j++){
             var button = document.createElement("button");
             button.className = "blue";
@@ -599,6 +620,64 @@ function generateDashboard(){
         }
 
     }
+
+    if(__$("navigation_links")){
+        var childlinks = __$("navigation_links").options;
+        var i = 0;
+
+        for(var j = 0; j < childlinks.length; j++){
+            var button = document.createElement("button");
+            button.style.margin = "0px";
+            button.style.marginTop = "8px";
+            button.style.marginRight = "8px";
+            button.style.marginLeft = "0px";
+            button.innerHTML = "<span>" + childlinks[j].innerHTML.trim() + "</span>";
+            button.setAttribute("link", childlinks[j].getAttribute("link"));
+
+            if (!tt_cancel_destination && childlinks[j].innerHTML.trim().toLowerCase() == "cancel") {
+                button.className = "red";
+                button.id = "btnCancel";
+                button.onclick = function() {
+                    if (this.getAttribute("link") == "") {
+                        window.location = tt_cancel_destination;
+                    } else {
+                        window.location = this.getAttribute("link");
+                    }
+                }
+            } else if ((j == 0 && tt_cancel_destination) || (!tt_cancel_show && !tt_cancel_destination && j == 1)) {
+                button.className = "green";
+                button.id = "btnNext";
+                button.style.cssFloat = "right";
+                button.onclick = function(){
+                    if (this.getAttribute("link") == "") {
+                        window.location = tt_cancel_show;
+                    } else {
+                        window.location = this.getAttribute("link");
+                    }
+                }
+            } else {
+
+                button.className = "blue";
+                button.style.cssFloat = "right";
+                button.onclick = function(){
+                    window.location = this.getAttribute("link");
+                }
+                
+            }
+
+            if (childlinks[j].getAttribute("ttSize")) {
+                button.style.minWidth = childlinks[j].getAttribute("ttSize");
+            }
+            if (childlinks[j].getAttribute("ttSize")) {
+                button.style.minWidth = childlinks[j].getAttribute("ttSize");
+            }
+            
+            nav.appendChild(button);
+            i++;
+        }
+
+    }
+
 }
 
 function generateGeneralDashboard(){
@@ -805,6 +884,10 @@ function generateTab(headings, target, content){
 
     tabSelected = true;
     shiftLayer(__$("tabContainer"), __$("mainContainer"));
+
+    if(__$(ttActiveTab)){
+        activate(ttActiveTab);
+    }
 }
 
 function loadBarcodePage() {
@@ -816,7 +899,13 @@ function focusForBarcodeInput(){
     if (!barcodeId) {
         barcodeId = "barcode";
     }
+
     var barcode = document.getElementById("barcode");
+
+    if (tstSuppressBarcode == true) {
+        barcode.style.border="0px solid white";
+    }
+
     if (barcode) {
         barcode.focus();
         if (!focusOnce) barcodeFocusTimeoutId = window.setTimeout("focusForBarcodeInput()", setFocusTimeout);
