@@ -5,6 +5,10 @@ class PharmacyTest < ActiveSupport::TestCase
     fixtures :pharmacy_encounter_type, :drug, :encounter_type,
              :encounter, :orders, :drug_order, :users
 
+    setup do
+      @init_stock = Pharmacy.current_stock(2)
+    end
+
     should "be valid" do
       pharmacy = Pharmacy.make
       assert pharmacy.valid?
@@ -12,7 +16,7 @@ class PharmacyTest < ActiveSupport::TestCase
 
     should "add stock" do
       Pharmacy.new_delivery(2,200,Date.today)
-      assert_equal 200.0,Pharmacy.current_stock(2)
+      assert_equal @init_stock + 200.0, Pharmacy.current_stock(2)
     end
 
     should "display stock according to given date" do
@@ -26,7 +30,7 @@ class PharmacyTest < ActiveSupport::TestCase
     should "edit stock" do
       Pharmacy.new_delivery(2,10000,(Date.today - 6.month))
       Pharmacy.drug_dispensed_stock_adjustment(2,2000,Date.today,"Given to another clinic")
-      assert_equal 8000.0, Pharmacy.current_stock(2)
+      assert_equal @init_stock + 8000.0, Pharmacy.current_stock(2)
     end
 
     should "give first dispensed date" do
