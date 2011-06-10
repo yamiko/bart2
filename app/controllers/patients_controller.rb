@@ -48,8 +48,8 @@ class PatientsController < ApplicationController
     @activities = [
                     ["Visit card","/patients/opdcard/#{params[:id]}"],
                     ["National ID (Print)","/patients/dashboard_print_national_id?id=#{params[:id]}&redirect=patients/opdtreatment"],
-                    ["Referrals", "/patients/referral/#{params[:id]}"],
-                    ["Give drugs", "/patients/opddrug_dispensing/#{params[:id]}"],
+                    ["Referrals", "/encounters/referral/#{params[:id]}"],
+                    ["Give drugs", "/encounters/opddrug_dispensing/#{params[:id]}"],
                     ["Vitals", "/report/data_cleaning"],
                     ["Outpatient diagnosis","/encounters/new?id=show&patient_id=#{params[:id]}&encounter_type=outpatient_diagnosis"]
                   ]
