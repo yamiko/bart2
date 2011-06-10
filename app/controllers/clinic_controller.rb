@@ -27,6 +27,7 @@ class ClinicController < ApplicationController
       ["Data Cleaning Tools", "/report/data_cleaning"],
       ["Stock report","/drug/date_select"]
     ]
+
     render :template => 'clinic/reports', :layout => 'clinic' 
   end
 
@@ -99,6 +100,18 @@ class ClinicController < ApplicationController
       ["Supervision","/clinic/supervision_tab"],
       ["Data Cleaning Tools", "/clinic/data_cleaning_tab"]
     ]
+
+    @reports = [
+      ["Diagnosis","/drug/date_select?goto=/report/diagnosis"],
+      ["Patient Level Data","/drug/date_select?goto=/report/patient_level_data"],
+      ["Disaggregated Diagnosis","/drug/date_select?goto=/report/disaggregated_diagnosis"],
+      ["Referrals","/drug/date_select?goto=/report/referrals"],
+      ["Total Visits","/drug/date_select?goto=/report/total_visits"],
+      ["User Stats","/drug/date_select?goto=/report/user_stats"],
+      ["Total registered","/drug/date_select?goto=/report/total_registered"],
+      ["Diagnosis (By address)","/drug/date_select?goto=/report/diagnosis_by_address"],
+      ["Diagnosis + demographics","/drug/date_select?goto=/report/diagnosis_by_demographics"]
+    ] if Location.current_location.name.match(/Outpatient/i)
     render :layout => false
   end
 
