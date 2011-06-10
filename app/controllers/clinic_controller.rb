@@ -106,7 +106,7 @@ class ClinicController < ApplicationController
     @reports = [
                  ['Missing Prescriptions' , '/cohort_tool/select?report_type=dispensations_without_prescriptions'],
                  ['Missing Dispensations' , '/cohort_tool/select?report_type=prescriptions_without_dispensations'],
-                 ['Multiple Start Reasons at Different times' , '/cohort_tool/select?report_type=patients_with_multiple_start_reasons'],
+                 ['Multiple Start Reasons' , '/cohort_tool/select?report_type=patients_with_multiple_start_reasons'],
                  ['Out of range ARV number' , '/cohort_tool/select?report_type=out_of_range_arv_number'],
                  ['Data Consistency Check' , '/cohort_tool/select?report_type=data_consistency_check']
                ] 
