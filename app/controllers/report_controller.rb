@@ -242,4 +242,31 @@ class ReportController < ApplicationController
     render :layout => false
   end
 
+  def age_group_select
+    @options = ["","< 6 months",
+                "6 months to < 1 yr",
+                "1 to < 5","5 to 14",
+                "> 14 to < 20","20 to < 30",
+                "30 to < 40","40 to < 50",
+                "50 and above","none"]
+                
+    @start_date = params[:start_date]
+    @end_date = params[:end_date]
+    @report = params[:type] 
+    render :layout => 'application'
+  end
+
+  def opd
+    @start_date = params[:start_date].to_date
+    @end_date = params[:end_date].to_date
+    @report = params[:report]
+    @age_group = params[:age_group]
+    if @report == 'diagnosis_by_address'
+      @data = Report.opd_diagnosis_by_location(@start_date,@end_date,@age_group)
+    elsif @report == 'diagnosis'
+      @data = Report.opd_diagnosis(@start_date,@end_date,@age_group)
+    end
+    render :layout => 'menu'
+  end
+
 end

@@ -1,2 +1,24 @@
-<h1>Report#opd</h1>
-<p>Find me in app/views/report/opd.html.erb</p>
+<script>
+  var tt_cancel_destination = '/clinic'
+</script>
+
+<style>
+  #header {
+    padding-left: 10px;
+  }
+</style>
+
+<div id = 'header'>
+  <h2><%=Location.current_location.name %></h2><p />
+  <h3><%=@report.humanize %>&nbsp;report</h3>
+</div><hr/><br />
+
+<% case @report 
+     when 'diagnosis' %>
+       <%= render :partial => 'opd_diagnosis' %><%
+     when 'diagnosis_by_address' %>
+       <%= render :partial => 'opd_diagnosis_by_address' %>
+<%end%>
+
+
+

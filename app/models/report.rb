@@ -65,4 +65,96 @@ module Report
 
     cohort_quarters
   end
+
+
+=begin
+
+"SELECT age,gender,count(*) AS total FROM 
+            (SELECT age_group(p.birthdate,date(obs.obs_datetime),Date(p.date_created),p.birthdate_estimated) 
+            as age,p.gender AS gender
+            FROM `encounter` INNER JOIN obs ON obs.encounter_id=encounter.encounter_id
+            INNER JOIN patient p ON p.patient_id=encounter.patient_id WHERE
+            (encounter_datetime >= '#{start_date}' AND encounter_datetime <= '#{end_date}' 
+            AND encounter_type=#{enc_type_id} AND obs.voided=0) GROUP BY encounter.patient_id 
+            order by age) AS t group by t.age,t.gender"
+=end
+
+
+
+
+  def self.opd_diagnosis(start_date , end_date , groups = ['> 14 to < 20'] )
+    age_groups = groups.map{|g|"'#{g}'"}
+    concept = ConceptName.find_by_name("DIAGNOSIS").concept_id
+
+=begin
+    observations = Observation.find(:all,:joins => "INNER JOIN person p ON p.person_id = obs.person_id
+                   INNER JOIN concept_name c ON obs.value_coded = c.concept_id",
+                   :select => "value_coded diagnosis , 
+                    (SELECT age_group(p.birthdate,LEFT(obs.obs_datetime,10),LEFT(p.date_created,10),p.birthdate_estimated) patient_groups",
+                   :conditions => ["concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",
+                   concept , start_date.strftime('%Y-%m-%d 00:00:00') , end_date.strftime('%Y-%m-%d 23:59:59') ],
+                   :group => "diagnosis HAVING patient_groups IN (#{age_groups.join(',')})",
+                   :order => "diagnosis ASC")
+=end
+
+    observations = Observation.find_by_sql(["SELECT name diagnosis , 
+age_group(p.birthdate,DATE(obs_datetime),DATE(p.date_created),p.birthdate_estimated) age_groups 
+FROM `obs` 
+INNER JOIN person p ON obs.person_id = obs.person_id
+INNER JOIN concept_name c ON c.concept_name_id = obs.value_coded_name_id
+WHERE (obs.concept_id=#{concept} 
+AND obs_datetime >= '#{start_date.strftime('%Y-%m-%d 00:00:00')}'
+AND obs_datetime <= '#{end_date.strftime('%Y-%m-%d 00:00:00')}' AND obs.voided = 0) 
+GROUP BY c.name
+HAVING age_groups IN (#{age_groups.join(',')})
+ORDER BY c.name ASC"])
+
+
+    return {} if observations.blank?
+    results = Hash.new(0)
+    observations.map do | obs |
+      results[obs.diagnosis] += 1
+    end
+    results
+  end
+
+
+  def self.opd_diagnosis_by_location(start_date , end_date , groups = ['> 14 to < 20'] )
+    age_groups = groups.map{|g|"'#{g}'"}
+    concept = ConceptName.find_by_name("DIAGNOSIS").concept_id
+
+=begin
+    observations = Observation.find(:all,:joins => "INNER JOIN person p ON p.person_id = obs.person_id
+                   INNER JOIN concept_name c ON obs.value_coded = c.concept_id",
+                   :select => "value_coded diagnosis , 
+                    (SELECT age_group(p.birthdate,LEFT(obs.obs_datetime,10),LEFT(p.date_created,10),p.birthdate_estimated) patient_groups",
+                   :conditions => ["concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",
+                   concept , start_date.strftime('%Y-%m-%d 00:00:00') , end_date.strftime('%Y-%m-%d 23:59:59') ],
+                   :group => "diagnosis HAVING patient_groups IN (#{age_groups.join(',')})",
+                   :order => "diagnosis ASC")
+=end
+
+    observations = Observation.find_by_sql(["SELECT name diagnosis , city_village village , 
+age_group(p.birthdate,DATE(obs_datetime),DATE(p.date_created),p.birthdate_estimated) age_groups 
+FROM `obs` 
+INNER JOIN person p ON obs.person_id = obs.person_id
+INNER JOIN concept_name c ON c.concept_name_id = obs.value_coded_name_id
+INNER JOIN person_address pd ON obs.person_id = pd.person_id
+WHERE (obs.concept_id=#{concept} 
+AND obs_datetime >= '#{start_date.strftime('%Y-%m-%d 00:00:00')}'
+AND obs_datetime <= '#{end_date.strftime('%Y-%m-%d 00:00:00')}' AND obs.voided = 0) 
+GROUP BY pd.person_id
+HAVING age_groups IN (#{age_groups.join(',')})
+ORDER BY c.name ASC"])
+
+
+    return {} if observations.blank?
+    results = Hash.new(0)
+    observations.map do | obs |
+      results["#{obs.village}::#{obs.diagnosis}"] += 1
+    end
+    results
+  end
+
+
 end
