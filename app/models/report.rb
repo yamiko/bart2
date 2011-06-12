@@ -119,7 +119,7 @@ ORDER BY c.name ASC"])
   end
 
 
-  def self.opd_diagnosis_by_location(start_date , end_date , groups = ['> 14 to < 20'] )
+  def self.opd_diagnosis_by_location(diagnosis , start_date , end_date , groups = ['> 14 to < 20'] )
     age_groups = groups.map{|g|"'#{g}'"}
     concept = ConceptName.find_by_name("DIAGNOSIS").concept_id
 
@@ -144,8 +144,8 @@ WHERE (obs.concept_id=#{concept}
 AND obs_datetime >= '#{start_date.strftime('%Y-%m-%d 00:00:00')}'
 AND obs_datetime <= '#{end_date.strftime('%Y-%m-%d 23:59:59')}' AND obs.voided = 0) 
 GROUP BY pd.person_id
-HAVING age_groups IN (#{age_groups.join(',')})
-ORDER BY c.name ASC"])
+HAVING age_groups IN (#{age_groups.join(',')}) AND diagnosis = ?
+ORDER BY c.name ASC",diagnosis])
 
 
     return {} if observations.blank?
@@ -156,7 +156,7 @@ ORDER BY c.name ASC"])
     results
   end
 
-  def self.opd_diagnosis_plus_demographics(start_date , end_date , groups = ['> 14 to < 20'] )
+  def self.opd_diagnosis_plus_demographics(diagnosis , start_date , end_date , groups = ['> 14 to < 20'] )
     age_groups = groups.map{|g|"'#{g}'"}
     concept = ConceptName.find_by_name("DIAGNOSIS").concept_id
     attribute_type = PersonAttributeType.find_by_name("Cell Phone Number").id
@@ -176,9 +176,9 @@ INNER JOIN person_name pn ON p.person_id = pn.person_id
 INNER JOIN person_address pd ON p.person_id = pd.person_id
 WHERE (obs.concept_id = ? AND obs.obs_datetime >= ? AND obs.obs_datetime <= ? AND pa.person_attribute_type_id = ?) 
 GROUP BY first_name,last_name,birthdate,gender,visit_date,value_coded_name_id
-HAVING age_groups IN (#{age_groups.join(',')})
-ORDER BY age_groups DESC",
-concept , start_date.strftime('%Y-%m-%d 00:00:00'),end_date.strftime('%Y-%m-%d 23:59:59'),attribute_type])
+HAVING age_groups IN (#{age_groups.join(',')}) AND diagnosis = ?
+ORDER BY age_groups DESC",concept , start_date.strftime('%Y-%m-%d 00:00:00'),
+end_date.strftime('%Y-%m-%d 23:59:59'),attribute_type,diagnosis])
 
     return {} if observations.blank?
     results = Hash.new()
@@ -249,6 +249,27 @@ ORDER BY diagnosis ASC"])
           results[obs.diagnosis][obs.gender][:over_fourteen_years]+=1
       end
     
+    end
+    results
+  end
+
+  def self.opd_referrals(start_date , end_date)
+    concept = ConceptName.find_by_name("REFERRAL CLINIC IF REFERRED").concept_id
+
+    observations = Observation.find_by_sql(["SELECT value_text clinic , count(*) total
+FROM `obs` 
+INNER JOIN concept_name c ON c.concept_name_id = obs.concept_id
+WHERE (obs.concept_id=#{concept} 
+AND obs_datetime >= '#{start_date.strftime('%Y-%m-%d 00:00:00')}'
+AND obs_datetime <= '#{end_date.strftime('%Y-%m-%d 00:00:00')}' AND obs.voided = 0) 
+GROUP BY clinic
+ORDER BY clinic ASC"])
+
+
+    return {} if observations.blank?
+    results = Hash.new()
+    observations.map do | obs |
+      results[obs.clinic] = 1
     end
     results
   end
