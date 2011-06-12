@@ -265,6 +265,10 @@ class ReportController < ApplicationController
       @data = Report.opd_diagnosis_by_location(@start_date,@end_date,@age_group)
     elsif @report == 'diagnosis'
       @data = Report.opd_diagnosis(@start_date,@end_date,@age_group)
+    elsif @report == 'diagnosis_by_demographics'
+      @data = Report.opd_diagnosis_plus_demographics(@start_date,@end_date,@age_group)
+    elsif @report == 'disaggregated_diagnosis'
+      @data = Report.opd_disaggregated_diagnosis(@start_date,@end_date,@age_group)
     end
     render :layout => 'menu'
   end

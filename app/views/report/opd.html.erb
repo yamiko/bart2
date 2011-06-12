@@ -9,7 +9,7 @@
 </style>
 
 <div id = 'header'>
-  <h2><%=Location.current_location.name %></h2><p />
+  <h2><%= Location.current_health_center.name %>:&nbsp;<%=Location.current_location.name%></h2><p />
   <h3><%=@report.humanize %>&nbsp;report</h3>
 </div><hr/><br />
 
@@ -17,7 +17,11 @@
      when 'diagnosis' %>
        <%= render :partial => 'opd_diagnosis' %><%
      when 'diagnosis_by_address' %>
-       <%= render :partial => 'opd_diagnosis_by_address' %>
+       <%= render :partial => 'opd_diagnosis_by_address' %><%
+     when 'diagnosis_by_demographics' %>
+       <%= render :partial => 'opd_diagnosis_plus_demographics' %><%
+     when 'disaggregated_diagnosis' %>
+       <%= render :partial => 'opd_disaggregated_diagnosis' %>
 <%end%>
 
 
