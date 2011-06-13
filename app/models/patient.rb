@@ -1009,7 +1009,13 @@ EOF
             when "address"
                 address2 = params[:person][:addresses]
                 patient.person.addresses.first.update_attributes(address2) if address2
+            when "ta"
+                county_district = params[:person][:addresses]
+                patient.person.addresses.first.update_attributes(county_district) if county_district
         end
   end
 
+  def traditional_authority
+      self.person.demographics['person']['addresses']['county_district'].to_s
+  end
 end
