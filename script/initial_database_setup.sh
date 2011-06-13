@@ -34,10 +34,9 @@ echo "CREATE DATABASE $DATABASE;" | mysql --user=$USERNAME --password=$PASSWORD
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/openmrs_1_5_2_concept_server_full_db.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/schema_bart2_additions.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/defaults.sql
+mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/mysql_functions.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/drug_ingredient.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/pharmacy.sql
-mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/drop_patient_start_date_function.sql
-mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/create_patient_start_date_function.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/data/${SITE}/${SITE}.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/data/${SITE}/tasks.sql
 
