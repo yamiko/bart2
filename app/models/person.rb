@@ -119,7 +119,7 @@ class Person < ActiveRecord::Base
         "family_name2" => self.names[0].family_name2
       },
       "addresses" => {
-        "county_district" => "",
+        "county_district" => self.addresses[0].county_district,
         "city_village" => self.addresses[0].city_village,
         "address2" => self.addresses[0].address2
       },

@@ -11,7 +11,11 @@
 <div id = 'header'>
   <h2><%= Location.current_health_center.name %>:&nbsp;<%=Location.current_location.name%></h2><p />
   <h3><%=@report.humanize %>&nbsp;report<p />
-  <%=@start_date.to_date.strftime('%A %d %B %Y')%>&nbsp;to&nbsp;<%=@end_date.to_date.strftime('%A %d %B %Y')%></h3>
+  <%if @start_date.to_date == @end_date.to_date %>
+    <%=@start_date.to_date.strftime('%A %d %B %Y')%></h3>
+  <%else%>
+    <%=@start_date.to_date.strftime('%A %d %B %Y')%>&nbsp;to&nbsp;<%=@end_date.to_date.strftime('%A %d %B %Y')%></h3>
+  <%end%>
 </div><hr/><br />
 
 <% case @report 

@@ -104,8 +104,8 @@ INNER JOIN person p ON obs.person_id = obs.person_id
 INNER JOIN concept_name c ON c.concept_name_id = obs.value_coded_name_id
 WHERE (obs.concept_id=#{concept} 
 AND obs_datetime >= '#{start_date.strftime('%Y-%m-%d 00:00:00')}'
-AND obs_datetime <= '#{end_date.strftime('%Y-%m-%d 00:00:00')}' AND obs.voided = 0) 
-GROUP BY c.name
+AND obs_datetime <= '#{end_date.strftime('%Y-%m-%d 23:59:59')}' AND obs.voided = 0) 
+GROUP BY diagnosis,age_groups
 HAVING age_groups IN (#{age_groups.join(',')})
 ORDER BY c.name ASC"])
 
@@ -143,7 +143,7 @@ INNER JOIN person_address pd ON obs.person_id = pd.person_id
 WHERE (obs.concept_id=#{concept} 
 AND obs_datetime >= '#{start_date.strftime('%Y-%m-%d 00:00:00')}'
 AND obs_datetime <= '#{end_date.strftime('%Y-%m-%d 23:59:59')}' AND obs.voided = 0) 
-GROUP BY pd.person_id
+GROUP BY diagnosis , village ,age_groups
 HAVING age_groups IN (#{age_groups.join(',')}) AND diagnosis = ?
 ORDER BY c.name ASC",diagnosis])
 
@@ -208,7 +208,7 @@ end_date.strftime('%Y-%m-%d 23:59:59'),attribute_type,diagnosis])
     observations = Observation.find_by_sql(["SELECT p.person_id patient_id , p.gender gender , name diagnosis ,  
 age_group(p.birthdate,DATE(obs_datetime),DATE(p.date_created),p.birthdate_estimated) age_groups
 FROM `obs` 
-INNER JOIN person p ON obs.person_id = obs.person_id
+INNER JOIN person p ON obs.person_id = p.person_id
 INNER JOIN concept_name c ON c.concept_name_id = obs.value_coded_name_id
 WHERE (obs.concept_id=#{concept} 
 AND obs_datetime >= '#{start_date.strftime('%Y-%m-%d 00:00:00')}'
@@ -261,7 +261,7 @@ FROM `obs`
 INNER JOIN concept_name c ON c.concept_name_id = obs.concept_id
 WHERE (obs.concept_id=#{concept} 
 AND obs_datetime >= '#{start_date.strftime('%Y-%m-%d 00:00:00')}'
-AND obs_datetime <= '#{end_date.strftime('%Y-%m-%d 00:00:00')}' AND obs.voided = 0) 
+AND obs_datetime <= '#{end_date.strftime('%Y-%m-%d 23:59:59')}' AND obs.voided = 0) 
 GROUP BY clinic
 ORDER BY clinic ASC"])
 

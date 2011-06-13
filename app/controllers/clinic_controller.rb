@@ -7,7 +7,7 @@ class ClinicController < ApplicationController
     @year = Encounter.statistics(@types, :conditions => ['YEAR(encounter_datetime) = YEAR(NOW())'])
     @ever = Encounter.statistics(@types)
 
-    @facility = GlobalProperty.find_by_property("current_health_center_name").property_value rescue ""
+    @facility = Location.current_health_center.name rescue ''
 
     @location = Location.find(session[:location_id]).name rescue ""
 
@@ -107,7 +107,8 @@ class ClinicController < ApplicationController
       ["Disaggregated Diagnosis","/drug/date_select?goto=/report/age_group_select?type=disaggregated_diagnosis"],
       ["Referrals","/drug/date_select?goto=/report/opd?type=referrals"],
       #["Total Visits","/drug/date_select?goto=/report/age_group_select?type=total_visits"],
-      ["User Stats","/drug/date_select?goto=/report/age_group_select?type=user_stats"],
+      #["User Stats","/drug/date_select?goto=/report/age_group_select?type=user_stats"],
+      ["User Stats","/"],
      # ["Total registered","/drug/date_select?goto=/report/age_group_select?type=total_registered"],
       ["Diagnosis (By address)","/drug/date_select?goto=/report/age_group_select?type=diagnosis_by_address"],
       ["Diagnosis + demographics","/drug/date_select?goto=/report/age_group_select?type=diagnosis_by_demographics"]
