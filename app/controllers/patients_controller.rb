@@ -319,7 +319,12 @@ class PatientsController < ApplicationController
    else
         @patient_id = params[:patient_id]
         Patient.save_mastercard_attribute(params)
-        redirect_to :action => "mastercard",:patient_id => @patient_id and return
+       if params[:source].to_s == "opd"
+            redirect_to "/patients/opdcard/#{@patient_id}" and return
+
+       else
+            redirect_to :action => "mastercard",:patient_id => @patient_id and return
+       end
     end
   end
 
