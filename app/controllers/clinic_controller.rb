@@ -7,7 +7,7 @@ class ClinicController < ApplicationController
     @year = Encounter.statistics(@types, :conditions => ['YEAR(encounter_datetime) = YEAR(NOW())'])
     @ever = Encounter.statistics(@types)
 
-    @facility = GlobalProperty.find_by_property("current_health_center_name").property_value rescue ""
+    @facility = Location.current_health_center.name rescue ''
 
     @location = Location.find(session[:location_id]).name rescue ""
 
