@@ -53,6 +53,7 @@
             <%= order.to_s.gsub(/\n/, '<br/>') -%>
             <% units = order.drug_order.units %>
             <% amount_needed = order.drug_order.amount_needed -%>
+
             <% amounts_dispensed = order.drug_order.total_drug_supply(@patient, @encounter, session[:datetime] || Date.today) rescue [] %>
             <% (amounts_dispensed || []).each do |amount_dispensed| %>
               <div class="subtotal dispensation"><%=h amount_dispensed.to_s %> <%= units %></div>
