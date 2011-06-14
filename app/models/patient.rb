@@ -255,24 +255,26 @@ class Patient < ActiveRecord::Base
   end  
 
   def visit_label(date = Date.today)
-    print_moh_visit_labels = GlobalProperty.find_by_property('print.moh.visit.labels').property_value rescue 'yes'
-    return Mastercard.mastercard_visit_label(self,date) if print_moh_visit_labels == 'yes'
-    label = ZebraPrinter::StandardLabel.new
-    label.font_size = 3
-    label.font_horizontal_multiplier = 1
-    label.font_vertical_multiplier = 1
-    label.left_margin = 50
-    encs = encounters.find(:all,:conditions =>["DATE(encounter_datetime) = ?",date])
-    return nil if encs.blank?
-    
-    label.draw_multi_text("Visit: #{encs.first.encounter_datetime.strftime("%d/%b/%Y %H:%M")}", :font_reverse => true)    
-    encs.each {|encounter|
-      next if encounter.name.humanize == "Registration"
-      label.draw_multi_text("#{encounter.name.humanize}: #{encounter.to_s}", :font_reverse => false)
-    }
-    label.print(1)
+    if Location.current_location.match(/outpatient/i).nil?
+       return Mastercard.mastercard_visit_label(self,date) if print_moh_visit_labels == 'yes'
+    else
+        label = ZebraPrinter::StandardLabel.new
+        label.font_size = 3
+        label.font_horizontal_multiplier = 1
+        label.font_vertical_multiplier = 1
+        label.left_margin = 50
+        encs = encounters.find(:all,:conditions =>["DATE(encounter_datetime) = ?",date])
+        return nil if encs.blank?
+
+        label.draw_multi_text("Visit: #{encs.first.encounter_datetime.strftime("%d/%b/%Y %H:%M")}", :font_reverse => true)
+        encs.each {|encounter|
+          next if encounter.name.humanize == "Registration"
+          label.draw_multi_text("#{encounter.name.humanize}: #{encounter.to_s}", :font_reverse => false)
+        }
+        label.print(1)
+     end
   end
-   
+
   def get_identifier(type = 'National id')
     identifier_type = PatientIdentifierType.find_by_name(type)
     return if identifier_type.blank?
@@ -280,7 +282,7 @@ class Patient < ActiveRecord::Base
     return if identifiers.blank?
     identifiers.map{|i|i.identifier}[0] rescue nil
   end
-  
+
   def current_weight
     obs = person.observations.recent(1).question("WEIGHT (KG)").all
     obs.first.value_numeric rescue 0
