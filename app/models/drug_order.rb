@@ -146,4 +146,9 @@ class DrugOrder < ActiveRecord::Base
   def amount_needed
     (duration * equivalent_daily_dose) - (quantity || 0)
   end
+
+  def total_required
+    (duration * equivalent_daily_dose)
+  end
+  
 end
