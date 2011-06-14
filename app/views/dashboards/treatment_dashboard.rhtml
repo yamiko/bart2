@@ -8,7 +8,24 @@
       tstUsername = "";
       tstCurrentDate = "<%= @date %>";
       //tt_cancel_destination = '/patients/show/<%= @patient.id %>';
-      tt_cancel_show = '/patients/show/<%= @patient.id %>';
+      tt_cancel_show = "<%= (@amounts_required != @amount_needed ? "javascript:confirmAction()" : "/patients/show/#{@patient.id}") %>";
+
+      function confirmAction(){
+
+        confirmOperation("An amount of <%= @amount_needed %> units is still outstanding. Do you still want to ignore it?",
+        "/patients/show/<%= @patient.id %>")
+
+        return;
+
+        var response = confirm("An amount of <%= @amount_needed %> units is still outstanding. Do you still want to ignore it?");
+
+        if(response) {
+          alert(response);
+          window.location = "/patients/show/<%= @patient.id %>";
+        } 
+        
+      }
+
     </script>
   </head>
   <body><div id='content'>

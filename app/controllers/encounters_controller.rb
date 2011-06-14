@@ -38,13 +38,6 @@ class EncountersController < ApplicationController
 
     @patient = Patient.find(params[:encounter][:patient_id])
 
-    if params['encounter']['encounter_type_name'] == "APPOINTMENT"
-      redirect_to "/patients/treatment_dashboard/#{@patient.id}" and return
-    else
-      # Go to the dashboard if this is a non-encounter
-      redirect_to "/patients/show/#{@patient.id}" unless params[:encounter]
-    end
-    
     # Encounter handling
     encounter = Encounter.new(params[:encounter])
     encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
@@ -120,6 +113,14 @@ class EncountersController < ApplicationController
         @patient_identifier = @patient.patient_identifiers.create(identifier)
       end
     end
+
+    # if params['encounter']['encounter_type_name'] == "APPOINTMENT"
+    #  redirect_to "/patients/treatment_dashboard/#{@patient.id}" and return
+    # else
+      # Go to the dashboard if this is a non-encounter
+      # redirect_to "/patients/show/#{@patient.id}" unless params[:encounter]
+      # redirect_to next_task(@patient)
+    # end
 
     # Go to the next task in the workflow (or dashboard)
     redirect_to next_task(@patient) 

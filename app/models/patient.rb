@@ -53,17 +53,28 @@ class Patient < ActiveRecord::Base
     
     alerts = []
     type = EncounterType.find_by_name("APPOINTMENT")
-    next_appt = self.encounters.find_last_by_encounter_type(type.id).observations.last.to_s rescue nil
+    next_appt = self.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.last.to_s rescue nil
     alerts << ('Latest ' + next_appt).capitalize unless next_appt.blank?
 
+    encounter_dates = Encounter.find_by_sql("SELECT * FROM encounter WHERE patient_id = #{self.id} AND encounter_type IN (" +
+        ("SELECT encounter_type_id FROM encounter_type WHERE name IN ('VITALS', 'TREATMENT', " +
+          "'HIV RECEPTION', 'HIV STAGING', 'ART VISIT', 'DISPENSING')") + ")").collect{|e|
+          e.encounter_datetime.strftime("%Y-%m-%d")
+        }.uniq
+
+    missed_appt = self.encounters.find_last_by_encounter_type(type.id, 
+      :conditions => ["NOT (DATE_FORMAT(encounter_datetime, '%Y-%m-%d') IN (?)) AND encounter_datetime < NOW()",
+        encounter_dates], :order => "encounter_datetime").observations.last.to_s rescue nil
+    alerts << ('Missed ' + missed_appt).capitalize unless missed_appt.blank?
+
     type = EncounterType.find_by_name("ART ADHERENCE")
-    self.encounters.find_last_by_encounter_type(type.id).observations.map do | adh |
+    self.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.map do | adh |
       next if adh.value_text.blank?
       alerts << "Adherence: #{adh.order.drug_order.drug.name} (#{adh.value_text}%)"
     end rescue []
 
     type = EncounterType.find_by_name("DISPENSING")
-    self.encounters.find_last_by_encounter_type(type.id).observations.each do | obs |
+    self.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.each do | obs |
       next if obs.order.blank? and obs.order.auto_expire_date.blank?
       alerts << "Auto expire date: #{obs.order.drug_order.drug.name} #{obs.order.auto_expire_date.to_date.strftime('%d-%b-%Y')}"
     end rescue []
@@ -255,24 +266,28 @@ class Patient < ActiveRecord::Base
   end  
 
   def visit_label(date = Date.today)
-    print_moh_visit_labels = GlobalProperty.find_by_property('print.moh.visit.labels').property_value rescue 'yes'
-    return Mastercard.mastercard_visit_label(self,date) if print_moh_visit_labels == 'yes'
-    label = ZebraPrinter::StandardLabel.new
-    label.font_size = 3
-    label.font_horizontal_multiplier = 1
-    label.font_vertical_multiplier = 1
-    label.left_margin = 50
-    encs = encounters.find(:all,:conditions =>["DATE(encounter_datetime) = ?",date])
-    return nil if encs.blank?
-    
-    label.draw_multi_text("Visit: #{encs.first.encounter_datetime.strftime("%d/%b/%Y %H:%M")}", :font_reverse => true)    
-    encs.each {|encounter|
-      next if encounter.name.humanize == "Registration"
-      label.draw_multi_text("#{encounter.name.humanize}: #{encounter.to_s}", :font_reverse => false)
-    }
-    label.print(1)
+
+    result = Location.current_location.match(/outpatient/i).nil? rescue true
+    if result == true
+       return Mastercard.mastercard_visit_label(self,date)
+    else
+        label = ZebraPrinter::StandardLabel.new
+        label.font_size = 3
+        label.font_horizontal_multiplier = 1
+        label.font_vertical_multiplier = 1
+        label.left_margin = 50
+        encs = encounters.find(:all,:conditions =>["DATE(encounter_datetime) = ?",date])
+        return nil if encs.blank?
+
+        label.draw_multi_text("Visit: #{encs.first.encounter_datetime.strftime("%d/%b/%Y %H:%M")}", :font_reverse => true)
+        encs.each {|encounter|
+          next if encounter.name.humanize == "Registration"
+          label.draw_multi_text("#{encounter.name.humanize}: #{encounter.to_s}", :font_reverse => false)
+        }
+        label.print(1)
+     end
   end
-   
+
   def get_identifier(type = 'National id')
     identifier_type = PatientIdentifierType.find_by_name(type)
     return if identifier_type.blank?
@@ -280,7 +295,7 @@ class Patient < ActiveRecord::Base
     return if identifiers.blank?
     identifiers.map{|i|i.identifier}[0] rescue nil
   end
-  
+
   def current_weight
     obs = person.observations.recent(1).question("WEIGHT (KG)").all
     obs.first.value_numeric rescue 0
@@ -1028,4 +1043,19 @@ EOF
   def traditional_authority
       self.person.demographics['person']['addresses']['county_district'].to_s
   end
+  
+  def appointment_dates(start_date, end_date = nil)
+
+    end_date = start_date if end_date.nil?
+
+    appointment_date_concept_id = Concept.find_by_name("APPOINTMENT DATE").concept_id rescue nil
+
+    appointments = Observation.find(:all,
+                :conditions => ["DATE(obs.value_datetime) >= ? AND DATE(obs.value_datetime) <= ? AND " +
+                  "obs.concept_id = ? AND obs.voided = 0 AND obs.person_id = ?", start_date.to_date,
+                end_date.to_date, appointment_date_concept_id, self.id])
+
+    appointments
+  end
+
 end

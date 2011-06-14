@@ -30,12 +30,12 @@ class PatientsController < ApplicationController
   def opdshow
     session_date = session[:datetime].to_date rescue Date.today
     encounter_types = EncounterType.find(:all,:conditions =>["name IN (?)",
-                      ['REGISTRATION','OUTPATIENT DIAGNOSIS','REFER PATIENT OUT?','DISPENSING']]).map{|e|e.id}
+        ['REGISTRATION','OUTPATIENT DIAGNOSIS','REFER PATIENT OUT?','DISPENSING']]).map{|e|e.id}
     @encounters = Encounter.find(:all,:select => "encounter_id , name encounter_type_name, count(*) c",
-                                 :joins => "INNER JOIN encounter_type ON encounter_type_id = encounter_type",
-                                 :conditions =>["patient_id = ? AND encounter_type IN (?) AND DATE(encounter_datetime) = ?",
-                                 params[:id],encounter_types,session_date],
-                                 :group => 'encounter_type').collect{|rec| [ rec.encounter_id , rec.encounter_type_name , rec.c ] }
+      :joins => "INNER JOIN encounter_type ON encounter_type_id = encounter_type",
+      :conditions =>["patient_id = ? AND encounter_type IN (?) AND DATE(encounter_datetime) = ?",
+        params[:id],encounter_types,session_date],
+      :group => 'encounter_type').collect{|rec| [ rec.encounter_id , rec.encounter_type_name , rec.c ] }
     
     render :template => 'dashboards/opdoverview_tab', :layout => false
   end
@@ -46,13 +46,13 @@ class PatientsController < ApplicationController
 
   def opdtreatment_tab
     @activities = [
-                    ["Visit card","/patients/opdcard/#{params[:id]}"],
-                    ["National ID (Print)","/patients/dashboard_print_national_id?id=#{params[:id]}&redirect=patients/opdtreatment"],
-                    ["Referrals", "/encounters/referral/#{params[:id]}"],
-                    ["Give drugs", "/encounters/opddrug_dispensing/#{params[:id]}"],
-                    ["Vitals", "/report/data_cleaning"],
-                    ["Outpatient diagnosis","/encounters/new?id=show&patient_id=#{params[:id]}&encounter_type=outpatient_diagnosis"]
-                  ]
+      ["Visit card","/patients/opdcard/#{params[:id]}"],
+      ["National ID (Print)","/patients/dashboard_print_national_id?id=#{params[:id]}&redirect=patients/opdtreatment"],
+      ["Referrals", "/encounters/referral/#{params[:id]}"],
+      ["Give drugs", "/encounters/opddrug_dispensing/#{params[:id]}"],
+      ["Vitals", "/report/data_cleaning"],
+      ["Outpatient diagnosis","/encounters/new?id=show&patient_id=#{params[:id]}&encounter_type=outpatient_diagnosis"]
+    ]
     render :template => 'dashboards/opdtreatment_tab', :layout => false
   end
 
@@ -64,6 +64,7 @@ class PatientsController < ApplicationController
       :joins => "INNER JOIN encounter e USING (encounter_id)",
       :conditions => ["encounter_type = ? AND e.patient_id = ? AND DATE(encounter_datetime) = ?",
         type.id,@patient.id,session_date])
+
     @historical = @patient.orders.historical.prescriptions.all
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|
@@ -305,26 +306,26 @@ class PatientsController < ApplicationController
 
   def mastercard_modify
     if request.method == :get
-        @patient_id = params[:id]
-        @patient = Patient.find(params[:id])
-        @edit_page = Patient.edit_mastercard_attribute(params[:field].to_s)
+      @patient_id = params[:id]
+      @patient = Patient.find(params[:id])
+      @edit_page = Patient.edit_mastercard_attribute(params[:field].to_s)
 
-        if @edit_page == "guardian"
-          @guardian = {}
-          @patient.person.relationships.map{|r| @guardian[Person.find(r.person_b).name] = Person.find(r.person_b).id.to_s;'' }
-          if  @guardian == {}
-              redirect_to :controller => "relationships" , :action => "search",:patient_id => @patient_id
-          end
+      if @edit_page == "guardian"
+        @guardian = {}
+        @patient.person.relationships.map{|r| @guardian[Person.find(r.person_b).name] = Person.find(r.person_b).id.to_s;'' }
+        if  @guardian == {}
+          redirect_to :controller => "relationships" , :action => "search",:patient_id => @patient_id
         end
-   else
-        @patient_id = params[:patient_id]
-        Patient.save_mastercard_attribute(params)
-       if params[:source].to_s == "opd"
-            redirect_to "/patients/opdcard/#{@patient_id}" and return
+      end
+    else
+      @patient_id = params[:patient_id]
+      Patient.save_mastercard_attribute(params)
+      if params[:source].to_s == "opd"
+        redirect_to "/patients/opdcard/#{@patient_id}" and return
 
-       else
-            redirect_to :action => "mastercard",:patient_id => @patient_id and return
-       end
+      else
+        redirect_to :action => "mastercard",:patient_id => @patient_id and return
+      end
     end
   end
 
@@ -471,6 +472,22 @@ class PatientsController < ApplicationController
   end
 
   def treatment_dashboard
+    @amount_needed = 0
+    @amounts_required = 0
+
+    type = EncounterType.find_by_name('TREATMENT')
+    session_date = session[:datetime].to_date rescue Date.today
+    Order.find(:all,
+      :joins => "INNER JOIN encounter e USING (encounter_id)",
+      :conditions => ["encounter_type = ? AND e.patient_id = ? AND DATE(encounter_datetime) = ?",
+        type.id,@patient.id,session_date]).each{|order|
+      
+      @amount_needed = @amount_needed + (order.drug_order.amount_needed.to_i rescue 0)
+
+      @amounts_required = @amounts_required + (order.drug_order.total_required rescue 0)
+
+    }
+
     render :template => 'dashboards/treatment_dashboard', :layout => false
   end
 
@@ -480,6 +497,19 @@ class PatientsController < ApplicationController
 
   def programs_dashboard
     render :template => 'dashboards/programs_dashboard', :layout => false
+  end
+
+  def number_of_booked_patients
+    date = params[:date].to_date
+    encounter_type = EncounterType.find_by_name('APPOINTMENT')
+    concept_id = ConceptName.find_by_name('APPOINTMENT DATE').concept_id
+    count = Observation.count(:all,
+            :joins => "INNER JOIN encounter e USING(encounter_id)",:group => "value_datetime",
+            :conditions =>["concept_id = ? AND encounter_type = ? AND value_datetime >= ? AND value_datetime <= ?",
+            concept_id,encounter_type.id,date.strftime('%Y-%m-%d 00:00:00'),date.strftime('%Y-%m-%d 23:59:59')])
+    count = count.values unless count.blank?
+    count = '0' if count.blank?
+    render :text => count
   end
 
   private
