@@ -103,6 +103,8 @@ module ApplicationHelper
     rels.each do |rel|
       options_array << [rel.relation.name + " (#{rel.type.b_is_to_a})", rel.relation.name] unless rel.relation.blank?
     end
+    options_array << ['Unknown', 'Unknown']
+    options_array << ['None', 'None']
    # options_array = rels.map{|rel| next if rel.relation.blank? [rel.relation.name + " (#{rel.type.b_is_to_a})", rel.relation.name]}
     options_for_select(options_array)  
   end
