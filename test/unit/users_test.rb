@@ -31,7 +31,7 @@ class UsersTest < ActiveSupport::TestCase
     @salt = User.random_string(10)
 
     encrypted_password = User.encrypt(user[:password],@salt)
-    assert encrypted_password.length >= 40
+    assert_equal encrypted_password.length, 40
    end
 
    should "authenticated on login" do
@@ -43,7 +43,7 @@ class UsersTest < ActiveSupport::TestCase
 
    should "create a salt of length not less than 10" do
     @salt = User.random_string(10)
-    assert @salt.length >= 10
+    assert_equal @salt.length, 10
    end
 
   end
