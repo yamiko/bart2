@@ -14,6 +14,16 @@
   function hide_new_relationship_button() {
     $('tt_extraButtons').innerHTML = "";    
   }
+
+  // Don't save Guardian: None. We might later want to start saving this answer
+  function cleanup_guardian_options() {
+    var options = $('guardian_present').options;
+    for (var i=0; i<options.length; i++) {
+      if (options[i].selected && options[i].value == 'None') {
+        options[i].selected = false;
+      }
+    }
+  }
  
 </script>  
 <form id='appointment' action="/encounters/create" method='post'>
@@ -36,7 +46,7 @@
   <label for='patient_present'>Patient Present</label>
     <%= select_tag "observations[][value_coded_or_text]", options_for_select([['Yes','YES'],['No','NO']]), 
       {:id => 'patient_present',
-      :tt_onLoad => 'hide_new_relationship_button()'} %>
+      :tt_onLoad => 'hide_new_relationship_button(); cleanup_guardian_options();'} %>
     <%= hidden_field_tag("observations[][value_text]", nil) %>
     <%= hidden_field_tag("observations[][concept_name]", "PATIENT PRESENT") %>
     <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>

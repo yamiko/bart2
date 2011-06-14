@@ -129,7 +129,7 @@ class PersonTest < ActiveSupport::TestCase
       p = person(:evan)
       data = {
         "address2" => "Friendship House",
-        "county_district" => "",
+        "county_district" => "Checkuchecku",
         "city_village" => "Katoleza"
       }
       assert_equal p.demographics["person"]["addresses"], data
@@ -153,7 +153,7 @@ class PersonTest < ActiveSupport::TestCase
       evan_demographics = {"person"=> {
         "addresses"=> {"address2"=>"Friendship House",
                        "city_village"=>"Katoleza",
-                       "county_district"=>""},
+                       "county_district"=>"Checkuchecku"},
         "birth_month"=>6,
         "attributes"=>{"occupation"=>nil},
         "patient"=> {"identifiers"=> {"National id"=>"P1701210013",
@@ -165,33 +165,7 @@ class PersonTest < ActiveSupport::TestCase
         "names"=>
               {"family_name2"=>"Murray", "family_name"=>"Waters", "given_name"=>"Evan"},
         "birth_year"=>1982}}
-=begin
-      evan_demographics = { "person" => {
-        "date_changed" => Time.mktime("2000-01-01 00:00:00").to_s,
-        "occupation" => nil,
-        "gender" => "M",
-        "birth_year" => 1982,
-        "birth_month" => 6,
-        "birth_day" => 9,
-        "names" => {
-          "given_name" => "Evan",
-          "family_name" => "Waters",
-          "family_name2" => "Murray",
-        },
-        "addresses" => {
-          "address2" => "Friendship House",
-          "county_district" => "",
-          "city_village" => "Katoleza"
-        },
-        "patient" => {
-          "identifiers" => {
-            "National id" => "P1701210013",
-            "ARV Number" => "ARV-311",
-            "Pre ART Number" => "PART-311",
-          }
-        }
-      }}
-=end
+
     assert_equal p.demographics, evan_demographics
     end
 
