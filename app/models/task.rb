@@ -211,6 +211,17 @@ class Task < ActiveRecord::Base
                                    :order =>'encounter_datetime DESC',:limit => 1)
 
     if art_visit.blank? and task.encounter_type != art_encounters[4]
+      #checks if we need to do a pre art visit
+      art_reason = patient_obj.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue nil
+      reasons = art_reason.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue ''
+      if task.encounter_type == 'PART_FOLLOWUP' 
+        return task
+      elsif reasons.upcase == 'UNKNOWN' or reasons.blank?
+        task.url = "/patients/summary?patient_id={patient}&skipped={encounter_type}" 
+        task.url = task.url.gsub(/\{encounter_type\}/, "PRE_ART_FOLLOWUP") 
+        return task
+      end
+
       task.url = "/patients/summary?patient_id={patient}&skipped={encounter_type}" 
       task.url = task.url.gsub(/\{encounter_type\}/, "#{art_encounters[4].gsub(' ','_')}") 
       return task
