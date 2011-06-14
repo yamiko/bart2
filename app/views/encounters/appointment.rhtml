@@ -9,9 +9,25 @@
     top:80px;
   }
 
+  #information {
+    display: none;
+    border: 5px;
+    border-style: solid;
+    border-width: 1px;
+    font-size: 2em;
+    left: 494px;
+    padding: 10px;
+    position: absolute;
+    text-align: center;
+    top: 85px;
+    width: 450px;
+    height: 160px;
+    z-index: 10;
+  }
 </style>
 
 <%= javascript_include_tag "dateformat" %>
+<%= javascript_include_tag "prototype"%>
 
 <script>
   var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_id %>";
@@ -160,6 +176,19 @@
     $('touchscreenInput1').value = visit_date.getFullYear() + '-' + DateUtil.months[visit_date.getMonth()] + '-' + visit_date.getDate()
     showDate();
   }
+
+  function showRecordedAppointments(setdate) {
+    msgBox = $('information')
+    msgBox.style.display = 'block';
+    new Ajax.Request("/patients/number_of_booked_patients?date=" + setdate ,{method:'get',onSuccess: function(transport){
+      count = JSON.parse(transport.responseText) || "";
+      if (count) {
+        msgBox.innerHTML = "Total number of booked patients on this day:<br />" + count ;
+      }else{
+        msgBox.innerHTML = "Total number of booked patients on this day:<br />" + 0 ;
+      }
+    }});
+  }
   
   function assignCloseToExpireDate(set_date,auto_expire_date) {
     if (set_date < auto_expire_date){
@@ -190,6 +219,7 @@
     
    new_date = dateCreate(year + '-' + month + '-' + day) 
    $('helpText1').innerHTML = 'Next Appointment Date ' + dateFormat(new_date,"dddd, mmmm dS, yyyy");
+   showRecordedAppointments(dateFormat(new_date,"dddd, mmmm dS, yyyy"));
   }
 
   function calculateGivenRange(start_date,end_date) {
@@ -216,6 +246,10 @@
       return false
 
     return true
+  }
+
+  function hideInfo() {
+    $('information').style.display = 'none';
   }
 </script>
 <form id='appointment' action="/encounters/create" method='post'>
@@ -245,9 +279,15 @@
                                                                                    :absoluteMax => absolute_max, 
                                                                                    :tt_pageStyleClass => "Date DatesOnly", 
                                                                                    :tt_onLoad => "calculate_dates('#{params[:start_date]}','#{params[:end_date]}');", 
+                                                                                   :tt_onUnLoad => "hideInfo();", 
                                                                                    :id => 'next_appointment_date'}) %>
 
 
   <%= submit_tag "Finish" %>    
 </form>
+
+<div id = 'information'>
+Total number of booked patients on this day:<br /> 0
+</div>
+
 

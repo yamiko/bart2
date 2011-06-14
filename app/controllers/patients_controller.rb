@@ -499,6 +499,19 @@ class PatientsController < ApplicationController
     render :template => 'dashboards/programs_dashboard', :layout => false
   end
 
+  def number_of_booked_patients
+    date = params[:date].to_date
+    encounter_type = EncounterType.find_by_name('APPOINTMENT')
+    concept_id = ConceptName.find_by_name('APPOINTMENT DATE').concept_id
+    count = Observation.count(:all,
+            :joins => "INNER JOIN encounter e USING(encounter_id)",:group => "value_datetime",
+            :conditions =>["concept_id = ? AND encounter_type = ? AND value_datetime >= ? AND value_datetime <= ?",
+            concept_id,encounter_type.id,date.strftime('%Y-%m-%d 00:00:00'),date.strftime('%Y-%m-%d 23:59:59')])
+    count = count.values unless count.blank?
+    count = '0' if count.blank?
+    render :text => count
+  end
+
   private
   
   
