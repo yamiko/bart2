@@ -53,17 +53,28 @@ class Patient < ActiveRecord::Base
     
     alerts = []
     type = EncounterType.find_by_name("APPOINTMENT")
-    next_appt = self.encounters.find_last_by_encounter_type(type.id).observations.last.to_s rescue nil
+    next_appt = self.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.last.to_s rescue nil
     alerts << ('Latest ' + next_appt).capitalize unless next_appt.blank?
 
+    encounter_dates = Encounter.find_by_sql("SELECT * FROM encounter WHERE patient_id = #{self.id} AND encounter_type IN (" +
+        ("SELECT encounter_type_id FROM encounter_type WHERE name IN ('VITALS', 'TREATMENT', " +
+          "'HIV RECEPTION', 'HIV STAGING', 'ART VISIT', 'DISPENSING')") + ")").collect{|e|
+          e.encounter_datetime.strftime("%Y-%m-%d")
+        }.uniq
+
+    missed_appt = self.encounters.find_last_by_encounter_type(type.id, 
+      :conditions => ["NOT (DATE_FORMAT(encounter_datetime, '%Y-%m-%d') IN (?)) AND encounter_datetime < NOW()",
+        encounter_dates], :order => "encounter_datetime").observations.last.to_s rescue nil
+    alerts << ('Missed ' + missed_appt).capitalize unless missed_appt.blank?
+
     type = EncounterType.find_by_name("ART ADHERENCE")
-    self.encounters.find_last_by_encounter_type(type.id).observations.map do | adh |
+    self.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.map do | adh |
       next if adh.value_text.blank?
       alerts << "Adherence: #{adh.order.drug_order.drug.name} (#{adh.value_text}%)"
     end rescue []
 
     type = EncounterType.find_by_name("DISPENSING")
-    self.encounters.find_last_by_encounter_type(type.id).observations.each do | obs |
+    self.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.each do | obs |
       next if obs.order.blank? and obs.order.auto_expire_date.blank?
       alerts << "Auto expire date: #{obs.order.drug_order.drug.name} #{obs.order.auto_expire_date.to_date.strftime('%d-%b-%Y')}"
     end rescue []
