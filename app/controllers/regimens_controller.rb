@@ -7,7 +7,6 @@ class RegimensController < ApplicationController
   end
   
   def create
-    raise params
     @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
     session_date = session[:datetime] || Time.now()
     encounter = @patient.current_treatment_encounter(session_date)
