@@ -7,6 +7,7 @@ class RegimensController < ApplicationController
   end
   
   def create
+    raise params
     @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
     session_date = session[:datetime] || Time.now()
     encounter = @patient.current_treatment_encounter(session_date)
@@ -68,7 +69,7 @@ class RegimensController < ApplicationController
     @criteria = Regimen.criteria(@patient.current_weight).all(:conditions => {:concept_id => params[:id]}, :include => :regimen_drug_orders)
     @options = @criteria.map do | r | 
       r.regimen_drug_orders.map do | order |
-        [order.drug.name , order.units , order.frequency]
+        [order.drug.name , order.units , order.frequency , r.id]
       end
     end
     render :text => @options.to_json    

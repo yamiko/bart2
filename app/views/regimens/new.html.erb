@@ -27,13 +27,6 @@
     padding-bottom: 30px;
   }
 
-  .tt_controls_select_formulations_and_doses #keyboard {
-    display: none; 
-  }
-
-  #tt_page_select_formulations_and_doses #viewport {
-    display: none; 
-  }
 </style>
 
 <%= javascript_include_tag "prototype"%>
@@ -46,7 +39,7 @@
   var formulation_hash = {};
   var selected_formulation = '';
   var previous_color = []
-  
+  var regimen_id = null; 
 
   function set_patient_program_for_suggestions() {    
     var patient_program_id = encodeURIComponent($('patient_program').value); 
@@ -72,9 +65,12 @@
   }
 
   function buildPrescriptionPage() {
+    $('clearButton').style.display = 'none';
+    $('keyboard').style.display = 'none';
+    $('viewport').style.display = 'none';
     $('helpText'+tstCurrentPage).innerHTML = "Select doses. Current patient weight:&nbsp;<%=@patient.current_weight%>";
     var regimen_concept_id = encodeURIComponent($('regimen_concept_id').value); 
-    //$('touchscreenInput'+tstCurrentPage).setAttribute('type','hidden');
+    $('touchscreenInput'+tstCurrentPage).setAttribute('type','hidden');
     current_page = $('page'+tstCurrentPage);
 
     html = "&nbsp;<div id ='prescription_container'><table><tr>" 
@@ -95,10 +91,10 @@
           for (x = 0 ; x < formulations[i].length ; x++) {
             if(td_data.length == 0){
               td_data = formulations[i][x][0] 
-              formulation_hash[i] = formulations[i][x][0] + ":" + formulations[i][x][1] + ":" + formulations[i][x][2];
+              formulation_hash[i] = formulations[i][x][0] + ":" + formulations[i][x][1] + ":" + formulations[i][x][2] + ":" + formulations[i][x][3];
             }else{ 
               td_data += "<br />" + formulations[i][x][0] 
-              formulation_hash[i] += " ;; " + formulations[i][x][0] + ":" + formulations[i][x][1] + ":" + formulations[i][x][2];
+              formulation_hash[i] += " ;; " + formulations[i][x][0] + ":" + formulations[i][x][1] + ":" + formulations[i][x][2] + ":" + formulations[i][x][3];
             }
           }
           if(bgcolor =='blue') {
@@ -112,7 +108,21 @@
         html +="</table></div>" 
         current_page.innerHTML += html
         if (selected_formulation.length > 0) {
-          showDosage(selected_formulation);
+          previous_selected_regimen_id = selected_formulation.split(',')[3];
+          dosages = formulation_hash[key].split(" ;; ");
+          new_regimen = true
+          for (i = 0 ; i < dosages.length ; i++) {
+            if (previous_selected_regimen_id == (dosages[i].split(':')[3]))
+              new_regimen = false
+          }
+
+          if (!new_regimen) {
+            showDosage(selected_formulation);
+          }else{
+            $('regimen').value = '';
+            $('touchscreenInput'+tstCurrentPage).value = '';
+            previous_color = [] ; 
+          }
         }
       }
     }});
@@ -121,14 +131,16 @@
 
   function showDosage(key_row_id_plus_row_color) {//lightblue
     $('touchscreenInput'+tstCurrentPage).value = null;
+    regimen_id = null
     key = key_row_id_plus_row_color.split(',')[0];
     color = key_row_id_plus_row_color.split(',')[2];
     row_id = (parseFloat(key_row_id_plus_row_color.split(',')[1]) + 1);
 
+    dosages = formulation_hash[key].split(" ;; ")
+    
     formulation_div = $('prescription_container');
     html = "<table><tr><th>Drug name</th><th>Units</th><th>Daily dose</th></tr>" 
 
-    dosages = formulation_hash[key].split(" ;; ")
     for (i = 0 ; i < dosages.length ; i++) {
       if(i > 0)
         $('touchscreenInput'+tstCurrentPage).value+= ';';
@@ -137,18 +149,16 @@
       html+= "<td>" + (dosages[i].split(':')[0]) + "</td>"
       html+= "<td>" + (dosages[i].split(':')[1]) + "</td>"
       html+= "<td>" + (dosages[i].split(':')[2]) + "</td>"
-      $('touchscreenInput'+tstCurrentPage).value+= (dosages[i].split(':')[0]) + ":"
-      $('touchscreenInput'+tstCurrentPage).value+= " " + (dosages[i].split(':')[1])
-      $('touchscreenInput'+tstCurrentPage).value+= " " + (dosages[i].split(':')[2])
+      $('touchscreenInput'+tstCurrentPage).value+= (dosages[i].split(':')[0]) + ": "
+      $('touchscreenInput'+tstCurrentPage).value+= (dosages[i].split(':')[1])
+      $('touchscreenInput'+tstCurrentPage).value+= (dosages[i].split(':')[2])
       html+= "</tr>"
+      regimen_id = (dosages[i].split(':')[3])
     }
     html+= "</table>"
     formulation_div.innerHTML = html
+    selected_formulation = key + "," + (parseFloat(row_id) - 1) + "," + color + "," + regimen_id;
     select(row_id , color)
-    selected_formulation = key + "," + (parseFloat(row_id) - 1) + "," + color;
-    updateTouchscreenInput($('touchscreenInput'+tstCurrentPage));
-    $('regimen').value = $('touchscreenInput'+tstCurrentPage).value;
-    tstInputTarget = $('regimen')
   }
 
 
@@ -158,9 +168,11 @@
         row = $(previous_color[0][0]);
       }catch(e){ row = $(parseFloat(id)) } 
 
-      if (previous_color[0][1] == 'blue'){
-        row.style.background = '#E6E6FF'
-      }{ row.style.background = '' }
+      try {
+        if (previous_color[0][1] == 'blue'){
+          row.style.background = '#E6E6FF'
+        }{ row.style.background = '' }
+      }catch(e) {}
     }
 
     previous_color = []
@@ -174,7 +186,6 @@
     }catch(e) { help_text = '' }
 
     if (help_text.match(/Select doses./)) {
-      console.log(($('touchscreenInput'+tstCurrentPage).value == '' && selected_formulation.length > 0))
       if ($('touchscreenInput'+tstCurrentPage).value == '' && selected_formulation.length > 0) {
         //selected_formulation = '';
         //$('prescription_container').innerHTML = '';
@@ -184,7 +195,12 @@
     }
   }
 
-
+  function setRegimenId() {
+    $('regimen').value = regimen_id
+    $('clearButton').style.display = 'inline';
+    $('keyboard').style.display = 'inline';
+    $('viewport').style.display = 'inline';
+  }
 </script>
 <form id='regimen_form' action="/regimens/create" method='post'>
  
@@ -195,7 +211,7 @@
     :allowFreeText => 'false',
     :helpText => "Prescribe regimen for which program?"}%>
   
-  <%= select_tag :continue_existing_regimen, options_for_select([['',''],['YES','YES'],['NO','NO']], ''), {
+  <%#= select_tag :continue_existing_regimen, options_for_select([['',''],['YES','YES'],['NO','NO']], ''), {
     :textCase => "upper", 
     :allowFreeText => 'false',
     :condition => 'current_regimens_for_programs[$("patient_program").value] != null',
@@ -211,7 +227,8 @@
   
   <%= text_field_tag :regimen, nil, {
     :ajaxUrl => "",
-    :allowFreeText => 'false',
+    :tt_onUnLoad => "setRegimenId();" ,
+    :allowFreeText => false ,
     :tt_onLoad => 'set_regimen_concept_id_for_regimen();buildPrescriptionPage();setTimeout(clearAll, 20);',
     :helpText => "Select formulations and doses"}%>
 
