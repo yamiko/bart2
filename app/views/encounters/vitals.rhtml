@@ -48,7 +48,7 @@
       currentHeight = <%= @patient.current_height %>
      }
      currentWeight = document.getElementById('weight').value;
-     medianWeightHeight = [<%= WeightHeightForAge.median_weight_height(@patient.person.age, @patient.person.gender).join(',') rescue nil -%>];
+     medianWeightHeight = [<%= WeightHeightForAge.median_weight_height(@patient.person.age_in_months, @patient.person.gender).join(',') rescue nil -%>];
      currentWeightPercentile = (currentWeight/(medianWeightHeight[0])*100).toFixed(0);
      currentHeightPercentile = (currentHeight/(medianWeightHeight[1])*100).toFixed(0);     
      if (('<%= @patient.person.age %>') > 14) {

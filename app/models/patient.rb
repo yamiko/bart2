@@ -1009,7 +1009,23 @@ EOF
             when "address"
                 address2 = params[:person][:addresses]
                 patient.person.addresses.first.update_attributes(address2) if address2
+            when "ta"
+                county_district = params[:person][:addresses]
+                patient.person.addresses.first.update_attributes(county_district) if county_district
         end
   end
 
+  def eid_number
+    eid_number_id = PatientIdentifierType.find_by_name('EID Number').patient_identifier_type_id
+    PatientIdentifier.identifier(self.patient_id, eid_number_id).identifier rescue nil
+  end
+
+  def pre_art_number
+    pre_art_number_id = PatientIdentifierType.find_by_name('Pre ART Number (Old format)').patient_identifier_type_id
+    PatientIdentifier.identifier(self.patient_id, pre_art_number_id).identifier rescue nil
+  end
+
+  def traditional_authority
+      self.person.demographics['person']['addresses']['county_district'].to_s
+  end
 end
