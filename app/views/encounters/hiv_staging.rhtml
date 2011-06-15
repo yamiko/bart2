@@ -162,14 +162,10 @@
       try {
         if (ageInMonths < 12 && firstPositiveHivTestType == "HIV RAPID TEST, QUALITATIVE" && presumedSevereHiv) {
           reasonForArtEligibility = "PRESUMED SEVERE HIV";
-        } else if (ageInMonths <= 12 && firstPositiveHivTestType == "HIV DNA POLYMERASE CHAIN REACTION") {
-          reasonForArtEligibility = "HIV DNA POLYMERASE CHAIN REACTION";
         } else if (whoStage >= 3) {
           reasonForArtEligibility = whoStageConcept(whoStage, "PEDS");  
-        } else if ($('cd4_count_less_than_250') && $('cd4_count_less_than_250').value == "YES") {
-          reasonForArtEligibility = "CD4 COUNT LESS THAN 250";
-        } else if ($('cd4_percent_less_than_25') && $('cd4_percent_less_than_25').value == "YES") {
-          if ($('new_cd4_percent_available').value == 'YES'){ reasonForArtEligibility = "CD4 PERCENT LESS THAN 25"; }
+        } else if (ageInMonths >= 12 && ageInMonths < 24 && firstPositiveHivTestType == "HIV DNA POLYMERASE CHAIN REACTION") {
+          reasonForArtEligibility = "HIV DNA POLYMERASE CHAIN REACTION";
         } else if ($('cd4_count_less_than_350') && $('cd4_count_less_than_350').value == "YES" && (whoStage) <= 2) {
           reasonForArtEligibility = "CD4 COUNT LESS THAN 350";
         } else if (whoStage >= 2 && lymphocyteCount < lymphocyteThresholds[age]) {
@@ -425,6 +421,31 @@
          :helpText => "Stage 4 Conditions (children only)",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <% end %>
+
+    <label for='new_cd4_count_available'>New CD4 count available?</label>
+      <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_count_available', :tt_pageStyleClass => 'NoKeyboard' %>
+
+    <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,
+      {:id => "cd4_count_location",
+       :condition => '$("new_cd4_count_available").value == "YES"',
+       :helpText => "CD4 Count Location"} %>
+
+    <%= touch_date_tag "CD4 COUNT DATETIME", @patient, (Time.now - 1.month).year,
+      {:id => "cd4_count_date",
+       :condition => '$("new_cd4_count_available").value == "YES"',
+       :helpText => "CD4 Count Date",
+       :max => "#{(Date.today).strftime('%Y-%m-%d')}"} %>
+
+    <%= touch_numeric_tag "CD4 COUNT", @patient, nil,
+      {:id => "cd4_count",
+       :condition => '$("new_cd4_count_available").value == "YES"',
+       :helpText => "CD4 Count",
+       :max => 1000 ,
+       :min => 1 ,
+       :tt_onUnLoad => "updateCD4Count();"} %>
+
+    <%= touch_hidden_tag "CD4 COUNT LESS THAN 250", @patient, "", :id => "cd4_count_less_than_250" %>
+    <%= touch_hidden_tag "CD4 COUNT LESS THAN 350", @patient, "", :id => "cd4_count_less_than_350" %>
 
     <label for='new_cd4_percent_available'>New CD4 percent available?</label>
       <%= select_tag "new_cd4_percent_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_percent_available', :tt_pageStyleClass => 'NoKeyboard' %>
