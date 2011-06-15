@@ -219,6 +219,8 @@ class PatientsController < ApplicationController
   end
 
   def mastercard
+    @type = params[:type]
+    
     #the parameter are used to re-construct the url when the mastercard is called from a Data cleaning report
     @quarter = params[:quarter]
     @arv_start_number = params[:arv_start_number]
@@ -242,6 +244,7 @@ class PatientsController < ApplicationController
     end
 
     render :layout => false
+    
   end
 
   def mastercard_printable
@@ -497,6 +500,39 @@ class PatientsController < ApplicationController
 
   def programs_dashboard
     render :template => 'dashboards/programs_dashboard', :layout => false
+  end
+
+  def general_mastercard
+    @type = nil
+    
+    case params[:type]
+    when "1"
+      @type = "yellow"
+    when "2"
+      @type = "green"
+    when "3"
+      @type = "pink"
+    when "4"
+      @type = "blue"
+    end
+
+    render :layout => false
+  end
+
+  def patient_details
+    render :layout => false
+  end
+
+  def status_details
+    render :layout => false
+  end
+
+  def mastercard_details
+    render :layout => false
+  end
+
+  def mastercard_header
+    render :layout => false
   end
 
   private
