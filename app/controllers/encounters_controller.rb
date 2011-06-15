@@ -152,10 +152,11 @@ class EncountersController < ApplicationController
     outpatient_diagnosis = ConceptName.find_by_name("DIAGNOSIS").concept
     diagnosis_concepts = ConceptClass.find_by_name("Diagnosis", :include => {:concepts => :name}).concepts rescue []    
     # TODO Need to check a global property for which concept set to limit things to
-    if (false)
-      diagnosis_concept_set = ConceptName.find_by_name('MALAWI NATIONAL DIAGNOSIS').concept
-      diagnosis_concepts = Concept.find(:all, :joins => :concept_sets, :conditions => ['concept_set = ?', concept_set.id], :include => [:name])
-    end  
+
+      #diagnosis_concept_set = ConceptName.find_by_name('MALAWI NATIONAL DIAGNOSIS').concept This should be used when the concept becames available
+      diagnosis_concept_set = ConceptName.find_by_name('MALAWI ART SYMPTOM SET').concept
+      diagnosis_concepts = Concept.find(:all, :joins => :concept_sets, :conditions => ['concept_set = ?', diagnosis_concept_set.id])
+
     valid_answers = diagnosis_concepts.map{|concept| 
       name = concept.fullname rescue nil
       name.match(search_string) ? name : nil rescue nil
