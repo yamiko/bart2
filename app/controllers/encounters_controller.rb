@@ -153,6 +153,7 @@ class EncountersController < ApplicationController
     diagnosis_concepts = ConceptClass.find_by_name("Diagnosis", :include => {:concepts => :name}).concepts rescue []    
     # TODO Need to check a global property for which concept set to limit things to
 
+      #diagnosis_concept_set = ConceptName.find_by_name('MALAWI NATIONAL DIAGNOSIS').concept This should be used when the concept becames available
       diagnosis_concept_set = ConceptName.find_by_name('MALAWI ART SYMPTOM SET').concept
       diagnosis_concepts = Concept.find(:all, :joins => :concept_sets, :conditions => ['concept_set = ?', diagnosis_concept_set.id])
 
@@ -163,7 +164,7 @@ class EncountersController < ApplicationController
     previous_answers = []
     # TODO Need to check global property to find out if we want previous answers or not (right now we)
     previous_answers = Observation.find_most_common(outpatient_diagnosis, search_string)
-    @suggested_answers = (previous_answers + valid_answers).reject{|answer| filter_list.include?(answer) }.uniq[0..100] 
+    @suggested_answers = (previous_answers + valid_answers).reject{|answer| filter_list.include?(answer) }.uniq[0..10] 
     render :text => "<li>" + @suggested_answers.join("</li><li>") + "</li>"
   end
 
