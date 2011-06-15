@@ -80,7 +80,7 @@
 
     new Ajax.Request("/regimens/formulations?patient_id=<%=@patient.id %>&id=" + regimen_concept_id ,{method:'get',onSuccess: function(transport){
       formulations = JSON.parse(transport.responseText) || "";
-      if(formulations.length > 0){
+      if(formulations.length > 0 && formulations != "[[[]]]" && formulations != "[]"){
         count = 0
         html = "&nbsp;<div id ='formulations_container'><table><tr>" 
         html += "<th>Drug name</th>" 

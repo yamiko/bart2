@@ -266,8 +266,10 @@ class Patient < ActiveRecord::Base
   end  
 
   def visit_label(date = Date.today)
-    if Location.current_location.match(/outpatient/i).nil?
-       return Mastercard.mastercard_visit_label(self,date) if print_moh_visit_labels == 'yes'
+
+    result = Location.current_location.match(/outpatient/i).nil? rescue true
+    if result == true
+       return Mastercard.mastercard_visit_label(self,date)
     else
         label = ZebraPrinter::StandardLabel.new
         label.font_size = 3
