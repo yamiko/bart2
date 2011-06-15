@@ -219,6 +219,8 @@ class PatientsController < ApplicationController
   end
 
   def mastercard
+    @type = params[:type]
+    
     #the parameter are used to re-construct the url when the mastercard is called from a Data cleaning report
     @quarter = params[:quarter]
     @arv_start_number = params[:arv_start_number]
@@ -242,6 +244,7 @@ class PatientsController < ApplicationController
     end
 
     render :layout => false
+    
   end
 
   def mastercard_printable
@@ -499,6 +502,52 @@ class PatientsController < ApplicationController
     render :template => 'dashboards/programs_dashboard', :layout => false
   end
 
+  def general_mastercard
+    @type = nil
+    
+    case params[:type]
+    when "1"
+      @type = "yellow"
+    when "2"
+      @type = "green"
+    when "3"
+      @type = "pink"
+    when "4"
+      @type = "blue"
+    end
+
+    render :layout => false
+  end
+
+  def patient_details
+    render :layout => false
+  end
+
+  def status_details
+    render :layout => false
+  end
+
+  def mastercard_details
+    render :layout => false
+  end
+
+  def mastercard_header
+    render :layout => false
+  end
+
+  def number_of_booked_patients
+    date = params[:date].to_date
+    encounter_type = EncounterType.find_by_name('APPOINTMENT')
+    concept_id = ConceptName.find_by_name('APPOINTMENT DATE').concept_id
+    count = Observation.count(:all,
+            :joins => "INNER JOIN encounter e USING(encounter_id)",:group => "value_datetime",
+            :conditions =>["concept_id = ? AND encounter_type = ? AND value_datetime >= ? AND value_datetime <= ?",
+            concept_id,encounter_type.id,date.strftime('%Y-%m-%d 00:00:00'),date.strftime('%Y-%m-%d 23:59:59')])
+    count = count.values unless count.blank?
+    count = '0' if count.blank?
+    render :text => count
+  end
+  
   private
   
   
