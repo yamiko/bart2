@@ -71,8 +71,15 @@
      :multiple => false,
      :helpText => "TB Status" } %>
 
-  <!-- Adherence report -->  
-  <!--   do we need a referral to adherence counseling? -->
+  <%= touch_yes_no_unknown_tag "DEPO-PROVERA", @patient, nil,
+      {:optional => false,
+       :helpText => "Depo-provera injection given?" } %>
+
+  <%= touch_numeric_tag "CONDOMS", @patient, nil,
+    {:optional => false,
+     :max => 1000 ,
+     :min => 1,
+     :helpText => "Number of Condoms given" } %>
 
   <%= touch_yes_no_unknown_tag "PRESCRIBE ARVS THIS VISIT", @patient, nil,
     {:optional => false,

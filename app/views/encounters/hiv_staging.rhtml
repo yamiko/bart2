@@ -114,6 +114,8 @@
     if (age > 14) {        
       if(whoStage >= 3) {
         reasonForArtEligibility = whoStageConcept(whoStage, "ADULT");  
+      } else if((whoStage <= 2) && ($('cd4_count_less_than_350').value == "YES")) {
+        reasonForArtEligibility = "CD4 COUNT LESS THAN 350";
       } else {
         if ($('pregnant') && $('pregnant').value == "YES" && $('cd4_count_less_than_350').value == "YES") {
           reasonForArtEligibility = "CD4 COUNT LESS THAN 350";
@@ -163,6 +165,8 @@
           reasonForArtEligibility = "CD4 COUNT LESS THAN 250";
         } else if ($('cd4_percent_less_than_25') && $('cd4_percent_less_than_25').value == "YES") {
           if ($('new_cd4_percent_available').value == 'YES'){ reasonForArtEligibility = "CD4 PERCENT LESS THAN 25"; }
+        } else if ($('cd4_count_less_than_350') && $('cd4_count_less_than_350').value == "YES" && (whoStage) <= 2) {
+          reasonForArtEligibility = "CD4 COUNT LESS THAN 350";
         } else if (whoStage >= 2 && lymphocyteCount < lymphocyteThresholds[age]) {
           reasonForArtEligibility = "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2";              
         }
@@ -299,7 +303,7 @@
        :helpText => "CD4 Count",
        :max => 1000 ,
        :min => 1 ,
-       :tt_onComplete => 'updateCD4Count()'} %>
+       :tt_onUnLoad => 'updateCD4Count()'} %>
 
     <%= touch_hidden_tag "CD4 COUNT LESS THAN 250", @patient, "", :id => "cd4_count_less_than_250" %>
     <%= touch_hidden_tag "CD4 COUNT LESS THAN 350", @patient, "", :id => "cd4_count_less_than_350" %>
@@ -407,7 +411,7 @@
       {:id => "cd4_percent",
        :condition => '$("new_cd4_percent_available").value == "YES"',
        :helpText => "CD4 Percent",
-       :tt_onComplete => 'updateCD4Percent()'} %>
+       :tt_onUnLoad => 'updateCD4Percent()'} %>
 
     <%= touch_hidden_tag "CD4 PERCENT LESS THAN 25", @patient, "", :id => "cd4_percent_less_than_25" %>
 
