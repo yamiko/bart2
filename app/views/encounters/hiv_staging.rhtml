@@ -3,10 +3,11 @@
 </style>
 
 <script>
+  <% firstPositiveHivTestType = Observation.question("FIRST POSITIVE HIV TEST TYPE").first(:conditions => {:person_id => @patient.person}, :include => :answer_concept_name).answer_concept_name.name rescue 'UNKNOWN' -%>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id -%>";
   var age = <%= @patient.person.age -%>;
   var ageInMonths = <%= @patient.person.age_in_months -%>;
-  var firstPositiveHivTestType = "<%= Observation.question("FIRST POSITIVE HIV TEST TYPE").first(:conditions => {:person_id => @patient.person}, :include => :answer_concept_name).answer_concept_name.name rescue 'UNKNOWN' -%>";  
+  var firstPositiveHivTestType = "<%= firstPositiveHivTestType -%>";  
   
   function updateCD4Count() {
     var cd4_available = $('new_cd4_count_available').value == 'YES';
@@ -114,11 +115,17 @@
     if (age > 14) {        
       if(whoStage >= 3) {
         reasonForArtEligibility = whoStageConcept(whoStage, "ADULT");  
+      } else if((whoStage <= 2) && ($('cd4_count_less_than_350').value == "YES")) {
+        reasonForArtEligibility = "CD4 COUNT LESS THAN 350";
       } else {
         if ($('pregnant') && $('pregnant').value == "YES" && $('cd4_count_less_than_350').value == "YES") {
           reasonForArtEligibility = "CD4 COUNT LESS THAN 350";
         } else if ($('cd4_count_less_than_250').value == "YES") {
           reasonForArtEligibility = "CD4 COUNT LESS THAN 250";
+        } else if ($('pregnant').value == "YES") {
+          reasonForArtEligibility = "PATIENT PREGNANT";              
+        } else if ($('breast_feeding').value == "YES") {
+          reasonForArtEligibility = "LACTATE";              
         }
       }
     } else {
@@ -131,7 +138,7 @@
       try { lymphocyteCountNumeric = parseInt(lymphocyteCount); } catch(e) { }
 
       var presumedSevereHivConditions = "";
-      if ($('presumed_severe_hiv_conditions')) presumedSevereHivCondition = $('presumed_severe_hiv_conditions').value;
+      if ($('presumed_severe_hiv_conditions')) presumedSevereHivConditions = selectedValues($('presumed_severe_hiv_conditions'));
       var presumedSevereHiv = false;
       if (firstPositiveHivTestType == "HIV RAPID TEST, QUALITATIVE") {
         if (
@@ -148,23 +155,25 @@
           presumedSevereHiv = true;
       }
       
-      try{
+      /*try{
         presumedSeverHiv == null} catch (e) {
-      } finally {presumedSeverHiv = null}
+      } finally {presumedSeverHiv = null}*/
 
       try {
-        if (ageInMonths <= 17 && firstPositiveHivTestType == "HIV RAPID TEST, QUALITATIVE" && presumedSeverHiv) {
+        if (ageInMonths < 12 && firstPositiveHivTestType == "HIV RAPID TEST, QUALITATIVE" && presumedSevereHiv) {
           reasonForArtEligibility = "PRESUMED SEVERE HIV";
-        } else if (ageInMonths <= 12 && firstPositiveHivTestType == "HIV DNA POLYMERASE CHAIN REACTION") {
-          reasonForArtEligibility = "HIV DNA POLYMERASE CHAIN REACTION";
         } else if (whoStage >= 3) {
           reasonForArtEligibility = whoStageConcept(whoStage, "PEDS");  
-        } else if ($('cd4_count_less_than_250') && $('cd4_count_less_than_250').value == "YES") {
-          reasonForArtEligibility = "CD4 COUNT LESS THAN 250";
-        } else if ($('cd4_percent_less_than_25') && $('cd4_percent_less_than_25').value == "YES") {
-          if ($('new_cd4_percent_available').value == 'YES'){ reasonForArtEligibility = "CD4 PERCENT LESS THAN 25"; }
+        } else if (ageInMonths >= 12 && ageInMonths < 24 && firstPositiveHivTestType == "HIV DNA POLYMERASE CHAIN REACTION") {
+          reasonForArtEligibility = "HIV DNA POLYMERASE CHAIN REACTION";
+        } else if ($('cd4_count_less_than_350') && $('cd4_count_less_than_350').value == "YES" && (whoStage) <= 2) {
+          reasonForArtEligibility = "CD4 COUNT LESS THAN 350";
         } else if (whoStage >= 2 && lymphocyteCount < lymphocyteThresholds[age]) {
           reasonForArtEligibility = "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2";              
+        } else if ($('pregnant').value == "YES") {
+          reasonForArtEligibility = "PATIENT PREGNANT";              
+        } else if ($('breast_feeding').value == "YES") {
+          reasonForArtEligibility = "LACTATE";              
         }
       }catch(e){}
     }  
@@ -178,7 +187,17 @@
     display += "<div><span class='title'>Reason for ART Eligibility: " + $('reason_for_art_eligibility').value + "</span></div>";
     $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + display + '</div>' ;    
   }  
-  
+ 
+  function selectedValues(element) {
+    selected_values = []
+    for (i = 0 ; i < element.options.length ; i++) {
+      if (element.options[i].selected)
+        selected_values.push(element.options[i].value)
+    }
+    try {
+      return selected_values.join(',')
+    }catch(e){ return null }
+  } 
 </script>  
 <style type="text/css">
   .small .options li { font-size:1.1em; }
@@ -190,6 +209,16 @@
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
+
+  <% if @patient.person.age_in_months < 12 %>
+      <%= touch_select_tag "PRESUMED SEVERE HIV CRITERIA PRESENT", @patient, concept_set_options('PRESUMED SEVERE HIV CRITERIA IN INFANTS'),
+        {:id => "presumed_severe_hiv_conditions",
+         :multiple => true,
+         :optional => true,
+         :condition => 'firstPositiveHivTestType == "HIV RAPID TEST, QUALITATIVE"',
+         :helpText => "Presumed severe HIV criteria (infants only)",
+         :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
+  <% end %>
 
   <% if @patient.person.age > 14 
     if @patient.person.gender == 'F' 
@@ -205,6 +234,11 @@
         :optional => true,
         :helpText => "Is patient pregnant?" } %>
       <% end %>    
+      
+      <%= touch_yes_no_unknown_tag "LACTATE", @patient, nil,
+        {:id => "breast_feeding",
+        :optional => true,
+        :helpText => "Is patient breast feeding?" } %>
     <% end %>    
 
     <% unless concept_set_options('WHO STAGE I ADULT AND PEDS').blank? %>
@@ -299,7 +333,7 @@
        :helpText => "CD4 Count",
        :max => 1000 ,
        :min => 1 ,
-       :tt_onComplete => 'updateCD4Count()'} %>
+       :tt_onUnLoad => "updateCD4Count();"} %>
 
     <%= touch_hidden_tag "CD4 COUNT LESS THAN 250", @patient, "", :id => "cd4_count_less_than_250" %>
     <%= touch_hidden_tag "CD4 COUNT LESS THAN 350", @patient, "", :id => "cd4_count_less_than_350" %>
@@ -313,6 +347,7 @@
         {:id => "stage_1_conditions",
          :multiple => true,
          :optional => true,
+         :condition => '$("presumed_severe_hiv_conditions").value == ""',
          :helpText => "Stage 1 Conditions (adults and children)",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <% end %>
@@ -322,6 +357,7 @@
         {:id => "stage_1_conditions_peds",
          :multiple => true,
          :optional => true,
+         :condition => '$("presumed_severe_hiv_conditions").value == ""',
          :helpText => "Stage 1 Conditions (children only)",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <% end %>
@@ -331,6 +367,7 @@
         {:id => "stage_2_conditions",
          :multiple => true,
          :optional => true,
+         :condition => '$("presumed_severe_hiv_conditions").value == ""',
          :helpText => "Stage 2 Conditions (adults and children)",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <% end %>
@@ -340,6 +377,7 @@
         {:id => "stage_2_conditions_peds",
          :multiple => true,
          :optional => true,
+         :condition => '$("presumed_severe_hiv_conditions").value == ""',
          :helpText => "Stage 2 Conditions (children only)",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <% end %>
@@ -349,6 +387,7 @@
         {:id => "stage_3_conditions",
          :multiple => true,
          :optional => true,
+         :condition => '$("presumed_severe_hiv_conditions").value == ""',
          :helpText => "Stage 3 Conditions (adults and children)",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <% end %>
@@ -358,6 +397,7 @@
         {:id => "stage_3_conditions_peds",
          :multiple => true,
          :optional => true,
+         :condition => '$("presumed_severe_hiv_conditions").value == ""',
          :helpText => "Stage 3 Conditions (children only)",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <% end %>
@@ -367,6 +407,7 @@
         {:id => "stage_4_conditions",
          :multiple => true,
          :optional => true,
+         :condition => '$("presumed_severe_hiv_conditions").value == ""',
          :helpText => "Stage 4 Conditions (adults and children)",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <% end %>
@@ -376,18 +417,35 @@
         {:id => "stage_4_conditions_peds",
          :multiple => true,
          :optional => true,
+         :condition => '$("presumed_severe_hiv_conditions").value == ""',
          :helpText => "Stage 4 Conditions (children only)",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <% end %>
 
-    <% if @patient.person.age_in_months <= 17 %>
-      <%#= touch_select_tag "PRESUMED SEVERE HIV CRITERIA PRESENT", @patient, concept_set_options('PRESUMED SEVERE HIV CRITERIA IN INFANTS'),
-        {:id => "presumed_severe_hiv_conditions",
-         :multiple => true,
-         :optional => true,
-         :helpText => "Presumed severe HIV criteria (infants only)",
-         :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
-    <% end %>
+    <label for='new_cd4_count_available'>New CD4 count available?</label>
+      <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_count_available', :tt_pageStyleClass => 'NoKeyboard' %>
+
+    <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,
+      {:id => "cd4_count_location",
+       :condition => '$("new_cd4_count_available").value == "YES"',
+       :helpText => "CD4 Count Location"} %>
+
+    <%= touch_date_tag "CD4 COUNT DATETIME", @patient, (Time.now - 1.month).year,
+      {:id => "cd4_count_date",
+       :condition => '$("new_cd4_count_available").value == "YES"',
+       :helpText => "CD4 Count Date",
+       :max => "#{(Date.today).strftime('%Y-%m-%d')}"} %>
+
+    <%= touch_numeric_tag "CD4 COUNT", @patient, nil,
+      {:id => "cd4_count",
+       :condition => '$("new_cd4_count_available").value == "YES"',
+       :helpText => "CD4 Count",
+       :max => 1000 ,
+       :min => 1 ,
+       :tt_onUnLoad => "updateCD4Count();"} %>
+
+    <%= touch_hidden_tag "CD4 COUNT LESS THAN 250", @patient, "", :id => "cd4_count_less_than_250" %>
+    <%= touch_hidden_tag "CD4 COUNT LESS THAN 350", @patient, "", :id => "cd4_count_less_than_350" %>
 
     <label for='new_cd4_percent_available'>New CD4 percent available?</label>
       <%= select_tag "new_cd4_percent_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_percent_available', :tt_pageStyleClass => 'NoKeyboard' %>
@@ -407,7 +465,7 @@
       {:id => "cd4_percent",
        :condition => '$("new_cd4_percent_available").value == "YES"',
        :helpText => "CD4 Percent",
-       :tt_onComplete => 'updateCD4Percent()'} %>
+       :tt_onUnLoad => 'updateCD4Percent()'} %>
 
     <%= touch_hidden_tag "CD4 PERCENT LESS THAN 25", @patient, "", :id => "cd4_percent_less_than_25" %>
 

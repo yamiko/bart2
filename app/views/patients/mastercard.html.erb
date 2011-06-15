@@ -44,7 +44,9 @@
   </head>
   <body>
     <div id="content">
-      <iframe id="main" src="/patients/mastercard_printable?patient_id=<%=@patient_id%>" style="border: 0px solid #fff;"></iframe>
+      <iframe id="main" style="border: 0px solid #fff;"
+              src="/patients/<%= (!@type.nil? ? "general_mastercard" : "mastercard_printable")
+                  %>?patient_id=<%=@patient_id%>&type=<%= @type %>"></iframe>
 
       <div id="footer" style="">
         <button onclick="window.location = '/patients/show/?patient_id=<%=@patient_id%>';" class="button navButton green"
