@@ -9,11 +9,24 @@
       tstCurrentDate = "<%= @date %>";
       //tt_cancel_destination = '/patients/show/<%= @patient.id %>';
       tt_cancel_show = '/patients/show/<%= @patient.id %>';
+
+      var message = '<%= params[:error] rescue "" %>';
+
+      setTimeout("confirmOperation('" + message + "', null, true)", 300);
+      
     </script>
   </head>
   <body><div id='content'>
       <div id='description' style='color:#777;position:absolute;margin-top:-70px;'></div><center>
         <form id = 'dashboard' action='/clinic'>
+
+          <% unless flash[:notice].nil? %>
+            <p id="flash_notice" style="color: green"><%= flash[:notice] %></p>
+          <% end %>
+          <% unless flash[:error].nil? %>
+            <p id="flash_error" style="color: red"><%= flash[:error] %></p>
+          <% end %>
+            
           <table cellpadding=10>
             <tr>
               <th colspan=2>Patient Programs Dashboard</th>

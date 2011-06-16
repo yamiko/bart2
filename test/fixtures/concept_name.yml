@@ -107321,3 +107321,51 @@ concept_name_03052:
   locale: en
   concept_id: 2834
   date_created: 2007-11-02 11:32:03 +02:00
+concept_name_09487:
+  name: FIRST LINE ANTIRETROVIRAL REGIMEN
+  voided: 0
+  uuid: e0f6aefe-df1a-11de-a277-0026181fd84d
+  creator: 1
+  voided_by:
+  void_reason:
+  date_voided:
+  concept_name_id: 09487
+  locale: en
+  concept_id: 6879
+  date_created: 2007-11-02 11:32:03 +02:00
+concept_name_09490:
+  name: ALTERNATIVE FIRST LINE ANTIRETROVIRAL REGIMEN
+  voided: 0
+  uuid: e0f6wsfe-df1a-11de-a256-0026181fd84d
+  creator: 1
+  voided_by:
+  void_reason:
+  date_voided:
+  concept_name_id: 09490
+  locale: en
+  concept_id: 6879
+  date_created: 2007-11-02 11:32:03 +02:00
+concept_name_09494:
+  name: SECOND LINE ANTIRETROVIRAL REGIMEN
+  voided: 0
+  uuid: e0f6aefe-df1a-11de-a256-0026181fd84d
+  creator: 1
+  voided_by:
+  void_reason:
+  date_voided:
+  concept_name_id: 9494
+  locale: en
+  concept_id: 6881
+  date_created: 2007-11-02 11:32:03 +02:00
+concept_name_09346:
+  name: MALAWI ART SYMPTOM SET
+  voided: 0
+  uuid: e0f6aefe-df1a-11de-a236-0026181fd84d
+  creator: 1
+  voided_by:
+  void_reason:
+  date_voided:
+  concept_name_id: 9346
+  locale: en
+  concept_id: 6780
+  date_created: 2007-11-02 11:32:03 +02:00

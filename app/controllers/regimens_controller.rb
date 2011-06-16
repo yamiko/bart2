@@ -68,7 +68,7 @@ class RegimensController < ApplicationController
     @criteria = Regimen.criteria(@patient.current_weight).all(:conditions => {:concept_id => params[:id]}, :include => :regimen_drug_orders)
     @options = @criteria.map do | r | 
       r.regimen_drug_orders.map do | order |
-        [order.drug.name , order.units , order.frequency , r.id]
+        [order.drug.name , order.units , order.frequency , r.id , order.dose]
       end
     end
     render :text => @options.to_json    
