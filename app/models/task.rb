@@ -136,7 +136,7 @@ class Task < ActiveRecord::Base
     if patient.encounters.find_by_encounter_type(EncounterType.find_by_name('ART_INITIAL').id)
       latest_hiv_program = [] ; patient.patient_programs.collect{ | p |next unless p.program_id == 1 ; latest_hiv_program << p } 
       if latest_hiv_program.last.closed?
-        task.url = '/patients/programs/{patient}' ; task.encounter_type = 'Program enrolment'
+        task.url = '/patients/programs_dashboard/{patient}' ; task.encounter_type = 'Program enrolment'
         return task
       end rescue nil
     end
