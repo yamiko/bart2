@@ -141,7 +141,7 @@ class PatientsController < ApplicationController
     flash.now[:error] = params[:error] unless params[:error].blank?
 
     unless flash[:error].nil?
-      redirect_to "/patients/programs_dashboard/#{@patient.id}" and return
+      redirect_to "/patients/programs_dashboard/#{@patient.id}?error=#{params[:error]}" and return
     else
       render :template => 'dashboards/programs_tab', :layout => false
     end

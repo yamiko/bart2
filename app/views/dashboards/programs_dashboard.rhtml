@@ -9,6 +9,11 @@
       tstCurrentDate = "<%= @date %>";
       //tt_cancel_destination = '/patients/show/<%= @patient.id %>';
       tt_cancel_show = '/patients/show/<%= @patient.id %>';
+
+      var message = '<%= params[:error] rescue "" %>';
+
+      setTimeout("confirmOperation('" + message + "', null, true)", 300);
+      
     </script>
   </head>
   <body><div id='content'>
