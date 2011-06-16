@@ -112,30 +112,31 @@
   
   function updateReasonForArtEligibility() {
     var reasonForArtEligibility = "UNKNOWN";    
+    // Lymphocyte thresholds for ages 0-15
+    var lymphocyteThresholds = [4000, 4000, 4000, 3000, 3000, 2500, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000];
+
+    var lymphocyteCountAvailable = $('new_lymphocyte_count_available').value == 'YES';
+    var lymphocyteCount = lymphocyteCountAvailable ? $('lymphocyte_count').value : null;
+    var lymphocyteCountNumeric = null;
+    try { lymphocyteCountNumeric = parseInt(lymphocyteCount); } catch(e) { }
+
     if (age > 14) {        
       if(whoStage >= 3) {
         reasonForArtEligibility = whoStageConcept(whoStage, "ADULT");  
-      } else if((whoStage <= 2) && ($('cd4_count_less_than_350').value == "YES")) {
+      } else if($('cd4_count_less_than_350').value == "YES") {
         reasonForArtEligibility = "CD4 COUNT LESS THAN 350";
       } else {
         if ($('pregnant') && $('pregnant').value == "YES" && $('cd4_count_less_than_350').value == "YES") {
           reasonForArtEligibility = "CD4 COUNT LESS THAN 350";
-        } else if ($('cd4_count_less_than_250').value == "YES") {
-          reasonForArtEligibility = "CD4 COUNT LESS THAN 250";
-        } else if ($('pregnant').value == "YES") {
+        } else if (lymphocyteCount < lymphocyteThresholds[age]) {
+          reasonForArtEligibility = "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2";              
+        } else if ($('pregnant') && $('pregnant').value == "YES") {
           reasonForArtEligibility = "PATIENT PREGNANT";              
-        } else if ($('breast_feeding').value == "YES") {
-          reasonForArtEligibility = "LACTATE";              
+        } else if ($('breast_feeding') && $('breast_feeding').value == "YES") {
+          reasonForArtEligibility = "BREASTFEEDING";              
         }
       }
     } else {
-      // Lymphocyte thresholds for ages 0-15
-      var lymphocyteThresholds = [4000, 4000, 4000, 3000, 3000, 2500, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000];
-
-      var lymphocyteCountAvailable = $('new_lymphocyte_count_available').value == 'YES';
-      var lymphocyteCount = lymphocyteCountAvailable ? $('lymphocyte_count').value : null;
-      var lymphocyteCountNumeric = null;
-      try { lymphocyteCountNumeric = parseInt(lymphocyteCount); } catch(e) { }
 
       var presumedSevereHivConditions = "";
       if ($('presumed_severe_hiv_conditions')) presumedSevereHivConditions = selectedValues($('presumed_severe_hiv_conditions'));
@@ -162,22 +163,20 @@
       try {
         if (ageInMonths < 12 && firstPositiveHivTestType == "HIV RAPID TEST, QUALITATIVE" && presumedSevereHiv) {
           reasonForArtEligibility = "PRESUMED SEVERE HIV";
-        } else if (ageInMonths <= 12 && firstPositiveHivTestType == "HIV DNA POLYMERASE CHAIN REACTION") {
-          reasonForArtEligibility = "HIV DNA POLYMERASE CHAIN REACTION";
         } else if (whoStage >= 3) {
           reasonForArtEligibility = whoStageConcept(whoStage, "PEDS");  
-        } else if ($('cd4_count_less_than_250') && $('cd4_count_less_than_250').value == "YES") {
-          reasonForArtEligibility = "CD4 COUNT LESS THAN 250";
-        } else if ($('cd4_percent_less_than_25') && $('cd4_percent_less_than_25').value == "YES") {
-          if ($('new_cd4_percent_available').value == 'YES'){ reasonForArtEligibility = "CD4 PERCENT LESS THAN 25"; }
+        } else if (ageInMonths < 12 && firstPositiveHivTestType == "HIV DNA POLYMERASE CHAIN REACTION") {
+          reasonForArtEligibility = "HIV DNA POLYMERASE CHAIN REACTION";
+        } else if (ageInMonths >= 12 && ageInMonths < 24) {
+          reasonForArtEligibility = "CHILD HIV POSITIVE";
         } else if ($('cd4_count_less_than_350') && $('cd4_count_less_than_350').value == "YES" && (whoStage) <= 2) {
           reasonForArtEligibility = "CD4 COUNT LESS THAN 350";
-        } else if (whoStage >= 2 && lymphocyteCount < lymphocyteThresholds[age]) {
+        } else if (lymphocyteCount < lymphocyteThresholds[age]) {
           reasonForArtEligibility = "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2";              
-        } else if ($('pregnant').value == "YES") {
+        } else if ($('pregnant') && $('pregnant').value == "YES") {
           reasonForArtEligibility = "PATIENT PREGNANT";              
-        } else if ($('breast_feeding').value == "YES") {
-          reasonForArtEligibility = "LACTATE";              
+        } else if ($('breast_feeding') && $('breast_feeding').value == "YES") {
+          reasonForArtEligibility = "BREASTFEEDING";              
         }
       }catch(e){}
     }  
@@ -239,7 +238,7 @@
         :helpText => "Is patient pregnant?" } %>
       <% end %>    
       
-      <%= touch_yes_no_unknown_tag "LACTATE", @patient, nil,
+      <%= touch_yes_no_unknown_tag "BREASTFEEDING", @patient, nil,
         {:id => "breast_feeding",
         :optional => true,
         :helpText => "Is patient breast feeding?" } %>
@@ -342,6 +341,25 @@
     <%= touch_hidden_tag "CD4 COUNT LESS THAN 250", @patient, "", :id => "cd4_count_less_than_250" %>
     <%= touch_hidden_tag "CD4 COUNT LESS THAN 350", @patient, "", :id => "cd4_count_less_than_350" %>
 
+    <label for='new_lymphocyte_count_available'>New Lymphocyte count available?</label>
+      <%= select_tag "new_lymphocyte_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_lymphocyte_count_available', :tt_pageStyleClass => 'NoKeyboard' %>
+
+    <%= touch_location_tag "LYMPHOCYTE COUNT LOCATION", @patient, nil,
+      {:id => "lymphocyte_count_location",
+       :condition => '$("new_lymphocyte_count_available").value == "YES"',
+       :helpText => "Lymphocyte Count Location"} %>
+
+    <%= touch_date_tag "LYMPHOCYTE COUNT DATETIME", @patient, (Time.now - 1.month).year,
+      {:id => "lymphocyte_count_date",
+       :condition => '$("new_lymphocyte_count_available").value == "YES"',
+       :helpText => "Lymphocyte Count Date",
+       :max => "#{(Date.today).strftime('%Y-%m-%d')}"} %>
+
+    <%= touch_numeric_tag "LYMPHOCYTE COUNT", @patient, nil,
+      {:id => "lymphocyte_count",
+       :condition => '$("new_lymphocyte_count_available").value == "YES"',
+       :helpText => "Lymphocyte Count"} %>
+
   <% else %> 
   
     <!-- Children under the age of 14 --> 
@@ -425,6 +443,31 @@
          :helpText => "Stage 4 Conditions (children only)",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <% end %>
+
+    <label for='new_cd4_count_available'>New CD4 count available?</label>
+      <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_count_available', :tt_pageStyleClass => 'NoKeyboard' %>
+
+    <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,
+      {:id => "cd4_count_location",
+       :condition => '$("new_cd4_count_available").value == "YES"',
+       :helpText => "CD4 Count Location"} %>
+
+    <%= touch_date_tag "CD4 COUNT DATETIME", @patient, (Time.now - 1.month).year,
+      {:id => "cd4_count_date",
+       :condition => '$("new_cd4_count_available").value == "YES"',
+       :helpText => "CD4 Count Date",
+       :max => "#{(Date.today).strftime('%Y-%m-%d')}"} %>
+
+    <%= touch_numeric_tag "CD4 COUNT", @patient, nil,
+      {:id => "cd4_count",
+       :condition => '$("new_cd4_count_available").value == "YES"',
+       :helpText => "CD4 Count",
+       :max => 1000 ,
+       :min => 1 ,
+       :tt_onUnLoad => "updateCD4Count();"} %>
+
+    <%= touch_hidden_tag "CD4 COUNT LESS THAN 250", @patient, "", :id => "cd4_count_less_than_250" %>
+    <%= touch_hidden_tag "CD4 COUNT LESS THAN 350", @patient, "", :id => "cd4_count_less_than_350" %>
 
     <label for='new_cd4_percent_available'>New CD4 percent available?</label>
       <%= select_tag "new_cd4_percent_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_percent_available', :tt_pageStyleClass => 'NoKeyboard' %>

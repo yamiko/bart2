@@ -81661,3 +81661,79 @@ concept_03052:
   datatype_id: 2
   concept_id: 3052
   date_created: 2008-04-17 11:54:03 +02:00
+concept_06879:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: e01f9r84-df1a-11de-a277-0026181bb84d
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2009-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 6879
+  date_created: 2008-04-17 11:54:03 +02:00
+concept_06881:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: e01f9r84-da6a-11de-a277-0026181bb84d
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2009-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 6881
+  date_created: 2008-04-17 11:54:03 +02:00
+concept_09490:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: e01f9r84-da6a-11de-a277-002qw81bb84d
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2009-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 9490
+  date_created: 2008-04-17 11:54:03 +02:00
+concept_06780:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: e01f9r84-dq8a-11de-a277-002qw81bb76u
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2009-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 6780
+  date_created: 2008-04-17 11:54:03 +02:00

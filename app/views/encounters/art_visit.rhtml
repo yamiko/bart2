@@ -42,7 +42,19 @@
         <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
         {:optional => true,
         :helpText => "Is patient pregnant?" } %>
-      <% end %>    
+      <% end %>   
+      
+      <% patient_lactating = Observation.find(:first,:conditions =>["concept_id = ? AND person_id = ? AND DATE(obs_datetime) = ?",
+                       ConceptName.find_by_name('BREASTFEEDING').concept_id,
+                       @patient.id,obs_date]) 
+  
+      if patient_lactating.blank? %>
+        <%= touch_yes_no_unknown_tag "BREASTFEEDING", @patient, nil,
+          {:id => "breast_feeding",
+          :optional => true,
+          :helpText => "Is patient breast feeding?" } %> 
+      <% end %>   
+       
   <% end %>    
   
   <% if ask_standard_art_side_effects %>
@@ -77,8 +89,6 @@
 
   <%= touch_numeric_tag "CONDOMS", @patient, nil,
     {:optional => false,
-     :max => 1000 ,
-     :min => 1,
      :helpText => "Number of Condoms given" } %>
 
   <%= touch_yes_no_unknown_tag "PRESCRIBE ARVS THIS VISIT", @patient, nil,

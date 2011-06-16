@@ -49,14 +49,15 @@
                   <br /><font class='patient_state'>Current state: <%=h prog.patient_states.last.to_s.humanize %></font>
                 </div>
               </li>
-            <% end %>
+            <%
+             end %>
             <% if @programs.empty? %>
               <li class="data even">
                 <div class="program">There are no current programs for this patient</div>
               </li>
             <% end %>
             <%# for prog in @programs do %>
-                <!--li class="data <%= cycle('even', 'odd') %>" program="<%= prog.id %>">
+                <!--li class="data <%= cycle('even', 'odd') %>" program="<%#= prog.id %>">
                   <div class="patient_state"><%#=h prog.patient_states.last.to_s.humanize + " (#{prog.program.name})"%></div>
                 </li-->
               <%# end %>
