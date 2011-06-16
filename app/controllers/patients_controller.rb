@@ -139,7 +139,12 @@ class PatientsController < ApplicationController
       @programs = restriction.filter_programs(@programs)
     end
     flash.now[:error] = params[:error] unless params[:error].blank?
-    render :template => 'dashboards/programs_tab', :layout => false
+
+    unless flash[:error].nil?
+      redirect_to "/patients/programs_dashboard/#{@patient.id}" and return
+    else
+      render :template => 'dashboards/programs_tab', :layout => false
+    end
   end
 
   def graph
