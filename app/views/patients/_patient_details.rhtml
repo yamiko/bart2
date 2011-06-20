@@ -68,7 +68,7 @@ when "pink"
       <td style="width: 30%;">
         Agrees to FUP
       </td>
-      <td style="border-top: 1px solid #000; border-left: 1px solid #000; font-weight: bold; 
+      <td style="border-top: 1px solid #000; border-left: 1px solid #000; font-weight: bold;
           width: 5%; border-bottom: 1px solid #000;" align="center">
         N
       </td>
@@ -78,111 +78,124 @@ when "pink"
       <td colspan="2" style="border-top: 1px solid #000; border-left: 1px solid #000; border-bottom: 1px solid #000;">
         <sup>Guardian Relation</sup>&nbsp;
       </td>
-      <td colspan="2" style="border-top: 1px solid #000; border-left: 1px solid #000; 
+      <td colspan="2" style="border-top: 1px solid #000; border-left: 1px solid #000;
           border-right: 1px solid #000; border-bottom: 1px solid #000;">
         <sup>Guardian Phone</sup>&nbsp;
       </td>
     </tr>
   </table>
-
-<table width="100%" style="margin-top: 45px;" cellspacing="0" cellpadding="5">
-  <tr>
-    <td rowspan="2">
-      &nbsp;
-    </td>
-    <td style="font-size: 1.2em;" colspan="6">
-      Rapid Antibody Testing
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-        Sample Date
-    </td>
-    <td align="center">
-        Age
-    </td>
-    <td align="center">
-        HTC Serial No.
-    </td>
-    <td align="center" colspan="3">
-        Result
-    </td>
-  </tr>
-  <tr>
-    <td>
-      Enrolme<br />nt
-    </td>
-    <td style="border-left: 2px solid #000; border-top: 2px solid #000;">
-      &nbsp;
-    </td>
-    <td style="border-left: 1px solid #000; border-top: 2px solid #000;">
-      &nbsp;
-    </td>
-    <td style="border-left: 1px solid #000; border-top: 2px solid #000;">
-      &nbsp;
-    </td>
-    <td style="border-left: 1px solid #000; border-top: 2px solid #000;">
-      &nbsp;
-    </td>
-    <td style="border-top: 2px solid #000;">
-      &nbsp;
-    </td>
-    <td style="border-right: 2px solid #000; border-top: 2px solid #000;">
-      &nbsp;
-    </td>
-  </tr>
-  <tr>
-    <td>
-      From 12<br />months
-    </td>
-    <td style="border-left: 2px solid #000; border-top: 2px solid #000;">
-      &nbsp;
-    </td>
-    <td style="border-left: 1px solid #000; border-top: 2px solid #000;">
-      &nbsp;
-    </td>
-    <td style="border-left: 1px solid #000; border-top: 2px solid #000;">
-      &nbsp;
-    </td>
-    <td style="border-left: 1px solid #000; border-top: 2px solid #000;">
-      &nbsp;
-    </td>
-    <td style="border-top: 2px solid #000;">
-      &nbsp;
-    </td>
-    <td style="border-right: 2px solid #000; border-top: 2px solid #000;">
-      &nbsp;
-    </td>
-  </tr>
-  <tr>
-    <td>
-      From 24<br />months
-    </td>
-    <td style="border-left: 2px solid #000; border-top: 2px solid #000; border-bottom: 2px solid #000;">
-      &nbsp;
-    </td>
-    <td style="border-left: 1px solid #000; border-top: 2px solid #000; border-bottom: 2px solid #000;">
-      &nbsp;
-    </td>
-    <td style="border-left: 1px solid #000; border-top: 2px solid #000; border-bottom: 2px solid #000;">
-      &nbsp;
-    </td>
-    <td style="border-left: 1px solid #000; border-top: 2px solid #000; border-bottom: 2px solid #000;">
-      &nbsp;
-    </td>
-    <td style="border-top: 2px solid #000; border-bottom: 2px solid #000;">
-      &nbsp;
-    </td>
-    <td style="border-right: 2px solid #000; border-top: 2px solid #000; border-bottom: 2px solid #000;">
-      &nbsp;
-    </td>
-  </tr>
-</table>
+  <button onclick="if(__$('r_a_t').style.display == 'block'){
+    __$('r_a_t').style.display = 'none';
+    __$('dna_pcr').style.display = 'none';
+    this.innerHTML = '<span>More</span>';
+  } else {
+    __$('r_a_t').style.display = 'block';
+    __$('dna_pcr').style.display = 'block';
+    this.innerHTML = '<span>Less</span>';
+  }" style="width: 350px;">
+    <span>More</span>
+  </button>
+  <div style="border-top: 1px solid #66f; border-left: 1px solid #66f; border-bottom: 1px solid #66f;
+       margin-top: 5px; background-color: #f99; margin-bottom: 10px;">
+    <table id="r_a_t" width="100%" style="display: none; margin: 5px;" cellspacing="0" cellpadding="5">
+      <tr>
+        <td rowspan="2">
+          &nbsp;
+        </td>
+        <td style="font-size: 1.2em;" colspan="6">
+          Rapid Antibody Testing
+        </td>
+      </tr>
+      <tr>
+        <td align="center">
+          Sample Date
+        </td>
+        <td align="center">
+          Age
+        </td>
+        <td align="center">
+          HTC Serial No.
+        </td>
+        <td align="center" colspan="3">
+          Result
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Enrolme<br />nt
+        </td>
+        <td style="border-left: 2px solid #000; border-top: 2px solid #000;">
+          &nbsp;
+        </td>
+        <td style="border-left: 1px solid #000; border-top: 2px solid #000;">
+          &nbsp;
+        </td>
+        <td style="border-left: 1px solid #000; border-top: 2px solid #000;">
+          &nbsp;
+        </td>
+        <td style="border-left: 1px solid #000; border-top: 2px solid #000;">
+          &nbsp;
+        </td>
+        <td style="border-top: 2px solid #000;">
+          &nbsp;
+        </td>
+        <td style="border-right: 2px solid #000; border-top: 2px solid #000;">
+          &nbsp;
+        </td>
+      </tr>
+      <tr>
+        <td>
+          From 12<br />months
+        </td>
+        <td style="border-left: 2px solid #000; border-top: 2px solid #000;">
+          &nbsp;
+        </td>
+        <td style="border-left: 1px solid #000; border-top: 2px solid #000;">
+          &nbsp;
+        </td>
+        <td style="border-left: 1px solid #000; border-top: 2px solid #000;">
+          &nbsp;
+        </td>
+        <td style="border-left: 1px solid #000; border-top: 2px solid #000;">
+          &nbsp;
+        </td>
+        <td style="border-top: 2px solid #000;">
+          &nbsp;
+        </td>
+        <td style="border-right: 2px solid #000; border-top: 2px solid #000;">
+          &nbsp;
+        </td>
+      </tr>
+      <tr>
+        <td>
+          From 24<br />months
+        </td>
+        <td style="border-left: 2px solid #000; border-top: 2px solid #000; border-bottom: 2px solid #000;">
+          &nbsp;
+        </td>
+        <td style="border-left: 1px solid #000; border-top: 2px solid #000; border-bottom: 2px solid #000;">
+          &nbsp;
+        </td>
+        <td style="border-left: 1px solid #000; border-top: 2px solid #000; border-bottom: 2px solid #000;">
+          &nbsp;
+        </td>
+        <td style="border-left: 1px solid #000; border-top: 2px solid #000; border-bottom: 2px solid #000;">
+          &nbsp;
+        </td>
+        <td style="border-top: 2px solid #000; border-bottom: 2px solid #000;">
+          &nbsp;
+        </td>
+        <td style="border-right: 2px solid #000; border-top: 2px solid #000; border-bottom: 2px solid #000;">
+          &nbsp;
+        </td>
+      </tr>
+    </table>
+  </div>
 
 <% else %>
 
-  <table width="100%" cellspacing="0" cellpadding="5" style="font-size: 0.8em; 
-        <% if @type == "blue" %> border-bottom: 1px solid #000; <% end %>">
+  <table width="100%" cellspacing="0" cellpadding="5" style="font-size: 0.8em;
+         <% if @type == "blue" %> border-bottom: 1px solid #000; <% end %>">
     <tr>
       <th colspan="5" align="left" style="font-size: 1.5em; font-weight: normal;">
         Patient / Guardian Details

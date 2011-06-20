@@ -1,0 +1,354 @@
+<style>
+  #header {
+    margin-top: 10px;
+    border: 1px dotted #000;
+    display: none;
+  }
+  #header td {
+    font-size: 0.8em;
+    border-right: 1px dotted #000;
+  }
+  #card {
+    border: 2px solid #000;
+    width: 100%;
+    height: 340px;
+    overflow: auto;
+    overflow-x: hidden;
+  }
+  #cardTable {
+    margin: 2px;
+    border-left: 1px solid #000;
+    border-top: 1px solid #000;
+  }
+  #cardTable td {
+    font-size: 0.8em;
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    text-align: center;
+    font-family: monospace;
+  }
+</style>
+
+<table id="header" width="96%" cellspacing="0" cellpadding="2">
+  <tr>
+    <td align="center" colspan="3">
+      Visit Date
+    </td>
+    <td align="center">
+      Hgt
+    </td>
+    <td align="center">
+      Wt
+    </td>
+    <td align="center" rowspan="3">
+      Adverse<br />Outcome
+    </td>
+    <td align="center" rowspan="3">
+      Outcome<br />Date
+    </td>
+    <td align="center" rowspan="3">
+      ART Regimen<br /><i>Adult Formulations</i>
+    </td>
+    <td align="center" rowspan="3">
+      Side Effects (Current)<br />
+      <span style="font-size: 0.9em;">Specify 'Other' in Notes</span>
+    </td>
+    <td align="center" colspan="4">
+      TB Status (Curr.)<sup>*</sup>
+    </td>
+    <td align="center" rowspan="3">
+      Pill Count
+    </td>
+    <td align="center" rowspan="3">
+      Doses Missed
+    </td>
+    <td align="center" colspan="2">
+      ARVs Given
+    </td>
+    <td align="center" rowspan="3">
+      CPT<br />No. of<br />Tablets
+    </td>
+    <td align="center" colspan="2">
+      Family Plan.
+    </td>
+    <td align="center" rowspan="3">
+      Months<br />on<br />ART
+    </td>
+    <td align="center" colspan="2">
+      Viral Load
+    </td>
+    <td align="center" rowspan="3" style="border: 0px solid #000;">
+      Next Appointment
+    </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="3">
+      &nbsp;
+    </td>
+    <td align="center">
+      &nbsp;
+    </td>
+    <td align="center">
+      &nbsp;
+    </td>
+    <td align="center" colspan="2">
+      Suspected
+    </td>
+    <td align="center" colspan="2">
+      Confirmed
+    </td>
+    <td align="center" rowspan="2">
+      No. of<br />tablets
+    </td>
+    <td align="center" rowspan="2">
+      To
+    </td>
+    <td align="center" rowspan="2">
+      Depo<br />given
+    </td>
+    <td align="center" rowspan="2">
+      No. of<br />condom
+    </td>
+    <td align="center" rowspan="2" >
+      Sample Taken
+    </td>
+    <td align="center" rowspan="2">
+      Result
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      day
+    </td>
+    <td align="center">
+      month
+    </td>
+    <td align="center">
+      year
+    </td>
+    <td align="center">
+      <i>cm</i>
+    </td>
+    <td align="center">
+      <i>kg</i>
+    </td>
+    <td align="center">
+      No
+    </td>
+    <td align="center">
+      Yes
+    </td>
+    <td align="center">
+      noRx
+    </td>
+    <td align="center">
+      Rx
+    </td>
+  </tr>
+</table>
+
+<%
+
+months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", "Dec"]
+
+%>
+
+<div id="card">
+  <table id="cardTable" width="950px" border="0" cellspacing="0" cellpadding="1">
+
+    <tr>
+      <td align="center" colspan="3">
+        Visit Date
+      </td>
+      <td align="center">
+        Hgt
+      </td>
+      <td align="center">
+        Wt
+      </td>
+      <td align="center" rowspan="3">
+        Adverse<br />Outcome
+      </td>
+      <td align="center" rowspan="3">
+        Outcome<br />Date
+      </td>
+      <td align="center" rowspan="3">
+        ART Regimen<br /><i>Adult Formulations</i>
+      </td>
+      <td align="center" rowspan="3">
+        Side Effects (Current)<br />
+        <span style="font-size: 0.9em;">Specify 'Other' in Notes</span>
+      </td>
+      <td align="center" colspan="4">
+        TB Status (Curr.)<sup>*</sup>
+      </td>
+      <td align="center" rowspan="3">
+        Pill Count
+      </td>
+      <td align="center" rowspan="3">
+        Doses Missed
+      </td>
+      <td align="center" colspan="2">
+        ARVs Given
+      </td>
+      <td align="center" rowspan="3">
+        CPT<br />No. of<br />Tablets
+      </td>
+      <td align="center" colspan="2">
+        Family Plan.
+      </td>
+      <td align="center" rowspan="3">
+        Months<br />on<br />ART
+      </td>
+      <td align="center" colspan="2">
+        Viral Load
+      </td>
+      <td align="center" rowspan="3" style="border: 0px solid #000;">
+        Next Appointment
+      </td>
+    </tr>
+    <tr>
+      <td align="center" colspan="3">
+        &nbsp;
+      </td>
+      <td align="center">
+        &nbsp;
+      </td>
+      <td align="center">
+        &nbsp;
+      </td>
+      <td align="center" colspan="2">
+        Suspected
+      </td>
+      <td align="center" colspan="2">
+        Confirmed
+      </td>
+      <td align="center" rowspan="2">
+        No. of<br />tablets
+      </td>
+      <td align="center" rowspan="2">
+        To
+      </td>
+      <td align="center" rowspan="2">
+        Depo<br />given
+      </td>
+      <td align="center" rowspan="2">
+        No. of<br />condom
+      </td>
+      <td align="center" rowspan="2" >
+        Sample Taken
+      </td>
+      <td align="center" rowspan="2">
+        Result
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        day
+      </td>
+      <td align="center">
+        month
+      </td>
+      <td align="center">
+        year
+      </td>
+      <td align="center">
+        <i>cm</i>
+      </td>
+      <td align="center">
+        <i>kg</i>
+      </td>
+      <td align="center">
+        No
+      </td>
+      <td align="center">
+        Yes
+      </td>
+      <td align="center">
+        noRx
+      </td>
+      <td align="center">
+        Rx
+      </td>
+    </tr>
+
+    <% months.each do|month| %>
+      <tr>
+        <td style="width: 17px;">
+          10
+        </td>
+        <td align="center" style="width: 35px;">
+          <b><%= month %></b>
+        </td>
+        <td style="width: 25px;">
+          11
+        </td>
+        <td style="width: 21px;">
+          156
+        </td>
+        <td style="width: 17px;">
+          74.0
+        </td>
+        <td style="width: 50px;">
+          Def
+        </td>
+        <td style="width: 50px;">
+          10-Jun-2011
+        </td>
+        <td style="width: 71px;">
+          4A
+        </td>
+        <td style="width: 50px;">
+          PN
+        </td>
+        <td style="width: 26px;">
+          N
+        </td>
+        <td style="width: 29px;">
+          &nbsp;
+        </td>
+        <td style="width: 34px;">
+          C
+        </td>
+        <td style="width: 21px;">
+          &nbsp;
+        </td>
+        <td style="width: 32px;">
+          30
+        </td>
+        <td style="width: 39px;">
+          0
+        </td>
+        <td style="width: 36px;">
+          60
+        </td>
+        <td style="width: 16px;">
+          P
+        </td>
+        <td style="width: 42px;">
+          20
+        </td>
+        <td style="width: 30px;">
+          &nbsp;
+        </td>
+        <td style="width: 43px;">
+          30
+        </td>
+        <td style="width: 41px;">
+          12
+        </td>
+        <td style="width: 42px;">
+          Bled
+        </td>
+        <td style="width: 36px;">
+          Neg
+        </td>
+        <td style="width: 68px;">
+          12-Jul-2011
+        </td>
+      </tr>
+    <% end %>
+  </table>
+</div>
