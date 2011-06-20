@@ -75,7 +75,7 @@
     current_page = $('page'+tstCurrentPage);
 
     html = "&nbsp;<div id ='prescription_container'><table><tr>" 
-    html += "<th>Drug name</th><th>Units</th><th>Daily dose</th>" 
+    html += "<th>Drug name</th><th>Dose</th><th>Units</th><th>Daily dose</th>" 
     html += "</tr></table></div>" 
     current_page.innerHTML += html
 
@@ -91,11 +91,11 @@
           td_data = ''
           for (x = 0 ; x < formulations[i].length ; x++) {
             if(td_data.length == 0){
-              td_data = formulations[i][x][0] 
-              formulation_hash[i] = formulations[i][x][0] + ":" + formulations[i][x][1] + ":" + formulations[i][x][2] + ":" + formulations[i][x][3];
+              td_data = formulations[i][x][0]
+              formulation_hash[i] = formulations[i][x][0] + ":" + formulations[i][x][1] + ":" + formulations[i][x][2] + ":" + formulations[i][x][3] + ":" + formulations[i][x][4];
             }else{ 
               td_data += "<br />" + formulations[i][x][0] 
-              formulation_hash[i] += " ;; " + formulations[i][x][0] + ":" + formulations[i][x][1] + ":" + formulations[i][x][2] + ":" + formulations[i][x][3];
+              formulation_hash[i] += " ;; " + formulations[i][x][0] + ":" + formulations[i][x][1] + ":" + formulations[i][x][2] + ":" + formulations[i][x][3] + ":" + formulations[i][x][4];
             }
           }
           if(bgcolor =='blue') {
@@ -140,7 +140,7 @@
     dosages = formulation_hash[key].split(" ;; ")
     
     formulation_div = $('prescription_container');
-    html = "<table><tr><th>Drug name</th><th>Units</th><th>Daily dose</th></tr>" 
+    html = "<table><tr><th>Drug name</th><th>Dose</th><th>Units</th><th>Daily dose</th></tr>" 
 
     for (i = 0 ; i < dosages.length ; i++) {
       if(i > 0)
@@ -148,10 +148,12 @@
 
       html+= "<tr>"
       html+= "<td>" + (dosages[i].split(':')[0]) + "</td>"
+      html+= "<td>" + (dosages[i].split(':')[4]) + "</td>"
       html+= "<td>" + (dosages[i].split(':')[1]) + "</td>"
       html+= "<td>" + (dosages[i].split(':')[2]) + "</td>"
       $('touchscreenInput'+tstCurrentPage).value+= (dosages[i].split(':')[0]) + ": "
-      $('touchscreenInput'+tstCurrentPage).value+= (dosages[i].split(':')[1])
+      $('touchscreenInput'+tstCurrentPage).value+= (dosages[i].split(':')[4]) + " "
+      $('touchscreenInput'+tstCurrentPage).value+= (dosages[i].split(':')[1]) + " "
       $('touchscreenInput'+tstCurrentPage).value+= (dosages[i].split(':')[2])
       html+= "</tr>"
       regimen_id = (dosages[i].split(':')[3])
@@ -181,26 +183,14 @@
     $(id).style.background = 'lightblue'; //'#55AAFF';
   }
 
-  function clearAll() {
-    try {
-      help_text = $('helpText'+tstCurrentPage).innerHTML
-    }catch(e) { help_text = '' }
-
-    if (help_text.match(/Select doses./)) {
-      if ($('touchscreenInput'+tstCurrentPage).value == '' && selected_formulation.length > 0) {
-        //selected_formulation = '';
-        //$('prescription_container').innerHTML = '';
-        //$('formulations_container').innerHTML = '';
-        //buildPrescriptionPage();
-      }
-    }
-  }
-
   function setRegimenId() {
     $('regimen').value = regimen_id
     $('clearButton').style.display = 'inline';
     $('keyboard').style.display = 'inline';
     $('viewport').style.display = 'inline';
+  }
+
+  function validateSelection() {
   }
 </script>
 <form id='regimen_form' action="/regimens/create" method='post'>
@@ -219,18 +209,18 @@
     :tt_onLoad => '$("infoBar"+tstCurrentPage).innerHTML = current_regimen_names_for_programs[$("patient_program").value]',
     :helpText => "Continue existing regimen?"}%>
   
-  <%= text_field_tag :regimen_concept_id, nil, {
+  <%= select_tag :regimen_concept_id, nil, {
     :ajaxUrl => "",
     :allowFreeText => 'false',
-    :condition => 'selectedValue("continue_existing_regimen") != "YES"',
     :tt_onLoad => 'set_patient_program_for_suggestions();',
     :helpText => "Select regimen"}%>
   
   <%= text_field_tag :regimen, nil, {
     :ajaxUrl => "",
     :tt_onUnLoad => "setRegimenId();" ,
-    :allowFreeText => false ,
-    :tt_onLoad => 'set_regimen_concept_id_for_regimen();buildPrescriptionPage();setTimeout(clearAll, 20);',
+    :allowFreeText => true ,
+    :validationJS => "validateSelection();",
+    :tt_onLoad => 'set_regimen_concept_id_for_regimen();buildPrescriptionPage();',
     :helpText => "Select formulations and doses"}%>
 
   <%= text_field_tag :duration, nil, { 

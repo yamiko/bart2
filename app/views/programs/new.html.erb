@@ -27,16 +27,18 @@
   }
  
   function validProgram(){
-    if(enrolled_program_names == '')
-      return true
+    if(enrolled_program_names == ''){
+      return true;
+	}
 
-    selected_location = ($('tt_page_location').getElementsByTagName("input")[0].value)
+    selected_location = ($('tt_page_location').getElementsByTagName("input")[0].value);
+	alert("");
     for (var i = 0 ; i < enrolled_program_names.length ; i++ ){
       if(enrolled_program_names[i][0] == selected_program && enrolled_program_names[i][1] == selected_location){
-        return false
+        return false;
       }
     }
-    return true
+    return true;
   }
 </script>
 

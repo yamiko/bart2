@@ -47,7 +47,7 @@
               <option value='/location?from=clinic'>New Desk</option>
               <option value='<%= ((session[:datetime].to_date rescue '') != '' ?
                           "/people/reset_datetime" : "/people/set_datetime") %>'  ttSize="160px">
-                <%= ((session[:datetime].to_date rescue '') != '' ? "Reset Time" : "Set Date") %></option>
+                <%= ((session[:datetime].to_date rescue '') != '' ? "Reset Date" : "Set Date") %></option>
               <!--option link='regimen.html'>Regimen</option-->
             </select>
             <tr>
