@@ -18,8 +18,8 @@ when "yellow":
       Transfer-<br />In Date
     </td>
     <td rowspan="2"  style="vertical-align: top">
-      <div style="border: 1px solid #000; padding: 5px; min-width: 80px;">
-        &nbsp;
+      <div style="border: 1px solid #000; padding: 5px; min-width: 80px; text-align: center; font-style: italic;">
+        <%= @mastercard.transfer_in_date.strftime("%d-%b-%Y") rescue "" %>&nbsp;
       </div>
     </td>
     <th rowspan="2" align="right"  style="vertical-align: top">
@@ -27,15 +27,15 @@ when "yellow":
     </th>
     <td rowspan="2" style="vertical-align: top">
       <div style="border: 1px solid #000; padding: 5px; min-width: 80px;">
-        &nbsp;
+        <%= @mastercard.arv_number rescue "" %>&nbsp;
       </div>
     </td>
     <th align="right" rowspan="2" style="vertical-align: top">
       Year
     </th>
     <td rowspan="2" style="vertical-align: top">
-      <div style="border: 1px solid #000; padding: 5px; min-width: 80px;">
-        &nbsp;
+      <div style="border: 1px solid #000; padding: 5px; min-width: 80px; text-align: center; font-style: italic;">
+        <%= (session[:datetime].to_date rescue Date.today).strftime("%Y") rescue "" %>&nbsp;
       </div>
     </td>
   </tr>
@@ -72,8 +72,8 @@ when "yellow":
       Transfer-<br />In Date
     </td>
     <td rowspan="2"  style="vertical-align: top">
-      <div style="border: 1px solid #000; padding: 5px; min-width: 80px;">
-        &nbsp;
+      <div style="border: 1px solid #000; padding: 5px; min-width: 80px; text-align: center; font-style: italic;">
+        <%= @mastercard.transfer_in_date.strftime("%d-%b-%Y") rescue "" %>&nbsp;
       </div>
     </td>
     <th rowspan="2" align="right"  style="vertical-align: top">
@@ -88,8 +88,8 @@ when "yellow":
       <b>ART No</b><br /><span style="font-size: 0.8em; font-weight: normal;">(when started)</span>
     </th>
     <td rowspan="2" style="vertical-align: top">
-      <div style="border: 1px solid #000; padding: 5px; min-width: 80px;">
-        &nbsp;
+      <div style="border: 1px solid #000; padding: 5px; min-width: 80px; text-align: center; font-style: italic;">
+        <%= @mastercard.arv_number rescue "" %>&nbsp;
       </div>
     </td>
   </tr>
@@ -126,24 +126,24 @@ when "yellow":
       Transfer-<br />In Date
     </td>
     <td rowspan="2"  style="vertical-align: top">
-      <div style="border: 1px solid #000; padding: 5px; min-width: 80px;">
-        &nbsp;
+      <div style="border: 1px solid #000; padding: 5px; min-width: 80px; text-align: center; font-style: italic;">
+        <%= @mastercard.transfer_in_date.strftime("%d-%b-%Y") rescue "" %>&nbsp;
       </div>
     </td>
     <th rowspan="2" align="right"  style="vertical-align: top">
       ART Reg<br />No
     </th>
     <td rowspan="2" style="vertical-align: top">
-      <div style="border: 1px solid #000; padding: 5px; min-width: 80px;">
-        &nbsp;
+      <div style="border: 1px solid #000; padding: 5px; min-width: 80px; text-align: center; font-style: italic;">
+        <%= @mastercard.arv_number rescue "" %>&nbsp;
       </div>
     </td>
     <th align="right" rowspan="2" style="vertical-align: top">
       Year
     </th>
     <td rowspan="2" style="vertical-align: top">
-      <div style="border: 1px solid #000; padding: 5px; min-width: 80px;">
-        &nbsp;
+      <div style="border: 1px solid #000; padding: 5px; min-width: 80px; text-align: center; font-style: italic;">
+        <%= (session[:datetime].to_date rescue Date.today).strftime("%Y") rescue "" %>&nbsp;
       </div>
     </td>
   </tr>
@@ -195,11 +195,11 @@ when "yellow":
     </td>
     <td style="vertical-align: top">
       <i style="float: left;">Version 1</i>
-      <i style="float: right;">(circle options)</i>
+      <i style="margin-left: 50px">(circle options)</i>
     </td>
     <td style="vertical-align: top">
-      <div style="border: 1px solid #000; padding: 5px; min-width: 80px;">
-        &nbsp;
+      <div style="border: 1px solid #000; padding: 5px; min-width: 80px; text-align: center; font-style: italic;">
+        <%= @mastercard.transfer_in_date.strftime("%d-%b-%Y") rescue "" %>&nbsp;
       </div>
     </td>
     <td style="vertical-align: top">
@@ -208,20 +208,22 @@ when "yellow":
       </div>
     </td>
     <td style="vertical-align: top">
-      <div style="border: 1px solid #000; padding: 5px; min-width: 80px;">
-        &nbsp;
+      <div style="border: 1px solid #000; padding: 5px; min-width: 80px; text-align: center; font-style: italic;">
+        <%= @mastercard.arv_number rescue "" %>&nbsp;
       </div>
     </td>
     <td style="vertical-align: top;" align="center">
       <div style="border: 1px solid #000; min-width: 120px; display: table; border-spacing: 0px; padding: 0px">
         <div style="display: table-row; padding: 0px">
-          <div style="display: table-cell; width: 50%; padding: 0px; height: 28px;">
-            <sup>Month</sup>
-            &nbsp;
+          <div style="display: table-cell; width: 50%; padding: 0px; height: 28px; text-align: center; font-style: italic;">
+            <sup style="float: left;">Month</sup>
+            <div style="margin-top: 10px; margin-right: 10px; float: right;"><%= @patient.person.birthdate.strftime("%b") rescue "" %>&nbsp;</div>
           </div>
           <div style="display: table-cell; width: 50%; border-left: 1px solid #000; padding: 0px">
-            <sup>Year</sup>
-            &nbsp;
+            <sup style="float: left;">Year</sup>
+            <div style="margin-top: 10px; margin-right: 10px; float: right;">
+              <%= @patient.person.birthdate.strftime("%Y") rescue "" %>&nbsp;
+            </div>
           </div>
         </div>        
       </div>
