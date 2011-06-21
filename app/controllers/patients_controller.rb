@@ -187,7 +187,7 @@ class PatientsController < ApplicationController
   end
  
   def print_filing_number
-    print_and_redirect("/patients/filing_number_label/#{params[:id]}", "/patients/personal/#{params[:id]}")  
+    print_and_redirect("/patients/filing_number_label/#{params[:id]}", "/patients/show/#{params[:id]}")  
   end
    
   def patient_demographics_label
@@ -350,9 +350,9 @@ class PatientsController < ApplicationController
     archived_patient = patient.patient_to_be_archived
     message = Patient.printing_message(patient,archived_patient,true)
     unless message.blank?
-      print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/patients/personal/#{patient.id}",message,true,patient.id)
+      print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/patients/show/#{patient.id}",message,true,patient.id)
     else
-      print_and_redirect("/patients/filing_number_label/#{patient.id}", "/patients/personal/#{patient.id}")
+      print_and_redirect("/patients/filing_number_label/#{patient.id}", "/patients/show/#{patient.id}")
     end
   end
 
