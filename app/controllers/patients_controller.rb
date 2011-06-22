@@ -521,6 +521,8 @@ class PatientsController < ApplicationController
       @type = "blue"
     end
 
+    @mastercard = Mastercard.demographics(@patient)
+
     render :layout => false
   end
 
