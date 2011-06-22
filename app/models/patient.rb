@@ -1076,8 +1076,14 @@ EOF
     appointments
   end
 
+<<<<<<< HEAD
+  def reason_for_art_eligibility
+    reasons = self.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue nil
+    reasons.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue nil
+=======
   def child_bearing_female?
     (gender == "Female" && self.person.age >= 9 && self.person.age <= 45) ? true : false
+>>>>>>> 5145ee0cadbbb8857f6df9287cc8ae52823d5bc0
   end
 
 end

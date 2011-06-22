@@ -50,12 +50,14 @@ class DispensationsController < ApplicationController
                :state => "ON ANTIRETROVIRALS",:start_date => session[:datetime] || Time.now()) if @drug.arv? rescue nil
       @order.drug_order.total_drug_supply(@patient, @encounter,session_date.to_date)
       dispension_completed = @patient.set_received_regimen(@encounter, @order) if @order.drug_order.drug.arv?
-      #Pharmacy.dispensed_stock_adjustment(@patient.current_treatment_encounter(session_date.to_date))
-      if dispension_completed.blank?
-        redirect_to "/patients/treatment_dashboard/#{@patient.patient_id}"
-      else
+
+      #checks if the prescription is satisfied
+      complete = dispension_complete(@patient.current_treatment_encounter(session_date)) 
+      if complete
         redirect_to :controller => 'encounters',:action => 'new',:start_date => @order.start_date.to_date,
           :patient_id => @patient.id,:id =>"show",:encounter_type => "appointment" ,:end_date => @order.auto_expire_date.to_date
+      else
+        redirect_to "/patients/treatment_dashboard/#{@patient.patient_id}"
       end
     else
       flash[:error] = "Could not dispense the drug for the prescription"
@@ -81,5 +83,17 @@ class DispensationsController < ApplicationController
     end
     amounts = amounts.flatten.compact.uniq
     render :text => "<li>" + amounts.join("</li><li>") + "</li>"
+  end
+
+  private
+
+  def dispension_complete(prescription)
+    complete = true
+    prescription.drug_orders.each do | drug_order |
+      if (0.0 < drug_order.amount_needed)
+        complete = false
+      end
+    end
+    complete
   end
 end
