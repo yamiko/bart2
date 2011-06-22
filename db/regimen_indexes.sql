@@ -1,6 +1,6 @@
 LOCK TABLES `regimen` WRITE;
 
-ALTER TABLE `regimen` ADD COLUMN `regimen_index` INT  NOT NULL DEFAULT 0 COMMENT 'To keep the index for the regimen' AFTER `concept_id`;
+ALTER TABLE `regimen` ADD COLUMN `regimen_index` INT(2)  NOT NULL DEFAULT 0 COMMENT 'To keep the index for the regimen' AFTER `concept_id`;
 
 UPDATE `regimen` SET `regimen_index` = 1 WHERE `concept_id`=792;
 UPDATE `regimen` SET `regimen_index` = 2 WHERE `concept_id`=1610;
