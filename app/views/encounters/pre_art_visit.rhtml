@@ -79,6 +79,10 @@
     {:optional => false,
      :helpText => "Number of Condoms given" } %>
 
+  <%= touch_yes_no_unknown_tag "OTHER DRUGS", @patient, nil,
+    {:optional => false,
+     :helpText => "Prescribe CPT and IPT this visit?" } %>
+
   <%= touch_text_area_tag("CLINICAL NOTES CONSTRUCT", @patient, nil,
     {:optional => true,:helpText => "Clinical notes (optional)"}, time=DateTime.now()) %>
 

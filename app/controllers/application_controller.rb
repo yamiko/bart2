@@ -24,8 +24,12 @@ class ApplicationController < ActionController::Base
   def next_task(patient)
     session_date = session[:datetime].to_date rescue Date.today
     task = Task.next_task(Location.current_location, patient,session_date)
-    return task.url if task.present? && task.url.present?
-    return "/patients/show/#{patient.id}" 
+    begin
+      return task.url if task.present? && task.url.present?
+      return "/patients/show/#{patient.id}" 
+    rescue
+      return "/patients/show/#{patient.id}" 
+    end
   end
 
   def print_and_redirect(print_url, redirect_url, message = "Printing, please wait...", show_next_button = false, patient_id = nil)
