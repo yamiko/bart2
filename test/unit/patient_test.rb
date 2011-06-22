@@ -133,6 +133,20 @@ EOF
         assert_equal [], @evan.current_diagnoses
       end
 
+      should "get current BMI alert" do
+        assert_equal 60.0, @evan.current_weight
+        assert_equal 191.0, @evan.current_height
+        assert_equal 'Low BMI: Eligible for therapeutic feeding', @evan.current_bmi_alert
+
+        weight_obs = @evan.person.observations.find_last(
+            :conditions => ['voided = 0 AND concept_id = ?',
+                            ConceptName.find_by_name('WT').concept_id])
+
+        weight_obs.value_numeric = 90.0
+        weight_obs.save
+        assert_nil @evan.current_bmi_alert
+      end
+
     end
   end
 end

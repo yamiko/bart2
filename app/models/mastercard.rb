@@ -1,8 +1,14 @@
 class Mastercard 
 
- attr_accessor :date, :weight, :height, :bmi, :outcome, :reg, :s_eff, :sk , :pn, :hp, :pills, :gave, :cpt, :cd4,:estimated_date,:next_app, :tb_status, :doses_missed, :visit_by, :date_of_outcome, :reg_type, :adherence, :patient_visits, :sputum_count, :end_date, :art_status, :encounter_id , :notes, :appointment_date
+ attr_accessor :date, :weight, :height, :bmi, :outcome, :reg, :s_eff, :sk , :pn, :hp, :pills, :gave, 
+   :cpt, :cd4,:estimated_date,:next_app, :tb_status, :doses_missed, :visit_by, :date_of_outcome,
+   :reg_type, :adherence, :patient_visits, :sputum_count, :end_date, :art_status, :encounter_id , :notes, :appointment_date
 
- attr_accessor :patient_id,:arv_number, :national_id ,:name ,:age ,:sex, :init_wt, :init_ht ,:init_bmi ,:transfer_in ,:address, :landmark, :occupation, :guardian, :agrees_to_followup, :hiv_test_location, :hiv_test_date, :reason_for_art_eligibility, :date_of_first_line_regimen ,:tb_within_last_two_yrs, :eptb ,:ks,:pulmonary_tb, :first_line_drugs, :alt_first_line_drugs, :second_line_drugs, :date_of_first_alt_line_regimen, :date_of_second_line_regimen
+ attr_accessor :patient_id,:arv_number, :national_id ,:name ,:age ,:sex, :init_wt, :init_ht ,
+   :init_bmi ,:transfer_in ,:address, :landmark, :occupation, :guardian, :agrees_to_followup,
+   :hiv_test_location, :hiv_test_date, :reason_for_art_eligibility, :date_of_first_line_regimen ,
+   :tb_within_last_two_yrs, :eptb ,:ks,:pulmonary_tb, :first_line_drugs, :alt_first_line_drugs,
+   :second_line_drugs, :date_of_first_alt_line_regimen, :date_of_second_line_regimen, :transfer_in_date
 
 
 
@@ -32,6 +38,9 @@ class Mastercard
     visits.reason_for_art_eligibility = patient_obj.p.reason_for_art_eligibility
     visits.transfer_in = patient_obj.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
     visits.transfer_in.blank? == true ? visits.transfer_in = 'NO' : visits.transfer_in = 'YES'
+    
+    visits.transfer_in_date = patient_obj.person.observations.recent(1).question("HAS TRANSFER LETTER").all.collect{|o| 
+            o.obs_datetime if o.answer_string.strip == "YES"}.last rescue nil
 
     regimens = {}
     regimen_types = ['FIRST LINE ANTIRETROVIRAL REGIMEN','ALTERNATIVE FIRST LINE ANTIRETROVIRAL REGIMEN','SECOND LINE ANTIRETROVIRAL REGIMEN']
