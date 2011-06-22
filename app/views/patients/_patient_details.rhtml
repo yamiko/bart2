@@ -22,46 +22,49 @@ when "pink"
       <td style="width: 30%;">
         Child Name
       </td>
-      <td colspan="6" style="border-top: 1px solid #000; border-left: 1px solid #000; border-right: 1px solid #000;">
-        &nbsp;
+      <td colspan="6" style="border-top: 1px solid #000; border-left: 1px solid #000;
+          border-right: 1px solid #000; font-style: italic;">
+        <%= @patient.name rescue "&nbsp;" %>&nbsp;
       </td>
     </tr>
     <tr>
       <td style="width: 30%;">
         Sex
       </td>
-      <td style="border-top: 1px solid #000; border-left: 1px solid #000; font-weight: bold; width: 5%;" align="center">
-        M
+      <td style="border-top: 1px solid #000; border-left: 1px solid #000; font-weight: bold; width: 5%;" 
+          align="center" colspan="2">
+        <%= (@patient.gender.upcase == "MALE" ? "M" : (@patient.gender.upcase == "FEMALE" ? "F" : "&nbsp;")) rescue "&nbsp;" %>
       </td>
-      <td style="border-top: 1px solid #000; font-weight: bold; width: 5%;" align="center">
-        F
+      <td colspan="2" style="border-top: 1px solid #000; border-left: 1px solid #000; font-style: italic;">
+        <sup>Birth Date</sup>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<%= @patient.person.birthdate.strftime("%d-%b-%Y") rescue "&nbsp;" %>
       </td>
-      <td colspan="2" style="border-top: 1px solid #000; border-left: 1px solid #000;">
-        <sup>Birth Date</sup>&nbsp;
-      </td>
-      <td colspan="2" style="border-top: 1px solid #000; border-left: 1px solid #000; border-right: 1px solid #000;">
-        <sup>Birth Weight</sup>&nbsp;
+      <td colspan="2" style="border-top: 1px solid #000; border-left: 1px solid #000; 
+          border-right: 1px solid #000; font-style: italic;">
+        <sup>Birth Weight</sup>&nbsp;&nbsp;<%= @mastercard.init_wt rescue "&nbsp;" %>
       </td>
     </tr>
     <tr>
       <td style="width: 30%;">
         Guardian Name
       </td>
-      <td colspan="6" style="border-top: 1px solid #000; border-left: 1px solid #000; border-right: 1px solid #000;">
-        &nbsp;
+      <td colspan="6" style="border-top: 1px solid #000; border-left: 1px solid #000;
+          border-right: 1px solid #000; font-style: italic;">
+        <%= @mastercard.guardian rescue "&nbsp;" %>&nbsp;
       </td>
     </tr>
     <tr>
       <td style="width: 30%; vertical-align: top;" rowspan="2">
         Physical Address
       </td>
-      <td colspan="6" style="border-top: 1px solid #000; border-left: 1px solid #000; border-right: 1px solid #000;">
-        &nbsp;
+      <td colspan="6" style="border-top: 1px solid #000; border-left: 1px solid #000; 
+          border-right: 1px solid #000; font-style: italic;">
+        <%= @mastercard.landmark rescue "&nbsp;" %>&nbsp;
       </td>
     </tr>
     <tr>
-      <td colspan="6" style="border-top: 1px solid #000; border-left: 1px solid #000; border-right: 1px solid #000;">
-        &nbsp;
+      <td colspan="6" style="border-top: 1px solid #000; border-left: 1px solid #000; 
+          border-right: 1px solid #000; font-style: italic;">
+        <%= @patient.person.address rescue "&nbsp;" %>&nbsp;
       </td>
     </tr>
     <tr>
@@ -69,18 +72,17 @@ when "pink"
         Agrees to FUP
       </td>
       <td style="border-top: 1px solid #000; border-left: 1px solid #000; font-weight: bold;
-          width: 5%; border-bottom: 1px solid #000;" align="center">
-        N
-      </td>
-      <td style="border-top: 1px solid #000; font-weight: bold; width: 5%; border-bottom: 1px solid #000;" align="center">
-        Y
+          width: 5%; border-bottom: 1px solid #000; font-style: italic;" align="center" colspan="2">
+        <%= @mastercard.agrees_to_followup.upcase == "YES" ? "Y" : "N" rescue "&nbsp;" %>
       </td>
       <td colspan="2" style="border-top: 1px solid #000; border-left: 1px solid #000; border-bottom: 1px solid #000;">
-        <sup>Guardian Relation</sup>&nbsp;
+        <sup>Guardian Relation</sup>&nbsp;&nbsp;
+          <%= RelationshipType.find(@patient.person.relationships.first.relationship).b_is_to_a rescue "&nbsp;" %>
       </td>
       <td colspan="2" style="border-top: 1px solid #000; border-left: 1px solid #000;
           border-right: 1px solid #000; border-bottom: 1px solid #000;">
         <sup>Guardian Phone</sup>&nbsp;
+        <%= Person.find(@patient.person.relationships.first.person_b).phone_numbers["Cell phone number"] rescue "&nbsp;" %>
       </td>
     </tr>
   </table>
@@ -205,68 +207,64 @@ when "pink"
       <td style="width: 30%;">
         Patient Name
       </td>
-      <td colspan="5" style="border-top: 1px solid #000; border-left: 1px solid #000;">
-        &nbsp;
+      <td colspan="5" style="border-top: 1px solid #000; border-left: 1px solid #000; font-style: italic">
+        <%= @patient.name rescue "&nbsp;" %>
       </td>
     </tr>
     <tr>
       <td style="width: 30%;">
         Sex, Birth Date
       </td>
-      <td style="border-top: 1px solid #000; border-left: 1px solid #000; font-weight: bold; width: 5%;" align="center">
-        M
+      <td style="border-top: 1px solid #000; border-left: 1px solid #000; font-weight: bold; width: 5%;" align="center" colspan="2">
+        <%= (@patient.gender.upcase == "MALE" ? "M" : (@patient.gender.upcase == "FEMALE" ? "F" : "&nbsp;")) rescue "&nbsp;" %>
       </td>
-      <td style="border-top: 1px solid #000; font-weight: bold; width: 5%;" align="center">
-        F
-      </td>
-      <td colspan="3" style="border-top: 1px solid #000; border-left: 1px solid #000;">
-        <sup>DOB</sup>&nbsp;
+      <td colspan="3" style="border-top: 1px solid #000; border-left: 1px solid #000; font-style: italic">
+        <sup>DOB</sup>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<%= @patient.person.birthdate.strftime("%d-%b-%Y") rescue "&nbsp;" %>
       </td>
     </tr>
     <tr>
       <td style="width: 30%; vertical-align: top;" rowspan="2">
         Physical Address
       </td>
-      <td colspan="5" style="border-top: 1px solid #000; border-left: 1px solid #000;">
-        &nbsp;
+      <td colspan="5" style="border-top: 1px solid #000; border-left: 1px solid #000; font-style: italic">
+        <%= @mastercard.landmark rescue "&nbsp;" %>&nbsp;&nbsp;
       </td>
     </tr>
     <tr>
-      <td colspan="5" style="border-top: 1px solid #000; border-left: 1px solid #000;">
-        &nbsp;
+      <td colspan="5" style="border-top: 1px solid #000; border-left: 1px solid #000; font-style: italic">
+        <%= @patient.person.address rescue "&nbsp;" %>&nbsp;
       </td>
     </tr>
     <tr>
       <td style="width: 30%;">
         Guardian Name
       </td>
-      <td colspan="5" style="border-top: 1px solid #000; border-left: 1px solid #000;">
-        &nbsp;
+      <td colspan="5" style="border-top: 1px solid #000; border-left: 1px solid #000; font-style: italic">
+        <%= @mastercard.guardian rescue "&nbsp;" %>&nbsp;
       </td>
     </tr>
     <tr>
       <td style="width: 30%;">
         Phone
       </td>
-      <td colspan="3" style="border-top: 1px solid #000; border-left: 1px solid #000; width: 35%;">
-        <sup>Patient</sup>&nbsp;
+      <td colspan="3" style="border-top: 1px solid #000; border-left: 1px solid #000; width: 35%; font-style: italic">
+        <sup>Patient</sup>&nbsp;&nbsp;<%= @patient.person.phone_numbers["Cell phone number"] rescue "&nbsp;" %>
       </td>
       <td colspan="2" style="border-top: 1px solid #000; border-left: 1px solid #000;">
         <sup>Guardian</sup>&nbsp;
+          <%= Person.find(@patient.person.relationships.first.person_b).phone_numbers["Cell phone number"] rescue "&nbsp;" %>
       </td>
     </tr>
     <tr>
       <td style="width: 30%;">
         Agrees to FUP
       </td>
-      <td style="border-top: 1px solid #000; border-left: 1px solid #000; font-weight: bold; width: 5%;" align="center">
-        N
+      <td style="border-top: 1px solid #000; border-left: 1px solid #000; font-weight: bold; width: 5%;" 
+          align="center" colspan="2">
+        <%= @mastercard.agrees_to_followup.upcase == "YES" ? "Y" : "N" rescue "&nbsp;" %>
       </td>
-      <td style="border-top: 1px solid #000; font-weight: bold; width: 5%;" align="center">
-        Y
-      </td>
-      <td colspan="3" style="border-top: 1px solid #000; border-left: 1px solid #000; height: 40px;">
-        <sup>Guardian Relation</sup>&nbsp;
+      <td colspan="3" style="border-top: 1px solid #000; border-left: 1px solid #000; height: 40px; font-style: italic">
+        <sup>Guardian Relation</sup>&nbsp;<%= RelationshipType.find(@patient.person.relationships.first.relationship).b_is_to_a rescue "&nbsp;" %>
       </td>
     </tr>
   </table>

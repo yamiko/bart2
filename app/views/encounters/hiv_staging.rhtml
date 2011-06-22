@@ -128,7 +128,7 @@
       } else {
         if ($('pregnant') && $('pregnant').value == "YES" && $('cd4_count_less_than_350').value == "YES") {
           reasonForArtEligibility = "CD4 COUNT LESS THAN 350";
-        } else if (lymphocyteCount < lymphocyteThresholds[age]) {
+        } else if (whoStage == 2 && lymphocyteCount < 1200) {
           reasonForArtEligibility = "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2";              
         } else if ($('pregnant') && $('pregnant').value == "YES") {
           reasonForArtEligibility = "PATIENT PREGNANT";              

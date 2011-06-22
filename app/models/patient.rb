@@ -44,6 +44,21 @@ class Patient < ActiveRecord::Base
     encounter = encounters.find(:first,:conditions =>["DATE(encounter_datetime) = ? AND encounter_type = ?",date.to_date,type.id])
     encounter ||= encounters.create(:encounter_type => type.id,:encounter_datetime => date)
   end
+
+  # Get the any BMI-related alert for this patient
+  def current_bmi_alert
+    weight = self.current_weight
+    height = self.current_height
+    alert = nil
+    current_bmi = (weight/(height*height)*10000).round(1);
+    if current_bmi <= 18.5 && current_bmi > 17.0
+      alert = 'Low BMI: Eligible for counseling'
+    elsif current_bmi <= 17.0
+      alert = 'Low BMI: Eligible for therapeutic feeding'
+    end
+
+    alert
+  end
     
   def alerts
     # next appt
@@ -78,6 +93,10 @@ class Patient < ActiveRecord::Base
       next if obs.order.blank? and obs.order.auto_expire_date.blank?
       alerts << "Auto expire date: #{obs.order.drug_order.drug.name} #{obs.order.auto_expire_date.to_date.strftime('%d-%b-%Y')}"
     end rescue []
+
+    # BMI alerts
+    bmi_alert = self.current_bmi_alert
+    alerts << bmi_alert if bmi_alert
 
     alerts
   end
@@ -266,9 +285,8 @@ class Patient < ActiveRecord::Base
   end  
 
   def visit_label(date = Date.today)
-
-    result = Location.current_location.match(/outpatient/i).nil? rescue true
-    if result == true
+    result = Location.current_location.name.match(/outpatient/i).nil?
+    if result == false
        return Mastercard.mastercard_visit_label(self,date)
     else
         label = ZebraPrinter::StandardLabel.new
@@ -1056,6 +1074,10 @@ EOF
                 end_date.to_date, appointment_date_concept_id, self.id])
 
     appointments
+  end
+
+  def child_bearing_female?
+    (gender == "Female" && self.person.age >= 9 && self.person.age <= 45) ? true : false
   end
 
 end

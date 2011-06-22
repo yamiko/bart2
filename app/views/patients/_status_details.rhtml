@@ -44,7 +44,7 @@ when "yellow", "blue"
             <td style="text-align: center;" colspan="2">
               <b>P</b><span style="font-size: 0.9em">SHD</span>
             </td>
-            <td style="border-left: 1px solid #000; text-align: center;">
+            <td style="border-left: 1px solid #000; ">
               TB Status<br />at Initiation
             </td>
             <td style="border-left: 1px solid #000; text-align: center;" colspan="2">
@@ -62,7 +62,7 @@ when "yellow", "blue"
               CD4 / <br />TLC
             </td>
             <td colspan="3" style="border-left: 1px solid #000; border-top: 1px solid #000;">
-              &nbsp;
+              <%= @mastercard.cd4 rescue "&nbsp;" %>&nbsp;
             </td>
             <td colspan="3" style="border-left: 1px solid #000; border-top: 1px solid #000;" align="right">
               &nbsp;<b>%</b>
@@ -70,11 +70,8 @@ when "yellow", "blue"
             <td style="border-left: 1px solid #000;">
               KS
             </td>
-            <td colspan="3" style="border-left: 1px solid #000; border-top: 1px solid #000;" align="center">
-              <b>N</b>
-            </td>
-            <td colspan="3" style="border-top: 1px solid #000;" align="center">
-              <b>Y</b>
+            <td colspan="6" style="border-left: 1px solid #000; border-top: 1px solid #000;" align="center">
+              <%= @mastercard.cd4.upcase == "YES" ? "<b>Y</b>" : "<b>N</b>" rescue "" %>&nbsp;
             </td>
           </tr>
           <tr>
@@ -84,7 +81,7 @@ when "yellow", "blue"
             <td colspan="6" style="border-left: 1px solid #000; border-top: 1px solid #000;">
               &nbsp;
             </td>
-            <td style="border-left: 1px solid #000; text-align: center;">
+            <td style="border-left: 1px solid #000; ">
               Pregnant/ Lactating
             </td>
             <td style="border-left: 1px solid #000; text-align: center; border-top: 1px solid #000;" colspan="2">
@@ -102,10 +99,12 @@ when "yellow", "blue"
               Height,Wt.
             </td>
             <td colspan="3" style="border-left: 1px solid #000; border-top: 1px solid #000;">
-              <sup>cm</sup>&nbsp;
+              <sup style="float: left">cm</sup>
+              <div style="float: right; margin-top: 15px;"><%= @mastercard.init_ht rescue "&nbsp;" %></div>
             </td>
             <td colspan="3" style="border-left: 1px solid #000; border-top: 1px solid #000;" align="left">
-              <sup>kg</sup>&nbsp;
+              <sup style="float: left">kg</sup>
+              <div style="float: right; margin-top: 15px;"><%= @mastercard.init_wt rescue "&nbsp;" %></div>
             </td>
             <td style="border-left: 1px solid #000;">
               Ever<span style="color: <%= (@type == "yellow" ? "#fff99f" : "#ccf") %>">_</span>taken ARVs
@@ -122,9 +121,9 @@ when "yellow", "blue"
               Age at Init.
             </td>
             <td colspan="6" style="border-left: 1px solid #000; border-top: 1px solid #000; height: 37px;">
-              &nbsp;
+              <%= @patient.age_at_initiation rescue "" %>&nbsp;
             </td>
-            <td style="border-left: 1px solid #000; text-align: center;">
+            <td style="border-left: 1px solid #000; ">
               Last ARVs<br/>(drug,date)
             </td>
             <td style="border-left: 1px solid #000; text-align: center; border-top: 1px solid #000;" colspan="6">
