@@ -1076,4 +1076,8 @@ EOF
     appointments
   end
 
+  def child_bearing_female?
+    (gender == "Female" && self.person.age >= 9 && self.person.age <= 45) ? true : false
+  end
+
 end
