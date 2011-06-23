@@ -39,7 +39,7 @@ class Mastercard
     visits.hiv_test_location = patient_obj.person.observations.recent(1).question("FIRST POSITIVE HIV TEST LOCATION").all rescue nil
     visits.hiv_test_location = visits.hiv_test_location.to_s.split(':')[1].strip rescue nil
     visits.guardian = patient_obj.person.relationships.map{|r|Person.find(r.person_b).name}.join(' : ') rescue 'NONE'
-    visits.reason_for_art_eligibility = patient_obj.p.reason_for_art_eligibility
+    visits.reason_for_art_eligibility = patient_obj.reason_for_art_eligibility
     visits.transfer_in = patient_obj.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
     visits.transfer_in.blank? == true ? visits.transfer_in = 'NO' : visits.transfer_in = 'YES'
     
