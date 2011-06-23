@@ -256,7 +256,8 @@ months = ["Jan", "Feb", "Mar", "Apr", "May"]; #, "Jun", "Jul", "Aug", "Sep", "No
           <b><%= day.strftime("%d-%b-%Y") %></b>
         </td>
         <td style="width: 21px;">
-          <%= @visits[day].age rescue "&nbsp;" %>&nbsp;
+          <%= (@patient.person.age_in_months(day.to_date).to_s + " mnths" if @patient.person.age_in_months(day.to_date) < 24) ||
+          (@patient.person.age(day.to_date).to_s + " yrs" if @patient.person.age_in_months(day.to_date) >= 24) rescue "&nbsp;" %>&nbsp;
         </td>
         <td style="width: 21px;">
           <%= @visits[day].height rescue "&nbsp;" %>&nbsp;
