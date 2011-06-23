@@ -105,6 +105,14 @@ class Task < ActiveRecord::Base
         skip = true
       end
       
+      if task.encounter_type == 'ART VISIT' and (patient.reason_for_art_eligibility.blank? or patient.reason_for_art_eligibility.match(/unknown/i))
+        skip = true
+      end
+      
+      if task.encounter_type == 'HIV STAGING' and not (patient.reason_for_art_eligibility.blank? or patient.reason_for_art_eligibility.match(/unknown/i))
+        skip = true
+      end
+      
       # Reverse the condition if the task wants the negative (for example, if the patient doesn't have a specific program yet, then run this task)
       skip = !skip if task.skip_if_has == 1
 
@@ -210,26 +218,33 @@ class Task < ActiveRecord::Base
       return task
     end
 
-    art_visit = Encounter.find(:first,
+    pre_art_visit = Encounter.find(:first,
                                    :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
-                                   patient.id,EncounterType.find_by_name(art_encounters[4]).id,session_date],
+                                   patient.id,EncounterType.find_by_name('PART_FOLLOWUP').id,session_date],
                                    :order =>'encounter_datetime DESC',:limit => 1)
 
-    if art_visit.blank? and task.encounter_type != art_encounters[4]
-      #checks if we need to do a pre art visit
-      if task.encounter_type == 'PART_FOLLOWUP' 
-        return task
-      elsif reasons.upcase == 'UNKNOWN' or reasons.blank?
+    if pre_art_visit.blank?
+      art_visit = Encounter.find(:first,
+                                     :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
+                                     patient.id,EncounterType.find_by_name(art_encounters[4]).id,session_date],
+                                     :order =>'encounter_datetime DESC',:limit => 1)
+
+      if art_visit.blank? and task.encounter_type != art_encounters[4]
+        #checks if we need to do a pre art visit
+        if task.encounter_type == 'PART_FOLLOWUP' 
+          return task
+        elsif reasons.upcase == 'UNKNOWN' or reasons.blank?
+          task.url = "/patients/summary?patient_id={patient}&skipped={encounter_type}" 
+          task.url = task.url.gsub(/\{encounter_type\}/, "PRE_ART_FOLLOWUP") 
+          return task
+        end
+
         task.url = "/patients/summary?patient_id={patient}&skipped={encounter_type}" 
-        task.url = task.url.gsub(/\{encounter_type\}/, "PRE_ART_FOLLOWUP") 
+        task.url = task.url.gsub(/\{encounter_type\}/, "#{art_encounters[4].gsub(' ','_')}") 
+        return task
+      elsif art_visit.blank? and task.encounter_type == art_encounters[4]
         return task
       end
-
-      task.url = "/patients/summary?patient_id={patient}&skipped={encounter_type}" 
-      task.url = task.url.gsub(/\{encounter_type\}/, "#{art_encounters[4].gsub(' ','_')}") 
-      return task
-    elsif art_visit.blank? and task.encounter_type == art_encounters[4]
-      return task
     end
 
     unless patient.drug_given_before(session_date).blank?
