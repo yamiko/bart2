@@ -44,7 +44,7 @@
 
   function set_patient_program_for_suggestions() {    
     var patient_program_id = encodeURIComponent($('patient_program').value); 
-    $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/regimens/suggested?id=" + patient_program_id + "&search_string=");
+    $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/regimens/suggested?patient_age=<%= @patient.person.age %>&id=" + patient_program_id + "&search_string=");
     listSuggestions(tstCurrentPage); 
   }
 
