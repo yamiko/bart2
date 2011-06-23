@@ -129,11 +129,14 @@
 <form id='regimen_form' action="/regimens/create" method='post'>
  
   <%= hidden_field_tag :patient_id, @patient.id %>
-  
+  <% unless @programs.count == 1 %>
   <%= select_tag :patient_program, options_for_select(@programs.map{|program| [program.program.name, program.patient_program_id] if PatientProgram.find(program.patient_program_id).date_completed == nil}), {
     :textCase => "upper", 
     :allowFreeText => 'false',
     :helpText => "Prescribe regimen for which program?"}%>
+  <%else%>
+    <%= hidden_field_tag(:patient_program, @programs.first.patient_program_id) %>
+  <%end%>
 
   <%= touch_yes_no_tag "CPT STARTED", @patient, nil,
       {:optional => false,
