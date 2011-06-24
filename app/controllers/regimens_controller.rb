@@ -111,9 +111,23 @@ class RegimensController < ApplicationController
     @regimens = @patient_program.regimens(@patient_program.patient.current_weight).uniq
     @regimens = @regimens.map{|r| Concept.find(r) }
     @options = @regimens.map{|r| [r.concept_id, (r.concept_names.tagged("short").first || r.name).name] } + @options
-    render :layout => false    
+    @options_altered = []    
+    @options.each {|opt|
+      reg_index = Regimen.find(:all,
+                                :select => 'regimen_index',
+                                :conditions => ['concept_id = ?', opt[0]]).uniq
+        if params[:patient_age].to_i == 15 || params[:patient_age].to_i > 15
+          suffix = "A"
+        else
+          suffix = "P"
+        end
+        @options_altered << [opt[0], reg_index[0].regimen_index.to_s  + suffix.to_s + " - " + opt[1].to_s]
+      }
+     @options = @options_altered
+
+    render :layout => false
   end
-  
+
   def dosing
     @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
     @criteria = Regimen.criteria(@patient.current_weight).all(:conditions => {:concept_id => params[:id]}, :include => :regimen_drug_orders)

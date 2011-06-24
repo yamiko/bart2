@@ -8,7 +8,11 @@ class Mastercard
    :init_bmi ,:transfer_in ,:address, :landmark, :occupation, :guardian, :agrees_to_followup,
    :hiv_test_location, :hiv_test_date, :reason_for_art_eligibility, :date_of_first_line_regimen ,
    :tb_within_last_two_yrs, :eptb ,:ks,:pulmonary_tb, :first_line_drugs, :alt_first_line_drugs,
-   :second_line_drugs, :date_of_first_alt_line_regimen, :date_of_second_line_regimen, :transfer_in_date
+   :second_line_drugs, :date_of_first_alt_line_regimen, :date_of_second_line_regimen, :transfer_in_date,
+   :cd4_count_date, :cd4_count, :pregnant, :who_clinical_conditions, :tlc, :tlc_date, :tb_status_at_initiation,
+   :ever_received_art, :last_art_drugs_taken, :last_art_drugs_date_taken,
+   :first_positive_hiv_test_site, :first_positive_hiv_test_date, :first_positive_hiv_test_arv_number,
+   :first_positive_hiv_test_type, :months_on_art
 
 
 
@@ -35,7 +39,7 @@ class Mastercard
     visits.hiv_test_location = patient_obj.person.observations.recent(1).question("FIRST POSITIVE HIV TEST LOCATION").all rescue nil
     visits.hiv_test_location = visits.hiv_test_location.to_s.split(':')[1].strip rescue nil
     visits.guardian = patient_obj.person.relationships.map{|r|Person.find(r.person_b).name}.join(' : ') rescue 'NONE'
-    visits.reason_for_art_eligibility = patient_obj.p.reason_for_art_eligibility
+    visits.reason_for_art_eligibility = patient_obj.reason_for_art_eligibility
     visits.transfer_in = patient_obj.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
     visits.transfer_in.blank? == true ? visits.transfer_in = 'NO' : visits.transfer_in = 'YES'
     
@@ -113,6 +117,68 @@ class Mastercard
     #visits.arv_number = patient_obj.ARV_national_id
     visits.transfer =  patient_obj.transfer_in? ? "Yes" : "No"
 =end
+
+    hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("HIV Staging").id,patient_obj.id])
+
+    visits.who_clinical_conditions = ""
+
+    (hiv_staging.observations).collect{|obs|
+      name = obs.to_s.split(':')[0].strip rescue nil
+      condition = obs.to_s.split(':')[1].strip.humanize rescue nil
+      visits.who_clinical_conditions = visits.who_clinical_conditions + (condition) + "; "
+      next unless name == 'WHO STAGES CRITERIA PRESENT'
+    }
+    
+    # cd4_count_date cd4_count pregnant who_clinical_conditions
+
+    visits.cd4_count_date = nil ; visits.cd4_count = nil ; visits.pregnant = 'N/A'
+
+    (hiv_staging.observations).map do | obs |
+      concept_name = obs.to_s.split(':')[0].strip rescue nil
+      next if concept_name.blank?
+      case concept_name
+      when 'CD4 COUNT DATETIME'
+        visits.cd4_count_date = obs.value_datetime.to_date
+      when 'CD4 COUNT'
+        visits.cd4_count = obs.value_numeric
+      when 'IS PATIENT PREGNANT?'
+        visits.pregnant = obs.to_s.split(':')[1] rescue nil
+      when 'LYMPHOCYTE COUNT'
+        visits.tlc = obs.value_numeric
+      when 'LYMPHOCYTE COUNT DATETIME'
+        visits.tlc_date = obs.value_datetime.to_date
+      end
+    end rescue []
+
+    visits.tb_status_at_initiation = (!visits.tb_status.nil? ? "Curr" : 
+          (!visits.tb_within_last_two_yrs.nil? ? (visits.tb_within_last_two_yrs.upcase == "YES" ? 
+              "Last 2yrs" : "Never/ >2yrs") : "Never/ >2yrs"))
+
+    art_initial = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("ART_INITIAL").id,patient_obj.id])
+
+    (art_initial.observations).map do | obs |
+      concept_name = obs.to_s.split(':')[0].strip rescue nil
+      next if concept_name.blank?
+      case concept_name
+      when 'EVER RECEIVED ART?'
+        visits.ever_received_art = obs.to_s.split(':')[1].strip rescue nil
+      when 'LAST ART DRUGS TAKEN'
+        visits.last_art_drugs_taken = obs.to_s.split(':')[1].strip rescue nil
+      when 'DATE ART LAST TAKEN'
+        visits.last_art_drugs_date_taken = obs.value_datetime.to_date rescue nil
+      when 'FIRST POSITIVE HIV TEST LOCATION'
+        visits.first_positive_hiv_test_site = obs.to_s.split(':')[1].strip rescue nil
+      when 'ART NUMBER AT PREVIOUS LOCATION'
+        visits.first_positive_hiv_test_arv_number = obs.to_s.split(':')[1].strip rescue nil
+      when 'FIRST POSITIVE HIV TEST TYPE'
+        visits.first_positive_hiv_test_type = obs.to_s.split(':')[1].strip rescue nil
+      when 'FIRST POSITIVE HIV TEST DATE'
+        visits.first_positive_hiv_test_date = obs.value_datetime.to_date rescue nil
+      end
+    end rescue []
+    
     visits
   end
 
@@ -127,7 +193,8 @@ class Mastercard
         patient_obj.patient_id,encounter_date.to_date],:order =>"obs_datetime")
     end    
 
-    clinic_encounters = ["APPOINTMENT", "HEIGHT","WEIGHT","REGIMEN","TB STATUS","SYMPTOMS","VISIT","BMI","PILLS BROUGHT",'ADHERENCE','NOTES','DRUGS GIVEN']
+    clinic_encounters = ["APPOINTMENT", "HEIGHT","WEIGHT","REGIMEN","TB STATUS","SYMPTOMS",
+      "VISIT","BMI","PILLS BROUGHT",'ADHERENCE','NOTES','DRUGS GIVEN']
     clinic_encounters.map do |field|
       gave_hash = Hash.new(0) 
       observations.map do |obs|
@@ -241,7 +308,7 @@ class Mastercard
 
         patient_visits[encounter_date] = self.new() if patient_visits[encounter_date].blank?
         patient_visits[encounter_date].outcome = state.program_workflow_state.concept.fullname rescue 'Unknown state'
-        patient_visits[encounter_date].date_of_outcome = state.start_date
+        patient_visits[encounter_date].date_of_outcome = state.start_date rescue nil
       end
     end
 

@@ -109,6 +109,10 @@ class Task < ActiveRecord::Base
         skip = true
       end
       
+      if task.encounter_type == 'HIV STAGING' and not (patient.reason_for_art_eligibility.blank? or patient.reason_for_art_eligibility.match(/unknown/i))
+        skip = true
+      end
+      
       # Reverse the condition if the task wants the negative (for example, if the patient doesn't have a specific program yet, then run this task)
       skip = !skip if task.skip_if_has == 1
 
