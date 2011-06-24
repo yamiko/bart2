@@ -168,7 +168,7 @@ months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", 
       <td align="center" rowspan="3">
         Wasting/Malnutr.<br />Based on either<br />Wt4Hgt BMI MUAC
       </td>
-      <td align="center" colspan="4" style="border-bottom: 0px solid #000;">
+      <td align="center" rowspan="3" style="border-bottom: 1px solid #000;">
         TB Status (Curr.)<sup>*</sup>
       </td>
       <td align="center" rowspan="3">
@@ -193,7 +193,7 @@ months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", 
         Side Effects (Current)<br />
         <span style="font-size: 0.9em;">Specify 'Other' in Notes</span>
       </td>
-      <td align="center" colspan="5" style="border-bottom: 0px solid #000;">
+      <td align="center" rowspan="3" style="border-bottom: 1px solid #000;">
         Follow-Up Outcome
       </td>
       <td align="center" rowspan="3">
@@ -202,12 +202,12 @@ months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", 
     </tr>
 
     <tr>
-      <td align="center" colspan="2" style="border-bottom: 0px solid #000;">
+      <!--td align="center" colspan="2" style="border-bottom: 0px solid #000;">
         Suspected
       </td>
       <td align="center" colspan="2" style="border-bottom: 0px solid #000;">
         Confirmed
-      </td>
+      </td-->
       <td align="center" rowspan="2">
         Sample<br />taken
       </td>
@@ -220,7 +220,7 @@ months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", 
       <td align="center" rowspan="2">
         No. of<br />condom
       </td>
-      <td align="center" rowspan="2" style="height: 55px; width: 20px;">
+      <!--td align="center" rowspan="2" style="height: 55px; width: 20px;">
         <span style="-moz-transform:rotate(-90deg);">Continue</span>
       </td>
       <td align="center" rowspan="2">
@@ -234,11 +234,11 @@ months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", 
       </td>
       <td align="center" rowspan="2">
         <span style="-moz-transform:rotate(-90deg);">Died</span>
-      </td>
+      </td-->
     </tr>
     <tr>
       <td align="center">
-        day/month/year
+        dy/mth/yr
       </td>
       <td align="center">
         <i>cm</i>
@@ -246,7 +246,7 @@ months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", 
       <td align="center">
         <i>kg</i>
       </td>
-      <td align="center">
+      <!--td align="center">
         No
       </td>
       <td align="center">
@@ -257,13 +257,25 @@ months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", 
       </td>
       <td align="center">
         Rx
-      </td>
+      </td-->
     </tr>
 
-    <% months.each do|month| %>
+    <% @visits.keys.each do|day| %>
       <tr>
         <td>
+          <%= day.to_date.strftime("%d-%b-%Y") rescue "" %>&nbsp;
+        </td>
+        <td>
+          <%= @visits[day].height rescue "" %>&nbsp;
+        </td>
+        <td>
+          <%= @visits[day].weight rescue "" %>&nbsp;
+        </td>
+        <td>
           &nbsp;
+        </td>
+        <td>
+          <%= @visits[day].tb_status rescue "&nbsp;" %>&nbsp;
         </td>
         <td>
           &nbsp;
@@ -281,6 +293,18 @@ months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", 
           &nbsp;
         </td>
         <td>
+          <%= @visits[day].cpt rescue "&nbsp;" %>&nbsp;
+        </td>
+        <td>
+          &nbsp;
+        </td>
+        <td>
+          &nbsp;
+        </td>
+        <td>
+          <%= @visits[day].s_eff rescue "&nbsp;" %>&nbsp;
+        </td>
+        <!--td>
           &nbsp;
         </td>
         <td>
@@ -291,45 +315,13 @@ months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", 
         </td>
         <td>
           &nbsp;
+        </td-->
+        <td>
+          <%= @visits[day].outcome rescue "&nbsp;" %>&nbsp;
         </td>
         <td>
-          &nbsp;
-        </td>
-        <td>
-          &nbsp;
-        </td>
-        <td>
-          &nbsp;
-        </td>
-        <td>
-          &nbsp;
-        </td>
-        <td>
-          &nbsp;
-        </td>
-        <td>
-          &nbsp;
-        </td>
-        <td>
-          &nbsp;
-        </td>
-        <td>
-          &nbsp;
-        </td>
-        <td>
-          &nbsp;
-        </td>
-        <td>
-          &nbsp;
-        </td>
-        <td>
-          &nbsp;
-        </td>
-        <td>
-          &nbsp;
-        </td>
-        <td>
-          &nbsp;
+          <%= (@visits[day].date_of_outcome.strftime("%d-%b-%Y") if !@visits[day].date_of_outcome.nil? ||
+              @visits[day].appointment_date.strftime("%d-%b-%Y") if !@visits[day].appointment_date.nil?) rescue "&nbsp;" %>&nbsp;
         </td>
       </tr>
     <% end %>
