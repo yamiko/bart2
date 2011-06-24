@@ -13,16 +13,11 @@ when "yellow", "blue"
             </th>
           </tr>
           <tr>
-            <td rowspan="2" style="width: 35px;">
+            <td style="width: 35px;">
               WHO clinical conditions
             </td>
-            <td colspan="13" style="border-top: 1px solid #000; border-left: 1px solid #000;">
-              &nbsp;
-            </td>
-          </tr>
-          <tr>
-            <td colspan="13" style="border-top: 1px dotted #000; border-left: 1px solid #000; border-bottom: 1px solid #000;">
-              &nbsp;
+            <td colspan="13" style="border-top: 1px solid #000; border-bottom: 1px solid #000; border-left: 1px solid #000;">
+              <div style="font-style: italic;"><%= @mastercard.who_clinical_conditions %>&nbsp;</div>
             </td>
           </tr>
           <tr>
@@ -47,51 +42,44 @@ when "yellow", "blue"
             <td style="border-left: 1px solid #000; ">
               TB Status<br />at Initiation
             </td>
-            <td style="border-left: 1px solid #000; text-align: center;" colspan="2">
-              <b>N</b>ever/<br /><b>&gt;2</b>yrs
-            </td>
-            <td align="center" colspan="2">
-              <b>L</b>ast<br /><b>2</b>yrs
-            </td>
-            <td align="center" colspan="2">
-              <b>C</b>urr
+            <td style="border-left: 1px solid #000; text-align: center;" colspan="6">
+              <b><%= @mastercard.tb_status_at_initiation rescue "&nbsp;" %>&nbsp;</b>
             </td>
           </tr>
           <tr>
             <td>
               CD4 / <br />TLC
             </td>
-            <td colspan="3" style="border-left: 1px solid #000; border-top: 1px solid #000;">
-              <%= @mastercard.cd4 rescue "&nbsp;" %>&nbsp;
+            <td colspan="3" style="border-left: 1px solid #000; border-top: 1px solid #000;
+                font-style: italic;" align="center">
+              <%= @mastercard.cd4_count.to_i rescue "&nbsp;" %>&nbsp;
             </td>
-            <td colspan="3" style="border-left: 1px solid #000; border-top: 1px solid #000;" align="right">
-              &nbsp;<b>%</b>
+            <td colspan="3" style="border-left: 1px solid #000; border-top: 1px solid #000; font-style: italic;"
+                align="right">
+              <%= @mastercard.tlc.to_i rescue "&nbsp;" %>&nbsp;<b>%</b>
             </td>
             <td style="border-left: 1px solid #000;">
               KS
             </td>
-            <td colspan="6" style="border-left: 1px solid #000; border-top: 1px solid #000;" align="center">
-              <%= @mastercard.cd4.upcase == "YES" ? "<b>Y</b>" : "<b>N</b>" rescue "" %>&nbsp;
+            <td colspan="6" style="border-left: 1px solid #000; border-top: 1px solid #000;font-style: italic;"
+                align="center">
+              <%= @mastercard.ks.upcase == "YES" ? "<b>Y</b>" : "<b>N</b>" rescue "<b>N</b>" %>&nbsp;
             </td>
           </tr>
           <tr>
             <td>
               C<span style="font-size: 0.6em">D4</span>/T<span style="font-size: 0.6em">LC</span> Date
             </td>
-            <td colspan="6" style="border-left: 1px solid #000; border-top: 1px solid #000;">
-              &nbsp;
+            <td colspan="6" style="border-left: 1px solid #000; border-top: 1px solid #000;
+                font-style: italic;" align="center">
+              <%= @mastercard.cd4_count_date.strftime("%d-%b-%Y") rescue (
+                @mastercard.tlc_date.strftime("%d-%b-%Y") rescue "&nbsp;") %>&nbsp;
             </td>
             <td style="border-left: 1px solid #000; ">
               Pregnant/ Lactating
             </td>
-            <td style="border-left: 1px solid #000; text-align: center; border-top: 1px solid #000;" colspan="2">
-              <b>N</b>
-            </td>
-            <td align="center" colspan="2" style="border-top: 1px solid #000;">
-              <b>P</b>reg
-            </td>
-            <td align="center" colspan="2" style="border-top: 1px solid #000;">
-              <b>L</b>act
+            <td style="border-left: 1px solid #000; text-align: center; border-top: 1px solid #000;" colspan="6">
+              <b><%= @mastercard.pregnant rescue "&nbsp;" %>&nbsp;</b>
             </td>
           </tr>
           <tr>
@@ -104,30 +92,28 @@ when "yellow", "blue"
             </td>
             <td colspan="3" style="border-left: 1px solid #000; border-top: 1px solid #000;" align="left">
               <sup style="float: left">kg</sup>
-              <div style="float: right; margin-top: 15px;"><%= @mastercard.init_wt rescue "&nbsp;" %></div>
+              <div style="float: right; font-style: italic; margin-top: 15px;"><%= @mastercard.init_wt rescue "&nbsp;" %></div>
             </td>
             <td style="border-left: 1px solid #000;">
               Ever<span style="color: <%= (@type == "yellow" ? "#fff99f" : "#ccf") %>">_</span>taken ARVs
             </td>
-            <td colspan="3" style="border-left: 1px solid #000; border-top: 1px solid #000;" align="center">
-              <b>N</b>
-            </td>
-            <td colspan="3" style="border-top: 1px solid #000;" align="center">
-              <b>Y</b>
+            <td colspan="6" style="border-left: 1px solid #000; border-top: 1px solid #000;" align="center">
+              <b><%= (@mastercard.ever_received_art.upcase == "YES" ? "Y" : "N") rescue "N" %></b>
             </td>
           </tr>
           <tr>
             <td>
               Age at Init.
             </td>
-            <td colspan="6" style="border-left: 1px solid #000; border-top: 1px solid #000; height: 37px;">
-              <%= @patient.age_at_initiation rescue "" %>&nbsp;
+            <td colspan="6" style="border-left: 1px solid #000; border-top: 1px solid #000; height: 37px;" align="center">
+              <%= @patient.age_at_initiation(@patient.art_start_date) rescue "" %>&nbsp;
             </td>
             <td style="border-left: 1px solid #000; ">
               Last ARVs<br/>(drug,date)
             </td>
             <td style="border-left: 1px solid #000; text-align: center; border-top: 1px solid #000;" colspan="6">
-              &nbsp;
+              <%= @mastercard.last_art_drugs_taken rescue "&nbsp;" %>&nbsp;<br />
+              <%= @mastercard.last_art_drugs_date_taken.strftime("%d-%b-%Y") rescue "&nbsp;" %>
             </td>
           </tr>
         </table>
@@ -147,16 +133,19 @@ when "yellow", "blue"
               <td style="width: 60px;">
                 Site,HTC Serial No.
               </td>
-              <td style="border-top: 1px solid #000; border-left: 1px solid #000;" colspan="4">
-                &nbsp;
+              <td style="border-top: 1px solid #000; border-left: 1px solid #000; font-style: italic;" colspan="4">
+                <%= @mastercard.first_positive_hiv_test_site + ", " rescue "" %>&nbsp;
+                <%= @mastercard.first_positive_hiv_test_arv_number rescue "" %>
               </td>
             </tr>
             <tr>
               <td style="width: 60px;">
                 Test Date
               </td>
-              <td style="border-top: 1px solid #000; border-left: 1px solid #000; width: 35%;" colspan="2">
-                &nbsp;
+              <td style="border-top: 1px solid #000; border-left: 1px solid #000;
+                  width: 35%; font-style: italic;"
+                  colspan="2" align="center">
+                <%= @mastercard.first_positive_hiv_test_date.strftime("%d-%b-%Y") rescue "" %>&nbsp;
               </td>
               <td style="border-top: 1px solid #000; border-left: 1px solid #000;" align="center">
                 <b>R</b>apid

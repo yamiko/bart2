@@ -8,7 +8,8 @@
       tstUsername = "";
       tstCurrentDate = "<%= @date %>";
       //tt_cancel_destination = '/patients/show/<%= @patient.id %>';
-      tt_cancel_show = "<%= (@amounts_required != @amount_needed ? "javascript:confirmAction()" : "/patients/show/#{@patient.id}") %>";
+      tt_cancel_show = "<%= ((@amounts_required != @amount_needed) && (@amount_needed.to_i > 0) ?
+                              "javascript:confirmAction()" : "/patients/show/#{@patient.id}") %>";
 
       function confirmAction(){
 
