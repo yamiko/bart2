@@ -324,14 +324,15 @@ when "yellow", "blue"
       <td style="width: 160px;">
         <span style="text-decoration: underline;">Confirmatory</span> HIV Test
       </td>
-      <td colspan="3" style="border-top: 1px solid #000; border-left: 1px solid #000; border-right: 1px dotted #000;">
-        &nbsp;
+      <td colspan="3" style="border-top: 1px solid #000; border-left: 1px solid #000; 
+          border-right: 1px dotted #000; font-style: italic;">
+        <%= @mastercard.first_positive_hiv_test_site rescue "" %>&nbsp;
       </td>
-      <td colspan="2" style="border-top: 1px solid #000; border-right: 1px dotted #000;">
-        &nbsp;
+      <td colspan="2" style="border-top: 1px solid #000; border-right: 1px dotted #000; font-style: italic;">
+        <%= @mastercard.first_positive_hiv_test_arv_number rescue "" %>&nbsp;
       </td>
-      <td style="border-top: 1px solid #000; border-right: 1px solid #000;">
-        &nbsp;
+      <td style="border-top: 1px solid #000; border-right: 1px solid #000; font-style: italic;" align="center">
+        <%= @mastercard.first_positive_hiv_test_date.strftime("%d-%b-%Y") rescue "" %>&nbsp;
       </td>
       <td style="border-top: 1px solid #000;" align="center">
         <b>R</b>apid
@@ -344,8 +345,9 @@ when "yellow", "blue"
       <td>
         Clinical Conditions
       </td>
-      <td colspan="5" style="border-top: 1px solid #000; border-left: 1px solid #000; border-right: 1px solid #000;">
-        &nbsp;
+      <td colspan="5" style="border-top: 1px solid #000; border-left: 1px solid #000; font-style: italic;
+          border-right: 1px solid #000;  border-bottom: 1px solid #000; vertical-align: top;" rowspan="2">
+        <%= @mastercard.who_clinical_conditions rescue "" %>&nbsp;
       </td>
       <td style="border-top: 1px solid #000; border-right: 1px solid #000;" align="center">
         WHO stage
@@ -361,15 +363,15 @@ when "yellow", "blue"
       <td>
         &nbsp;
       </td>
-      <td colspan="5" style="border-top: 1px solid #000; border-left: 1px solid #000;
+      <!--td colspan="5" style="border-top: 1px solid #000; border-left: 1px solid #000;
           border-right: 1px solid #000; border-bottom: 1px solid #000;">
         &nbsp;
-      </td>
+      </td-->
       <td style="border-right: 1px solid #000;" align="center">
         Age
       </td>
       <td style="border-top: 1px solid #000; border-bottom: 1px solid #000;" align="center">
-        &nbsp;
+        <%= @patient.person.age rescue "&nbsp;" %>&nbsp;
       </td>
       <td style="border-top: 1px solid #000; border-bottom: 1px solid #000;" align="center">
         &nbsp;
@@ -426,18 +428,14 @@ when "yellow", "blue"
       <td>
         Ever taken any ARVs
       </td>
-      <td style="border-top: 1px solid #000; border-left: 1px solid #000; width: 45px;" align="center">
-        <b>N</b>
+      <td style="border-top: 1px solid #000; border-left: 1px solid #000; width: 45px;" align="center" colspan="2">
+        <%= "<b>Y</b>" if @mastercard.last_art_drugs_taken rescue "&nbsp;" %>&nbsp;
       </td>
-      <td style="border-top: 1px solid #000; border-left: 1px solid #000;
-          border-right: 1px solid #000; width: 45px;" align="center">
-        <b>Y</b>
+      <td style="border-top: 1px solid #000; border-right: 1px dotted #000; font-style: italic;" colspan="2">
+        <%= @mastercard.last_art_drugs_date_taken.strftime("%d-%b-%Y") rescue "&nbsp;" %>&nbsp;
       </td>
-      <td style="border-top: 1px solid #000; border-right: 1px dotted #000;" colspan="2">
-        &nbsp;
-      </td>
-      <td colspan="4" style="border-top: 1px solid #000;">
-        <sup>ARV type</sup>&nbsp;
+      <td colspan="4" style="border-top: 1px solid #000; font-style: italic;">
+        <sup>ARV type</sup>&nbsp;&nbsp;<%= @mastercard.last_art_drugs_taken rescue "&nbsp;" %>&nbsp;
       </td>
     </tr>
   </table>
