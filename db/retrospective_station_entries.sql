@@ -1,13 +1,10 @@
 LOCK TABLES `location` WRITE;
 
-INSERT INTO `location` (location_id, name, description, creator, date_created, uuid) VALUES(42,'Retrospective', 'Standard Entry for Retrospective Task', 1, Now(), 'e9f362aa-9048-11e0-8645-96f71685592y');
+INSERT INTO `location` (name, description, creator, date_created, uuid) VALUES('Retrospective', 'Standard Entry for Retrospective Task', 1, Now(), 'e9f362aa-9048-11e0-8645-96f71685592y');
 
 UNLOCK TABLES;
-LOCK TABLES `location_tag_map` WRITE;
 
-INSERT INTO `location_tag_map`(location_id, location_tag_id) VALUES(42, 1);
-
-UNLOCK TABLES;
+INSERT INTO `location_tag_map`(location_id, location_tag_id) VALUES((SELECT location_id FROM `location` WHERE name='Retrospective'),(SELECT location_tag_id FROM `location_tag` WHERE tag='Workstation Location'));
 
 LOCK TABLES `task` WRITE;
 /*!40000 ALTER TABLE `task` DISABLE KEYS */;
