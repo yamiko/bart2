@@ -24,16 +24,16 @@ class PatientTest < ActiveSupport::TestCase
     end
 
     should "refer to the patient encounters" do
-      assert_equal patient(:evan).encounters.count, 1
+      assert_equal patient(:evan).encounters.count, 3
     end
 
     should "not included voided encounters" do
       Encounter.find(:first).void
-      assert_equal patient(:evan).encounters.count, 0
+      assert_equal patient(:evan).encounters.count, 2
     end
 
     should "lookup encounters by date" do
-      assert_equal patient(:evan).encounters.find_by_date("2001-01-01".to_date).size, 1
+      assert_equal patient(:evan).encounters.find_by_date("2001-01-01".to_date).size, 3
       assert_equal patient(:evan).encounters.find_by_date("2000-01-01".to_date).size, 0
     end
 
