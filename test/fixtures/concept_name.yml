@@ -30530,7 +30530,7 @@ concept_name_00331:
   concept_id: 319
   date_created: 2004-01-01 00:00:00 +02:00
 concept_name_03463: 
-  name: RETURN VISIT DATE
+  name: APPOINTMENT DATE
   voided: 0
   uuid: e0f9cb70-df1a-11de-a277-0026181bb84d
   creator: 1
@@ -49386,7 +49386,7 @@ concept_name_08932:
   concept_id: 6451
   date_created: 2009-11-30 08:38:53 +02:00
 concept_name_02306: 
-  name: BODY MASS INDEX, MEASURED
+  name: BODY MASS INDEX,MEASURED
   voided: 0
   uuid: e0ef7cf6-df1a-11de-a277-0026181bb84d
   creator: 1

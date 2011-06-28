@@ -522,6 +522,7 @@ class PatientsController < ApplicationController
     end
 
     @mastercard = Mastercard.demographics(@patient)
+    @visits = Mastercard.visits(@patient)   # (@patient, (session[:datetime].to_date rescue Date.today))
 
     render :layout => false
   end

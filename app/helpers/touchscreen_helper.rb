@@ -68,7 +68,8 @@ module TouchscreenHelper
       :ajaxURL => '/programs/locations?q=', 
       :allowFreeText => true
     }.merge(options)                 
-    touch_text_field_tag(concept, patient, value, options, time)
+    # touch_text_field_tag(concept, patient, value, options, time)
+    touch_select_tag(concept, patient, value, options, time)
   end
 
   def touch_options_tag(concept, patient, values, options={}, time=DateTime.now())
