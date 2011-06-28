@@ -30530,7 +30530,7 @@ concept_name_00331:
   concept_id: 319
   date_created: 2004-01-01 00:00:00 +02:00
 concept_name_03463: 
-  name: RETURN VISIT DATE
+  name: APPOINTMENT DATE
   voided: 0
   uuid: e0f9cb70-df1a-11de-a277-0026181bb84d
   creator: 1

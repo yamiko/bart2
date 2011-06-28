@@ -4,7 +4,7 @@ class EncountersControllerTest < ActionController::TestCase
   fixtures :person, :person_name, :person_name_code, :person_address, 
            :patient, :patient_identifier, :patient_identifier_type,
            :concept, :concept_name, :concept_class,
-           :encounter, :obs
+           :encounter, :encounter_type, :obs
 
   def setup  
     @controller = EncountersController.new
@@ -25,6 +25,14 @@ class EncountersControllerTest < ActionController::TestCase
           assert_contains concepts, concept_name(:concept_name_03112).name
         end  
       end
+    end
+    
+    should "give patient drugs" do
+      logged_in_as :mikmck, :registration do
+        get :create, {:patient_id => patient(:evan).patient_id}
+        assert_response :success
+      end
     end            
   end
+
 end
