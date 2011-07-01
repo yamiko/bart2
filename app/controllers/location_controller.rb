@@ -23,7 +23,7 @@ class LocationController < ApplicationController
 
             location_tag_map = LocationTagMap.new
             location_tag_map.location_id = location.id
-            location_tag_map.location_tag_id = LocationTag.find_by_tag("Workstation location").id
+            location_tag_map.location_tag_id = LocationTag.find_by_name("Workstation location").id
             result = location_tag_map.save rescue (result = false)
             
             if result == true then 
@@ -34,7 +34,7 @@ class LocationController < ApplicationController
         else
             location_tag_map = LocationTagMap.new
             location_tag_map.location_id = Location.find_by_name(clinic_name[:clinic_name]).id
-            location_tag_map.location_tag_id = LocationTag.find_by_tag("Workstation location").id
+            location_tag_map.location_tag_id = LocationTag.find_by_name("Workstation location").id
             result = location_tag_map.save rescue (result = false)
             #raise result.to_s
             if result == true then 
@@ -43,13 +43,13 @@ class LocationController < ApplicationController
                flash[:notice] = "<span style='color:red; display:block; background-color:#DDDDDD;'>location #{clinic_name[:clinic_name]} addition failed</span>"
             end
         end
-        redirect_to "/clinic/location_management" and return
+        redirect_to "/clinic" and return
     end
     
     def delete
         clinic_name = params[:location_name]
         location_id = Location.find_by_name(clinic_name[:clinic_name]).id rescue -1
-        location_tag_id = LocationTag.find_by_tag("Workstation location").id rescue -1
+        location_tag_id = LocationTag.find_by_name("Workstation location").id rescue -1
         location_tag_map = LocationTagMap.find(location_tag_id, location_id) 
         result = location_tag_map.delete rescue false
         
@@ -58,7 +58,7 @@ class LocationController < ApplicationController
         else
            flash[:notice] = "<span style='color:red; display:block; background-color:#DDDDDD;'>location #{clinic_name[:clinic_name]} deletion failed</span>"
         end
-        redirect_to "/clinic/location_management" and return 
+        redirect_to "/clinic" and return 
     end
     
     def new

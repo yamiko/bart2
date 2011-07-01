@@ -89,7 +89,7 @@ class Location < ActiveRecord::Base
                           FROM location_tag_map
                           WHERE location_tag_id = (SELECT location_tag_id
                                  FROM location_tag
-                                 WHERE tag = 'Workstation Location'))
+                                 WHERE name = 'Workstation Location'))
              ORDER BY name ASC"
 
       Location.find_by_sql(sql).collect{|name| name.send(field_name)} rescue []
@@ -104,7 +104,7 @@ class Location < ActiveRecord::Base
                               FROM location_tag_map
                               WHERE location_tag_id = (SELECT location_tag_id
 	                                   FROM location_tag
-	                                   WHERE tag = 'Workstation Location'))
+	                                   WHERE name = 'Workstation Location'))
                  ORDER BY name ASC"
       elsif act == "create" then
           sql = "SELECT *
@@ -113,7 +113,7 @@ class Location < ActiveRecord::Base
                               FROM location_tag_map
                               WHERE location_tag_id = (SELECT location_tag_id
 	                                   FROM location_tag
-	                                   WHERE tag = 'Workstation Location'))  AND name LIKE '%#{search_string}%'
+	                                   WHERE name = 'Workstation Location'))  AND name LIKE '%#{search_string}%'
                  ORDER BY name ASC"
       end
       self.find_by_sql(sql).collect{|name| name.send(field_name)}
