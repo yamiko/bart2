@@ -127,4 +127,8 @@ module ApplicationHelper
   def development_environment?
     ENV['RAILS_ENV'] == 'development'
   end
+
+  def generic_locations
+    Location.workstation_locations
+  end
 end
