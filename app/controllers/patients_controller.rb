@@ -223,6 +223,11 @@ class PatientsController < ApplicationController
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", :disposition => "inline")
   end
 
+  def mastercard_menu
+    render :layout => "menu"
+    @patient_id = params[:patient_id]
+  end
+
   def mastercard
     @type = params[:type]
     
@@ -296,7 +301,7 @@ class PatientsController < ApplicationController
     @date = params[:date].to_date
     @patient = Patient.find(@patient_id)
     @visits = Mastercard.visits(@patient,@date)
-    render :layout => false
+    render :layout => "menu"
   end
 
   def next_available_arv_number
