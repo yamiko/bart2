@@ -129,7 +129,7 @@ class UserController < ApplicationController
     person.names.create(params[:person_name])
     params[:user][:user_id] = person.id
     @user = User.new(params[:user])
-    @user.id = person.id
+    @user.person_id = person.id
     if @user.save
      # if params[:user_role_admin][:role] == "Yes"  
       #  @roles = Array.new.push params[:user_role][:role_id] 
@@ -141,9 +141,9 @@ class UserController < ApplicationController
        # user_role.save
       #}
       #else
-        user_role=UserRole.new
+        user_role = UserRole.new
         user_role.role = Role.find_by_role(params[:user_role][:role_id])
-        user_role.user_id=@user.user_id
+        user_role.user_id = @user.user_id
         user_role.save
      # end
       @user.update_attributes(params[:user])
