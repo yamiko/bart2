@@ -27,6 +27,20 @@ INSERT INTO `users` VALUES (1,'1-8','admin','4a1750c8607d0fa237de36c6305715c2234
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
+LOCK TABLES `patient_identifier` WRITE;
+DELETE FROM `patient_identifier`;
+UNLOCK TABLES;
+
+LOCK TABLES `patient` WRITE;
+DELETE FROM `patient`;
+UNLOCK TABLES;
+
+
+LOCK TABLES `person` WRITE;
+DELETE FROM `person` WHERE `person_id` > '1';
+UNLOCK TABLES;
+
+
 --
 -- Table structure for table `global_property`
 --
