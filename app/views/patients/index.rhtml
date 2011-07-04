@@ -55,11 +55,7 @@
             </select>
             <select id="navigation_links">
               <option link="/encounter_types?patient_id=<%= @patient.id -%>">Tasks</option>
-              <option link="/patients/mastercard?patient_id=<%= @patient.id -%>&source=<%= @source -%>">Mastercard</option>
-              <option link="/patients/mastercard?patient_id=<%= @patient.id -%>&source=<%= @source -%>&type=4">M 4</option>
-              <option link="/patients/mastercard?patient_id=<%= @patient.id -%>&source=<%= @source -%>&type=3">M 3</option>
-              <option link="/patients/mastercard?patient_id=<%= @patient.id -%>&source=<%= @source -%>&type=2">M 2</option>
-              <option link="/patients/mastercard?patient_id=<%= @patient.id -%>&source=<%= @source -%>&type=1">M 1</option>
+              <option link="/patients/mastercard_menu?patient_id=<%= @patient.id -%>&source=<%= @source -%>">Mastercard</option>
               <option link='<%= ((session[:datetime].to_date rescue '') != '' ?
                           "/people/reset_datetime/#{@patient.id}" : "/people/set_datetime/#{@patient.id}") %>'  ttSize="160px">
                 <%= ((session[:datetime].to_date rescue '') != '' ? "Reset Date" : "Set Date") %></option>

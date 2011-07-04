@@ -11,20 +11,21 @@ class User < ActiveRecord::Base
   cattr_accessor :current_user
   attr_accessor :plain_password
 
+  belongs_to :person, :foreign_key => :person_id, :conditions => {:voided => 0}
   has_many :user_properties, :foreign_key => :user_id # no default scope
   has_many :user_roles, :foreign_key => :user_id, :dependent => :delete_all # no default scope
-  has_many :names, :class_name => 'PersonName', :foreign_key => :person_id, :dependent => :destroy, :order => 'person_name.preferred DESC', :conditions => {:voided =>  0}
+  #has_many :names, :class_name => 'PersonName', :foreign_key => :person_id, :dependent => :destroy, :order => 'person_name.preferred DESC', :conditions => {:voided =>  0}
 
   def first_name
-    self.names.first.given_name rescue ''
+    self.person.names.first.given_name rescue ''
   end
 
   def last_name
-    self.names.first.family_name rescue ''
+    self.person.names.first.family_name rescue ''
   end
 
   def name
-    name = self.names.first
+    name = self.person.names.first
     "#{name.given_name} #{name.family_name}"
   end
 

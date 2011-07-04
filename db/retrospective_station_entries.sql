@@ -4,7 +4,7 @@ INSERT INTO `location` (name, description, creator, date_created, uuid) VALUES('
 
 UNLOCK TABLES;
 
-INSERT INTO `location_tag_map`(location_id, location_tag_id) VALUES((SELECT location_id FROM `location` WHERE name='Retrospective'),(SELECT location_tag_id FROM `location_tag` WHERE tag='Workstation Location'));
+INSERT INTO `location_tag_map`(location_id, location_tag_id) VALUES((SELECT location_id FROM `location` WHERE name='Retrospective'),(SELECT location_tag_id FROM `location_tag` WHERE name='Workstation Location'));
 
 LOCK TABLES `task` WRITE;
 /*!40000 ALTER TABLE `task` DISABLE KEYS */;

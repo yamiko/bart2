@@ -21,11 +21,26 @@
       $('infoBar'+tstCurrentPage).innerHTML = "<%= welcome_message %>";  
     }           
   </script>
+  
+  <style>
+
+    .tt_controls_workstation_location .keyboard {
+      display: none;
+    }
+
+    #tt_page_workstation_location .options {
+      height: 430px;;
+    }
+  </style>
 
   <% form_tag session_path, :method => :put do -%>
 
-    <label for="location">Location</label>
-    <%= text_field_tag(:location, nil, :helpText=> "Workstation location", :field_type => "number", :tt_onLoad => "inform();") %><br>
+    <% optionsString = "<option>" "" "</option>"
+      generic_locations.each do  | location |
+      optionsString += "<option value = '" + location + "'>" + location + "</option>"
+    end
+    %>
+    <%= select_tag :location, optionsString, { :helpText => 'Workstation location' ,:tt_onLoad => "inform();"} %>
 
     <%= submit_tag value="Submit"%>
   <% end %>

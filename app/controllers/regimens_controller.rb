@@ -40,7 +40,7 @@ class RegimensController < ApplicationController
         :obs_datetime => start_date) if prescribe_arvs
       orders.each do |order|
         drug = Drug.find(order.drug_inventory_id)
-        regimen_name = (order.regimen.concept.concept_names.tagged("short").first || order.regimen.concept.name).name
+        regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept.name).name
         DrugOrder.write_order(
           encounter, 
           @patient, 
@@ -84,7 +84,7 @@ class RegimensController < ApplicationController
       orders = RegimenDrugOrder.all(:conditions => {:regimen_id => Regimen.find_by_concept_id(drug.concept_id).regimen_id})
       orders.each do |order|
         drug = Drug.find(order.drug_inventory_id)
-        regimen_name = (order.regimen.concept.concept_names.tagged("short").first || order.regimen.concept.name).name
+        regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept_names.typed("FULLY_SPECIFIED").first).name
         DrugOrder.write_order(
           encounter, 
           @patient, 
@@ -110,7 +110,7 @@ class RegimensController < ApplicationController
     render :layout => false and return unless @patient_program
     @regimens = @patient_program.regimens(@patient_program.patient.current_weight).uniq
     @regimens = @regimens.map{|r| Concept.find(r) }
-    @options = @regimens.map{|r| [r.concept_id, (r.concept_names.tagged("short").first || r.name).name] } + @options
+    @options = @regimens.map{|r| [r.concept_id, (r.concept_names.typed("SHORT").first || r.concept_names.typed("FULLY_SPECIFIED").first).name] } + @options
     @options_altered = []    
     @options.each {|opt|
       reg_index = Regimen.find(:all,
