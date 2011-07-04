@@ -111,7 +111,6 @@ class UserController < ApplicationController
       redirect_to :action => 'new'
       return
     end
-
     if (params[:user][:password] != params[:user_confirm][:password])
       flash[:notice] = 'Password Mismatch'
       redirect_to :action => 'new'
@@ -124,7 +123,7 @@ class UserController < ApplicationController
       @user_admin_role = params[:user_role_admin][:role]
       @user_name = params[:user][:username]
     end
-      
+
     person = Person.create()
     person.names.create(params[:person_name])
     params[:user][:user_id] = person.id
@@ -166,9 +165,9 @@ class UserController < ApplicationController
       @user.update_attributes(:username => params[:user]['username'])
     end
 
-    PersonName.find(:all,:conditions =>["voided = 0 AND person_id = ?",@user.id]).each do | person_name |
+    PersonName.find(:all,:conditions =>["voided = 0 AND person_id = ?",@user.person_id]).each do | person_name |
       person_name.voided = 1
-      person_name.voided_by = User.current_user.id
+      person_name.voided_by = User.current_user.person_id
       person_name.date_voided = Time.now()
       person_name.void_reason = 'Edited name'
       person_name.save
@@ -177,7 +176,7 @@ class UserController < ApplicationController
     person_name = PersonName.new()
     person_name.family_name = params[:person_name]["family_name"]
     person_name.given_name = params[:person_name]["given_name"]
-    person_name.person_id = @user.id
+    person_name.person_id = @user.person_id
     person_name
     if person_name.save
       flash[:notice] = 'User was successfully updated.'
@@ -200,7 +199,7 @@ class UserController < ApplicationController
     end    
    end
   end
-  
+
   def add_role
      @user = User.find(params[:id])
      unless request.get?
@@ -217,7 +216,7 @@ class UserController < ApplicationController
       @show_super_user = true if UserRole.find_all_by_user_id(@user.user_id).collect{|ur|ur.role.role != "superuser" }
    end
   end
-  
+
   def delete_role
     @user = User.find(params[:id])
     unless request.post?
@@ -241,10 +240,10 @@ class UserController < ApplicationController
      redirect_to :action =>"show", :id => @user.id
    end
   end
-  
+
   def change_password
     @user = User.find(params[:id])
-   
+
     unless request.get? 
       if (params[:user][:password] != params[:user_confirm][:password])
         flash[:notice] = 'Password Mismatch'
@@ -262,7 +261,7 @@ class UserController < ApplicationController
     end
 
   end
-  
+
   def activities
     # Don't show tasks that have been disabled
     @privileges = User.current_user.privileges.reject{|priv| GlobalProperty.find_by_property("disable_tasks").property_value.split(",").include?(priv.privilege)}
@@ -273,5 +272,5 @@ class UserController < ApplicationController
     User.current_user.activities = params[:user][:activities]
     redirect_to(:controller => 'patient', :action => "menu")
   end
-  
+
 end
