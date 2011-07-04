@@ -46,6 +46,7 @@ CREATE TABLE `orders` (
   `accession_number` varchar(255) default NULL,
   `obs_id` int(11) default NULL,
   `uuid` char(38) NOT NULL,
+  `discontinued_reason_non_coded` varchar(255) DEFAULT NULL,
   PRIMARY KEY  (`order_id`),
   UNIQUE KEY `orders_uuid_index` (`uuid`),
   KEY `order_creator` (`creator`),
