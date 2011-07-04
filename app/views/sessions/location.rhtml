@@ -29,20 +29,14 @@
     }
 
     #tt_page_workstation_location .options {
-      height: 430px;;
+      display: none;
     }
   </style>
 
   <% form_tag session_path, :method => :put do -%>
-
-    <% optionsString = "<option>" "" "</option>"
-      generic_locations.each do  | location |
-      optionsString += "<option value = '" + location + "'>" + location + "</option>"
-    end
-    %>
-    <%= select_tag :location, optionsString, { :helpText => 'Workstation location' ,:tt_onLoad => "inform();"} %>
-
-    <%= submit_tag value="Submit"%>
+    <label for="location">Location</label>
+    <%= text_field_tag(:location, nil, :helpText => "Workstation location", :field_type => "number", :tt_onLoad => "inform();") %><br>
+    <%= submit_tag :value => "Submit" %>
   <% end %>
 
   <div id="popupBox"  align="center">
