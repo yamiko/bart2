@@ -157,12 +157,12 @@ class Migration
           next
         end
 
-        person = Person.create()
+       # person = Person.create()
 
         params={}
         params[:person_name] = {"family_name" => user[last_name], "middle_name" => user[middle_name],"given_name" => user[first_name]}
 
-        person.names.create(params[:person_name])
+        #person.names.create(params[:person_name])
 
         date_voided = user[date_voided].to_datetime.strftime('%Y-%m-%d %H:%M:%S') rescue ''
         sql = "INSERT INTO users (user_id, system_id, username, password, salt, secret_question, secret_answer, creator, date_created, changed_by, date_changed, person_id, retired, retired_by, date_retired, retire_reason, uuid)
