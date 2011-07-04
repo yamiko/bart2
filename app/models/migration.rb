@@ -129,4 +129,47 @@ class Migration
 
     return person
   end
+
+  def self.get_user_data_from_csv_and_create_user()
+        user_id = 0
+        system_id = 1
+        username = 2
+        first_name = 3
+        middle_name = 4
+        last_name = 5
+        password = 6
+        salt = 7
+        secret_Question = 8
+        secret_Answer = 9
+        creator = 10
+        date_created = 11
+        changed_by = 12
+        date_changed = 13
+        voided = 14
+        voided_by = 15
+        date_voided = 16
+        void_Reason = 17
+
+      csv_url = RAILS_ROOT + '/user-300.csv'
+      FasterCSV.foreach("#{csv_url}", :quote_char => '"', :col_sep =>',', :row_sep =>:auto) do |user|
+        existing_user = User.find(:first, :conditions => {:username => params[:user][:username]}) rescue nil
+        if existing_user
+          next
+        end
+
+        person = Person.create()
+
+        params={}
+        params[:person_name] = {"family_name" => user[last_name], "middle_name" => user[middle_name],"given_name" => user[first_name]}
+
+        person.names.create(params[:person_name])
+
+        date_voided = user[date_voided].to_datetime.strftime('%Y-%m-%d %H:%M:%S') rescue ''
+        sql = "INSERT INTO users (user_id, system_id, username, password, salt, secret_question, secret_answer, creator, date_created, changed_by, date_changed, person_id, retired, retired_by, date_retired, retire_reason, uuid)
+               VALUES(#{user[user_id]}, '#{user[system_id]}', '#{user[username]}', '#{user[password]}', '#{user[salt]}', '#{user[secret_Question]}', '#{user[secret_Answer]}', #{user[creator]}, '#{user[date_created].to_datetime.strftime('%Y-%m-%d %H:%M:%S')}', #{user[changed_by]}, '#{user[date_changed].to_datetime.strftime('%Y-%m-%d %H:%M:%S')}', #{person.id}, #{user[voided]}, '#{user[voided_by]}', '#{date_voided}', NULL, '')"
+        ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
+        ActiveRecord::Base.connection.execute(sql)
+        ActiveRecord::Base.connection.execute('SET foreign_key_checks = 1')
+      end
+  end
 end
