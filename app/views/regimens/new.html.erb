@@ -143,11 +143,13 @@
        :id => 'cpt_given',
        :helpText => "Prescribe CPT" } %>
 
-  <%= touch_yes_no_tag "ISONIAZID", @patient, nil,
-      {:optional => false,
-       :id => 'ipt_given',
-       :helpText => "Prescribe IPT" } %>
-  
+  <% if @patient.gender == 'F' %>
+    <%= touch_yes_no_tag "ISONIAZID", @patient, nil,
+        {:optional => false,
+         :id => 'ipt_given',
+         :helpText => "Prescribe IPT" } %>
+  <%end%>
+
   <%= touch_yes_no_tag "PRESCRIBE ARVS", @patient, nil,
       {:optional => false,
        :id => 'prescribe_arvs',
