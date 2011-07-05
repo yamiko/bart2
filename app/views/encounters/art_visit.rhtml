@@ -89,13 +89,15 @@
        :helpText => "Depo-provera injection given?" } %>
   <%end%>
 
+ <% if @patient.person.age >= 14 %>
   <%= touch_numeric_tag "CONDOMS", @patient, nil,
     {:optional => false,
      :helpText => "Number of Condoms given" } %>
+ <% end %>
 
   <%= touch_yes_no_unknown_tag "OTHER DRUGS", @patient, nil,
     {:optional => false,
-     :helpText => "Prescribe ARVs,CPT and IPT this visit?" } %>
+     :helpText => "Prescribe Drugs this visit?" } %>
 
   <% if Location.current_location.name.match(/Nurse/i) %>
     <%= touch_yes_no_unknown_tag "REFER TO ART CLINICIAN", @patient, nil,
