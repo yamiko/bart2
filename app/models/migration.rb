@@ -1,6 +1,6 @@
 class Migration
 
-  def get_patient_demographics_from_csv_and_create_patient(csv_url)
+  def self.get_patient_demographics_from_csv_and_create_patient
 
       person_id  = 0
       patient_id  = 1
@@ -48,16 +48,20 @@ class Migration
            }
 
       i = 0
+      csv_url = RAILS_ROOT + '/patient-300.csv'
       FasterCSV.foreach("#{csv_url}", :quote_char => '"', :col_sep =>',', :row_sep =>:auto) do |row|
 
+        person = {}
+        person["person"] = {}
         person["person"]["occupation"] = row[occupation].to_s rescue nil
         person["person"]["age_estimate"] = row[birthdate_estimated].to_s rescue nil
         person["person"]["cell_phone_number"] = row[cell_phone_number].to_s rescue nil
 
         person["person"]["birth_month"] = row[birth_date].to_date.month rescue nil
-        person["person"]["birth_year"] = row[birth_date].to_date.year rescue nil
+        person["person"]["birth_year"] = row[birth_date].to_date.year rescue 2010
         person["person"]["birth_day"] = row[birth_date].to_date.day rescue nil
 
+        person["person"]["addresses"] = {}
         person["person"]["addresses"]["address2"] = row[landmark].to_s rescue nil
         person["person"]["addresses"]["city_village"] = row[city_village].to_s rescue nil
         person["person"]["addresses"]["county_district"] = row[traditional_authority].to_s rescue nil
@@ -65,6 +69,8 @@ class Migration
         person["person"]["gender"] = row[sex].to_s rescue nil
         person["person"]["patient_id"] = row[patient_id].to_s rescue nil
 
+
+        person["person"]["names"] = {}
         person["person"]["names"]["family_name"] = row[last_name].to_s rescue nil
         person["person"]["names"]["given_name"] = row[first_name].to_s rescue nil
 
@@ -73,11 +79,13 @@ class Migration
 
         Person.migrated_datetime = row[date_created].to_datetime.strftime("%Y-%m-%d %H:%M:%S").to_s rescue nil
         Person.migrated_creator  = row[creator].to_s
-        person = Person.create_from_migrated_data(person["person"])
+        ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
+        person = Migration.create_patient_from_migrated_data(person["person"])
+        ActiveRecord::Base.connection.execute('SET foreign_key_checks = 1')
       end
   end
 
- def create_patient_from_migrated_data(params)
+ def self.create_patient_from_migrated_data(params)
     address_params = params["addresses"]
     names_params = params["names"]
     patient_params = params["patient"]
@@ -85,7 +93,16 @@ class Migration
     birthday_params = params_to_process.reject{|key,value| key.match(/gender/) }
     person_params = params_to_process.reject{|key,value| key.match(/birth_|age_estimate|occupation/) }
 
-    person = Person.create(person_params)
+    #person = Person.create(person_params)
+
+    uuid = ActiveRecord::Base.connection.select_one("SELECT UUID() as uuid")['uuid']
+    migrated_datetime = Person.migrated_datetime.to_s
+    migrated_creator = Person.migrated_creator
+    sql = "INSERT INTO `person` (`person_id`,`voided`, `birthdate`, `changed_by`, `birthdate_estimated`, `creator`, `uuid`, `gender`, `voided_by`, `dead`, `date_voided`, `void_reason`, `death_date`, `date_changed`, `cause_of_death`, `date_created`)
+                                  VALUES(#{params['patient_id']},0, NULL, 1, 0, '#{migrated_creator}', '#{uuid}', '#{params['gender']}', NULL, 0, NULL, NULL, NULL, '2011-07-05 09:24:16', NULL, '#{migrated_datetime}')"
+
+    ActiveRecord::Base.connection.execute(sql) rescue nil
+    person = Person.find(params["patient_id"])  rescue nil
 
     if birthday_params["birth_year"] == "Unknown"
       person.set_birthdate_by_age(birthday_params["age_estimate"],self.session_datetime || Date.today)
@@ -114,18 +131,16 @@ class Migration
 
 # TODO handle the birthplace attribute
 
-    if (!patient_params.nil?)
-      patient = person.create_patient
+      patient = person.create_patient rescue nil
 
       patient_params["identifiers"].each{|identifier_type_name, identifier|
 
         identifier_type = PatientIdentifierType.find_by_name(identifier_type_name) || PatientIdentifierType.find_by_name("Unknown id")
         patient.patient_identifiers.create("identifier" => identifier, "identifier_type" => identifier_type.patient_identifier_type_id)
-      } if patient_params["identifiers"]
+      } if patient_params["identifiers"] rescue nil
 
       # This might actually be a national id, but currently we wouldn't know
       #patient.patient_identifiers.create("identifier" => patient_params["identifier"], "identifier_type" => PatientIdentifierType.find_by_name("Unknown id")) unless params["identifier"].blank?
-    end
 
     return person
   end
@@ -166,7 +181,45 @@ class Migration
 
         date_voided = user[date_voided].to_datetime.strftime('%Y-%m-%d %H:%M:%S') rescue ''
         sql = "INSERT INTO users (user_id, system_id, username, password, salt, secret_question, secret_answer, creator, date_created, changed_by, date_changed, person_id, retired, retired_by, date_retired, retire_reason, uuid)
-               VALUES(#{user[user_id]}, '#{user[system_id]}', '#{user[username]}', '#{user[password]}', '#{user[salt]}', '#{user[secret_Question]}', '#{user[secret_Answer]}', #{user[creator]}, '#{user[date_created].to_datetime.strftime('%Y-%m-%d %H:%M:%S')}', #{user[changed_by]}, '#{user[date_changed].to_datetime.strftime('%Y-%m-%d %H:%M:%S')}', #{person.id}, #{user[voided]}, '#{user[voided_by]}', '#{date_voided}', NULL, '')"
+               VALUES(#{user[user_id]}, '#{user[system_id]}', '#{user[username]}', '#{user[password]}', '#{user[salt]}', '#{user[secret_Question]}', '#{user[secret_Answer]}', #{user[creator]}, '#{user[date_created].to_datetime.strftime('%Y-%m-%d %H:%M:%S')}', #{user[changed_by]}, '#{user[date_changed].to_datetime.strftime('%Y-%m-%d %H:%M:%S')}', NULL, #{user[voided]}, '#{user[voided_by]}', '#{date_voided}', NULL, '')"
+        ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
+        ActiveRecord::Base.connection.execute(sql)
+        ActiveRecord::Base.connection.execute('SET foreign_key_checks = 1')
+      end
+  end
+
+  def self.get_user_identifier_from_csv_and_create_user
+        patient_id = 0
+        identifier_no = 1
+        identifier_type = 2
+        preferred = 3
+        location_id = 4
+        creator = 5
+        date_created = 6
+        voided = 7
+        voided_by = 8
+        date_voided = 9
+        void_reason = 10
+
+      csv_url = RAILS_ROOT + '/identifier-300.csv'
+      FasterCSV.foreach("#{csv_url}", :quote_char => '"', :col_sep =>',', :row_sep =>:auto, :headers => true) do |identifier|
+
+      date_create = identifier[date_created].to_datetime.strftime('%Y-%m-%d %H:%M:%S') rescue nil
+      date_voide =  identifier[date_voided].to_datetime.strftime('%Y-%m-%d %H:%M:%S') rescue nil
+
+      if identifier[identifier_type].gsub('_',' ').to_s == "Arv national id"
+         identifier[identifier_type] = "ARV Number"
+      end
+      identifier_type_id = PatientIdentifierType.find_by_name(identifier[identifier_type].gsub('_',' ')).id rescue nil
+
+      if identifier_type_id == nil
+         next
+      end
+
+      uuid = ActiveRecord::Base.connection.select_one("SELECT UUID() as uuid")['uuid']
+      sql = "INSERT INTO `patient_identifier` (`patient_id`, `identifier`, `identifier_type`, `preferred`, `location_id`, `creator`, `date_created`, `voided`, `voided_by`, `date_voided`, `void_reason`, `uuid`)
+             VALUES('#{identifier[patient_id]}', '#{identifier[identifier_no]}', '#{identifier_type_id}', '#{identifier[preferred]}', '#{identifier[location_id]}', '#{identifier[creator]}', '#{date_create}', #{identifier[voided]}, '#{identifier[voided_by]}', '#{date_voide}', '#{identifier[void_reason]}', '#{identifier[identifier_no]}')"
+
         ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
         ActiveRecord::Base.connection.execute(sql)
         ActiveRecord::Base.connection.execute('SET foreign_key_checks = 1')
