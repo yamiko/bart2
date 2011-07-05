@@ -8,7 +8,8 @@
   <% if session[:return_to] %>
   var tt_cancel_destination = "<%= session[:return_to] %>"  
   <% else %>
-  var tt_cancel_destination = "/patients/relationships/<%= @patient.patient_id %>"  
+  var tt_cancel_destination = "/patients/guardians_dashboard/<%= @patient.patient_id %>"
+  var tt_cancel_show = "/patients/guardians_dashboard/<%= @patient.patient_id %>"
   <% end %>
 </script>
 <form id='relationship' action="/relationships/create" method='post'> 
