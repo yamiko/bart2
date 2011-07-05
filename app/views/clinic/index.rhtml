@@ -18,7 +18,7 @@
               <th colspan=2>Home Page</th>
             </tr>
             <h1 id='project_name'>
-              <%= (@location.downcase == "outpatient" ? "opd" : "bart") %>
+              <%= (@location.downcase == "outpatient" ? "OPD" : "BART") %>
             </h1>
 
             <div id="facility"><%= @facility %></div>
@@ -39,14 +39,21 @@
             </select>
             <select id="links">
               <option value='/logout'>Logout</option>
-              <option value='/people/search' ttSize="200px">Find By Name</option>
+              <%# Show Find / Register Patient button on HIV Reception and Find by Name button
+                  on the rest of the stations %>
+
+              <% if @location =~ /HIV Reception/ %>
+                  <option value='/people/search' ttSize="270px">Find / Register Patient</option>
+              <% else %>
+                  <option value='/people/search' ttSize="200px">Find By Name</option>
+              <% end %>
               <%# Hide Find by ARV Number button on non-HIV workstations %>
               <% if @location =~ /HIV/ %>
-                <option value="/people/find_by_arv_number" ttSize="280px">Find By ARV Number</option>
+                <option value="/people/find_by_arv_number" ttSize="260px">Find By ARV Number</option>
               <% end %>
-              <option value='/location?from=clinic'>New Desk</option>
+              <option value='/location?from=clinic' ttSize="170px">New Location</option>
               <option value='<%= ((session[:datetime].to_date rescue '') != '' ?
-                          "/people/reset_datetime" : "/people/set_datetime") %>'  ttSize="160px">
+                          "/people/reset_datetime" : "/people/set_datetime") %>'  ttSize="100px">
                 <%= ((session[:datetime].to_date rescue '') != '' ? "Reset Date" : "Set Date") %></option>
               <!--option link='regimen.html'>Regimen</option-->
             </select>
