@@ -127,7 +127,8 @@ class Person < ActiveRecord::Base
         "address2" => self.addresses[0].address2
       },
     "attributes" => {"occupation" => self.get_attribute('Occupation'),
-                     "cell_phone_number" => self.get_attribute('Cell Phone Number')}}}
+                     "cell_phone_number" => self.get_attribute('Cell Phone Number'),
+                     "landmark" => self.get_attribute('Landmark or Plot Number')}}}
  
     if not self.patient.patient_identifiers.blank? 
       demographics["person"]["patient"] = {"identifiers" => {}}
@@ -147,6 +148,7 @@ class Person < ActiveRecord::Base
                    {"attributes" => {
                       "occupation" => demo['person']['occupation'],
                       "cell_phone_number" => demo['person']['cell_phone_number'],
+                      "landmark" => demo['person']['landmark']
                     } ,
                     "addresses" => 
                      { "address2"=> demo['person']['addresses']['location'], 
@@ -300,7 +302,7 @@ class Person < ActiveRecord::Base
     address_params = params["addresses"]
     names_params = params["names"]
     patient_params = params["patient"]
-    params_to_process = params.reject{|key,value| key.match(/addresses|patient|names|relation|cell_phone_number|home_phone_number|office_phone_number/) }
+    params_to_process = params.reject{|key,value| key.match(/addresses|patient|names|relation|cell_phone_number|home_phone_number|office_phone_number|landmark/) }
     birthday_params = params_to_process.reject{|key,value| key.match(/gender/) }
     person_params = params_to_process.reject{|key,value| key.match(/birth_|age_estimate|occupation/) }
 
@@ -330,6 +332,10 @@ class Person < ActiveRecord::Base
     person.person_attributes.create(
       :person_attribute_type_id => PersonAttributeType.find_by_name("Home Phone Number").person_attribute_type_id,
       :value => params["home_phone_number"]) unless params["home_phone_number"].blank? rescue nil
+
+     person.person_attributes.create(
+      :person_attribute_type_id => PersonAttributeType.find_by_name("Landmark Or Plot Number").person_attribute_type_id,
+      :value => params["landmark"]) unless params["landmark"].blank? rescue nil
  
 # TODO handle the birthplace attribute
 
