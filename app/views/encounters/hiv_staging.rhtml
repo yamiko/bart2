@@ -341,7 +341,7 @@
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <%# end %>
 
-    <label for='new_cd4_count_available'>New CD4 count available?</label>
+    <label for='new_cd4_count_available'>CD4 count available?</label>
       <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_count_available', :tt_pageStyleClass => 'NoKeyboard' %>
 
     <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,

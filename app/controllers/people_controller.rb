@@ -13,6 +13,7 @@ class PeopleController < ApplicationController
     person_params = {"occupation"=> params[:occupation],
  "age_estimate"=> params['patient_age']['age_estimate'],
  "cell_phone_number"=> params['cell_phone']['identifier'],
+ "landmark"=> params['landmark']['identifier'],
  "birth_month"=> params[:patient_month],
  "addresses"=>{ "address2" => params['p_address']['identifier'],
  "city_village"=> params['patientaddress']['city_village'],
@@ -116,7 +117,7 @@ class PeopleController < ApplicationController
         else
           print_and_redirect("/patients/national_id_label?patient_id=#{person.id}", next_task(person.patient))
         end
-      end  
+      end
     else
       # Does this ever get hit?
       redirect_to :action => "index"
