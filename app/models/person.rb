@@ -128,7 +128,7 @@ class Person < ActiveRecord::Base
       },
     "attributes" => {"occupation" => self.get_attribute('Occupation'),
                      "cell_phone_number" => self.get_attribute('Cell Phone Number'),
-                     "landmark" => self.get_attribute('Landmark or Plot Number')}}}
+                     "landmark" => self.get_attribute('Landmark Or Plot Number')}}}
  
     if not self.patient.patient_identifiers.blank? 
       demographics["person"]["patient"] = {"identifiers" => {}}
