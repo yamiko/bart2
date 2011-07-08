@@ -34,7 +34,7 @@ class Person < ActiveRecord::Base
   end  
 
   def address
-    "#{self.addresses.first.city_village}" rescue nil
+    "#{self.addresses.first.city_village}"  rescue nil
   end 
 
   def age(today = Date.today)
@@ -124,11 +124,11 @@ class Person < ActiveRecord::Base
       "addresses" => {
         "county_district" => self.addresses[0].county_district,
         "city_village" => self.addresses[0].city_village,
+        "address1" => self.addresses[0].address1,
         "address2" => self.addresses[0].address2
       },
     "attributes" => {"occupation" => self.get_attribute('Occupation'),
-                     "cell_phone_number" => self.get_attribute('Cell Phone Number'),
-                     "landmark" => self.get_attribute('Landmark Or Plot Number')}}}
+                     "cell_phone_number" => self.get_attribute('Cell Phone Number')}}}
  
     if not self.patient.patient_identifiers.blank? 
       demographics["person"]["patient"] = {"identifiers" => {}}
@@ -147,12 +147,12 @@ class Person < ActiveRecord::Base
                    "person" =>
                    {"attributes" => {
                       "occupation" => demo['person']['occupation'],
-                      "cell_phone_number" => demo['person']['cell_phone_number'],
-                      "landmark" => demo['person']['landmark']
+                      "cell_phone_number" => demo['person']['cell_phone_number']
                     } ,
                     "addresses" => 
-                     { "address2"=> demo['person']['addresses']['location'], 
-                       "city_village" => demo['person']['addresses']['city_village'], 
+                     { "address2"=> demo['person']['addresses']['location'],
+                       "city_village" => demo['person']['addresses']['city_village'],
+                       "address1"  => demo['person']['addresses']['address1'],
                        "county_district" => ""
                      },
                     "age_estimate" => self.birthdate_estimated ,
@@ -302,7 +302,7 @@ class Person < ActiveRecord::Base
     address_params = params["addresses"]
     names_params = params["names"]
     patient_params = params["patient"]
-    params_to_process = params.reject{|key,value| key.match(/addresses|patient|names|relation|cell_phone_number|home_phone_number|office_phone_number|landmark/) }
+    params_to_process = params.reject{|key,value| key.match(/addresses|patient|names|relation|cell_phone_number|home_phone_number|office_phone_number/) }
     birthday_params = params_to_process.reject{|key,value| key.match(/gender/) }
     person_params = params_to_process.reject{|key,value| key.match(/birth_|age_estimate|occupation/) }
 
@@ -332,11 +332,11 @@ class Person < ActiveRecord::Base
     person.person_attributes.create(
       :person_attribute_type_id => PersonAttributeType.find_by_name("Home Phone Number").person_attribute_type_id,
       :value => params["home_phone_number"]) unless params["home_phone_number"].blank? rescue nil
-
+=begin
      person.person_attributes.create(
       :person_attribute_type_id => PersonAttributeType.find_by_name("Landmark Or Plot Number").person_attribute_type_id,
       :value => params["landmark"]) unless params["landmark"].blank? rescue nil
- 
+=end
 # TODO handle the birthplace attribute
 
     if (!patient_params.nil?)
