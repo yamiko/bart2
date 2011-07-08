@@ -134,7 +134,7 @@
   use_filing_number = GlobalProperty.find_by_property('use.filing.number').property_value rescue 'false'
   if Location.current_location.name.match(/HIV|ART/) and use_filing_number == 'true'%>
     <tr>
-      <th>Filing number:</th><td><%=@person.patient.get_identifier('Filing Number') || @person.patient.get_identifier('Archived Filing Number')%></td>
+      <th>Filing number:</th><td><%=@person.patient.get_identifier('Filing number') || @person.patient.get_identifier('Archived filing number')%></td>
     </tr>
   <%end%>
   <%if Location.current_location.name.match(/HIV|ART/) %>
