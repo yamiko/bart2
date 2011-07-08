@@ -123,12 +123,12 @@ class Mastercard
 
     visits.who_clinical_conditions = ""
 
-    (hiv_staging.observations).collect{|obs|
+    (hiv_staging.observations).collect do |obs|
       name = obs.to_s.split(':')[0].strip rescue nil
+      next unless name == 'WHO STAGES CRITERIA PRESENT'
       condition = obs.to_s.split(':')[1].strip.humanize rescue nil
       visits.who_clinical_conditions = visits.who_clinical_conditions + (condition) + "; "
-      next unless name == 'WHO STAGES CRITERIA PRESENT'
-    }
+    end rescue []
     
     # cd4_count_date cd4_count pregnant who_clinical_conditions
 
