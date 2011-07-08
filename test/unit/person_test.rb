@@ -3,7 +3,8 @@ require File.dirname(__FILE__) + '/../test_helper'
 class PersonTest < ActiveSupport::TestCase
   context "Person" do
     fixtures :person, :person_name, :person_name_code,
-             :person_address, :obs, :patient, :person_attribute
+             :person_address, :obs, :patient, :person_attribute,
+             :person_attribute_type
 
     should "be valid" do
       assert Person.make.valid?
@@ -141,7 +142,8 @@ class PersonTest < ActiveSupport::TestCase
       p = person(:evan)
       data = {
         "occupation" => "Other",
-        "cell_phone_number" => "0999123456"
+        "cell_phone_number" => "0999123456",
+        "landmark" => "Neighbour to Bwaila Secondary School"
       }
       assert_equal p.demographics["person"]["attributes"], data
     end
@@ -166,7 +168,8 @@ class PersonTest < ActiveSupport::TestCase
                        "city_village" => "Katoleza",
                        "county_district" => "Checkuchecku"},
         "birth_month" => 6,
-        "attributes" => {"occupation" => "Other", "cell_phone_number" => "0999123456"},
+        "attributes" => {"occupation" => "Other", "cell_phone_number" => "0999123456",
+                         "landmark" => "Neighbour to Bwaila Secondary School"},
         "patient" => {"identifiers" => {"National id" => "P1701210013",
                                       "Pre ART Number" => "PART-311",
                                       "ARV Number" => "ARV-311"}},
