@@ -131,6 +131,7 @@ class PersonTest < ActiveSupport::TestCase
     should "return a hash with correct address" do
       p = person(:evan)
       data = {
+        "address1" => "Green Snake Way",
         "address2" => "Friendship House",
         "county_district" => "Checkuchecku",
         "city_village" => "Katoleza"
@@ -142,8 +143,7 @@ class PersonTest < ActiveSupport::TestCase
       p = person(:evan)
       data = {
         "occupation" => "Other",
-        "cell_phone_number" => "0999123456",
-        "landmark" => "Neighbour to Bwaila Secondary School"
+        "cell_phone_number" => "0999123456"
       }
       assert_equal p.demographics["person"]["attributes"], data
     end
@@ -166,10 +166,10 @@ class PersonTest < ActiveSupport::TestCase
       evan_demographics = {"person" => {
         "addresses"=> {"address2" => "Friendship House",
                        "city_village" => "Katoleza",
+                       "address1" => "Green Snake Way",
                        "county_district" => "Checkuchecku"},
         "birth_month" => 6,
-        "attributes" => {"occupation" => "Other", "cell_phone_number" => "0999123456",
-                         "landmark" => "Neighbour to Bwaila Secondary School"},
+        "attributes" => {"occupation" => "Other", "cell_phone_number" => "0999123456"},
         "patient" => {"identifiers" => {"National id" => "P1701210013",
                                       "Pre ART Number" => "PART-311",
                                       "ARV Number" => "ARV-311"}},

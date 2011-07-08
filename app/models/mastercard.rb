@@ -28,7 +28,7 @@ class Mastercard
     visits.age =patient_obj.person.age
     visits.occupation = person_demographics['person']['attributes']['occupation']
     visits.address = person_demographics['person']['addresses']['city_village']
-    visits.landmark = person_demographics['person']['addresses']['address2']
+    visits.landmark = person_demographics['person']['addresses']['address1']
     visits.init_wt = patient_obj.initial_weight
     visits.init_ht = patient_obj.initial_height
     visits.bmi = patient_obj.initial_bmi
