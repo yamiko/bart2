@@ -97,8 +97,10 @@ class Patient < ActiveRecord::Base
     end rescue []
 
     # BMI alerts
-    bmi_alert = self.current_bmi_alert
-    alerts << bmi_alert if bmi_alert
+    if self.person.age >= 15
+      bmi_alert = self.current_bmi_alert
+      alerts << bmi_alert if bmi_alert
+    end
 
     alerts
   end

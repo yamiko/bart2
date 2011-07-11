@@ -1,6 +1,6 @@
 LOCK TABLES `location` WRITE;
 
-INSERT INTO `location` (name, description, creator, date_created, uuid) VALUES('Retrospective', 'Standard Entry for Retrospective Task', 1, Now(), 'e9f362aa-9048-11e0-8645-96f71685592y');
+INSERT INTO `location` (name, description, creator, date_created, uuid) VALUES('Retrospective', 'Standard Entry for Retrospective Task', 1, Now(), (SELECT UUID()));
 
 UNLOCK TABLES;
 
