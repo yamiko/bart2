@@ -143,24 +143,26 @@
        :id => 'cpt_given',
        :helpText => "Prescribe CPT" } %>
 
-  <%= touch_yes_no_tag "ISONIAZID", @patient, nil,
-      {:optional => false,
-       :id => 'ipt_given',
-       :helpText => "Prescribe IPT" } %>
-  
+  <% if @patient.gender == 'F' && @patient.person.age >= 14 %>
+    <%= touch_yes_no_tag "ISONIAZID", @patient, nil,
+        {:optional => false,
+         :id => 'ipt_given',
+         :helpText => "Prescribe IPT" } %>
+  <%end%>
+
   <%= touch_yes_no_tag "PRESCRIBE ARVS", @patient, nil,
       {:optional => false,
        :id => 'prescribe_arvs',
        :condition => 'hasReasonForART() == true',
        :helpText => "PRESCRIBE ARVS" } %>
-  
+
   <%= select_tag :continue_existing_regimen, options_for_select([['',''],['YES','YES'],['NO','NO']], ''), {
     :textCase => "upper", 
     :allowFreeText => 'false',
     :condition => 'hasReasonForART() == true && current_regimens_for_programs[$("patient_program").value] != null && $("prescribe_arvs").value == "YES"',
     :tt_onLoad => '$("infoBar"+tstCurrentPage).innerHTML = current_regimen_names_for_programs[$("patient_program").value]',
     :helpText => "Continue existing regimen?"}%>
-  
+
   <%= select_tag :regimen_concept_id, nil, {
     :ajaxUrl => "",
     :allowFreeText => 'false',

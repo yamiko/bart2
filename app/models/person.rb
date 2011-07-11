@@ -34,7 +34,7 @@ class Person < ActiveRecord::Base
   end  
 
   def address
-    "#{self.addresses.first.city_village}" rescue nil
+    "#{self.addresses.first.city_village}"  rescue nil
   end 
 
   def age(today = Date.today)
@@ -124,6 +124,7 @@ class Person < ActiveRecord::Base
       "addresses" => {
         "county_district" => self.addresses[0].county_district,
         "city_village" => self.addresses[0].city_village,
+        "address1" => self.addresses[0].address1,
         "address2" => self.addresses[0].address2
       },
     "attributes" => {"occupation" => self.get_attribute('Occupation'),
@@ -146,11 +147,12 @@ class Person < ActiveRecord::Base
                    "person" =>
                    {"attributes" => {
                       "occupation" => demo['person']['occupation'],
-                      "cell_phone_number" => demo['person']['cell_phone_number'],
+                      "cell_phone_number" => demo['person']['cell_phone_number']
                     } ,
                     "addresses" => 
-                     { "address2"=> demo['person']['addresses']['location'], 
-                       "city_village" => demo['person']['addresses']['city_village'], 
+                     { "address2"=> demo['person']['addresses']['location'],
+                       "city_village" => demo['person']['addresses']['city_village'],
+                       "address1"  => demo['person']['addresses']['address1'],
                        "county_district" => ""
                      },
                     "age_estimate" => self.birthdate_estimated ,
@@ -330,7 +332,11 @@ class Person < ActiveRecord::Base
     person.person_attributes.create(
       :person_attribute_type_id => PersonAttributeType.find_by_name("Home Phone Number").person_attribute_type_id,
       :value => params["home_phone_number"]) unless params["home_phone_number"].blank? rescue nil
- 
+=begin
+     person.person_attributes.create(
+      :person_attribute_type_id => PersonAttributeType.find_by_name("Landmark Or Plot Number").person_attribute_type_id,
+      :value => params["landmark"]) unless params["landmark"].blank? rescue nil
+=end
 # TODO handle the birthplace attribute
 
     if (!patient_params.nil?)
@@ -426,59 +432,6 @@ class Person < ActiveRecord::Base
                                          self.id,PersonAttributeType.find_by_name("Home Phone Number").id]).value rescue nil
 
     phone_numbers
-  end
-
- def self.create_from_migrated_data(params)
-    address_params = params["addresses"]
-    names_params = params["names"]
-    patient_params = params["patient"]
-    params_to_process = params.reject{|key,value| key.match(/addresses|patient|names|relation|cell_phone_number|home_phone_number|office_phone_number/) }
-    birthday_params = params_to_process.reject{|key,value| key.match(/gender/) }
-    person_params = params_to_process.reject{|key,value| key.match(/birth_|age_estimate|occupation/) }
-
-    person = Person.create(person_params)
-
-    if birthday_params["birth_year"] == "Unknown"
-      person.set_birthdate_by_age(birthday_params["age_estimate"],self.session_datetime || Date.today)
-    else
-      person.set_birthdate(birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
-    end
-    person.save
-    person.names.create(names_params)
-    person.addresses.create(address_params)
-
-    person.person_attributes.create(
-      :person_attribute_type_id => PersonAttributeType.find_by_name("Occupation").person_attribute_type_id,
-      :value => params["occupation"]) unless params["occupation"].blank? rescue nil
-
-    person.person_attributes.create(
-      :person_attribute_type_id => PersonAttributeType.find_by_name("Cell Phone Number").person_attribute_type_id,
-      :value => params["cell_phone_number"]) unless params["cell_phone_number"].blank? rescue nil
-
-    person.person_attributes.create(
-      :person_attribute_type_id => PersonAttributeType.find_by_name("Office Phone Number").person_attribute_type_id,
-      :value => params["office_phone_number"]) unless params["office_phone_number"].blank? rescue nil
-
-    person.person_attributes.create(
-      :person_attribute_type_id => PersonAttributeType.find_by_name("Home Phone Number").person_attribute_type_id,
-      :value => params["home_phone_number"]) unless params["home_phone_number"].blank? rescue nil
-
-# TODO handle the birthplace attribute
-
-    if (!patient_params.nil?)
-      patient = person.create_patient
-
-      patient_params["identifiers"].each{|identifier_type_name, identifier|
-
-        identifier_type = PatientIdentifierType.find_by_name(identifier_type_name) || PatientIdentifierType.find_by_name("Unknown id")
-        patient.patient_identifiers.create("identifier" => identifier, "identifier_type" => identifier_type.patient_identifier_type_id)
-      } if patient_params["identifiers"]
-
-      # This might actually be a national id, but currently we wouldn't know
-      #patient.patient_identifiers.create("identifier" => patient_params["identifier"], "identifier_type" => PatientIdentifierType.find_by_name("Unknown id")) unless params["identifier"].blank?
-    end
-
-    return person
   end
 
 end

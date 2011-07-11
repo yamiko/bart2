@@ -97,8 +97,10 @@ class Patient < ActiveRecord::Base
     end rescue []
 
     # BMI alerts
-    bmi_alert = self.current_bmi_alert
-    alerts << bmi_alert if bmi_alert
+    if self.person.age >= 15
+      bmi_alert = self.current_bmi_alert
+      alerts << bmi_alert if bmi_alert
+    end
 
     alerts
   end
@@ -699,9 +701,9 @@ EOF
       global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10'
 
       filing_number_identifier_type = PatientIdentifierType.find_by_name("Filing number")
-      archive_identifier_type = PatientIdentifierType.find_by_name("Archived Filing Number")
+      archive_identifier_type = PatientIdentifierType.find_by_name("Archived filing number")
 
-      next_filing_number = PatientIdentifier.next_filing_number('Filing Number')
+      next_filing_number = PatientIdentifier.next_filing_number('Filing number')
       if (next_filing_number[5..-1].to_i >= global_property_value.to_i)
         encounter_type_name = ['REGISTRATION','VITALS','ART_INITIAL','ART VISIT',
           'TREATMENT','HIV RECEPTION','HIV STAGING','DISPENSING','APPOINTMENT']
@@ -726,7 +728,7 @@ EOF
         end
       end
 
-      if self.get_identifier('Archived Filing Number')
+      if self.get_identifier('Archived filing number')
         #voids the record- if patient has a dormant filing number
         current_archive_filing_numbers = self.patient_identifiers.collect{|identifier|
           identifier if identifier.identifier_type == archive_identifier_type.id and identifier.voided
@@ -779,7 +781,7 @@ EOF
     ActiveRecord::Base.transaction do
       global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10000'
       active_filing_number_identifier_type = PatientIdentifierType.find_by_name("Filing Number")
-      dormant_filing_number_identifier_type = PatientIdentifierType.find_by_name('Archived Filing Number')
+      dormant_filing_number_identifier_type = PatientIdentifierType.find_by_name('Archived filing number')
 
       if (next_filing_number[5..-1].to_i >= global_property_value.to_i)
         encounter_type_name = ['REGISTRATION','VITALS','ART_INITIAL','ART VISIT',
@@ -808,7 +810,7 @@ EOF
         filing_number = PatientIdentifier.new()
         filing_number.patient_id = patient_to_be_archived.id
         filing_number.identifier_type = dormant_filing_number_identifier_type.id
-        filing_number.identifier = PatientIdentifier.next_filing_number("Archived Filing Number")
+        filing_number.identifier = PatientIdentifier.next_filing_number("Archived filing number")
         filing_number.save
        
         #assigning "patient_to_be_archived" filing number to the new patient
@@ -867,10 +869,10 @@ EOF
     arv_code = Location.current_arv_code
     new_patient_name = new_patient.name
     new_filing_number = self.printing_filing_number_label(new_patient.get_identifier('Filing Number'))
-    old_archive_filing_number = self.printing_filing_number_label(new_patient.old_filing_number('Archived Filing Number'))
+    old_archive_filing_number = self.printing_filing_number_label(new_patient.old_filing_number('Archived filing number'))
     unless archived_patient.blank?
       old_active_filing_number = self.printing_filing_number_label(archived_patient.old_filing_number)
-      new_archive_filing_number = self.printing_filing_number_label(archived_patient.get_identifier('Archived Filing Number'))
+      new_archive_filing_number = self.printing_filing_number_label(archived_patient.get_identifier('Archived filing number'))
     end
 
     if new_patient and archived_patient and creating_new_filing_number_for_patient

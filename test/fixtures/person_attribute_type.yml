@@ -47,7 +47,7 @@ person_attribute_type_00010:
   description: The person's home village or place of origin
   retired: false
   date_created: 2008-11-20 10:07:03 +02:00
-person_attribute_type_00009: 
+person_attribute_type_00009:
   foreign_key: 
   name: MDR-TB Patient Contact ID Number
   format: java.lang.String
@@ -239,3 +239,19 @@ person_attribute_type_00006:
   description: District/region in which this patient' home health center resides
   retired: false
   date_created: 2007-11-28 08:11:37 +02:00
+person_attribute_type_00019:
+  foreign_key:
+  name: Landmark Or Plot Number
+  format: java.lang.String
+  person_attribute_type_id: 19
+  retire_reason:
+  changed_by:
+  retired_by:
+  searchable: false
+  uuid: c0c2b33a-bd8b-11df-9b35-00248g09418a
+  creator: 1
+  date_retired:
+  date_changed:
+  description: Landmark or Plot Number
+  retired: false
+  date_created: 2009-10-09 15:45:21 +02:00

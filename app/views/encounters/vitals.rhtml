@@ -13,6 +13,7 @@
     .lowWeightForHeight{color:black;background:red;}
     .medWeightForHeight {color:black;background:yellow;}
     .lowBMI {color:black;background:red;}
+    .lowBMIcounselling {color:black;background:orange;}
     .lowWeightForAge {color:black;background:red;}
     .medWeightForAge {color:black;background:yellow;}
     .goodWeightForAge {color:black;}
@@ -116,7 +117,7 @@
     if (currentBmi > 18.5) {
       displayText += currentBmi;
     } else if (currentBmi > 17.0) {
-      displayText += "<span class='lowBMI'>" + currentBmi + "</span>" + "<br/><span class='recommendation'> Eligible for counseling</span>";
+      displayText += "<span class='lowBMIcounselling'>" + currentBmi + "</span>" + "<br/><span class='recommendation'> Eligible for counseling</span>";
     } else {
      displayText += "<span class='lowBMI'>" + currentBmi + "</span><br/><span class='recommendation'>Eligible for therapeutic feeding</span>";
     }
@@ -150,7 +151,7 @@
         <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
     <% end %>  
          
-    <label for='weight'>Weight (KG)</label>
+    <label for='weight'>Weight (Kg)</label>
       <%= text_field_tag "observations[][value_numeric]", nil,
         {:id => "weight",
          :field_type => 'number',
@@ -172,7 +173,7 @@
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
       <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
     <% else %>
-    <label for='height'>Height (CM)</label>
+    <label for='height'>Height (cm)</label>
       <%= text_field_tag "observations[][value_numeric]", nil,
         {:id => "height",
          :field_type => 'number',
@@ -248,7 +249,7 @@
         <%= hidden_field_tag("observations[][concept_name]", "HT FOR AGE") %>
         <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
         <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-    
+
       <% end %>
     
     <label for='showSummary'>Summary </label>

@@ -7,6 +7,10 @@
 
   .tt_controls_date_art_last_taken table {  position: absolute; top: -360px; }
 
+  .tt_controls_last_art_drugs_taken .keyboard{display:none;}
+    #tt_page_last_art_drugs_taken .options{height:450px;}
+    #tt_page_last_art_drugs_taken .options li{font-size:30px;}
+    #space {display:inline;}
 </style>
 
 <script>
@@ -57,7 +61,6 @@
      :condition => '$("ever_received_art").value == "YES"',
      :helpText => "ART number at previous location" } %>
 
-
   <%= touch_date_tag "DATE ART LAST TAKEN", @patient, nil,
     {:id => "date_art_last_taken",
      :absoluteMax => Date.today,
@@ -82,7 +85,7 @@
 
   <%= touch_yes_no_tag "FOLLOW UP AGREEMENT", @patient, nil,
     {:id => "agrees_to_followup",
-    :helpText => "Agrees to followup?" } %>
+    :helpText => "Agrees to follow-up?" } %>
 
   <%= touch_select_tag "CONFIRMATORY HIV TEST TYPE", @patient, options_for_select([['HIV RAPID TEST','HIV RAPID TEST'],['HIV PCR','HIV PCR'],['UNKNOWN','UNKNOWN']]),
     {:id => "type_of_confirmatory_hiv_test",
@@ -102,16 +105,16 @@
      :optional => false,
      :helpText => "ART number at current location" } %>
 
-  <% if @patient.person.gender == 'F' && @patient.person.age > 15 %>
-    <%= touch_yes_no_tag "REFERRED BY PMTCT", @patient, nil,
+  <%# if @patient.person.gender == 'F' && @patient.person.age > 15 %>
+    <%#= touch_yes_no_tag "REFERRED BY PMTCT", @patient, nil,
       {:id => "referred_by_pmtct",
        :helpText => "Referred by PMTCT?" } %>
-  <% end %>  
-  
+  <%# end %>
+
   <!--  *SKIP INITIAL HEIGHT
         *SKIP INITIAL WEIGHT
-  -->  
-  
+  -->
+
   <%= submit_tag "Finish" %>    
 </form>
 <% end %>

@@ -75,9 +75,11 @@
       {:optional => false,
        :helpText => "Depo-provera injection given?" } %>
 
-  <%= touch_numeric_tag "CONDOMS", @patient, nil,
-    {:optional => false,
-     :helpText => "Number of Condoms given" } %>
+  <% if @patient.person.age >= 14 %>
+    <%= touch_numeric_tag "CONDOMS", @patient, nil,
+      {:optional => false,
+       :helpText => "Number of Condoms given" } %>
+  <% end %>
 
   <%= touch_yes_no_unknown_tag "OTHER DRUGS", @patient, nil,
     {:optional => false,

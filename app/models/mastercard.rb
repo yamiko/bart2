@@ -28,7 +28,7 @@ class Mastercard
     visits.age =patient_obj.person.age
     visits.occupation = person_demographics['person']['attributes']['occupation']
     visits.address = person_demographics['person']['addresses']['city_village']
-    visits.landmark = person_demographics['person']['addresses']['address2']
+    visits.landmark = person_demographics['person']['addresses']['address1']
     visits.init_wt = patient_obj.initial_weight
     visits.init_ht = patient_obj.initial_height
     visits.bmi = patient_obj.initial_bmi
@@ -123,12 +123,12 @@ class Mastercard
 
     visits.who_clinical_conditions = ""
 
-    (hiv_staging.observations).collect{|obs|
+    (hiv_staging.observations).collect do |obs|
       name = obs.to_s.split(':')[0].strip rescue nil
+      next unless name == 'WHO STAGES CRITERIA PRESENT'
       condition = obs.to_s.split(':')[1].strip.humanize rescue nil
       visits.who_clinical_conditions = visits.who_clinical_conditions + (condition) + "; "
-      next unless name == 'WHO STAGES CRITERIA PRESENT'
-    }
+    end rescue []
     
     # cd4_count_date cd4_count pregnant who_clinical_conditions
 

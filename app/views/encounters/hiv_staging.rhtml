@@ -24,11 +24,11 @@
   var age = <%= @patient.person.age -%>;
   var ageInMonths = <%= @patient.person.age_in_months -%>;
   var firstPositiveHivTestType = "<%= firstPositiveHivTestType -%>";  
+  var cd4_count_numeric, cd4_count_estimate, cd4_count_modifier;
   
   function updateCD4Count() {
     var cd4_available = $('new_cd4_count_available').value == 'YES';
     var cd4_count = cd4_available ? $('cd4_count').value : null;
-    var cd4_count_numeric, cd4_count_estimate, cd4_count_modifier;
     try { cd4_count_numeric = parseInt(cd4_count); } catch(e) { cd4_count_numeric = null; }
     if (cd4_count_numeric == null || ''+cd4_count_numeric == 'NaN') {
       try {
@@ -185,9 +185,11 @@
           reasonForArtEligibility = "HIV DNA POLYMERASE CHAIN REACTION";
         } else if (ageInMonths >= 12 && ageInMonths < 24) {
           reasonForArtEligibility = "CHILD HIV POSITIVE";
+        } else if (cd4_count_numeric <= 750 && (ageInMonths >= 24 && ageInMonths < 56) && (whoStage) <= 2) {
+          reasonForArtEligibility = "CD4 COUNT LESS THAN 750";
         } else if ($('cd4_count_less_than_350') && $('cd4_count_less_than_350').value == "YES" && (whoStage) <= 2) {
           reasonForArtEligibility = "CD4 COUNT LESS THAN 350";
-        } else if (lymphocyteCount < lymphocyteThresholds[age]) {
+        } else if (lymphocyteCount && (lymphocyteCount < lymphocyteThresholds[age])) {
           reasonForArtEligibility = "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2";              
         } else if ($('pregnant') && $('pregnant').value == "YES") {
           reasonForArtEligibility = "PATIENT PREGNANT";              
@@ -339,7 +341,7 @@
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <%# end %>
 
-    <label for='new_cd4_count_available'>New CD4 count available?</label>
+    <label for='new_cd4_count_available'>CD4 count available?</label>
       <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_count_available', :tt_pageStyleClass => 'NoKeyboard' %>
 
     <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,

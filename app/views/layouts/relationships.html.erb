@@ -18,7 +18,7 @@
         $('#cancel').click(function() { window.location = '/patients/guardians_dashboard/<%= @patient.patient_id -%>' })
         $('#find').click(function() { window.location = '/people/search?relation=<%= @patient.patient_id -%>' })
         if ($('#staging')) $('#staging').click(function() { window.location = 'http://staging/clinic' })        
-      }) 
+      })
     </script>
     <style type="text/css">
       #barcode {
@@ -60,10 +60,14 @@
         <div id="footer" class="dark">
           <div id="buttons" class="buttons" style="top:0px">
             <button id="cancel" class="red left"><span>Cancel</span></button>
-            <button id="find" class="green"><span>Find Name</span></button>
-          </div>          
-        </div>    
-      </div>  
+            <% if Location.current_location.name =~ /HIV Reception/ %>
+                 <button id="find" class="green" style="width:300px"><span>Find or Register by Name</span></button>
+            <% else %>
+                 <button id="find" class="green" style="width:300px"><span>Find by Name</span></button>
+            <% end %>
+          </div>
+        </div>
+      </div>
     </div>
   </body>
 </html>

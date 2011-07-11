@@ -3,7 +3,8 @@ require File.dirname(__FILE__) + '/../test_helper'
 class PersonTest < ActiveSupport::TestCase
   context "Person" do
     fixtures :person, :person_name, :person_name_code,
-             :person_address, :obs, :patient, :person_attribute
+             :person_address, :obs, :patient, :person_attribute,
+             :person_attribute_type
 
     should "be valid" do
       assert Person.make.valid?
@@ -130,6 +131,7 @@ class PersonTest < ActiveSupport::TestCase
     should "return a hash with correct address" do
       p = person(:evan)
       data = {
+        "address1" => "Green Snake Way",
         "address2" => "Friendship House",
         "county_district" => "Checkuchecku",
         "city_village" => "Katoleza"
@@ -164,6 +166,7 @@ class PersonTest < ActiveSupport::TestCase
       evan_demographics = {"person" => {
         "addresses"=> {"address2" => "Friendship House",
                        "city_village" => "Katoleza",
+                       "address1" => "Green Snake Way",
                        "county_district" => "Checkuchecku"},
         "birth_month" => 6,
         "attributes" => {"occupation" => "Other", "cell_phone_number" => "0999123456"},
