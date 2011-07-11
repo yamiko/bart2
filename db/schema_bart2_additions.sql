@@ -813,4 +813,7 @@ CREATE TABLE `drug_ingredient` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+
+
+CREATE INDEX `index_date_created_on_person_address` ON `person_address` (`date_created` DESC); 
 -- Dump completed on 2010-12-11 20:00:04

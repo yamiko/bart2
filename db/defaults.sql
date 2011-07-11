@@ -40,6 +40,25 @@ LOCK TABLES `person` WRITE;
 DELETE FROM `person` WHERE `person_id` > '1';
 UNLOCK TABLES;
 
+LOCK TABLES `person_address` WRITE;
+DELETE FROM `person_address`;
+UNLOCK TABLES;
+
+LOCK TABLES `person_attribute` WRITE;
+DELETE FROM `person_attribute`;
+UNLOCK TABLES;
+
+LOCK TABLES `person_name` WRITE;
+DELETE FROM `person_name`;
+UNLOCK TABLES;
+
+LOCK TABLES `encounter` WRITE;
+DELETE FROM `encounter`;
+UNLOCK TABLES;
+
+LOCK TABLES `obs` WRITE;
+DELETE FROM `obs`;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `global_property`
@@ -78,8 +97,8 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 INSERT INTO `location_tag` (`name`, `description`, `creator`, `date_created`, `retired`, `retired_by`, `date_retired`, `retire_reason`, `uuid`)
-               VALUES ('Workstation Location', NULL, 1, '2011-04-27 14:58:31', 0, NULL, NULL, NULL, '');
-INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
+               VALUES ('Workstation Location', NULL, 1, '2011-04-27 14:58:31', 0, NULL, NULL, NULL, (SELECT UUID()));
+/*INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
 	((SELECT location_id FROM location WHERE name = 'Registration'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
 INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
 	((SELECT location_id FROM location WHERE name = 'Vitals'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
@@ -97,7 +116,7 @@ INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
 	((SELECT location_id FROM location WHERE name = 'TB Reception'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
 INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
 	((SELECT location_id FROM location WHERE name = 'TB Sputum Submission Station'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
-
+*/
 /* Remove unwanted relationships */;
 DELETE FROM relationship_type WHERE b_is_to_a NOT IN ("Parent", "Child", "Sibling", "Spouse/Partner", "Village Health Worker", "Other");
 -- Dump completed on 2010-03-17 15:18:37
