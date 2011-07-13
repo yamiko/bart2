@@ -128,7 +128,11 @@ class EncountersController < ApplicationController
 
     # Go to the next task in the workflow (or dashboard)
     # only redirect to next task if location parameter has not been provided
-    redirect_to next_task(@patient) unless params[:location]
+    unless params[:location]
+      redirect_to next_task(@patient)
+    else
+      render :text => encounter.encounter_id.to_s and return
+    end
   end
 
   def new
