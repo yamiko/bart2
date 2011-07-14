@@ -12,14 +12,14 @@
 
   .tt_controls_current_village_residence #space { display:inline; }
 
-  .tt_controls_cell_phone_number #num , #plus, #apostrophe, #star, #abc, #date, #slash, #minus, #comma, #percent, #decimal { display:none; }
+  .tt_controls_cell_phone_number #num , #plus, #apostrophe, #star, #char, #abc, #date, #slash, #minus, #comma, #percent, #decimal { display:none; }
 
   .tt_controls_home_phone_number #num , #plus, #apostrophe, #star, #abc, #date, #slash, #minus, #comma, #percent, #decimal { display:none; }
 
   .tt_controls_office_phone_number #num , #plus, #apostrophe, #star, #abc, #date, #slash, #minus, #comma, #percent, #decimal { display:none; }
 
   .tt_controls_occupation .keyboard{display:none;}
-    #tt_page_occupation .options{height:450px;}
+    #tt_page_occupation .options{height:550px;}
     #tt_page_occupation .options li{font-size:30px;}
     #space {display:inline;}
 </style>
@@ -167,8 +167,10 @@
   %>
   <%end%>
 
-  <%= select_tag("person[occupation]", options_for_select([" ", "Housewife", "Farmer", "Police", "Soldier", "Business", "Teacher", "Student", "Healthcare Worker"].sort.concat(["Other"]) ,params[:occupation]),:helpText =>"Occupation",:allowFreeText => true, :tt_onLoad => 'seen(tstCurrentPage);')%>
-  
+  <%#= select_tag("person[occupation]", options_for_select([" ", "Housewife", "Farmer", "Police", "Soldier", "Business", "Teacher", "Student", "Healthcare Worker"].sort.concat(["Other"]) ,params[:occupation]),:helpText =>"Occupation",:allowFreeText => true, :tt_onLoad => 'seen(tstCurrentPage);')%>
+
+  <%= select_tag("person[occupation]", options_for_select(@occupations ,params[:occupation]),:helpText =>"Occupation",:allowFreeText => false, :tt_onLoad => 'seen(tstCurrentPage);', :ttMatchFromBeginning => "true")%>
+
   <!-- Make sure patient is created -->
 
   <%= hidden_field_tag "person[patient]", "" %>
