@@ -39,7 +39,9 @@ class PatientProgram < ActiveRecord::Base
   def transition(params)
     ActiveRecord::Base.transaction do
       # Find the state by name
-      selected_state = self.program.program_workflows.map(&:program_workflow_states).flatten.select{|pws| pws.concept.fullname == params[:state]}.first rescue nil
+      # Used upcase below as we were having problems matching the concept fullname with the state
+      # I hope this will sort the problem and doesnt break anything
+      selected_state = self.program.program_workflows.map(&:program_workflow_states).flatten.select{|pws| pws.concept.fullname.upcase() == params[:state].upcase()}.first rescue nil
       state = self.patient_states.last rescue []
       if (state && selected_state == state.program_workflow_state)
         # do nothing as we are already there
