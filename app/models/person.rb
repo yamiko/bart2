@@ -140,6 +140,12 @@ class Person < ActiveRecord::Base
     return demographics
   end
 
+  def self.occupations
+    ['','Driver','Housewife','Messenger','Business','Farmer','Salesperson','Teacher',
+     'Student','Security guard','Domestic worker', 'Police','Office worker',
+     'Preschool child','Mechanic','Prisoner','Craftsman','Healthcare Worker','Soldier'].sort.concat(["Other","Unknown"])
+  end
+
   def remote_demographics
     demo = self.demographics
 
