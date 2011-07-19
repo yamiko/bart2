@@ -127,4 +127,16 @@ module ApplicationHelper
   def development_environment?
     ENV['RAILS_ENV'] == 'development'
   end
+
+  def generic_locations
+    Location.workstation_locations
+  end
+  
+  def concept_sets(concept_name)
+    concept_id = ConceptName.find(:first,:joins =>"INNER JOIN concept USING (concept_id)",
+                                  :conditions =>["retired = 0 AND name = ?",concept_name]).concept_id
+    set = ConceptSet.find_all_by_concept_set(concept_id, :order => 'sort_weight')
+    set.map{|item|next if item.concept.blank? ; item.concept.fullname }
+  end
+
 end

@@ -96,7 +96,7 @@ class ProgramsController < ApplicationController
 
       patient_state = patient_program.patient_states.build(
         :state => params[:current_state],
-        :start_date => params[:current_date]) 
+        :start_date => params[:current_date])
       if patient_state.save
 		# Close and save current_active_state if a new state has been created 		
 		current_active_state.save
@@ -127,31 +127,48 @@ class ProgramsController < ApplicationController
         end  
        
         updated_state = patient_state.program_workflow_state.concept.fullname 
-		
+		#disabled redirection during import in the code below
 		# Changed the terminal state conditions from hardcoded ones to terminal indicator from the updated state object
-        # if updated_state == 'PATIENT TRANSFERRED OUT' or updated_state == 'PATIENT DIED'
         if patient_state.program_workflow_state.terminal == 1
-          #could not get the commented block of code to update - so I just kinda wrote a hack :(
-          # will improve during code clean up!
-          #unless patient_program.update_attributes({:date_completed => Time.now()})
-           # flash[:notice] = "OOps! Program completed date was not updated!."
-          #end
+          #the following code updates the person table to died yes if the state is Died/Death
+          if updated_state.match(/DIED/i)
+            person = patient_program.patient.person
+            person.dead = 1
+            unless params[:current_date].blank?
+              person.death_date = params[:current_date].to_date
+            end
+            person.save
+          end
 
           # date_completed = session[:datetime].to_time rescue Time.now()
           date_completed = params[:current_date].to_date rescue Time.now()
           PatientProgram.update_all "date_completed = '#{date_completed.strftime('%Y-%m-%d %H:%M:%S')}'",
                                      "patient_program_id = #{patient_program.patient_program_id}"
         end
-        redirect_to :controller => :patients, :action => :programs_dashboard, :patient_id => params[:patient_id]
+        #for import
+         unless params[:location]
+            redirect_to :controller => :patients, :action => :programs_dashboard, :patient_id => params[:patient_id]
+         else
+            render :text => "import suceeded" and return
+         end
+        
       else
-        redirect_to :controller => :patients, :action => :programs_dashboard, :patient_id => params[:patient_id],
-          :error => "Unable to update state"
+        #for import
+        unless params[:location]
+          redirect_to :controller => :patients, :action => :programs_dashboard, :patient_id => params[:patient_id],:error => "Unable to update state"
+        else
+            render :text => "import suceeded" and return
+        end
       end
     else
       patient_program = PatientProgram.find(params[:id])
       unless patient_program.date_completed.blank?
-        redirect_to :controller => :patients, :action => :programs, 
-          :patient_id => patient_program.patient.id, :error => "The patient has already completed this program!" and return
+        unless params[:location]
+          redirect_to :controller => :patients, :action => :programs, 
+            :patient_id => patient_program.patient.id, :error => "The patient has already completed this program!" and return
+       else
+          render :text => "import suceeded" and return
+       end   
       end
       @patient = patient_program.patient
       @patient_program_id = patient_program.patient_program_id

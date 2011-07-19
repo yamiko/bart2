@@ -4,6 +4,9 @@ class Person < ActiveRecord::Base
   include Openmrs
 
   cattr_accessor :session_datetime
+  cattr_accessor :migrated_datetime
+  cattr_accessor :migrated_creator
+  cattr_accessor :migrated_location
 
   has_one :patient, :foreign_key => :patient_id, :dependent => :destroy, :conditions => {:voided => 0}
   has_many :names, :class_name => 'PersonName', :foreign_key => :person_id, :dependent => :destroy, :order => 'person_name.preferred DESC', :conditions => {:voided => 0}
@@ -31,7 +34,7 @@ class Person < ActiveRecord::Base
   end  
 
   def address
-    "#{self.addresses.first.city_village}" rescue nil
+    "#{self.addresses.first.city_village}"  rescue nil
   end 
 
   def age(today = Date.today)
@@ -121,9 +124,11 @@ class Person < ActiveRecord::Base
       "addresses" => {
         "county_district" => self.addresses[0].county_district,
         "city_village" => self.addresses[0].city_village,
+        "address1" => self.addresses[0].address1,
         "address2" => self.addresses[0].address2
       },
-    "attributes" => {"occupation" => self.get_attribute('Occupation')}}}
+    "attributes" => {"occupation" => self.get_attribute('Occupation'),
+                     "cell_phone_number" => self.get_attribute('Cell Phone Number')}}}
  
     if not self.patient.patient_identifiers.blank? 
       demographics["person"]["patient"] = {"identifiers" => {}}
@@ -135,6 +140,12 @@ class Person < ActiveRecord::Base
     return demographics
   end
 
+  def self.occupations
+    ['','Driver','Housewife','Messenger','Business','Farmer','Salesperson','Teacher',
+     'Student','Security guard','Domestic worker', 'Police','Office worker',
+     'Preschool child','Mechanic','Prisoner','Craftsman','Healthcare Worker','Soldier'].sort.concat(["Other","Unknown"])
+  end
+
   def remote_demographics
     demo = self.demographics
 
@@ -142,11 +153,12 @@ class Person < ActiveRecord::Base
                    "person" =>
                    {"attributes" => {
                       "occupation" => demo['person']['occupation'],
-                      "cell_phone_number" => demo['person']['cell_phone_number'],
+                      "cell_phone_number" => demo['person']['cell_phone_number']
                     } ,
                     "addresses" => 
-                     { "address2"=> demo['person']['addresses']['location'], 
-                       "city_village" => demo['person']['addresses']['city_village'], 
+                     { "address2"=> demo['person']['addresses']['location'],
+                       "city_village" => demo['person']['addresses']['city_village'],
+                       "address1"  => demo['person']['addresses']['address1'],
                        "county_district" => ""
                      },
                     "age_estimate" => self.birthdate_estimated ,
@@ -326,20 +338,26 @@ class Person < ActiveRecord::Base
     person.person_attributes.create(
       :person_attribute_type_id => PersonAttributeType.find_by_name("Home Phone Number").person_attribute_type_id,
       :value => params["home_phone_number"]) unless params["home_phone_number"].blank? rescue nil
- 
+=begin
+     person.person_attributes.create(
+      :person_attribute_type_id => PersonAttributeType.find_by_name("Landmark Or Plot Number").person_attribute_type_id,
+      :value => params["landmark"]) unless params["landmark"].blank? rescue nil
+=end
 # TODO handle the birthplace attribute
- 
+
     if (!patient_params.nil?)
       patient = person.create_patient
 
       patient_params["identifiers"].each{|identifier_type_name, identifier|
+
         identifier_type = PatientIdentifierType.find_by_name(identifier_type_name) || PatientIdentifierType.find_by_name("Unknown id")
         patient.patient_identifiers.create("identifier" => identifier, "identifier_type" => identifier_type.patient_identifier_type_id)
       } if patient_params["identifiers"]
-  
+
       # This might actually be a national id, but currently we wouldn't know
       #patient.patient_identifiers.create("identifier" => patient_params["identifier"], "identifier_type" => PatientIdentifierType.find_by_name("Unknown id")) unless params["identifier"].blank?
     end
+
     return person
   end
 

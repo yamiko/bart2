@@ -46,6 +46,7 @@ CREATE TABLE `orders` (
   `accession_number` varchar(255) default NULL,
   `obs_id` int(11) default NULL,
   `uuid` char(38) NOT NULL,
+  `discontinued_reason_non_coded` varchar(255) DEFAULT NULL,
   PRIMARY KEY  (`order_id`),
   UNIQUE KEY `orders_uuid_index` (`uuid`),
   KEY `order_creator` (`creator`),
@@ -812,4 +813,7 @@ CREATE TABLE `drug_ingredient` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+
+
+CREATE INDEX `index_date_created_on_person_address` ON `person_address` (`date_created` DESC); 
 -- Dump completed on 2010-12-11 20:00:04

@@ -13,7 +13,7 @@ class UserControllerTest < ActionController::TestCase
 
     should "create a user with valid attributes" do
       logged_in_as :mikmck, :registration do
-        post :create, {"person_name"=>{"voided"=>0,"family_name"=>"banda","given_name"=>"john"},
+        post :create, {"person_name"=>{"family_name"=>"banda","given_name"=>"john"},
                    "user"=>{"username"=>"jbanda", "user_id"=>50, "password"=>"banda"},
                    "user_role"=>{"role_id"=>"Informatics Manager"},
                    "user_confirm"=>{"password"=>"banda"}}
@@ -25,7 +25,7 @@ class UserControllerTest < ActionController::TestCase
 
     should "not create user if password mismatch" do
       logged_in_as :mikmck, :registration do
-        post :create, {"person_name"=>{"voided"=>0,"family_name"=>"banda","given_name"=>"john"},
+        post :create, {"person_name"=>{"family_name"=>"banda","given_name"=>"john"},
                    "user"=>{"username"=>"jbanda", "user_id"=>50, "password"=>"banda"},
                    "user_role"=>{"role_id"=>"Informatics Manager"},
                    "user_confirm"=>{"password"=>"test"}}
@@ -37,7 +37,7 @@ class UserControllerTest < ActionController::TestCase
 
     should "not create user user already exists" do
       logged_in_as :mikmck, :registration do
-        post :create, {"person_name"=>{"voided"=>0,"family_name"=>"Waters","given_name"=>"Evan"},
+        post :create, {"person_name"=>{"family_name"=>"Waters","given_name"=>"Evan"},
                    "user"=>{"username"=>"mikmck", "user_id"=>1, "password"=>"test"},
                    "user_role"=>{"role_id"=>"Superuser"},
                    "user_confirm"=>{"password"=>"test"}}
@@ -56,7 +56,7 @@ class UserControllerTest < ActionController::TestCase
 
     should "edit user names" do
       logged_in_as :mikmck, :registration do
-        post :username, {"person_name"=>{"voided"=>0,"family_name"=>"banda","given_name"=>"john"},
+        post :username, {"person_name"=>{"family_name"=>"banda","given_name"=>"john"},
                    "user"=>{"username"=>"jbanda", "user_id"=>50}}
         assert_response :success
       end

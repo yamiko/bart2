@@ -1,6 +1,7 @@
 class EncountersController < ApplicationController
 
   def create
+    #raise params.to_yaml
     if params['encounter']['encounter_type_name'] == 'ART_INITIAL'
       if params[:observations][0]['concept_name'] == 'EVER RECEIVED ART' and params[:observations][0]['value_coded_or_text'] == 'NO'
         observations = []
@@ -37,6 +38,9 @@ class EncountersController < ApplicationController
     end
 
     @patient = Patient.find(params[:encounter][:patient_id])
+
+    # set current location via params if given
+    Location.current_location = Location.find(params[:location]) if params[:location]
 
     # Encounter handling
     encounter = Encounter.new(params[:encounter])
@@ -123,7 +127,12 @@ class EncountersController < ApplicationController
     # end
 
     # Go to the next task in the workflow (or dashboard)
-    redirect_to next_task(@patient) 
+    # only redirect to next task if location parameter has not been provided
+    unless params[:location]
+      redirect_to next_task(@patient)
+    else
+      render :text => encounter.encounter_id.to_s and return
+    end
   end
 
   def new
