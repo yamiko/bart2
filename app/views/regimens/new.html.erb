@@ -138,7 +138,7 @@
     <%= hidden_field_tag(:patient_program, @programs.first.patient_program_id) %>
   <%end%>
 
-  <%= touch_yes_no_tag "CPT STARTED", @patient, nil,
+  <%= touch_yes_no_tag "Prescribe cotramoxazole", @patient, nil,
       {:optional => false,
        :id => 'cpt_given',
        :helpText => "Prescribe CPT" } %>

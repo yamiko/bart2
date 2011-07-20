@@ -14,7 +14,7 @@ class RegimensController < ApplicationController
    (params[:observations] || []).each do |observation|
       if observation['concept_name'] == 'PRESCRIBE ARVS'
         prescribe_arvs = ('YES' == observation['value_coded_or_text'])
-      elsif observation['concept_name'] == 'CPT STARTED'
+      elsif observation['concept_name'] == 'Prescribe cotramoxazole'
         prescribe_cpt = ('YES' == observation['value_coded_or_text'])
       elsif observation['concept_name'] == 'ISONIAZID'
         prescribe_ipt = ('YES' == observation['value_coded_or_text'])
