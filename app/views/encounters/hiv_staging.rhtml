@@ -1,16 +1,9 @@
 <style>
   .tt_controls_clinical_notes_optional #space { display:inline; }
 
-  .tt_controls_cd4_count .buttonLine {
-    height: 80px;
-  }
-  
+
   .tt_controls_cd4_count #char {
     display: none;
-  }
-
-  .tt_controls_cd4_percent .buttonLine {
-    height: 80px;
   }
 
   .tt_controls_cd4_percent #char {
@@ -274,7 +267,7 @@
     <% end %>    
 
     <% unless concept_set_options('WHO STAGE I ADULT AND PEDS').blank? && concept_set_options('WHO STAGE I ADULT').blank? %>
-      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE I ADULT AND PEDS') + concept_set_options('WHO STAGE I ADULT'),
+      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE I ADULT AND PEDS').sort + concept_set_options('WHO STAGE I ADULT').sort,
           {:id => "stage_1_conditions",
            :multiple => true,
            :optional => true,
@@ -292,7 +285,7 @@
     <%# end %>
 
     <% unless concept_set_options('WHO STAGE II ADULT AND PEDS').blank? && concept_set_options('WHO STAGE II ADULT').blank? %>
-      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE II ADULT AND PEDS') + concept_set_options('WHO STAGE II ADULT'),
+      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE II ADULT').sort + concept_set_options('WHO STAGE II ADULT AND PEDS').sort,
           {:id => "stage_2_conditions",
            :multiple => true,
            :optional => true,
@@ -310,7 +303,7 @@
     <%# end %>
 
     <% unless concept_set_options('WHO STAGE III ADULT AND PEDS').blank? && concept_set_options('WHO STAGE III ADULT').blank? %>
-      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE III ADULT AND PEDS') + concept_set_options('WHO STAGE III ADULT'),
+      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE III ADULT').sort+ concept_set_options('WHO STAGE III ADULT AND PEDS').sort,
           {:id => "stage_3_conditions",
            :multiple => true,
            :optional => true,
@@ -328,7 +321,7 @@
     <%# end %>
 
     <% unless concept_set_options('WHO STAGE IV ADULT AND PEDS').blank? && concept_set_options('WHO STAGE IV ADULT').blank? %>
-      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE IV ADULT AND PEDS') + concept_set_options('WHO STAGE IV ADULT'),
+      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE IV ADULT').sort + concept_set_options('WHO STAGE IV ADULT AND PEDS').sort,
           {:id => "stage_4_conditions",
            :multiple => true,
            :optional => true,
@@ -414,7 +407,7 @@
     <%# end %>
 
     <% unless concept_set_options('WHO STAGE II ADULT AND PEDS').blank? && concept_set_options('WHO STAGE II PEDS').blank? %>
-      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE II ADULT AND PEDS') + concept_set_options('WHO STAGE II PEDS'),
+      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE II PEDS') + concept_set_options('WHO STAGE II ADULT AND PEDS'),
         {:id => "stage_2_conditions",
          :multiple => true,
          :optional => true,
@@ -434,7 +427,7 @@
     <%# end %>
 
     <% unless concept_set_options('WHO STAGE III ADULT AND PEDS').blank? && concept_set_options('WHO STAGE III PEDS').blank? %>
-      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE III ADULT AND PEDS') + concept_set_options('WHO STAGE III PEDS'),
+      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE III PEDS') + concept_set_options('WHO STAGE III ADULT AND PEDS'),
         {:id => "stage_3_conditions",
          :multiple => true,
          :optional => true,
@@ -454,7 +447,7 @@
     <%# end %>
 
     <% unless concept_set_options('WHO STAGE IV ADULT AND PEDS').blank? && concept_set_options('WHO STAGE IV PEDS').blank? %>
-      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE IV ADULT AND PEDS') + concept_set_options('WHO STAGE IV PEDS'),
+      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE IV PEDS') + concept_set_options('WHO STAGE IV ADULT AND PEDS'),
         {:id => "stage_4_conditions",
          :multiple => true,
          :optional => true,

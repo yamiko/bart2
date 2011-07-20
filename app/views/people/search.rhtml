@@ -23,13 +23,19 @@ pos = 1
 
   <% if person.addresses.first && person.addresses.first.address2.present? %>
             
-      people[<%= pos %>]["home_village"] = "<%=h person.addresses.first.address2 -%>";
+      people[<%= pos %>]["home_district"] = "<%=h person.addresses.first.address2 -%>";
+
+  <% end %>
+
+  <% if person.addresses.first && person.addresses.first.county_district.present? %>
+
+      people[<%= pos %>]["ancestral_traditional_authority_(t/a)"] = "<%=h person.addresses.first.county_district -%>";
 
   <% end %>
 
   <% if person.addresses.first && person.addresses.first.city_village.present? %>
 
-      people[<%= pos %>]["current_village"] = "<%=h person.addresses.first.city_village -%>";
+      people[<%= pos %>]["current_residence"] = "<%=h person.addresses.first.city_village -%>";
 
   <% end %>
 
@@ -46,14 +52,15 @@ pos = 1
       people[<%= pos %>]["patient_id"] = "<%=h person.patient.national_id rescue "" -%>";
 
       people[<%= pos %>]["eid_number"] = "<%=h person.patient.eid_number rescue "" -%>";
-      
+
       people[<%= pos %>]["pre_art_number"] = "<%=h person.patient.pre_art_number rescue "" -%>";
 
   <% end %>
-          
-    people[<%= pos %>]["status"] = "<%=h 'Died' if person.dead == 1 rescue '' -%>";
 
+    people[<%= pos %>]["status"] = "<%=h 'Died' if person.dead == 1 rescue '' -%>";
+3
   <%
+
   pos = pos + 1
 end -%>
 
@@ -64,9 +71,9 @@ end -%>
 <% end %>
 
   function changeNextButtonText(text){
-    $('nextButton').innerHTML = "<span>" + text + "</span>";  
+    $('nextButton').innerHTML = "<span>" + text + "</span>";
   }
-    
+
   function newSearch(){
     if (window.location.href.match(/\?identifier/))
       window.location.href = "/people/identifiers";
@@ -75,8 +82,8 @@ end -%>
   }
 
   function createNewSearchButton(){
-    $('clearButton').innerHTML = "<span>New Search</span>";  
-    $('clearButton').setAttribute("onmousedown","newSearch();");  
+    $('clearButton').innerHTML = "<span>New Search</span>";
+    $('clearButton').setAttribute("onmousedown","newSearch();");
   }
 
   function newSearch() {

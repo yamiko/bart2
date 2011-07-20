@@ -798,6 +798,12 @@ function addSummary(position){
 
     summaryContainer.appendChild(summary);
 
+    var tmpInputFrame = __$("inputFrame" + tstCurrentPage);
+
+    __$("page" + tstCurrentPage).removeChild(__$("inputFrame" + tstCurrentPage));
+    
+    __$("page" + tstCurrentPage).appendChild(tmpInputFrame);
+
 //if(position > 0){
 //    changeSummary(position - 1);
 //}
@@ -819,7 +825,7 @@ function changeSummary(position){
             var cell1 = document.createElement("div");
             cell1.style.display = "table-cell";
             cell1.style.padding = "10px";
-            cell1.innerHTML = "<b style='color: #333;'>" + item.replace(/_/g, " ").toUpperCase() + "</b>";
+            cell1.innerHTML = "<b style='color: #333;'>" + item.replace(/_/g, " ").toProperCase() + "</b>";
 
             row.appendChild(cell1);
 
@@ -1500,6 +1506,9 @@ function showBestKeyboard(aPageNum) {
         case "date":
             getDatePicker();
             break;
+        case "time":
+            getTimePicker();
+            break;
         case "boolean":
             __$("keyboard").innerHTML = "";
             break;
@@ -1613,10 +1622,10 @@ function getQwertyKeyboard(){
     getButtons("ASDFGHJKL") +
     getButtonString('apostrophe',"'");
 
-    if(tstFormElements[tstCurrentPage].tagName == "TEXTAREA") {
-        keyboard = keyboard +
-        getButtonString('return',"ENTER");
-    }
+    // if(tstFormElements[tstCurrentPage].tagName == "TEXTAREA") {
+    //    keyboard = keyboard +
+    //    getButtonString('return',"ENTER");
+    // }
 
     keyboard = keyboard +
     "</span><span style='padding-left:25px' class='buttonLine'>" +
@@ -1628,8 +1637,9 @@ function getQwertyKeyboard(){
 
     if(tstFormElements[tstCurrentPage].tagName == "TEXTAREA") {
         keyboard = keyboard +
-        "</span><span style='padding-left:93px' class='buttonLine'>" +
+        "</span><span style='padding-left:0px' class='buttonLine'>" +
         getButtonString('whitespace','&nbsp', 'width: 520px;') +
+        getButtonString('return',"ENTER", 'width: 120px;') +
         "</span>";
     }
 
@@ -1651,10 +1661,10 @@ function getABCKeyboard(){
     getButtonString('apostrophe',"'") +
     getButtonString('SHIFT','aA') ;
 
-    if(tstFormElements[tstCurrentPage].tagName == "TEXTAREA") {
-        keyboard = keyboard +
-        getButtonString('return',"ENTER");
-    }
+    // if(tstFormElements[tstCurrentPage].tagName == "TEXTAREA") {
+    //    keyboard = keyboard +
+    //    getButtonString('return',"ENTER");
+    // }
 
     keyboard = keyboard +
     getButtonString('Unknown','Unknown') +
@@ -1667,6 +1677,7 @@ function getABCKeyboard(){
         keyboard = keyboard +
         "</span><span style='padding-left:0px' class='buttonLine'>" +
         getButtonString('whitespace','&nbsp', 'width: 520px;') +
+        getButtonString('return',"ENTER", 'width: 120px;') +
         "</span>";
     }
 
@@ -1695,14 +1706,57 @@ function getNumericKeyboard(){
     getButtonString('qwerty','qwerty') +
     "</span><span id='buttonLine3' class='buttonLine'>" +
     getButtons("789") +
-    getCharButtonSetID("0","zero") +
+    // getCharButtonSetID("0","zero") +
     getCharButtonSetID(".","decimal") +
     getCharButtonSetID(",","comma") +
     getButtonString('backspace','Delete') +
     getButtonString('Unknown','Unknown') +
     getButtonString('SHIFT','aA') +
+    "</span>" +
+    "</span><span id='buttonLine3' class='buttonLine'>" +
+    getCharButtonSetID("0","zero") +
     "</span>"
+
     return keyboard;
+}
+
+function getTimePicker() {
+    if (typeof(TimeSelector) == "undefined")
+        return;
+
+    var inputElement = tstFormElements[tstPages[tstCurrentPage]];
+    var keyboardDiv = __$('keyboard');
+    keyboardDiv.innerHTML = "";
+
+    var railsDate = new RailsDate(inputElement);
+    if (railsDate.isDayOfMonthElement()) {
+        getDayOfMonthPicker(railsDate.getYearElement().value, railsDate.getMonthElement().value);
+        return;
+    }
+
+    var defaultDate = joinDateValues(inputElement);
+    //defaultDate = defaultDate.replace("-", "/", "g");
+    var arrDate = defaultDate.split(':');
+    __$("touchscreenInput"+tstCurrentPage).value = defaultDate;
+
+    if (arrDate.length == 3) {
+        ds = new TimeSelector({
+            element: keyboardDiv,
+            target: tstInputTarget,
+            hour: arrDate[0],
+            minute: arrDate[1],
+            second: arrDate[2],
+            format: "H:M:S"
+        });
+    } else {
+        ds = new TimeSelector({
+            element: keyboardDiv,
+            target: tstInputTarget,
+            format: "H:M:S"
+        });
+    }
+
+    // __$("options" + tstCurrentPage).innerHTML = "";
 }
 
 function getDatePicker() {
@@ -2743,4 +2797,12 @@ function confirmRecordDeletion(message, form) {
 
     return false;
 
+}
+
+String.prototype.toProperCase = function()
+{
+    return this.toLowerCase().replace(/^(.)|\s(.)/g,
+        function($1) {
+            return $1.toUpperCase();
+        });
 }
