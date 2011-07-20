@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Patient Relationships Dashboard</title>
+    <title>Patient Guardians Dashboard</title>
     <script type="text/javascript" language="javascript"
     src="/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js" defer  ></script>
     <meta http-equiv='content-type' content='text/html;charset=UTF-8' />
@@ -16,7 +16,7 @@
         <form id = 'dashboard' action='/clinic'>
           <table cellpadding=10>
             <tr>
-              <th colspan=2>Patient Relationships Dashboard</th>
+              <th colspan=2>Patient Guardians Dashboard</th>
             </tr>
             <tr>
               <td>
@@ -29,10 +29,10 @@
                 <span id='patient_age'><%= @patient.person.age rescue "" %></span>
                 <span id='patient_gender'><%= @patient.gender rescue "" %></span>
                 <select id="tabs">
-                  <option value='/patients/guardians?patient_id=<%= @patient.id %>'>Relationships</option>
+                  <option value='/patients/guardians?patient_id=<%= @patient.id %>'>Guardians</option>
                 </select>
                 <select id="links">
-                  <option value='/relationships/search?patient_id=<%= @patient.id -%>'>New Relationship</option>
+                  <option value='/relationships/search?patient_id=<%= @patient.id -%>'>New Guardian</option>
                 </select>
               </td>
             </tr>
