@@ -95,17 +95,25 @@ module ApplicationHelper
   def patient_image(patient) 
     @patient.person.gender == 'M' ? "<img src='/images/male.gif' alt='Male' height='30px' style='margin-bottom:-4px;'>" : "<img src='/images/female.gif' alt='Female' height='30px' style='margin-bottom:-4px;'>"
   end
-  
-  def relationship_options(patient)
-    rels = @patient.relationships.all
-    # filter out voided relationship target
+
+  # include (patient, :names => true) to list registered guardians
+  def relationship_options(patient, options={})
     options_array = []
-    rels.each do |rel|
-      options_array << [rel.relation.name + " (#{rel.type.b_is_to_a})", rel.relation.name] unless rel.relation.blank?
+    if options[:names] # show names of guardians as options
+      rels = patient.relationships.all
+      # filter out voided relationship target
+      rels.each do |rel|
+        unless rel.relation.blank?
+          options_array << [rel.relation.name + " (#{rel.type.b_is_to_a})",
+                            rel.relation.name]
+        end
+      end
+      options_array << ['None', 'None']
+    else
+      options_array << ['Yes', 'Yes']
+      options_array << ['No', 'No']
     end
     options_array << ['Unknown', 'Unknown']
-    options_array << ['None', 'None']
-   # options_array = rels.map{|rel| next if rel.relation.blank? [rel.relation.name + " (#{rel.type.b_is_to_a})", rel.relation.name]}
     options_for_select(options_array)  
   end
   
