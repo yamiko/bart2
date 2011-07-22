@@ -346,7 +346,7 @@
        :condition => '$("new_cd4_count_available").value == "YES"',
        :helpText => "CD4 Count Location"} %>
 
-    <%= touch_date_tag "CD4 COUNT DATETIME", @patient, (Time.now - 1.month).year,
+    <%= touch_date_tag "CD4 COUNT DATETIME", @patient, nil,
       {:id => "cd4_count_date",
        :condition => '$("new_cd4_count_available").value == "YES"',
        :helpText => "CD4 Count Date",
@@ -371,7 +371,7 @@
        :condition => '$("new_lymphocyte_count_available").value == "YES"',
        :helpText => "Lymphocyte Count Location"} %>
 
-    <%= touch_date_tag "LYMPHOCYTE COUNT DATETIME", @patient, (Time.now - 1.month).year,
+    <%= touch_date_tag "LYMPHOCYTE COUNT DATETIME", @patient, nil,
       {:id => "lymphocyte_count_date",
        :condition => '$("new_lymphocyte_count_available").value == "YES"',
        :helpText => "Lymphocyte Count Date",
@@ -382,8 +382,8 @@
        :condition => '$("new_lymphocyte_count_available").value == "YES"',
        :helpText => "Lymphocyte Count"} %>
 
-  <% else %> 
-  
+  <% else %>
+
     <!-- Children under the age of 14 --> 
 
     <% unless concept_set_options('WHO STAGE I ADULT AND PEDS').blank? && concept_set_options('WHO STAGE I PEDS').blank? %>
@@ -474,7 +474,7 @@
        :condition => '$("new_cd4_count_available").value == "YES"',
        :helpText => "CD4 Count Location"} %>
 
-    <%= touch_date_tag "CD4 COUNT DATETIME", @patient, (Time.now - 1.month).year,
+    <%= touch_date_tag "CD4 COUNT DATETIME", @patient, nil,
       {:id => "cd4_count_date",
        :condition => '$("new_cd4_count_available").value == "YES"',
        :helpText => "CD4 Count Date",
@@ -521,7 +521,7 @@
        :condition => '$("new_lymphocyte_count_available").value == "YES"',
        :helpText => "Lymphocyte Count Location"} %>
 
-    <%= touch_date_tag "LYMPHOCYTE COUNT DATETIME", @patient, (Time.now - 1.month).year,
+    <%= touch_date_tag "LYMPHOCYTE COUNT DATETIME", @patient, nil,
       {:id => "lymphocyte_count_date",
        :condition => '$("new_lymphocyte_count_available").value == "YES"',
        :helpText => "Lymphocyte Count Date",
@@ -534,7 +534,7 @@
 
   <% end %>   
 
-  <%= touch_text_area_tag("CLINICAL NOTES CONSTRUCT", @patient, nil,
+  <%#= touch_text_area_tag("CLINICAL NOTES CONSTRUCT", @patient, nil,
     {:optional => true,:helpText => "Clinical notes (optional)"}, time=DateTime.now()) %>
 
   <%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
