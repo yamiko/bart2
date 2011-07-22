@@ -26,6 +26,10 @@
             <span id='patient_residence'><%= @patient.person.addresses.last.city_village rescue "" %></span>
             <span id='patient_age'><%= @patient.person.age rescue "" %></span>
             <span id='patient_gender'><%= @patient.gender rescue "" %></span>
+
+            <% if !@patient.arv_number.blank? %>
+              <span id='patient_arv_number'><%= @patient.arv_number rescue "" %></span>
+            <% end %>
             <div id="patient_card">
               <% unless (@patient.arv_number rescue "") != "" %>
 
