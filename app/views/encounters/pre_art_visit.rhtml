@@ -22,6 +22,8 @@
   #notes{background-color:red;}
 
   .tt_controls_clinical_notes_optional #space { display:inline; }
+
+  #char { display:none; }
 </style>
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
@@ -71,9 +73,22 @@
      :multiple => false,
      :helpText => "TB Status" } %>
 
-  <%= touch_yes_no_unknown_tag "DEPO-PROVERA", @patient, nil,
+  <%if @patient.child_bearing_female?%>
+  <%#= touch_yes_no_unknown_tag "DEPO-PROVERA", @patient, nil,
       {:optional => false,
        :helpText => "Depo-provera injection given?" } %>
+
+  <%= touch_yes_no_unknown_tag "CURRENTLY USING FAMILY PLANNING METHOD", @patient, nil,
+      {:id => "on_fpm",
+        :helpText => "Currently using family planning method" } %>
+
+  <%= touch_select_tag "FAMILY PLANNING METHOD", @patient, options_for_select(@select_options['family_planning_methods']),
+    {:id => "fpm_used",
+     :condition => '$("on_fpm").value == "YES"',
+     :multiple => true,
+     :tt_pageStyleClass => "NoKeyboard",
+     :helpText => "What method?" } %>
+  <%end%>
 
   <% if @patient.person.age >= 14 %>
     <%= touch_numeric_tag "CONDOMS", @patient, nil,
@@ -83,7 +98,7 @@
 
   <%= touch_yes_no_unknown_tag "OTHER DRUGS", @patient, nil,
     {:optional => false,
-     :helpText => "Prescribe CPT and IPT this visit?" } %>
+     :helpText => "Prescribe Drugs this visit?" } %>
 
   <%= touch_text_area_tag("CLINICAL NOTES CONSTRUCT", @patient, nil,
     {:optional => true,:helpText => "Clinical notes (optional)"}, time=DateTime.now()) %>

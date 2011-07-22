@@ -116,4 +116,23 @@ class Encounter < ActiveRecord::Base
       :group      => "encounter.patient_id,DATE(encounter_datetime)",
       :order      => "encounter.encounter_datetime ASC")
   end
+
+  def self.select_options
+    select_options = {
+     'family_planning_methods' => [
+       ['',''],
+       ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
+		   ['Depo-Provera', 'DEPO-PROVERA'],
+		   ['Intrauterine contraception', 'INTRAUTERINE CONTRACEPTION'],
+       ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
+       ['Male condoms', 'MALE CONDOMS'],
+       ['Female condoms', 'FEMALE CONDOMS'],
+       ['Rhythm method', 'RYTHM METHOD'],
+       ['Withdrawal', 'WITHDRAWAL'],
+       ['Abstinence', 'ABSTINENCE'],
+       ['Tubal ligation', 'TUBAL LIGATION'],
+       ['Vasectomy', 'VASECTOMY'],
+		   ['Emergency contraception', 'EMERGENCY CONTRACEPTION']
+      ]  }
+  end
 end

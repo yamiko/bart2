@@ -86,9 +86,20 @@
      :helpText => "TB Status" } %>
 
   <%if @patient.child_bearing_female?%>
-  <%= touch_yes_no_unknown_tag "DEPO-PROVERA", @patient, nil,
+  <%#= touch_yes_no_unknown_tag "DEPO-PROVERA", @patient, nil,
       {:optional => false,
        :helpText => "Depo-provera injection given?" } %>
+
+  <%= touch_yes_no_unknown_tag "CURRENTLY USING FAMILY PLANNING METHOD", @patient, nil,
+      {:id => "on_fpm",
+        :helpText => "Currently using family planning method" } %>
+
+  <%= touch_select_tag "FAMILY PLANNING METHOD", @patient, options_for_select(@select_options['family_planning_methods']),
+    {:id => "fpm_used",
+     :condition => '$("on_fpm").value == "YES"',
+     :multiple => true,
+     :tt_pageStyleClass => "NoKeyboard",
+     :helpText => "What method?" } %>
   <%end%>
 
  <% if @patient.person.age >= 14 %>
