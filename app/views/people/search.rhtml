@@ -129,8 +129,10 @@ end -%>
           patient = person.patient rescue []
           next if patient.blank? -%>
           <option value="<%= person.id %>" onmousedown="changeNextButtonText('Select Patient')">
-            <%=h person.name -%>,
-            <% unless person.birthdate.blank? %> Age: <%=h person.age -%>,<% end %> Gender: <%= person.sex %>
+            <%=h person.name -%> (<%= person.gender %>)
+            <% unless person.birthdate.blank? %> <%=h person.birthdate.strftime("%d-%b-%Y") -%><% end %>,
+            <%=h person.addresses.first.city_village -%>,
+            Guardian: <%=h person.relationships.first.relation.name -%>
           </option>
         <% end -%>
       </select>
