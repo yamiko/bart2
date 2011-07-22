@@ -94,6 +94,9 @@ class ProgramsController < ApplicationController
       current_active_state = patient_program.patient_states.last
       current_active_state.end_date = params[:current_date].to_date
 
+       # set current location via params if given
+      Location.current_location = Location.find(params[:location]) if params[:location]
+
       patient_state = patient_program.patient_states.build(
         :state => params[:current_state],
         :start_date => params[:current_date])
