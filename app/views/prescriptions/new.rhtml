@@ -14,24 +14,47 @@
   #tt_page_frequency .options {
     font-size:1em;
     height:24em;
-  } 
+  }
 
-  .tt_page_prescribe_treatment_for_which_diagnosis #keyboard, 
-  .tt_controls_frequency #keyboard, 
+  .tt_page_prescribe_treatment_for_which_diagnosis #keyboard,
+  .tt_controls_frequency #keyboard,
   .tt_controls_frequency #num,
   .tt_controls_frequency #Unknown {
     display:none;
   }
 
-
   #tt_page_generic_drug #viewport {
     height:350px;
-  } 
-   
+  }
 
   #tt_page_formulation #viewport {
     height:350px;
-  } 
+  }
+
+  .tt_controls_duration_days #char {
+    display: none;
+  }
+
+  .tt_controls_dose_strength #char {
+    display: none;
+  }
+
+  .tt_controls_morning_dose_strength #char {
+    display: none;
+  }
+
+  .tt_controls_afternoon_dose_strength #char {
+    display: none;
+  }
+
+  .tt_controls_night_dose_strength #char {
+    display: none;
+  }
+
+  .tt_controls_evening_dose_strength #char {
+    display: none;
+  }
+
 </style>
 <script>
   var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_id %>"
