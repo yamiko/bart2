@@ -488,29 +488,6 @@ function generateDashboard(){
         ageRow.appendChild(agevalue);
     }
 
-
-    if(__$('patient_arv_number')){
-        var patientarvnumberRow = document.createElement("div");
-        patientarvnumberRow.id = "patientarvnumberRow";
-        patientarvnumberRow.className = "patientLabelRow";
-
-        mainDetailsContent.appendChild(patientarvnumberRow);
-
-        var arv_number = document.createElement("div");
-        arv_number.id = "arv_number";
-        arv_number.innerHTML = "Patient ARV-Number";
-        arv_number.className = "patientLabel";
-
-        patientarvnumberRow.appendChild(arv_number);
-
-        var patientarvnumbervalue = document.createElement("div");
-        patientarvnumbervalue.id = "patientarvnumbervalue";
-        patientarvnumbervalue.className = "patientLabelValue";
-        patientarvnumbervalue.innerHTML = ":&nbsp;&nbsp;" + (__$('patient_arv_number') ? __$('patient_arv_number').innerHTML : "");
-
-        patientarvnumberRow.appendChild(patientarvnumbervalue);
-    }
-
     if(__$('project_name')){
         var application = document.createElement("div");
         application.id = "patient-dashboard-application";
