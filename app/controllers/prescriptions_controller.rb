@@ -22,7 +22,14 @@ class PrescriptionsController < ApplicationController
   def create
     @suggestions = params[:suggestion] || ['New Prescription']
     @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
-    session_date = session[:datetime] || Time.now()
+    unless params[:location]
+      session_date = session[:datetime] || params[:imported_date_created] || Time.now()
+    else
+      session_date = params[:imported_date_created] #Use date_created passed during import
+    end
+    # set current location via params if given
+    Location.current_location = Location.find(params[:location]) if params[:location]
+    
     @encounter = @patient.current_treatment_encounter(session_date)
     @diagnosis = Observation.find(params[:diagnosis]) rescue nil
     @suggestions.each do |suggestion|
@@ -30,6 +37,7 @@ class PrescriptionsController < ApplicationController
         @order = DrugOrder.find(suggestion)
         DrugOrder.clone_order(@encounter, @patient, @diagnosis, @order)
       else
+        
         @formulation = (params[:formulation] || '').upcase
         @drug = Drug.find_by_name(@formulation) rescue nil
         unless @drug
@@ -38,7 +46,7 @@ class PrescriptionsController < ApplicationController
           return
         end  
         start_date = session_date
-        auto_expire_date = session_date + params[:duration].to_i.days
+        auto_expire_date = session_date.to_date + params[:duration].to_i.days
         prn = params[:prn].to_i
         if params[:type_of_prescription] == "variable"      
           DrugOrder.write_order(@encounter, @patient, @diagnosis, @drug, start_date, auto_expire_date, [params[:morning_dose], params[:afternoon_dose], params[:evening_dose], params[:night_dose]], 'VARIABLE', prn)
@@ -46,8 +54,14 @@ class PrescriptionsController < ApplicationController
           DrugOrder.write_order(@encounter, @patient, @diagnosis, @drug, start_date, auto_expire_date, params[:dose_strength], params[:frequency], prn)
         end  
       end  
-    end 
-    redirect_to (params[:auto] == '1' ? "/prescriptions/auto?patient_id=#{@patient.id}" : "/patients/treatment_dashboard/#{@patient.id}")
+    end
+
+    unless params[:location]
+      redirect_to (params[:auto] == '1' ? "/prescriptions/auto?patient_id=#{@patient.id}" : "/patients/treatment_dashboard/#{@patient.id}")
+    else
+      render :text => 'import success' and return
+    end
+    
   end
   
   def auto
