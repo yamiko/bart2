@@ -1,7 +1,6 @@
 class EncountersController < ApplicationController
 
   def create
-    #raise params.to_yaml
     if params['encounter']['encounter_type_name'] == 'ART_INITIAL'
       if params[:observations][0]['concept_name'] == 'EVER RECEIVED ART' and params[:observations][0]['value_coded_or_text'] == 'NO'
         observations = []
@@ -38,12 +37,17 @@ class EncountersController < ApplicationController
     end
 
     @patient = Patient.find(params[:encounter][:patient_id])
+
     # set current location via params if given
     Location.current_location = Location.find(params[:location]) if params[:location]
 
     # Encounter handling
     encounter = Encounter.new(params[:encounter])
-    encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
+    unless params[:location]
+      encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
+    else
+      encounter.encounter_datetime = params['encounter']['encounter_datetime']
+    end
     encounter.save    
 
     # Observation handling
@@ -136,7 +140,7 @@ class EncountersController < ApplicationController
 
   def new
     @patient = Patient.find(params[:patient_id] || session[:patient_id])
-    @select_options = Encounter.select_options
+
     use_regimen_short_names = GlobalProperty.find_by_property(
       "use_regimen_short_names").property_value rescue "false"
     show_other_regimen = GlobalProperty.find_by_property(
