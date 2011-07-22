@@ -35,8 +35,8 @@
   <label for='guardian_present'>Guardian Present</label>
     <%= select_tag "observations[][value_text]", relationship_options(@patient),
       {:id => "guardian_present",
-       :multiple => true,
-       :optional => true,
+       :multiple => false,
+       :optional => false,
        :tt_onLoad => 'show_new_relationship_button()' } %>
     <%= hidden_field_tag("observations[][value_coded_or_text]", nil) %>
     <%= hidden_field_tag("observations[][concept_name]", "GUARDIAN PRESENT") %>
