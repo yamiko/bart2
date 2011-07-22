@@ -29,17 +29,21 @@ class UserController < ApplicationController
       end      
     end
   end          
- 
- def role
-    valid_roles = GlobalProperty.find_by_property("valid_roles").property_value rescue nil
+
+  # List roles containing the string given in params[:value]
+  def role
+    valid_roles = GlobalProperty.find_by_property("valid_roles"
+                                                 ).property_value rescue nil
     role_conditions = ["role LIKE (?)", "%#{params[:value]}%"]
     role_conditions = ["role LIKE (?) AND role IN (?)",
                        "%#{params[:value]}%",
                        valid_roles.split(',')] if valid_roles
     roles = Role.find(:all,:conditions => role_conditions)
-    roles = roles.map{| r | "<li value='#{r.role}'>#{r.role.gsub('_',' ').capitalize}</li>" }
+    roles = roles.map do |r|
+      "<li value='#{r.role}'>#{r.role.gsub('_',' ').capitalize}</li>"
+    end
     render :text => roles.join('') and return
- end
+  end
   
  def username
   users = User.find(:all,:conditions => ["username LIKE (?)","%#{params[:username]}%"])
