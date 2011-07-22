@@ -38,7 +38,6 @@ class EncountersController < ApplicationController
     end
 
     @patient = Patient.find(params[:encounter][:patient_id])
-
     # set current location via params if given
     Location.current_location = Location.find(params[:location]) if params[:location]
 
@@ -137,7 +136,7 @@ class EncountersController < ApplicationController
 
   def new
     @patient = Patient.find(params[:patient_id] || session[:patient_id])
-
+    @select_options = Encounter.select_options
     use_regimen_short_names = GlobalProperty.find_by_property(
       "use_regimen_short_names").property_value rescue "false"
     show_other_regimen = GlobalProperty.find_by_property(
