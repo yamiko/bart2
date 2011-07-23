@@ -1088,5 +1088,10 @@ EOF
   def child_bearing_female?
     (gender == "Female" && self.person.age >= 9 && self.person.age <= 45) ? true : false
   end
-
+  #pb: bug-2677 Added the block below to check if the patient was transfered in
+  def transfer_in?
+    patient_transfer_in = self.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
+    return false if patient_transfer_in.blank?
+    return true
+  end
 end
