@@ -40,8 +40,8 @@ class Mastercard
     visits.hiv_test_location = visits.hiv_test_location.to_s.split(':')[1].strip rescue nil
     visits.guardian = patient_obj.person.relationships.map{|r|Person.find(r.person_b).name}.join(' : ') rescue 'NONE'
     visits.reason_for_art_eligibility = patient_obj.reason_for_art_eligibility
-    visits.transfer_in = patient_obj.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
-    visits.transfer_in.blank? == true ? visits.transfer_in = 'NO' : visits.transfer_in = 'YES'
+    visits.transfer_in = patient_obj.transfer_in? #pb: bug-2677 Made this to use the newly created patient model method 'transfer_in?'
+    visits.transfer_in == false ? visits.transfer_in = 'NO' : visits.transfer_in = 'YES'
     
     visits.transfer_in_date = patient_obj.person.observations.recent(1).question("HAS TRANSFER LETTER").all.collect{|o| 
             o.obs_datetime if o.answer_string.strip == "YES"}.last rescue nil
