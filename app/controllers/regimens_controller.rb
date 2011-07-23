@@ -103,27 +103,14 @@ class RegimensController < ApplicationController
     # Send them back to treatment for now, eventually may want to go to workflow
     redirect_to "/patients/treatment_dashboard?patient_id=#{@patient.id}"
   end    
-  
+
   def suggested
-    @patient_program = PatientProgram.find(params[:id])
+    patient_program = PatientProgram.find(params[:id])
     @options = []
-    render :layout => false and return unless @patient_program
-    @regimens = @patient_program.regimens(@patient_program.patient.current_weight).uniq
-    @regimens = @regimens.map{|r| Concept.find(r) }
-    @options = @regimens.map{|r| [r.concept_id, (r.concept_names.typed("SHORT").first || r.concept_names.typed("FULLY_SPECIFIED").first).name] } + @options
-    @options_altered = []    
-    @options.each {|opt|
-      reg_index = Regimen.find(:all,
-                                :select => 'regimen_index',
-                                :conditions => ['concept_id = ?', opt[0]]).uniq
-        if params[:patient_age].to_i == 15 || params[:patient_age].to_i > 15
-          suffix = "A"
-        else
-          suffix = "P"
-        end
-        @options_altered << [opt[0], reg_index[0].regimen_index.to_s  + suffix.to_s + " - " + opt[1].to_s]
-      }
-     @options = @options_altered
+    render :layout => false and return unless patient_program
+
+    regimen_concepts = patient_program.regimens(patient_program.patient.current_weight).uniq
+    @options = regimen_options(regimen_concepts, params[:patient_age].to_i)
 
     render :layout => false
   end
@@ -184,4 +171,8 @@ class RegimensController < ApplicationController
       result[program.patient_program_id] = program.current_regimen ? Concept.find_by_concept_id(program.current_regimen).concept_names.tagged(["short"]).map(&:name) : nil; result 
     end
   end
+
+private
+
+  
 end

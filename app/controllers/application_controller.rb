@@ -59,7 +59,32 @@ class ApplicationController < ActionController::Base
 
   def generic_locations
     Location.workstation_locations
-  end    
+  end
+
+  # Convert a list +Concept+s of +Regimen+s for the given +Patient+ <tt>age</tt>
+  # into select options. See also +EncountersController#arv_regimen_answers+
+  def regimen_options(regimen_concepts, age)
+    options = regimen_concepts.map{ |r|
+      [r.concept_id,
+       (r.concept_names.typed("SHORT").first ||
+        r.concept_names.typed("FULLY_SPECIFIED").first).name]
+    }
+
+    options.collect{ |opt|
+      opt_reg = Regimen.find(:all,
+                             :select => 'regimen_index',
+                             :conditions => ['concept_id = ?', opt[0]]
+                            ).uniq.first
+      if age >= 15
+        suffix = "A"
+      else
+        suffix = "P"
+      end
+
+      #[opt[0], "#{opt_reg.regimen_index}#{suffix} - #{opt[1]}"]
+      ["#{opt_reg.regimen_index}#{suffix} - #{opt[1]}", opt[0]]
+    }.sort_by{|opt| opt[1]}
+  end
 
 private
 

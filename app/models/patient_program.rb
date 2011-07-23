@@ -77,11 +77,9 @@ class PatientProgram < ActiveRecord::Base
     obs.first.value_coded rescue nil
   end
 
+  # Actually returns +Concept+s of suitable +Regimen+s for the given +weight+
   def regimens(weight=nil)
-    Regimen.program(program_id).criteria(weight).all(
-      :select => 'concept_id', 
-      :group => 'concept_id, program_id',
-      :include => :concept, :order => 'regimen_id').map(&:concept)
+    self.program.regimens(weight)
   end
 
   def closed?

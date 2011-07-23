@@ -141,6 +141,7 @@ class EncountersController < ApplicationController
   def new
     @patient = Patient.find(params[:patient_id] || session[:patient_id])
     @select_options = Encounter.select_options
+=begin
     use_regimen_short_names = GlobalProperty.find_by_property(
       "use_regimen_short_names").property_value rescue "false"
     show_other_regimen = GlobalProperty.find_by_property(
@@ -149,6 +150,10 @@ class EncountersController < ApplicationController
     @answer_array = arv_regimen_answers(:patient => @patient,
       :use_short_names => use_regimen_short_names == "true",
       :show_other_regimen => show_other_regimen == "true")
+=end
+    hiv_program = Program.find_by_name('HIV Program')
+    @answer_array = regimen_options(hiv_program.regimens, @patient.person.age)
+    @answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
     redirect_to "/" and return unless @patient
 
     redirect_to next_task(@patient) and return unless params[:encounter_type]
