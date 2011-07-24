@@ -25,7 +25,10 @@
 
             <div id="facility"><%= @facility %></div>
             <div id="location"><%= @location %></div>
-            <div id="date"><%= @date %></div>
+            <% retrospective = 'false'
+               retrospective = 'true' if session[:datetime]
+            %>
+            <div id="date" retrospective="<%= retrospective %>"><%= @date %></div>
             <div id="user"><%= @user %></div>
 
             <select id="tabs">

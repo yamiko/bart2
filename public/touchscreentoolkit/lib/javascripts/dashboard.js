@@ -192,7 +192,7 @@ function generateHomepage(){
         }
     }
     
-    login.innerHTML = "<b>Date:</b> <span  style='" + (current_date.trim() != datenow.trim() ? "color: #f00;" : "") +
+    login.innerHTML = "<b>Date:</b> <span  style='" + (__$('date').getAttribute('retrospective') == 'true' ? "color: #f00;" : "") +
     "'>" + (__$("date") ? current_date : datenow) + "</span><br /><div id='user'>" +
     "<b>User:</b> " + (__$("user") ? user : "&nbsp;") + "</div>";
 

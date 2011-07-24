@@ -132,7 +132,7 @@ class PeopleController < ApplicationController
         date_of_encounter = Time.mktime(params[:set_year].to_i,
                                         params[:set_month].to_i,                                
                                         params[:set_day].to_i,0,0,1) 
-        session[:datetime] = date_of_encounter if date_of_encounter.to_date != Date.today 
+        session[:datetime] = date_of_encounter #if date_of_encounter.to_date != Date.today
       end
       unless params[:id].blank?
         redirect_to next_task(Patient.find(params[:id])) 
