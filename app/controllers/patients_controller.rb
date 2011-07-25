@@ -165,6 +165,7 @@ class PatientsController < ApplicationController
   end
 
   def graph
+    @currentWeight = params[:currentWeight]
     render :template => "graphs/#{params[:data]}", :layout => false 
   end
 

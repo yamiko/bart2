@@ -312,6 +312,13 @@ class Person < ActiveRecord::Base
     birthday_params = params_to_process.reject{|key,value| key.match(/gender/) }
     person_params = params_to_process.reject{|key,value| key.match(/birth_|age_estimate|occupation/) }
 
+
+    if person_params["gender"].to_s == "Female"
+       person_params["gender"] = 'F'
+    elsif person_params["gender"].to_s == "Male"
+       person_params["gender"] = 'M'
+    end
+
     person = Person.create(person_params)
 
     if birthday_params["birth_year"] == "Unknown"
