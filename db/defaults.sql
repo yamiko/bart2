@@ -116,6 +116,8 @@ INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
 	((SELECT location_id FROM location WHERE name = 'TB Reception'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
 INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
 	((SELECT location_id FROM location WHERE name = 'TB Sputum Submission Station'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
+INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
+	((SELECT location_id FROM location WHERE name = 'Retrospective'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
 
 /* Remove unwanted relationships */;
 DELETE FROM relationship_type WHERE b_is_to_a NOT IN ("Parent", "Child", "Sibling", "Spouse/Partner", "Village Health Worker", "Other");
