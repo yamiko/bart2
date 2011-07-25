@@ -62,6 +62,7 @@
 
               <h2>Treatment history (possibly filtered)</h2>
               <div style="height:240px;">
+              <% if not @historical.blank? %>
               <table id = 'dispensation' style = "width:100%;">
                 <tr style="text-align:left;">
                   <th>&nbsp;</th>
@@ -89,7 +90,7 @@
                 <% end %>
                 </table>
 
-                <% if @historical.blank? %>
+                <% else %>
                   <div class="data">No prescriptions are available for this patient</div>
                 <% end %>
                 <div>  
