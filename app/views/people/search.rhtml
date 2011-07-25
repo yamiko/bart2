@@ -131,8 +131,8 @@ end -%>
           <option value="<%= person.id %>" onmousedown="changeNextButtonText('Select Patient')">
             <%=h person.name -%> (<%= person.gender %>)
             <% unless person.birthdate.blank? %> <%=h person.birthdate.strftime("%d-%b-%Y") -%><% end %>,
-            <%=h person.addresses.first.city_village -%>,
-            Guardian: <%=h person.relationships.first.relation.name -%>
+            <% unless person.addresses.first.blank? %> <%=h person.addresses.first.city_village -%> <% end %>,
+            <% unless person.relationships.first.blank? %> Guardian: <%=h person.relationships.first.relation.name -%> <% end %>
           </option>
         <% end -%>
       </select>
