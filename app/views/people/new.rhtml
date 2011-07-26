@@ -132,7 +132,8 @@
 
 <%= text_field_tag "person[addresses][address2]", params[:address2], {:id => 'address2', :field_type => 'alpha', :helpText => 'Home District', :ajaxURL => '/person_addresses/address2?search_string=', :allowFreeText => true, :tt_onLoad => 'seen(tstCurrentPage);' } if ask_home_village %>  
 
-  <%= text_field_tag "person[addresses][county_district]",  params[:county_district], {:field_type => 'alpha', :helpText => 'Ancestral Traditional Authority (T/A)', :ajaxURL => '/person_addresses/traditional_authority?search_string=', :allowFreeText => true }%>
+  <p><label for="person_addresses_county_district">Ancestral Traditional Authority (T/A)</label></br>
+  <%= text_field "person[addresses]" , 'county_district', :xhelpText => 'Ancestral Traditional Authority (T/A)', :ajaxURL => '/people/traditional_authority/TraditionalAuthority?field=role&value='%></p>
 
   <%= text_field_tag "person[addresses][city_village]",  params[:city_village], {:field_type => 'alpha', :helpText => 'Current city, place or area of residence', :ajaxURL => '/person_addresses/village?search_string=', :allowFreeText => true }%>
 
