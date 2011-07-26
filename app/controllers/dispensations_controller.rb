@@ -80,7 +80,7 @@ class DispensationsController < ApplicationController
           end
         else
           unless params[:location]
-            redirect_to "/patients/treatment_dashboard/#{@patient.patient_id}"
+            redirect_to "/patients/treatment_dashboard?id=#{@patient.patient_id}&dispensed_order_id=#{@order_id}"
           else
             render :text => 'complete' and return
           end
