@@ -25,9 +25,25 @@
 
   .tt_controls_clinical_notes_optional #space { display:inline; }
 </style>
+
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
-</script>  
+
+  function getSelectedSymptoms() {
+    var options = $('symptoms').options;
+    var symptoms = new Array();
+
+    for (var i=0; i<options.length; i++) {
+      if (options[i].selected) {
+        symptoms +=  "<li tstvalue='" + options[i].value + "' id='" + i + "' onmousedown='null; updateTouchscreenInputForSelect(this); ' style='display: block;'>" + options[i].value + "</li>";
+        $("drug_induced_effects").innerHTML += "<option>" + options[i].value + "</option>";
+      }
+    }
+    $("tt_currentUnorderedListOptions").innerHTML = symptoms;
+  }
+
+</script>
+
 <form action="/encounters/create" method='post'>
   <%= hidden_field_tag "encounter[encounter_type_name]", "ART VISIT" %>
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
@@ -72,11 +88,12 @@
        :multiple => true,
        :helpText => "Symptoms (select all that apply)" } %>
 
-    <%= touch_select_tag "ADVERSE EFFECT", @patient, options_for_select([['SKIN RASH', 'SKIN RASH'], ['PERIPHERAL NEUROPATHY', 'PERIPHERAL NEUROPATHY']]),
-      {:id => 'symptoms',
+    <%= touch_select_tag "DRUG INDUCED", @patient, options_for_select([['', '']]),
+      {:id => 'drug_induced_effects',
        :optional => true,
        :multiple => true,
-       :helpText => "Adverse effects (select all that apply)" } %>
+       :helpText => "Select which of these symptoms are likely drug induced<br />(select all that apply)",
+       :tt_onLoad => "getSelectedSymptoms()" } %>
   <% end %>
 
   <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
