@@ -457,17 +457,17 @@ class Cohort
                           ORDER BY K.encounter_datetime DESC , K.obs_datetime DESC").map{| state | status << state.name }
 
     ( status || [] ).each do | state |
-      if state == 'TB NOT SUSPECTED' or state == 'noSusp'
+      if state == 'TB NOT SUSPECTED' or state == 'noSusp' or state == 'noSup' or state == 'TB not suspected' or state == 'TB NOT suspected' or state == 'Nosup'
         tb_status_hash['TB STATUS']['Not Suspected'] += 1
-      elsif state == 'TB SUSPECTED' or state == 'susp'
+      elsif state == 'TB SUSPECTED' or state == 'susp' or state == 'sup' or state == 'TB suspected' or state == 'Tb suspected'
         tb_status_hash['TB STATUS']['Suspected'] += 1
-      elsif state == 'RX' or state == 'CONFIRMED TB ON TREATMENT' or state == 'Rx' or state == 'ONFIRMED TB ON TREATMENT'
+      elsif state == 'RX' or state == 'CONFIRMED TB ON TREATMENT' or state == 'Rx' or state == 'ONFIRMED TB ON TREATMENT' or state == 'Onfirmed TB on treatment' or state == 'Confirmed TB on treatment' or state == 'Norx'
         tb_status_hash['TB STATUS']['On Treatment'] += 1
-      elsif state == 'noRX' or state == 'CONFIRMED TB NOT ON TREATMENT'
+      elsif state == 'noRX' or state == 'CONFIRMED TB NOT ON TREATMENT' or state =='Confirmed TB not on treatment' or state == 'Confirmed TB NOT on treatment'
         tb_status_hash['TB STATUS']['Not on treatment'] += 1
       else
         tb_status_hash['TB STATUS']['Unknown'] += 1
-      end  
+      end
     end
     tb_status_hash
   end
@@ -490,7 +490,7 @@ class Cohort
                      :conditions => ["encounter_id IN (#{encounter_ids.join(',')}) AND concept_id = ? 
                      AND value_coded IN (#{side_effect_concept_ids.join(',')})",concept_id],
                      :group =>'person_id').length
-                     
+
   end
 
 end
