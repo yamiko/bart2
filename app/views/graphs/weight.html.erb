@@ -85,6 +85,9 @@
          @obs = @patient.person.observations.find_by_concept_name("WEIGHT (KG)")
 		@minWeight = 0
 		@maxWeight = 0
+		if @currentWeight.to_f != 0
+		   @maxWeight = @currentWeight
+		end
          @obs.sort_by{|obs| obs.obs_datetime}.each do |obs|
 			if obs.value_numeric <= @minWeight			
 				@minWeight = obs.value_numeric
@@ -94,6 +97,9 @@
 			end  
            @min = obs.obs_datetime if obs.obs_datetime < @min %>
         [<%= obs.obs_datetime.to_f -%>, <%= obs.value_numeric -%>],<% end %>
+        <%if @currentWeight.to_f != 0%>
+        [<%=Time.now.to_f.round(0)%>, <%=@currentWeight%>],
+       <%end%>
     ];
     <% @min = @max - 1.year if @min > @max - 1.year %>
 
