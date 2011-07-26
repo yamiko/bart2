@@ -10,7 +10,8 @@ class LocationTest < ActiveSupport::TestCase
     end
     
     should "extract the site id from the description" do
-      assert_equal "750", Location.find_by_name("Neno District Hospital").site_id
+      #assert_equal "750", Location.find_by_name("Neno District Hospital").site_id
+      assert_equal "7", Location.find_by_name("Neno District Hospital").site_id
     end
 
     should "return children" do
