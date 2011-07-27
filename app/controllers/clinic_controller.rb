@@ -91,6 +91,13 @@ class ClinicController < ApplicationController
     @year = Encounter.statistics(@types, :conditions => ['YEAR(encounter_datetime) = YEAR(NOW())'])
     @ever = Encounter.statistics(@types)
 
+    simple_overview = GlobalProperty.find_by_property("simple_application_dashboard").property_value rescue nil
+    if simple_overview != nil
+      if simple_overview == 'true'
+        render :template => 'clinic/overview_simple.rhtml' , :layout => false
+        return
+      end
+    end
     render :layout => false
   end
 
