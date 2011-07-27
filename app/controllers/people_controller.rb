@@ -159,6 +159,18 @@ class PeopleController < ApplicationController
     end
   end
   
+  # List traditional authority containing the string given in params[:value]
+  def traditional_authority
+
+    traditional_authority_conditions = ["name LIKE (?)", "%#{params[:value]}%"]
+
+    traditional_authorities = TraditionalAuthority.find(:all,:conditions => traditional_authority_conditions)
+    traditional_authorities = traditional_authorities.map do |t_a|
+      "<li value='#{t_a.name}'>#{t_a.name}</li>"
+    end
+    render :text => traditional_authorities.join('') and return
+  end
+
 private
   
   def search_complete_url(found_person_id, primary_person_id)
