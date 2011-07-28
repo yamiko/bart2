@@ -51,7 +51,7 @@ mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/retrospective_station
 #mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/migrate/create_weight_for_heights.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/migrate/create_weight_height_for_ages.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/migrate/insert_weight_for_ages.sql
-mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/traditional_authority.sql
+#mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/traditional_authority.sql
 
 #rake openmrs:bootstrap:load:defaults RAILS_ENV=$ENV
 #rake openmrs:bootstrap:load:site SITE=$SITE RAILS_ENV=production#
