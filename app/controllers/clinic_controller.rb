@@ -133,6 +133,7 @@ class ClinicController < ApplicationController
       ["View clinic holidays","/properties/clinic_holidays"],
       ["Set clinic holidays","/properties/set_clinic_holidays"],
       ["Set site code", "/properties/site_code"],
+      ["Manage roles", "/properties/set_role_privileges"],
       ["Set appointment limit", "/properties/set_appointment_limit"]
     ]
     render :layout => false
