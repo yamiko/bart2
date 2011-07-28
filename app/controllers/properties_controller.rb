@@ -117,4 +117,10 @@ class PropertiesController < ApplicationController
     end
   end
 
+  def selected_roles
+    render :text => RolePrivilege.find(:all,
+           :conditions =>["role = ?",
+           params[:role]]).collect{|r|r.privilege.privilege}.join(',') and return
+  end
+
 end
