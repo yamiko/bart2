@@ -1,0 +1,32 @@
+<script>
+   var tt_cancel_destination = "/clinic"; // /properties"
+</script>
+
+<style>
+  #tt_page_select_activities .options { height: 506px; }
+</style>
+
+
+<%
+  privileges = ['VITALS',
+                'ART_INITIAL',
+                'ART VISIT',
+                'HIV STAGING',
+                'HIV RECEPTION',
+                'DISPENSING',
+                'PART_FOLLOWUP'
+               ]
+  @privileges = Privilege.find(:all) #,:conditions => ["privilege IN (?)",privileges])
+  #@activities = RolePrivilege.find(:all)
+%>
+
+<form method = 'post' action = '/properties/set_role_privileges'>
+
+  <%= text_field :role , :title , :helpText => 'User role', :ajaxURL => '/user/role/Role?field=role&value='%>
+
+
+  <%= select_tag 'role[privileges][]', 
+      options_from_collection_for_select(@privileges.sort_by{|p|p.privilege}, :privilege, :privilege, @activities), 
+      :helpText => "Select activities" ,
+      :multiple =>  true %>
+</form>

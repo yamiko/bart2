@@ -273,13 +273,18 @@ class UserController < ApplicationController
 
   def activities
     # Don't show tasks that have been disabled
-    @privileges = User.current_user.privileges.reject{|priv| GlobalProperty.find_by_property("disable_tasks").property_value.split(",").include?(priv.privilege)}
-    @activities = User.current_user.activities.reject{|activity| GlobalProperty.find_by_property("disable_tasks").property_value.split(",").include?(activity)}
+    user_roles = UserRole.find(:all,:conditions =>["user_id = ?", User.current_user.id]).collect{|r|r.role}
+    role_privileges = RolePrivilege.find(:all,:conditions => ["role IN (?)", user_roles])
+    @privileges = Privilege.find(:all,:conditions => ["privilege IN (?)", role_privileges.collect{|r|r.privilege}])
+
+    @activities = User.current_user.activities.reject{|activity| 
+      GlobalProperty.find_by_property("disable_tasks").property_value.split(",").include?(activity)
+    } rescue User.current_user.activities
   end
   
   def change_activities
     User.current_user.activities = params[:user][:activities]
-    redirect_to(:controller => 'patient', :action => "menu")
+    redirect_to '/clinic'
   end
 
 end
