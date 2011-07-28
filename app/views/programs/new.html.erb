@@ -80,7 +80,7 @@
      :ajaxURL => "", 
      :allowFreeText => false } %> 
 
-  <%= text_field_tag 'initial_date', params[:initial_date] || (Time.now).year, 
+  <%= text_field_tag 'initial_date', params[:initial_date] || nil, #(Time.now).year
       {:id => 'initial_date',
        :field_type => 'date', 
        :helpText => "Initial state start date",
