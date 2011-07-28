@@ -280,13 +280,13 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
       <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
         {:id => "pregnant",
         :optional => true,
-        :helpText => "Is patient pregnant?" } %>
+        :helpText => "Patient pregnant at initiation?" } %>
       <% end %>    
       
       <%= touch_yes_no_unknown_tag "BREASTFEEDING", @patient, nil,
         {:id => "breast_feeding",
         :optional => true,
-        :helpText => "Is patient breast feeding?" } %>
+        :helpText => "Patient breast feeding at initiation?" } %>
     <% end %>    
 
     <% unless concept_set_options('WHO STAGE I ADULT AND PEDS').blank? && concept_set_options('WHO STAGE I ADULT').blank? %>

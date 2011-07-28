@@ -3,7 +3,7 @@
   
   function new_relationship() {
     var current = '/encounters/new/hiv_reception?patient_id=<%= @patient.patient_id %>';
-    window.location = "/relationships/search?patient_id=<%= @patient.patient_id %>&return_to=" + escape(current)
+    window.location = "/relationships/search?patient_id=<%= @patient.patient_id %>&return_to=" + escape(current) + "&guardian_added=true"
   }
   
   function show_new_relationship_button() {
@@ -19,12 +19,12 @@
   function cleanup_guardian_options() {
     var options = $('guardian_present').options;
     for (var i=0; i<options.length; i++) {
-      if (options[i].selected && options[i].value == 'None') {
-        options[i].selected = false;
+      if (options[i].selected && options[i].value == 'Yes') {
+        return new_relationship();
       }
     }
   }
- 
+
 </script>  
 <form id='appointment' action="/encounters/create" method='post'>
   <%= hidden_field_tag "encounter[encounter_type_name]", "HIV RECEPTION" %>
@@ -32,21 +32,37 @@
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
-  <label for='guardian_present'>Guardian Present</label>
-    <%= select_tag "observations[][value_text]", relationship_options(@patient),
-      {:id => "guardian_present",
-       :multiple => false,
-       :optional => false,
-       :tt_onLoad => 'show_new_relationship_button()' } %>
-    <%= hidden_field_tag("observations[][value_coded_or_text]", nil) %>
-    <%= hidden_field_tag("observations[][concept_name]", "GUARDIAN PRESENT") %>
-    <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-    <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>  
+  <% if session[:guardian_added] == nil  %>
+    <% if Person.find(@patient.patient_id).relationships.first.blank? %>
+       <label for='guardian_present'>Guardian Present</label>
+        <%= select_tag "observations[][value_text]", relationship_options(@patient),
+          {:id => "guardian_present",
+           :multiple => false,
+           :optional => false,
+           :tt_onUnLoad => 'cleanup_guardian_options()' } %>
+        <%= hidden_field_tag("observations[][value_coded_or_text]", nil) %>
+        <%= hidden_field_tag("observations[][concept_name]", "GUARDIAN PRESENT") %>
+        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
+        <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+    <% else %>
+      <label for='guardian_present'>Guardian Present</label>
+        <%= select_tag "observations[][value_text]", relationship_options(@patient),
+          {:id => "guardian_present",
+           :multiple => false,
+           :optional => false,
+           :tt_onLoad => 'hide_new_relationship_button()' } %>
+        <%= hidden_field_tag("observations[][value_coded_or_text]", nil) %>
+        <%= hidden_field_tag("observations[][concept_name]", "GUARDIAN PRESENT") %>
+        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
+        <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+    <% end %>
+  <% end %>
+  <% session[:guardian_added] = nil %>
 
   <label for='patient_present'>Patient Present</label>
     <%= select_tag "observations[][value_coded_or_text]", options_for_select([['Yes','YES'],['No','NO']]), 
       {:id => 'patient_present',
-      :tt_onLoad => 'hide_new_relationship_button(); cleanup_guardian_options();'} %>
+      :tt_onLoad => 'hide_new_relationship_button()'} %>
     <%= hidden_field_tag("observations[][value_text]", nil) %>
     <%= hidden_field_tag("observations[][concept_name]", "PATIENT PRESENT") %>
     <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
