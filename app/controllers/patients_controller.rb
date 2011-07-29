@@ -20,7 +20,7 @@ class PatientsController < ApplicationController
     @date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
 
      @location = Location.find(session[:location_id]).name rescue ""
-     if @location.downcase == "outpatient"
+     if @location.downcase == "outpatient" || params[:source]== 'opd'
         render :template => 'dashboards/opdtreatment_dashboard', :layout => false
      else
         render :template => 'patients/index', :layout => false

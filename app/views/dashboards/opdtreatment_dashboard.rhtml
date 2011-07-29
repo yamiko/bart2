@@ -37,8 +37,11 @@
                   <option value='/encounters/new?id=show&patient_id=<%=@patient.id%>&encounter_type=opddrug_dispensing'>Give Drugs</option>
                   <option value='/encounters/new?id=show&patient_id=<%=@patient.id%>&encounter_type=referral'>Referrals</option>
                   <option value='/patients/opdcard/<%= @patient.id %>'>Visit Card</option>
-                  <option value='/patients/dashboard_print_national_id?id=<%= @patient.id %>&redirect=patients/opdtreatment'>
-                    Print National ID</option>
+                  <option value='/patients/dashboard_print_national_id?id=<%= @patient.id %>&redirect=patients/opdtreatment'>Print National ID</option>
+                 <%source = params[:source]%>
+                 <%if !source.nil?%>
+                  <option  value='/patients/show/<%= @patient.id -%>?source=art'>ART</option>
+                <%end%>
                 </select>
               </td>
             </tr>
