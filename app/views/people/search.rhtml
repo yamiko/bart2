@@ -13,6 +13,8 @@ pos = 1
           
     people[<%= pos %>]["gender"] = "<%= person.sex %>";
 
+    people[<%= pos %>]["status"] = "<%=h 'Died' if person.dead == 1 rescue '' -%>";
+
   <% unless person.birthdate.blank? %>
 
       people[<%= pos %>]["birthdate"] = "<%= person.birthdate_formatted rescue "" %>";
@@ -57,8 +59,6 @@ pos = 1
 
   <% end %>
 
-    people[<%= pos %>]["status"] = "<%=h 'Died' if person.dead == 1 rescue '' -%>";
-3
   <%
 
   pos = pos + 1

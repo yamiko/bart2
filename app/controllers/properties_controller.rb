@@ -97,5 +97,30 @@ class PropertiesController < ApplicationController
       redirect_to "/clinic" and return
     end
   end
+  
+  def set_role_privileges
+    if request.post?
+      role = params[:role]['title']
+      privileges = params[:role]['privileges']
+
+      RolePrivilege.find(:all,:conditions => ["role = ?",role]).each do | privilege |
+        privilege.destroy
+      end
+
+      privileges.each do | privilege |
+        role_privilege = RolePrivilege.new()
+        role_privilege.role = Role.find_by_role(role)
+        role_privilege.privilege = Privilege.find_by_privilege(privilege)
+        role_privilege.save
+      end
+      redirect_to "/clinic" and return
+    end
+  end
+
+  def selected_roles
+    render :text => RolePrivilege.find(:all,
+           :conditions =>["role = ?",
+           params[:role]]).collect{|r|r.privilege.privilege}.join(',') and return
+  end
 
 end
