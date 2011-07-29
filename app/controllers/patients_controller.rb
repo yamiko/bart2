@@ -20,7 +20,7 @@ class PatientsController < ApplicationController
     @date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
 
      @location = Location.find(session[:location_id]).name rescue ""
-     if @location.downcase == "outpatient"
+     if @location.downcase == "outpatient" || params[:source]== 'opd'
         render :template => 'dashboards/opdtreatment_dashboard', :layout => false
      else
         render :template => 'patients/index', :layout => false
@@ -505,6 +505,18 @@ class PatientsController < ApplicationController
     end
 
     render :template => 'dashboards/visit_history_tab', :layout => false
+  end
+
+  def past_visits_summary
+    @previous_visits  = Encounter.get_previous_encounters(params[:patient_id])
+    @encounter_dates = @previous_visits.map{|encounter| encounter.encounter_datetime.strftime("%d-%b-%Y")}.uniq.reverse.first(1) rescue []
+
+    @past_encounter_dates = []
+      @encounter_dates.each do |encounter|
+        @past_encounter_dates << encounter if encounter != (Date.today).strftime("%d-%b-%Y")
+      end
+
+    render :template => 'dashboards/past_visits_summary_tab', :layout => false
   end
 
   def treatment_dashboard
