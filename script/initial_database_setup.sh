@@ -46,6 +46,9 @@ mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/moh_regimens_only.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/regimen_indexes.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/retrospective_station_entries.sql
 
+mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/privilege.sql
+mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/global_property.sql
+
 #mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/migrate/alter_global_property.sql
 #mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/migrate/create_sessions.sql
 #mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/migrate/create_weight_for_heights.sql

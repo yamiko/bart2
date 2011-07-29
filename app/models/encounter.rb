@@ -68,7 +68,7 @@ class Encounter < ActiveRecord::Base
       vitals << temp_str if temp_str                          
       vitals.join(', ')
     else  
-      observations.collect{|observation| observation.answer_string}.join(", ")
+      observations.collect{|observation| "<b>#{(observation.concept.concept_names.last.name) rescue ""}</b>: #{observation.answer_string}"}.join(", ")
     end  
   end
 
@@ -134,5 +134,14 @@ class Encounter < ActiveRecord::Base
        ['Vasectomy', 'VASECTOMY'],
 		   ['Emergency contraception', 'EMERGENCY CONTRACEPTION']
       ]  }
+  end
+
+  def self.get_previous_encounters(patient_id)
+    previous_encounters = self.all(
+              :conditions => ["encounter.voided = ? and patient_id = ?", 0, patient_id],
+              :include => [:observations]
+            )
+
+    return previous_encounters
   end
 end
