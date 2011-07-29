@@ -16,11 +16,11 @@
 </style>
 
 <script>
-  <% firstPositiveHivTestType = Observation.question("FIRST POSITIVE HIV TEST TYPE").first(:conditions => {:person_id => @patient.person}, :include => :answer_concept_name).answer_concept_name.name rescue 'UNKNOWN' -%>
+  <% firstPositiveHivTestType = Observation.question("CONFIRMATORY HIV TEST TYPE").first(:conditions => {:person_id => @patient.person}, :include => :answer_concept_name).answer_concept_name.name rescue 'UNKNOWN' -%>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id -%>";
   var age = <%= @patient.person.age -%>;
   var ageInMonths = <%= @patient.person.age_in_months -%>;
-  var firstPositiveHivTestType = "<%= firstPositiveHivTestType -%>";  
+  var firstPositiveHivTestType = "<%= firstPositiveHivTestType.upcase -%>";  
   var cd4_count_numeric, cd4_count_estimate, cd4_count_modifier;
   
   function updateCD4Count() {
@@ -154,7 +154,7 @@
       var presumedSevereHivConditions = "";
       if ($('presumed_severe_hiv_conditions')) presumedSevereHivConditions = selectedValues($('presumed_severe_hiv_conditions'));
         var presumedSevereHiv = false;
-      if (firstPositiveHivTestType == "HIV RAPID TEST, QUALITATIVE") {
+      if (firstPositiveHivTestType == "HIV RAPID TEST") {
         if (
           presumedSevereHivConditions.indexOf("PNEUMOCYSTIS PNEUMONIA") > -1 ||
           presumedSevereHivConditions.indexOf("CANDIDIASIS, ESOPHAGEAL") > -1 ||
@@ -174,7 +174,7 @@
       } finally {presumedSeverHiv = null}*/
 
       try {
-        if (ageInMonths < 12 && firstPositiveHivTestType == "HIV RAPID TEST, QUALITATIVE" && presumedSevereHiv) {
+        if (ageInMonths < 12 && firstPositiveHivTestType == "HIV RAPID TEST" && presumedSevereHiv) {
           reasonForArtEligibility = "PRESUMED SEVERE HIV";
         } else if (whoStage >= 3) {
           reasonForArtEligibility = whoStageConcept(whoStage, "PEDS");  
@@ -264,7 +264,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
     {:id => "presumed_severe_hiv_conditions",
      :multiple => true,
      :optional => true,
-     :condition => 'showPresumed() == true && firstPositiveHivTestType == "HIV RAPID TEST, QUALITATIVE"',
+     :condition => 'showPresumed() == true && firstPositiveHivTestType == "HIV RAPID TEST"',
      :helpText => "Presumed severe HIV criteria (infants only)",
      :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
 

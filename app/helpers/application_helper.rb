@@ -57,6 +57,10 @@ module ApplicationHelper
     GlobalProperty.find_by_property('use.filing.number').property_value == "yes" rescue false
   end
 
+  def use_user_selected_activities
+    GlobalProperty.find_by_property('use.user.selected.activities').property_value == "yes" rescue false
+  end
+
   def month_name_options
     i=0
     options_array = [[]] +Date::ABBR_MONTHNAMES[1..-1].collect{|month|[month,i+=1]} + [["Unknown","Unknown"]]

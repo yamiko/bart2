@@ -60,6 +60,10 @@ class ApplicationController < ActionController::Base
   def generic_locations
     Location.workstation_locations
   end
+  
+  def use_user_selected_activities
+    GlobalProperty.find_by_property('use.user.selected.activities').property_value == "yes" rescue false
+  end
 
   # Convert a list +Concept+s of +Regimen+s for the given +Patient+ <tt>age</tt>
   # into select options. See also +EncountersController#arv_regimen_answers+
