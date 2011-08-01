@@ -78,7 +78,12 @@ class ProgramsController < ApplicationController
   end
   
   def states
-    @states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ?', params[:workflow]], :include => :concept)
+    if params[:show_non_terminal_states_only].to_s == true.to_s
+       @states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ? AND terminal = 0', params[:workflow]], :include => :concept)
+    else
+       @states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ?', params[:workflow]], :include => :concept)
+    end
+
     @names = @states.map{|state|
       name = state.concept.fullname rescue nil
       next if name.blank? 
