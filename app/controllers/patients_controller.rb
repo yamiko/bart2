@@ -85,8 +85,7 @@ class PatientsController < ApplicationController
     session_date = session[:datetime].to_date rescue Date.today
     @prescriptions = Order.find(:all,
       :joins => "INNER JOIN encounter e USING (encounter_id)",
-      :conditions => ["encounter_type = ? AND e.patient_id = ? AND DATE(encounter_datetime) = ?",
-        type.id,@patient.id,session_date])
+      :conditions => ["encounter_type = ? AND e.patient_id = ?",type.id,@patient.id])
 
     @historical = @patient.orders.historical.prescriptions.all
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })

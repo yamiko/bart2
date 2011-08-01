@@ -303,9 +303,12 @@ class Task < ActiveRecord::Base
 
     encounters_sequentially = GlobalProperty.find_by_property('list.of.clinical.encounters.sequentially')
     encounters = encounters_sequentially.property_value.split(',') rescue []
-    user_selected_activities = User.current_user.activities
-    return "/patient/show/#{patient.id}" if encounters.blank? or user_selected_activities.blank?
-    task = self.first
+    user_selected_activities = User.current_user.activities.collect{|a| a.upcase }.join(',') rescue []
+    task = self.first rescue self.new()
+    if encounters.blank? or user_selected_activities.blank?
+      task.url = "/patients/show/#{patient.id}"
+      return task
+    end
     art_reason = patient.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue nil
     reason_for_art = art_reason.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue ''
     
@@ -319,50 +322,53 @@ class Task < ActiveRecord::Base
       task.encounter_type = type 
       case type
         when 'VITALS'
-          if encounter_available.blank? and user_selected_activities.include?('Manage Vitals') 
+          if encounter_available.blank? and user_selected_activities.match(/Manage Vitals/i) 
             task.url = "/encounters/new/vitals?patient_id=#{patient.id}"
             return task
-          elsif encounter_available.blank? and not user_selected_activities.include?('Manage Vitals') 
+          elsif encounter_available.blank? and not user_selected_activities.match(/Manage Vitals/i) 
             task.url = "/patients/show/#{patient.id}"
             return task
           end if reception.match(/PATIENT PRESENT FOR CONSULTATION: YES/i)
         when 'ART VISIT'
-          if encounter_available.blank? and user_selected_activities.include?('Manage ART visits')
-            task.url = "/encounters/new/pre_art_visit?show&patient_id=#{patient.id}"
+          if encounter_available.blank? and user_selected_activities.match(/Manage ART visits/i)
+            task.url = "/encounters/new/art_visit?show&patient_id=#{patient.id}"
             return task
-          elsif encounter_available.blank? and not user_selected_activities.include?('Manage ART visits')
+          elsif encounter_available.blank? and not user_selected_activities.match(/Manage ART visits/i)
             task.url = "/patients/show/#{patient.id}"
             return task
           end if not reason_for_art.upcase ==  'UNKNOWN'
         when 'PART_FOLLOWUP'
-          if encounter_available.blank? and user_selected_activities.include?('Manage pre ART visits')
+          if encounter_available.blank? and user_selected_activities.match(/Manage pre ART visits/i)
             task.url = "/encounters/new/pre_art_visit?show&patient_id=#{patient.id}"
             return task
-          elsif encounter_available.blank? and not user_selected_activities.include?('Manage pre ART visits')
+          elsif encounter_available.blank? and not user_selected_activities.match(/Manage pre ART visits/i)
             task.url = "/patients/show/#{patient.id}"
             return task
           end if reason_for_art.upcase ==  'UNKNOWN'
         when 'HIV STAGING'
-          if encounter_available.blank? and user_selected_activities.include?('Manage HIV staging visits') 
+          if encounter_available.blank? and user_selected_activities.match(/Manage HIV staging visits/i) 
             task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}"
             return task
-          elsif encounter_available.blank? and not user_selected_activities.include?('Manage HIV staging visits')
+          elsif encounter_available.blank? and not user_selected_activities.match(/Manage HIV staging visits/i)
             task.url = "/patients/show/#{patient.id}"
             return task
           end if (reason_for_art.upcase ==  'UNKNOWN' or reason_for_art.blank?)
         when 'HIV RECEPTION'
-          if encounter_available.blank? and user_selected_activities.include?('Manage HIV reception visits')
+          if encounter_available.blank? and user_selected_activities.match(/Manage HIV reception visits/i)
             task.url = "/encounters/new/hiv_reception?show&patient_id=#{patient.id}"
             return task
-          elsif encounter_available.blank? and not user_selected_activities.include?('Manage HIV reception visits')
+          elsif encounter_available.blank? and not user_selected_activities.match(/Manage HIV reception visits/i)
             task.url = "/patients/show/#{patient.id}"
             return task
           end
         when 'ART_INITIAL'
-          if encounter_available.blank? and user_selected_activities.include?('Manage HIV first visits')
+          encounter_art_initial = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
+                                         patient.id,EncounterType.find_by_name(type).id],
+                                         :order =>'encounter_datetime DESC',:limit => 1)
+          if encounter_art_initial.blank? and user_selected_activities.match(/Manage HIV first visits/i)
             task.url = "/encounters/new/art_initial?show&patient_id=#{patient.id}"
             return task
-          elsif encounter_available.blank? and not user_selected_activities.include?('Manage HIV first visits')
+          elsif encounter_art_initial.blank? and not user_selected_activities.match(/Manage HIV first visits/i)
             task.url = "/patients/show/#{patient.id}"
             return task
           end
@@ -372,23 +378,23 @@ class Task < ActiveRecord::Base
           if encounter_available.blank? and user_selected_activities.include?('Manage drug dispensations')
             task.url = "/patients/treatment_dashboard/#{patient.id}"
             return task
-          elsif encounter_available.blank? and not user_selected_activities.include?('Manage drug dispensations')
+          elsif encounter_available.blank? and not user_selected_activities.match(/Manage drug dispensations/i)
             task.url = "/patients/show/#{patient.id}"
             return task
           end if not treatment.blank?
         when 'TREATMENT'
-          if encounter_available.blank? and user_selected_activities.include?('Manage prescriptions')
+          if encounter_available.blank? and user_selected_activities.match(/Manage prescriptions/i)
             task.url = "/regimens/new?patient_id=#{patient.id}"
             return task
-          elsif encounter_available.blank? and not user_selected_activities.include?('Manage prescriptions')
+          elsif encounter_available.blank? and not user_selected_activities.match(/Manage prescriptions/i)
             task.url = "/patients/show/#{patient.id}"
             return task
           end
         when 'ART ADHERENCE'
-          if encounter_available.blank? and user_selected_activities.include?('Manage ART adherence')
+          if encounter_available.blank? and user_selected_activities.match(/Manage ART adherence/i)
             task.url = "/encounters/new/art_adherence?show&patient_id=#{patient.id}"
             return task
-          elsif encounter_available.blank? and not user_selected_activities.include?('Manage ART adherence')
+          elsif encounter_available.blank? and not user_selected_activities.match(/Manage ART adherence/i)
             task.url = "/patients/show/#{patient.id}"
             return task
           end if not patient.drug_given_before(session_date).blank?

@@ -20,6 +20,7 @@
 <script language="javascript" type="text/javascript" src="/javascripts/jquery.flot.js"></script>
 <script type="text/javascript">
   barcodeId = 'barcode';
+  total_dispensed = 0;
 
   function voiding(order_id) {
     confirmYesNo("Void this item?", function() {
@@ -38,15 +39,17 @@
 
 
   function showAppointmentButton(){
-    amount_needed = 0 //<%#=amount_needed%>
+    /*amount_needed = 0 //<%#=amount_needed%>
     try {
       first_dispension = document.getElementsByClassName("subtotal")
     }catch(e){ first_dispension = null }
 
     if(first_dispension.length == 0)
       return
+    */
 
-    document.getElementById('set_appointment').style.display='inline';
+    if (total_dispensed > 0)
+      document.getElementById('set_appointment').style.display='inline';
   }
 </script>
 
@@ -61,7 +64,7 @@
 
               <% current_day = session[:datetime].strftime('%Y-%m-%d') rescue 'Today'%>
               <h2><%=current_day%>'s Treatment (possibly filtered)</h2>
-              <div style="height:240px;">
+              <div style="height:220px;">
               <% if not @prescriptions.blank? %>
               <table id = 'dispensation' style = "width:100%;">
                 <tr style="text-align:left;">
@@ -77,6 +80,9 @@
                                              ConceptName.find_by_name("AMOUNT DISPENSED").concept_id , order.id])
                          total_dispensed = amounts_dispensed.sum{|amount| amount.value_numeric}
                       %>
+                      <script>
+                        total_dispensed += parseFloat("<%=total_dispensed%>");
+                      </script>
                       <tr class = 'dispensation_data' id = "<%=order.id%>">
                         <td style="text-align:center;vertical-align: middle;" onmousedown = "voiding('<%=order.id%>');">
                           <img src="/images/cancel_flat_small.png"/>
@@ -103,17 +109,17 @@
       </div>
     </div>
     <div style="display: table-row">
-      <div style="display: table-cell">
-
-        <button id="set_appointment" class="silver" style="float:right;margin-top:5px;"><span>Set appointment</span></button>
-        <div style="padding:10px;">
+      <div style="display: table-cell;width: 945px;">
+        <div style="padding:10px;width:100%;">
           <form id='barcodeForm' action="/dispensations/create?patient_id=<%= @patient.id -%>" method="post" target="_parent">
-            <div style="float:left;margin-top:-6px;"><label for="barcode" style="margin-top:-5px;"><img src="/images/barcode.jpg" style="vertical-align:top;background:white;"/></label></div>
-                <%= text_field_tag :identifier, '', {:id => 'barcode', :class => 'touchscreenTextInput', :style => 'position:absolute;width:230px' } %>
-                <%= submit_tag "Submit", :style => "display:none" %>
+            <div style="float:left;margin-top:-6px;"><label for="barcode" style="margin-top:-5px;">
+              <img src="/images/barcode.jpg" style="vertical-align:top;background:white;"/></label>
+            </div>
+            <%= text_field_tag :identifier, '', {:id => 'barcode', :class => 'touchscreenTextInput', :style => 'position:absolute;width:230px' } %>
+            <%= submit_tag "Submit", :style => "display:none" %>
+            <button id="set_appointment" class="silver" style="float:right;margin-top:0px;"><span>Set appointment</span></button>
           </form>
         </div>
-
       </div>
     </div>
   </div>
