@@ -36,7 +36,11 @@ class SessionsController < ApplicationController
       return    
     end
     self.current_location = location
-    redirect_to '/clinic'
+    if use_user_selected_activities
+      redirect_to "/user/activities/#{User.current_user.id}"
+    else
+      redirect_to '/clinic'
+    end
   end
 
   def destroy

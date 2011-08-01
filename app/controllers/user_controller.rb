@@ -280,10 +280,12 @@ class UserController < ApplicationController
     @activities = User.current_user.activities.reject{|activity| 
       GlobalProperty.find_by_property("disable_tasks").property_value.split(",").include?(activity)
     } rescue User.current_user.activities
+    @patient_id = params[:patient_id]
   end
   
   def change_activities
     User.current_user.activities = params[:user][:activities]
+    redirect_to "/patients/show/#{params[:id]}" and return if params[:id]
     redirect_to '/clinic'
   end
 

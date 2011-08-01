@@ -5,7 +5,9 @@ class Task < ActiveRecord::Base
 
   # Try to find the next task for the patient at the given location
   def self.next_task(location, patient, session_date = Date.today)
-    return self.next_form(patient , session_date)
+    if GlobalProperty.use_user_selected_activities
+      return self.next_form(patient , session_date)
+    end
     all_tasks = self.all(:order => 'sort_weight ASC')
     todays_encounters = patient.encounters.find_by_date(session_date)
     todays_encounter_types = todays_encounters.map{|e| e.type.name rescue ''}.uniq rescue []
@@ -188,9 +190,9 @@ class Task < ActiveRecord::Base
 
 
     reception = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
-                        patient.id,session_date,EncounterType.find_by_name(art_encounters[1]).id]).observations.to_s rescue ''
+                        patient.id,session_date,EncounterType.find_by_name(art_encounters[1]).id]).collect{|r|r.to_s}.join(',') rescue ''
     
-    if reception.match(/PATIENT PRESENT FOR CONSULTATION: YES/)
+    if reception.match(/PATIENT PRESENT FOR CONSULTATION: YES/i)
       vitals = Encounter.find(:first,
                               :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                               patient.id,EncounterType.find_by_name(art_encounters[2]).id,session_date],
@@ -311,19 +313,19 @@ class Task < ActiveRecord::Base
       encounter_available = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                                      patient.id,EncounterType.find_by_name(type).id,session_date],
                                      :order =>'encounter_datetime DESC',:limit => 1)
+      reception = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
+                        patient.id,session_date,EncounterType.find_by_name('HIV RECEPTION').id]).collect{|r|r.to_s}.join(',') rescue ''
+        
       task.encounter_type = type 
       case type
         when 'VITALS'
-          reception = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
-                            patient.id,session_date,EncounterType.find_by_name(type).id]).observations.to_s rescue ''
-        
-          if encounter_available.blank? and user_selected_activities.include?('Manage Vitals')
+          if encounter_available.blank? and user_selected_activities.include?('Manage Vitals') 
             task.url = "/encounters/new/vitals?patient_id=#{patient.id}"
             return task
-          elsif encounter_available.blank? and not user_selected_activities.include?('Manage Vitals')
+          elsif encounter_available.blank? and not user_selected_activities.include?('Manage Vitals') 
             task.url = "/patients/show/#{patient.id}"
             return task
-          end if reception.match(/PATIENT PRESENT FOR CONSULTATION: YES/)
+          end if reception.match(/PATIENT PRESENT FOR CONSULTATION: YES/i)
         when 'ART VISIT'
           if encounter_available.blank? and user_selected_activities.include?('Manage ART visits')
             task.url = "/encounters/new/pre_art_visit?show&patient_id=#{patient.id}"
@@ -341,13 +343,13 @@ class Task < ActiveRecord::Base
             return task
           end if reason_for_art.upcase ==  'UNKNOWN'
         when 'HIV STAGING'
-          if encounter_available.blank? and user_selected_activities.include?('Manage HIV staging visits')
+          if encounter_available.blank? and user_selected_activities.include?('Manage HIV staging visits') 
             task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}"
             return task
           elsif encounter_available.blank? and not user_selected_activities.include?('Manage HIV staging visits')
             task.url = "/patients/show/#{patient.id}"
             return task
-          end if reason_for_art.upcase ==  'UNKNOWN' or reason_for_art.blank?
+          end if (reason_for_art.upcase ==  'UNKNOWN' or reason_for_art.blank?)
         when 'HIV RECEPTION'
           if encounter_available.blank? and user_selected_activities.include?('Manage HIV reception visits')
             task.url = "/encounters/new/hiv_reception?show&patient_id=#{patient.id}"

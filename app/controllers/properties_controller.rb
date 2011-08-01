@@ -113,7 +113,11 @@ class PropertiesController < ApplicationController
         role_privilege.privilege = Privilege.find_by_privilege(privilege)
         role_privilege.save
       end
-      redirect_to "/clinic" and return
+      if params[:id]
+        redirect_to "/patients/show/#{params[:id]}" and return
+      else
+        redirect_to "/clinic" and return
+      end
     end
   end
 
