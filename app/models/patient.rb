@@ -1094,4 +1094,9 @@ EOF
     return false if patient_transfer_in.blank?
     return true
   end
+
+  def transfer_in_date?
+    patient_transfer_in = self.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
+    return patient_transfer_in.each{|datetime| return datetime.obs_datetime  if datetime.obs_datetime}
+  end
 end
