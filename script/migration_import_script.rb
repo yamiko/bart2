@@ -2,57 +2,65 @@ require 'migrator'
 
 Thread.abort_on_exception = true
 
-puts "----- Starting Import Script at - #{Time.now} -----"
+@start_time = Time.now
+puts "----- Starting Import Script at - #{@start_time} -----"
 
-@import_path = 	'/tmp/migrator'
-@bart_url = 'admin:test@localhost:3000'
-@file_names = 	{
-				'general_reception.csv' =>'ReceptionImporter',
-				'update_outcome.csv'=>'OutcomeImporter',
-			 	'give_drugs.csv'=>'DispensationImporter',
-				'art_visit.csv'=> 'ArtVisitImporter',
-			 	'hiv_first_visit.csv'=>'ArtInitialImporter',
-				'date_of_art_initiation.csv'=>'ArtInitialImporter',
-			 	'height_weight.csv'=>'VitalsImporter',
-				'hiv_staging.csv'=>'HivStagingImporter',
-				'hiv_reception.csv'=>'ReceptionImporter'
-				}
+@import_paths = ['/tmp/migrator-1', '/tmp/migrator-2', '/tmp/migrator-3',
+                 '/tmp/migrator-4']
+
+# set the right number of mongrels in config/mongrel_cluster.yml
+# (e.g. servers: 4) and the starting port (port: 8000)
+@bart_urls = {
+  '/tmp/migrator-1' => 'admin:test@localhost:8000',
+  '/tmp/migrator-2' => 'admin:test@localhost:8001',
+  '/tmp/migrator-3' => 'admin:test@localhost:8002',
+  '/tmp/migrator-4' => 'admin:test@localhost:8003'
+}
+
+@importers = {
+  'general_reception.csv'      => ReceptionImporter,
+  'update_outcome.csv'         => OutcomeImporter,
+  'give_drugs.csv'             => DispensationImporter,
+  'art_visit.csv'              => ArtVisitImporter,
+  'hiv_first_visit.csv'        => ArtInitialImporter,
+  'date_of_art_initiation.csv' => ArtInitialImporter,
+  'height_weight.csv'          => VitalsImporter,
+  'hiv_staging.csv'            => HivStagingImporter,
+  'hiv_reception.csv'          => ReceptionImporter
+}
+
+@ordered_files = ['general_reception.csv', 'hiv_reception.csv',
+  'hiv_first_visit.csv', 'date_of_art_initiation.csv', 'height_weight.csv',
+  'hiv_staging.csv', 'art_visit.csv', 'give_drugs.csv', 'update_outcome.csv'
+]
+
 threads = []
-wait_threads = []
-special_case_imports = ['give_drugs.csv','update_outcome.csv']
+#wait_threads = []
+#special_case_imports = ['give_drugs.csv','update_outcome.csv']
 
-def import_encounters(afile,importer)
-	puts "-----Starting #{afile} importing - #{Time.now}"
+def import_encounters(afile, import_path)
+	puts "-----Starting #{import_path}/#{afile} importing - #{Time.now}"
 
-	aImporter = ReceptionImporter.new(@import_path) if importer == 'ReceptionImporter'
-	aImporter = OutcomeImporter.new(@import_path) if importer == 'OutcomeImporter'
-	aImporter = DispensationImporter.new(@import_path) if importer == 'DispensationImporter'
-	aImporter = ArtVisitImporter.new(@import_path) if importer == 'ArtVisitImporter'
-	aImporter = ArtInitialImporter.new(@import_path) if importer == 'ArtInitialImporter'
-	aImporter = VitalsImporter.new(@import_path) if importer == 'VitalsImporter'
-	aImporter = HivStagingImporter.new(@import_path) if importer == 'HivStagingImporter'
+  importer = @importers[afile].new(import_path)
+	importer.create_encounters(afile, @bart_urls[import_path])
 
-	aImporter.create_encounters(afile,@bart_url)
-
-	puts "-----#{afile} imported - #{Time.now}"
+	puts "-----#{import_path}/#{afile} imported after #{Time.now - @start_time}s"
 end
 
-import_encounters('general_reception.csv','ReceptionImporter')
-import_encounters('hiv_first_visit.csv','ArtInitialImporter')
-import_encounters('date_of_art_initiation.csv','ArtInitialImporter')
-import_encounters('height_weight.csv','VitalsImporter')
-import_encounters('hiv_staging.csv','HivStagingImporter')
-import_encounters('hiv_reception.csv','ReceptionImporter')
-import_encounters('update_outcome.csv','OutcomeImporter')
-import_encounters('art_visit.csv', 'ArtVisitImporter')
-import_encounters('give_drugs.csv','DispensationImporter')
+@import_paths.each do |import_path|
+  threads << Thread.new(import_path) do |path|
+    @ordered_files.each do |file|
+      import_encounters(file, path)
+    end
+  end
+end
 
 =begin
 Dir.entries(@import_path).each do |filename|
 	next if special_case_imports.include?(filename)
 	next unless @file_names.keys.include?(filename)
 	threads << Thread.new(filename) do |wrk|
-		import_encounters(filename,@file_names[filename])
+		import_encounters(filename,@importers[filename])
 	end
 end
 threads.each {|thread| thread.join}
@@ -65,5 +73,7 @@ end
 wait_threads.each {|thread| thread.join}
 =end
 
-puts "----- Finished Import Script at - #{Time.now} -----"
+threads.each {|thread| thread.join}
+
+puts "----- Finished Import Script in #{Time.now - @start_time}s -----"
 
