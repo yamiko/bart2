@@ -88,6 +88,8 @@ class ProgramsController < ApplicationController
   end
 
   def update
+    flash[:error] = nil
+
     if request.method == :post
       patient_program = PatientProgram.find(params[:patient_program_id])
       #we don't want to have more than one open states - so we have to close the current active on before opening/creating a new one
@@ -147,6 +149,10 @@ class ProgramsController < ApplicationController
           date_completed = params[:current_date].to_date rescue Time.now()
           PatientProgram.update_all "date_completed = '#{date_completed.strftime('%Y-%m-%d %H:%M:%S')}'",
                                      "patient_program_id = #{patient_program.patient_program_id}"
+        else
+          date_completed = nil
+          PatientProgram.update_all "date_completed = NULL",
+                                     "patient_program_id = #{patient_program.patient_program_id}"
         end
         #for import
          unless params[:location]
@@ -167,8 +173,7 @@ class ProgramsController < ApplicationController
       patient_program = PatientProgram.find(params[:id])
       unless patient_program.date_completed.blank?
         unless params[:location]
-          redirect_to :controller => :patients, :action => :programs, 
-            :patient_id => patient_program.patient.id, :error => "The patient has already completed this program!" and return
+            flash[:error] = "The patient has already completed this program!"
        else
           render :text => "import suceeded" and return
        end   
