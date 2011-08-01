@@ -305,7 +305,7 @@ class Task < ActiveRecord::Base
     encounters = encounters_sequentially.property_value.split(',') rescue []
     user_selected_activities = User.current_user.activities
     return "/patient/show/#{patient.id}" if encounters.blank? or user_selected_activities.blank?
-    task = self.first
+    task = self.first rescue self.new()
     art_reason = patient.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue nil
     reason_for_art = art_reason.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue ''
     
@@ -359,10 +359,13 @@ class Task < ActiveRecord::Base
             return task
           end
         when 'ART_INITIAL'
-          if encounter_available.blank? and user_selected_activities.include?('Manage HIV first visits')
+          encounter_art_initial = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
+                                         patient.id,EncounterType.find_by_name(type).id],
+                                         :order =>'encounter_datetime DESC',:limit => 1)
+          if encounter_art_initial.blank? and user_selected_activities.include?('Manage HIV first visits')
             task.url = "/encounters/new/art_initial?show&patient_id=#{patient.id}"
             return task
-          elsif encounter_available.blank? and not user_selected_activities.include?('Manage HIV first visits')
+          elsif encounter_art_initial.blank? and not user_selected_activities.include?('Manage HIV first visits')
             task.url = "/patients/show/#{patient.id}"
             return task
           end
