@@ -135,7 +135,7 @@ class UserController < ApplicationController
 
     person = Person.create()
     person.names.create(params[:person_name])
-    params[:user][:user_id] = person.id
+    params[:user][:user_id] = nil
     @user = User.new(params[:user])
     @user.person_id = person.id
     if @user.save
