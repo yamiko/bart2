@@ -182,6 +182,7 @@ class EncountersController < ApplicationController
     # TODO Need to check global property to find out if we want previous answers or not (right now we)
     previous_answers = Observation.find_most_common(outpatient_diagnosis, search_string)
     @suggested_answers = (previous_answers + valid_answers).reject{|answer| filter_list.include?(answer) }.uniq[0..10] 
+    @suggested_answers = @suggested_answers - params[:search_filter].split(',') rescue @suggested_answers
     render :text => "<li>" + @suggested_answers.join("</li><li>") + "</li>"
   end
 
