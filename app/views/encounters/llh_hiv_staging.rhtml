@@ -403,7 +403,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
         :helpText => staging_condition.humanize } %>
       <%end%>
 
-      <%= touch_yes_no_unknown_tag "Perform extended staging" , @patient, nil,
+      <%= touch_yes_no_tag "Perform extended staging" , @patient, nil,
         {:id => "perform_extended_staging" ,
         :optional => false,
         :helpText => 'Perform extended staging' } %>
@@ -513,7 +513,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
         :helpText => staging_condition.humanize } %>
       <%end%>
 
-      <%= touch_yes_no_unknown_tag "Perform extended staging" , @patient, nil,
+      <%= touch_yes_no_tag "Perform extended staging" , @patient, nil,
         {:id => "perform_extended_staging" ,
         :optional => false,
         :helpText => 'Perform extended staging' } %>
