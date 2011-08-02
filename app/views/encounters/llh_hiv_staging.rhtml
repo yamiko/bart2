@@ -25,6 +25,7 @@
   var ageInMonths = <%= @patient.person.age_in_months -%>;
   var firstPositiveHivTestType = "<%= firstPositiveHivTestType -%>";  
   var cd4_count_numeric, cd4_count_estimate, cd4_count_modifier;
+  var selected_stage_conditions = {};
   
   function updateCD4Count() {
     var cd4_available = $('new_cd4_count_available').value == 'YES';
@@ -238,9 +239,13 @@
   function summary() {
     updateWhoStage(); 
     updateReasonForArtEligibility();  
+    var conditions = selectedConditions();
     var display = "<div><span class='title'>WHO Stage: " + $('who_stage').value + "</span></div>";
     display += "<div><span class='title'>Reason for ART Eligibility: " + $('reason_for_art_eligibility').value + "</span></div>";
     $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + display + '</div>' ;    
+
+    if (conditions.length > 0)
+      $('inputFrame'+tstCurrentPage).innerHTML += '<div id="selected_stage_conditions"><hr /><br />' + conditions + '</div>' ;
   }  
  
   function selectedValues(element) {
@@ -261,6 +266,35 @@
         return true
     }catch(e) { return false}
     return false
+  }
+
+  function transferInPatient() {
+    transfer_in = "<%= @patient.transfer_in? == true %>"
+    if (transfer_in == 'true')
+      return true
+
+    return false
+  }
+
+  function selectedConditions() {
+    html = "<ul><h3>Selected stage defining conditions</h3>"
+    for (condition in selected_stage_conditions) {
+      if (selected_stage_conditions[condition].length > 0) {
+        conditions = selected_stage_conditions[condition].split(';');
+        for (i = 0 ; i < conditions.length ; i++) {
+          html += '<li>' + conditions[i] + '</li>'
+        }
+      }
+    }
+    if (html == "<ul><h3>Selected stage defining conditions</h3>") return '';
+    return html + '</ul>';
+  }
+    
+  function setSelectedStageConditions(condition_num,staging_condition) {
+    input_text = $('staging_condition_' + condition_num);
+    if ( input_text.value == 'YES' )
+      selected_stage_conditions[condition_num] = staging_condition;
+
   }
 </script>  
 <style type="text/css">
@@ -359,6 +393,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
       <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
         {:id => "staging_condition_#{count+=1}" ,
         :optional => false,
+        :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
         :helpText => staging_condition.humanize } %>
       <%end%>
 
@@ -368,7 +403,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
 
     <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,
       {:id => "cd4_count_location",
-       :condition => '$("new_cd4_count_available").value == "YES"' && @patient.transfer_in? == false,
+       :condition => '$("new_cd4_count_available").value == "YES" && transferInPatient() == false',
        :helpText => "CD4 Count Location"} %>
 
     <%= touch_date_tag "CD4 COUNT DATETIME", @patient, (Time.now - 1.month).year,
@@ -449,6 +484,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
       <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
         {:id => "staging_condition_#{count+=1}" ,
         :optional => false,
+        :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
         :helpText => staging_condition.humanize } %>
       <%end%>
 
@@ -458,7 +494,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
 
     <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,
       {:id => "cd4_count_location",
-       :condition => '$("new_cd4_count_available").value == "YES"' && @patient.transfer_in? == false,
+       :condition => '$("new_cd4_count_available").value == "YES" && transferInPatient() == false',
        :helpText => "CD4 Count Location"} %>
 
     <%= touch_date_tag "CD4 COUNT DATETIME", @patient, (Time.now - 1.month).year,
