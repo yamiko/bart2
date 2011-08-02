@@ -317,7 +317,7 @@ class Task < ActiveRecord::Base
                                      patient.id,EncounterType.find_by_name(type).id,session_date],
                                      :order =>'encounter_datetime DESC',:limit => 1)
       reception = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
-                        patient.id,session_date,EncounterType.find_by_name('HIV RECEPTION').id]).collect{|r|r.to_s}.join(',') rescue ''
+                        patient.id,session_date,EncounterType.find_by_name('HIV RECEPTION').id]).observations.collect{| r | r.to_s}.join(',') rescue ''
         
       task.encounter_type = type 
       case type
@@ -347,7 +347,10 @@ class Task < ActiveRecord::Base
           end if reason_for_art.upcase ==  'UNKNOWN'
         when 'HIV STAGING'
           if encounter_available.blank? and user_selected_activities.match(/Manage HIV staging visits/i) 
-            task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}"
+            extended_staging_questions = GlobalProperty.find_by_property('use.extended.staging.questions')
+            extended_staging_questions = extended_staging_questions.property_value == 'use.extended.staging.questions' rescue false
+            task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" if not extended_staging_questions 
+            task.url = "/encounters/new/llh_hiv_staging?show&patient_id=#{patient.id}" if extended_staging_questions
             return task
           elsif encounter_available.blank? and not user_selected_activities.match(/Manage HIV staging visits/i)
             task.url = "/patients/show/#{patient.id}"
