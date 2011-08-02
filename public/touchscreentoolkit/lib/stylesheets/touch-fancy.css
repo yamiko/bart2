@@ -723,27 +723,133 @@ button {
     margin: 3px;
 }
 
-.NumbersWithUnkown #star,
-.NumbersWithUnkown #abc,
-.NumbersWithUnkown #char,
-.NumbersWithUnkown #date,
-.NumbersWithUnkown #minus,
-.NumbersWithUnkown #plus,
-.NumbersWithUnkown #decimal,
-.NumbersWithUnkown #slash,
-.NumbersWithUnkown #comma,
-.NumbersWithUnkown #percent{
+.NumbersWithUnknown #star,
+.NumbersWithUnknown #abc,
+.NumbersWithUnknown #char,
+.NumbersWithUnknown #date,
+.NumbersWithUnknown #minus,
+.NumbersWithUnknown #plus,
+.NumbersWithUnknown #decimal,
+.NumbersWithUnknown #slash,
+.NumbersWithUnknown #comma,
+.NumbersWithUnknown #percent{
     display: none
 }
 
 .confirmation {
-  left:50%;
-  margin-left: -225px;
-  width: 450px;
-  position: absolute;
-  top: 30%;
-  font-size: 2em;
-	text-align: center;
-  background-color: tomato;
-  z-index: 999;
+    left:50%;
+    margin-left: -225px;
+    width: 400px;
+    position: absolute;
+    top: 30%;
+    font-size: 2em;
+    text-align: center;
+    background-color: tomato;
+    padding: 10px;
+    z-index: 999;
+    border: 5px outset tomato;
+}
+
+.NumbersWithUnknownAndDecimal #star,
+.NumbersWithUnknownAndDecimal #abc,
+.NumbersWithUnknownAndDecimal #char,
+.NumbersWithUnknownAndDecimal #date,
+.NumbersWithUnknownAndDecimal #minus,
+.NumbersWithUnknownAndDecimal #plus,
+.NumbersWithUnknownAndDecimal #slash,
+.NumbersWithUnknownAndDecimal #comma,
+.NumbersWithUnknownAndDecimal #percent{
+    display: none
+}
+
+.statusLabel {
+    position: absolute;
+    border: 1px solid #ccc;
+    background-color: #efe;
+    font-size: 2em;
+    padding: 15px;
+    width: 920px;
+    top: 120px;
+    margin-left: 50%;
+    left: -470px;
+    -moz-border-radius: 20px;
+  }
+
+  .NoKeyboard #keyboard {
+      display: none;
+}
+
+button:active.blue span {
+    background:url(../images/buttons/btn_left_yellow.png) left no-repeat;
+    -moz-user-select:none;
+    -moz-user-focus:disabled;
+}
+
+button:active.blue {
+    background:url(../images/buttons/btn_right_yellow.png) right no-repeat;
+    -moz-user-select:none;
+    -moz-user-focus:disabled;
+}
+
+button:active.green span {
+    background:url(../images/buttons/btn_left_yellow.png) left no-repeat;
+    -moz-user-select:none;
+    -moz-user-focus:disabled;
+}
+
+button:active.green {
+    background:url(../images/buttons/btn_right_yellow.png) right no-repeat;
+    -moz-user-select:none;
+    -moz-user-focus:disabled;
+}
+
+button:active.red span {
+    background:url(../images/buttons/btn_left_yellow.png) left no-repeat;
+    -moz-user-select:none;
+    -moz-user-focus:disabled;
+}
+
+button:active.red {
+    background:url(../images/buttons/btn_right_yellow.png) right no-repeat;
+    -moz-user-select:none;
+    -moz-user-focus:disabled;
+}
+
+button:active span {
+    background:url(../images/buttons/btn_left_yellow.png) left no-repeat;
+    -moz-user-select:none;
+    -moz-user-focus:disabled;
+}
+
+button:active {
+    background:url(../images/buttons/btn_right_yellow.png) right no-repeat;
+    -moz-user-select:none;
+    -moz-user-focus:disabled;
+}
+
+.btn {
+    min-height: 50px;
+    margin: 0px;
+    margin-bottom: 5px;
+    font-size: 1.2em;
+    background-color: #6281a7;
+    color: #FFF;
+    font-weight: normal;
+    border: 5px outset #000;
+    padding: 10px;
+    cursor: pointer;
+    background:url(../images/btn_blue.png) right repeat;
+    -moz-user-select:none;
+    -moz-user-focus:disabled;
+}
+
+.btn:hover {
+    background:url(../images/btn_blue_hover.png) right repeat;
+    -moz-user-select:none;
+    -moz-user-focus:disabled;
+}
+
+.btn:active {
+    background:url(../images/btn_yellow.png) right repeat;
+    border: 3px inset #000;
 }
