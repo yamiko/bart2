@@ -21,15 +21,38 @@ class EncountersController < ApplicationController
           observations << observation
         end
       end
+
+      observations = []
+      (params[:observations] || []).each do |observation|
+        if observation['concept_name'] == 'LOCATION OF ART INITIATION' or observation['concept_name'] == 'CONFIRMATORY HIV TEST LOCATION'
+          observation['value_numeric'] = observation['value_coded_or_text'] rescue nil
+          observation['value_text'] = Location.find(observation['value_coded_or_text']).name.to_s rescue ""
+          observation['value_coded_or_text'] = ""
+        end
+        observations << observation
+      end
+
       params[:observations] = observations unless observations.blank?
     end
-    
+
     if params['encounter']['encounter_type_name'] == 'HIV STAGING'
       observations = []
       (params[:observations] || []).each do |observation|
         if observation['concept_name'] == 'CD4 COUNT'
           observation['value_modifier'] = observation['value_numeric'].match(/<|>/)[0] rescue nil
           observation['value_numeric'] = observation['value_numeric'].match(/[0-9](.*)/i)[0] rescue nil
+        end
+        observations << observation
+      end
+      params[:observations] = observations unless observations.blank?
+    end
+
+    if params['encounter']['encounter_type_name'] == 'ART ADHERENCE'
+      observations = []
+      (params[:observations] || []).each do |observation|
+        if observation['concept_name'] == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'
+          observation['value_numeric'] = observation['value_text'] rescue nil
+          observation['value_text'] =  ""
         end
         observations << observation
       end
@@ -76,6 +99,7 @@ class EncountersController < ApplicationController
         values.each{|value| observation[:value_coded_or_text] = value; Observation.create(observation) }
       else      
         observation.delete(:value_coded_or_text_multiple)
+
         Observation.create(observation)
       end
     end
