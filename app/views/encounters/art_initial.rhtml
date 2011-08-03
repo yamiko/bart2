@@ -45,11 +45,11 @@
   <%= hidden_field_tag("programs[][location_id]", Location.current_health_center.id) %>
   <%= hidden_field_tag("programs[][date_enrolled]", session[:datetime] ) %>
   <%= hidden_field_tag("programs[][states][][state]", "Pre-ART (Continue)") %>
-
-  <%= touch_yes_no_tag "Transferred from", @patient, nil,
-    {:id => "transferred_from",
+  
+   <%= touch_yes_no_tag "Transfer in", @patient, nil,
+    {:id => "transfer_in",
      :condition => '$("ever_received_art").value == "YES"',
-     :helpText => "Site transferred from"} %>
+     :helpText => "Transfer in patient?"} %>
 
   <%= touch_yes_no_tag "HAS TRANSFER LETTER", @patient, nil,
     {:id => "has_transfer_letter",

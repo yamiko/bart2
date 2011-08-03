@@ -35392,7 +35392,7 @@ concept_name_00323:
   concept_id: 311
   date_created: 2004-01-01 00:00:00 +02:00
 concept_name_03455: 
-  name: WEIGHT (KG)
+  name: Weight (kg)
   voided: 0
   uuid: e0f9c38c-df1a-11de-a277-0026181bb84d
   creator: 1
@@ -35512,7 +35512,7 @@ concept_name_00325:
   concept_id: 313
   date_created: 2004-01-01 00:00:00 +02:00
 concept_name_03457: 
-  name: HEIGHT (CM)
+  name: Height (cm)
   voided: 0
   uuid: e0f9c58a-df1a-11de-a277-0026181bb84d
   creator: 1
