@@ -34,13 +34,28 @@ module ApplicationHelper
   
   def ask_middle_name
     GlobalProperty.find_by_property("demographics.middle_name").property_value == "yes" rescue false
+  end
 
+  def ask_middle_name
+    GlobalProperty.find_by_property("demographics.middle_name").property_value == "yes" rescue false
+  end
+
+  def ask_visit_home_for_TB_therapy
+    GlobalProperty.find_by_property("demographics.visit_home_for_treatment").property_value == "yes" rescue false
+  end
+  
+  def ask_sms_for_TB_therapy
+    GlobalProperty.find_by_property("demographics.sms_for_TB_therapy").property_value == "yes" rescue false
+  end
+
+  def ask_ground_phone
+    GlobalProperty.find_by_property("demographics.ground_phone").property_value == "yes" rescue false
   end
 
   def ask_blood_pressure
     GlobalProperty.find_by_property("vitals.blood_pressure").property_value == "yes" rescue false
   end
-  
+
   def ask_temperature
     GlobalProperty.find_by_property("vitals.temperature").property_value == "yes" rescue false
   end  
