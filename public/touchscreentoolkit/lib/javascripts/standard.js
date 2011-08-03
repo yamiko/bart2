@@ -635,9 +635,11 @@ function getOptions() {
             if(tstFormElements[i].tagName == "SELECT") {
                 var selectOptions = tstFormElements[i].getElementsByTagName("option");
 
-                // Append an empty option first
-                if(selectOptions[0].innerHTML.trim().length > 0){
-                    tstFormElements[i].innerHTML = "<option></option>" + tstFormElements[i].innerHTML;
+                if(selectOptions.length > 0){
+                    // Append an empty option first
+                    if(selectOptions[0].innerHTML.trim().length > 0){
+                        tstFormElements[i].innerHTML = "<option></option>" + tstFormElements[i].innerHTML;
+                    }
                 }
 
                 if(tstFormElements[i].getAttribute("dualView") != undefined &&
@@ -765,7 +767,7 @@ function loadSelectOptions(selectOptions, options, dualViewOptions) {
         mouseDownAction = selectOptions[j].getAttribute("onmousedown")
         mouseDownAction += '; updateTouchscreenInputForSelect(this); ' + (dualViewOptions ? 'changeSummary(this.id);' : '');
 
-        optionsList += '<li id=\'' + j + '\' onmousedown="'+ mouseDownAction +'"';
+        optionsList += '<li id=\'' + (j-1) + '\' onmousedown="'+ mouseDownAction +'"';
         if (selectOptions[j].value) {
             optionsList += " id='option"+selectOptions[j].value +"' tstValue='"+selectOptions[j].value +"'";
             selected = j;
@@ -1741,6 +1743,7 @@ function getABCKeyboard(){
 
     keyboard = keyboard +
     getButtonString('Unknown','Unknown') +
+    getButtonString('na','N/A') +
     "</span><span class='buttonLine'>" +
     getButtons("QRSTUVWXYZ") + (tstFormElements[tstCurrentPage].tagName == "TEXTAREA" ? "" : 
     getButtonString('whitespace','&nbsp', 'width: 85px;')) +
@@ -1770,6 +1773,7 @@ function getNumericKeyboard(){
     getCharButtonSetID("*","star") +
     getButtonString('char','A-Z') +
     getButtonString('date','Date') +
+    getButtonString('na','N/A') +
     "</span><span id='buttonLine2' class='buttonLine'>" +
     getButtons("456") +
     getCharButtonSetID("%","percent") +
@@ -1995,6 +1999,9 @@ function press(pressedChar){
                 break;
             case 'apostrophe':
                 inputTarget.value += "'";
+                break;
+            case 'na':
+                inputTarget.value = "N/A";
                 break;
             case 'abc':
                 tstUserKeyboardPref = 'abc';

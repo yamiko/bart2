@@ -44,7 +44,7 @@
   <%= hidden_field_tag("programs[][program_id]", Program.find_by_name('HIV PROGRAM').id) %>
   <%= hidden_field_tag("programs[][location_id]", Location.current_health_center.id) %>
   <%= hidden_field_tag("programs[][date_enrolled]", session[:datetime] ) %>
-  <%= hidden_field_tag("programs[][states][][state]", "FOLLOWING") %>
+  <%= hidden_field_tag("programs[][states][][state]", "Pre-ART (Continue)") %>
 
   <%= touch_yes_no_tag "Transferred from", @patient, nil,
     {:id => "transferred_from",

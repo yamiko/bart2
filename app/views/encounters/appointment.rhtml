@@ -1,4 +1,8 @@
 <style>
+   body {
+    -moz-user-select:none;
+   }
+
   .touchscreenTextInput, 
   .tt_controls_time_until_next_appointment #keyboard, 
   .tt_controls_next_appointment_date #num,
@@ -15,14 +19,15 @@
     border-style: solid;
     border-width: 1px;
     font-size: 2em;
-    left: 494px;
+    left: 575px;
     padding: 10px;
     position: absolute;
     text-align: center;
     top: 85px;
-    width: 450px;
+    width: 350px;
     height: 160px;
-    z-index: 10;
+    z-index: 20;
+    -moz-user-select:none;
   }
 </style>
 
@@ -223,8 +228,10 @@
   }
 
   function calculateGivenRange(start_date,end_date) {
-    if (start_date && end_date)
+    if (start_date && end_date) {
+      updateTouchscreenInputForSelect($('4'));
       gotoNextPage();
+    }
   }
 
 
@@ -262,7 +269,9 @@
   <%= select_tag("time_until_next_visit", options_for_select([["2 weeks", 2],
                                                               ["1 month", 4],
                                                               ["2 months", 8],
-                                                              ["3 months", 12]]),
+                                                              ["4 months", 16],
+                                                              ["5 months", 20],
+                                                              ["6 months", 24]]),
                                                               {:helpText => 'Time Until Next Appointment',
                                                                :tt_onLoad => "calculateGivenRange('#{params[:start_date]}','#{params[:end_date]}')"}) %>
 

@@ -296,6 +296,15 @@
       selected_stage_conditions[condition_num] = staging_condition;
 
   }
+
+  function addAutoNavigate() {
+    staging_condition = $('page' + tstCurrentPage);
+    answers = staging_condition.getElementsByTagName('li');
+    for (i = 0 ; i < answers.length ; i++) {
+      console.log(answers[i].setAttribute("onmousedown","null; updateTouchscreenInputForSelect(this);setTimeout('gotoNextPage()', 300);"))
+    }
+    //$(id).setAttribute("onmousedown","null;updateTouchscreenInputForSelect(this);gotoNextPage();")
+  }
 </script>  
 <style type="text/css">
   .small .options li { font-size:1.1em; }
@@ -387,16 +396,37 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
         end
       end
       count = 0
+      concept = ConceptName.find_by_name("WHO Stage defining conditions not explicitly asked adult").concept
+      explicitly_asked_questions = concept.concept_answers.collect{|c|c.name}
+      extended_staging = []
       conditions.each do | staging_condition | 
         next if staging_condition.blank?
+        if explicitly_asked_questions.include?(staging_condition)
+          extended_staging << staging_condition and next
+        end
       %>
       <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
         {:id => "staging_condition_#{count+=1}" ,
         :optional => false,
+        :tt_onLoad => "addAutoNavigate();",
         :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
         :helpText => staging_condition.humanize } %>
       <%end%>
 
+      <%= touch_yes_no_tag "Perform extended staging" , @patient, nil,
+        {:id => "perform_extended_staging" ,
+        :optional => false,
+        :helpText => 'Perform extended staging' } %>
+
+      <% extended_staging.each do | staging_condition | %>
+        <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
+          {:id => "staging_condition_#{count+=1}" ,
+          :optional => false,
+          :condition => '$("perform_extended_staging").value == "YES"',
+          :tt_onLoad => "addAutoNavigate();",
+          :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
+          :helpText => staging_condition.humanize } %>
+      <%end%>
 
     <label for='new_cd4_count_available'>CD4 count available?</label>
       <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_count_available', :tt_pageStyleClass => 'NoKeyboard' %>
@@ -478,16 +508,37 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
         end
       end
       count = 0
-      conditions.each do | staging_condition | 
+      concept = ConceptName.find_by_name("WHO Stage defining conditions not explicitly asked peds").concept
+      explicitly_asked_questions = concept.concept_answers.collect{|c|c.name}
+      extended_staging = []
+      conditions.each do | staging_condition |
         next if staging_condition.blank?
+        if explicitly_asked_questions.include?(staging_condition)
+          extended_staging << staging_condition and next
+        end
       %>
       <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
         {:id => "staging_condition_#{count+=1}" ,
         :optional => false,
+        :tt_onLoad => "addAutoNavigate();",
         :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
         :helpText => staging_condition.humanize } %>
       <%end%>
 
+      <%= touch_yes_no_tag "Perform extended staging" , @patient, nil,
+        {:id => "perform_extended_staging" ,
+        :optional => false,
+        :helpText => 'Perform extended staging' } %>
+
+      <% extended_staging.each do | staging_condition | %>
+        <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
+          {:id => "staging_condition_#{count+=1}" ,
+          :optional => false,
+          :condition => '$("perform_extended_staging").value == "YES"',
+          :tt_onLoad => "addAutoNavigate();",
+          :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
+          :helpText => staging_condition.humanize } %>
+      <%end%>
 
     <label for='new_cd4_count_available'>New CD4 count available?</label>
       <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_count_available', :tt_pageStyleClass => 'NoKeyboard' %>

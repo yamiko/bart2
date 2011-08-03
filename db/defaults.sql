@@ -71,10 +71,6 @@ LOCK TABLES `person_attribute` WRITE;
 DELETE FROM `person_attribute`;
 UNLOCK TABLES;
 
-LOCK TABLES `person_name` WRITE;
-DELETE FROM `person_name`;
-UNLOCK TABLES;
-
 LOCK TABLES `encounter` WRITE;
 DELETE FROM `encounter`;
 UNLOCK TABLES;
