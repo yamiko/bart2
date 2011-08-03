@@ -326,26 +326,26 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
      <% if @patient.person.patient.transfer_in? && (@patient.person.patient.transfer_in_date? == session[:datetime])%> 
       <% if patient_pregnant.blank? %>
         <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
-          {:id => "pregnant",
-          :optional => false,
+          {:id => "pregnant" ,
+          :optional => false ,
           :helpText => "Patient pregnant at initiation?" } %>
       <% end %>    
 
       <%= touch_yes_no_unknown_tag "BREASTFEEDING", @patient, nil,
-        {:id => "breast_feeding",
-        :optional => false,
+        {:id => "breast_feeding" ,
+        :optional => false ,
         :helpText => "Patient breast feeding at initiation?" } %>
       <% else %>
         <% if patient_pregnant.blank? %>
           <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
-          {:id => "pregnant",
-          :optional => false,
+          {:id => "pregnant" ,
+          :optional => false ,
           :helpText => "Is patient pregnant?" } %>
         <% end %>    
 
         <%= touch_yes_no_unknown_tag "BREASTFEEDING", @patient, nil,
-          {:id => "breast_feeding",
-          :optional => false,
+          {:id => "breast_feeding" ,
+          :optional => false ,
          :helpText => "Is patient breast feeding?" } %>
       <% end %>
     <% end %>    
