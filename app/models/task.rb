@@ -6,7 +6,7 @@ class Task < ActiveRecord::Base
   # Try to find the next task for the patient at the given location
   def self.next_task(location, patient, session_date = Date.today)
     if GlobalProperty.use_user_selected_activities
-      return self.next_form(patient , session_date)
+      return self.next_form(location , patient , session_date)
     end
     all_tasks = self.all(:order => 'sort_weight ASC')
     todays_encounters = patient.encounters.find_by_date(session_date)
@@ -282,8 +282,23 @@ class Task < ActiveRecord::Base
     task
   end 
 
-  def self.next_form(patient , session_date = Date.today)
+  def self.next_form(location , patient , session_date = Date.today)
+    #for Oupatient departments
+    task = self.first rescue self.new()
+    if location.name.match(/Outpatient/i)
+      opd_reception = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
+                        patient.id,session_date,EncounterType.find_by_name('OUTPATIENT RECEPTION').id])
+      if opd_reception.blank?
+        task.url = "/encounters/new/opd_reception?show&patient_id=#{patient.id}"
+        task.encounter_type = 'OUTPATIENT RECEPTION'
+      else
+        task.encounter_type = 'Patient dashboard ...'
+        task.url = "/patients/show/#{patient.id}"
+      end
+      return task
+    end
     
+     
     #we get the sequence of clinic questions(encounters) form the GlobalProperty table
     #property: list.of.clinical.encounters.sequentially
     #property_value: ?
@@ -304,7 +319,6 @@ class Task < ActiveRecord::Base
     encounters_sequentially = GlobalProperty.find_by_property('list.of.clinical.encounters.sequentially')
     encounters = encounters_sequentially.property_value.split(',') rescue []
     user_selected_activities = User.current_user.activities.collect{|a| a.upcase }.join(',') rescue []
-    task = self.first rescue self.new()
     if encounters.blank? or user_selected_activities.blank?
       task.url = "/patients/show/#{patient.id}"
       return task
