@@ -297,14 +297,6 @@
 
   }
 
-  function addAutoNavigate() {
-    staging_condition = $('page' + tstCurrentPage);
-    answers = staging_condition.getElementsByTagName('li');
-    for (i = 0 ; i < answers.length ; i++) {
-      console.log(answers[i].setAttribute("onmousedown","null; updateTouchscreenInputForSelect(this);setTimeout('gotoNextPage()', 300);"))
-    }
-    //$(id).setAttribute("onmousedown","null;updateTouchscreenInputForSelect(this);gotoNextPage();")
-  }
 </script>  
 <style type="text/css">
   .small .options li { font-size:1.1em; }
@@ -408,7 +400,8 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
       <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
         {:id => "staging_condition_#{count+=1}" ,
         :optional => false,
-        :tt_onLoad => "addAutoNavigate();",
+        :tt_onLoad => "$('nextButton').style.display = 'none';",
+        :tt_requireNextClick => false,
         :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
         :helpText => staging_condition.humanize } %>
       <%end%>
@@ -423,7 +416,8 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
           {:id => "staging_condition_#{count+=1}" ,
           :optional => false,
           :condition => '$("perform_extended_staging").value == "YES"',
-          :tt_onLoad => "addAutoNavigate();",
+          :tt_onLoad => "$('nextButton').style.display = 'none';",
+          :tt_requireNextClick => false,
           :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
           :helpText => staging_condition.humanize } %>
       <%end%>
@@ -520,7 +514,8 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
       <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
         {:id => "staging_condition_#{count+=1}" ,
         :optional => false,
-        :tt_onLoad => "addAutoNavigate();",
+        :tt_onLoad => "$('nextButton').style.display = 'none';",
+        :tt_requireNextClick => false,
         :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
         :helpText => staging_condition.humanize } %>
       <%end%>
@@ -535,7 +530,8 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
           {:id => "staging_condition_#{count+=1}" ,
           :optional => false,
           :condition => '$("perform_extended_staging").value == "YES"',
-          :tt_onLoad => "addAutoNavigate();",
+          :tt_onLoad => "$('nextButton').style.display = 'none';",
+          :tt_requireNextClick => false,
           :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
           :helpText => staging_condition.humanize } %>
       <%end%>
