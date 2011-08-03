@@ -34,13 +34,28 @@ module ApplicationHelper
   
   def ask_middle_name
     GlobalProperty.find_by_property("demographics.middle_name").property_value == "yes" rescue false
+  end
 
+  def ask_middle_name
+    GlobalProperty.find_by_property("demographics.middle_name").property_value == "yes" rescue false
+  end
+
+  def ask_visit_home_for_TB_therapy
+    GlobalProperty.find_by_property("demographics.visit_home_for_treatment").property_value == "yes" rescue false
+  end
+  
+  def ask_sms_for_TB_therapy
+    GlobalProperty.find_by_property("demographics.sms_for_TB_therapy").property_value == "yes" rescue false
+  end
+
+  def ask_ground_phone
+    GlobalProperty.find_by_property("demographics.ground_phone").property_value == "yes" rescue false
   end
 
   def ask_blood_pressure
     GlobalProperty.find_by_property("vitals.blood_pressure").property_value == "yes" rescue false
   end
-  
+
   def ask_temperature
     GlobalProperty.find_by_property("vitals.temperature").property_value == "yes" rescue false
   end  
@@ -134,6 +149,14 @@ module ApplicationHelper
     set = ConceptSet.find_all_by_concept_set(concept_id, :order => 'sort_weight')
     options = set.map{|item|next if item.concept.blank? ; [item.concept.fullname, item.concept.fullname] }
     options_for_select(options)
+  end
+  
+   def concept_set(concept_name)
+    concept_id = ConceptName.find(:first,:joins =>"INNER JOIN concept USING (concept_id)",
+                                  :conditions =>["retired = 0 AND name = ?",concept_name]).concept_id
+    set = ConceptSet.find_all_by_concept_set(concept_id, :order => 'sort_weight')
+    options = set.map{|item|next if item.concept.blank? ; [item.concept.fullname] }
+    return options
   end
   
   def development_environment?

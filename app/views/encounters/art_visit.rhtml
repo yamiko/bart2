@@ -125,9 +125,9 @@
      :helpText => "Number of Condoms given" } %>
  <% end %>
 
-  <%= touch_yes_no_unknown_tag "OTHER DRUGS", @patient, nil,
+  <%= touch_yes_no_unknown_tag "Prescribe ARVs this visit", @patient, nil,
     {:optional => false,
-     :helpText => "Prescribe Drugs this visit?" } %>
+     :helpText => "Prescribe drugs during this visit" } %>
 
   <% if Location.current_location.name.match(/Nurse/i) %>
     <%= touch_yes_no_unknown_tag "REFER TO ART CLINICIAN", @patient, nil,
