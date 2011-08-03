@@ -32,10 +32,15 @@
     var options = $('symptoms').options;
     var symptoms = new Array();
 
+    <% @side_effects = concept_set('MALAWI ART DRUG INDUCED SYMPTOM SET') %>
+    var myArray = "<%= @side_effects.to_a %>";
+
     for (var i=0; i<options.length; i++) {
       if (options[i].selected) {
+       if (myArray.indexOf(options[i].value, 0) != -1) {
         symptoms +=  "<li tstvalue='" + options[i].value + "' id='" + i + "' onmousedown='null; updateTouchscreenInputForSelect(this); ' style='display: block;'>" + options[i].value + "</li>";
         $("drug_induced_effects").innerHTML += "<option>" + options[i].value + "</option>";
+       }
       }
     }
     $("tt_currentUnorderedListOptions").innerHTML = symptoms;

@@ -151,6 +151,14 @@ module ApplicationHelper
     options_for_select(options)
   end
   
+   def concept_set(concept_name)
+    concept_id = ConceptName.find(:first,:joins =>"INNER JOIN concept USING (concept_id)",
+                                  :conditions =>["retired = 0 AND name = ?",concept_name]).concept_id
+    set = ConceptSet.find_all_by_concept_set(concept_id, :order => 'sort_weight')
+    options = set.map{|item|next if item.concept.blank? ; [item.concept.fullname] }
+    return options
+  end
+  
   def development_environment?
     ENV['RAILS_ENV'] == 'development'
   end
