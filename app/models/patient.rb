@@ -323,6 +323,11 @@ class Patient < ActiveRecord::Base
     obs.first.value_numeric rescue 0
   end
   
+  def current_weight
+    obs = person.observations.recent(1).question("WEIGHT (KG)").all
+    obs.first.value_numeric rescue 0
+  end
+  
   def current_height
     obs = person.observations.recent(1).question("HEIGHT (CM)").all
     obs.first.value_numeric rescue 0
@@ -1099,4 +1104,44 @@ EOF
     patient_transfer_in = self.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
     return patient_transfer_in.each{|datetime| return datetime.obs_datetime  if datetime.obs_datetime}
   end
+  
+  #from TB ART TO BART
+  
+  def hiv_status
+    status = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).name.name rescue "UNKNOWN"
+    return status
+  end
+  
+  def hiv_test_date
+    test_date = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV TEST DATE").concept_id]).value_datetime rescue nil
+    return test_date
+  end
+  
+  def months_since_last_hiv_test
+    today = Date.today
+    hiv_test_date = self.hiv_test_date
+    months = (today.year * 12 + today.month) - (hiv_test_date.year * 12 + hiv_test_date.month) rescue nil
+    return months
+  end
+  
+  def tb_patient?
+    return self.given_tb_medication_before?
+  end
+  
+  def given_tb_medication_before?
+    self.orders.each{|order|
+      drug_order = order.drug_order
+      next if drug_order == nil
+      next unless drug_order.quantity > 0
+      return true if drug_order.drug.tb_medication?
+    }
+    false
+  end
+  
+  def recent_sputum_orders
+    sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)"]
+    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
+    Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?) OR value_text in (?))", self.id, ConceptName.find_by_name('TESTS ORDERED').concept_id, sputum_concept_ids, sputum_concept_names], :order => "obs_datetime desc", :limit => 3)
+  end
+  
 end
