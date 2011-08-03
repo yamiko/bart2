@@ -91,6 +91,27 @@
   // WHO STAGE III PEDS
   // WHO STAGE IV PEDS
   function whoStageConcept(stage, adultOrPeds) {    
+    if (selected_stage_conditions) {
+      var selected_stage_conditions_ext = []
+      for (conditions in selected_stage_conditions) {
+        selected_stage_conditions_ext.push(selected_stage_conditions[conditions]);
+      }
+    
+      conditions_found = 0;
+      severe_weight_loss = false;
+      for (i = 0 ; i < selected_stage_conditions_ext.length ; i++) {
+        if (selected_stage_conditions_ext[i] == 'Severe weight loss >10% and/or BMI <18.5kg/m^2, unexplained') {
+          severe_weight_loss = true;
+        }else if (selected_stage_conditions_ext[i] == 'Chronic diarrhoea more than 1 month') {
+          conditions_found++;
+        }else if (selected_stage_conditions_ext[i] == 'Prolonged fever intermittent or contstant more than one month') {
+          conditions_found++;
+        }
+      }
+      if (conditions_found > 0 && severe_weight_loss)
+        return  "WHO STAGE " + numeral(4) + " " + adultOrPeds;
+    }
+
     return "WHO STAGE " + numeral(stage) + " " + adultOrPeds;  
   }
   
@@ -111,54 +132,21 @@
   var whoStageConditions = {};  
     
   function updateWhoStage() {
-    count = 0;
-    available_conditions = true;
-    stage_4 = whoStageConditions['4']
-    stage_3 = whoStageConditions['3']
-    stage_2 = whoStageConditions['2']
-    stage_1 = whoStageConditions['1']
-    whoStage = 1
-    while (available_conditions == true) { 
-      try {
-        ans = $('staging_condition_' + (count+=1))
-      }catch(e){
-        available_conditions = false
-        ans = null
-      }
-
-      if (available_conditions == false || ans == null)
-        break
-
-      rank = parseFloat(ans.id.replace("staging_condition_", ""))
-
-      if(ans.value == 'YES' && (rank > stage_3)) {
-        whoStage = 4
-      }else if(ans.value == 'YES' && (rank > stage_2)) {
-        whoStage = 3
-      }else if(ans.value == 'YES' && (rank > stage_1)) {
-        whoStage = 2
+    whoStage = 1;
+    for (stage in whoStageConditions) { 
+      for (selected_condition in selected_stage_conditions) { 
+        stage_conditions = whoStageConditions[stage];
+        for (i = 0 ; i < stage_conditions.length ; i++) {
+          if (selected_stage_conditions[selected_condition] == stage_conditions[i]){
+            whoStage = parseInt(stage);
+          }
+        }
       }
     }
 
     var adultOrPeds = (age > 14) ? "ADULT" : "PEDS";
     $('who_stage').value = whoStageConcept(whoStage, adultOrPeds);      
     return whoStage
-
-    // Everyone is supposed to be HIV positive so start them at 1
-    whoStage = 1;
-    for (var i=1; i<=4; i++) {
-      try{
-        if ( $("stage_"+i+"_conditions").value != '') whoStage = i;
-      }catch(e){}
-      try{
-        if ( $("stage_"+i+"_conditions_adults") && $("stage_"+i+"_conditions_adults").value != '') whoStage = i;
-      }catch(e){}
-      try{
-        if ( $("stage_"+i+"_conditions_peds") && $("stage_"+i+"_conditions_peds").value != '') whoStage = i;
-      }catch(e){}
-    }
-    var adultOrPeds = (age > 14) ? "ADULT" : "PEDS";
-    $('who_stage').value = whoStageConcept(whoStage, adultOrPeds);      
   }
   
   function updateReasonForArtEligibility() {
@@ -292,8 +280,14 @@
     
   function setSelectedStageConditions(condition_num,staging_condition) {
     input_text = $('staging_condition_' + condition_num);
-    if ( input_text.value == 'YES' )
+    if ( input_text.value == 'YES' ) {
       selected_stage_conditions[condition_num] = staging_condition;
+    } else {
+      try {
+        if (selected_stage_conditions[condition_num])
+          delete selected_stage_conditions[condition_num];
+      }catch(e) {}
+    }
 
   }
 
@@ -335,6 +329,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
     {:id => "presumed_severe_hiv_conditions",
      :multiple => true,
      :optional => true,
+     :tt_onLoad => "$('nextButton').style.display = 'inline';",
      :condition => 'showPresumed() == true && firstPositiveHivTestType == "HIV RAPID TEST, QUALITATIVE"',
      :helpText => "Presumed severe HIV criteria (infants only)",
      :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
@@ -350,13 +345,17 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
       <% if patient_pregnant.blank? %>
       <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
         {:id => "pregnant",
-        :optional => true,
+        :optional => false,
+        :tt_onLoad => "$('nextButton').style.display = 'none';",
+        :tt_requireNextClick => false,
         :helpText => "Is patient pregnant?" } %>
       <% end %>    
       
       <%= touch_yes_no_unknown_tag "BREASTFEEDING", @patient, nil,
         {:id => "breast_feeding",
-        :optional => true,
+        :optional => false,
+        :tt_onLoad => "$('nextButton').style.display = 'none';",
+        :tt_requireNextClick => false,
         :helpText => "Is patient breast feeding?" } %>
     <% end %>    
 
@@ -383,7 +382,12 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
         concept_sets(staging_condition).each do | concept |
           conditions << concept %>
           <script>
-            whoStageConditions["<%=stage%>"] = count+=1
+            if (whoStageConditions["<%=stage%>"]) {
+              whoStageConditions["<%=stage%>"].push("<%=concept%>")
+            }else{
+              whoStageConditions["<%=stage%>"] = []
+              whoStageConditions["<%=stage%>"].push("<%=concept%>")
+            }
           </script><%
         end
       end
@@ -501,7 +505,12 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
         concept_sets(staging_condition).each do | concept |
           conditions << concept %>
           <script>
-            whoStageConditions["<%=stage%>"] = count+=1
+            if (whoStageConditions["<%=stage%>"]) {
+              whoStageConditions["<%=stage%>"].push("<%=concept%>")
+            }else{
+              whoStageConditions["<%=stage%>"] = []
+              whoStageConditions["<%=stage%>"].push("<%=concept%>")
+            }
           </script><%
         end
       end
