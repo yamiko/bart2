@@ -87,9 +87,12 @@
   // WHO STAGE II PEDS
   // WHO STAGE III PEDS
   // WHO STAGE IV PEDS
-  function whoStageConcept(stage, adultOrPeds) {    
-    if (selected_stage_conditions[3].length > 0) {
-      selected_stage_three_conditions = selected_stage_conditions[3].split(';');
+  function whoStageConcept(stage, adultOrPeds) {   
+    try {
+      selected_stage_three_conditions = selected_stage_conditions[3].split(';'); 
+    }catch(e) { selected_stage_three_conditions = null; }
+
+    if (selected_stage_three_conditions) {
       conditions_found = 0;
       severe_weight_loss = false;
       for (i = 0 ; i < selected_stage_three_conditions.length ; i++) {
@@ -272,6 +275,17 @@
   function setSelectedStageConditions(stage) {
     selected_stage_conditions[stage] = $("touchscreenInput" + tstCurrentPage).value;
   }
+           
+  function showConditions() {
+    try {
+      cond = selected_stage_conditions[1].split(';');
+    }catch(e) { cond = [] }
+    for (i = 0 ; i < cond.length ; i++) {
+      if(cond[i] == 'Asymptomatic HIV infection' || cond[i] == 'Asymptomatic')
+        return false;
+    }
+    return true;
+  }
 </script>  
 <style type="text/css">
   .small .options li { font-size:1.1em; }
@@ -374,6 +388,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
           {:id => "stage_2_conditions",
            :multiple => true,
            :optional => true,
+           :condition => 'showConditions() == true',
            :tt_onUnLoad => 'setSelectedStageConditions(2);',
            :helpText => "Stage 2 Conditions",
            :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
@@ -393,6 +408,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
           {:id => "stage_3_conditions",
            :multiple => true,
            :optional => true,
+           :condition => 'showConditions() == true',
            :tt_onUnLoad => 'setSelectedStageConditions(3);',
            :helpText => "Stage 3 Conditions",
            :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
@@ -413,6 +429,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
            :multiple => true,
            :optional => true,
            :tt_onUnLoad => 'setSelectedStageConditions(4);',
+           :condition => 'showConditions() == true',
            :helpText => "Stage 4 Conditions",
            :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <% end %>
@@ -500,7 +517,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
         {:id => "stage_2_conditions",
          :multiple => true,
          :optional => true,
-         :condition => '$("presumed_severe_hiv_conditions").value == ""',
+         :condition => '$("presumed_severe_hiv_conditions").value == "" && showConditions() == true',
          :helpText => "Stage 2 Conditions",
          :tt_onUnLoad => 'setSelectedStageConditions(2);',
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
@@ -522,7 +539,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
         {:id => "stage_3_conditions",
          :multiple => true,
          :optional => true,
-         :condition => '$("presumed_severe_hiv_conditions").value == ""',
+         :condition => '$("presumed_severe_hiv_conditions").value == "" && showConditions() == true',
          :helpText => "Stage 3 Conditions",
          :tt_onUnLoad => 'setSelectedStageConditions(3);',
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
@@ -543,7 +560,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
         {:id => "stage_4_conditions",
          :multiple => true,
          :optional => true,
-         :condition => '$("presumed_severe_hiv_conditions").value == ""',
+         :condition => '$("presumed_severe_hiv_conditions").value == "" && showConditions() == true',
          :helpText => "Stage 4 Conditions",
          :tt_onUnLoad => 'setSelectedStageConditions(4);',
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
