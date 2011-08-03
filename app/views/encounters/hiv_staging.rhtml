@@ -88,6 +88,22 @@
   // WHO STAGE III PEDS
   // WHO STAGE IV PEDS
   function whoStageConcept(stage, adultOrPeds) {    
+    if (selected_stage_conditions[3].length > 0) {
+      selected_stage_three_conditions = selected_stage_conditions[3].split(';');
+      conditions_found = 0;
+      severe_weight_loss = false;
+      for (i = 0 ; i < selected_stage_three_conditions.length ; i++) {
+        if (selected_stage_three_conditions[i] == 'Severe weight loss >10% and/or BMI <18.5kg/m^2, unexplained') {
+          severe_weight_loss = true;
+        }else if (selected_stage_three_conditions[i] == 'Chronic diarrhoea more than 1 month') {
+          conditions_found++;
+        }else if (selected_stage_three_conditions[i] == 'Prolonged fever intermittent or contstant more than one month') {
+          conditions_found++;
+        }
+      }
+      if (conditions_found > 0 && severe_weight_loss)
+        return  "WHO STAGE " + numeral(4) + " " + adultOrPeds;
+    }
     return "WHO STAGE " + numeral(stage) + " " + adultOrPeds;  
   }
   
@@ -311,25 +327,25 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
       <% if patient_pregnant.blank? %>
         <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
           {:id => "pregnant",
-          :optional => true,
+          :optional => false,
           :helpText => "Patient pregnant at initiation?" } %>
       <% end %>    
 
       <%= touch_yes_no_unknown_tag "BREASTFEEDING", @patient, nil,
         {:id => "breast_feeding",
-        :optional => true,
+        :optional => false,
         :helpText => "Patient breast feeding at initiation?" } %>
       <% else %>
         <% if patient_pregnant.blank? %>
           <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
           {:id => "pregnant",
-          :optional => true,
+          :optional => false,
           :helpText => "Is patient pregnant?" } %>
         <% end %>    
 
         <%= touch_yes_no_unknown_tag "BREASTFEEDING", @patient, nil,
           {:id => "breast_feeding",
-          :optional => true,
+          :optional => false,
          :helpText => "Is patient breast feeding?" } %>
       <% end %>
     <% end %>    
