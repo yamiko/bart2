@@ -144,6 +144,7 @@ class ClinicController < ApplicationController
       ["Use extended staging format", "/properties/creation?value=use_extended_staging_format"],
       ["Use user selected task(s)", "/properties/creation?value=use_user_selected_activities"],
       ["Use filing numbers", "/properties/creation?value=use_filing_numbers"],
+      ["Show lab results", "/properties/creation?value=show_lab_results"],
       ["Set appointment limit", "/properties/set_appointment_limit"]
     ]
     render :layout => false
