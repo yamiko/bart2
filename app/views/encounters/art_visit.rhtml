@@ -136,9 +136,9 @@
 
   <%= touch_yes_no_unknown_tag "Prescribe ARVs this visit", @patient, nil,
     {:optional => false,
-     :helpText => "Prescribe drugs during this visit" } %>
+     :helpText => "Prescribe ARVs during this visit" } %>
 
-  <% if Location.current_location.name.match(/Nurse/i) %>
+  <% if User.current_user.user_roles.map{|r|r.role}.include?('Nurse') %>
     <%= touch_yes_no_unknown_tag "REFER TO ART CLINICIAN", @patient, nil,
       {:optional => false,
       :helpText => "Refer to clinician?" } %>
