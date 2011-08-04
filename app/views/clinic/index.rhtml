@@ -36,8 +36,9 @@
               <option value='/clinic/reports_tab'>Reports</option>
 
               <% unless @roles.include?("Nurse") || @roles.include?("Registration Clerk") || @roles.include?("regstration_clerk") %>
-
-                <option value='/clinic/properties_tab'>Properties</option>
+                <% if User.current_user.admin? %>
+                  <option value='/clinic/properties_tab'>Properties</option>
+                <%end%>
                 <option value='/clinic/administration_tab'>Administration</option>
 
               <% end %>
