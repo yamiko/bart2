@@ -412,13 +412,52 @@ class Task < ActiveRecord::Base
             return task
           end if not treatment.blank?
         when 'TREATMENT'
+          if not reason_for_art.upcase ==  'UNKNOWN'
+            encounter_art_visit = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
+                                     patient.id,EncounterType.find_by_name('ART VISIT').id,session_date],
+                                     :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
+
+            prescribe_arvs = encounter_art_visit.observations.map{|obs| obs.to_s.strip }.include? 'Prescribe ARVs this visit: Yes'
+            not_refer_to_clinician = encounter_art_visit.observations.map{|obs| obs.to_s.strip }.include? 'Refer to ART clinician: No'
+
+            if prescribe_arvs and not_refer_to_clinician 
+              show_treatment = true
+            else
+              show_treatment = false
+            end
+
+            if not not_refer_to_clinician and user_selected_activities.match(/Manage ART visits/i) and User.current_user.user_roles.map{|r|r.role}.include?('Clinician')
+              task.encounter_type = "ART VISIT"
+              task.url = "/encounters/new/art_visit?show&patient_id=#{patient.id}"
+              return task
+            elsif not not_refer_to_clinician and user_selected_activities.match(/Manage ART visits/i) and not User.current_user.user_roles.map{|r|r.role}.include?('Clinician')
+              task.encounter_type = "ART VISIT"
+              task.url = "/patients/show/#{patient.id}"
+              return task
+            elsif not not_refer_to_clinician and not user_selected_activities.match(/Manage ART visits/i)
+              task.encounter_type = "ART VISIT"
+              task.url = "/patients/show/#{patient.id}"
+              return task
+            end
+          else
+            encounter_art_visit = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
+                                     patient.id,EncounterType.find_by_name('PART_FOLLOWUP').id,session_date],
+                                     :order =>'encounter_datetime DESC',:limit => 1)
+            prescribe_drugs = encounter_art_visit.observations.map{|obs| obs.to_s.strip }.include? 'OTHER DRUGS: Yes'
+            if prescribe_drugs
+              show_treatment = true
+            else
+              show_treatment = false
+            end
+          end
+            
           if encounter_available.blank? and user_selected_activities.match(/Manage prescriptions/i)
             task.url = "/regimens/new?patient_id=#{patient.id}"
             return task
           elsif encounter_available.blank? and not user_selected_activities.match(/Manage prescriptions/i)
             task.url = "/patients/show/#{patient.id}"
             return task
-          end
+          end if show_treatment
         when 'ART ADHERENCE'
           if encounter_available.blank? and user_selected_activities.match(/Manage ART adherence/i)
             task.url = "/encounters/new/art_adherence?show&patient_id=#{patient.id}"
