@@ -44,7 +44,11 @@
        }
       }
     }
-    $("tt_currentUnorderedListOptions").innerHTML = symptoms;
+    if (symptoms.length == 0){
+      return true;
+    }else{
+      $("tt_currentUnorderedListOptions").innerHTML = symptoms;
+    }
   }
 </script>
 
@@ -96,6 +100,7 @@
       {:id => 'drug_induced_effects',
        :optional => true,
        :multiple => true,
+       :condition => 'getSelectedSymptoms() != true',
        :helpText => "Select which of these symptoms are likely drug induced<br />(select all that apply)",
        :tt_onLoad => "getSelectedSymptoms()" } %>
   <% end %>

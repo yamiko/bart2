@@ -127,4 +127,14 @@ class PropertiesController < ApplicationController
            params[:role]]).collect{|r|r.privilege.privilege}.join(',') and return
   end
 
+  def creation
+    if request.post?
+      global_property = GlobalProperty.find_by_property(params[:property]) || GlobalProperty.new()
+      global_property.property = params[:property]
+      global_property.property_value = params[:property_value]
+      global_property.save
+      redirect_to '/clinic'
+    end
+  end
+
 end

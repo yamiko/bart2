@@ -46,8 +46,8 @@
       $('cd4_count_less_than_250').value = "UNKNOWN";
       $('cd4_count_less_than_350').value = "UNKNOWN";
     } else {
-      $('cd4_count_less_than_250').value = (cd4_count_numeric < 250) ? "YES" : "NO";
-      $('cd4_count_less_than_350').value = (cd4_count_numeric < 350) ? "YES" : "NO";
+      $('cd4_count_less_than_250').value = (cd4_count_numeric <= 250) ? "YES" : "NO";
+      $('cd4_count_less_than_350').value = (cd4_count_numeric <= 350) ? "YES" : "NO";
     }    
   }
 
