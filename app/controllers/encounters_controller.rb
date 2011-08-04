@@ -2,29 +2,34 @@ class EncountersController < ApplicationController
 
   def create
     if params['encounter']['encounter_type_name'] == 'ART_INITIAL'
-      if params[:observations][0]['concept_name'] == 'EVER RECEIVED ART' and params[:observations][0]['value_coded_or_text'] == 'NO'
+      if params[:observations][0]['concept_name'].upcase == 'EVER RECEIVED ART' and params[:observations][0]['value_coded_or_text'].upcase == 'NO'
         observations = []
         (params[:observations] || []).each do |observation|
-          next if observation['concept_name'] == 'HAS TRANSFER LETTER'
-          next if observation['concept_name'] == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO WEEKS'
-          next if observation['concept_name'] == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS'
-          next if observation['concept_name'] == 'ART NUMBER AT PREVIOUS LOCATION'
-          next if observation['concept_name'] == 'DATE ART LAST TAKEN'
-          next if observation['concept_name'] == 'LAST ART DRUGS TAKEN'
+          next if observation['concept_name'].upcase == 'HAS TRANSFER LETTER'
+          next if observation['concept_name'].upcase == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO WEEKS'
+          next if observation['concept_name'].upcase == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS'
+          next if observation['concept_name'].upcase == 'ART NUMBER AT PREVIOUS LOCATION'
+          next if observation['concept_name'].upcase == 'DATE ART LAST TAKEN'
+          next if observation['concept_name'].upcase == 'LAST ART DRUGS TAKEN'
+          next if observation['concept_name'].upcase == 'TRANSFER IN'
+          next if observation['concept_name'].upcase == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO WEEKS'
+          next if observation['concept_name'].upcase == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS'
           observations << observation
         end
-      elsif params[:observations][4]['concept_name'] == 'DATE ART LAST TAKEN' and params[:observations][4]['value_datetime'] != 'Unknown'
+      elsif params[:observations][4]['concept_name'].upcase == 'DATE ART LAST TAKEN' and params[:observations][4]['value_datetime'] != 'Unknown'
         observations = []
         (params[:observations] || []).each do |observation|
-          next if observation['concept_name'] == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO WEEKS'
-          next if observation['concept_name'] == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS'
+          next if observation['concept_name'].upcase == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO WEEKS'
+          next if observation['concept_name'].upcase == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS'
           observations << observation
         end
       end
 
+      params[:observations] = observations unless observations.blank?
+
       observations = []
       (params[:observations] || []).each do |observation|
-        if observation['concept_name'] == 'LOCATION OF ART INITIATION' or observation['concept_name'] == 'CONFIRMATORY HIV TEST LOCATION'
+        if observation['concept_name'].upcase == 'LOCATION OF ART INITIATION' or observation['concept_name'].upcase == 'CONFIRMATORY HIV TEST LOCATION'
           observation['value_numeric'] = observation['value_coded_or_text'] rescue nil
           observation['value_text'] = Location.find(observation['value_coded_or_text']).name.to_s rescue ""
           observation['value_coded_or_text'] = ""
@@ -35,10 +40,10 @@ class EncountersController < ApplicationController
       params[:observations] = observations unless observations.blank?
     end
 
-    if params['encounter']['encounter_type_name'] == 'HIV STAGING'
+    if params['encounter']['encounter_type_name'].upcase == 'HIV STAGING'
       observations = []
       (params[:observations] || []).each do |observation|
-        if observation['concept_name'] == 'CD4 COUNT'
+        if observation['concept_name'].upcase == 'CD4 COUNT'
           observation['value_modifier'] = observation['value_numeric'].match(/<|>/)[0] rescue nil
           observation['value_numeric'] = observation['value_numeric'].match(/[0-9](.*)/i)[0] rescue nil
         end
@@ -47,10 +52,10 @@ class EncountersController < ApplicationController
       params[:observations] = observations unless observations.blank?
     end
 
-    if params['encounter']['encounter_type_name'] == 'ART ADHERENCE'
+    if params['encounter']['encounter_type_name'].upcase == 'ART ADHERENCE'
       observations = []
       (params[:observations] || []).each do |observation|
-        if observation['concept_name'] == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'
+        if observation['concept_name'].upcase == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'
           observation['value_numeric'] = observation['value_text'] rescue nil
           observation['value_text'] =  ""
         end
@@ -88,7 +93,7 @@ class EncountersController < ApplicationController
       observation[:encounter_id] = encounter.id
       observation[:obs_datetime] = encounter.encounter_datetime || Time.now()
       observation[:person_id] ||= encounter.patient_id
-      observation[:concept_name] ||= "DIAGNOSIS" if encounter.type.name == "OUTPATIENT DIAGNOSIS"
+      observation[:concept_name].upcase ||= "DIAGNOSIS" if encounter.type.name.upcase == "OUTPATIENT DIAGNOSIS"
       # Handle multiple select
       if observation[:value_coded_or_text_multiple] && observation[:value_coded_or_text_multiple].is_a?(Array)
         observation[:value_coded_or_text_multiple].compact!
