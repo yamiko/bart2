@@ -371,7 +371,18 @@ class Task < ActiveRecord::Base
             return task
           end if (reason_for_art.upcase ==  'UNKNOWN' or reason_for_art.blank?)
         when 'HIV RECEPTION'
-          if encounter_available.blank? and user_selected_activities.match(/Manage HIV reception visits/i)
+          encounter_art_initial = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
+                                         patient.id,EncounterType.find_by_name('ART_INITIAL').id],
+                                         :order =>'encounter_datetime DESC',:limit => 1)
+          transfer_in = encounter_art_initial.observations.collect{|r|r.to_s.strip.upcase}.include?('HAS TRANSFER LETTER: YES'.upcase)
+          hiv_staging = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
+                        patient.id,EncounterType.find_by_name('HIV STAGING').id],:order => "encounter_datetime DESC")
+          
+          if transfer_in and hiv_staging.blank? and user_selected_activities.match(/Manage HIV first visits/i)
+            task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" 
+            task.encounter_type = 'HIV STAGING'
+            return task
+          elsif encounter_available.blank? and user_selected_activities.match(/Manage HIV reception visits/i)
             task.url = "/encounters/new/hiv_reception?show&patient_id=#{patient.id}"
             return task
           elsif encounter_available.blank? and not user_selected_activities.match(/Manage HIV reception visits/i)
@@ -382,20 +393,12 @@ class Task < ActiveRecord::Base
           encounter_art_initial = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
                                          patient.id,EncounterType.find_by_name(type).id],
                                          :order =>'encounter_datetime DESC',:limit => 1)
-          transfer_in = encounter_art_initial.observations.collect{|r|r.to_s.strip.upcase}.include?('HAS TRANSFER LETTER: YES'.upcase)
-
-          hiv_staging = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
-                        patient.id,EncounterType.find_by_name('HIV STAGING').id],:order => "encounter_datetime DESC")
 
           if encounter_art_initial.blank? and user_selected_activities.match(/Manage HIV first visits/i)
             task.url = "/encounters/new/art_initial?show&patient_id=#{patient.id}"
             return task
           elsif encounter_art_initial.blank? and not user_selected_activities.match(/Manage HIV first visits/i)
             task.url = "/patients/show/#{patient.id}"
-            return task
-          elsif transfer_in and hiv_staging.blank?
-            task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" 
-            task.encounter_type = 'HIV STAGING'
             return task
           end
         when 'DISPENSING'
