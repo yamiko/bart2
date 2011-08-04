@@ -39,7 +39,7 @@
           {:id => "guardian_present",
            :multiple => false,
            :optional => false,
-           :tt_onUnLoad => 'cleanup_guardian_options()' } %>
+           :tt_onUnLoad => 'setTimeout(cleanup_guardian_options(),500);' } %>
         <%= hidden_field_tag("observations[][value_coded_or_text]", nil) %>
         <%= hidden_field_tag("observations[][concept_name]", "GUARDIAN PRESENT") %>
         <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
