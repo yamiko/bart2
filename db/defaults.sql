@@ -117,26 +117,9 @@ UNLOCK TABLES;
 
 INSERT INTO `location_tag` (`name`, `description`, `creator`, `date_created`, `retired`, `retired_by`, `date_retired`, `retire_reason`, `uuid`)
                VALUES ('Workstation Location', NULL, 1, '2011-04-27 14:58:31', 0, NULL, NULL, NULL, (SELECT UUID()));
-INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
-	((SELECT location_id FROM location WHERE name = 'Registration'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
-INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
-	((SELECT location_id FROM location WHERE name = 'Vitals'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
-INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
-	((SELECT location_id FROM location WHERE name = 'Outpatient'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
-INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
-	((SELECT location_id FROM location WHERE name = 'HIV Reception'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
-INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
-	((SELECT location_id FROM location WHERE name = 'HIV Clinician Station'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
-INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
-	((SELECT location_id FROM location WHERE name = 'HIV Nurse Station'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
-INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
-	((SELECT location_id FROM location WHERE name = 'Chronic Cough'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
-INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
-	((SELECT location_id FROM location WHERE name = 'TB Reception'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
-INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
-	((SELECT location_id FROM location WHERE name = 'TB Sputum Submission Station'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
-INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) VALUES
-	((SELECT location_id FROM location WHERE name = 'Retrospective'),(SELECT location_tag_id FROM location_tag WHERE name = "Workstation Location") );
+
+SET @'workstation_tag_id' = (SELECT location_tag_id FROM location_tag WHERE name = 'Workstation Location');
+INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) SELECT `location_id`, @'workstation_tag_id' FROM `location` WHERE `description` = 'Workstation Location';
 
 /* Remove unwanted relationships */;
 DELETE FROM relationship_type WHERE b_is_to_a NOT IN ("Parent", "Child", "Sibling", "Spouse/Partner", "Village Health Worker", "Other");

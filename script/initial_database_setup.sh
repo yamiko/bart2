@@ -39,7 +39,7 @@ mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/drug_ingredient.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/pharmacy.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/national_id.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/weight_for_heights.sql
-#mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/data/${SITE}/${SITE}.sql
+mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/data/${SITE}/${SITE}.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/data/${SITE}/tasks.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/moh_regimens_only.sql
 #mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/non_art_regimens.sql
@@ -47,7 +47,7 @@ mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/regimen_indexes.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/retrospective_station_entries.sql
 
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/privilege.sql
-mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/global_property.sql
+#mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/global_property.sql
 
 #mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/migrate/alter_global_property.sql
 #mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/migrate/create_sessions.sql
