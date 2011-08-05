@@ -61,6 +61,7 @@ class PeopleController < ApplicationController
  
   def search
     found_person = nil
+
     if params[:identifier]
       local_results = Person.search_by_identifier(params[:identifier])
       if local_results.length > 1
@@ -82,6 +83,7 @@ class PeopleController < ApplicationController
   end
   
   def confirm
+
     if request.post?
       redirect_to search_complete_url(params[:found_person_id], params[:relation]) and return
     end
@@ -93,9 +95,13 @@ class PeopleController < ApplicationController
  
   # This method is just to allow the select box to submit, we could probably do this better
   def select
-    redirect_to search_complete_url(params[:person], params[:relation]) and return unless params[:person].blank? || params[:person] == '0'
-    redirect_to :action => :new, :gender => params[:gender], :given_name => params[:given_name], :family_name => params[:family_name],
-    :family_name2 => params[:family_name2], :address2 => params[:address2], :identifier => params[:identifier], :relation => params[:relation]
+    if params[:person] != '0' && Person.find(params[:person]).dead == 1
+      redirect_to :controller => :patients, :action => :show, :id => params[:person]
+    else
+      redirect_to search_complete_url(params[:person], params[:relation]) and return unless params[:person].blank? || params[:person] == '0'
+
+      redirect_to :action => :new, :gender => params[:gender], :given_name => params[:given_name], :family_name => params[:family_name], :family_name2 => params[:family_name2], :address2 => params[:address2], :identifier => params[:identifier], :relation => params[:relation]
+    end
   end
  
   def create

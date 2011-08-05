@@ -98,6 +98,7 @@ class ProgramsController < ApplicationController
     if request.method == :post
       patient_program = PatientProgram.find(params[:patient_program_id])
       #we don't want to have more than one open states - so we have to close the current active on before opening/creating a new one
+
       current_active_state = patient_program.patient_states.last
       current_active_state.end_date = params[:current_date].to_date
 
@@ -108,14 +109,14 @@ class ProgramsController < ApplicationController
         :state => params[:current_state],
         :start_date => params[:current_date])
       if patient_state.save
-		# Close and save current_active_state if a new state has been created 		
-		current_active_state.save
+		    # Close and save current_active_state if a new state has been created
+		   current_active_state.save
 
         if patient_state.program_workflow_state.concept.fullname == 'PATIENT TRANSFERRED OUT' 
           encounter = Encounter.new(params[:encounter])
           encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
           encounter.save
-          
+
           (params[:observations] || [] ).each do |observation|
             #for now i do this
             obs = {}
@@ -126,7 +127,7 @@ class ProgramsController < ApplicationController
             obs[:person_id] ||= encounter.patient_id  
             Observation.create(obs)
           end
-     
+
           observation = {} 
           observation[:concept_name] = 'TRANSFER OUT TO'
           observation[:encounter_id] = encounter.id
@@ -135,8 +136,9 @@ class ProgramsController < ApplicationController
           observation[:value_text] = Location.find(params[:transfer_out_location_id]).name rescue "UNKNOWN"
           Observation.create(observation)
         end  
-       
-        updated_state = patient_state.program_workflow_state.concept.fullname 
+
+        updated_state = patient_state.program_workflow_state.concept.fullname
+
 		#disabled redirection during import in the code below
 		# Changed the terminal state conditions from hardcoded ones to terminal indicator from the updated state object
         if patient_state.program_workflow_state.terminal == 1
@@ -148,6 +150,30 @@ class ProgramsController < ApplicationController
               person.death_date = params[:current_date].to_date
             end
             person.save
+
+            #updates the state of all patient_programs to patient died and save the
+            #end_date of the last active state.
+            current_programs = PatientProgram.find(:all,:conditions => ["patient_id = ?",@patient.id])
+            current_programs.each do |program|
+              if patient_program.to_s != program.to_s
+                current_active_state = program.patient_states.last
+                current_active_state.end_date = params[:current_date].to_date
+
+                Location.current_location = Location.find(params[:location]) if params[:location]
+
+                patient_state = program.patient_states.build(
+                    :state => params[:current_state],
+                    :start_date => params[:current_date])
+                if patient_state.save
+		              current_active_state.save
+
+		          # date_completed = session[:datetime].to_time rescue Time.now()
+                date_completed = params[:current_date].to_date rescue Time.now()
+                PatientProgram.update_all "date_completed = '#{date_completed.strftime('%Y-%m-%d %H:%M:%S')}'",
+                                       "patient_program_id = #{program.patient_program_id}"
+                end
+             end
+            end
           end
 
           # date_completed = session[:datetime].to_time rescue Time.now()
