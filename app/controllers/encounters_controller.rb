@@ -47,8 +47,15 @@ class EncountersController < ApplicationController
           observation['value_modifier'] = observation['value_numeric'].match(/<|>/)[0] rescue nil
           observation['value_numeric'] = observation['value_numeric'].match(/[0-9](.*)/i)[0] rescue nil
         end
+        if observation['concept_name'].upcase == 'CD4 COUNT LOCATION' or observation['concept_name'].upcase == 'LYMPHOCYTE COUNT LOCATION'
+          observation['value_numeric'] = observation['value_coded_or_text'] rescue nil
+          observation['value_text'] = Location.find(observation['value_coded_or_text']).name.to_s rescue ""
+          observation['value_coded_or_text'] = ""
+        end
+
         observations << observation
       end
+      
       params[:observations] = observations unless observations.blank?
     end
 
