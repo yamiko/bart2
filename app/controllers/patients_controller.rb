@@ -509,11 +509,11 @@ class PatientsController < ApplicationController
   def past_visits_summary
     @previous_visits  = Encounter.get_previous_encounters(params[:patient_id])
 
-    @encounter_dates = @previous_visits.map{|encounter| encounter.encounter_datetime.strftime("%d-%b-%Y")}.uniq.reverse.first(6) rescue []
+    @encounter_dates = @previous_visits.map{|encounter| encounter.encounter_datetime.to_date}.uniq.reverse.first(6) rescue []
 
     @past_encounter_dates = []
       @encounter_dates.each do |encounter|
-        @past_encounter_dates << encounter if encounter != (Date.today).strftime("%d-%b-%Y") && encounter != ((session[:datetime].to_date).strftime("%d-%b-%Y") rescue nil)
+        @past_encounter_dates << encounter if encounter < (Date.today).to_date || encounter < (session[:datetime].to_date rescue Date.today.to_date)
       end
 
     render :template => 'dashboards/past_visits_summary_tab', :layout => false
