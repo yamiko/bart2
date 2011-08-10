@@ -36,10 +36,6 @@ module ApplicationHelper
     GlobalProperty.find_by_property("demographics.middle_name").property_value == "yes" rescue false
   end
 
-  def ask_middle_name
-    GlobalProperty.find_by_property("demographics.middle_name").property_value == "yes" rescue false
-  end
-
   def ask_visit_home_for_TB_therapy
     GlobalProperty.find_by_property("demographics.visit_home_for_treatment").property_value == "yes" rescue false
   end
