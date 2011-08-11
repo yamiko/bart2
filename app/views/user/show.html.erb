@@ -36,6 +36,11 @@
     margin: 0 4px;
     float:right;
   }
+
+  #button_container button {
+    font-size: 15px;
+    width: 235px;
+  }
 </style>
 
 <br />
@@ -64,11 +69,21 @@
     <td class='blue'>&nbsp;<%=@user.date_created.strftime('%A  %d, %B, %Y') rescue '&nbsp;'%></td>
   </tr>
 </table>
-<br />
-  <button id="edit" class="silver" style="margin-top:10px;"
+<div style = "float:right;">
+<table id = 'button_container'>
+  <tr>
+    <td>
+      <button id="edit" class="silver" style="margin-top:10px;"
         onmousedown="document.location = '/user/edit/<%= @user.id -%>'"><span>Edit User names</span>
-  </button>
-  <button id="change_password" class="silver" style="margin-top:10px;"
+      </button>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <button id="change_password" class="silver" style="margin-top:10px;"
         onmousedown="document.location = '/user/change_password?id=<%= @user.id -%>'"><span>Change Password</span>
-  </button>
+      </button>
+    </td>
+  </tr>
+  </div>
 </div>
