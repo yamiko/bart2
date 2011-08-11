@@ -3413,8 +3413,10 @@ var TimeUtil = {
 }
 
 function stripZero(value){
-    if(value.match(/^0/)){
-        return eval(value.substr(1));
-    }
+    try {
+      if(value.match(/^0/)){
+          return eval(value.substr(1));
+      }
+    }catch(e) {}
     return value;
 }
