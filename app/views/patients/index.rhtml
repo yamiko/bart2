@@ -27,21 +27,21 @@
             <span id='patient_age'><%= @patient.person.age rescue "" %></span>
             <span id='patient_gender'><%= @patient.gender rescue "" %></span>
 
-            <% if !@patient.arv_number.blank? %>
-              <span id='patient_arv_number'><%= @patient.arv_number rescue "" %></span>
-            <% end %>
+            <%# if !@patient.arv_number.blank? %>
+              <!--<span id='patient_arv_number'><%= @patient.arv_number rescue "" %></span>-->
+            <%# end %>
             <div id="patient_card">
-              <% unless (@patient.arv_number rescue "") != "" %>
+              <% if (@patient.arv_number) != nil %>
 
                 <span value="<%= @patient.arv_number rescue "" %>">ARV Number</span>
 
               <% end %>
-              <% unless (@patient.eid_number rescue "") != "" %>
+              <% if (@patient.eid_number) != nil %>
 
                 <span value="<%= @patient.eid_number rescue "" %>">EID Number</span>
 
               <% end %>
-              <% unless (@patient.pre_art_number rescue "") != "" %>
+              <% if (@patient.pre_art_number) != nil %>
 
                 <span value="<%= @patient.pre_art_number rescue "" %>">Pre-ART Number</span>
 
