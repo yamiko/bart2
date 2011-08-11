@@ -74,7 +74,9 @@
        :validationMessage => "#{@program_name}<br/>is closed<br/>Closed on: #{@program_date_completed}",
        :allowFreeText => false } %>
 
-  <%= text_field_tag 'current_date', params[:current_date] || (Time.now).year,
+  <% initial_date = "#{session[:datetime].strftime('%Y-%m-%d')}" rescue "#{(Date.today).strftime('%Y-%m-%d')}"%>
+
+  <%= text_field_tag 'current_date', initial_date,
         {:id => 'current_date',
          :field_type => 'date',
          :tt_onLoad => "changeNextButtonCaption();",
