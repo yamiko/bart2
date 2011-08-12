@@ -192,7 +192,7 @@ class Task < ActiveRecord::Base
     reception = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
                         patient.id,session_date,EncounterType.find_by_name(art_encounters[1]).id]).collect{|r|r.to_s}.join(',') rescue ''
     
-    if reception.match(/PATIENT PRESENT FOR CONSULTATION: YES/i)
+    if reception.match(/PATIENT PRESENT FOR CONSULTATION:  YES/i)
       vitals = Encounter.find(:first,
                               :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                               patient.id,EncounterType.find_by_name(art_encounters[2]).id,session_date],
@@ -342,7 +342,7 @@ class Task < ActiveRecord::Base
           elsif encounter_available.blank? and not user_selected_activities.match(/Manage Vitals/i) 
             task.url = "/patients/show/#{patient.id}"
             return task
-          end if reception.match(/PATIENT PRESENT FOR CONSULTATION: YES/i)
+          end if reception.match(/PATIENT PRESENT FOR CONSULTATION:  YES/i)
         when 'ART VISIT'
           if encounter_available.blank? and user_selected_activities.match(/Manage ART visits/i)
             task.url = "/encounters/new/art_visit?show&patient_id=#{patient.id}"
