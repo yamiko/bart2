@@ -45,7 +45,7 @@ class EncountersController < ApplicationController
       (params[:observations] || []).each do |observation|
         if observation['concept_name'].upcase == 'CD4 COUNT'
           observation['value_modifier'] = observation['value_numeric'].match(/<|>/)[0] rescue nil
-          observation['value_numeric'] = observation['value_numeric'].match(/[0-9](.*)/i)[0] rescue nil
+          observation['value_numeric'] = observation['value_numeric'] rescue nil
         end
         if observation['concept_name'].upcase == 'CD4 COUNT LOCATION' or observation['concept_name'].upcase == 'LYMPHOCYTE COUNT LOCATION'
           observation['value_numeric'] = observation['value_coded_or_text'] rescue nil
@@ -146,7 +146,7 @@ class EncountersController < ApplicationController
       unless (arv_number_identifier_type != type) and @patient_identifier
         arv_number = identifier[:identifier].strip
         if arv_number.match(/(.*)[A-Z]/i).blank?
-          identifier[:identifier] = "#{Location.current_arv_code} #{arv_number}"
+          identifier[:identifier] = "#{PatientIdentifier.site_prefix} #{arv_number}"
         end
       end
 
