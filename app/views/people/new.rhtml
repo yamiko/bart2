@@ -15,6 +15,7 @@
   .tt_controls_cell_phone_number #num , #plus, #apostrophe, #star, #char, #abc, #date, #slash, #minus, #comma, #percent, #decimal { display:none; }
 
   .tt_controls_home_phone_number #num , #plus, #apostrophe, #star, #abc, #date, #slash, #minus, #comma, #percent, #decimal { display:none; }
+  .tt_controls_home_phone_number #Unknown ,#na{ display:inline; }
 
   .tt_controls_office_phone_number #num , #plus, #apostrophe, #star, #abc, #date, #slash, #minus, #comma, #percent, #decimal { display:none; }
 
@@ -183,7 +184,7 @@
       {
         :field_type => 'number', 
         :helpText => 'Office Phone Number',
-        :validationRule => "^0\\d{7}$|Unknown|Not Available|^0\\d{9}$", 
+        :validationRule => "^0\\d{7}$|Unknown|N\/A|Not Available|^0\\d{9}$", 
         :validationMessage => "Not a valid phone number"
       }
   %>
@@ -192,12 +193,12 @@
       {
         :field_type => 'number', 
         :helpText => 'Home Phone Number',  
-        :validationRule => "^0\\d{7}$|Unknown|Not Available|^0\\d{9}$", 
+        :validationRule => "^0\\d{7}$|Unknown|N\/A|Not Available|^0\\d{9}$", 
         :validationMessage => "Not a valid phone number"
       }
   %>
   <%else%>
-    <%= text_field_tag "person[home_phone_number]",  params[:home_phone_number], {:field_type => 'number', :helpText => 'Ground Phone Number', :allowFreeText => true, :tt_pageStyleClass => "Numeric NumbersOnly", :validationRule => "^0\\d{7,9}$|Unknown|Not Available", :validationMessage => "Not a valid phone number" } if ask_ground_phone%>
+    <%= text_field_tag "person[home_phone_number]",  params[:home_phone_number], {:field_type => 'number', :helpText => 'Ground Phone Number', :allowFreeText => true, :tt_pageStyleClass => "Numeric NumbersOnly", :validationRule => "^0\\d{7,9}$|Unknown|Not Available|N\/A", :validationMessage => "Not a valid phone number" } if ask_ground_phone%>
   <%end%>
 
   <%= select_tag("person[agrees_phone_text_for_TB_therapy]", options_for_select([" ", "Yes", "No", "Unknown"] ,params[:agrees_phone_text_for_TB_therapy]),:helpText =>"Can we send you an sms on this number for treatment?", :condition => "$('cellphone').value !='Unknown'", :tt_onLoad => 'seen(tstCurrentPage);') if ask_sms_for_TB_therapy%>
