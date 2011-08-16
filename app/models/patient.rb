@@ -516,15 +516,19 @@ class Patient < ActiveRecord::Base
     return patient.age(initiation_date) unless initiation_date.nil?
   end
 
-  def set_received_regimen(encounter,order)
+  def set_received_regimen(encounter,prescription)
     dispense_finish = true ; dispensed_drugs_concept_ids = []
     
-    ( order.encounter.orders || [] ).each do | order |
-      dispense_finish = false if order.drug_order.amount_needed > 0
-      dispensed_drugs_concept_ids << Drug.find(order.drug_order.drug_inventory_id).concept_id
+    prescription.orders.each do | order |
+      next if not order.drug_order.drug.arv?
+      dispensed_drugs_concept_ids << order.drug_order.drug.concept_id
+      if (order.drug_order.amount_needed > 0)
+        dispense_finish = false
+      end
     end
 
     return unless dispense_finish
+    return if dispensed_drugs_concept_ids.blank?
 
     regimen_id = ActiveRecord::Base.connection.select_value <<EOF
 SELECT concept_id FROM drug_ingredient 
