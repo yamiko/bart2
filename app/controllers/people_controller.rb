@@ -119,7 +119,7 @@ class PeopleController < ApplicationController
           unless message.blank?
             print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}" , next_task(person.patient),message,true,person.id) 
           else
-            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}", next_task(person.patient)) 
+            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}", next_task(person.patient))
           end
         else
           print_and_redirect("/patients/national_id_label?patient_id=#{person.id}", next_task(person.patient))
@@ -161,7 +161,7 @@ class PeopleController < ApplicationController
   def find_by_arv_number
     if request.post?
       redirect_to :action => 'search' ,
-        :identifier => "#{Location.current_arv_code} #{params[:arv_number]}" and return
+        :identifier => "#{PatientIdentifier.site_prefix} #{params[:arv_number]}" and return
     end
   end
   
