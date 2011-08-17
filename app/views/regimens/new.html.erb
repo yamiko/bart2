@@ -51,6 +51,14 @@
 
   var regimen_id = null; 
 
+  function setSelectedRow() {
+    l = document.getElementsByTagName('li');
+    for (i = 0 ; i < l.length ; i++) {
+      if (l[i].style.backgroundColor == 'lightblue')
+        updateTouchscreenInputForSelect(l[i]);
+    }
+  }
+
   function set_patient_program_for_suggestions() {    
     var program_id = encodeURIComponent($('patient_program').value); 
     $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/regimens/suggested?patient_age=<%= @patient.person.age %>&id=" + program_id + "&search_string=");
@@ -175,7 +183,7 @@
   <%= select_tag :regimen_concept_id, nil, {
     :ajaxUrl => "",
     :allowFreeText => 'false',
-    :tt_onLoad => 'set_patient_program_for_suggestions();',
+    :tt_onLoad => 'set_patient_program_for_suggestions();setTimeout("setSelectedRow()",500);',
     :condition => 'hasReasonForART() == true && $("prescribe_arvs").value == "YES" && $("continue_existing_regimen").value != "YES"',
     :helpText => "Select regimen"}%>
   
