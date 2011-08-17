@@ -6,7 +6,7 @@ class EncounterTypesController < ApplicationController
 
         privileges = role_privileges.each.map{ |role_privilege_pair| role_privilege_pair["privilege"].humanize }
 
-        @encounter_privilege_map = GlobalProperty.find_by_property("encounter_privilege_map").property_value.to_s
+        @encounter_privilege_map = GlobalProperty.find_by_property("encounter_privilege_map").property_value.to_s rescue ''
 
         @encounter_privilege_map = @encounter_privilege_map.split(",")
 
