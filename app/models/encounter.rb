@@ -239,7 +239,7 @@ EOF
   
   def self.lab_activities
     lab_activities = [
-      ['Lab Order', 'lab_order'],
+      ['Lab Orders', 'lab_orders'],
       ['Sputum Submission', 'sputum_submission'],
       ['Lab Results', 'lab_results'],
     ]
