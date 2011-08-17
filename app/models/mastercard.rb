@@ -32,9 +32,9 @@ class Mastercard
     visits.bmi = patient_obj.initial_bmi
     visits.agrees_to_followup = patient_obj.person.observations.recent(1).question("Agrees to followup").all rescue nil
     visits.agrees_to_followup = visits.agrees_to_followup.to_s.split(':')[1].strip rescue nil
-    visits.hiv_test_date = patient_obj.person.observations.recent(1).question("FIRST POSITIVE HIV TEST DATE").all rescue nil
+    visits.hiv_test_date = patient_obj.person.observations.recent(1).question("Confirmatory HIV test date").all rescue nil
     visits.hiv_test_date = visits.hiv_test_date.to_s.split(':')[1].strip rescue nil
-    visits.hiv_test_location = patient_obj.person.observations.recent(1).question("FIRST POSITIVE HIV TEST LOCATION").all rescue nil
+    visits.hiv_test_location = patient_obj.person.observations.recent(1).question("Confirmatory HIV test location").all rescue nil
     visits.hiv_test_location = visits.hiv_test_location.to_s.split(':')[1].strip rescue nil
     visits.guardian = patient_obj.person.relationships.map{|r|Person.find(r.person_b).name}.join(' : ') rescue 'NONE'
     visits.reason_for_art_eligibility = patient_obj.reason_for_art_eligibility
@@ -247,8 +247,8 @@ class Mastercard
             end
           when "REGIMEN"
             concept_name = obs.concept.fullname rescue []
-            next unless concept_name == 'ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT' || concept_name == 'ARV regimens received abstracted construct'
-            patient_visits[visit_date].reg =  obs.value_text 
+            next unless concept_name == 'WHAT TYPE OF ANTIRETROVIRAL REGIMEN' || concept_name == 'What type of antiretroviral regimen'
+            patient_visits[visit_date].reg =  Concept.find_by_concept_id(obs.value_coded).concept_names.typed("SHORT").first.name
           when "SYMPTOMS"
             concept_name = obs.concept.fullname rescue []
             next unless concept_name == 'SYMPTOM PRESENT' || concept_name == 'Symptom present'
