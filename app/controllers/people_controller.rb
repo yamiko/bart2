@@ -119,7 +119,7 @@ class PeopleController < ApplicationController
           unless message.blank?
             print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}" , next_task(person.patient),message,true,person.id) 
           else
-            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}", next_task(person.patient))
+            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}", next_task(person.patient)) 
           end
         else
           print_and_redirect("/patients/national_id_label?patient_id=#{person.id}", next_task(person.patient))
@@ -210,6 +210,15 @@ class PeopleController < ApplicationController
       "<li value='#{v.name}'>#{v.name}</li>"
     end
     render :text => villages.join('') and return
+  end
+  
+  # Landmark containing the string given in params[:value]
+  def landmark
+    landmarks = PersonAddress.find(:all, :select => "DISTINCT address1" , :conditions => ["city_village = (?) AND address1 LIKE (?)", "#{params[:filter_value]}", "%#{params[:search_string]}%"])
+    landmarks = landmarks.map do |v|
+      "<li value='#{v.address1}'>#{v.address1}</li>"
+    end
+    render :text => landmarks.join('') and return
   end
 
 private
