@@ -75,11 +75,7 @@
                   <option value='/patients/show/<%= @patient.id -%>?source=opd'>OPD</option>
                 </select>
                 <select id="navigation_links">
-                  <%if GlobalProperty.use_user_selected_activities %>
-                    <option link="/user/activities?patient_id=<%= @patient.id -%>" ttSize = "160px">Tasks</option>
-                  <%else%>
                     <option link="/encounter_types?patient_id=<%= @patient.id -%>" ttSize = "160px">Tasks</option>
-                  <%end%>
                   <option link="/patients/mastercard_menu?patient_id=<%= @patient.id -%>&source=<%= @source -%>">Mastercard</option>
                   <% if show_lab_results %>
                     <option link="/lab/results/<%=@patient.id -%>">Lab results</option>
