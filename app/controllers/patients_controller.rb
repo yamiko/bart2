@@ -151,6 +151,9 @@ class PatientsController < ApplicationController
       @links << ["Filing number (Create)","/patients/set_filing_number/#{patient.id}"]
     end 
 
+    if GlobalProperty.use_user_selected_activities
+      @links << ["Change user activities","/user/activities/#{User.current_user.id}?patient_id=#{patient.id}"]
+    end 
     render :template => 'dashboards/personal_tab', :layout => false
   end
 
