@@ -112,7 +112,7 @@ class PeopleController < ApplicationController
       unless (params[:relation].blank?)
         redirect_to search_complete_url(person.id, params[:relation]) and return
       else
-        if use_filing_number and Location.current_location.name.match(/HIV Reception/i)
+        if use_filing_number 
           person.patient.set_filing_number 
           archived_patient = person.patient.patient_to_be_archived
           message = Patient.printing_message(person.patient,archived_patient,creating_new_patient = true) 
@@ -200,7 +200,7 @@ class PeopleController < ApplicationController
     render :text => districts.join('') and return
   end
 
-    # Districts containing the string given in params[:value]
+    # Villages containing the string given in params[:value]
   def village
     traditional_authority_id = TraditionalAuthority.find_by_name("#{params[:filter_value]}").id
     village_conditions = ["name LIKE (?) AND traditional_authority_id = ?", "%#{params[:search_string]}%", traditional_authority_id]
