@@ -12,7 +12,7 @@
 <style>
 </style>
 
-<form action='/encounters/create' method = 'post'>
+<form action='/encounters/create' method = 'post' extended="true">
   <%= hidden_field_tag "encounter[encounter_type_name]", "DISPENSING" %>
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>

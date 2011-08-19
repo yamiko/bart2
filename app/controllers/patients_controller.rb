@@ -23,7 +23,7 @@ class PatientsController < ApplicationController
      if @location.downcase == "outpatient" || params[:source]== 'opd'
         render :template => 'dashboards/opdtreatment_dashboard', :layout => false
      else
-        render :template => 'patients/index', :layout => false
+        render :template => 'patients/show', :layout => false
      end
   end
 
@@ -596,7 +596,39 @@ class PatientsController < ApplicationController
     count = '0' if count.blank?
     render :text => count
   end
-  
+
+  def tab_home
+    render :layout => false
+  end
+
+  def tab_demographics
+    render :layout => false
+  end
+
+  def tab_triage
+    render :layout => false
+  end
+
+  def tab_vitals
+    render :layout => false
+  end
+
+  def tab_visit
+    render :layout => false
+  end
+
+  def tab_prescription
+    render :layout => false
+  end
+
+  def tab_mastercard
+    render :layout => false
+  end
+
+  def tab_tasks
+    render :layout => false
+  end
+
   private
   
   

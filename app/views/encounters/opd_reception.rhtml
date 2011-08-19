@@ -16,7 +16,7 @@
   }
 
 </script>  
-<form id='appointment' action="/encounters/create" method='post'>
+<form id='appointment' action="/encounters/create" method='post' extended="true">
   <%= hidden_field_tag "encounter[encounter_type_name]", "OUTPATIENT RECEPTION" %>
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>

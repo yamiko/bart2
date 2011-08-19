@@ -42,7 +42,7 @@ body{
 }
 
 #tabContainer {
-    width: 72%;
+    width: 82%;
     height: 32px;
     margin: 3px;
     -moz-border-radius: 10px;
@@ -57,7 +57,7 @@ body{
 }
 
 #tabContainer2 {
-    width: 72%;
+    width: 100%;
     height: 32px;
     margin: 3px;
     -moz-border-radius: 10px;

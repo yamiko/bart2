@@ -881,7 +881,7 @@ function generateTab(headings, target, content){
             activate(this.id);
         }
 
-        if((average_tab_width + cumulative_width) > tabPageContainer.offsetWidth){
+        if((average_tab_width + cumulative_width) > (tabPageContainer.offsetWidth - 40)){
             tabContainer2.appendChild(tab);
         } else {
             tabContainer.appendChild(tab);

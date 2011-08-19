@@ -1,0 +1,537 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Patient Dashboard</title>
+    <script language="javascript" type="text/javascript" src="/javascripts/jquery_002.js"></script>
+    <script language="javascript" type="text/javascript" src="/javascripts/jquery.js"></script>
+    <link type="text/css" href="/stylesheets/graphs.css" rel="stylesheet" />    
+  </head>
+  <body>
+    <div id="tab1page" class="pageContainer" style="display: block;">
+      <div>
+        <table>
+          <tr>
+            <td style="padding-left: 67px;">
+              <div id="cd4" style="width: 370px; height: 235px; position: relative;"></div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding-left: 10px;">
+              <div id="arv" style="width: 400px; height: 280px; position: relative;"></div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <script id="source" language="javascript" type="text/javascript">
+
+          var loc = String(window.location).match(/\?(.+)$/);
+          var cd4count = null;
+          var vload = null;
+          var lam_start = null;
+          var lam_end = null;
+          var efa_start = null;
+          var efa_end = null;
+          var sta_zid_start = null;
+          var sta_zid_end = null;
+          var sta_zid = null;
+
+          if(loc){
+            var values = loc[1].split("&");
+
+            for(var i = 0; i < values.length; i++){
+              var elements = values[i].split("=");
+
+              switch(elements[0]){
+                case "secondary_cd4":
+                  cd4count = (elements[1].length > 0 ? elements[1] : null);
+                  break;
+                case "secondary_vload":
+                  vload = (elements[1].length > 0 ? elements[1] : null);
+                  break;
+                case "secondary_sde":
+                  efa_start = (elements[1].length > 0 ? elements[1].replace("-", "/", "gi") : null);
+                  break;
+                case "secondary_ede":
+                  efa_end = (elements[1].length > 0 ? elements[1].replace("-", "/", "gi") : null);
+                  break;
+                case "secondary_sdl":
+                  lam_start = (elements[1].length > 0 ? elements[1].replace("-", "/", "gi") : null);
+                  break;
+                case "secondary_edl":
+                  lam_end = (elements[1].length > 0 ? elements[1].replace("-", "/", "gi") : null);
+                  break;
+                case "secondary_stavudine_zidovudine":
+                  sta_zid = (elements[1].length > 0 ? elements[1] : null);
+                  break;
+                case "secondary_dosz":
+                  sta_zid_start = (elements[1].length > 0 ? elements[1].replace("-", "/", "gi") : null);
+                  break;
+                case "secondary_doszf":
+                  sta_zid_end = (elements[1].length > 0 ? elements[1].replace("-", "/", "gi") : null);
+                  break;
+              }
+            }
+          }
+
+          var set23b = [
+            (efa_start ? [((new Date(efa_start)).getTime()), 23] : []),
+            (efa_end ? [((new Date(efa_end)).getTime()), 23] : [])
+          ];
+          var set22b = [
+            (lam_start ? [((new Date(lam_start)).getTime()), 22] : []),
+            (lam_end ? [((new Date(lam_end)).getTime()), 22] : [])
+          ];
+          var set21b = [
+            (sta_zid ? (sta_zid.toLowerCase() == "stavudine" ? [((new Date(sta_zid_start)).getTime()), 21] : []) : []),
+            (sta_zid ? (sta_zid.toLowerCase() == "stavudine" ? [((new Date(sta_zid_end)).getTime()), 21] : []) : [])
+          ];
+          var set20b = [
+            (sta_zid ? (sta_zid.toLowerCase() == "zidovudine" ? [((new Date(sta_zid_start)).getTime()), 20] : []) : []),
+            (sta_zid ? (sta_zid.toLowerCase() == "zidovudine" ? [((new Date(sta_zid_end)).getTime()), 20] : []) : [])
+          ];
+
+          var set24 = [
+            [(new Date("2004/01/01")).getTime(), 24],
+            [(new Date()).getTime(), 24]
+          ];
+          var set23 = [
+            [((new Date("2004/08/15")).getTime()), 23],
+            [((new Date("2008/10/10")).getTime()), 23]
+          ];
+          var set22 = [
+            [((new Date("2004/08/15")).getTime()), 22],
+            [((new Date("2008/10/10")).getTime()), 22]
+          ];
+          var set21 = [
+            [((new Date("2004/08/15")).getTime()), 21],
+            [((new Date("2008/02/28")).getTime()), 21]
+          ];
+          var set20 = [
+            [((new Date("2008/03/01")).getTime()), 20],
+            [((new Date("2008/10/10")).getTime()), 20]
+          ];
+          var set19 = [
+            [(new Date("2004/01/01")).getTime(), 19],
+            [(new Date()).getTime(), 19]
+          ];
+          var set18 = [
+            [(new Date("2004/01/01")).getTime(), 18],
+            [(new Date()).getTime(), 18]
+          ];
+          var set17 = [
+            [((new Date("2005/01/15")).getTime()), 17],
+            [((new Date("2006/03/01")).getTime()), 17]
+          ];
+          var set17b = [
+            [((new Date("2007/07/19")).getTime()), 17],
+            [((new Date("2008/03/04")).getTime()), 17]
+          ];
+          var set16 = [
+            [((new Date("2006/03/01")).getTime()), 16],
+            [((new Date("2006/03/15")).getTime()), 16]
+          ];
+          var set15 = [
+            [((new Date("2006/03/01")).getTime()), 15],
+            [((new Date("2006/03/10")).getTime()), 15]
+          ];
+          var set14 = [
+            [((new Date("2005/01/15")).getTime()), 14],
+            [((new Date("2005/03/10")).getTime()), 14]
+          ];
+          var set14b = [
+            [((new Date("2007/07/19")).getTime()), 14],
+            [((new Date("2008/03/04")).getTime()), 14]
+          ];
+          var set13 = [
+            [((new Date("2005/01/15")).getTime()), 13],
+            [((new Date("2005/03/10")).getTime()), 13]
+          ];
+          var set13b = [
+            [((new Date("2007/07/19")).getTime()), 13],
+            [((new Date("2008/03/04")).getTime()), 13]
+          ];
+          var set12 = [
+            [((new Date("2005/01/15")).getTime()), 12],
+            [((new Date("2006/03/01")).getTime()), 12]
+          ];
+          var set12b = [
+            [((new Date("2007/07/19")).getTime()), 12],
+            [((new Date("2008/03/04")).getTime()), 12]
+          ];
+          var set11 = [
+            [((new Date("2007/07/19")).getTime()), 11],
+            [((new Date("2008/03/04")).getTime()), 11]
+          ];
+          var set10 = [
+            [((new Date("2005/01/15")).getTime()), 10],
+            [((new Date("2006/03/01")).getTime()), 10]
+          ];
+          var set10b = [
+            [((new Date("2007/07/19")).getTime()), 10],
+            [((new Date("2008/03/04")).getTime()), 10]
+          ];
+          var set9 = [
+            [((new Date("2005/01/15")).getTime()), 9],
+            [((new Date("2006/03/01")).getTime()), 9]
+          ];
+          var set8 = [
+            [((new Date("2005/01/15")).getTime()), 8],
+            [((new Date("2006/03/01")).getTime()), 8]
+          ];
+          var set7 = [
+            [(new Date("2004/01/01")).getTime(), 7],
+            [(new Date()).getTime(), 7]
+          ];
+          var set6 = [
+            [((new Date("2008/03/04")).getTime()), 6],
+            [((new Date("2008/08/15")).getTime()), 6]
+          ];
+          var set5 = [
+            [((new Date("2005/01/15")).getTime()), 5],
+            [((new Date("2005/02/15")).getTime()), 5]
+          ];
+          var set4 = [
+            [((new Date("2005/02/15")).getTime()), 4],
+            [((new Date("2005/03/15")).getTime()), 4]
+          ];
+          var set3 = [
+            [(new Date("2004/01/01")).getTime(), 3],
+            [(new Date()).getTime(), 3]
+          ];
+          var set2 = [
+            [((new Date("2005/01/15")).getTime()), 2],
+            [((new Date("2008/10/10")).getTime()), 2]
+          ];
+          var set1 = [
+            [((new Date("2004/05/01")).getTime()), 1],
+            [((new Date("2008/10/10")).getTime()), 1]
+          ];
+
+          var cd4 = [
+            [(new Date("2004/05/01")).getTime(), 150],
+            [(new Date("2005/02/15")).getTime(), 290],
+            [(new Date("2005/07/15")).getTime(), 319],
+            [(new Date("2006/02/28")).getTime(), 469],
+            [(new Date("2007/07/28")).getTime(), 569],
+            [(new Date("2008/03/04")).getTime(), 530],
+            [(new Date("2008/08/15")).getTime(), 569],
+            (cd4count ? [((new Date()).getTime()), eval(cd4count)] : [])
+          ];
+          var cd4_line = [
+            [(new Date("2004/01/01")).getTime(), 315],
+            [(new Date()).getTime(), 315]
+          ];
+          var viral_load_line = [
+            [(new Date("2004/01/01")).getTime(), 2.8],
+            [(new Date()).getTime(), 2.8]
+          ];
+          var viral_load = [
+            [(new Date("2005/07/01")).getTime(), 1.8],
+            [(new Date("2006/02/28")).getTime(), 1.5],
+            [(new Date("2007/02/28")).getTime(), 1.5],
+            [(new Date("2007/07/28")).getTime(), 1.8],
+            [(new Date("2008/08/15")).getTime(), 1.8],
+            (vload ? [((new Date()).getTime()), eval(vload)] : [])
+          ];
+
+          $(function () {
+
+            $.plot($("#arv"),
+            [   { data: set24, shadowSize: 0, color: "black", lines: { lineWidth: 2 } },
+              { data: set23, shadowSize: 0, color: "blue" },
+              { data: set22, shadowSize: 0, color: "blue" },
+              { data: set21, shadowSize: 0, color: "blue" },
+              { data: set20, shadowSize: 0, color: "blue" },
+              { data: set23b, shadowSize: 0, color: "blue" },
+              { data: set22b, shadowSize: 0, color: "blue" },
+              { data: set21b, shadowSize: 0, color: "blue" },
+              { data: set20b, shadowSize: 0, color: "blue" },
+              { data: set19, shadowSize: 0, color: "black", lines: { lineWidth: 2 } },
+              { data: set18, shadowSize: 0, color: "black", lines: { lineWidth: 2 } },
+              { data: set17, shadowSize: 0, color: "#c5a8a8" },
+              { data: set17b, shadowSize: 0, color: "#c5a8a8" },
+              { data: set16, shadowSize: 0, color: "#c5a8a8" },
+              { data: set15, shadowSize: 0, color: "#c5a8a8" },
+              { data: set14, shadowSize: 0, color: "#c5a8a8" },
+              { data: set14b, shadowSize: 0, color: "#c5a8a8" },
+              { data: set13, shadowSize: 0, color: "#c5a8a8" },
+              { data: set13b, shadowSize: 0, color: "#c5a8a8" },
+              { data: set12, shadowSize: 0, color: "#c5a8a8" },
+              { data: set12b, shadowSize: 0, color: "#c5a8a8" },
+              { data: set11, shadowSize: 0, color: "#c5a8a8" },
+              { data: set10, shadowSize: 0, color: "#c5a8a8" },
+              { data: set10b, shadowSize: 0, color: "#c5a8a8" },
+              { data: set9, shadowSize: 0, color: "#c5a8a8" },
+              { data: set8, shadowSize: 0, color: "#c5a8a8" },
+              { data: set7, shadowSize: 0, color: "black", lines: { lineWidth: 2 } },
+              { data: set6, shadowSize: 0, color: "#ccc" },
+              { data: set5, shadowSize: 0, color: "#ccc" },
+              { data: set4, shadowSize: 0, color: "#ccc" },
+              { data: set3, shadowSize: 0, color: "black", lines: { lineWidth: 2 } },
+              { data: set2, shadowSize: 0, color: "#0f0" },
+              { data: set1, shadowSize: 0, color: "#f00" } ],
+            {
+              xaxis: { mode: "time", timeformat: "", tickSize: [1, "month"], show: false,
+                min: (new Date("2004/01/01")).getTime(),
+                max: (new Date()).getTime() },
+              yaxis: { min: 0, max: 25, ticks: 26,
+                tickFormatter: function (v, axis) {
+                  switch(v){
+                    case 25:
+                      return "<p class='text'><u>ARV</b></u>";
+                      break;
+                    case 24:
+                      return "<p class='text'>efavirenz</p>"
+                      break;
+                    case 23:
+                      return "<p class='text'>lamivudine</p>"
+                      break;
+                    case 22:
+                      return "<p class='text'>stavudine</p>"
+                      break;
+                    case 21:
+                      return "<p class='text'>zidovudine</p>"
+                      break;
+                    case 20:
+                      return "<p class='text'><u>TB</u></p>"
+                      break;
+                    case 19:
+                      return "<p class='text'><u>Other</u></p>"
+                      break;
+                    case 18:
+                      return "<p class='text'>ascorbic acid</p>";
+                    case 17:
+                      return "<p class='text'>doxycycline</p>";
+                      break;
+                    case 16:
+                      return "<p class='text'>metronidazole</p>";
+                      break;
+                    case 15:
+                      return "<p class='text'>sulfamethoxa...</p>";
+                      break;
+                    case 14:
+                      return "<p class='text'>trimethoprim</p>";
+                      break;
+                    case 13:
+                      return "<p class='text'>niacin (vita...</p>";
+                      break;
+                    case 12:
+                      return "<p class='text'>retinol (vita...</p>";
+                      break;
+                    case 11:
+                      return "<p class='text'>thiamine (vi...</p>";
+                      break;
+                    case 10:
+                      return "<p class='text'>pyridoxine (...</p>";
+                      break;
+                    case 9:
+                      return "<p class='text'>riboflavin (...</p>";
+                      break;
+                    case 8:
+                      return "<p class='text'><u>CONDITIONS</u></p>";
+                      break;
+                    case 7:
+                      return "<p class='text'>Lipodystroph...</p>";
+                      break;
+                    case 6:
+                      return "<p class='text'>Oral Thrush</p>";
+                      break;
+                    case 5:
+                      return "<p class='text'>urinary trac...</p>";
+                      break;
+                    case 4:
+                      return "<p class='text'><u>CDC Stage</u></p>";
+                      break;
+                    case 3:
+                      return "<p class='text'>CDC ABC</p>";
+                      break;
+                    case 2:
+                      return "<p class='text'>CDC 123</p>";
+                      break;
+                    default:
+                      return "";
+                      break;
+                  }
+
+                }
+              },
+              legend: { position: 'sw' },
+              lines: { show: true, lineWidth: 8 }
+            }
+          );
+          });
+
+          $(function () {
+            $.plot($("#cd4"),
+            [   { data: cd4_line, color: "blue", lines: {lineWidth: 1}, points: {show: false} },
+              { data: viral_load_line, yaxis: 2, color: "red", points: {show: false} },
+              { data: cd4, label: "CD4 (cells/&micro;L)", color: "blue" },
+              { data: viral_load, label: "Viral Load (log)", yaxis: 2, color: "red" }
+            ],
+            {
+              xaxis: { mode: 'time', timeformat: "%y", tickSize: [1, "year"],
+                min: (new Date("2004/01/01")).getTime(),
+                max: (new Date()).getTime() },
+              yaxis: { min: 0, id: "yaxis" },
+              y2axis: { /*min: "0.0", max:"7.0",*/ tickFormatter: function (v, axis) { return v.toFixed(axis.tickDecimals) }},
+              legend: { position: 'sw' },
+              points: {show: true, fill: true},
+              lines: { show: true }
+            });
+          });
+
+          $(function () {
+            $.plot($("#arv2"),
+            [   { data: set24, shadowSize: 0, color: "black", lines: { lineWidth: 2 } },
+              { data: set23, shadowSize: 0, color: "blue" },
+              { data: set22, shadowSize: 0, color: "blue" },
+              { data: set21, shadowSize: 0, color: "blue" },
+              { data: set20, shadowSize: 0, color: "blue" },
+              { data: set23b, shadowSize: 0, color: "blue" },
+              { data: set22b, shadowSize: 0, color: "blue" },
+              { data: set21b, shadowSize: 0, color: "blue" },
+              { data: set20b, shadowSize: 0, color: "blue" },
+              { data: set19, shadowSize: 0, color: "black", lines: { lineWidth: 2 } },
+              { data: set18, shadowSize: 0, color: "black", lines: { lineWidth: 2 } },
+              { data: set17, shadowSize: 0, color: "#c5a8a8" },
+              { data: set17b, shadowSize: 0, color: "#c5a8a8" },
+              { data: set16, shadowSize: 0, color: "#c5a8a8" },
+              { data: set15, shadowSize: 0, color: "#c5a8a8" },
+              { data: set14, shadowSize: 0, color: "#c5a8a8" },
+              { data: set14b, shadowSize: 0, color: "#c5a8a8" },
+              { data: set13, shadowSize: 0, color: "#c5a8a8" },
+              { data: set13b, shadowSize: 0, color: "#c5a8a8" },
+              { data: set12, shadowSize: 0, color: "#c5a8a8" },
+              { data: set12b, shadowSize: 0, color: "#c5a8a8" },
+              { data: set11, shadowSize: 0, color: "#c5a8a8" },
+              { data: set10, shadowSize: 0, color: "#c5a8a8" },
+              { data: set10b, shadowSize: 0, color: "#c5a8a8" },
+              { data: set9, shadowSize: 0, color: "#c5a8a8" },
+              { data: set8, shadowSize: 0, color: "#c5a8a8" },
+              { data: set7, shadowSize: 0, color: "black", lines: { lineWidth: 2 } },
+              { data: set6, shadowSize: 0, color: "#ccc" },
+              { data: set5, shadowSize: 0, color: "#ccc" },
+              { data: set4, shadowSize: 0, color: "#ccc" },
+              { data: set3, shadowSize: 0, color: "black", lines: { lineWidth: 2 } },
+              { data: set2, shadowSize: 0, color: "#0f0" },
+              { data: set1, shadowSize: 0, color: "#f00" }],
+            {
+              xaxis: { mode: "time", timeformat: "%b %y", tickSize: [6, "month"],
+                min: (new Date("2004/01/01")).getTime(),
+                max: (new Date()).getTime() },
+              yaxis: { min: 0, max: 25, ticks: 26,
+                tickFormatter: function (v, axis) {
+                  switch(v){
+                    case 25:
+                      return "<p class='text'><u>ARV</b></u>";
+                      break;
+                    case 24:
+                      return "<p class='text'>efavirenz</p>"
+                      break;
+                    case 23:
+                      return "<p class='text'>lamivudine</p>"
+                      break;
+                    case 22:
+                      return "<p class='text'>stavudine</p>"
+                      break;
+                    case 21:
+                      return "<p class='text'>zidovudine</p>"
+                      break;
+                    case 20:
+                      return "<p class='text'><u>TB</u></p>"
+                      break;
+                    case 19:
+                      return "<p class='text'><u>Other</u></p>"
+                      break;
+                    case 18:
+                      return "<p class='text'>ascorbic acid</p>";
+                    case 17:
+                      return "<p class='text'>doxycycline</p>";
+                      break;
+                    case 16:
+                      return "<p class='text'>metronidazole</p>";
+                      break;
+                    case 15:
+                      return "<p class='text'>sulfamethoxa...</p>";
+                      break;
+                    case 14:
+                      return "<p class='text'>trimethoprim</p>";
+                      break;
+                    case 13:
+                      return "<p class='text'>niacin (vita...</p>";
+                      break;
+                    case 12:
+                      return "<p class='text'>retinol (vita...</p>";
+                      break;
+                    case 11:
+                      return "<p class='text'>thiamine (vi...</p>";
+                      break;
+                    case 10:
+                      return "<p class='text'>pyridoxine (...</p>";
+                      break;
+                    case 9:
+                      return "<p class='text'>riboflavin (...</p>";
+                      break;
+                    case 8:
+                      return "<p class='text'><u>CONDITIONS</u></p>";
+                      break;
+                    case 7:
+                      return "<p class='text'>Lipodystroph...</p>";
+                      break;
+                    case 6:
+                      return "<p class='text'>Oral Thrush</p>";
+                      break;
+                    case 5:
+                      return "<p class='text'>urinary trac...</p>";
+                      break;
+                    case 4:
+                      return "<p class='text'><u>CDC Stage</u></p>";
+                      break;
+                    case 3:
+                      return "<p class='text'>CDC ABC</p>";
+                      break;
+                    case 2:
+                      return "<p class='text'>CDC 123</p>";
+                      break;
+                    default:
+                      return "";
+                      break;
+                  }
+
+                }
+              },
+              legend: { position: 'sw' },
+              lines: { show: true, lineWidth: 10 }
+            }
+          );
+            // document.getElementById("tab3page").style.display = "none";
+          });
+
+          $(function () {
+            $.plot($("#cd4b"),
+            [   { data: cd4_line, color: "blue", lines: {lineWidth: 1}, points: {show: false} },
+              { data: viral_load_line, yaxis: 2, color: "red", points: {show: false} },
+              { data: cd4, label: "CD4 (cells/&micro;L)", color: "blue" },
+              { data: viral_load, label: "Viral Load (log)", yaxis: 2, color: "red" }
+            ],
+            {
+              xaxis: { mode: 'time', timeformat: "%y", tickSize: [1, "year"],
+                min: (new Date("2004/01/01")).getTime(),
+                max: (new Date()).getTime() },
+              yaxis: { min: 0, id: "yaxis" },
+              y2axis: { /*min: "0.0", max:"7.0", */ tickFormatter: function (v, axis) { return v.toFixed(axis.tickDecimals) }},
+              legend: { position: 'sw' },
+              points: {show: true, fill: true},
+              lines: { show: true }
+            });
+
+            // document.getElementById("tab2page").style.display = "none";
+          });
+
+          // document.getElementById("tab4page").style.display = "none";
+    </script>
+  </body>
+</html>

@@ -1,0 +1,111 @@
+<link type="text/css" href="/touchscreentoolkit/lib/stylesheets/touch-fancy.css" rel="stylesheet" />
+
+<style type="text/css">
+  body{
+    font-family: "Nimbus Sans L", "Arial Narrow", sans-serif;
+    margin: 0;
+  }
+  button {
+    min-width: 250px;
+    font-weight: normal;
+  }
+  button.blue {
+    width: 350px;
+    margin: 15px;
+    margin-left: 60px;
+  }
+  button.gray {
+    width: 350px;
+    margin: 15px;
+    margin-left: 60px;
+  }
+  #nav {
+    background-color: #333333;
+    border-top:3px solid #99AAB7;
+    color:#CADCEA;
+    height:80px;
+    width:100%;
+    bottom:-5px;
+    position:absolute;
+    overflow:hidden;
+    z-index: 1000;
+  }
+  #footer {
+    background-color: #333333;
+  }
+</style>
+<div id='content'>
+  <div id='description' style='color:#777;position:absolute;margin-top:-70px;'>
+  </div>
+  <div style="position: absolute; left: 15px; top: 20px; padding: 5px; background-color: #fff;
+       border: 1px solid #ccc; -moz-border-radius: 30px; width: 120px; text-align: center;">
+    <h2>ART Standard Tasks</h2>
+  </div>
+  <div style="display: table; -moz-border-radius: 30px;
+       border: 1px solid #eee; width: 95%; padding: 10px; margin-top: 5px;">
+    <div style="display: table-row">
+      <div style="display: table-cell; float: right;">
+        <button onclick="parent.location =
+            '/encounters/new/vitals?action=show&controller=encounter_types&encounter_type=Vitals&id=show&patient_id=<%= @patient.id %>'">
+          <span>Vitals</span>
+        </button>
+      </div>
+    </div>
+    <div style="display: table-row">
+      <div style="display: table-cell; float: right;">
+        <button onclick="parent.location =
+                '/encounters/new/hiv_reception?action=show&controller=encounter_types&encounter_type=HIV+reception&id=show&patient_id=<%= @patient.id %>'">
+          <span>HIV Reception</span>
+        </button>
+      </div>
+    </div>
+    <div style="display: table-row">
+      <div style="display: table-cell; float: right;">
+        <button onclick="parent.location =
+                '/encounters/new/art_initial?action=show&controller=encounter_types&encounter_type=ART+initial&id=show&patient_id=<%= @patient.id %>'">
+          <span>ART Initial</span>
+        </button>
+      </div>
+    </div>
+    <div style="display: table-row">
+      <div style="display: table-cell; float: right;">
+        <button onclick="parent.location =
+                '/encounters/new/art_visit?action=show&controller=encounter_types&encounter_type=ART+visit&id=show&patient_id=<%= @patient.id %>'">
+          <span>ART Visit</span>
+        </button>
+      </div>
+    </div>
+    <div style="display: table-row">
+      <div style="display: table-cell; float: right;">
+        <button onclick="parent.location =
+                '/encounters/new/hiv_staging?action=show&controller=encounter_types&encounter_type=HIV+staging&id=show&patient_id=<%= @patient.id %>'">
+          <span>HIV Staging</span>
+        </button>
+      </div>
+    </div>
+    <div style="display: table-row">
+      <div style="display: table-cell; float: right;">
+        <button onclick="parent.location =
+                '/encounters/new/art_adherence?action=show&controller=encounter_types&encounter_type=ART+adherence&id=show&patient_id=<%= @patient.id %>'">
+          <span>ART Adherence</span>
+        </button>
+      </div>
+    </div>
+    <div style="display: table-row">
+      <div style="display: table-cell; float: right;">
+        <button onclick="parent.location =
+                '/encounters/new/appointment?action=show&controller=encounter_types&encounter_type=Appointment&id=show&patient_id=<%= @patient.id %>'">
+          <span>Appointment</span>
+        </button>
+      </div>
+    </div>
+    <div style="display: table-row">
+      <div style="display: table-cell; float: right;">
+        <button onclick="parent.location =
+                '/encounters/new/outpatient_diagnosis?action=show&controller=encounter_types&encounter_type=Outpatient+diagnosis&id=show&patient_id=<%= @patient.id %>'">
+          <span>Outpatient Diagnosis</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,43 +1,297 @@
-<script type="text/javascript">
-  tt_cancel_destination = "/clinic";
-</script>
-<style type="text/css">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+    <title><%= @title = "#{controller.controller_name.humanize} #{controller.action_name.humanize}" rescue ""  %></title>
+    <script language="javascript">
+      tstUsername = "<%= User.current_user.username unless User.current_user.nil? %>";
+      tstCurrentDate = "<%= Time.now.strftime("%Y/%m/%d") %>";
+      var tt_cancel_destination = "/clinic";
+      var tt_cancel_show = "/clinic";
+    </script>
 
-  a.button.green {
-    width:220px;
-    -moz-user-select:none;
-    border:0 none;
-    color:white;
-    cursor:pointer;
-    display:block;
-    font-weight:bold;
-    padding:0 8px 0 0;
-    text-align:center;
-    text-decoration:none;
-    background:#00FF00 none repeat scroll 0 0;
-    font-size:1.4em;
-    height:57px;
-    line-height:57px;
-    min-width:48px;
-    margin-top:10px
-  }
+    <script language="javascript" type="text/javascript" src="/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js" defer></script>
 
-</style>
+  </head>
+  <body id="mateme">
+    <div id="container">
+      <div id="content">        
+        <div id="general_dashboard" style="margin: 2px; border: 1px #ccc solid; padding: 10px;">
+          <select id="tabs">
+            <option value='/patients/tab_home/?patient_id=<%= @patient.id %>'>Home</option>
+            <option value='/patients/tab_demographics/?patient_id=<%= @patient.id %>'>Demographics</option>
+            <option value='/patients/tab_triage/?patient_id=<%= @patient.id %>'>Triage</option>
+            <option value='/patients/tab_tasks/?patient_id=<%= @patient.id %>'>Std Tasks</option>
+            <option value='/patients/tab_vitals/?patient_id=<%= @patient.id %>'>Vitals</option>
+            <option value='/patients/tab_visit/?patient_id=<%= @patient.id %>'>Clinician Visit</option>
+            <option value='/patients/tab_prescription/?patient_id=<%= @patient.id %>'>Prescription</option>
+            <option value='/patients/tab_mastercard/?patient_id=<%= @patient.id %>'>Mastercard</option>
+          </select>
 
-<div style="margin:10px;">
-  <div id="details" style="float:left">
-    <%= render :partial => "details" %>
-    <%= render :partial => "current_encounters" %>
-  </div>
-  <div id="menu" style="float:right">
-    <a class="button green" href='/encounter_types?patient_id=<%= @patient.id -%>'>Encounters</a>
-    <!--
-    <a class="button green" href='/encounters/new/vitals?patient_id=<%= @patient.id -%>'>Weight/Height</a>
-    <a class="button green" href='/encounters/new/outpatient_diagnosis?patient_id=<%= @patient.id -%>'>Diagnosis</a>
-    -->
-    <a class="button green" href='/prescriptions/?patient_id=<%= @patient.id -%>'>Prescriptions</a>
-    <a class="button green" href='/encounters/new/appointment?patient_id=<%= @patient.id -%>'>Next Appointment</a>
-    <a class="button green" href='/patients/print_registration?patient_id=<%= @patient.id -%>'>Print Registration</a>
-    <a class="button green" href='/patients/print_visit?patient_id=<%= @patient.id -%>'>Print Visit</a>
-  </div>
-</div>  
+          <div style="display: table; width: 100%;">
+            <div style="display: table-row">
+              <div style="display: table-cell; width: 50%; vertical-align: top;">
+                <div style="border: 3px outset #eee; width: 94%; height: 623px; -moz-border-radius: 10px; padding: 10px;">
+                  <table width="100%" cellpadding="5" cellspacing="5">
+                    <tr>
+                      <td style="border: 1px solid #ccc; width: 33px; height: 30px; -moz-border-radius: 30px;" align="center">
+                        <%= ((@patient.gender rescue "").strip.length > 1 ?
+                            "<img src='/images/#{(@patient.gender rescue "").strip.downcase}.gif' alt='#{(@patient.gender rescue "")}' />" :
+                            "<img src='/images/#{(@patient.gender rescue "").strip.downcase}'.gif alt='#{(@patient.gender rescue "")}' />") %>
+                      </td>
+                      <th align="left" style="font-size: 1.5em; -moz-border-radius: 30px; border: 1px solid #ccc; padding-left: 10px;">
+                        <%= @patient.name rescue "" %>
+                      </th>
+                    </tr>
+                    <tr>
+                      <td colspan="2" style="-moz-border-radius: 15px; border: 1px solid #ccc;">
+                        <div style="width: 97.5%; height: 550px; background-color: #eef;
+                             -moz-border-radius: 15px; padding: 5px; overflow-y: scroll;">
+                          <table width="95%" cellpadding="5" cellspacing="3">
+                            <tr>
+                              <th colspan="3" align="right" style="border-bottom: 1px solid #fff;">
+                                Patient ID:
+                              </th>
+                              <td style="width: 130px; background-color: #fff; -moz-border-radius: 5px;">
+                                <%= @patient.national_id_with_dashes rescue "&nbsp;" %>
+                              </td>
+                              <td style="border-bottom: 1px solid #fff;">
+                                &nbsp;
+                              </td>
+                            </tr>
+                            <tr>
+                              <th align="left" style="width: 50px;">
+                                DOB: 
+                              </th>
+                              <td style="font-weight: normal; width: 100px; background-color: #fff;
+                                  -moz-border-radius: 5px;" align="center">
+                                  <%= @patient.person.birthdate_formatted rescue "&nbsp;" %>
+                              </td>
+                              <th align="right" style="width: 50px;">
+                                Age:
+                              </th>
+                              <td style="font-weight: normal; width: 100px; background-color: #fff;
+                                  -moz-border-radius: 5px;" align="center">
+                                  <%= @patient.person.age rescue "&nbsp;" %>
+                              </td>
+                              <td>
+                                &nbsp;
+                              </td>
+                            </tr>
+                            <tr>
+                              <th align="left" colspan="2" style="border-top: 1px solid #fff;
+                                  border-bottom: 1px solid #fff; vertical-align: top;">
+                                Initial Stage:
+                              </th>
+                              <td colspan="3" style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+
+                              </td>
+                            </tr>
+                            <tr>
+                              <th align="left" colspan="2" style="border-bottom: 1px solid #fff; vertical-align: top;">
+                                Condition:
+                              </th>
+                              <td colspan="3" style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+
+                              </td>
+                            </tr>
+                            <tr>
+                              <th align="left" colspan="2" style="border-bottom: 1px solid #fff; vertical-align: top;">
+                                Comorbid Conditions:
+                              </th>
+                              <td colspan="3" style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+                                <select style="width: 100%; height: 40px; padding: 5px;">
+                                  <option></option>
+                                  <option>Limited Drop-Down</option>
+                                </select>
+                              </td>
+                            </tr>
+                            <tr>
+                              <th align="left" colspan="2" style="border-bottom: 1px solid #fff; vertical-align: top;">
+                                Date of HIV Dx:
+                              </th>
+                              <td colspan="3" style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+
+                              </td>
+                            </tr>
+                            <tr>
+                              <th align="left" colspan="2" style="border-bottom: 1px solid #fff; vertical-align: top;">
+                                Status:
+                              </th>
+                              <td colspan="3" style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+                                Pre-ART/ART
+                              </td>
+                            </tr>
+                            <tr>
+                              <th align="left" colspan="2" style="border-bottom: 1px solid #fff; vertical-align: top;">
+                                Current ART Regimen:
+                              </th>
+                              <td colspan="3" style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+
+                              </td>
+                            </tr>
+                            <tr>
+                              <th align="left" colspan="2" style="border-bottom: 1px solid #fff; vertical-align: top;">
+                                ART Toxicity:
+                              </th>
+                              <td colspan="3" style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+
+                              </td>
+                            </tr>
+                            <tr>
+                              <th align="left" colspan="2" style="border-bottom: 1px solid #fff; vertical-align: top;">
+                                Adherence(%):
+                              </th>
+                              <td colspan="3" style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+
+                              </td>
+                            </tr>
+                            <tr>
+                              <th align="left" colspan="2" style="border-bottom: 1px solid #fff; vertical-align: top;">
+                                CD4 at Initiation:
+                              </th>
+                              <td colspan="3" style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+
+                              </td>
+                            </tr>
+                            <tr>
+                              <th align="left" colspan="2" style="border-bottom: 1px solid #fff; vertical-align: top;">
+                                Disclosure Status:
+                              </th>
+                              <td colspan="3" style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+
+                              </td>
+                            </tr>
+                            <tr>
+                              <th align="left" colspan="2" style="border-bottom: 1px solid #fff; vertical-align: top;">
+                                Partner Status:
+                              </th>
+                              <td colspan="3" style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+
+                              </td>
+                            </tr>
+                            <tr>
+                              <th align="left" colspan="2" style="border-bottom: 1px solid #fff; vertical-align: top;">
+                                On Treatment:
+                              </th>
+                              <td colspan="3" style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+
+                              </td>
+                            </tr>
+                            <tr>
+                              <th align="left" colspan="2" style="border-bottom: 1px solid #fff; vertical-align: top;">
+                                Condoms:
+                              </th>
+                              <td colspan="3" style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+
+                              </td>
+                            </tr>
+
+                            <% @children = 4 %>
+                            <tr>
+                              <th align="left" colspan="2" style="border-bottom: 1px solid #fff; vertical-align: top;"
+                                  rowspan="<%= @children + 2 %>">
+                                Children:
+                              </th>
+                              <th style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+                                Gender
+                              </th>
+                              <th style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+                                Status
+                              </th>
+                              <th style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+                                Age
+                              </th>
+                            </tr>
+
+                            <%
+                            if @children > 0
+                              (0..@children).each do |c| %>
+
+                                <tr>
+                                  <td style="background-color: #fff;
+                                      -moz-border-radius: 5px; " align="center">
+                                    &nbsp;
+                                  </td>
+                                  <td style="background-color: #fff;
+                                      -moz-border-radius: 5px; " align="center">
+                                    &nbsp;
+                                  </td>
+                                  <td style="background-color: #fff;
+                                      -moz-border-radius: 5px; " align="center">
+                                    &nbsp;
+                                  </td>
+                                </tr>
+
+                              <% end
+                            end
+                          %>
+
+                            <tr>
+                              <th align="left" colspan="2" style="border-bottom: 1px solid #fff; vertical-align: top;">
+                                FP Needs Met:
+                              </th>
+                              <td colspan="3" style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+
+                              </td>
+                            </tr>
+                            <tr>
+                              <th align="left" colspan="2" style="border-bottom: 1px solid #fff; vertical-align: top;">
+                                Referrals:
+                              </th>
+                              <td colspan="3" style="background-color: #fff;
+                                  -moz-border-radius: 5px; " align="center">
+
+                              </td>
+                            </tr>
+                          </table>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <div style="display: table-cell; width: 50%;">
+                <div id="tabBucket" style="height: 644px; width: 100%;">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="footer" class="dark">
+          <div id="buttons" class="buttons" style="top:0px">
+            <button id="finish" class="green"><span>Finish</span></button>
+            <button id="additional" class="yellow"><span>Tasks</span></button>
+            <button id="print" class="yellow"><span>Print ID</span></button>
+            <button id="visit" class="yellow"><span>Print Visit</span></button>
+            <button id="mastercard" class="yellow"><span>Mastercard</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <style type="text/css">
+      #tabPageContainer {
+        height: 89%;
+      }
+    </style>
+  </body>
+</html>
