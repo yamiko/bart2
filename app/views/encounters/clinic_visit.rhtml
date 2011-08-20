@@ -1,0 +1,97 @@
+<script>
+  var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
+
+  function showTaskName(){
+    $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: Clinic Visit</span></div></div>' 
+  }
+
+  function resetAttributes() {
+    $('nextButton').setAttribute('onmousedown','gotoNextPage();');
+  }
+  
+  function setAttributes() {
+    $('nextButton').setAttribute('onmousedown','finish();');
+  }
+
+  function finish() {
+    if ($('confirm_tb_status').value == 'YES') {
+      submitForm = document.getElementById("appointment");
+      //document.body.appendChild(submitForm);
+
+      newElement = document.createElement("input");
+      newElement.setAttribute("name","programs[][patient_program_id]");
+      newElement.setAttribute("type","hidden");
+      submitForm.appendChild(newElement);
+
+      newElement = document.createElement("input");
+      newElement.setAttribute("name","programs[][program_id]");
+      newElement.setAttribute("type","hidden");
+      newElement.value = "<%=Program.find_by_name('TB PROGRAM').id%>";
+      submitForm.appendChild(newElement);
+
+      newElement = document.createElement("input");
+      newElement.setAttribute("name","programs[][location_id]");
+      newElement.setAttribute("type","hidden");
+      newElement.value = "<%=Location.current_health_center.id%>";
+      submitForm.appendChild(newElement);
+
+      newElement = document.createElement("input");
+      newElement.setAttribute("name","programs[][date_enrolled]");
+      newElement.setAttribute("type","hidden");
+      newElement.value = "<%=session[:datetime]%>";
+      submitForm.appendChild(newElement);
+
+      newElement = document.createElement("input");
+      newElement.setAttribute("name","programs[][states][][state]");
+      newElement.setAttribute("type","hidden");
+      newElement.value = "Currently in treatment";
+      submitForm.appendChild(newElement);
+ 
+      submitForm.submit();
+      return;
+    }
+    gotoNextPage();
+  }
+</script> 
+
+<!--.........TODO..........dd..
+This is referred to as ART Enrollment/HIV Visit in the specs
+
+Concepts - mostly in caps
+Skip logic - implement and verify
+Get @answer_array_values
+Check multi select especially on WHO staging conditions
+Change the date fields to 3tier date
+Check appropriateness of Encounter type
+
+Check applicability of code below
+-->
+
+<form id='appointment' action="/encounters/create" method='post'>
+  <%= hidden_field_tag "encounter[encounter_type_name]", "TB CLINIC VISIT" %>
+  <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
+  <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
+  <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
+
+  <%#= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
+  
+   <%= touch_select_tag "Clinical symptoms associated with TB", @patient, concept_set_options('Clinical symptoms associated with TB'),
+      {:id => 'side_effects',
+       :optional => true,
+       :multiple => true,
+       :helpText => "Clinical symptoms associated with TB" } %>
+
+  <%= touch_select_tag "Xray result interpretation", @patient, options_for_select(@select_options['tb_xray_interpretation']),
+    {:id => "xray",
+     :tt_pageStyleClass => "NoKeyboard",
+     :helpText => "Interpret X-Ray" } %>
+
+  <%= touch_yes_no_unknown_tag "TB STATUS", @patient, nil,
+    {:id => "confirm_tb_status",
+     :tt_onUnLoad => 'resetAttributes()',
+     :tt_onLoad => 'setAttributes()',
+     :helpText => "Confirm TB Status" } %>
+  
+  <%= submit_tag "Finish" %>    
+</form>
+

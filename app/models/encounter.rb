@@ -132,6 +132,12 @@ EOF
         ['Smear Positive','SMEAR POSITIVE'],
         ['X-ray result interpretation','X-RAY RESULT INTERPRETATION']
       ],
+     'tb_clinic_visit_type' => [
+        ['',''],
+        ['TB suspect (New patient)','New patient'],
+        ['TB suspect (Clinical review)','Clinical review'],
+        ['Follow-up','Follow-up']
+      ],
      'family_planning_methods' => [
        ['',''],
        ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
