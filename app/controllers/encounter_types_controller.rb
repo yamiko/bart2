@@ -21,6 +21,8 @@ class EncounterTypesController < ApplicationController
         privileges.each do |privilege|
             roles_for_the_user  << @encounter_privilege_hash[privilege] if !@encounter_privilege_hash[privilege].nil?
         end
+		#raise roles_for_the_user.to_yaml
+
         
         roles_for_the_user = roles_for_the_user.uniq
 
@@ -32,6 +34,7 @@ class EncounterTypesController < ApplicationController
         @encounter_types = EncounterType.find(:all).map{|enc|enc.name.gsub(/.*\//,"").gsub(/\..*/,"").humanize}
         @available_encounter_types = Dir.glob(RAILS_ROOT+"/app/views/encounters/*.rhtml").map{|file|file.gsub(/.*\//,"").gsub(/\..*/,"").humanize}
         @available_encounter_types -= @available_encounter_types - @encounter_types
+				
 
         @available_encounter_types = ((@available_encounter_types) - ((@available_encounter_types - roles_for_the_user) + (roles_for_the_user - @available_encounter_types)))
         @available_encounter_types = @available_encounter_types.sort
