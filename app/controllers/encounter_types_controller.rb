@@ -17,13 +17,10 @@ class EncounterTypesController < ApplicationController
         end
 
         roles_for_the_user = []
-
+		
         privileges.each do |privilege|
             roles_for_the_user  << @encounter_privilege_hash[privilege] if !@encounter_privilege_hash[privilege].nil?
         end
-		#raise roles_for_the_user.to_yaml
-
-        
         roles_for_the_user = roles_for_the_user.uniq
 
         if GlobalProperty.use_user_selected_activities
