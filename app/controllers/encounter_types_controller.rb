@@ -18,8 +18,6 @@ class EncounterTypesController < ApplicationController
 
         roles_for_the_user = []
 
-		raise  @encounter_privilege_map.to_yaml
-		raise privileges.to_yaml
         privileges.each do |privilege|
             roles_for_the_user  << @encounter_privilege_hash[privilege] if !@encounter_privilege_hash[privilege].nil?
         end
@@ -39,8 +37,6 @@ class EncounterTypesController < ApplicationController
 				
 
         @available_encounter_types = ((@available_encounter_types) - ((@available_encounter_types - roles_for_the_user) + (roles_for_the_user - @available_encounter_types)))
-
-		#raise @available_encounter_types.to_yaml
         @available_encounter_types = @available_encounter_types.sort
   end
 
