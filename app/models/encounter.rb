@@ -258,7 +258,8 @@ EOF
         ["Weight loss", "Weight loss"],
         ["Relapsing fever", "Relapsing fever"],
         ["Fatigue", "Fatigue"],
-        ["Bloody cough", "Hemoptysis"]
+        ["Bloody cough", "Hemoptysis"],
+        ["Peripheral neuropathy","Peripheral neuropathy"]
       ],
       'drug_related_side_effects' => [
         ['',''],
@@ -268,7 +269,15 @@ EOF
         ["Skin itching/purpura", "Skin itching"],
         ["Visual impairment", "Visual impairment"],
         ["Vomiting", "Vomiting"],
-        ["Confusion", "Confusion"]
+        ["Confusion", "Confusion"],
+        ["Peripheral neuropathy","Peripheral neuropathy"]
+      ],
+      'tb_patient_categories' => [
+        ['',''],
+        ["New", "New patient"],
+        ["Relapse", "Relapse MDR-TB patient"],
+        ["Treatment after default MDR-TB patient", "Treatment after default MDR-TB patient"],
+        ["Failure", "Failed - TB"]
       ]
     }
   end
