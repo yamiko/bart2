@@ -264,7 +264,6 @@ EOF
         ['',''],
         ["Deafness", "Deafness"],
         ["Dizziness", "Dizziness"],
-        ["General reaction including shock", "General reaction including shock"],
         ["Yellow eyes", "Jaundice"],
         ["Skin itching/purpura", "Skin itching"],
         ["Visual impairment", "Visual impairment"],
