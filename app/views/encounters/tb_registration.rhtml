@@ -78,7 +78,7 @@ Check applicability of code below
 
   <%= touch_select_tag "EPTB classification", @patient, concept_set_options("EPTB classification"),
     {:id => "further_tb_classification",
-     :condition => '$("tb_classification").value == "EPTB"',
+     :condition => '$("tb_classification").value == "Extrapulmonary tuberculosis (EPTB)"',
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "EPTB classification" } %>
 
