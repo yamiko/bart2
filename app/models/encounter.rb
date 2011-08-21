@@ -135,8 +135,8 @@ EOF
      'family_planning_methods' => [
        ['',''],
        ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
-		   ['Depo-Provera', 'DEPO-PROVERA'],
-		   ['Intrauterine contraception', 'INTRAUTERINE CONTRACEPTION'],
+       ['Depo-Provera', 'DEPO-PROVERA'],
+       ['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
        ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
        ['Male condoms', 'MALE CONDOMS'],
        ['Female condoms', 'FEMALE CONDOMS'],
@@ -145,7 +145,31 @@ EOF
        ['Abstinence', 'ABSTINENCE'],
        ['Tubal ligation', 'TUBAL LIGATION'],
        ['Vasectomy', 'VASECTOMY'],
-		   ['Emergency contraception', 'EMERGENCY CONTRACEPTION']
+       ['Emergency contraception', 'EMERGENCY CONTRACEPTION'],
+       ['Other','OTHER']
+      ],
+     'male_family_planning_methods' => [
+       ['',''],
+       ['Male condoms', 'MALE CONDOMS'],
+       ['Withdrawal', 'WITHDRAWAL'],
+       ['Rhythm method', 'RYTHM METHOD'],
+       ['Abstinence', 'ABSTINENCE'],
+       ['Vasectomy', 'VASECTOMY'],
+       ['Other','OTHER']
+      ],
+     'female_family_planning_methods' => [
+       ['',''],
+       ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
+       ['Depo-Provera', 'DEPO-PROVERA'],
+       ['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
+       ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
+       ['Female condoms', 'FEMALE CONDOMS'],
+       ['Withdrawal', 'WITHDRAWAL'],
+       ['Rhythm method', 'RYTHM METHOD'],
+       ['Abstinence', 'ABSTINENCE'],
+       ['Tubal ligation', 'TUBAL LIGATION'],
+       ['Emergency contraception', 'EMERGENCY CONTRACEPTION'],
+       ['Other','OTHER']
       ],
      'drug_list' => [
           ['',''],
@@ -170,7 +194,7 @@ EOF
         'continue_treatment' => [
           ["",""],
           ["Yes", "YES"],
-          ["DHO Dot site","DHO DOT SITE"],
+          ["DHO DOT site","DHO DOT SITE"],
           ["Transfer Out", "TRANSFER OUT"]
       ],
         'hiv_status' => [
