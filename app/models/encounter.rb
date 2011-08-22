@@ -24,7 +24,14 @@ class Encounter < ActiveRecord::Base
 
   def after_void(reason = nil)
     self.orders.each{|row| Pharmacy.voided_stock_adjustment(order) if row.order_type_id == 1 } rescue []
-    self.observations.each{|row| row.void(reason) } rescue []
+    self.observations.each do |row| 
+      if not row.order_id.blank?
+        ActiveRecord::Base.connection.execute <<EOF
+UPDATE drug_order SET quantity = NULL WHERE order_id = #{row.order_id};
+EOF
+      end rescue nil
+      row.void(reason) 
+    end rescue []
     self.find_by_sql("SELECT * FROM encounter ORDER BY encounter_datetime DESC LIMIT 1").orders.each{|row| row.void(reason) } rescue []
   end
 
@@ -60,15 +67,14 @@ class Encounter < ActiveRecord::Base
       o
     elsif name == 'VITALS'
       temp = observations.select {|obs| obs.concept.concept_names.map(&:name).include?("TEMPERATURE (C)") && "#{obs.answer_string}".upcase != 'UNKNOWN' }
-      weight = observations.select {|obs| obs.concept.concept_names.map(&:name).include?("Weight (kg)") && "#{obs.answer_string}".upcase != '0.0' }
-
-      height = observations.select {|obs| obs.concept.concept_names.map(&:name).include?("Height (cm)") && "#{obs.answer_string}".upcase != '0.0' }
+      weight = observations.select {|obs| obs.concept.concept_names.map(&:name).include?("WEIGHT (KG)") || obs.concept.concept_names.map(&:name).include?("Weight (kg)") && "#{obs.answer_string}".upcase != '0.0' }
+      height = observations.select {|obs| obs.concept.concept_names.map(&:name).include?("HEIGHT (CM)") || obs.concept.concept_names.map(&:name).include?("Height (cm)") && "#{obs.answer_string}".upcase != '0.0' }
       vitals = [weight_str = weight.first.answer_string + 'KG' rescue 'UNKNOWN WEIGHT',
                 height_str = height.first.answer_string + 'CM' rescue 'UNKNOWN HEIGHT']
       temp_str = temp.first.answer_string + '°C' rescue nil
       vitals << temp_str if temp_str                          
       vitals.join(', ')
-    else
+    else  
       observations.collect{|observation| "<b>#{(observation.concept.concept_names.last.name) rescue ""}</b>: #{observation.answer_string}"}.join(", ")
     end  
   end
@@ -120,11 +126,17 @@ class Encounter < ActiveRecord::Base
 
   def self.select_options
     select_options = {
+     'reason_for_tb_clinic_visit' => [
+        ['',''],
+        ['Clinical review (Children, Smear-, HIV+)','CLINICAL REVIEW'],
+        ['Smear Positive','SMEAR POSITIVE'],
+        ['X-ray result interpretation','X-RAY RESULT INTERPRETATION']
+      ],
      'family_planning_methods' => [
        ['',''],
        ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
-		   ['Depo-Provera', 'DEPO-PROVERA'],
-		   ['Intrauterine contraception', 'INTRAUTERINE CONTRACEPTION'],
+       ['Depo-Provera', 'DEPO-PROVERA'],
+       ['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
        ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
        ['Male condoms', 'MALE CONDOMS'],
        ['Female condoms', 'FEMALE CONDOMS'],
@@ -133,8 +145,141 @@ class Encounter < ActiveRecord::Base
        ['Abstinence', 'ABSTINENCE'],
        ['Tubal ligation', 'TUBAL LIGATION'],
        ['Vasectomy', 'VASECTOMY'],
-		   ['Emergency contraception', 'EMERGENCY CONTRACEPTION']
-      ]  }
+       ['Emergency contraception', 'EMERGENCY CONTRACEPTION'],
+       ['Other','OTHER']
+      ],
+     'male_family_planning_methods' => [
+       ['',''],
+       ['Male condoms', 'MALE CONDOMS'],
+       ['Withdrawal', 'WITHDRAWAL'],
+       ['Rhythm method', 'RYTHM METHOD'],
+       ['Abstinence', 'ABSTINENCE'],
+       ['Vasectomy', 'VASECTOMY'],
+       ['Other','OTHER']
+      ],
+     'female_family_planning_methods' => [
+       ['',''],
+       ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
+       ['Depo-Provera', 'DEPO-PROVERA'],
+       ['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
+       ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
+       ['Female condoms', 'FEMALE CONDOMS'],
+       ['Withdrawal', 'WITHDRAWAL'],
+       ['Rhythm method', 'RYTHM METHOD'],
+       ['Abstinence', 'ABSTINENCE'],
+       ['Tubal ligation', 'TUBAL LIGATION'],
+       ['Emergency contraception', 'EMERGENCY CONTRACEPTION'],
+       ['Other','OTHER']
+      ],
+     'drug_list' => [
+          ['',''],
+          ["Rifampicin Isoniazid Pyrazinamide and Ethambutol", "RHEZ (RIF, INH, Ethambutol and Pyrazinamide tab)"],
+          ["Rifampicin Isoniazid and Ethambutol", "RHE (Rifampicin Isoniazid and Ethambutol -1-1-mg t"],
+          ["Rifampicin and Isoniazid", "RH (Rifampin and Isoniazid tablet)"],
+          ["Stavudine Lamivudine and Nevirapine", "D4T+3TC+NVP"],
+          ["Stavudine Lamivudine + Stavudine Lamivudine and Nevirapine", "D4T+3TC/D4T+3TC+NVP"],
+          ["Zidovudine Lamivudine and Nevirapine", "AZT+3TC+NVP"]
+      ],
+        'presc_time_period' => [
+          ["",""],
+          ["1 month", "30"],
+          ["2 months", "60"],
+          ["3 months", "90"],
+          ["4 months", "120"],
+          ["5 months", "150"],
+          ["6 months", "180"],
+          ["7 months", "210"],
+          ["8 months", "240"]
+      ],
+        'continue_treatment' => [
+          ["",""],
+          ["Yes", "YES"],
+          ["DHO DOT site","DHO DOT SITE"],
+          ["Transfer Out", "TRANSFER OUT"]
+      ],
+        'hiv_status' => [
+          ['',''],
+          ['Negative','NEGATIVE'],
+          ['Positive','POSITIVE'],
+          ['Unknown','UNKNOWN']
+      ],
+      'who_stage1' => [
+        ['',''],
+        ['Asymptomatic','ASYMPTOMATIC'],
+        ['Persistent generalised lymphadenopathy','PERSISTENT GENERALISED LYMPHADENOPATHY'],
+        ['Unspecified stage 1 condition','UNSPECIFIED STAGE 1 CONDITION']
+      ],
+      'who_stage2' => [
+        ['',''],
+        ['Unspecified stage 2 condition','UNSPECIFIED STAGE 2 CONDITION'],
+        ['Angular cheilitis','ANGULAR CHEILITIS'],
+        ['Popular pruritic eruptions / Fungal nail infections','POPULAR PRURITIC ERUPTIONS / FUNGAL NAIL INFECTIONS']
+      ],
+      'who_stage3' => [
+        ['',''],
+        ['Oral candidiasis','ORAL CANDIDIASIS'],
+        ['Oral hairly leukoplakia','ORAL HAIRLY LEUKOPLAKIA'],
+        ['Pulmonary tuberculosis','PULMONARY TUBERCULOSIS'],
+        ['Unspecified stage 3 condition','UNSPECIFIED STAGE 3 CONDITION']
+      ],
+      'who_stage4' => [
+        ['',''],
+        ['Toxaplasmosis of the brain','TOXAPLASMOSIS OF THE BRAIN'],
+        ["Kaposi's Sarcoma","KAPOSI'S SARCOMA"],
+        ['Unspecified stage 4 condition','UNSPECIFIED STAGE 4 CONDITION'],
+        ['HIV encephalopathy','HIV ENCEPHALOPATHY']
+      ],
+      'tb_xray_interpretation' => [
+        ['',''],
+        ['Consistent of TB',''],
+        ['Not Consistent of TB','']
+      ],
+      'lab_orders' =>{
+        "Blood" => ["Full blood count", "Malaria parasite", "Group & cross match", "Urea & Electrolytes", "CD4 count", "Resistance",
+            "Viral Load", "Cryptococcal Antigen", "Lactate", "Fasting blood sugar", "Random blood sugar", "Sugar profile",
+            "Liver function test", "Hepatitis test", "Sickling test", "ESR", "Culture & sensitivity", "Widal test", "ELISA",
+            "ASO titre", "Rheumatoid factor", "Cholesterol", "Triglycerides", "Calcium", "Creatinine", "VDRL", "Direct Coombs",
+            "Indirect Coombs", "Blood Test NOS"],
+        "CSF" => ["Full CSF analysis", "Indian ink", "Protein & sugar", "White cell count", "Culture & sensitivity"],
+        "Urine" => ["Urine microscopy", "Urinanalysis", "Culture & sensitivity"],
+        "Aspirate" => ["Full aspirate analysis"],
+        "Stool" => ["Full stool analysis", "Culture & sensitivity"],
+        "Sputum" => ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)", "Culture"],
+        "Swab" => ["Microscopy", "Culture & sensitivity"]
+      },
+      'tb_symptoms' => [
+        ['',''],
+        ["Cough lasting more than three weeks", "Cough lasting more than three weeks"],
+        ["Bronchial breathing", "Bronchial breathing"],
+        ["Shortness of breath", "Shortness of breath"],
+        ["Crackles", "Crackles"],
+        ["Failure to thrive", "Failure to thrive"],
+        ["Chest pain", "Chest pain"],
+        ["Weight loss", "Weight loss"],
+        ["Relapsing fever", "Relapsing fever"],
+        ["Fatigue", "Fatigue"],
+        ["Bloody cough", "Hemoptysis"],
+        ["Peripheral neuropathy","Peripheral neuropathy"]
+      ],
+      'drug_related_side_effects' => [
+        ['',''],
+        ["Deafness", "Deafness"],
+        ["Dizziness", "Dizziness"],
+        ["Yellow eyes", "Jaundice"],
+        ["Skin itching/purpura", "Skin itching"],
+        ["Visual impairment", "Visual impairment"],
+        ["Vomiting", "Vomiting"],
+        ["Confusion", "Confusion"],
+        ["Peripheral neuropathy","Peripheral neuropathy"]
+      ],
+      'tb_patient_categories' => [
+        ['',''],
+        ["New", "New patient"],
+        ["Relapse", "Relapse MDR-TB patient"],
+        ["Retreatment after default", "Treatment after default MDR-TB patient"],
+        ["Failure", "Failed - TB"]
+      ]
+    }
   end
 
   def self.get_previous_encounters(patient_id)
@@ -144,5 +289,15 @@ class Encounter < ActiveRecord::Base
             )
 
     return previous_encounters
+  end
+  
+  #form art
+  
+  def self.lab_activities
+    lab_activities = [
+      ['Lab Orders', 'lab_orders'],
+      ['Sputum Submission', 'sputum_submission'],
+      ['Lab Results', 'lab_results'],
+    ]
   end
 end

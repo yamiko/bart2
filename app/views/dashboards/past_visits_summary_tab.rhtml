@@ -29,13 +29,13 @@
             for encounter in @previous_visits do
               i += 1
 
-              if (encounter.encounter_datetime.strftime("%d-%b-%Y").to_s == encounter_date.to_s) %>
+              if (encounter.encounter_datetime.to_date == encounter_date.to_date) %>
                 <% if encounter.name == previous_encounter 
                   header = false
                    end
                 %>
                 <%if header == true %>
-                  <%header_title = ( encounter_date.to_s + " - ").humanize.titleize %>
+                  <%header_title = ( encounter_date.strftime("%d-%b-%Y").to_s + " - ").humanize.titleize %>
                   <tr> <th class="visit-summary-header" colspan="2" style="height:2px;"><%=h(header_title)%></th> </tr>
                 <%end%>
                 <% previous_encounter = encounter.name %>

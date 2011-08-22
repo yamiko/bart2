@@ -28,6 +28,23 @@
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
 
+  function getNumberOfSymptoms(){
+    var options = $('symptoms').options;
+    var symptoms = 0;
+
+    <% @side_effects = concept_set('MALAWI ART DRUG INDUCED SYMPTOM SET') %>
+    var myArray = "<%= @side_effects.to_a %>";
+
+    for (var i=0; i < options.length; i++) {
+      if (options[i].selected && options[i].value != "") {
+       if (myArray.indexOf(options[i].value) != -1) {
+        symptoms =  symptoms + 1;
+       }
+      }
+    }
+    return symptoms;
+  }
+
   function getSelectedSymptoms() {
     var options = $('symptoms').options;
     var symptoms = new Array();
@@ -35,10 +52,10 @@
     <% @side_effects = concept_set('MALAWI ART DRUG INDUCED SYMPTOM SET') %>
     var myArray = "<%= @side_effects.to_a %>";
 
-    for (var i=0; i<options.length; i++) {
-      if (options[i].selected) {
-       if (myArray.indexOf(options[i].value, 0) != -1) {
-        symptoms +=  "<li tstvalue='" + options[i].value + "' id='" + i + "' onmousedown='null; updateTouchscreenInputForSelect(this); ' style='display: block;'>" + options[i].value + "</li>";
+    for (var i=0; i < options.length; i++) {
+      if (options[i].selected && options[i].value != "") {
+       if (myArray.indexOf(options[i].value) != -1) {
+        symptoms +=  "<li value='" + options[i].value + "' id='" + i + "' onmousedown='null; updateTouchscreenInputForSelect(this); ' style='display: block;'>" + options[i].value + "</li>";
         $("drug_induced_effects").innerHTML += "<option>" + options[i].value + "</option>";
        }
       }
@@ -83,6 +100,7 @@
       {:id => 'drug_induced_effects',
        :optional => true,
        :multiple => true,
+       :condition => 'getNumberOfSymptoms() > 0',
        :helpText => "Select which of these symptoms are likely drug induced<br />(select all that apply)",
        :tt_onLoad => "getSelectedSymptoms()" } %>
   <% end %>
@@ -116,7 +134,7 @@
        :helpText => "Number of Condoms given" } %>
   <% end %>
 
-  <%= touch_yes_no_unknown_tag "OTHER DRUGS", @patient, nil,
+  <%= touch_yes_no_unknown_tag "Prescribe ARVs this visit", @patient, nil,
     {:optional => false,
      :helpText => "Prescribe Drugs this visit?" } %>
 

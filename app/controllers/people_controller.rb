@@ -61,6 +61,7 @@ class PeopleController < ApplicationController
  
   def search
     found_person = nil
+
     if params[:identifier]
       local_results = Person.search_by_identifier(params[:identifier])
       if local_results.length > 1
@@ -82,6 +83,7 @@ class PeopleController < ApplicationController
   end
   
   def confirm
+
     if request.post?
       redirect_to search_complete_url(params[:found_person_id], params[:relation]) and return
     end
@@ -93,9 +95,13 @@ class PeopleController < ApplicationController
  
   # This method is just to allow the select box to submit, we could probably do this better
   def select
-    redirect_to search_complete_url(params[:person], params[:relation]) and return unless params[:person].blank? || params[:person] == '0'
-    redirect_to :action => :new, :gender => params[:gender], :given_name => params[:given_name], :family_name => params[:family_name],
-    :family_name2 => params[:family_name2], :address2 => params[:address2], :identifier => params[:identifier], :relation => params[:relation]
+    if params[:person] != '0' && Person.find(params[:person]).dead == 1
+      redirect_to :controller => :patients, :action => :show, :id => params[:person]
+    else
+      redirect_to search_complete_url(params[:person], params[:relation]) and return unless params[:person].blank? || params[:person] == '0'
+
+      redirect_to :action => :new, :gender => params[:gender], :given_name => params[:given_name], :family_name => params[:family_name], :family_name2 => params[:family_name2], :address2 => params[:address2], :identifier => params[:identifier], :relation => params[:relation]
+    end
   end
  
   def create
@@ -155,16 +161,16 @@ class PeopleController < ApplicationController
   def find_by_arv_number
     if request.post?
       redirect_to :action => 'search' ,
-        :identifier => "#{Location.current_arv_code} #{params[:arv_number]}" and return
+        :identifier => "#{PatientIdentifier.site_prefix} #{params[:arv_number]}" and return
     end
   end
   
   # List traditional authority containing the string given in params[:value]
   def traditional_authority
     district_id = District.find_by_name("#{params[:filter_value]}").id
-    traditional_authority_conditions = ["name LIKE (?) AND district_id = ?", "%#{params[:search_string]}%", district_id]
+    traditional_authority_conditions = ["name LIKE (?) AND district_id = ?", "#{params[:search_string]}%", district_id]
 
-    traditional_authorities = TraditionalAuthority.find(:all,:conditions => traditional_authority_conditions)
+    traditional_authorities = TraditionalAuthority.find(:all,:conditions => traditional_authority_conditions, :order => 'name')
     traditional_authorities = traditional_authorities.map do |t_a|
       "<li value='#{t_a.name}'>#{t_a.name}</li>"
     end
@@ -173,9 +179,9 @@ class PeopleController < ApplicationController
 
     # Regions containing the string given in params[:value]
   def region
-    region_conditions = ["name LIKE (?)", "%#{params[:value]}%"]
+    region_conditions = ["name LIKE (?)", "#{params[:value]}%"]
 
-    regions = Region.find(:all,:conditions => region_conditions)
+    regions = Region.find(:all,:conditions => region_conditions, :order => 'name')
     regions = regions.map do |r|
       "<li value='#{r.name}'>#{r.name}</li>"
     end
@@ -185,25 +191,34 @@ class PeopleController < ApplicationController
     # Districts containing the string given in params[:value]
   def district
     region_id = Region.find_by_name("#{params[:filter_value]}").id
-    region_conditions = ["name LIKE (?) AND region_id = ? ", "%#{params[:search_string]}%", region_id]
+    region_conditions = ["name LIKE (?) AND region_id = ? ", "#{params[:search_string]}%", region_id]
 
-    districts = District.find(:all,:conditions => region_conditions)
+    districts = District.find(:all,:conditions => region_conditions, :order => 'name')
     districts = districts.map do |d|
       "<li value='#{d.name}'>#{d.name}</li>"
     end
     render :text => districts.join('') and return
   end
 
-    # Districts containing the string given in params[:value]
+    # Villages containing the string given in params[:value]
   def village
     traditional_authority_id = TraditionalAuthority.find_by_name("#{params[:filter_value]}").id
-    village_conditions = ["name LIKE (?) AND traditional_authority_id = ?", "%#{params[:search_string]}%", traditional_authority_id]
+    village_conditions = ["name LIKE (?) AND traditional_authority_id = ?", "#{params[:search_string]}%", traditional_authority_id]
 
-    villages = Village.find(:all,:conditions => village_conditions)
+    villages = Village.find(:all,:conditions => village_conditions, :order => 'name')
     villages = villages.map do |v|
       "<li value='#{v.name}'>#{v.name}</li>"
     end
     render :text => villages.join('') and return
+  end
+  
+  # Landmark containing the string given in params[:value]
+  def landmark
+    landmarks = PersonAddress.find(:all, :select => "DISTINCT address1" , :conditions => ["city_village = (?) AND address1 LIKE (?)", "#{params[:filter_value]}", "#{params[:search_string]}%"])
+    landmarks = landmarks.map do |v|
+      "<li value='#{v.address1}'>#{v.address1}</li>"
+    end
+    render :text => landmarks.join('') and return
   end
 
 private

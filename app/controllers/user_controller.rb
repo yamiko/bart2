@@ -287,7 +287,7 @@ class UserController < ApplicationController
     User.current_user.activities = params[:user][:activities]
     if params[:id]
       session_date = session[:datetime].to_date rescue Date.today
-      redirect_to Task.next_form(Patient.find(params[:id]) , session_date).url
+      redirect_to next_task(Patient.find(params[:id]))
       return 
     end
     redirect_to '/clinic'

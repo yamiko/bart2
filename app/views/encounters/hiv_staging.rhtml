@@ -46,8 +46,8 @@
       $('cd4_count_less_than_250').value = "UNKNOWN";
       $('cd4_count_less_than_350').value = "UNKNOWN";
     } else {
-      $('cd4_count_less_than_250').value = (cd4_count_numeric < 250) ? "YES" : "NO";
-      $('cd4_count_less_than_350').value = (cd4_count_numeric < 350) ? "YES" : "NO";
+      $('cd4_count_less_than_250').value = (cd4_count_numeric <= 250) ? "YES" : "NO";
+      $('cd4_count_less_than_350').value = (cd4_count_numeric <= 350) ? "YES" : "NO";
     }    
   }
 
@@ -87,7 +87,26 @@
   // WHO STAGE II PEDS
   // WHO STAGE III PEDS
   // WHO STAGE IV PEDS
-  function whoStageConcept(stage, adultOrPeds) {    
+  function whoStageConcept(stage, adultOrPeds) {   
+    try {
+      selected_stage_three_conditions = selected_stage_conditions[3].split(';'); 
+    }catch(e) { selected_stage_three_conditions = null; }
+
+    if (selected_stage_three_conditions) {
+      conditions_found = 0;
+      severe_weight_loss = false;
+      for (i = 0 ; i < selected_stage_three_conditions.length ; i++) {
+        if (selected_stage_three_conditions[i] == 'Severe weight loss >10% and/or BMI <18.5kg/m^2, unexplained') {
+          severe_weight_loss = true;
+        }else if (selected_stage_three_conditions[i] == 'Chronic diarrhoea more than 1 month') {
+          conditions_found++;
+        }else if (selected_stage_three_conditions[i] == 'Prolonged fever intermittent or contstant more than one month') {
+          conditions_found++;
+        }
+      }
+      if (conditions_found > 0 && severe_weight_loss)
+        return  "WHO STAGE " + numeral(4) + " " + adultOrPeds;
+    }
     return "WHO STAGE " + numeral(stage) + " " + adultOrPeds;  
   }
   
@@ -206,7 +225,7 @@
     var display = "<div><span class='title'>WHO Stage: " + $('who_stage').value + "</span></div>";
     display += "<div><span class='title'>Reason for ART Eligibility: " + $('reason_for_art_eligibility').value + "</span></div>";
     $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + display + '</div>' ;    
-
+    $("clearButton").className = "button gray navButton";
     if (conditions.length > 0)
       $('inputFrame'+tstCurrentPage).innerHTML += '<div id="selected_stage_conditions"><hr /><br />' + conditions + '</div>' ;    
   }  
@@ -256,6 +275,17 @@
   function setSelectedStageConditions(stage) {
     selected_stage_conditions[stage] = $("touchscreenInput" + tstCurrentPage).value;
   }
+           
+  function showConditions() {
+    try {
+      cond = selected_stage_conditions[1].split(';');
+    }catch(e) { cond = [] }
+    for (i = 0 ; i < cond.length ; i++) {
+      if(cond[i] == 'Asymptomatic HIV infection' || cond[i] == 'Asymptomatic')
+        return false;
+    }
+    return true;
+  }
 </script>  
 <style type="text/css">
   .small .options li { font-size:1.1em; }
@@ -272,7 +302,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
     <div id="trigger"></div>
     <div id="infoBar" class="infoBarClass"></div>
     <label id="helpText" class="helpTextClass" for="">
-      This patient has already been stage.<br/>
+      This patient has already been staged.<br/>
       <%='&nbsp;'*3%>Reason for ART:&nbsp;<%= art_reasons %>
     </label>
   </div>
@@ -310,26 +340,26 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
      <% if @patient.person.patient.transfer_in? && (@patient.person.patient.transfer_in_date? == session[:datetime])%> 
       <% if patient_pregnant.blank? %>
         <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
-          {:id => "pregnant",
-          :optional => true,
+          {:id => "pregnant" ,
+          :optional => false ,
           :helpText => "Patient pregnant at initiation?" } %>
       <% end %>    
 
-      <%= touch_yes_no_unknown_tag "BREASTFEEDING", @patient, nil,
-        {:id => "breast_feeding",
-        :optional => true,
+      <%= touch_yes_no_unknown_tag "IS PATIENT BREAST FEEDING?", @patient, nil,
+        {:id => "breast_feeding" ,
+        :optional => false ,
         :helpText => "Patient breast feeding at initiation?" } %>
       <% else %>
         <% if patient_pregnant.blank? %>
           <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
-          {:id => "pregnant",
-          :optional => true,
+          {:id => "pregnant" ,
+          :optional => false ,
           :helpText => "Is patient pregnant?" } %>
         <% end %>    
 
-        <%= touch_yes_no_unknown_tag "BREASTFEEDING", @patient, nil,
-          {:id => "breast_feeding",
-          :optional => true,
+        <%= touch_yes_no_unknown_tag "IS PATIENT BREAST FEEDING?", @patient, nil,
+          {:id => "breast_feeding" ,
+          :optional => false ,
          :helpText => "Is patient breast feeding?" } %>
       <% end %>
     <% end %>    
@@ -358,6 +388,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
           {:id => "stage_2_conditions",
            :multiple => true,
            :optional => true,
+           :condition => 'showConditions() == true',
            :tt_onUnLoad => 'setSelectedStageConditions(2);',
            :helpText => "Stage 2 Conditions",
            :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
@@ -377,6 +408,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
           {:id => "stage_3_conditions",
            :multiple => true,
            :optional => true,
+           :condition => 'showConditions() == true',
            :tt_onUnLoad => 'setSelectedStageConditions(3);',
            :helpText => "Stage 3 Conditions",
            :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
@@ -397,6 +429,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
            :multiple => true,
            :optional => true,
            :tt_onUnLoad => 'setSelectedStageConditions(4);',
+           :condition => 'showConditions() == true',
            :helpText => "Stage 4 Conditions",
            :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <% end %>
@@ -484,7 +517,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
         {:id => "stage_2_conditions",
          :multiple => true,
          :optional => true,
-         :condition => '$("presumed_severe_hiv_conditions").value == ""',
+         :condition => '$("presumed_severe_hiv_conditions").value == "" && showConditions() == true',
          :helpText => "Stage 2 Conditions",
          :tt_onUnLoad => 'setSelectedStageConditions(2);',
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
@@ -506,7 +539,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
         {:id => "stage_3_conditions",
          :multiple => true,
          :optional => true,
-         :condition => '$("presumed_severe_hiv_conditions").value == ""',
+         :condition => '$("presumed_severe_hiv_conditions").value == "" && showConditions() == true',
          :helpText => "Stage 3 Conditions",
          :tt_onUnLoad => 'setSelectedStageConditions(3);',
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
@@ -527,7 +560,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
         {:id => "stage_4_conditions",
          :multiple => true,
          :optional => true,
-         :condition => '$("presumed_severe_hiv_conditions").value == ""',
+         :condition => '$("presumed_severe_hiv_conditions").value == "" && showConditions() == true',
          :helpText => "Stage 4 Conditions",
          :tt_onUnLoad => 'setSelectedStageConditions(4);',
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>

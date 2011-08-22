@@ -1,30 +1,36 @@
 class EncountersController < ApplicationController
 
   def create
+    
     if params['encounter']['encounter_type_name'] == 'ART_INITIAL'
-      if params[:observations][0]['concept_name'] == 'EVER RECEIVED ART' and params[:observations][0]['value_coded_or_text'] == 'NO'
+      if params[:observations][0]['concept_name'].upcase == 'EVER RECEIVED ART' and params[:observations][0]['value_coded_or_text'].upcase == 'NO'
         observations = []
         (params[:observations] || []).each do |observation|
-          next if observation['concept_name'] == 'HAS TRANSFER LETTER'
-          next if observation['concept_name'] == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO WEEKS'
-          next if observation['concept_name'] == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS'
-          next if observation['concept_name'] == 'ART NUMBER AT PREVIOUS LOCATION'
-          next if observation['concept_name'] == 'DATE ART LAST TAKEN'
-          next if observation['concept_name'] == 'LAST ART DRUGS TAKEN'
+          next if observation['concept_name'].upcase == 'HAS TRANSFER LETTER'
+          next if observation['concept_name'].upcase == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO WEEKS'
+          next if observation['concept_name'].upcase == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS'
+          next if observation['concept_name'].upcase == 'ART NUMBER AT PREVIOUS LOCATION'
+          next if observation['concept_name'].upcase == 'DATE ART LAST TAKEN'
+          next if observation['concept_name'].upcase == 'LAST ART DRUGS TAKEN'
+          next if observation['concept_name'].upcase == 'TRANSFER IN'
+          next if observation['concept_name'].upcase == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO WEEKS'
+          next if observation['concept_name'].upcase == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS'
           observations << observation
         end
-      elsif params[:observations][4]['concept_name'] == 'DATE ART LAST TAKEN' and params[:observations][4]['value_datetime'] != 'Unknown'
+      elsif params[:observations][4]['concept_name'].upcase == 'DATE ART LAST TAKEN' and params[:observations][4]['value_datetime'] != 'Unknown'
         observations = []
         (params[:observations] || []).each do |observation|
-          next if observation['concept_name'] == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO WEEKS'
-          next if observation['concept_name'] == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS'
+          next if observation['concept_name'].upcase == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO WEEKS'
+          next if observation['concept_name'].upcase == 'HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS'
           observations << observation
         end
       end
 
+      params[:observations] = observations unless observations.blank?
+
       observations = []
       (params[:observations] || []).each do |observation|
-        if observation['concept_name'] == 'LOCATION OF ART INITIATION' or observation['concept_name'] == 'CONFIRMATORY HIV TEST LOCATION'
+        if observation['concept_name'].upcase == 'LOCATION OF ART INITIATION' or observation['concept_name'].upcase == 'CONFIRMATORY HIV TEST LOCATION'
           observation['value_numeric'] = observation['value_coded_or_text'] rescue nil
           observation['value_text'] = Location.find(observation['value_coded_or_text']).name.to_s rescue ""
           observation['value_coded_or_text'] = ""
@@ -35,22 +41,29 @@ class EncountersController < ApplicationController
       params[:observations] = observations unless observations.blank?
     end
 
-    if params['encounter']['encounter_type_name'] == 'HIV STAGING'
+    if params['encounter']['encounter_type_name'].upcase == 'HIV STAGING'
       observations = []
       (params[:observations] || []).each do |observation|
-        if observation['concept_name'] == 'CD4 COUNT'
+        if observation['concept_name'].upcase == 'CD4 COUNT'
           observation['value_modifier'] = observation['value_numeric'].match(/<|>/)[0] rescue nil
           observation['value_numeric'] = observation['value_numeric'].match(/[0-9](.*)/i)[0] rescue nil
         end
+        if observation['concept_name'].upcase == 'CD4 COUNT LOCATION' or observation['concept_name'].upcase == 'LYMPHOCYTE COUNT LOCATION'
+          observation['value_numeric'] = observation['value_coded_or_text'] rescue nil
+          observation['value_text'] = Location.find(observation['value_coded_or_text']).name.to_s rescue ""
+          observation['value_coded_or_text'] = ""
+        end
+
         observations << observation
       end
+      
       params[:observations] = observations unless observations.blank?
     end
 
-    if params['encounter']['encounter_type_name'] == 'ART ADHERENCE'
+    if params['encounter']['encounter_type_name'].upcase == 'ART ADHERENCE'
       observations = []
       (params[:observations] || []).each do |observation|
-        if observation['concept_name'] == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'
+        if observation['concept_name'].upcase == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'
           observation['value_numeric'] = observation['value_text'] rescue nil
           observation['value_text'] =  ""
         end
@@ -88,15 +101,28 @@ class EncountersController < ApplicationController
       observation[:encounter_id] = encounter.id
       observation[:obs_datetime] = encounter.encounter_datetime || Time.now()
       observation[:person_id] ||= encounter.patient_id
-      observation[:concept_name] ||= "DIAGNOSIS" if encounter.type.name == "OUTPATIENT DIAGNOSIS"
+      observation[:concept_name].upcase ||= "DIAGNOSIS" if encounter.type.name.upcase == "OUTPATIENT DIAGNOSIS"
+      
       # Handle multiple select
+
+      if observation[:value_coded_or_text_multiple] && observation[:value_coded_or_text_multiple].is_a?(String)
+        observation[:value_coded_or_text_multiple] = observation[:value_coded_or_text_multiple].split(';')
+      end
+      
       if observation[:value_coded_or_text_multiple] && observation[:value_coded_or_text_multiple].is_a?(Array)
         observation[:value_coded_or_text_multiple].compact!
         observation[:value_coded_or_text_multiple].reject!{|value| value.blank?}
       end  
       if observation[:value_coded_or_text_multiple] && observation[:value_coded_or_text_multiple].is_a?(Array) && !observation[:value_coded_or_text_multiple].blank?
+        
         values = observation.delete(:value_coded_or_text_multiple)
-        values.each{|value| observation[:value_coded_or_text] = value; Observation.create(observation) }
+        values.each do |value| 
+            observation[:value_coded_or_text] = value
+            if observation[:concept_name].humanize == "Tests ordered"
+                observation[:accession_number] = Observation.new_accession_number 
+            end
+            Observation.create(observation) 
+        end    
       else      
         observation.delete(:value_coded_or_text_multiple)
 
@@ -134,7 +160,7 @@ class EncountersController < ApplicationController
       unless (arv_number_identifier_type != type) and @patient_identifier
         arv_number = identifier[:identifier].strip
         if arv_number.match(/(.*)[A-Z]/i).blank?
-          identifier[:identifier] = "#{Location.current_arv_code} #{arv_number}"
+          identifier[:identifier] = "#{PatientIdentifier.site_prefix} #{arv_number}"
         end
       end
 
@@ -156,28 +182,58 @@ class EncountersController < ApplicationController
     # Go to the next task in the workflow (or dashboard)
     # only redirect to next task if location parameter has not been provided
     unless params[:location]
+    #find a way of printing the lab_orders labels
+     if params['encounter']['encounter_type_name'] == "LAB ORDERS"
+       redirect_to"/patients/print_lab_orders/?patient_id=#{@patient.id}"
+     else
       redirect_to next_task(@patient)
+     end
     else
       render :text => encounter.encounter_id.to_s and return
     end
   end
 
   def new
+
     @patient = Patient.find(params[:patient_id] || session[:patient_id])
+    
+    @patient_has_closed_TB_program_at_current_location = PatientProgram.find(:all,:conditions =>
+            ["voided = 0 AND patient_id = ? AND location_id = ? AND (program_id = ? OR program_id = ?)", @patient.id, Location.current_health_center.id, Program.find_by_name('TB PROGRAM').id, Program.find_by_name('MDR-TB PROGRAM').id]).last.closed? rescue true
+    
+    @ipt_contacts = @patient.tb_contacts.collect{|person| person unless person.age > 6}.compact rescue []
     @select_options = Encounter.select_options
+    @months_since_last_hiv_test = @patient.months_since_last_hiv_test
+    @tb_patient = @patient.tb_patient?
+    @art_patient = @patient.art_patient?
+    
 =begin
+=end
+
     use_regimen_short_names = GlobalProperty.find_by_property(
       "use_regimen_short_names").property_value rescue "false"
     show_other_regimen = GlobalProperty.find_by_property(
       "show_other_regimen").property_value rescue 'false'
 
     @answer_array = arv_regimen_answers(:patient => @patient,
-      :use_short_names => use_regimen_short_names == "true",
-      :show_other_regimen => show_other_regimen == "true")
-=end
-    hiv_program = Program.find_by_name('HIV Program')
-    @answer_array = regimen_options(hiv_program.regimens, @patient.person.age)
-    @answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
+      :use_short_names    => use_regimen_short_names == "true",
+      :show_other_regimen => show_other_regimen      == "true")
+      
+     hiv_program = Program.find_by_name('HIV Program')
+     @answer_array = regimen_options(hiv_program.regimens, @patient.person.age)
+     @answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
+
+    @hiv_status = @patient.hiv_status
+    @hiv_test_date = @patient.hiv_test_date
+    @lab_activities = Encounter.lab_activities
+    @tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
+    @tb_patient_category = [["New","NEW"], ["Relapse","RELAPSE"], ["Retreatment after default","RETREATMENT AFTER DEFAULT"], ["Fail","FAIL"], ["Other","OTHER"]]
+    @sputum_visual_appearance = [['Muco-purulent','MUCO-PURULENT'],['Blood-stained','BLOOD-STAINED'],['Saliva','SALIVA']]
+
+    @sputum_results = [['1+','1 PLUS'], ['2+','2 PLUS'], ['3+','3 PLUS'],['Negative', 'NEGATIVE'], ['Scanty', 'SCANTY']]
+
+    @sputum_orders = Hash.new()
+    @patient.recent_sputum_orders.each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
+
     redirect_to "/" and return unless @patient
 
     redirect_to next_task(@patient) and return unless params[:encounter_type]
@@ -280,4 +336,36 @@ class EncountersController < ApplicationController
 
     # raise answer_array.inspect
   end
+  
+  def lab
+    @patient = Patient.find(params[:encounter][:patient_id])
+    encounter_type = params[:observations][0][:value_coded_or_text] 
+    redirect_to "/encounters/new/#{encounter_type}?patient_id=#{@patient.id}"
+  end
+  
+  def lab_orders
+  
+    @lab_orders = Encounter.select_options['lab_orders'][params['sample']].collect{|order| order}
+    render :text => '<li onmousedown=updateInfoBar(this)>' + @lab_orders.join('</li><li onmousedown=updateInfoBar(this)>') + '</li>'
+  end
+  
+  def give_drugs
+    @patient = Patient.find(params[:patient_id] || session[:patient_id])
+     #@prescriptions = @patient.orders.current.prescriptions.all
+    type = EncounterType.find_by_name('TREATMENT')
+    session_date = session[:datetime].to_date rescue Date.today
+    @prescriptions = Order.find(:all,
+                     :joins => "INNER JOIN encounter e USING (encounter_id)",
+                     :conditions => ["encounter_type = ? AND e.patient_id = ? AND DATE(encounter_datetime) = ?",
+                     type.id,@patient.id,session_date])
+    @historical = @patient.orders.historical.prescriptions.all
+    @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
+    @restricted.each do |restriction|
+      @prescriptions = restriction.filter_orders(@prescriptions)
+      @historical = restriction.filter_orders(@historical)
+    end
+    #render :layout => "menu" 
+    render :template => 'dashboards/treatment_dashboard', :layout => false
+  end
+  
 end

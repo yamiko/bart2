@@ -51,23 +51,40 @@
             </div>
             <select id="tabs">
               <option value='/patients/overview?patient_id=<%= @patient.id %>'>Overview</option>
-              <option value='/patients/visit_history?patient_id=<%= @patient.id %>'>Visit History</option>
-              <option value='/patients/past_visits_summary?patient_id=<%= @patient.id %>'>Past Visits Summary</option>
+              <option value='/patients/visit_history?patient_id=<%= @patient.id %>'>Current Visit</option>
+              <option value='/patients/past_visits_summary?patient_id=<%= @patient.id %>'>Past Visits</option>
               <option value='/patients/personal/<%= @patient.id -%>'>Printouts/Other</option>
             </select>
-            <select id="links">
-              <option value='/patients/treatment_dashboard/<%= @patient.id -%>'>Treatment</option>
-              <option value='/patients/guardians_dashboard/<%= @patient.id -%>'>Guardians</option>
-              <option value='/patients/programs_dashboard/<%= @patient.id -%>'>Outcomes</option>
-              <option value='/patients/show/<%= @patient.id -%>?source=opd'>OPD</option>
-            </select>
-            <select id="navigation_links">
-              <option link="/encounter_types?patient_id=<%= @patient.id -%>">Tasks</option>
-              <option link="/patients/mastercard_menu?patient_id=<%= @patient.id -%>&source=<%= @source -%>">Mastercard</option>
-              <option link='<%= ((session[:datetime].to_date rescue '') != '' ?
+            <% if @patient.person.dead == 1%>
+              <select id="links">
+                <option value='/patients/programs_dashboard/<%= @patient.id -%>'>Outcomes</option>
+              </select>
+              <select id="navigation_links">
+                <option link="/patients/mastercard_menu?patient_id=<%= @patient.id -%>&source=<%= @source -%>">Mastercard</option>
+                <option link='<%= ((session[:datetime].to_date rescue '') != '' ?
+                            "/people/reset_datetime/#{@patient.id}" : "/people/set_datetime/#{@patient.id}") %>'  ttSize="160px">
+                  <%= ((session[:datetime].to_date rescue '') != '' ? "Reset Date" : "Set Date") %></option>
+                </select>
+             <% else %>
+                <select id="links">
+                  <option value='/patients/treatment_dashboard/<%= @patient.id -%>'>Treatment</option>
+                  <option value='/patients/guardians_dashboard/<%= @patient.id -%>'>Guardians</option>
+                  <%if User.current_user.activities.include?('Manage Patient Programs')%>
+                    <option value='/patients/programs_dashboard/<%= @patient.id -%>'>Outcomes</option>
+                  <%end%>
+                  <option value='/patients/show/<%= @patient.id -%>?source=opd'>OPD</option>
+                </select>
+                <select id="navigation_links">
+                    <option link="/encounter_types?patient_id=<%= @patient.id -%>" ttSize = "160px">Tasks</option>
+                  <option link="/patients/mastercard_menu?patient_id=<%= @patient.id -%>&source=<%= @source -%>">Mastercard</option>
+                  <% if show_lab_results %>
+                    <option link="/lab/results/<%=@patient.id -%>">Lab results</option>
+                  <%end%>
+                    <option link='<%= ((session[:datetime].to_date rescue '') != '' ?
                           "/people/reset_datetime/#{@patient.id}" : "/people/set_datetime/#{@patient.id}") %>'  ttSize="160px">
-                <%= ((session[:datetime].to_date rescue '') != '' ? "Reset Date" : "Set Date") %></option>
-            </select>
+                     <%= ((session[:datetime].to_date rescue '') != '' ? "Reset Date" : "Set Date") %></option>
+                </select>
+             <% end %>
             <tr>
               <td align='center'>
                 <input type='submit' value='Finish' />
