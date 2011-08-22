@@ -652,13 +652,14 @@ class Task < ActiveRecord::Base
           end
 
           if clinic_visit.blank? and user_selected_activities.match(/Manage TB clinic visits/i)
-            task.url = "/encounters/new/clinic_visit?show&patient_id=#{patient.id}"
+            task.url = "/encounters/new/tb_clinic_visit?show&patient_id=#{patient.id}"
             return task
           elsif clinic_visit.blank? and not user_selected_activities.match(/Manage TB clinic visits/i)
             task.url = "/patients/show/#{patient.id}"
             return task
           end 
         when 'TB_INITIAL'
+          next if patient.tb_status.match(/Negative/i)
           tb_initial = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
@@ -688,7 +689,13 @@ class Task < ActiveRecord::Base
             return task
           end 
         when 'ART_INITIAL'
-          next unless patient.hiv_status.upcase == 'POSITIVE'
+          next unless patient.hiv_status.match(/Positive/i)
+        
+          enrolled_in_hiv_program = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?",patient.id, 
+            ConceptName.find_by_name("Patient enrolled in IMB HIV program").concept_id]).value_coded).concept_names.map{|c|c.name}[0].upcase rescue nil
+      
+          next if enrolled_in_hiv_program == 'NO'
+  
           enrolled_in_hiv_program = patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') rescue false
           next if enrolled_in_hiv_program 
 
@@ -704,7 +711,12 @@ class Task < ActiveRecord::Base
             return task
           end
         when 'HIV STAGING'
-          next unless patient.hiv_status.upcase == 'POSITIVE'
+          enrolled_in_hiv_program = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?",patient.id, 
+            ConceptName.find_by_name("Patient enrolled in IMB HIV program").concept_id]).value_coded).concept_names.map{|c|c.name}[0].upcase rescue nil
+
+          next if enrolled_in_hiv_program == 'NO'
+
+          next unless patient.hiv_status.match(/Positive/i)
           hiv_staging = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
@@ -720,6 +732,7 @@ class Task < ActiveRecord::Base
             return task
           end if (reason_for_art.upcase ==  'UNKNOWN' or reason_for_art.blank?)
         when 'TB REGISTRATION'
+          next if patient.tb_status.match(/Negative/i)
           tb_registration = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
@@ -735,6 +748,7 @@ class Task < ActiveRecord::Base
             return task
           end 
         when 'TB_FOLLOWUP'
+          next if patient.tb_status.match(/Negative/i)
           tb_registration = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name('TB REGISTRATION').id])
@@ -761,6 +775,7 @@ class Task < ActiveRecord::Base
             return task
           end
         when 'ART VISIT'  
+          next unless patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') rescue false
           clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                                     session_date.to_date,patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
@@ -768,7 +783,6 @@ class Task < ActiveRecord::Base
           goto_art_visit_answered = clinic_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'ART visit:'.upcase rescue false
 
           next if not goto_art_visit and goto_art_visit_answered
-          next unless patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') rescue false
           
           art_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",

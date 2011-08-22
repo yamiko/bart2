@@ -99,9 +99,11 @@ Check applicability of code below
      :condition => 'checkIfExists("Other","drug_side_effects") == "True";',
      :helpText => "Other drug related side effect" } %>
 
-  <%= touch_yes_no_tag "REFER PATIENT TO CLINICIAN", @patient, nil,
-      {:id => "refer_to_clinician",
-        :helpText => "Refer patient to clinician" } %>
+  <% if not User.current_user.user_roles.map{|r|r.role}.include?('Clinician') and not User.current_user.user_roles.map{|r|r.role}.include?('Doctor')%>
+    <%= touch_yes_no_tag "REFER PATIENT TO CLINICIAN", @patient, nil,
+        {:id => "refer_to_clinician",
+         :helpText => "Refer patient to clinician" } %>
+  <% end %>
 
   <%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
       {:id => "prescribe_drugs",
