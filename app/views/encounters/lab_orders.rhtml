@@ -126,7 +126,7 @@
 
   <%= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
 
-  <%= select_tag "main_tests", options_for_select(@select_options['lab_orders'].collect{|k,v| k}.unshift(" ")), 
+  <%= select_tag "main_tests", options_for_select(@select_options['lab_orders'].sort.collect{|k,v| k}.unshift(" ")), 
     {:helptext => 'Main tests', 
       :id => 'main_tests',
       :tt_onLoad => "updateNextFinish();",
