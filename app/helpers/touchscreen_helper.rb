@@ -89,13 +89,13 @@ module TouchscreenHelper
      :allowFreeText => false
     }.merge(options)
 
-    #selection_options = "<option value=''></option>" + choices rescue nil
-    
+    selection_options = "<option value=''></option>" + choices rescue nil
+    #raise selection_options
     options = {:tt_pageStyleClass => "NoKeyboard"}.merge(options) if options[:ajaxURL].blank?
     kind = options[:multiple] ? "value_coded_or_text_multiple" : "value_coded_or_text"
     content = ""
     content << touch_meta_tag(concept, patient, time, kind, options)
-    content << select_tag("observations[][#{kind}]", choices, options)
+    content << select_tag("observations[][#{kind}]", selection_options, options)
     content
   end
 
