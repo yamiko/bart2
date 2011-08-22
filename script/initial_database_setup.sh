@@ -45,9 +45,11 @@ mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/moh_regimens_only.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/regimen_indexes.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/retrospective_station_entries.sql
 
-mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/privilege.sql
+#mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/privilege.sql
+mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/bart2_role_privileges.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/migrate/create_weight_height_for_ages.sql
 mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/migrate/insert_weight_for_ages.sql
+mysql --user=$USERNAME --password=$PASSWORD $DATABASE < db/regimens.sql
 
 #rake openmrs:bootstrap:load:defaults RAILS_ENV=$ENV
 #rake openmrs:bootstrap:load:site SITE=$SITE RAILS_ENV=production#

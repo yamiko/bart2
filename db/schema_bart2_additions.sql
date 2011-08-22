@@ -912,3 +912,25 @@ CREATE TABLE `village` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
+DROP TABLE IF EXISTS `user_property`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `user_property` (
+  `user_id` int(11) NOT NULL DEFAULT '0',
+  `property` varchar(100) NOT NULL DEFAULT '',
+  `property_value` varchar(600) NOT NULL DEFAULT '',
+  PRIMARY KEY (`user_id`,`property`),
+  CONSTRAINT `user_property` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user_property`
+--
+
+LOCK TABLES `user_property` WRITE;
+/*!40000 ALTER TABLE `user_property` DISABLE KEYS */;
+INSERT INTO `user_property` VALUES (1,'loginAttempts','0');
+/*!40000 ALTER TABLE `user_property` ENABLE KEYS */;
+UNLOCK TABLES;
+

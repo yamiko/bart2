@@ -35,12 +35,17 @@ class PatientsController < ApplicationController
   def opdshow
     session_date = session[:datetime].to_date rescue Date.today
     encounter_types = EncounterType.find(:all,:conditions =>["name IN (?)",
-        ['REGISTRATION','OUTPATIENT DIAGNOSIS','REFER PATIENT OUT?','DISPENSING']]).map{|e|e.id}
+        ['REGISTRATION','OUTPATIENT DIAGNOSIS','REFER PATIENT OUT?','OUTPATIENT RECEPTION','DISPENSING']]).map{|e|e.id}
     @encounters = Encounter.find(:all,:select => "encounter_id , name encounter_type_name, count(*) c",
       :joins => "INNER JOIN encounter_type ON encounter_type_id = encounter_type",
       :conditions =>["patient_id = ? AND encounter_type IN (?) AND DATE(encounter_datetime) = ?",
         params[:id],encounter_types,session_date],
-      :group => 'encounter_type').collect{|rec| [ rec.encounter_id , rec.encounter_type_name , rec.c ] }
+      :group => 'encounter_type').collect do |rec| 
+        if User.current_user.user_roles.map{|r|r.role}.join(',').match(/Registration|Clerk/i)
+          next unless rec.observations[0].to_s.match(/Workstation location:   Outpatient/i)
+        end
+        [ rec.encounter_id , rec.encounter_type_name , rec.c ] 
+      end
     
     render :template => 'dashboards/opdoverview_tab', :layout => false
   end
@@ -146,6 +151,9 @@ class PatientsController < ApplicationController
       @links << ["Filing number (Create)","/patients/set_filing_number/#{patient.id}"]
     end 
 
+    if GlobalProperty.use_user_selected_activities
+      @links << ["Change user activities","/user/activities/#{User.current_user.id}?patient_id=#{patient.id}"]
+    end 
     render :template => 'dashboards/personal_tab', :layout => false
   end
 
@@ -328,13 +336,13 @@ class PatientsController < ApplicationController
 
   def next_available_arv_number
     next_available_arv_number = PatientIdentifier.next_available_arv_number
-    render :text => next_available_arv_number.gsub(Location.current_arv_code,'').strip rescue nil
+    render :text => next_available_arv_number.gsub(PatientIdentifier.site_prefix,'').strip rescue nil
   end
   
   def assigned_arv_number
     assigned_arv_number = PatientIdentifier.find(:all,:conditions => ["voided = 0 AND identifier_type = ?",
         PatientIdentifierType.find_by_name("ARV Number").id]).collect{|i|
-      i.identifier.gsub(Location.current_arv_code,'').strip.to_i
+      i.identifier.gsub(PatientIdentifier.site_prefix,'').strip.to_i
     } rescue nil
     render :text => assigned_arv_number.sort.to_json rescue nil 
   end
@@ -509,11 +517,11 @@ class PatientsController < ApplicationController
   def past_visits_summary
     @previous_visits  = Encounter.get_previous_encounters(params[:patient_id])
 
-    @encounter_dates = @previous_visits.map{|encounter| encounter.encounter_datetime.strftime("%d-%b-%Y")}.uniq.reverse.first(6) rescue []
+    @encounter_dates = @previous_visits.map{|encounter| encounter.encounter_datetime.to_date}.uniq.reverse.first(6) rescue []
 
     @past_encounter_dates = []
       @encounter_dates.each do |encounter|
-        @past_encounter_dates << encounter if encounter != (Date.today).strftime("%d-%b-%Y") && encounter != ((session[:datetime].to_date).strftime("%d-%b-%Y") rescue nil)
+        @past_encounter_dates << encounter if encounter < (Date.today).to_date || encounter < (session[:datetime].to_date rescue Date.today.to_date)
       end
 
     render :template => 'dashboards/past_visits_summary_tab', :layout => false
