@@ -47,12 +47,12 @@ Check applicability of code below
      :multiple => "true",
      :helpText => "Clinical symptoms associated with TB" } %>
 
-  <%= touch_select_tag "INTERPRET X-RAY", @patient, options_for_select(@select_options['tb_xray_interpretation']),
+  <%= touch_select_tag "X-ray result interpretation", @patient, options_for_select(@select_options['tb_xray_interpretation']),
     {:id => "xray",
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "Interpret X-Ray" } %>
 
-  <%= touch_yes_no_unknown_tag "CONFIRM TB STATUS", @patient, nil,
+  <%= touch_yes_no_unknown_tag "TB status", @patient, nil,
     {:id => "confirm_tb_status",
      :helpText => "Confirm TB Status" } %>
   
