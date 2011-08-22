@@ -10,11 +10,15 @@
   }
   
   function setAttributes() {
-    $('nextButton').setAttribute('onmousedown','finish();');
+    enrolled_in_tb_program = "<%=@patient.patient_programs.collect{|p|p.program.name}.include?('TB PROGRAM') rescue false%>"
+    if (enrolled_in_tb_program == 'false')
+      $('nextButton').setAttribute('onmousedown','finish();');
   }
 
   function finish() {
     if ($('confirm_tb_status').value == 'YES') {
+      submitForm.submit();
+      return
       submitForm = document.getElementById("appointment");
       //document.body.appendChild(submitForm);
 
@@ -88,9 +92,17 @@ Check applicability of code below
 
   <%= touch_yes_no_unknown_tag "TB STATUS", @patient, nil,
     {:id => "confirm_tb_status",
-     :tt_onUnLoad => 'resetAttributes()',
-     :tt_onLoad => 'setAttributes()',
+     :tt_onLoad => "setAttributes();",
+     :tt_onUnLoad => "resetAttributes();",
      :helpText => "Confirm TB Status" } %>
+
+  <% enrolled_in_hiv_program = patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') rescue false 
+    if enrolled_in_hiv_program %>
+    <%= touch_yes_no_tag "ART visit", @patient, options_for_select(@select_options['tb_xray_interpretation']),
+      {:id => "art_visit",
+       :tt_pageStyleClass => "NoKeyboard",
+       :helpText => "Go to ART visit" } %>
+  <% end %>
   
   <%= submit_tag "Finish" %>    
 </form>

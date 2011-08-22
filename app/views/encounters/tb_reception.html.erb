@@ -27,6 +27,20 @@
     }
   }
 
+  function setAttributes() {
+    l = document.getElementsByTagName('li');
+    for (i = 0 ; i < l.length ; i++) {
+        l[i].setAttribute("onmousedown","null; updateTouchscreenInputForSelect(this); updateNextButton();");
+    }
+  }
+
+  function updateNextButton() {
+    if ($('clinic_visit_type').value == 'Follow-up') {
+      $('nextButton').innerHTML = '<span>Next</span>';
+    }else{
+      $('nextButton').innerHTML = '<span>Finish</span>';
+    }
+  }
 </script>  
 <form id='appointment' action="/encounters/create" method='post'>
   <%= hidden_field_tag "encounter[encounter_type_name]", "TB RECEPTION" %>
@@ -79,7 +93,9 @@
   <label for='clinic_visit_type'>Clinic visit type</label>
     <%= touch_select_tag "TYPE OF VISIT", 
       @patient, options_for_select(@select_options['tb_clinic_visit_type']),
-      {:id => "clinic_visit_type"} 
+      {:id => "clinic_visit_type",
+       :tt_onLoad => "setTimeout('setAttributes()',500);"
+      } 
     %>
 
   <label for='reason_for_clinic_visit'>Reason for clinical visit</label>
@@ -87,7 +103,7 @@
       @patient, options_for_select(@select_options['reason_for_tb_clinic_visit']),
       {
         :id => "reason_for_clinic_visit",
-        :condition => "$('clinic_visit_type').value == 'Clinical review'"
+        :condition => "$('clinic_visit_type').value == 'Follow-up'"
       } 
     %>
 
@@ -95,7 +111,7 @@
     <%= touch_yes_no_unknown_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
       {
         :id => "need_to_see_clinician",
-        :condition => "$('clinic_visit_type').value == 'Clinical review'"
+        :condition => "$('clinic_visit_type').value == 'Follow-up'"
       } %>
 
   <%if @patient.given_arvs_before? and @patient.get_identifier("ARV Number").blank?

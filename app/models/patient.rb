@@ -1112,8 +1112,7 @@ EOF
   #from TB ART TO BART
   
   def hiv_status
-    status = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).name.name rescue "UNKNOWN"
-    return status
+    Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).concept_names.map{|c|c.name}[0] rescue "UNKNOWN"
   end
   
   def hiv_test_date
