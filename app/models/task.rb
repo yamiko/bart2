@@ -787,6 +787,21 @@ class Task < ActiveRecord::Base
 
           next if not goto_art_visit and goto_art_visit_answered
           
+
+          pre_art_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                    :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                    session_date.to_date,patient.id,EncounterType.find_by_name('PART_FOLLOWUP').id])
+
+          if pre_art_visit.blank? and user_selected_activities.match(/Manage pre ART visits/i)
+            task.encounter_type = 'Pre ART visit'
+            task.url = "/encounters/new/pre_art_visit?show&patient_id=#{patient.id}"
+            return task
+          elsif pre_art_visit.blank? and not user_selected_activities.match(/Manage pre ART visits/i)
+            task.encounter_type = 'Pre ART visit'
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if reason_for_art.upcase ==  'UNKNOWN' or reason_for_art.blank?
+
           art_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                                     session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
