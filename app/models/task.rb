@@ -510,6 +510,7 @@ class Task < ActiveRecord::Base
       task.encounter_type = type 
       case type
         when 'UPDATE HIV STATUS'
+          next if patient.hiv_status.match(/Positive/i)
           next if patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') rescue nil
 
           hiv_status = Encounter.find(:first,:order => "encounter_datetime DESC",
@@ -647,8 +648,8 @@ class Task < ActiveRecord::Base
           refered_to_clinician =  tb_followup.observations.collect{|obs|obs.to_s.strip}.include?('Refer patient to clinician:  Yes') rescue false
           
 
-          if not tb_reception_attributes.include?('Any need to see a clinician:  Yes') and not refered_to_clinician
-          #  next
+          if tb_reception_attributes.include?('Any need to see a clinician:  No') and not refered_to_clinician
+            next
           end
 
           if clinic_visit.blank? and user_selected_activities.match(/Manage TB clinic visits/i)
@@ -805,6 +806,14 @@ class Task < ActiveRecord::Base
                                    :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
 
           prescribe_drugs = encounter_tb_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Prescribe drugs:  Yes'.upcase rescue false
+
+          if not prescribe_drugs 
+            encounter_tb_clinic_visit = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
+                                   patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id,session_date],
+                                   :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
+
+            prescribe_drugs = encounter_tb_clinic_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Prescribe drugs:  Yes'.upcase rescue false
+          end
 
           if treatment_encounter.blank? and user_selected_activities.match(/Manage prescriptions/i)
             task.url = "/regimens/new?patient_id=#{patient.id}"
