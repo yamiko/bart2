@@ -1203,8 +1203,9 @@ EOF
   end
 
   def sputum_submissions_waiting_for_results
-    self.recent_sputum_submissions.collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", self.id, Concept.find_by_name(Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
-        EncounterType.find_by_name("LAB RESULTS").id,self.id]).observations)]).map{|o| o.accession_number}.include?(order.accession_number)}.compact rescue []
+    sputum_results = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("LAB RESULTS").id,self.id]).name rescue []
+    return sputum_results
   end
 
   def is_first_visit?
