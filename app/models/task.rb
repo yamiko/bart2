@@ -480,15 +480,15 @@ class Task < ActiveRecord::Base
     #4. Manage sputum submission - SPUTUM SUBMISSION
     #5. Manage Lab results - LAB RESULTS
     #6. Manage TB registration - TB REGISTRATION
-    #7. Manage TB followup - TB_FOLLOWUP
+    #7. Manage TB followup - TB TREATMENT VISIT
     #8. Manage HIV status updates - UPDATE HIV STATUS
     #8. Manage prescriptions - TREATMENT
     #8. Manage dispensations - DISPENSING
 
     tb_encounters =  [
                       'UPDATE HIV STATUS','TB RECEPTION','LAB ORDERS','SPUTUM SUBMISSION',
-                      'LAB RESULTS','TB CLINIC VISIT','VITALS','TB_INITIAL','ART_INITIAL','HIV STAGING',
-                      'TB REGISTRATION','TB_FOLLOWUP','ART VISIT','TREATMENT'
+                      'LAB RESULTS','VITALS','TB_INITIAL','ART_INITIAL','TB CLINIC VISIT','HIV STAGING',
+                      'ART VISIT','TB REGISTRATION','TB TREATMENT VISIT','TREATMENT'
                      ] 
     user_selected_activities = User.current_user.activities.collect{|a| a.upcase }.join(',') rescue []
     if user_selected_activities.blank? or tb_encounters.blank?
@@ -644,7 +644,7 @@ class Task < ActiveRecord::Base
 
           tb_followup = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
-                                      session_date.to_date ,patient.id,EncounterType.find_by_name('TB_FOLLOWUP').id])
+                                      session_date.to_date ,patient.id,EncounterType.find_by_name('TB TREATMENT VISIT').id])
           refered_to_clinician =  tb_followup.observations.collect{|obs|obs.to_s.strip}.include?('Refer patient to clinician:  Yes') rescue false
           
 
@@ -748,7 +748,7 @@ class Task < ActiveRecord::Base
             task.url = "/patients/show/#{patient.id}"
             return task
           end 
-        when 'TB_FOLLOWUP'
+        when 'TB TREATMENT VISIT'
           next if patient.tb_status.match(/Negative/i)
           tb_registration = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
@@ -769,11 +769,9 @@ class Task < ActiveRecord::Base
           end
 
           if tb_followup.blank? and user_selected_activities.match(/Manage TB Registration visits/i)
-            task.encounter_type = 'TB TREATMENT VISIT'
             task.url = "/encounters/new/tb_treatment_visit?show&patient_id=#{patient.id}"
             return task
           elsif tb_followup.blank? and not user_selected_activities.match(/Manage TB Registration visits/i)
-            task.encounter_type = 'TB TREATMENT VISIT'
             task.url = "/patients/show/#{patient.id}"
             return task
           end
@@ -787,6 +785,21 @@ class Task < ActiveRecord::Base
 
           next if not goto_art_visit and goto_art_visit_answered
           
+
+          pre_art_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                    :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                    session_date.to_date,patient.id,EncounterType.find_by_name('PART_FOLLOWUP').id])
+
+          if pre_art_visit.blank? and user_selected_activities.match(/Manage pre ART visits/i)
+            task.encounter_type = 'Pre ART visit'
+            task.url = "/encounters/new/pre_art_visit?show&patient_id=#{patient.id}"
+            return task
+          elsif pre_art_visit.blank? and not user_selected_activities.match(/Manage pre ART visits/i)
+            task.encounter_type = 'Pre ART visit'
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if reason_for_art.upcase ==  'UNKNOWN' or reason_for_art.blank?
+
           art_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                                     session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
@@ -804,7 +817,7 @@ class Task < ActiveRecord::Base
                                     session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
 
           encounter_tb_visit = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
-                                   patient.id,EncounterType.find_by_name('TB_FOLLOWUP').id,session_date],
+                                   patient.id,EncounterType.find_by_name('TB TREATMENT VISIT').id,session_date],
                                    :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
 
           prescribe_drugs = encounter_tb_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Prescribe drugs:  Yes'.upcase rescue false

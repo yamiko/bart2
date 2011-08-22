@@ -85,7 +85,7 @@ Check applicability of code below
        :helpText => "Interpret X-Ray" } %>
   <% end %>
 
-  <% unless @patient.tb_status.upcase == 'POSITIVE' %>
+  <% if not @patient.tb_status.upcase == 'POSITIVE' %>
   <%= touch_yes_no_unknown_tag "TB STATUS", @patient, nil,
     {:id => "confirm_tb_status",
      :tt_onLoad => "setAttributes();",
@@ -99,7 +99,7 @@ Check applicability of code below
 
   <% enrolled_in_hiv_program = patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') rescue false 
     if enrolled_in_hiv_program %>
-    <%= touch_yes_no_tag "ART visit", @patient, options_for_select(@select_options['tb_xray_interpretation']),
+    <%= touch_yes_no_tag "ART visit", @patient, nil,
       {:id => "art_visit",
        :tt_pageStyleClass => "NoKeyboard",
        :helpText => "Go to ART visit" } %>
