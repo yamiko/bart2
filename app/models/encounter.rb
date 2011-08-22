@@ -132,6 +132,13 @@ EOF
         ['Smear Positive','SMEAR POSITIVE'],
         ['X-ray result interpretation','X-RAY RESULT INTERPRETATION']
       ],
+     'tb_clinic_visit_type' => [
+        ['',''],
+        ['TB suspect (Sputum sample collection)','Sputum sample'],
+        ['TB suspect (Sputum submission)','Sputum submission'],
+        ['Sputum result (Collection)','Sputum result'],
+        ['Follow-up','Follow-up']
+      ],
      'family_planning_methods' => [
        ['',''],
        ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
@@ -140,6 +147,32 @@ EOF
        ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
        ['Male condoms', 'MALE CONDOMS'],
        ['Female condoms', 'FEMALE CONDOMS'],
+       ['Rhythm method', 'RYTHM METHOD'],
+       ['Withdrawal', 'WITHDRAWAL'],
+       ['Abstinence', 'ABSTINENCE'],
+       ['Tubal ligation', 'TUBAL LIGATION'],
+       ['Vasectomy', 'VASECTOMY']
+      ],
+     'female_family_planning_methods' => [
+       ['',''],
+       ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
+		   ['Depo-Provera', 'DEPO-PROVERA'],
+		   ['Intrauterine contraception', 'INTRAUTERINE CONTRACEPTION'],
+       ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
+       ['Male condoms', 'MALE CONDOMS'],
+       ['Female condoms', 'FEMALE CONDOMS'],
+       ['Rhythm method', 'RYTHM METHOD'],
+       ['Withdrawal', 'WITHDRAWAL'],
+       ['Abstinence', 'ABSTINENCE'],
+       ['Tubal ligation', 'TUBAL LIGATION'],
+       ['Vasectomy', 'VASECTOMY'],
+		   ['Emergency contraception', 'EMERGENCY CONTRACEPTION']
+      ],
+     'male_family_planning_methods' => [
+       ['',''],
+		   ['Intrauterine contraception', 'INTRAUTERINE CONTRACEPTION'],
+       ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
+       ['Male condoms', 'MALE CONDOMS'],
        ['Rhythm method', 'RYTHM METHOD'],
        ['Withdrawal', 'WITHDRAWAL'],
        ['Abstinence', 'ABSTINENCE'],
