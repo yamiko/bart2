@@ -80,9 +80,11 @@
   }
   
   function setAttributes() {
-    enrolled_in_tb_program = "<%=@patient.patient_programs.collect{|p|p.program.name}.include?('TB PROGRAM') rescue false%>"
-    if (enrolled_in_tb_program == 'false')
-      $('nextButton').setAttribute('onmousedown','finish();');
+    saved_tb_status = "<%=@patient.tb_status %>"
+    if (saved_tb_status.match(/POSITIVE/i))
+      return
+
+    $('nextButton').setAttribute('onmousedown','finish();');
   }
 
 

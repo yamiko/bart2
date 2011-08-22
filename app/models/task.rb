@@ -487,7 +487,7 @@ class Task < ActiveRecord::Base
 
     tb_encounters =  [
                       'UPDATE HIV STATUS','TB RECEPTION','LAB ORDERS','SPUTUM SUBMISSION',
-                      'LAB RESULTS','TB CLINIC VISIT','VITALS','TB_INITIAL','ART_INITIAL','HIV STAGING',
+                      'LAB RESULTS','VITALS','TB_INITIAL','ART_INITIAL','TB CLINIC VISIT','HIV STAGING',
                       'TB REGISTRATION','TB TREATMENT VISIT','ART VISIT','TREATMENT'
                      ] 
     user_selected_activities = User.current_user.activities.collect{|a| a.upcase }.join(',') rescue []
