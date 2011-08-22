@@ -40,11 +40,7 @@
       newElement.setAttribute("type","hidden");
       newElement.value = "<%=session[:datetime]%>";
       submitForm.appendChild(newElement);
-
-    }
-    else
-      alert('xxx')
-    {
+    }else{
       <%if not @patient.patient_programs.collect{|p|p.program.name}.include?('TB PROGRAM') %>
         newElement = document.createElement("input");
         newElement.setAttribute("name","programs[][program_id]");
