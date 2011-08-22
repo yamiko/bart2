@@ -102,6 +102,11 @@ class Patient < ActiveRecord::Base
       alerts << bmi_alert if bmi_alert
     end
 
+    hiv_status = self.hiv_status
+    alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.gsub(" ",'')}" == 'Negative' && self.months_since_last_hiv_test > 3)
+    alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.gsub(" ",'')}" == 'Unknown'
+
+    alerts << "Lab: Expecting submission of sputum" unless self.sputum_orders_without_submission.empty?
     alerts
   end
   
@@ -1145,14 +1150,14 @@ EOF
   end
   
   #from TB ART TO BART
-  
+
   def hiv_status
-    status = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).name.name rescue "UNKNOWN"
+    status = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV Status").concept_id]).name rescue "UNKNOWN"
     return status
   end
-  
+
   def hiv_test_date
-    test_date = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV TEST DATE").concept_id]).value_datetime rescue nil
+    test_date = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV test date").concept_id]).value_datetime rescue nil
     return test_date
   end
   
