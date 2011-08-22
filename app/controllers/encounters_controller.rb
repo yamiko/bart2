@@ -1,6 +1,7 @@
 class EncountersController < ApplicationController
 
   def create
+    
     if params['encounter']['encounter_type_name'] == 'ART_INITIAL'
       if params[:observations][0]['concept_name'].upcase == 'EVER RECEIVED ART' and params[:observations][0]['value_coded_or_text'].upcase == 'NO'
         observations = []
@@ -117,8 +118,6 @@ class EncountersController < ApplicationController
         values = observation.delete(:value_coded_or_text_multiple)
         values.each do |value| 
             observation[:value_coded_or_text] = value
-            if observation[:concept_name].humanize.upcase == "TESTS ORDERED"
-            end
             if observation[:concept_name].humanize == "Tests ordered"
                 observation[:accession_number] = Observation.new_accession_number 
             end
@@ -195,7 +194,12 @@ class EncountersController < ApplicationController
   end
 
   def new
+
     @patient = Patient.find(params[:patient_id] || session[:patient_id])
+    
+    @patient_has_closed_TB_program_at_current_location = PatientProgram.find(:all,:conditions =>
+            ["voided = 0 AND patient_id = ? AND location_id = ? AND (program_id = ? OR program_id = ?)", @patient.id, Location.current_health_center.id, Program.find_by_name('TB PROGRAM').id, Program.find_by_name('MDR-TB PROGRAM').id]).last.closed? rescue true
+    
     @ipt_contacts = @patient.tb_contacts.collect{|person| person unless person.age > 6}.compact rescue []
     @select_options = Encounter.select_options
     @months_since_last_hiv_test = @patient.months_since_last_hiv_test

@@ -1,0 +1,109 @@
+<%= javascript_include_tag "barcode" %>
+<style>
+  .tt_controls_scan_specimen_1 #keyboard{
+    display:none;
+  }
+
+  .tt_controls_scan_specimen_2 #keyboard{
+    display:none;
+  }
+
+  .tt_controls_scan_specimen_3 #keyboard{
+    display:none;
+  }
+
+  .tt_controls_sputum_microscopy_year #char{
+    display:none;
+  }
+
+  .tt_controls_sputum_microscopy_month .keyboard{ display:none; }
+  #tt_page_sputum_microscopy_month .options{height:550px;}
+  #tt_page_sputum_microscopy_month .options li{font-size:30px;}
+</style>
+
+<script>
+  var tt_cancel_destination = "/encounters/new/lab?patient_id=<%= @patient.patient_id -%>";
+
+  function compileDate(){
+    var tmpDate = $('sputum_microscopy_year').value + "-" + $('sputum_microscopy_month').value +"-" +$('sputum_microscopy_day').value;
+    return tmpDate;
+  }
+
+  function updateValues(element) {
+    var specimen = $(element).value;
+    return specimen;
+  }
+
+  barcodeFocusOnce = true;
+  
+  //setTimeout("setupBarcode()", 300);
+  function setupBarcode(){
+    barcodeScanAction = gotoNextPage;
+    loadBarcodePage();
+  }
+
+   function inform() {
+    $('infoBar'+tstCurrentPage).innerHTML = "Scan the label on the sputum collection bottle";
+  }
+
+</script>
+
+
+<form id='update_hiv_status' action="/encounters/create" method='post'>
+  <%= hidden_field_tag "encounter[encounter_type_name]", "LAB RESULTS" %>
+  <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
+  <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
+  <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
+
+  <!--TODO
+  -->
+
+   <%#= touch_text_field_tag "LABORATORY SERIAL NUMBER", @patient, nil,
+    {:id => "lab_serial_number",
+     :field_type => 'number',
+     :helpText => "Laboratory serial number" } %>
+
+  
+  <label for='sputum_microscopy_year'>HIV test year</label>
+  <%= text_field_tag "sputum_microscopy_year", nil, {:helpText => 'Sputum microscopy year', :field_type => 'number', :absoluteMin => "1982", :min => "1982", :absoluteMax => Date.today.year, :tt_pageStyleClass => "Numeric NumbersOnly"}  %>
+  
+  <label for='sputum_microscopy_month'>Sputum microscopy month</label>
+  <%= select_tag "sputum_microscopy_month", month_name_options, {:helpText => 'Sputum microscopy month', :condition => '$("sputum_microscopy_year").value.toLowerCase() != "unknown"'}%>
+
+  <label for='sputum_microscopy_day'>Sputum microscopy day</label>
+  <%= text_field_tag "sputum_microscopy_day",  nil, :field_type => 'number', :helpText => 'Sputum microscopy day', :condition => '($("sputum_microscopy_year").value != "Unknown") && ($("sputum_microscopy_month").value != "Unknown")', :tt_onLoad => ";getDayOfMonthPicker($('sputum_microscopy_year').value, $('sputum_microscopy_month').value)", :tt_onUnload => "$('sputum_microscopy_date').value = compileDate()" %>
+
+  <%= touch_hidden_tag "SPUTUM MICROSCOPY DATE", @patient, "", :id => "sputum_microscopy_date", :value_datetime => true%>
+
+  <%= touch_select_tag "VISUAL APPEARANCE OF SPUTUM SPECIMEN", @patient, options_for_select(@sputum_visual_appearance),
+    {:id => "visual_appearance_of_sputum_specimen",
+     :tt_pageStyleClass => "NoKeyboard",
+     :helpText => "Visual appearance of sputum specimen" } %>
+     <%acc_numbers = @sputum_orders.collect{|k,v| k}.sort%>
+     <%counter = 4%>
+     <% (@sputum_orders.size).times do |i|%>
+
+    <%element_id = "specimen#{i+1}"%>
+    <%destination_id = "specimen_#{i+1}"%>
+    <%reg_ex = @sputum_orders.collect{|k,v| k}.join('|')%>
+    <%= text_field_tag element_id, nil, 
+      {:id => element_id,
+       :helpText => "Scan specimen #{i+1}", 
+       :field_type => 'number',
+       :tt_onLoad => "setupBarcode();inform();barcodeId = 'touchscreenInput#{counter}';",
+       :validationRule => reg_ex, 
+       :validationMessage => "Not a valid accession number: #{reg_ex}", 
+       :tt_pageStyleClass => "Numeric NumbersOnly"}  %>
+
+    <%= touch_select_tag "#{@sputum_orders[acc_numbers[i]]} RESULTS", @patient, options_for_select(@sputum_results),
+      {:id => "sputum_specimen_#{i+1}_result",
+      :tt_pageStyleClass => "NoKeyboard",
+      :accession_number => acc_numbers[i],
+      :tt_onLoad => "updateValues('#{element_id}');",
+      :helpText => "#{@sputum_orders[acc_numbers[i]]} Results (Accession number: #{acc_numbers[i]})" } %>
+      <%counter += 2%>
+   <%end%>
+      
+  <%= submit_tag "Finish" %>    
+
+</form>
