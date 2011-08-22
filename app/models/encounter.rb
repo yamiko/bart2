@@ -244,7 +244,8 @@ EOF
         "Urine" => ["Urine microscopy", "Urinanalysis", "Culture & sensitivity"],
         "Aspirate" => ["Full aspirate analysis"],
         "Stool" => ["Full stool analysis", "Culture & sensitivity"],
-        "Sputum" => ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)", "Culture"],
+        "Sputum-AAFB" => ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)"],
+        "Sputum-Culture" => ["Culture(1st)", "Culture(2nd)"],
         "Swab" => ["Microscopy", "Culture & sensitivity"]
       },
       'tb_symptoms' => [
