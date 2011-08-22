@@ -86,8 +86,7 @@ module TouchscreenHelper
 
   def touch_select_tag(concept, patient, choices, options={}, time=DateTime.now())    
     options = {  
-     :allowFreeText => false,
-	:multiple => 'false'
+     :allowFreeText => false
     }.merge(options)
 
     #selection_options = "<option value=''></option>" + choices rescue nil
