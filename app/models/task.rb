@@ -298,6 +298,12 @@ class Task < ActiveRecord::Base
       return task
     end
     
+    if User.current_user.activities.include?('Manage Lab Orders') or User.current_user.activities.include?('Manage Lab Results') or
+       User.current_user.activities.include?('Manage Sputum Submissions') or User.current_user.activities.include?('Manage TB Clinic Visits') or
+       User.current_user.activities.include?('Manage TB Reception Visits') or User.current_user.activities.include?('Manage TB Registration Visits') or
+       User.current_user.activities.include?('Manage HIV Status Visits') 
+         return self.tb_next_form(location , patient , session_date)
+    end
      
     #we get the sequence of clinic questions(encounters) form the GlobalProperty table
     #property: list.of.clinical.encounters.sequentially
@@ -460,5 +466,408 @@ class Task < ActiveRecord::Base
   end
 
 
+  def self.tb_next_form(location , patient , session_date = Date.today)
+    task = self.first rescue self.new()
+     
+    #we get the sequence of clinic questions(encounters) form the GlobalProperty table
+    #property: list.of.clinical.encounters.sequentially
+    #property_value: ?
+
+    #valid privileges for ART visit ....
+    #1. Manage TB Reception Visits - TB RECEPTION
+    #2. Manage TB inital visits - TB_INITIAL
+    #3. Manage Lab orders - LAB ORDERS
+    #4. Manage sputum submission - SPUTUM SUBMISSION
+    #5. Manage Lab results - LAB RESULTS
+    #6. Manage TB registration - TB REGISTRATION
+    #7. Manage TB followup - TB_FOLLOWUP
+    #8. Manage HIV status updates - UPDATE HIV STATUS
+    #8. Manage prescriptions - TREATMENT
+    #8. Manage dispensations - DISPENSING
+
+    tb_encounters =  [
+                      'UPDATE HIV STATUS','TB RECEPTION','LAB ORDERS','SPUTUM SUBMISSION',
+                      'LAB RESULTS','TB CLINIC VISIT','VITALS','TB_INITIAL','ART_INITIAL','HIV STAGING',
+                      'TB REGISTRATION','TB_FOLLOWUP','ART VISIT','TREATMENT'
+                     ] 
+    user_selected_activities = User.current_user.activities.collect{|a| a.upcase }.join(',') rescue []
+    if user_selected_activities.blank? or tb_encounters.blank?
+      task.url = "/patients/show/#{patient.id}"
+      return task
+    end
+    art_reason = patient.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue nil
+    reason_for_art = art_reason.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue ''
+    
+    tb_reception_attributes = []
+    tb_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
+                    :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                    session_date,patient.id,EncounterType.find_by_name('TB RECEPTION').id]).observations rescue []
+    (tb_obs || []).each do | obs |
+      tb_reception_attributes << obs.to_s.strip 
+    end
+
+    tb_encounters.each do | type |
+      task.encounter_type = type 
+      case type
+        when 'UPDATE HIV STATUS'
+          next if patient.hiv_status.match(/Positive/i)
+          next if patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') rescue nil
+
+          hiv_status = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["encounter_datetime >= ? AND encounter_datetime <= ?
+                                      AND patient_id = ? AND encounter_type = ?",(session_date.to_date - 3.month).strftime('%Y-%m-%d 00:00:00'),
+                                      (session_date.to_date).strftime('%Y-%m-%d 23:59:59'),patient.id,EncounterType.find_by_name(type).id])
+
+          if hiv_status.observations.map{|s|s.to_s.split(':').last.strip}.include?('Positive')
+            next 
+          end if not hiv_status.blank?
+
+          if hiv_status.blank? and user_selected_activities.match(/Manage HIV Status Visits/i)
+            task.url = "/encounters/new/hiv_status?show&patient_id=#{patient.id}"
+            return task
+          elsif hiv_status.blank? and not user_selected_activities.match(/Manage HIV Status Visits/i)
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end 
+        when 'TB RECEPTION'
+          reception = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                     session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
+
+          if reception.blank? and user_selected_activities.match(/Manage TB Reception Visits/i)
+            task.url = "/encounters/new/tb_reception?show&patient_id=#{patient.id}"
+            return task
+          elsif reception.blank? and not user_selected_activities.match(/Manage TB Reception Visits/i)
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end
+        when 'LAB ORDERS'
+          reception = Observation.find(:first,:order => "encounter_datetime DESC",:joins => "INNER JOIN encounter USING(encounter_id)",
+                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ? AND concept_id = ?",
+                                     session_date.to_date,patient.id,EncounterType.find_by_name('TB RECEPTION').id,
+                                     ConceptName.find_by_name('TYPE OF VISIT').concept_id])
+
+          lab_order = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["DATE(encounter_datetime) <= ? AND patient_id = ? AND encounter_type = ?",
+                                      session_date.to_date ,patient.id,EncounterType.find_by_name(type).id])
+
+          next_lab_encounter =  self.next_lab_encounter(lab_order , session_date)
+          visit_reason = reception.to_s.split(':').last.strip.match(/Sputum sample/i)
+
+          if (lab_order.encounter_datetime.to_date == session_date.to_date)
+            task.encounter_type = 'Patient dashboard ...'
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if visit_reason and not lab_order.blank? 
+
+          if user_selected_activities.match(/Manage Lab Orders/i)
+            task.url = "/encounters/new/lab_orders?show&patient_id=#{patient.id}"
+            return task
+          elsif user_selected_activities.match(/Manage Lab Orders/i)
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if next_lab_encounter.blank? and visit_reason
+        when 'SPUTUM SUBMISSION'
+          reception = Observation.find(:first,:order => "encounter_datetime DESC",:joins => "INNER JOIN encounter USING(encounter_id)",
+                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ? AND concept_id = ?",
+                                     session_date.to_date,patient.id,EncounterType.find_by_name('TB RECEPTION').id,
+                                     ConceptName.find_by_name('TYPE OF VISIT').concept_id])
+
+           previous_sputum_sub = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["DATE(encounter_datetime) <= ? AND patient_id = ? AND encounter_type = ?",
+                                      session_date.to_date ,patient.id,EncounterType.find_by_name(type).id])
+
+
+          next_lab_encounter =  self.next_lab_encounter(previous_sputum_sub , session_date)
+          visit_reason = reception.to_s.split(':').last.strip.match(/Sputum submission/i)
+          visit_reason = reception.to_s.split(':').last.strip.match(/Sputum collection/i) if visit_reason.blank?
+
+          if (previous_sputum_sub.encounter_datetime.to_date == session_date.to_date)
+            task.encounter_type = 'Patient dashboard ...'
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if not previous_sputum_sub.blank? 
+
+          if not next_lab_encounter.blank?
+            next
+          end
+
+          if tb_reception_attributes.include?('Reason for visit:  Clinical examination') and tb_reception_attributes.include?('Any need to see a clinician:  Yes')
+            next
+          elsif tb_reception_attributes.include?('Reason for visit:  Follow-up')
+            next
+          end if next_lab_encounter.blank? 
+
+
+
+          if next_lab_encounter.blank? and previous_sputum_sub.encounter_datetime.to_date == session_date.to_date
+            task.encounter_type = 'Patient dashboard ...'
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if not previous_sputum_sub.blank?
+
+          if user_selected_activities.match(/Manage Sputum Submissions/i)
+            task.url = "/encounters/new/sputum_submission?show&patient_id=#{patient.id}"
+            return task
+          end 
+        when 'LAB RESULTS'
+          reception = Observation.find(:first,:order => "encounter_datetime DESC",:joins => "INNER JOIN encounter USING(encounter_id)",
+                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ? AND concept_id = ?",
+                                     session_date.to_date,patient.id,EncounterType.find_by_name('TB RECEPTION').id,
+                                     ConceptName.find_by_name('TYPE OF VISIT').concept_id])
+
+          lab_result = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["DATE(encounter_datetime) <= ? AND patient_id = ? AND encounter_type = ?",
+                                      session_date.to_date ,patient.id,EncounterType.find_by_name(type).id])
+
+          visit_reason = reception.to_s.split(':').last.strip.match(/Sputum result/i)
+          next_lab_encounter =  self.next_lab_encounter(lab_result , session_date)
+
+          if not next_lab_encounter.blank?
+            next
+          end 
+
+          if tb_reception_attributes.include?('Reason for visit:  Clinical examination') and tb_reception_attributes.include?('Any need to see a clinician:  Yes')
+            next
+          elsif tb_reception_attributes.include?('Reason for visit:  Follow-up')
+            next
+          end if next_lab_encounter.blank? 
+
+          if user_selected_activities.match(/Manage Lab Results/i)
+            task.url = "/encounters/new/lab_results?show&patient_id=#{patient.id}"
+            return task
+          end 
+        when 'TB CLINIC VISIT'
+          clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                      session_date.to_date ,patient.id,EncounterType.find_by_name(type).id])
+
+          tb_followup = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                      session_date.to_date ,patient.id,EncounterType.find_by_name('TB_FOLLOWUP').id])
+          refered_to_clinician =  tb_followup.observations.collect{|obs|obs.to_s.strip}.include?('Refer patient to clinician:  Yes') rescue false
+          
+
+          if tb_reception_attributes.include?('Any need to see a clinician:  No') and not refered_to_clinician
+            next
+          end
+
+          if clinic_visit.blank? and user_selected_activities.match(/Manage TB clinic visits/i)
+            task.url = "/encounters/new/tb_clinic_visit?show&patient_id=#{patient.id}"
+            return task
+          elsif clinic_visit.blank? and not user_selected_activities.match(/Manage TB clinic visits/i)
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end 
+        when 'TB_INITIAL'
+          next if patient.tb_status.match(/Negative/i)
+          tb_initial = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["patient_id = ? AND encounter_type = ?",
+                                      patient.id,EncounterType.find_by_name(type).id])
+
+          next if not tb_initial.blank?
+
+          enrolled_in_tb_program = patient.patient_programs.collect{|p|p.program.name}.include?('TB PROGRAM') rescue false
+          vitals = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                      session_date.to_date,patient.id,EncounterType.find_by_name('VITALS').id])
+
+          if vitals.blank? and user_selected_activities.match(/Manage Vitals/i) 
+            task.encounter_type = 'VITALS'
+            task.url = "/encounters/new/vitals?patient_id=#{patient.id}"
+            return task
+          elsif vitals.blank? and not user_selected_activities.match(/Manage Vitals/i) 
+            task.encounter_type = 'VITALS'
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if not enrolled_in_tb_program
+
+          if user_selected_activities.match(/Manage TB Registration visits/i)
+            task.url = "/encounters/new/tb_initial?show&patient_id=#{patient.id}"
+            return task
+          elsif not user_selected_activities.match(/Manage TB Registration visits/i)
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end 
+        when 'ART_INITIAL'
+          next unless patient.hiv_status.match(/Positive/i)
+        
+          enrolled_in_hiv_program = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?",patient.id, 
+            ConceptName.find_by_name("Patient enrolled in IMB HIV program").concept_id]).value_coded).concept_names.map{|c|c.name}[0].upcase rescue nil
+      
+          next if enrolled_in_hiv_program == 'NO'
+  
+          enrolled_in_hiv_program = patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') rescue false
+          next if enrolled_in_hiv_program 
+
+          art_initial = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
+                                         patient.id,EncounterType.find_by_name(type).id],
+                                         :order =>'encounter_datetime DESC',:limit => 1)
+
+          if art_initial.blank? and user_selected_activities.match(/Manage HIV first visits/i)
+            task.url = "/encounters/new/art_initial?show&patient_id=#{patient.id}"
+            return task
+          elsif art_initial.blank? and not user_selected_activities.match(/Manage HIV first visits/i)
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end
+        when 'HIV STAGING'
+          enrolled_in_hiv_program = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?",patient.id, 
+            ConceptName.find_by_name("Patient enrolled in IMB HIV program").concept_id]).value_coded).concept_names.map{|c|c.name}[0].upcase rescue nil
+
+          next if enrolled_in_hiv_program == 'NO'
+
+          next unless patient.hiv_status.match(/Positive/i)
+          hiv_staging = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["patient_id = ? AND encounter_type = ?",
+                                      patient.id,EncounterType.find_by_name(type).id])
+
+          if hiv_staging.blank? and user_selected_activities.match(/Manage HIV staging visits/i) 
+            extended_staging_questions = GlobalProperty.find_by_property('use.extended.staging.questions')
+            extended_staging_questions = extended_staging_questions.property_value == 'yes' rescue false
+            task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" if not extended_staging_questions 
+            task.url = "/encounters/new/llh_hiv_staging?show&patient_id=#{patient.id}" if extended_staging_questions
+            return task
+          elsif hiv_staging.blank? and not user_selected_activities.match(/Manage HIV staging visits/i)
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if (reason_for_art.upcase ==  'UNKNOWN' or reason_for_art.blank?)
+        when 'TB REGISTRATION'
+          next if patient.tb_status.match(/Negative/i)
+          tb_registration = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["patient_id = ? AND encounter_type = ?",
+                                      patient.id,EncounterType.find_by_name(type).id])
+
+          next if not tb_registration.blank?
+          enrolled_in_tb_program = patient.patient_programs.collect{|p|p.program.name}.include?('TB PROGRAM') rescue false
+    
+          if user_selected_activities.match(/Manage TB Registration visits/i)
+            task.url = "/encounters/new/tb_registration?show&patient_id=#{patient.id}"
+            return task
+          elsif not user_selected_activities.match(/Manage TB Registration visits/i)
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end 
+        when 'TB_FOLLOWUP'
+          next if patient.tb_status.match(/Negative/i)
+          tb_registration = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["patient_id = ? AND encounter_type = ?",
+                                      patient.id,EncounterType.find_by_name('TB REGISTRATION').id])
+
+          tb_followup = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                      session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
+=begin
+          if (tb_followup.encounter_datetime.to_date == tb_registration.encounter_datetime.to_date)
+            next
+          end if not tb_followup.blank? and not tb_registration.blank?
+=end
+          if tb_registration.blank?
+            task.encounter_type = 'TB PROGRAM ENROLMENT'
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end
+
+          if tb_followup.blank? and user_selected_activities.match(/Manage TB Registration visits/i)
+            task.encounter_type = 'TB TREATMENT VISIT'
+            task.url = "/encounters/new/tb_treatment_visit?show&patient_id=#{patient.id}"
+            return task
+          elsif tb_followup.blank? and not user_selected_activities.match(/Manage TB Registration visits/i)
+            task.encounter_type = 'TB TREATMENT VISIT'
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end
+        when 'ART VISIT'  
+          next unless patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') rescue false
+          clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                    :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                    session_date.to_date,patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
+          goto_art_visit = clinic_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'ART visit:  Yes'.upcase rescue false
+          goto_art_visit_answered = clinic_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'ART visit:'.upcase rescue false
+
+          next if not goto_art_visit and goto_art_visit_answered
+          
+          art_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                    :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                    session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
+
+          if art_visit.blank? and user_selected_activities.match(/Manage ART visits/i)
+            task.url = "/encounters/new/art_visit?show&patient_id=#{patient.id}"
+            return task
+          elsif art_visit.blank? and not user_selected_activities.match(/Manage ART visits/i)
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if not reason_for_art.upcase ==  'UNKNOWN'
+        when 'TREATMENT' 
+          treatment_encounter = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                    :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                    session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
+
+          encounter_tb_visit = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
+                                   patient.id,EncounterType.find_by_name('TB_FOLLOWUP').id,session_date],
+                                   :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
+
+          prescribe_drugs = encounter_tb_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Prescribe drugs:  Yes'.upcase rescue false
+
+          if not prescribe_drugs 
+            encounter_tb_clinic_visit = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
+                                   patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id,session_date],
+                                   :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
+
+            prescribe_drugs = encounter_tb_clinic_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Prescribe drugs:  Yes'.upcase rescue false
+          end
+
+          if treatment_encounter.blank? and user_selected_activities.match(/Manage prescriptions/i)
+            task.url = "/regimens/new?patient_id=#{patient.id}"
+            return task
+          elsif treatment_encounter.blank? and not user_selected_activities.match(/Manage prescriptions/i)
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if prescribe_drugs
+      end
+    end
+    #task.encounter_type = 'Visit complete ...'
+    task.encounter_type = 'Patient dashboard ...'
+    task.url = "/patients/show/#{patient.id}"
+    return task
+  end
+
+  private
+
+  def self.next_lab_encounter(encounter = nil , session_date = Date.today)
+    return if encounter.blank?
+    case encounter.name.upcase
+      when 'LAB ORDERS' 
+        type = EncounterType.find_by_name('SPUTUM SUBMISSION').id
+        sputum_sub = Encounter.find(:first,:joins => "INNER JOIN obs USING(encounter_id)",
+               :conditions =>["obs.accession_number IN (?) AND patient_id = ? AND encounter_type = ?",
+               encounter.observations.map{|r|r.accession_number}.compact,encounter.patient_id,type])
+
+        return if sputum_sub.blank?
+        return sputum_sub 
+      when 'SPUTUM SUBMISSION'
+        type = EncounterType.find_by_name('LAB RESULTS').id
+        lab_results = Encounter.find(:first,:joins => "INNER JOIN obs USING(encounter_id)",
+               :conditions =>["obs.accession_number IN (?) AND patient_id = ? AND encounter_type = ?",
+               encounter.observations.map{|r|r.accession_number}.compact,encounter.patient_id,type])
+
+        type = EncounterType.find_by_name('LAB ORDERS').id
+        lab_order = Encounter.find(:first,:joins => "INNER JOIN obs USING(encounter_id)",
+               :conditions =>["obs.accession_number IN (?) AND patient_id = ? AND encounter_type = ?",
+               encounter.observations.map{|r|r.accession_number}.compact,encounter.patient_id,type])
+
+        return lab_order if lab_results.blank? and not lab_order.blank?
+        return if lab_results.blank?
+        return lab_results 
+      when 'LAB RESULTS'
+        type = EncounterType.find_by_name('SPUTUM SUBMISSION').id
+        sputum_sub = Encounter.find(:first,:joins => "INNER JOIN obs USING(encounter_id)",
+               :conditions =>["obs.accession_number IN (?) AND patient_id = ? AND encounter_type = ?",
+               encounter.observations.map{|r|r.accession_number}.compact,encounter.patient_id,type])
+
+        return if sputum_sub.blank?
+        return sputum_sub 
+    end
+  end
 
 end
