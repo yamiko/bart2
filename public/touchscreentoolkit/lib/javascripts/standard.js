@@ -753,7 +753,7 @@ function toggleShowProgress() {
 }
 
 function loadSelectOptions(selectOptions, options, dualViewOptions) {
-    var optionsList = "<ul id='tt_currentUnorderedListOptions'><li id='default'> </li>";
+    var optionsList = "<ul id='tt_currentUnorderedListOptions'>";  // <li id='default'> </li>";
     var selectOptionCount = selectOptions.length;
     var selected = -1;
 

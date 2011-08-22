@@ -86,13 +86,16 @@ module TouchscreenHelper
 
   def touch_select_tag(concept, patient, choices, options={}, time=DateTime.now())    
     options = {  
-     :allowFreeText => false 
-    }.merge(options)                 
+     :allowFreeText => false
+    }.merge(options)
+
+    selection_options = "<option value=''></option>" + choices rescue nil
+    
     options = {:tt_pageStyleClass => "NoKeyboard"}.merge(options) if options[:ajaxURL].blank?
     kind = options[:multiple] ? "value_coded_or_text_multiple" : "value_coded_or_text"
     content = ""
     content << touch_meta_tag(concept, patient, time, kind, options)
-    content << select_tag("observations[][#{kind}]", choices, options) 
+    content << select_tag("observations[][#{kind}]", selection_options, options)
     content
   end
 
@@ -100,21 +103,21 @@ module TouchscreenHelper
     options = {
       :tt_pageStyleClass => "NoKeyboard"
     }.merge(options)                 
-    touch_select_tag(concept, patient, options_for_select([['Yes','YES'],['No','NO']], value), options, time)
+    touch_select_tag(concept, patient, options_for_select([['',''],['Yes','YES'],['No','NO']], value), options, time)
   end
   
   def touch_yes_no_unknown_tag(concept, patient, value, options={}, time=DateTime.now())
     options = {
       :tt_pageStyleClass => "NoKeyboard"
     }.merge(options)                 
-    touch_select_tag(concept, patient, options_for_select([['Yes','YES'],['No','NO'],['Unknown','UNKNOWN']], value), options, time)
+    touch_select_tag(concept, patient, options_for_select([['',''],['Yes','YES'],['No','NO'],['Unknown','UNKNOWN']], value), options, time)
   end
   
   def touch_yes_no_tag(concept, patient, value, options={}, time=DateTime.now())
     options = {
       :tt_pageStyleClass => "NoKeyboard"
     }.merge(options)                 
-    touch_select_tag(concept, patient, options_for_select([['Yes','YES'],['No','NO']], value), options, time)
+    touch_select_tag(concept, patient, options_for_select([['',''],['Yes','YES'],['No','NO']], value), options, time)
   end
   
   def touch_hidden_tag(concept, patient, value, options={}, time=DateTime.now())
