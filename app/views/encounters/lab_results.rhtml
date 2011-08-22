@@ -23,6 +23,8 @@
 
 <script>
   var tt_cancel_destination = "/encounters/new/lab?patient_id=<%= @patient.patient_id -%>";
+  var result_filed_ids = [];
+  var tb_status =  'NEGATIVE';
 
   var acc_numbers = {<%= @sputum_orders.collect{|k,v| "#{k}:'#{v}'"}.sort.join(",")%>};
 
@@ -57,6 +59,57 @@
     $('infoBar'+tstCurrentPage).innerHTML = "Scan the label on the sputum collection bottle";
   }
 
+  function summary() {
+    results = '<ul>';
+    for(i = 0 ; i < result_filed_ids.length ; i++) {
+      if ($(result_filed_ids[i]).value != 'NEGATIVE') {
+        tb_status =  'POSITIVE'
+      }
+      results += '<li>' + $(result_filed_ids[i]).getAttribute('helpText') + ": " + $(result_filed_ids[i]).value  + '</li>'
+    }
+    results += '</ul>';
+    
+    var display = "<div><span class='title'>TB Status: " + tb_status + "</span></div>";
+    display += "<hr /><br /><div><span class='title'>Sputum results:<br />" + results + "</span></div>";
+    $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + display + '</div>' ;    
+    $("clearButton").className = "button gray navButton";
+  }
+
+  function resetAttributes() {
+    $('nextButton').setAttribute('onmousedown','gotoNextPage();');
+  }
+  
+  function setAttributes() {
+    enrolled_in_tb_program = "<%=@patient.patient_programs.collect{|p|p.program.name}.include?('TB PROGRAM') rescue false%>"
+    if (enrolled_in_tb_program == 'false')
+      $('nextButton').setAttribute('onmousedown','finish();');
+  }
+
+
+   function finish() {
+    submitForm = document.getElementById("lab_results");
+
+    newElement = document.createElement("input");
+    newElement.setAttribute("name","observations[][value_coded_or_text]");
+    newElement.setAttribute("type","hidden");
+    newElement.value = tb_status;
+    submitForm.appendChild(newElement);
+
+    newElement = document.createElement("input");
+    newElement.setAttribute("name","observations[][concept_name]");
+    newElement.setAttribute("type","hidden");
+    newElement.value = "TB STATUS";
+    submitForm.appendChild(newElement);
+
+    newElement = document.createElement("input");
+    newElement.setAttribute("name","observations[][patient_id]");
+    newElement.setAttribute("type","hidden");
+    newElement.value = "<%=@patient.id%>";
+    submitForm.appendChild(newElement);
+
+    submitForm.submit();
+    return;
+  }
 </script>
 
   <%if @sputum_orders.empty?%>
@@ -75,7 +128,7 @@
 
  <%else%>
 
-<form id='update_hiv_status' action="/encounters/create" method='post'>
+<form id='lab_results' action="/encounters/create" method='post'>
   <%= hidden_field_tag "encounter[encounter_type_name]", "LAB RESULTS" %>
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
@@ -107,7 +160,7 @@
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "Visual appearance of sputum specimen" } %>
      <%acc_numbers = @sputum_orders.collect{|k,v| k}.sort%>
-     <%counter = 4%>
+     <%counter = 4 %>
      <% (@sputum_orders.size).times do |i|%>
 
     <% element_id = "specimen#{i+1}"%>
@@ -122,8 +175,13 @@
        :validationMessage => "Not a valid accession number: #{reg_ex} or a duplicate accession_numeber",
        :tt_pageStyleClass => "Numeric NumbersOnly"}  %>
 
+    <% id = (i+1) %>
+    <script>
+       result_filed_ids.push("sputum_specimen_<%=id%>_result");
+    </script>
+
     <%= touch_select_tag "#{@sputum_orders[acc_numbers[i]]} RESULTS", @patient, options_for_select(@sputum_results),
-      {:id => "sputum_specimen_#{i+1}_result",
+      {:id => "sputum_specimen_#{id}_result",
       :tt_pageStyleClass => "NoKeyboard",
       :accession_number => i + 1,
       :tt_onUnload => "delete acc_numbers_check[__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value]",
@@ -132,6 +190,14 @@
       <%counter += 2%>
    <%end%>
 
-  <%= submit_tag "Finish" %>
+  <label for='summary'>Summary</label>
+    <%= text_field_tag :summary, nil, { 
+        :tt_onLoad => "summary();setAttributes();", 
+        :tt_onUnLoad => "resetAttributes();",
+        :optional => "true", 
+        :tt_pageStyleClass => "NoControls" 
+    } %>
+         
+  <%= submit_tag "Finish" %>    
 </form>
 <% end %>

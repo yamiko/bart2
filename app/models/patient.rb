@@ -105,11 +105,11 @@ class Patient < ActiveRecord::Base
     hiv_status = self.hiv_status
     alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.gsub(" ",'')}" == 'Negative' && self.months_since_last_hiv_test > 3)
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.gsub(" ",'')}" == 'Unknown'
-
     alerts << "Lab: Expecting submission of sputum" unless self.sputum_orders_without_submission.empty?
+    alerts << "Lab: Waiting for sputum results" unless !self.sputum_submissions_waiting_for_results.empty?
     alerts
   end
-  
+
   def summary
     #    verbiage << "Last seen #{visits.recent(1)}"
     verbiage = []
@@ -294,9 +294,10 @@ class Patient < ActiveRecord::Base
           label.font_horizontal_multiplier = 2
           label.font_vertical_multiplier = 2
           label.left_margin = 50
-          label.draw_text("#{self.person.name.titleize.delete("'")} #{self.national_id_with_dashes}",75, 30, 0, 4, 4, 4, false)
+          label.draw_barcode(50,180,0,1,5,15,120,false,"#{accession_number}")
+          label.draw_multi_text("#{self.person.name.titleize.delete("'")} #{self.national_id_with_dashes}")
           label.draw_multi_text("#{lab_orders[i].name rescue nil}")
-          label.draw_text("#{accession_number rescue nil}",75, 30, 0, 4, 4, 4, false)
+          label.draw_multi_text("#{accession_number rescue nil}")
           label.draw_multi_text("#{DateTime.now.strftime("%d-%b-%Y %H:%M")}")
           labels << label
           end
@@ -1150,10 +1151,13 @@ EOF
   end
   
   #from TB ART TO BART
-
+  
+  def tb_status
+    Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).concept_names.map{|c|c.name}[0] rescue "UNKNOWN"
+  end
+  
   def hiv_status
-    status = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV Status").concept_id]).name rescue "UNKNOWN"
-    return status
+    Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).concept_names.map{|c|c.name}[0] rescue "UNKNOWN"
   end
 
   def hiv_test_date
@@ -1187,13 +1191,25 @@ EOF
   end
   
   def recent_sputum_orders
-    sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)"]
+    sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)", "Culture(1st)", "Culture(2nd"]
     sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
-    Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?) OR value_text in (?))", self.id, ConceptName.find_by_name('TESTS ORDERED').concept_id, sputum_concept_ids, sputum_concept_names], :order => "obs_datetime desc", :limit => 3)
+    Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?) OR value_text in (?))", self.id, ConceptName.find_by_name('Tests ordered').concept_id, sputum_concept_ids, sputum_concept_names], :order => "obs_datetime desc", :limit => 3)
   end
 
   def sputum_orders_without_submission
-    self.recent_sputum_orders.collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", self.id, Concept.find_by_name("SPUTUM SUBMISSION")]).map{|o| o.accession_number}.include?(order.accession_number)}.compact rescue []
+    self.recent_sputum_orders.collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", self.id, Concept.find_by_name("Sputum submission")]).map{|o| o.accession_number}.include?(order.accession_number)}.compact rescue []
+  end
+
+  def recent_sputum_submissions
+    sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)", "Culture(1st)", "Culture(2nd)"]
+    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
+    Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?) OR value_text in (?))", self.id, ConceptName.find_by_name('Sputum submission').concept_id, sputum_concept_ids, sputum_concept_names], :order => "obs_datetime desc", :limit => 3)
+  end
+
+  def sputum_submissions_waiting_for_results
+    sputum_results = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("LAB RESULTS").id,self.id]).name rescue []
+    return sputum_results
   end
 
   def is_first_visit?
