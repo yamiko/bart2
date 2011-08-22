@@ -166,28 +166,28 @@
     <% element_id = "specimen#{i+1}"%>
     <%destination_id = "specimen_#{i+1}"%>
     <%reg_ex = @sputum_orders.collect{|k,v| k}.join('|')%>
-    <%= text_field_tag element_id, nil, 
-      {:id => element_id,
-       :helpText => "Scan specimen #{i+1}", 
-       :field_type => 'number',
-       :tt_onLoad => "setupBarcode();inform();barcodeId = 'touchscreenInput#{counter}';",
-       :validationCode => "acc_numbers_check[__$('touchscreenInput' + tstCurrentPage).value] != undefined",
-       :validationMessage => "Not a valid accession number: #{reg_ex} or a duplicate accession_numeber",
-       :tt_pageStyleClass => "Numeric NumbersOnly"}  %>
-
+    
     <% id = (i+1) %>
     <script>
        result_filed_ids.push("sputum_specimen_<%=id%>_result");
     </script>
 
+      <%= text_field_tag element_id, nil,
+      {:id => element_id,
+       :helpText => "Scan specimen #{i+1}",
+       :field_type => 'number',
+       :tt_onLoad => "setupBarcode();inform();barcodeId = 'touchscreenInput#{counter}';",
+       :validationRule => reg_ex,
+       :validationMessage => "Not a valid accession number: #{reg_ex}",
+       :tt_pageStyleClass => "Numeric NumbersOnly"}  %>
+
     <%= touch_select_tag "#{@sputum_orders[acc_numbers[i]]} RESULTS", @patient, options_for_select(@sputum_results),
-      {:id => "sputum_specimen_#{id}_result",
+      {:id => "sputum_specimen_#{i+1}_result",
       :tt_pageStyleClass => "NoKeyboard",
-      :accession_number => i + 1,
-      :tt_onUnload => "delete acc_numbers_check[__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value]",
-      :tt_onLoad => "__$('helpText' + tstCurrentPage).innerHTML= acc_numbers[__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value] + ' Results (Accession number: ' +__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value + ')'",
-      :helpText => "'#{@sputum_orders[acc_numbers[i]]}  Results (Accession number: ' +__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value + ')'" } %>
+      :accession_number => acc_numbers[i],
+      :helpText => "#{@sputum_orders[acc_numbers[i]]} Results (Accession number: #{acc_numbers[i]})" } %>
       <%counter += 2%>
+
    <%end%>
 
   <label for='summary'>Summary</label>

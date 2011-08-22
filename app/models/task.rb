@@ -769,9 +769,11 @@ class Task < ActiveRecord::Base
           end
 
           if tb_followup.blank? and user_selected_activities.match(/Manage TB Registration visits/i)
-            task.url = "/encounters/new/tb_followup?show&patient_id=#{patient.id}"
+            task.encounter_type = 'TB TREATMENT VISIT'
+            task.url = "/encounters/new/tb_treatment_visit?show&patient_id=#{patient.id}"
             return task
           elsif tb_followup.blank? and not user_selected_activities.match(/Manage TB Registration visits/i)
+            task.encounter_type = 'TB TREATMENT VISIT'
             task.url = "/patients/show/#{patient.id}"
             return task
           end
