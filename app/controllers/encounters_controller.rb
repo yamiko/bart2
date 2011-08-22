@@ -182,7 +182,12 @@ class EncountersController < ApplicationController
     # Go to the next task in the workflow (or dashboard)
     # only redirect to next task if location parameter has not been provided
     unless params[:location]
+    #find a way of printing the lab_orders labels
+     if params['encounter']['encounter_type_name'] == "LAB ORDERS"
+       redirect_to"/patients/print_lab_orders/?patient_id=#{@patient.id}"
+     else
       redirect_to next_task(@patient)
+     end
     else
       render :text => encounter.encounter_id.to_s and return
     end
