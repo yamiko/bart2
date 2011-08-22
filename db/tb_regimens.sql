@@ -18,7 +18,6 @@ CREATE TABLE `tb_regimen` (
   CONSTRAINT `tb_map_concept` FOREIGN KEY (`concept_id`) REFERENCES `concept` (`concept_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=68 DEFAULT CHARSET=utf8;
 
-INSERT INTO `tb_regimen` VALUES (1131,6,35,200,1,'2011-06-20 17:59:01',0,NULL,NULL,1);
 
 DROP TABLE IF EXISTS `tb_regimen_drug_order`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
