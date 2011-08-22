@@ -124,7 +124,7 @@ class Patient < ActiveRecord::Base
     id = self.national_id(force)
     id[0..4] + "-" + id[5..8] + "-" + id[9..-1] rescue id
   end
-  
+
   def demographics_label
     demographics = Mastercard.demographics(self)
     hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
@@ -273,6 +273,41 @@ class Patient < ActiveRecord::Base
     label.print(1)
   end
   
+   def lab_orders_label
+    lab_orders = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("LAB ORDERS").id,self.id]).observations
+      labels = []
+      i = 0
+
+      while i <= lab_orders.size do
+        accession_number = "#{lab_orders[i].accession_number rescue nil}"
+
+        if accession_number != ""
+          label = 'label' + i.to_s
+          label = ZebraPrinter::StandardLabel.new
+          label.font_size = 2
+          label.font_horizontal_multiplier = 2
+          label.font_vertical_multiplier = 2
+          label.left_margin = 50
+          label.draw_text("#{self.person.name.titleize.delete("'")} #{self.national_id_with_dashes}",75, 30, 0, 4, 4, 4, false)
+          label.draw_multi_text("#{lab_orders[i].name rescue nil}")
+          label.draw_text("#{accession_number rescue nil}",75, 30, 0, 4, 4, 4, false)
+          label.draw_multi_text("#{DateTime.now.strftime("%d-%b-%Y %H:%M")}")
+          labels << label
+          end
+          i = i + 1
+      end
+
+      print_labels = []
+      label = 0
+      while label <= labels.size
+        print_labels << labels[label].print(1) if labels[label] != nil
+        label = label + 1
+      end
+
+      return print_labels
+  end
+
   def filing_number_label(num = 1)
     file = self.get_identifier('Filing Number')[0..9]
     file_type = file.strip[3..4]
@@ -1134,8 +1169,12 @@ EOF
   def given_tb_medication_before?
     self.orders.each{|order|
       drug_order = order.drug_order
+      drug_order_quantity = drug_order.quantity
+      if drug_order_quantity == nil
+        drug_order_quantity = 0
+      end
       next if drug_order == nil
-      next unless drug_order.quantity > 0
+      next unless drug_order_quantity > 0
       return true if drug_order.drug.tb_medication?
     }
     false
@@ -1145,6 +1184,30 @@ EOF
     sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)"]
     sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
     Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?) OR value_text in (?))", self.id, ConceptName.find_by_name('TESTS ORDERED').concept_id, sputum_concept_ids, sputum_concept_names], :order => "obs_datetime desc", :limit => 3)
+  end
+
+  def sputum_orders_without_submission
+    self.recent_sputum_orders.collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", self.id, Concept.find_by_name("SPUTUM SUBMISSION")]).map{|o| o.accession_number}.include?(order.accession_number)}.compact rescue []
+  end
+
+  def is_first_visit?
+    clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",
+                          'ART ADHERENCE','DISPENSING','ART_INITIAL', "LAB ORDERS",
+                          "LAB RESULTS","HIV RECEPTION","SPUTUM SUBMISSION",
+                          "TB RECEPTION","TB REGISTRATION","TB TREATMENT",
+                          "TB_FOLLOWUP"
+                          ]
+    current_date = Time.now.strftime("%d-%b-%Y")
+
+    clinic_encounter_ids = EncounterType.find(:all,:conditions => ["name IN (?)",clinic_encounters]).collect{| e | e.id }
+    first_encounter_date = self.encounters.find(:first,
+      :order => 'encounter_datetime',
+      :conditions => ['encounter_type IN (?)',clinic_encounter_ids]).encounter_datetime.strftime("%d-%b-%Y") rescue 'Unknown'
+
+    return true if first_encounter_date == 'Unknown'
+    return true if current_date == first_encounter_date
+    return false if current_date > first_encounter_date
+
   end
   
 end

@@ -142,8 +142,8 @@ EOF
      'family_planning_methods' => [
        ['',''],
        ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
-		   ['Depo-Provera', 'DEPO-PROVERA'],
-		   ['Intrauterine contraception', 'INTRAUTERINE CONTRACEPTION'],
+       ['Depo-Provera', 'DEPO-PROVERA'],
+       ['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
        ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
        ['Male condoms', 'MALE CONDOMS'],
        ['Female condoms', 'FEMALE CONDOMS'],
@@ -178,7 +178,31 @@ EOF
        ['Abstinence', 'ABSTINENCE'],
        ['Tubal ligation', 'TUBAL LIGATION'],
        ['Vasectomy', 'VASECTOMY'],
-		   ['Emergency contraception', 'EMERGENCY CONTRACEPTION']
+       ['Emergency contraception', 'EMERGENCY CONTRACEPTION'],
+       ['Other','OTHER']
+      ],
+     'male_family_planning_methods' => [
+       ['',''],
+       ['Male condoms', 'MALE CONDOMS'],
+       ['Withdrawal', 'WITHDRAWAL'],
+       ['Rhythm method', 'RYTHM METHOD'],
+       ['Abstinence', 'ABSTINENCE'],
+       ['Vasectomy', 'VASECTOMY'],
+       ['Other','OTHER']
+      ],
+     'female_family_planning_methods' => [
+       ['',''],
+       ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
+       ['Depo-Provera', 'DEPO-PROVERA'],
+       ['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
+       ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
+       ['Female condoms', 'FEMALE CONDOMS'],
+       ['Withdrawal', 'WITHDRAWAL'],
+       ['Rhythm method', 'RYTHM METHOD'],
+       ['Abstinence', 'ABSTINENCE'],
+       ['Tubal ligation', 'TUBAL LIGATION'],
+       ['Emergency contraception', 'EMERGENCY CONTRACEPTION'],
+       ['Other','OTHER']
       ],
      'drug_list' => [
           ['',''],
@@ -203,7 +227,7 @@ EOF
         'continue_treatment' => [
           ["",""],
           ["Yes", "YES"],
-          ["DHO Dot site","DHO DOT SITE"],
+          ["DHO DOT site","DHO DOT SITE"],
           ["Transfer Out", "TRANSFER OUT"]
       ],
         'hiv_status' => [
@@ -255,7 +279,39 @@ EOF
         "Stool" => ["Full stool analysis", "Culture & sensitivity"],
         "Sputum" => ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)", "Culture"],
         "Swab" => ["Microscopy", "Culture & sensitivity"]
-      }
+      },
+      'tb_symptoms' => [
+        ['',''],
+        ["Cough lasting more than three weeks", "Cough lasting more than three weeks"],
+        ["Bronchial breathing", "Bronchial breathing"],
+        ["Shortness of breath", "Shortness of breath"],
+        ["Crackles", "Crackles"],
+        ["Failure to thrive", "Failure to thrive"],
+        ["Chest pain", "Chest pain"],
+        ["Weight loss", "Weight loss"],
+        ["Relapsing fever", "Relapsing fever"],
+        ["Fatigue", "Fatigue"],
+        ["Bloody cough", "Hemoptysis"],
+        ["Peripheral neuropathy","Peripheral neuropathy"]
+      ],
+      'drug_related_side_effects' => [
+        ['',''],
+        ["Deafness", "Deafness"],
+        ["Dizziness", "Dizziness"],
+        ["Yellow eyes", "Jaundice"],
+        ["Skin itching/purpura", "Skin itching"],
+        ["Visual impairment", "Visual impairment"],
+        ["Vomiting", "Vomiting"],
+        ["Confusion", "Confusion"],
+        ["Peripheral neuropathy","Peripheral neuropathy"]
+      ],
+      'tb_patient_categories' => [
+        ['',''],
+        ["New", "New patient"],
+        ["Relapse", "Relapse MDR-TB patient"],
+        ["Retreatment after default", "Treatment after default MDR-TB patient"],
+        ["Failure", "Failed - TB"]
+      ]
     }
   end
 
