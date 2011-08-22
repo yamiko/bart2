@@ -65,7 +65,6 @@ Check applicability of code below
 
   <%#= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
   
-<<<<<<< HEAD
    <%= touch_select_tag "Clinical symptoms associated with TB", @patient, concept_set_options('Clinical symptoms associated with TB'),
       {:id => 'side_effects',
        :optional => true,
@@ -85,17 +84,6 @@ Check applicability of code below
        :tt_pageStyleClass => "NoKeyboard",
        :helpText => "Interpret X-Ray" } %>
   <% end %>
-
-  <%= touch_select_tag "Clinical symptoms associated with TB", @patient, concept_set_options('Clinical symptoms associated with TB').sort + ['<option>Other</option><option>None</option>'],
-    {:id => "clinical_symptoms_associated_with_tb",
-     :tt_pageStyleClass => "NoKeyboard",
-     :multiple => "true",
-     :helpText => "Clinical symptoms associated with TB" } %>
-
-  <%= touch_select_tag "X-ray result interpretation", @patient, options_for_select(@select_options['tb_xray_interpretation']),
-    {:id => "xray",
-     :tt_pageStyleClass => "NoKeyboard",
-     :helpText => "Interpret X-Ray" } %>
 
   <% unless @patient.tb_status.upcase == 'POSITIVE' %>
   <%= touch_yes_no_unknown_tag "TB STATUS", @patient, nil,
