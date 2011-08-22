@@ -315,12 +315,15 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
   </script>
 <% else %>
 
-<form id='appointment' action="/encounters/create" method='post' extended="true">
+<form id='appointment' action="/encounters/create" method='post' extended="false" headerLabel="HIV Staging">
   <%= hidden_field_tag "encounter[encounter_type_name]", "HIV STAGING" %>
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
+  <table>
+    <tr>
+      <td>
   <%= touch_select_tag "PRESUMED SEVERE HIV CRITERIA PRESENT", @patient, concept_set_options('PRESUMED SEVERE HIV CRITERIA IN INFANTS'),
     {:id => "presumed_severe_hiv_conditions",
      :multiple => true,
@@ -442,7 +445,13 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
          :helpText => "Stage 4 Conditions (adults only)",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <%# end %>
+      </td>
+    </tr>
+  </table>
 
+  <table>
+    <tr>
+      <td>
     <label for='new_cd4_count_available'>CD4 count available?</label>
       <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_count_available', :tt_pageStyleClass => 'NoKeyboard' %>
 
@@ -487,6 +496,13 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
        :condition => '$("new_lymphocyte_count_available").value == "YES"',
        :helpText => "Lymphocyte Count"} %>
 
+      </td>
+    </tr>
+  </table>
+
+  <table>
+    <tr>
+      <td>
   <% else %>
 
     <!-- Children under the age of 14 --> 
@@ -575,7 +591,13 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
          :helpText => "Stage 4 Conditions (children only)",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <%# end %>
+      </td>
+    </tr>
+  </table>
 
+  <table>
+    <tr>
+      <td>
     <label for='new_cd4_count_available'>New CD4 count available?</label>
       <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_count_available', :tt_pageStyleClass => 'NoKeyboard' %>
 
@@ -650,6 +672,10 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
   <%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
   <%= touch_hidden_tag "REASON FOR ART ELIGIBILITY", @patient, "", :id => "reason_for_art_eligibility" %>
   
+      </td>
+    </tr>
+  </table>
+
   <label for='summary'>Summary</label>
   <%= text_field_tag :summary, nil, { :tt_onLoad => "summary();", :optional => "true", :tt_pageStyleClass => "NoControls" } %>
   
