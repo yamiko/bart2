@@ -51,7 +51,9 @@
   
   //setTimeout("setupBarcode()", 300);
   function setupBarcode(){
+    barcodeId = tstInputTarget.id;
     barcodeScanAction = gotoNextPage;
+    setTimeout("focusForBarcodeInput()", 300);
     loadBarcodePage();
   }
 
@@ -178,7 +180,7 @@
       {:id => element_id,
        :helpText => "Scan specimen #{i+1}",
        :field_type => 'number',
-       :tt_onLoad => "setupBarcode();inform();barcodeId = 'touchscreenInput#{counter}';",
+       :tt_onLoad => "setupBarcode();inform(); setupBarcode();",
        :validationRule => reg_ex,
        :validationMessage => "Not a valid accession number: #{reg_ex}",
        :tt_pageStyleClass => "Numeric NumbersOnly"}  %>
