@@ -2,6 +2,7 @@
     var tt_cancel_destination = "/patients/show/<%= @patient.id%>?auto_load_forms=false"
     var val_arr = [];
     var val_in_list = [];
+    var number_of_selected_test = 0;
 
     function showLabels(){
         //var ordersArray = tstPageValues[1].split(";")
@@ -73,14 +74,27 @@
     }
   
     function updateNextFinish(){
+        tstTimerFunctionCall = null;
+        number_of_selected_test = tstInputTarget.value.split(';').length;
+
         if (tstCurrentPage == 1 || tstCurrentPage == 2){
             if (tstInputTarget.value == ''){
                 $('nextButton').innerHTML = '<span>Finish</span>';
-                $('nextButton').setAttribute("onmousedown","formSubmit()");
+                if(number_of_selected_test < 2 && tstCurrentPage == 2){
+                    $('nextButton').setAttribute("onmousedown","showMessage('Please select 2 or more tests');");
+                }
+                else{
+                    $('nextButton').setAttribute("onmousedown","formSubmit()");
+                }
             }
             else{
                 $('nextButton').innerHTML = '<span>Next</span>';
-                $('nextButton').setAttribute("onmousedown","gotoNextPage()");
+                if(number_of_selected_test < 2 && tstCurrentPage == 2){
+                    $('nextButton').setAttribute("onmousedown","showMessage('Please select 2 or more tests');");
+                }
+                else{
+                    $('nextButton').setAttribute("onmousedown","gotoNextPage()");
+                }
             }
             setTimeout(updateNextFinish, 500);
         }
@@ -126,7 +140,9 @@
 
   <%= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
 
-  <%= select_tag "main_tests", options_for_select(@select_options['lab_orders'].sort.collect{|k,v| k}.unshift(" ")), 
+<%# select_tag "main_tests", options_for_select(@select_options['lab_orders'].sort.collect{|k,v| k}.unshift(" ")), %>
+
+  <%= select_tag "main_tests", options_for_select(["Sputum-AAFB", "Sputum-Culture"].unshift(" ")), 
     {:helptext => 'Main tests', 
       :id => 'main_tests',
       :tt_onLoad => "updateNextFinish();",
@@ -135,7 +151,7 @@
 
   <%= select_tag "lab_orders", options_for_select([]),
     {:id => "lab_orders",
-     :tt_onLoad => '$("infoBar"+tstCurrentPage).innerHTML = val_arr.toString();setTimeout("updateLabOptions()",500);',
+     :tt_onLoad => '$("infoBar"+tstCurrentPage).innerHTML = val_arr.toString();setTimeout("updateLabOptions()",500);updateNextFinish();',
      :ajaxURL => '',
      :tt_onUnLoad => "",
      :multiple => true,
