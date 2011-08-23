@@ -91,7 +91,11 @@ class ApplicationController < ActionController::Base
       end
 
       #[opt[0], "#{opt_reg.regimen_index}#{suffix} - #{opt[1]}"]
-      ["#{opt_reg.regimen_index}#{suffix} - #{opt[1]}", opt[0]]
+		if opt_reg.regimen_index > -1
+      		["#{opt_reg.regimen_index}#{suffix} - #{opt[1]}", opt[0]]
+		else
+      		["#{opt[1]}", opt[0]]
+		end
     }.sort_by{|opt| opt[1]}
   end
 

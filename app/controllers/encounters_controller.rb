@@ -206,9 +206,6 @@ class EncountersController < ApplicationController
     @tb_patient = @patient.tb_patient?
     @art_patient = @patient.art_patient?
     
-=begin
-=end
-
     use_regimen_short_names = GlobalProperty.find_by_property(
       "use_regimen_short_names").property_value rescue "false"
     show_other_regimen = GlobalProperty.find_by_property(
@@ -241,8 +238,13 @@ class EncountersController < ApplicationController
     redirect_to next_task(@patient) and return unless params[:encounter_type]
 
     redirect_to :action => :create, 'encounter[encounter_type_name]' => params[:encounter_type].upcase, 'encounter[patient_id]' => @patient.id and return if ['registration'].include?(params[:encounter_type])
-
-    render :action => params[:encounter_type] if params[:encounter_type]
+	
+	
+	if params[:encounter_type].upcase == 'HIV_STAGING' and  (GlobalProperty.find_by_property('use.extended.staging.questions').property_value == "yes" rescue false)
+    	render :template => 'encounters/llh_hiv_staging'
+	else
+    	render :action => params[:encounter_type] if params[:encounter_type]
+	end
   end
 
   def diagnoses
