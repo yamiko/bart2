@@ -112,7 +112,16 @@ class PeopleController < ApplicationController
       unless (params[:relation].blank?)
         redirect_to search_complete_url(person.id, params[:relation]) and return
       else
-        if use_filing_number 
+
+       tb_session = false
+       if User.current_user.activities.include?('Manage Lab Orders') or User.current_user.activities.include?('Manage Lab Results') or
+        User.current_user.activities.include?('Manage Sputum Submissions') or User.current_user.activities.include?('Manage TB Clinic Visits') or
+        User.current_user.activities.include?('Manage TB Reception Visits') or User.current_user.activities.include?('Manage TB Registration Visits') or
+        User.current_user.activities.include?('Manage HIV Status Visits')
+         tb_session = true
+       end
+
+        if use_filing_number not tb_session
           person.patient.set_filing_number 
           archived_patient = person.patient.patient_to_be_archived
           message = Patient.printing_message(person.patient,archived_patient,creating_new_patient = true) 

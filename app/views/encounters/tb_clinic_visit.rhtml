@@ -5,43 +5,6 @@
     $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: Clinic Visit</span></div></div>' 
   }
 
-  function resetAttributes() {
-    $('nextButton').setAttribute('onmousedown','gotoNextPage();');
-  }
-  
-  function setAttributes() {
-    enrolled_in_tb_program = "<%=@patient.patient_programs.collect{|p|p.program.name}.include?('TB PROGRAM') rescue false%>"
-    if (enrolled_in_tb_program == 'false')
-      $('nextButton').setAttribute('onmousedown','finish();');
-  }
-
-  function finish() {
-    if ($('confirm_tb_status').value == 'YES') {
-      submitForm = document.getElementById("appointment");
-
-      newElement = document.createElement("input");
-      newElement.setAttribute("name","observations[][value_coded_or_text]");
-      newElement.setAttribute("type","hidden");
-      newElement.value = 'POSITIVE';
-      submitForm.appendChild(newElement);
-
-      newElement = document.createElement("input");
-      newElement.setAttribute("name","observations[][concept_name]");
-      newElement.setAttribute("type","hidden");
-      newElement.value = "TB STATUS";
-      submitForm.appendChild(newElement);
-
-      newElement = document.createElement("input");
-      newElement.setAttribute("name","observations[][patient_id]");
-      newElement.setAttribute("type","hidden");
-      newElement.value = "<%=@patient.id%>";
-      submitForm.appendChild(newElement); 
-       
-      submitForm.submit();
-      return;
-    }
-    gotoNextPage();
-  }
 </script> 
 
 <!--.........TODO..........dd..
@@ -78,19 +41,19 @@ Check applicability of code below
      reception_obs = reception.observations.map{|obs|obs.to_s.strip.upcase} rescue []
   %>
 
-  <% if not @patient.tb_status.upcase == 'POSITIVE' and reception_obs.include?('Xray result interpretation:  YES'.upcase)%>
+  <% if @patient.tb_status.match(/treatment/i).blank? and reception_obs.include?('REASON FOR CLINICAL VISIT:  XRAY RESULT INTERPRETATION')%>
     <%= touch_select_tag "Xray result interpretation", @patient, options_for_select(@select_options['tb_xray_interpretation']),
       {:id => "xray",
        :tt_pageStyleClass => "NoKeyboard",
        :helpText => "Interpret X-Ray" } %>
   <% end %>
 
-  <% if not @patient.tb_status.match(/treatment/i) %>
-  <%= touch_yes_no_unknown_tag "TB STATUS", @patient, nil,
-    {:id => "confirm_tb_status",
-     :tt_onLoad => "setAttributes();",
-     :tt_onUnLoad => "resetAttributes();",
-     :helpText => "Confirm TB Status" } %>
+  <% if @patient.tb_status.match(/treatment/i).blank? %>
+    <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
+    {:id => 'tb_status',
+     :optional => true,
+     :multiple => false,
+     :helpText => "TB Status" } %>
   <% end %>
 
   <%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
