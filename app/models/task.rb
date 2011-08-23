@@ -660,7 +660,7 @@ class Task < ActiveRecord::Base
             return task
           end 
         when 'TB_INITIAL'
-          next if patient.tb_status.match(/Negative/i)
+          next if patient.tb_status.match(/treatment/i)
           tb_initial = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
@@ -733,7 +733,7 @@ class Task < ActiveRecord::Base
             return task
           end if (reason_for_art.upcase ==  'UNKNOWN' or reason_for_art.blank?)
         when 'TB REGISTRATION'
-          next if patient.tb_status.match(/Negative/i)
+          next if patient.tb_status.match(/treatment/i)
           tb_registration = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
@@ -749,7 +749,7 @@ class Task < ActiveRecord::Base
             return task
           end 
         when 'TB TREATMENT VISIT'
-          next if patient.tb_status.match(/Negative/i)
+          next if patient.tb_status.match(/treatment/i)
           tb_registration = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name('TB REGISTRATION').id])

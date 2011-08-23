@@ -85,7 +85,7 @@ Check applicability of code below
        :helpText => "Interpret X-Ray" } %>
   <% end %>
 
-  <% if not @patient.tb_status.upcase == 'POSITIVE' %>
+  <% if not @patient.tb_status.match(/treatment/i) %>
   <%= touch_yes_no_unknown_tag "TB STATUS", @patient, nil,
     {:id => "confirm_tb_status",
      :tt_onLoad => "setAttributes();",
