@@ -90,7 +90,7 @@ module TouchscreenHelper
     }.merge(options)
 
     selection_options = "<option value=''></option>" + choices rescue nil
-    
+    #raise selection_options
     options = {:tt_pageStyleClass => "NoKeyboard"}.merge(options) if options[:ajaxURL].blank?
     kind = options[:multiple] ? "value_coded_or_text_multiple" : "value_coded_or_text"
     content = ""
