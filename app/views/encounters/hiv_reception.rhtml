@@ -27,6 +27,13 @@
     }
   }
 
+  // Disable option No on Patient Present if Guardian is not present (or Unknown)
+  function ensureOnePresent() {
+    if ($('guardian_present').value != 'Yes') {
+      $('1').style.display = 'none';
+    }
+  }
+
 </script>  
 <form id='appointment' action="/encounters/create" method='post'>
   <%= hidden_field_tag "encounter[encounter_type_name]", "HIV RECEPTION" %>
@@ -70,7 +77,7 @@
   <label for='patient_present'>Patient Present (<%=@patient.name%>)</label>
     <%= select_tag "observations[][value_coded_or_text]", options_for_select([['Yes','YES'],['No','NO']]), 
       {:id => 'patient_present',
-      :tt_onLoad => 'hide_new_relationship_button()'} %>
+      :tt_onLoad => 'hide_new_relationship_button(); ensureOnePresent();'} %>
     <%= hidden_field_tag("observations[][value_text]", nil) %>
     <%= hidden_field_tag("observations[][concept_name]", "PATIENT PRESENT") %>
     <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
