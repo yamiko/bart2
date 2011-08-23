@@ -364,8 +364,9 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
       <% end %>
     <% end %>    
 
+
     <% unless concept_set_options('WHO STAGE I ADULT AND PEDS').blank? && concept_set_options('WHO STAGE I ADULT').blank? %>
-      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE I ADULT AND PEDS').sort + concept_set_options('WHO STAGE I ADULT').sort,
+     <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, (concept_set_options('WHO STAGE I ADULT AND PEDS').sort + concept_set_options('WHO STAGE I ADULT').sort).to_s,
           {:id => "stage_1_conditions",
            :multiple => true,
            :optional => true,
@@ -384,7 +385,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
     <%# end %>
 
     <% unless concept_set_options('WHO STAGE II ADULT AND PEDS').blank? && concept_set_options('WHO STAGE II ADULT').blank? %>
-      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE II ADULT').sort + concept_set_options('WHO STAGE II ADULT AND PEDS').sort,
+      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, (concept_set_options('WHO STAGE II ADULT').sort + concept_set_options('WHO STAGE II ADULT AND PEDS').sort).to_s,
           {:id => "stage_2_conditions",
            :multiple => true,
            :optional => true,
@@ -404,7 +405,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
     <%# end %>
 
     <% unless concept_set_options('WHO STAGE III ADULT AND PEDS').blank? && concept_set_options('WHO STAGE III ADULT').blank? %>
-      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE III ADULT').sort+ concept_set_options('WHO STAGE III ADULT AND PEDS').sort,
+      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, (concept_set_options('WHO STAGE III ADULT').sort + concept_set_options('WHO STAGE III ADULT AND PEDS').sort).to_s,
           {:id => "stage_3_conditions",
            :multiple => true,
            :optional => true,
@@ -424,7 +425,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
     <%# end %>
 
     <% unless concept_set_options('WHO STAGE IV ADULT AND PEDS').blank? && concept_set_options('WHO STAGE IV ADULT').blank? %>
-      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE IV ADULT').sort + concept_set_options('WHO STAGE IV ADULT AND PEDS').sort,
+      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, (concept_set_options('WHO STAGE IV ADULT').sort + concept_set_options('WHO STAGE IV ADULT AND PEDS').sort).to_s,
           {:id => "stage_4_conditions",
            :multiple => true,
            :optional => true,
