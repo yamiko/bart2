@@ -13,9 +13,10 @@
   var acc_numbers_check = {<%= @sputum_orders.collect{|k,v| "#{k}:'#{v}'"}.sort.join(",")%>};
 
   barcodeFocusOnce = true;
-  setTimeout("setupBarcode()", 300);
   function setupBarcode(){
+    barcodeId = tstInputTarget.id;
     barcodeScanAction = gotoNextPage;
+    setTimeout("focusForBarcodeInput()", 300);
     loadBarcodePage();
   }
 
@@ -80,7 +81,7 @@ Check applicability of code below
       {:id => element_id,
        :helpText => "Scan specimen #{i+1}", 
        :field_type => 'number',
-       :tt_onLoad => "inform();barcodeId = 'touchscreenInput#{i}';",
+       :tt_onLoad => "inform(); setupBarcode();",
        :validationCode => "acc_numbers_check[__$('touchscreenInput' + tstCurrentPage).value] != undefined",
        :validationMessage => "Not a valid accession number: #{reg_ex} or a duplicate accession_number",
        :tt_onUnLoad => "updateValues('#{element_id}','#{destination_id}');delete acc_numbers_check[__$('#{element_id}').value]",
