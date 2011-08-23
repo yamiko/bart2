@@ -3,11 +3,11 @@
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id -%>";
 
   function updateTestDate(){
-    var testDate = new Date($('hiv_test_year').value, $('hiv_test_month').value - 1, $('hiv_test_day').value);
+    var testDate = new Date($('hiv_test_date').value);  // , $('hiv_test_month').value - 1, $('hiv_test_day').value);
     $('hiv_test_date').value = testDate;
     if ((3).months().ago() > testDate){
       showNegativeTestReminder = true
-      }else {
+    }else {
       showNegativeTestReminder = false
     }
     return showNegativeTestReminder
@@ -28,7 +28,7 @@
   } 
 </script>
 <style>
-   .tt_controls_hiv_test_year #char { display: none; }
+  .tt_controls_hiv_test_year #char { display: none; }
 
   .tt_controls_hiv_test_month .keyboard { display:none; }
   #tt_page_hiv_test_month .options{height:550px;}
@@ -36,71 +36,86 @@
   #space {display:inline;}
 </style>
 
-<form id='update_hiv_status' action="/encounters/create" method='post'>
+<form id='update_hiv_status' action="/encounters/create" method='post' extended="true" headerLabel="HIV Status">
   <%= hidden_field_tag "encounter[encounter_type_name]", "UPDATE HIV STATUS" %>
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
- <%#= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
+<%#= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
 
- <%= touch_select_tag "HIV STATUS", @patient, options_for_select(@select_options['hiv_status']),
-    {:id => "hiv_status",
-     :multiple => false,
-     :tt_pageStyleClass => "NoKeyboard",
-     :helpText => "HIV Status" } %>
+  <div>
+    <%= touch_select_tag "HIV STATUS", @patient, options_for_select(@select_options['hiv_status']),
+      {:id => "hiv_status",
+      :multiple => false,
+      :tt_pageStyleClass => "NoKeyboard",
+      :helpText => "HIV Status",
+      :position => "a"} %>
 
-  <%= text_field_tag "hiv_test_year", nil, 
-      {:helpText => 'HIV test year', 
-       :field_type => 'number', 
-       :absoluteMin => "1982", 
-       :min => "1982", 
-       :absoluteMax => Date.today.year, 
-       :tt_pageStyleClass => "Numeric NumbersOnly", 
-       :condition => '$("hiv_status").value != "UNKNOWN"'}  
-   %>
+<%#= text_field_tag "hiv_test_year", nil,
+{:helpText => 'HIV test year', 
+:field_type => 'number', 
+:absoluteMin => "1982", 
+:min => "1982", 
+:absoluteMax => Date.today.year, 
+:tt_pageStyleClass => "Numeric NumbersOnly", 
+:condition => '$("hiv_status").value != "UNKNOWN"'}  
+%>
 
-  <%= select_tag "hiv_test_month", month_name_options, {:helpText => 'HIV test month', :condition => '($("hiv_test_year").value.toLowerCase() != "unknown") && ($("hiv_status").value != "UNKNOWN")'}%>
+<%#= select_tag "hiv_test_month", month_name_options, {:helpText => 'HIV test month', :condition => '($("hiv_test_year").value.toLowerCase() != "unknown") && ($("hiv_status").value != "UNKNOWN")'}%>
 
-  <%= text_field_tag "hiv_test_day",  nil, 
-    {:field_type => 'number', 
-      :helpText => 'HIV test day', 
-      :condition => '($("hiv_test_year").value != "Unknown") && ($("hiv_test_month").value != "Unknown") && ($("hiv_status").value != "UNKNOWN")', 
-      :tt_onLoad => "getDayOfMonthPicker($('hiv_test_year').value;$('hiv_test_month').value);", 
-      :tt_onUnload=> "updateTestDate();"
+<%#= text_field_tag "hiv_test_day",  nil,
+{:field_type => 'number', 
+:helpText => 'HIV test day', 
+:condition => '($("hiv_test_year").value != "Unknown") && ($("hiv_test_month").value != "Unknown") && ($("hiv_status").value != "UNKNOWN")', 
+:tt_onLoad => "getDayOfMonthPicker($('hiv_test_year').value;$('hiv_test_month').value);", 
+:tt_onUnload=> "updateTestDate();"
+} %>
+
+    <%= text_field_tag "hiv_test_date",  nil,
+      {:field_type => 'number',
+      :helpText => 'HIV test date',
+      :tt_onUnload=> "updateTestDate();",
+      :field_type => 'date',
+      :position => "b"
     } %>
 
-  <%= text_field_tag :summary, nil, 
-    {:tt_onLoad => '$("hivTestReminder").style.display = "block";$("nextButton").innerHTML = "<span>Finish</span>";', 
-     :optional => "true", 
-     :tt_pageStyleClass => "NoControls", 
-     :helpText => 'HTC Reminder', 
-     :condition => '(updateTestDate() == true && $("hiv_status").value == "NEGATIVE") || ($("hiv_status").value == "UNKNOWN");'} 
+    <%= text_field_tag :summary, nil,
+      {:tt_onLoad => '$("hivTestReminder").style.display = "block";$("nextButton").innerHTML = "<span>Finish</span>";',
+      :optional => "true",
+      :tt_pageStyleClass => "NoControls",
+      :helpText => 'HTC Reminder',
+      :position => "c",
+      :condition => '(updateTestDate() == true && $("hiv_status").value.toUpperCase() == "NEGATIVE") || ($("hiv_status").value.toUpperCase() == "UNKNOWN");'}
   %>
 
-  <%= touch_location_tag "LOCATION OF HIV TEST", @patient, nil,
-    {:id => "location_of_hiv_test",
-      :condition => '$("hiv_status").value == "POSITIVE"',
-     :helpText => "Location of HIV test" } %>
+    <%= touch_location_tag "LOCATION OF HIV TEST", @patient, nil,
+      {:id => "location_of_hiv_test",
+      :condition => '$("hiv_status").value.toUpperCase() == "POSITIVE"',
+      :helpText => "Location of HIV test",
+      :position => "d" } %>
 
- <%= touch_numeric_tag "HTC SERIAL NUMBER", @patient, nil,
-   {:id => "htc_serial_number",
-     :condition => '$("hiv_status").value == "POSITIVE"',
-     :helpText => "HTC serial number" } %>
-     
-<%unless @art_patient%>     
- <%= touch_yes_no_unknown_tag "ON ART", @patient, nil,
-   {:id => "art_status",
-     :condition => '$("hiv_status").value == "POSITIVE"',
-     :tt_pageStyleClass => "NoKeyboard",
-     :helpText => "On ART?" } %>
-<%end%>
+    <%= touch_numeric_tag "HTC SERIAL NUMBER", @patient, nil,
+      {:id => "htc_serial_number",
+      :condition => '$("hiv_status").value.toUpperCase() == "POSITIVE"',
+      :helpText => "HTC serial number",
+      :position => "e" } %>
 
- <%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
+    <%unless @art_patient%>
+      <%= touch_yes_no_unknown_tag "ON ART", @patient, nil,
+        {:id => "art_status",
+        :condition => '$("hiv_status").value.toUpperCase() == "POSITIVE"',
+        :tt_pageStyleClass => "NoKeyboard",
+        :helpText => "On ART?",
+      :position => "f" } %>
+    <%end%>
 
-     <%= submit_tag "Finish" %>    
+    <%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
+  </div>
+  
+  <%= submit_tag "Finish" %>
 
-   </form>
+</form>
 
 <div id='hivTestReminder' class='messageBar' style='display:none'>
   Please refer this person to HTC<br /> 

@@ -334,7 +334,7 @@ button span {
 button { 
     color: white;
     -moz-user-select:none;
-    -moz-user-focus:disabled;
+    -moz-user-focus:none;
     border:0;
     cursor:pointer;
     font-weight:bold;

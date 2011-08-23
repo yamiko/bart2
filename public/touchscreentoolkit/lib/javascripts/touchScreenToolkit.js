@@ -16,7 +16,7 @@
 
 // Check if calling file is an example or an external page
 var path = window.location.href.match(/touchscreentoolkit/i);
-var ext = (path ? "" : "touchscreentoolkit/");
+var ext = "touchscreentoolkit/";    // (path ? "" : "touchscreentoolkit/");
 var timerout = 150;
 var calledMethod = null;
 var numberOfTrials = 0;
