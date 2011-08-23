@@ -232,8 +232,10 @@ class EncountersController < ApplicationController
     @sputum_results = [['1+','1 PLUS'], ['2+','2 PLUS'], ['3+','3 PLUS'],['Negative', 'NEGATIVE'], ['Scanty', 'SCANTY']]
 
     @sputum_orders = Hash.new()
-    @patient.recent_sputum_orders.each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
+    @sputum_submission_waiting_results = Hash.new()
 
+    @patient.sputum_orders_without_submission.each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
+    @patient.sputum_submissons_with_no_results.each{|order| @sputum_submission_waiting_results[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
     redirect_to "/" and return unless @patient
 
     redirect_to next_task(@patient) and return unless params[:encounter_type]

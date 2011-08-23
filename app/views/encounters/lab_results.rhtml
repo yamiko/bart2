@@ -26,9 +26,9 @@
   var result_filed_ids = [];
   var tb_status =  'NEGATIVE';
 
-  var acc_numbers = {<%= @sputum_orders.collect{|k,v| "#{k}:'#{v}'"}.sort.join(",")%>};
+  var acc_numbers = {<%= @sputum_submission_waiting_results.collect{|k,v| "#{k}:'#{v}'"}.sort.join(",")%>};
 
-  var acc_numbers_check = {<%= @sputum_orders.collect{|k,v| "#{k}:'#{v}'"}.sort.join(",")%>};
+  var acc_numbers_check = {<%= @sputum_submission_waiting_results.collect{|k,v| "#{k}:'#{v}'"}.sort.join(",")%>};
 
   function compileDate(){
     var tmpDate = $('sputum_microscopy_year').value + "-" + $('sputum_microscopy_month').value +"-" +$('sputum_microscopy_day').value;
@@ -114,7 +114,7 @@
   }
 </script>
 
-  <%if @sputum_orders.empty?%>
+  <%if @sputum_submission_waiting_results.empty?%>
     <div class="inputPage NoKeyboard" id="page" style="display: block;">
     <div id="trigger"></div>
     <div id="infoBar" class="infoBarClass"></div>
@@ -161,13 +161,13 @@
     {:id => "visual_appearance_of_sputum_specimen",
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "Visual appearance of sputum specimen" } %>
-     <%acc_numbers = @sputum_orders.collect{|k,v| k}.sort%>
+     <%acc_numbers = @sputum_submission_waiting_results.collect{|k,v| k}.sort%>
      <%counter = 4 %>
-     <% (@sputum_orders.size).times do |i|%>
+     <% (@sputum_submission_waiting_results.size).times do |i|%>
 
     <% element_id = "specimen#{i+1}"%>
     <%destination_id = "specimen_#{i+1}"%>
-    <%reg_ex = @sputum_orders.collect{|k,v| k}.join('|')%>
+    <%reg_ex = @sputum_submission_waiting_results.collect{|k,v| k}.join('|')%>
     
     <% id = (i+1) %>
     <script>
@@ -183,11 +183,11 @@
        :validationMessage => "Not a valid accession number: #{reg_ex}",
        :tt_pageStyleClass => "Numeric NumbersOnly"}  %>
 
-    <%= touch_select_tag "#{@sputum_orders[acc_numbers[i]]} RESULTS", @patient, options_for_select(@sputum_results),
+    <%= touch_select_tag "#{@sputum_submission_waiting_results[acc_numbers[i]]} RESULTS", @patient, options_for_select(@sputum_results),
       {:id => "sputum_specimen_#{i+1}_result",
       :tt_pageStyleClass => "NoKeyboard",
       :accession_number => acc_numbers[i],
-      :helpText => "#{@sputum_orders[acc_numbers[i]]} Results (Accession number: #{acc_numbers[i]})" } %>
+      :helpText => "#{@sputum_submission_waiting_results[acc_numbers[i]]} Results (Accession number: #{acc_numbers[i]})" } %>
       <%counter += 2%>
 
    <%end%>
