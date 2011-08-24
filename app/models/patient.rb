@@ -106,7 +106,7 @@ class Patient < ActiveRecord::Base
     alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.gsub(" ",'')}" == 'Negative' && self.months_since_last_hiv_test > 3)
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.gsub(" ",'')}" == 'Unknown'
     alerts << "Lab: Expecting submission of sputum" unless self.sputum_orders_without_submission.empty?
-    alerts << "Lab: Waiting for sputum results" unless !self.sputum_submissions_waiting_for_results.empty?
+    alerts << "Lab: Waiting for sputum results" unless self.sputum_submissions_waiting_for_results.empty?
     alerts
   end
 
