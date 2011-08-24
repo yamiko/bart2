@@ -105,7 +105,7 @@ Check applicability of code below
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "DOT option" } %>
 
-  <%= touch_select_tag "Duration of current cough", @patient, concept_set_options("Duration of current cough"),
+  <%= touch_select_tag "Duration of current cough", @patient, options_for_select(@select_options['duration_of_current_cough']),
     {:id => "number_of_weeks_of_current_cough",
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "Weeks of current cough" } %>
@@ -115,7 +115,7 @@ Check applicability of code below
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "TB classification" } %>
 
-  <%= touch_select_tag "EPTB classification", @patient, concept_set_options("EPTB classification"),
+  <%= touch_select_tag "EPTB classification", @patient, options_for_select(@select_options['eptb_classification']),
     {:id => "further_tb_classification",
      :condition => '$("tb_classification").value == "Extrapulmonary tuberculosis (EPTB)"',
      :tt_pageStyleClass => "NoKeyboard",

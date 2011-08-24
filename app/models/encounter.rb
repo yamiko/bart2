@@ -286,6 +286,24 @@ EOF
         ["Relapse", "Relapse MDR-TB patient"],
         ["Retreatment after default", "Treatment after default MDR-TB patient"],
         ["Failure", "Failed - TB"]
+      ],
+      'duration_of_current_cough' => [
+        ['',''],
+        ["1 Week", "1 week"],
+        ["2 Weeks", "2 weeks"],
+        ["3 Weeks", "3 weeks"],
+        ["4 Weeks", "4 weeks"],
+        ["More than 4 Weeks", "More than 4 weeks"]
+      ],
+      'eptb_classification'=> [
+        ['',''],
+        ['Pulmonary effusion'], ['Pulmonary effusion'],
+        ['Lymphadenopathy'], ['Lymphadenopathy'],
+        ['Pericardial effusion, nos'], ['Pericardial effusion, nos'],
+        ['Ascites'], ['Ascites'],
+        ['Spinal disease'], ['Spinal disease'],
+        ['Meningitis'], ['Meningitis'],
+        ['Other'], ['Other']
       ]
     }
   end

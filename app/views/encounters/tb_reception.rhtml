@@ -1,57 +1,140 @@
 <script>
-  var tt_cancel_destination = "/patients/show/<%= @patient.patient_id -%>";
-
-  function showTaskName(){
-    $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: TB Reception</span></div></div>'
+  var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
+  
+  function new_relationship() {
+    var current = '/encounters/new/hiv_reception?patient_id=<%= @patient.patient_id %>';
+    window.location = "/relationships/search?patient_id=<%= @patient.patient_id %>&return_to=" + escape(current) + "&guardian_added=true"
+  }
+  
+  function show_new_relationship_button() {
+    var button = "<button onmousedown='new_relationship();' class='button navButton'><span>New Guardian</span></button>";
+    $('tt_extraButtons').innerHTML = button
+  }
+  
+  function hide_new_relationship_button() {
+    $('tt_extraButtons').innerHTML = "";    
   }
 
-</script>
+  // Don't save Guardian: None. We might later want to start saving this answer
+  function cleanup_guardian_options() {
+    var options = $('guardian_present').options;
+    for (var i=0; i<options.length; i++) {
+      if (options[i].selected && options[i].value == 'Yes') {
+        return new_relationship();
+      } else {
+        return null;
+      }
+    }
+  }
 
-<form id='tb_reception' action="/encounters/create" method='post'>
+  function setAttributes() {
+    l = document.getElementsByTagName('li');
+    for (i = 0 ; i < l.length ; i++) {
+        l[i].setAttribute("onmousedown","null; updateTouchscreenInputForSelect(this); updateNextButton();");
+    }
+  }
+
+  function updateNextButton() {
+    if ($('clinic_visit_type').value == 'Follow-up') {
+      $('nextButton').innerHTML = '<span>Next</span>';
+    }else{
+      $('nextButton').innerHTML = '<span>Finish</span>';
+    }
+  }
+
+  // Disable option No on Patient Present if Guardian is not present (or Unknown)
+  function forcePatientPresentYes() {
+    if ($('guardian_present').value == 'No') {
+      $('patient_present').value == 'Yes';
+    }
+  }
+</script>  
+<form id='appointment' action="/encounters/create" method='post'>
   <%= hidden_field_tag "encounter[encounter_type_name]", "TB RECEPTION" %>
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
-  <%= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
+  <% if session[:guardian_added] == nil  %>
+    <% if Person.find(@patient.patient_id).relationships.first.blank? %>
+       <label for='guardian_present'>Guardian Present</label>
+        <%= select_tag "observations[][value_text]", relationship_options(@patient),
+          {:id => "guardian_present",
+           :multiple => false,
+           :optional => false,
+           :tt_onUnLoad => "forcePatientPresentYes(),setTimeout(cleanup_guardian_options() , 500);" } %>
+        <%= hidden_field_tag("observations[][value_coded_or_text]", nil) %>
+        <%= hidden_field_tag("observations[][concept_name]", "GUARDIAN PRESENT") %>
+        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
+        <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+    <% else %>
+      <label for='guardian_present'>Guardian Present (<%=@patient.person.relationships.map{|r|Person.find(r.person_b).name}[0] rescue ''%>)</label>
+        <%= select_tag "observations[][value_text]", relationship_options(@patient),
+          {:id => "guardian_present",
+           :multiple => false,
+           :optional => false,
+           :tt_onLoad => 'hide_new_relationship_button()',
+           :tt_onUnLoad => 'forcePatientPresentYes()'
+         } %>
+        <%= hidden_field_tag("observations[][value_coded_or_text]", nil) %>
+        <%= hidden_field_tag("observations[][concept_name]", "GUARDIAN PRESENT") %>
+        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
+        <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+    <% end %>
+  <% else %>
+    <%= hidden_field_tag("observations[][value_text]", "Yes") %>
+    <%= hidden_field_tag("observations[][value_coded_or_text]", nil) %>
+    <%= hidden_field_tag("observations[][concept_name]", "GUARDIAN PRESENT") %>
+    <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
+    <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+  <% end %>
+  <% session[:guardian_added] = nil %>
 
-  <label for='tb_treatment'>Ever received TB Treatment?</label>
-  <%= touch_yes_no_unknown_tag "EVER RECEIVED TB TREATMENT", @patient, nil,{:id => "tb_treatment"} %>
+  <label for='patient_present'>Patient Present (<%=@patient.name%>)</label>
+    <%= select_tag "observations[][value_coded_or_text]", options_for_select([['Yes','YES'],['No','NO']]), 
+      {:id => 'patient_present',
+       :condition => "$('guardian_present').value == 'No'",
+       :tt_onLoad => 'hide_new_relationship_button(); ensureOnePresent();'} %>
+    <%= hidden_field_tag("observations[][value_text]", nil) %>
+    <%= hidden_field_tag("observations[][concept_name]", "PATIENT PRESENT") %>
+    <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
+    <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>  
 
-  <!--Ask Patient/Guardian present question only for those on TB or ART Treatment -->
-  <%if (@tb_patient || @art_patient) %>
-    <label for='guardian_present'>Guardian present?</label>
-    <%= touch_yes_no_unknown_tag "GUARDIAN PRESENT", @patient, nil,{:id => "guardian_present"} %>
-    <label for='patient_present'>Patient present?</label>
-    <%= touch_yes_no_unknown_tag "PATIENT PRESENT", @patient, nil,{:id => "patient_present"} %>
-  <%end%>
+  <label for='clinic_visit_type'>Clinic visit type</label>
+    <%= touch_select_tag "TYPE OF VISIT", 
+      @patient, options_for_select(@select_options['tb_clinic_visit_type']),
+      {:id => "clinic_visit_type",
+       :tt_onLoad => "setTimeout('setAttributes()',500);"
+      } 
+    %>
 
   <label for='reason_for_clinic_visit'>Reason for clinical visit</label>
-  <%= touch_select_tag "REASON FOR CLINICAL VISIT", @patient, options_for_select(@select_options['reason_for_tb_clinic_visit']),{:id => "reason_for_clinic_visit",} %>
-
-  <%if @patient.is_first_visit? == false %>
+    <%= touch_select_tag "REASON FOR CLINICAL VISIT", 
+      @patient, options_for_select(@select_options['reason_for_tb_clinic_visit']),
+      {
+        :id => "reason_for_clinic_visit",
+        :condition => "$('clinic_visit_type').value == 'Follow-up'"
+      } 
+    %>
+  <% if session[:datetime].nil? %>
     <label for='need_to_see_clinician'>Any need to see a clinician?</label>
-    <%= touch_yes_no_unknown_tag "ANY NEED TO SEE A CLINICIAN",
-              @patient, "YES",{:id => "need_to_see_clinician",
-              :condition => '$("reason_for_clinic_visit").value != "CLINICAL REVIEW" && $("reason_for_clinic_visit").value != "X-RAY RESULT INTERPRETATION"' } %>
- <% end %>
-
-  <%if (@hiv_status == 'UNKNOWN' || (@hiv_status == "Negative  " || (@hiv_status == "Unknown  " && (@months_since_last_hiv_test.nil? || @months_since_last_hiv_test >= 3))))%>
-
-    <label for='hiv_test_results_within_3_months'>Any HIV test results within the last 3 months?</label>
-    <%= touch_yes_no_unknown_tag "HIV TEST RESULTS WITHIN 3 MONTHS", @patient, nil,{:id => "hiv_test_results_within_3_months"} %>
+      <%= touch_yes_no_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
+        {
+          :id => "need_to_see_clinician",
+          :condition => "$('clinic_visit_type').value == 'Follow-up'"
+        } %>
   <% else %>
-    <%= touch_hidden_tag "HIV TEST RESULTS WITHIN 3 MONTHS", @patient, nil, {:id => "hiv_test_results_within_3_months", :value_coded => false}%>
+    <label for='need_to_see_clinician'>Any need to see a clinician?</label>
+        <%= touch_yes_no_unknown_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
+          {
+            :id => "need_to_see_clinician",
+            :condition => "$('clinic_visit_type').value == 'Follow-up'"
+          } %>
   <% end %>
-  <!--Show HTC reminder if the person is Negative and has no results with the last 3 months or if person's hiv status is uknown-->
-  <%= text_field_tag :summary, nil, { :tt_onLoad => "$('hivTestReminder').style.display = 'block';", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'HTC Reminder', :condition => '$("hiv_test_results_within_3_months").value == "NO"'} %>
 
-  <%= submit_tag "Finish" %>
-
+  <%if @patient.given_arvs_before? and @patient.get_identifier("ARV Number").blank?
+  %>
+  <% end %>
+  
+  <%= submit_tag "Finish" %>    
 </form>
-
-<div id='hivTestReminder' class='messageBar' style='display:none'>
-  Please refer this person to HTC<br />
-  <button onmousedown="$('hivTestReminder').style.display = 'none';"><span>OK</span></button>
-</div>
-
