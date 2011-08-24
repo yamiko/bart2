@@ -9,6 +9,10 @@ class PatientProgram < ActiveRecord::Base
 
   named_scope :current, :conditions => ['date_enrolled < NOW() AND (date_completed IS NULL OR date_completed > NOW())']
   named_scope :local, lambda{|| {:conditions => ['location_id IN (?)',  Location.current_health_center.children.map{|l|l.id} + [Location.current_health_center.id] ]}}
+
+  named_scope :in_programs, lambda{|names| names.blank? ? {} : {:include => :program, :conditions => ['program.name IN (?)', Array(names)]}}
+  named_scope :not_completed, lambda{|tags| tags.blank? ? {} : {:conditions => ['date_completed = NULL']}}
+
   validates_presence_of :date_enrolled, :program_id
 
   def validate

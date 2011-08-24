@@ -2,17 +2,26 @@ class RegimensController < ApplicationController
   def new
     @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
     @programs = @patient.patient_programs.all
+    @hiv_programs = @patient.patient_programs.not_completed.in_programs('HIV PROGRAM')
+	
+    @tb_programs = @patient.patient_programs.not_completed.in_programs('TB PROGRAM')
+
     @current_regimens_for_programs = current_regimens_for_programs
     @current_regimen_names_for_programs = current_regimen_names_for_programs
+
+	@prescribe_tb_drugs = !(@tb_programs.blank?)
   end
   
   def create
-   prescribe_arvs = false
+   prescribe_tb_drugs = false   
+	prescribe_arvs = false
    prescribe_cpt = false
    prescribe_ipt = false
 
    (params[:observations] || []).each do |observation|
-      if observation['concept_name'] == 'PRESCRIBE ARVS'
+      if observation['concept_name'].upcase == 'PRESCRIBE DRUGS'
+        prescribe_tb_drugs = ('YES' == observation['value_coded_or_text'])
+	  elsif observation['concept_name'] == 'PRESCRIBE ARVS'
         prescribe_arvs = ('YES' == observation['value_coded_or_text'])
       elsif observation['concept_name'] == 'Prescribe cotramoxazole'
         prescribe_cpt = ('YES' == observation['value_coded_or_text'])
@@ -20,12 +29,12 @@ class RegimensController < ApplicationController
         prescribe_ipt = ('YES' == observation['value_coded_or_text'])
       end
     end
-
     @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
     session_date = session[:datetime] || Time.now()
     encounter = @patient.current_treatment_encounter(session_date)
     start_date = session[:datetime] || Time.now
     auto_expire_date = session[:datetime] + params[:duration].to_i.days rescue Time.now + params[:duration].to_i.days
+    auto_tb_expire_date = session[:datetime] + params[:tb_duration].to_i.days rescue Time.now + params[:tb_duration].to_i.days
 
     orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:regimen]})
     ActiveRecord::Base.transaction do
@@ -54,6 +63,35 @@ class RegimensController < ApplicationController
           "#{drug.name}: #{order.instructions} (#{regimen_name})",
           order.equivalent_daily_dose)    
       end if prescribe_arvs
+    end
+
+	orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:tb_regimen]})
+    ActiveRecord::Base.transaction do
+      # Need to write an obs for the regimen they are on, note that this is ARV
+      # Specific at the moment and will likely need to have some kind of lookup
+      # or be made generic
+      obs = Observation.create(
+        :concept_name => "WHAT TYPE OF ANTIRETROVIRAL REGIMEN",
+        :person_id => @patient.person.person_id,
+        :encounter_id => encounter.encounter_id,
+        :value_coded => params[:tb_regimen_concept_id],
+        :obs_datetime => start_date) if prescribe_tb_drugs
+      orders.each do |order|
+        drug = Drug.find(order.drug_inventory_id)
+        regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept.name).name
+        DrugOrder.write_order(
+          encounter, 
+          @patient, 
+          obs, 
+          drug, 
+          start_date, 
+          auto_tb_expire_date, 
+          order.dose, 
+          order.frequency, 
+          order.prn, 
+          "#{drug.name}: #{order.instructions} (#{regimen_name})",
+          order.equivalent_daily_dose)  
+      end if prescribe_tb_drugs
     end
 
     
