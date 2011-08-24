@@ -1,5 +1,5 @@
 <style type="text/css">
-  #prescription_container, #tb_prescription_container {
+  .prescription_container {
     border-style: solid;
     height: 350px;
     width: 96%;
@@ -7,13 +7,13 @@
     overflow: auto;
   }
 
-  #prescription_container, #tb_prescription_container table {
+  .prescription_container table {
     -moz-user-select:none;
     width: 100%;
     font-size: 20px;
   }
 
-  #prescription_container, #tb_prescription_container th {
+  .prescription_container th {
     text-align: left;
     font-size: 20px;
     background-color: lightgrey;
@@ -104,7 +104,7 @@
 
     current_page = $('page'+tstCurrentPage);
 
-    html = "&nbsp;<div id = '" + prescriptionContainer + "'><table><tr>" 
+    html = "&nbsp;<div id = '" + prescriptionContainer + "' class='prescription_container' ><table><tr>" 
     html += "<th>Drug name</th><th>Dose</th><th>Units</th><th>Daily dose</th>" 
     html += "</tr></table></div>" 
     current_page.innerHTML += html
@@ -156,7 +156,7 @@
   
   function isRegisteredForTB() {
 	var isRegistered = false;    
-	if(prescribeTBDrugs){
+	if(prescribeTBDrugs == 'true'){
       isRegistered = true;
 	}
 	return isRegistered;
@@ -254,7 +254,8 @@
   <% unless @tb_programs.count == 1 %>
   	<%= select_tag :tb_patient_program, options_for_select(@tb_programs.map{|program| [program.program.name, program.patient_program_id] if PatientProgram.find(program.patient_program_id).date_completed == nil}), {
     :textCase => "upper", 
-    :allowFreeText => 'false',
+     :condition => '$("prescribe_tb_drugs").value == "YES"',
+   :allowFreeText => 'false',
     :helpText => "Prescribe regimen for which TB program?"}%>
   <%else%>
     <%= hidden_field_tag(:tb_patient_program, @tb_programs.first.patient_program_id) %>
