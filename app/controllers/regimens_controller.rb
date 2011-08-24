@@ -9,7 +9,14 @@ class RegimensController < ApplicationController
     @current_regimens_for_programs = current_regimens_for_programs
     @current_regimen_names_for_programs = current_regimen_names_for_programs
 
-	@prescribe_tb_drugs = !(@tb_programs.blank?)
+	@prescribe_tb_drugs = true	
+	if @tb_programs.blank?
+		@prescribe_tb_drugs = false
+	end
+
+	#raise @prescribe_tb_drugs.to_s
+	#raise @tb_programs.to_yaml
+		
   end
   
   def create
