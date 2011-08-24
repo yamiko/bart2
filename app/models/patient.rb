@@ -106,7 +106,7 @@ class Patient < ActiveRecord::Base
     alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.gsub(" ",'')}" == 'Negative' && self.months_since_last_hiv_test > 3)
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.gsub(" ",'')}" == 'Unknown'
     alerts << "Lab: Expecting submission of sputum" unless self.sputum_orders_without_submission.empty?
-    alerts << "Lab: Waiting for sputum results" unless self.sputum_submissions_waiting_for_results.empty?
+     alerts << "Lab: Waiting for sputum results" if self.sputum_submissions_waiting_for_results.empty? &&   !self.recent_sputum_submissions.empty?
     alerts
   end
 
@@ -1222,9 +1222,11 @@ EOF
   end
 
   def sputum_submissions_waiting_for_results
-    sputum_results = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
-        EncounterType.find_by_name("LAB RESULTS").id,self.id]).name rescue []
-    return sputum_results
+    sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
+    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
+
+   Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("LAB RESULTS").id,self.id]).observations.map{|o| o if sputum_concept_ids.include?(o.concept_id)}.join' ' rescue []
   end
 
   def is_first_visit?
