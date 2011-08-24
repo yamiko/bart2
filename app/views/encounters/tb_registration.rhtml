@@ -5,6 +5,7 @@
     $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: TB Registration</span></div></div>';
   }
   
+/*  
   function set_TB_program_values() {
     var tb_type = $('touchscreenInput'+tstCurrentPage).value;
     submitForm = document.getElementById("appointment");
@@ -40,6 +41,22 @@
       submitForm.appendChild(newElement);
     }
   }
+*/
+
+  function set_TB_program_values() {
+    var tb_type = $('touchscreenInput'+tstCurrentPage).value;
+    
+    if (tb_type == "Multi-drug resistant tuberculosis"){
+        document.getElementById("programs__program_id").value = <%="#{Program.find_by_name('MDR-TB PROGRAM').id}"%>;
+        document.getElementById("programs__states__state").value = <%="'Waiting for treatment'"%>;
+    }
+    else
+    {
+        document.getElementById("programs__program_id").value = <%="#{Program.find_by_name('TB PROGRAM').id}"%>;
+        document.getElementById("programs__states__state").value = <%="'Symptomatic but NOT in treatment'"%>;
+    }
+  }
+
 </script> 
 
 <!--.........TODO...........
@@ -110,12 +127,12 @@ Check applicability of code below
      :helpText => "TB type / TB susceptibility",
      :tt_OnUnload => "set_TB_program_values()"  } %>
 
-  <% if not @patient.patient_programs.current.local.map(&:program).map(&:name).include?('TB PROGRAM') %>
-      <%#= hidden_field_tag("programs[][patient_program_id]", nil) %>
-      <%#= hidden_field_tag("programs[][program_id]", Program.find_by_name('TB PROGRAM').id)%>
-      <%#= hidden_field_tag("programs[][location_id]", Location.current_health_center.id) %>
-      <%#= hidden_field_tag("programs[][date_enrolled]", session[:datetime] ) %>
-      <%#= hidden_field_tag("programs[][states][][state]", "Symptomatic but NOT in treatment") %>
+  <% if !@patient.patient_programs.current.local.map(&:program).map(&:name).include?('TB PROGRAM') %>
+      <%= hidden_field_tag("programs[][patient_program_id]", nil) %>
+      <%= hidden_field_tag("programs[][program_id]", Program.find_by_name('TB PROGRAM').id)%>
+      <%= hidden_field_tag("programs[][location_id]", Location.current_health_center.id) %>
+      <%= hidden_field_tag("programs[][date_enrolled]", session[:datetime] ) %>
+      <%= hidden_field_tag("programs[][states][][state]", "Symptomatic but NOT in treatment") %>
   <%end%>
 
   <!--TODO Reminder based on the answer to question 'ever received TB Treatment'-->
