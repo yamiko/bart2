@@ -93,8 +93,8 @@
   <label for='patient_present'>Patient Present (<%=@patient.name%>)</label>
     <%= select_tag "observations[][value_coded_or_text]", options_for_select([['Yes','YES'],['No','NO']]), 
       {:id => 'patient_present',
-       :condition => "$('guardian_present').value == 'No'",
-       :tt_onLoad => 'hide_new_relationship_button(); ensureOnePresent();'} %>
+       :condition => "$('guardian_present').value == 'Yes'",
+       :tt_onLoad => 'hide_new_relationship_button()'} %>
     <%= hidden_field_tag("observations[][value_text]", nil) %>
     <%= hidden_field_tag("observations[][concept_name]", "PATIENT PRESENT") %>
     <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
