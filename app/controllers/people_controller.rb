@@ -121,7 +121,7 @@ class PeopleController < ApplicationController
          tb_session = true
        end
 
-        if use_filing_number not tb_session
+        if use_filing_number and not tb_session
           person.patient.set_filing_number 
           archived_patient = person.patient.patient_to_be_archived
           message = Patient.printing_message(person.patient,archived_patient,creating_new_patient = true) 
