@@ -115,7 +115,7 @@ Check applicability of code below
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "TB classification" } %>
 
-  <%= touch_select_tag "EPTB classification", @patient, concept_set_options("EPTB classification"),
+  <%= touch_select_tag "EPTB classification", @patient, "#{concept_set_options("EPTB classification").sort + ['<option>Other</option>']}",
     {:id => "further_tb_classification",
      :condition => '$("tb_classification").value == "Extrapulmonary tuberculosis (EPTB)"',
      :tt_pageStyleClass => "NoKeyboard",
