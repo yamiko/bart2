@@ -486,9 +486,9 @@ class Task < ActiveRecord::Base
     #8. Manage dispensations - DISPENSING
 
     tb_encounters =  [
-                      'UPDATE HIV STATUS','TB RECEPTION','LAB ORDERS','SPUTUM SUBMISSION',
-                      'LAB RESULTS','VITALS','TB_INITIAL','ART_INITIAL','TB CLINIC VISIT','HIV STAGING',
-                      'ART VISIT','TB REGISTRATION','TB TREATMENT VISIT','TREATMENT'
+                      'UPDATE HIV STATUS','TB RECEPTION','LAB ORDERS','SPUTUM SUBMISSION','LAB RESULTS',
+                      'VITALS','TB_INITIAL','ART_INITIAL','TB CLINIC VISIT','HIV STAGING','ART VISIT',
+                      'TB REGISTRATION','TB TREATMENT VISIT','ART ADHERENCE','TB ADHERENCE','TREATMENT'
                      ] 
     user_selected_activities = User.current_user.activities.collect{|a| a.upcase }.join(',') rescue []
     if user_selected_activities.blank? or tb_encounters.blank?
@@ -733,7 +733,7 @@ class Task < ActiveRecord::Base
             return task
           end if (reason_for_art.upcase ==  'UNKNOWN' or reason_for_art.blank?)
         when 'TB REGISTRATION'
-          next if patient.tb_status.match(/treatment/i)
+          next unless patient.tb_status.match(/treatment/i)
           tb_registration = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
@@ -811,6 +811,34 @@ class Task < ActiveRecord::Base
             task.url = "/patients/show/#{patient.id}"
             return task
           end if not reason_for_art.upcase ==  'UNKNOWN'
+        when 'TB ADHERENCE'
+          drugs_given_before = (not patient.drug_given_before(session_date).prescriptions.blank?) rescue false
+           
+          tb_adherence = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                    :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                    session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
+
+          if tb_adherence.blank? and user_selected_activities.match(/Manage TB adherence/i)
+            task.url = "/encounters/new/tb_adherence?show&patient_id=#{patient.id}"
+            return task
+          elsif tb_adherence.blank? and not user_selected_activities.match(/Manage TB adherence/i)
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if drugs_given_before
+        when 'ART ADHERENCE'
+          art_drugs_given_before = (not patient.drug_given_before(session_date).arv.prescriptions.blank?) rescue false
+
+          art_adherence = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                    :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                    session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
+
+          if art_adherence.blank? and user_selected_activities.match(/Manage ART adherence/i)
+            task.url = "/encounters/new/art_adherence?show&patient_id=#{patient.id}"
+            return task
+          elsif art_adherence.blank? and not user_selected_activities.match(/Manage ART adherence/i)
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if art_drugs_given_before
         when 'TREATMENT' 
           treatment_encounter = Encounter.find(:first,:order => "encounter_datetime DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
