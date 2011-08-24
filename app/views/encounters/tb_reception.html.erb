@@ -113,13 +113,21 @@
         :condition => "$('clinic_visit_type').value == 'Follow-up'"
       } 
     %>
-
-  <label for='need_to_see_clinician'>Any need to see a clinician?</label>
-    <%= touch_yes_no_unknown_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
-      {
-        :id => "need_to_see_clinician",
-        :condition => "$('clinic_visit_type').value == 'Follow-up'"
-      } %>
+  <% if session[:datetime].nil? %>
+    <label for='need_to_see_clinician'>Any need to see a clinician?</label>
+      <%= touch_yes_no_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
+        {
+          :id => "need_to_see_clinician",
+          :condition => "$('clinic_visit_type').value == 'Follow-up'"
+        } %>
+  <% else %>
+    <label for='need_to_see_clinician'>Any need to see a clinician?</label>
+        <%= touch_yes_no_unknown_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
+          {
+            :id => "need_to_see_clinician",
+            :condition => "$('clinic_visit_type').value == 'Follow-up'"
+          } %>
+  <% end %>
 
   <%if @patient.given_arvs_before? and @patient.get_identifier("ARV Number").blank?
   %>

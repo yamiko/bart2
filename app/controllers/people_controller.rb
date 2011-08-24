@@ -116,8 +116,8 @@ class PeopleController < ApplicationController
        tb_session = false
        if User.current_user.activities.include?('Manage Lab Orders') or User.current_user.activities.include?('Manage Lab Results') or
         User.current_user.activities.include?('Manage Sputum Submissions') or User.current_user.activities.include?('Manage TB Clinic Visits') or
-        User.current_user.activities.include?('Manage TB Reception Visits') or User.current_user.activities.include?('Manage TB Registration Visits') or
-        User.current_user.activities.include?('Manage HIV Status Visits')
+         User.current_user.activities.include?('Manage TB Reception Visits') or User.current_user.activities.include?('Manage TB Registration Visits') or
+          User.current_user.activities.include?('Manage HIV Status Visits')
          tb_session = true
        end
 
