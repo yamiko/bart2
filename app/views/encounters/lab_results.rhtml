@@ -24,6 +24,8 @@
 <script>
   var tt_cancel_destination = "/encounters/new/lab?patient_id=<%= @patient.patient_id -%>";
   var result_filed_ids = [];
+  var specimen_field_ids = [];
+
   var tb_status =  'TB NOT suspected';
 
   var acc_numbers = {<%= @sputum_submission_waiting_results.collect{|k,v| "#{k}:'#{v}'"}.sort.join(",")%>};
@@ -67,10 +69,11 @@
       if ($(result_filed_ids[i]).value != 'TB NOT suspected') {
         tb_status =  'Confirmed TB NOT on treatment'
       }
-      results += '<li>' + $(result_filed_ids[i]).getAttribute('helpText') + ": " + $(result_filed_ids[i]).value  + '</li>'
+      var specimen = $(specimen_field_ids[i]).value
+      results += '<li>' + acc_numbers[specimen] + " Results (Accession number: " + specimen + ") : " + $(result_filed_ids[i]).value  + '</li>'
     }
     results += '</ul>';
-    
+
     var display = "<div><span class='title'>TB Status: " + tb_status + "</span></div>";
     display += "<hr /><br /><div><span class='title'>Sputum results:<br />" + results + "</span></div>";
     $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + display + '</div>' ;    
@@ -174,6 +177,7 @@
     <% id = (i+1) %>
     <script>
        result_filed_ids.push("sputum_specimen_<%=id%>_result");
+       specimen_field_ids.push("specimen<%=id%>");
     </script>
 
       <%= text_field_tag element_id, nil,
@@ -181,15 +185,19 @@
        :helpText => "Scan specimen #{i+1}",
        :field_type => 'number',
        :tt_onLoad => "setupBarcode();inform(); setupBarcode();",
-       :validationRule => reg_ex,
-       :validationMessage => "Not a valid accession number: #{reg_ex}",
+       :validationCode => "acc_numbers_check[__$('touchscreenInput' + tstCurrentPage).value] != undefined",
+       :validationMessage => "Not a valid accession number: #{reg_ex} or a duplicate accession_number",
        :tt_pageStyleClass => "Numeric NumbersOnly"}  %>
 
     <%= touch_select_tag "#{@sputum_submission_waiting_results[acc_numbers[i]]} RESULTS", @patient, options_for_select(@sputum_results),
       {:id => "sputum_specimen_#{i+1}_result",
       :tt_pageStyleClass => "NoKeyboard",
-      :accession_number => acc_numbers[i],
-      :helpText => "#{@sputum_submission_waiting_results[acc_numbers[i]]} Results (Accession number: #{acc_numbers[i]})" } %>
+      :accession_number => i + 1,
+      :tt_onUnload => "delete acc_numbers_check[__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value]",
+      :tt_onLoad => "__$('helpText' + tstCurrentPage).innerHTML= acc_numbers[__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value] + ' Results (Accession number: ' +__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value + ')'",
+
+      :helpText => "'#{@sputum_submission_waiting_results[acc_numbers[i]]}  Results (Accession number: ' +__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value + ')'" } %>
+s[i]})" } %>
       <%counter += 2%>
 
    <%end%>
@@ -201,7 +209,7 @@
         :optional => "true", 
         :tt_pageStyleClass => "NoControls" 
     } %>
-         
+
   <%= submit_tag "Finish" %>    
 </form>
 <% end %>
