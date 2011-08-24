@@ -45,7 +45,6 @@
           val_arr.splice(idx,1)
         }
         //tstInputTarget.value = ""
-        $('infoBar'+tstCurrentPage).innerHTML = val_arr.toString();
         $('final_tests').value = val_arr.join(';');
     }
 
@@ -79,12 +78,14 @@
 
         if (tstCurrentPage == 1 || tstCurrentPage == 2){
             if (tstInputTarget.value == ''){
-                $('nextButton').innerHTML = '<span>Finish</span>';
+                //$('nextButton').innerHTML = '<span>Finish</span>';
+                $('nextButton').innerHTML = '<span>Next</span>';
                 if(number_of_selected_test < 2 && tstCurrentPage == 2){
                     $('nextButton').setAttribute("onmousedown","showMessage('Please select 2 or more tests');");
                 }
                 else{
-                    $('nextButton').setAttribute("onmousedown","formSubmit()");
+                    //$('nextButton').setAttribute("onmousedown","formSubmit()");
+                    $('nextButton').setAttribute("onmousedown","gotoNextPage()");
                 }
             }
             else{
@@ -151,7 +152,8 @@
 
   <%= select_tag "lab_orders", options_for_select([]),
     {:id => "lab_orders",
-     :tt_onLoad => '$("infoBar"+tstCurrentPage).innerHTML = val_arr.toString();setTimeout("updateLabOptions()",500);updateNextFinish();',
+     #:tt_onLoad => '$("infoBar"+tstCurrentPage).innerHTML = val_arr.toString();setTimeout("updateLabOptions()",500);updateNextFinish();',
+     :tt_onLoad => 'setTimeout("updateLabOptions()",500);updateNextFinish();',
      :ajaxURL => '',
      :tt_onUnLoad => "",
      :multiple => true,
