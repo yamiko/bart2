@@ -769,8 +769,8 @@ function showNumber(id){
     div.id = "divMenu";
     div.style.top = "px";
     div.style.zIndex = 1001;
-    div.style.top = p[2] + p[1] - __$("divScroller").scrollTop;
-    div.style.left = p[3];
+    div.style.top = (p[2] + p[1] - __$("divScroller").scrollTop) + "px";
+    div.style.left = p[3] + "px";
     div.style.position = "absolute";
 
     global_control = id;
@@ -920,9 +920,9 @@ function showYear(id){
     div.style.top = "px";
     div.style.zIndex = 1001;
     div.style.backgroundColor = "#EEEEEE";
-    div.style.top = p[2] + p[1] - __$("divScroller").scrollTop;
+    div.style.top = (p[2] + p[1] - __$("divScroller").scrollTop) + "px";
     div.style.width = p[0];
-    div.style.left = p[3];
+    div.style.left = p[3] + "px";
     div.style.position = "absolute";
 
     var sel = document.createElement("select");
