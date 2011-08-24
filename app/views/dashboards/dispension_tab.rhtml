@@ -87,9 +87,10 @@
                           <img src="/images/cancel_flat_small.png"/>
                         </td>
                         <% total_required = order.drug_order.total_required
+                          drug_unit  =  order.drug_order.units
                           if total_required > total_dispensed then color = 'red' else color = '' end
                         %>
-                        <td style="color:<%=color%>;"><%=total_required%></td>
+                        <td style="color:<%=color%>;"><%="#{total_required} #{drug_unit}"%></td>
                         <td><%=order.drug_order.drug.name%></td>
                         <td style="text-align:right;"><%= total_dispensed %></td>
                       </tr>
