@@ -153,34 +153,6 @@ EOF
        ['Tubal ligation', 'TUBAL LIGATION'],
        ['Vasectomy', 'VASECTOMY']
       ],
-     'female_family_planning_methods' => [
-       ['',''],
-       ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
-		   ['Depo-Provera', 'DEPO-PROVERA'],
-		   ['Intrauterine contraception', 'INTRAUTERINE CONTRACEPTION'],
-       ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
-       ['Male condoms', 'MALE CONDOMS'],
-       ['Female condoms', 'FEMALE CONDOMS'],
-       ['Rhythm method', 'RYTHM METHOD'],
-       ['Withdrawal', 'WITHDRAWAL'],
-       ['Abstinence', 'ABSTINENCE'],
-       ['Tubal ligation', 'TUBAL LIGATION'],
-       ['Vasectomy', 'VASECTOMY'],
-		   ['Emergency contraception', 'EMERGENCY CONTRACEPTION']
-      ],
-     'male_family_planning_methods' => [
-       ['',''],
-		   ['Intrauterine contraception', 'INTRAUTERINE CONTRACEPTION'],
-       ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
-       ['Male condoms', 'MALE CONDOMS'],
-       ['Rhythm method', 'RYTHM METHOD'],
-       ['Withdrawal', 'WITHDRAWAL'],
-       ['Abstinence', 'ABSTINENCE'],
-       ['Tubal ligation', 'TUBAL LIGATION'],
-       ['Vasectomy', 'VASECTOMY'],
-       ['Emergency contraception', 'EMERGENCY CONTRACEPTION'],
-       ['Other','OTHER']
-      ],
      'male_family_planning_methods' => [
        ['',''],
        ['Male condoms', 'MALE CONDOMS'],
@@ -283,17 +255,19 @@ EOF
       },
       'tb_symptoms' => [
         ['',''],
-        ["Cough lasting more than three weeks", "Cough lasting more than three weeks"],
+        ["Cough", "Cough lasting more than three weeks"],
         ["Bronchial breathing", "Bronchial breathing"],
         ["Shortness of breath", "Shortness of breath"],
         ["Crackles", "Crackles"],
         ["Failure to thrive", "Failure to thrive"],
         ["Chest pain", "Chest pain"],
         ["Weight loss", "Weight loss"],
-        ["Relapsing fever", "Relapsing fever"],
+        ["Fever", "Relapsing fever"],
         ["Fatigue", "Fatigue"],
         ["Bloody cough", "Hemoptysis"],
-        ["Peripheral neuropathy","Peripheral neuropathy"]
+        ["Peripheral neuropathy","Peripheral neuropathy"],
+        ["Night sweats","Night sweats"],
+        ["Meningitis","Meningitis"]
       ],
       'drug_related_side_effects' => [
         ['',''],
