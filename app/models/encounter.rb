@@ -297,13 +297,13 @@ EOF
       ],
       'eptb_classification'=> [
         ['',''],
-        ['Pulmonary effusion'], ['Pulmonary effusion'],
-        ['Lymphadenopathy'], ['Lymphadenopathy'],
-        ['Pericardial effusion, nos'], ['Pericardial effusion, nos'],
-        ['Ascites'], ['Ascites'],
-        ['Spinal disease'], ['Spinal disease'],
-        ['Meningitis'], ['Meningitis'],
-        ['Other'], ['Other']
+        ['Pulmonary effusion', 'Pulmonary effusion'],
+        ['Lymphadenopathy', 'Lymphadenopathy'],
+        ['Pericardial effusion, nos', 'Pericardial effusion, nos'],
+        ['Ascites', 'Ascites'],
+        ['Spinal disease', 'Spinal disease'],
+        ['Meningitis','Meningitis'],
+        ['Other', 'Other']
       ]
     }
   end

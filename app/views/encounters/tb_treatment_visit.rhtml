@@ -69,7 +69,7 @@ Check applicability of code below
     {:id => "tb_symptoms",
      :multiple => true,
      :tt_pageStyleClass => "NoKeyboard",
-     :helpText => "TB signs"} %>
+     :helpText => "Current TB signs"} %>
 
      <%= touch_select_tag "Drug related side effects", @patient, options_for_select(@select_options['drug_related_side_effects'].sort),
     {:id => "drug_side_effects",
