@@ -187,6 +187,7 @@
        :tt_onLoad => "setupBarcode();inform(); setupBarcode();",
        :validationCode => "acc_numbers_check[__$('touchscreenInput' + tstCurrentPage).value] != undefined",
        :validationMessage => "Not a valid accession number: #{reg_ex} or a duplicate accession_number",
+       :tt_onUnload => "__$('sputum_specimen_#{i+1}_result_#{i+1}').value = __$('#{element_id}').value;",
        :tt_pageStyleClass => "Numeric NumbersOnly"}  %>
 
     <%= touch_select_tag "#{@sputum_submission_waiting_results[acc_numbers[i]]} RESULTS", @patient, options_for_select(@sputum_results),

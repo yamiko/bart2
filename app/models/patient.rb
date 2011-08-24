@@ -106,7 +106,7 @@ class Patient < ActiveRecord::Base
     alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.gsub(" ",'')}" == 'Negative' && self.months_since_last_hiv_test > 3)
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.gsub(" ",'')}" == 'Unknown'
     alerts << "Lab: Expecting submission of sputum" unless self.sputum_orders_without_submission.empty?
-    alerts << "Lab: Waiting for sputum results" unless self.sputum_submissions_waiting_for_results.empty?
+    alerts << "Lab: Waiting for sputum results" unless !self.sputum_submissions_waiting_for_results.empty?
     alerts
   end
 
@@ -1209,7 +1209,7 @@ EOF
     sputum_results_id = ConceptName.find(:all, :conditions => ["name IN (?)", results_concept_name ]).map(&:concept_id)
 
     sputums_array = sputums_array.select { |order|
-                       accessor_history = Observation.find(:all, :conditions => ["accession_number  = (?) AND voided = 0 AND concept_id IN (?)", order.accession_number, sputum_results_id]);
+                       accessor_history = Observation.find(:all, :conditions => ["person_id = ? AND accession_number  = (?) AND voided = 0 AND concept_id IN (?)",  self.id, order.accession_number, sputum_results_id]);
                        accessor_history.size == 0
                     }
     sputums_array
