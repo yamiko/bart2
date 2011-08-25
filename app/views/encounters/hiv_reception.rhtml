@@ -28,9 +28,9 @@
   }
 
   // Disable option No on Patient Present if Guardian is not present (or Unknown)
-  function ensureOnePresent() {
-    if ($('guardian_present').value != 'Yes') {
-      $('1').style.display = 'none';
+  function forcePatientPresentYes() {
+    if ($('guardian_present').value == 'No') {
+      $('patient_present').value == 'Yes';
     }
   }
 
@@ -48,7 +48,7 @@
           {:id => "guardian_present",
            :multiple => false,
            :optional => false,
-           :tt_onUnLoad => "setTimeout(cleanup_guardian_options() , 500);" } %>
+           :tt_onUnLoad => "forcePatientPresentYes(),setTimeout(cleanup_guardian_options() , 500);" } %>
         <%= hidden_field_tag("observations[][value_coded_or_text]", nil) %>
         <%= hidden_field_tag("observations[][concept_name]", "GUARDIAN PRESENT") %>
         <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
@@ -59,7 +59,8 @@
           {:id => "guardian_present",
            :multiple => false,
            :optional => false,
-           :tt_onLoad => 'hide_new_relationship_button()' } %>
+           :tt_onLoad => 'hide_new_relationship_button()',
+           :tt_onUnLoad => 'forcePatientPresentYes()'} %>
         <%= hidden_field_tag("observations[][value_coded_or_text]", nil) %>
         <%= hidden_field_tag("observations[][concept_name]", "GUARDIAN PRESENT") %>
         <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
@@ -77,7 +78,8 @@
   <label for='patient_present'>Patient Present (<%=@patient.name%>)</label>
     <%= select_tag "observations[][value_coded_or_text]", options_for_select([['Yes','YES'],['No','NO']]), 
       {:id => 'patient_present',
-      :tt_onLoad => 'hide_new_relationship_button(); ensureOnePresent();'} %>
+       :condition => "$('guardian_present').value == 'Yes'",
+       :tt_onLoad => 'hide_new_relationship_button()'} %>
     <%= hidden_field_tag("observations[][value_text]", nil) %>
     <%= hidden_field_tag("observations[][concept_name]", "PATIENT PRESENT") %>
     <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
