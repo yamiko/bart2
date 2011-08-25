@@ -49,15 +49,42 @@
 
   function set_TB_program_values() {
     var tb_type = $('touchscreenInput'+tstCurrentPage).value;
-    
+    var form = $('appointment');  
     if (tb_type == "Multi-drug resistant tuberculosis"){
-        document.getElementById("programs__program_id").value = <%="#{Program.find_by_name('MDR-TB PROGRAM').id}"%>;
-        document.getElementById("programs__states__state").value = <%="'Waiting for treatment'"%>;
-    }
-    else
-    {
-        document.getElementById("programs__program_id").value = <%="#{Program.find_by_name('TB PROGRAM').id}"%>;
-        document.getElementById("programs__states__state").value = <%="'Symptomatic but NOT in treatment'"%>;
+      <% if !@patient.patient_programs.current.local.map(&:program).map(&:name).include?('MDR-TB PROGRAM') %>
+        newElement = document.createElement("input")
+        newElement.setAttribute("name",'programs[][patient_program_id]')
+        newElement.setAttribute("type","hidden");
+        form.appendChild(newElement);
+
+        newElement = document.createElement("input")
+        newElement.setAttribute("name",'programs[][program_id]')
+        newElement.setAttribute("type","hidden");
+        newElement.value = <%="#{Program.find_by_name('MDR-TB PROGRAM').id}"%>
+        form.appendChild(newElement);
+
+        newElement = document.createElement("input")
+        newElement.setAttribute("name",'programs[][location_id]')
+        newElement.setAttribute("type","hidden");
+        newElement.value = <%="#{Location.current_health_center.id}"%>
+        form.appendChild(newElement);
+
+        newElement = document.createElement("input")
+        newElement.setAttribute("name",'programs[][states][][state]')
+        newElement.setAttribute("type","hidden");
+        newElement.value = 'Waiting for treatment'
+        form.appendChild(newElement);
+      <%else%>
+        try {
+          tag_names = ['programs[][program_id]','programs[][location_id]','programs[][states][][state]'];
+          for(i = 0 ; i < tag_names.length ; i++){
+            tags = document.getElementsByName(tag_names[i]);
+            for(x = 0 ; x < tags.length ; x++){
+              tags[x].value = null;
+            }
+          }
+        }catch(e){}
+      <%end%>
     }
   }
 

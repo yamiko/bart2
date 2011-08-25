@@ -530,9 +530,25 @@ class Task < ActiveRecord::Base
             return task
           end
         when 'VITALS' 
+          if not patient.hiv_status.match(/Positive/i) and not patient.tb_status.match(/treatment/i)
+            next
+          end 
+
+          first_vitals = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                  :conditions =>["patient_id = ? AND encounter_type = ?",
+                                  patient.id,EncounterType.find_by_name(type).id])
+
+          if not patient.tb_status.match(/treatment/i) and not tb_reception_attributes.include?('Any need to see a clinician:  Yes') 
+            next
+          end if not patient.hiv_status.match(/Positive/i) 
+
+          if patient.tb_status.match(/treatment/i) and not patient.hiv_status.match(/Positive/i)
+            next
+          end if not first_vitals.blank?
+
           vitals = Encounter.find(:first,:order => "encounter_datetime DESC",
-                                      :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
-                                      session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
+                                  :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                  session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
 
           if vitals.blank? and user_selected_activities.match(/Manage Vitals/i) 
             task.encounter_type = 'VITALS'
@@ -652,19 +668,17 @@ class Task < ActiveRecord::Base
             return task
           end 
         when 'TB CLINIC VISIT'
+          obs_ans = Observation.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND DATE(obs_datetime) = ?", 
+                    patient.id, ConceptName.find_by_name("ANY NEED TO SEE A CLINICIAN").concept_id,session_date])).to_s.strip.squish rescue nil
+
+          if not obs_ans.blank?
+            next if obs_ans.match(/ANY NEED TO SEE A CLINICIAN: NO/i)
+          end
+
           clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                                       session_date.to_date ,patient.id,EncounterType.find_by_name(type).id])
 
-          tb_followup = Encounter.find(:first,:order => "encounter_datetime DESC",
-                                      :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
-                                      session_date.to_date ,patient.id,EncounterType.find_by_name('TB TREATMENT VISIT').id])
-          refered_to_clinician =  tb_followup.observations.collect{|obs|obs.to_s.strip}.include?('Refer patient to clinician:  Yes') rescue false
-          
-
-          if tb_reception_attributes.include?('Any need to see a clinician:  No') and not refered_to_clinician
-            next
-          end
 
           if clinic_visit.blank? and user_selected_activities.match(/Manage TB clinic visits/i)
             task.url = "/encounters/new/tb_clinic_visit?show&patient_id=#{patient.id}"

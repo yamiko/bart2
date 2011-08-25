@@ -1158,7 +1158,11 @@ EOF
   end
   
   def hiv_status
-    Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).concept_names.map{|c|c.name}[0] rescue "UNKNOWN"
+    status = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).concept_names.map{|c|c.name}[0] rescue "UNKNOWN"
+    if status.upcase == 'UNKNOWN'
+      return self.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') ? 'Positive' : status
+    end
+    return status
   end
 
   def hiv_test_date
