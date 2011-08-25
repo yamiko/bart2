@@ -152,7 +152,7 @@ Check applicability of code below
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "EPTB classification" } %>
 
-  <%= touch_select_tag "TB type", @patient, concept_set_options("TB type"),
+  <%= touch_select_tag "TB type", @patient, concept_set_tb_types("TB type"),
     {:id => "tb_type",
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "TB type / TB susceptibility",

@@ -1,7 +1,6 @@
 class EncountersController < ApplicationController
 
   def create
-    
     if params['encounter']['encounter_type_name'] == 'ART_INITIAL'
       if params[:observations][0]['concept_name'].upcase == 'EVER RECEIVED ART' and params[:observations][0]['value_coded_or_text'].upcase == 'NO'
         observations = []
@@ -168,6 +167,30 @@ class EncountersController < ApplicationController
         @patient_identifier.update_attributes(identifier)      
       else
         @patient_identifier = @patient.patient_identifiers.create(identifier)
+      end
+    end
+
+    # person attribute handling
+    (params[:person] || []).each do | type , attribute |
+      # Look up the attribute if the person_attribute_id is set  
+
+      #person_attribute_id = person_attribute[:person_attribute_id].to_i rescue nil    
+      @person_attribute = nil #PersonAttribute.find(person_attribute_id) unless person_attribute_id.blank?
+      # Create or update
+
+      if not @person_attribute.blank?
+        @patient_identifier.update_attributes(person_attribute)      
+      else
+        case type
+          when 'agrees_to_be_visited_for_TB_therapy'
+            @person_attribute = @patient.person.person_attributes.create(
+            :person_attribute_type_id => PersonAttributeType.find_by_name("Agrees to be visited at home for TB therapy").person_attribute_type_id,
+            :value => attribute)
+          when 'agrees_phone_text_for_TB_therapy'
+            @person_attribute = @patient.person.person_attributes.create(
+            :person_attribute_type_id => PersonAttributeType.find_by_name("Agrees to phone text for TB therapy").person_attribute_type_id,
+            :value => attribute)
+        end
       end
     end
 
