@@ -475,7 +475,7 @@ class Task < ActiveRecord::Base
 
     #valid privileges for ART visit ....
     #1. Manage TB Reception Visits - TB RECEPTION
-    #2. Manage TB inital visits - TB_INITIAL
+    #2. Manage TB initial visits - TB_INITIAL
     #3. Manage Lab orders - LAB ORDERS
     #4. Manage sputum submission - SPUTUM SUBMISSION
     #5. Manage Lab results - LAB RESULTS
@@ -697,10 +697,10 @@ class Task < ActiveRecord::Base
 
           enrolled_in_tb_program = patient.patient_programs.collect{|p|p.program.name}.include?('TB PROGRAM') rescue false
 
-          if user_selected_activities.match(/Manage TB Registration visits/i)
+          if user_selected_activities.match(/Manage TB initial visits/i)
             task.url = "/encounters/new/tb_initial?show&patient_id=#{patient.id}"
             return task
-          elsif not user_selected_activities.match(/Manage TB Registration visits/i)
+          elsif not user_selected_activities.match(/Manage TB initial visits/i)
             task.url = "/patients/show/#{patient.id}"
             return task
           end 
