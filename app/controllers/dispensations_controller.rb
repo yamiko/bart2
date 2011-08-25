@@ -64,7 +64,9 @@ class DispensationsController < ApplicationController
       :obs_datetime => session[:datetime] || Time.now())
     if obs.save
       @patient.patient_programs.find_last_by_program_id(Program.find_by_name("HIV PROGRAM")).transition(
-               :state => "ON ANTIRETROVIRALS",:start_date => session[:datetime] || Time.now()) if @drug.arv? rescue nil
+               :state => "On antiretrovirals",:start_date => session[:datetime] || Time.now()) if @drug.arv? rescue nil
+      @patient.patient_programs.find_last_by_program_id(Program.find_by_name("TB PROGRAM")).transition(
+               :state => "Currently in treatment",:start_date => session[:datetime] || Time.now()) if @drug.tb_medication? rescue nil
       unless @order.blank?
         @order.drug_order.total_drug_supply(@patient, @encounter,session_date.to_date)
 
