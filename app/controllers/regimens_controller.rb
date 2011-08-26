@@ -72,34 +72,7 @@ class RegimensController < ApplicationController
       end if prescribe_arvs
     end
 
-	orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:tb_regimen]})
-    ActiveRecord::Base.transaction do
-      # Need to write an obs for the regimen they are on, note that this is ARV
-      # Specific at the moment and will likely need to have some kind of lookup
-      # or be made generic
-      obs = Observation.create(
-        :concept_name => "WHAT TYPE OF ANTIRETROVIRAL REGIMEN",
-        :person_id => @patient.person.person_id,
-        :encounter_id => encounter.encounter_id,
-        :value_coded => params[:tb_regimen_concept_id],
-        :obs_datetime => start_date) if prescribe_tb_drugs
-      orders.each do |order|
-        drug = Drug.find(order.drug_inventory_id)
-        regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept.name).name
-        DrugOrder.write_order(
-          encounter, 
-          @patient, 
-          obs, 
-          drug, 
-          start_date, 
-          auto_tb_expire_date, 
-          order.dose, 
-          order.frequency, 
-          order.prn, 
-          "#{drug.name}: #{order.instructions} (#{regimen_name})",
-          order.equivalent_daily_dose)  
-      end if prescribe_tb_drugs
-    end
+
 
     
     ['CPT STARTED','ISONIAZID'].each do | concept_name |
@@ -144,7 +117,36 @@ class RegimensController < ApplicationController
           order.equivalent_daily_dose)    
       end
     end
-		 
+	
+	orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:tb_regimen]})
+    ActiveRecord::Base.transaction do
+      # Need to write an obs for the regimen they are on, note that this is ARV
+      # Specific at the moment and will likely need to have some kind of lookup
+      # or be made generic
+      obs = Observation.create(
+        :concept_name => "WHAT TYPE OF ANTIRETROVIRAL REGIMEN",
+        :person_id => @patient.person.person_id,
+        :encounter_id => encounter.encounter_id,
+        :value_coded => params[:tb_regimen_concept_id],
+        :obs_datetime => start_date) if prescribe_tb_drugs
+      orders.each do |order|
+        drug = Drug.find(order.drug_inventory_id)
+        regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept.name).name
+        DrugOrder.write_order(
+          encounter, 
+          @patient, 
+          obs, 
+          drug, 
+          start_date, 
+          auto_tb_expire_date, 
+          order.dose, 
+          order.frequency, 
+          order.prn, 
+          "#{drug.name}: #{order.instructions} (#{regimen_name})",
+          order.equivalent_daily_dose)  
+      end if prescribe_tb_drugs
+    end
+    
     # Send them back to treatment for now, eventually may want to go to workflow
     redirect_to "/patients/treatment_dashboard?patient_id=#{@patient.id}"
   end    
