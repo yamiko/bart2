@@ -8,18 +8,31 @@ class RegimensController < ApplicationController
 
     @current_regimens_for_programs = current_regimens_for_programs
     @current_regimen_names_for_programs = current_regimen_names_for_programs
+    
+    session_date = session[:datetime].to_date rescue Date.today
+    
+	tb_treatment_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
+                    :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                    session_date,@patient.id,EncounterType.find_by_name('TB TREATMENT VISIT').id]).observations
 
-	@prescribe_tb_drugs = true	
-	if @tb_programs.blank?
-		@prescribe_tb_drugs = false
+    prescribe_tb_medication = false
+    (tb_treatment_obs || []).each do | obs | 
+            if obs.concept_id == (Concept.find_by_name('Prescribe drugs').concept_id rescue nil)
+                prescribe_tb_medication = true if Concept.find(obs.value_coded).fullname.upcase == 'YES' 
+            end
+    end
+    
+	@prescribe_tb_drugs = false	
+	if (not @tb_programs.blank?) and prescribe_tb_medication
+		@prescribe_tb_drugs = true
 	end
 
 	#raise @prescribe_tb_drugs.to_s
 	#raise @tb_programs.to_yaml
-		
   end
   
   def create
+  
    prescribe_tb_drugs = false   
 	prescribe_arvs = false
    prescribe_cpt = false
