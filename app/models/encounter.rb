@@ -272,14 +272,15 @@ EOF
       ],
       'drug_related_side_effects' => [
         ['',''],
+        ["Confusion", "Confusion"],
         ["Deafness", "Deafness"],
         ["Dizziness", "Dizziness"],
-        ["Yellow eyes", "Jaundice"],
+        ["Peripheral neuropathy","Peripheral neuropathy"],
         ["Skin itching/purpura", "Skin itching"],
         ["Visual impairment", "Visual impairment"],
         ["Vomiting", "Vomiting"],
-        ["Confusion", "Confusion"],
-        ["Peripheral neuropathy","Peripheral neuropathy"]
+        ["Yellow eyes", "Jaundice"],
+        ["Other", "Other"]
       ],
       'tb_patient_categories' => [
         ['',''],

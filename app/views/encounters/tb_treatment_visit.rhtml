@@ -71,9 +71,14 @@ Check applicability of code below
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "Current TB signs"} %>
 
-     <%= touch_select_tag "Drug related side effects", @patient, options_for_select(@select_options['drug_related_side_effects'].sort),
+  <%= touch_yes_no_tag "SIDE EFFECTS", @patient, nil,
+      {:id => "side_effects",
+        :helpText => "Any drug related side effects?" } %>
+
+     <%= touch_select_tag "Drug related side effects", @patient, options_for_select(@select_options['drug_related_side_effects']),
     {:id => "drug_side_effects",
      :multiple => true,
+     :condition => "$('side_effects').value == 'YES'",
      :tt_pageStyleClass => "NoKeyboard",
      :tt_onUnLoad => "",
      :helpText => "Drug related side effects" } %>
@@ -107,4 +112,3 @@ Check applicability of code below
   Ask if patient is alergic to Sulfur<br /> 
   <button onmousedown="$('sulfurAlert').style.display = 'none';"><span>OK</span></button>
 </div> 
-
