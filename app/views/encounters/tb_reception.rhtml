@@ -102,7 +102,7 @@
 
   <% phone_number_available = false 
      @patient.person.phone_numbers.each do |type , number |
-       unless number.blank?
+       if not number.blank? and not number.match(/[0-9]*/i)[0].blank?
         phone_number_available = true
         break
        end
