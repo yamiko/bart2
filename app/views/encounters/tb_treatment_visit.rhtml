@@ -65,7 +65,7 @@ Check applicability of code below
          :helpText => "What method?" } %>
     <% end %>
    <% end %>
-     <%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms'].sort),
+     <%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms']),
     {:id => "tb_symptoms",
      :multiple => true,
      :tt_pageStyleClass => "NoKeyboard",
