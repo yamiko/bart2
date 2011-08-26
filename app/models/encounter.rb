@@ -304,6 +304,12 @@ EOF
         ['Spinal disease', 'Spinal disease'],
         ['Meningitis','Meningitis'],
         ['Other', 'Other']
+      ],
+      'tb_types' => [
+        ['',''],
+        ['Susceptible', 'Susceptible to tuberculosis drug'],
+        ['Multi-drug resistant', 'Multi-drug resistant tuberculosis'],
+        ['Extreme drug resistant', 'Extreme drug resistant tuberculosis']
       ]
     }
   end
