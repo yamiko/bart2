@@ -83,11 +83,6 @@ Check applicability of code below
      :tt_onUnLoad => "",
      :helpText => "Drug related side effects" } %>
 
-  <%= touch_text_field_tag "Other", @patient, nil,
-    {:id => "other_side_effect",
-     :condition => 'checkIfExists("Other","drug_side_effects") == "True";',
-     :helpText => "Other drug related side effect" } %>
-
   <%date = session[:datetime].to_date rescue Date.today 
     clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
                                   :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
