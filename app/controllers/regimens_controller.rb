@@ -8,18 +8,31 @@ class RegimensController < ApplicationController
 
     @current_regimens_for_programs = current_regimens_for_programs
     @current_regimen_names_for_programs = current_regimen_names_for_programs
+    
+    session_date = session[:datetime].to_date rescue Date.today
+    
+	tb_treatment_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
+                    :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                    session_date,@patient.id,EncounterType.find_by_name('TB TREATMENT VISIT').id]).observations
 
-	@prescribe_tb_drugs = true	
-	if @tb_programs.blank?
-		@prescribe_tb_drugs = false
+    prescribe_tb_medication = false
+    (tb_treatment_obs || []).each do | obs | 
+            if obs.concept_id == (Concept.find_by_name('Prescribe drugs').concept_id rescue nil)
+                prescribe_tb_medication = true if Concept.find(obs.value_coded).fullname.upcase == 'YES' 
+            end
+    end
+    
+	@prescribe_tb_drugs = false	
+	if (not @tb_programs.blank?) and prescribe_tb_medication
+		@prescribe_tb_drugs = true
 	end
 
 	#raise @prescribe_tb_drugs.to_s
 	#raise @tb_programs.to_yaml
-		
   end
   
   def create
+  
    prescribe_tb_drugs = false   
 	prescribe_arvs = false
    prescribe_cpt = false
@@ -72,34 +85,7 @@ class RegimensController < ApplicationController
       end if prescribe_arvs
     end
 
-	orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:tb_regimen]})
-    ActiveRecord::Base.transaction do
-      # Need to write an obs for the regimen they are on, note that this is ARV
-      # Specific at the moment and will likely need to have some kind of lookup
-      # or be made generic
-      obs = Observation.create(
-        :concept_name => "WHAT TYPE OF ANTIRETROVIRAL REGIMEN",
-        :person_id => @patient.person.person_id,
-        :encounter_id => encounter.encounter_id,
-        :value_coded => params[:tb_regimen_concept_id],
-        :obs_datetime => start_date) if prescribe_tb_drugs
-      orders.each do |order|
-        drug = Drug.find(order.drug_inventory_id)
-        regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept.name).name
-        DrugOrder.write_order(
-          encounter, 
-          @patient, 
-          obs, 
-          drug, 
-          start_date, 
-          auto_tb_expire_date, 
-          order.dose, 
-          order.frequency, 
-          order.prn, 
-          "#{drug.name}: #{order.instructions} (#{regimen_name})",
-          order.equivalent_daily_dose)  
-      end if prescribe_tb_drugs
-    end
+
 
     
     ['CPT STARTED','ISONIAZID'].each do | concept_name |
@@ -144,7 +130,36 @@ class RegimensController < ApplicationController
           order.equivalent_daily_dose)    
       end
     end
-		 
+	
+	orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:tb_regimen]})
+    ActiveRecord::Base.transaction do
+      # Need to write an obs for the regimen they are on, note that this is ARV
+      # Specific at the moment and will likely need to have some kind of lookup
+      # or be made generic
+      obs = Observation.create(
+        :concept_name => "WHAT TYPE OF ANTIRETROVIRAL REGIMEN",
+        :person_id => @patient.person.person_id,
+        :encounter_id => encounter.encounter_id,
+        :value_coded => params[:tb_regimen_concept_id],
+        :obs_datetime => start_date) if prescribe_tb_drugs
+      orders.each do |order|
+        drug = Drug.find(order.drug_inventory_id)
+        regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept.name).name
+        DrugOrder.write_order(
+          encounter, 
+          @patient, 
+          obs, 
+          drug, 
+          start_date, 
+          auto_tb_expire_date, 
+          order.dose, 
+          order.frequency, 
+          order.prn, 
+          "#{drug.name}: #{order.instructions} (#{regimen_name})",
+          order.equivalent_daily_dose)  
+      end if prescribe_tb_drugs
+    end
+    
     # Send them back to treatment for now, eventually may want to go to workflow
     redirect_to "/patients/treatment_dashboard?patient_id=#{@patient.id}"
   end    
