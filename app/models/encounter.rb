@@ -255,30 +255,32 @@ EOF
       },
       'tb_symptoms' => [
         ['',''],
-        ["Cough", "Cough lasting more than three weeks"],
+        ["Bloody cough", "Hemoptysis"],
         ["Bronchial breathing", "Bronchial breathing"],
-        ["Shortness of breath", "Shortness of breath"],
+        ["Chest pain", "Chest pain"],
+        ["Cough", "Cough lasting more than three weeks"],
         ["Crackles", "Crackles"],
         ["Failure to thrive", "Failure to thrive"],
-        ["Chest pain", "Chest pain"],
-        ["Weight loss", "Weight loss"],
-        ["Fever", "Relapsing fever"],
         ["Fatigue", "Fatigue"],
-        ["Bloody cough", "Hemoptysis"],
-        ["Peripheral neuropathy","Peripheral neuropathy"],
+        ["Fever", "Relapsing fever"],
+        ["Meningitis","Meningitis"],
         ["Night sweats","Night sweats"],
-        ["Meningitis","Meningitis"]
+        ["Peripheral neuropathy","Peripheral neuropathy"],
+        ["Shortness of breath", "Shortness of breath"],
+        ["Weight loss", "Weight loss"],
+        ["Other", "Other"]
       ],
       'drug_related_side_effects' => [
         ['',''],
+        ["Confusion", "Confusion"],
         ["Deafness", "Deafness"],
         ["Dizziness", "Dizziness"],
-        ["Yellow eyes", "Jaundice"],
+        ["Peripheral neuropathy","Peripheral neuropathy"],
         ["Skin itching/purpura", "Skin itching"],
         ["Visual impairment", "Visual impairment"],
         ["Vomiting", "Vomiting"],
-        ["Confusion", "Confusion"],
-        ["Peripheral neuropathy","Peripheral neuropathy"]
+        ["Yellow eyes", "Jaundice"],
+        ["Other", "Other"]
       ],
       'tb_patient_categories' => [
         ['',''],
