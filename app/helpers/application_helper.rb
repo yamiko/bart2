@@ -164,24 +164,6 @@ module ApplicationHelper
     return options
   end
 
-  #tb_types should display short names and sending full concept_names for processing
-  def concept_set_tb_types(concept_name)
-    concept_id = ConceptName.find(:first,:joins =>"INNER JOIN concept USING (concept_id)",
-                                  :conditions =>["retired = 0 AND name = ?",concept_name]).concept_id
-    set = ConceptSet.find_all_by_concept_set(concept_id, :order => 'sort_weight')
-    options = set.map{|item|next if item.concept.blank? ; [item.concept.fullname] }
-
-    tb_types = []
-    i = 0
-    while i < options.length
-      tb_types << ["Susceptible", "Susceptible to tuberculosis drug"] if options[i].include?("Susceptible to tuberculosis drug")
-      tb_types << ["Multi-drug resistant", "Multi-drug resistant tuberculosis"] if options[i].include?("Multi-drug resistant tuberculosis")
-      tb_types << ["Extreme drug resistant", "Extreme drug resistant tuberculosis"] if options[i].include?("Extreme drug resistant tuberculosis")
-     i = i + 1
-    end
-    options_for_select(tb_types)
-  end
-
   def development_environment?
     ENV['RAILS_ENV'] == 'development'
   end
