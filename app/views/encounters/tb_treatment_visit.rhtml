@@ -83,7 +83,7 @@ Check applicability of code below
      :tt_onUnLoad => "",
      :helpText => "Drug related side effects" } %>
 
-  <%date = session[:datetime].to_date rescue Date.today 
+  <%date = session[:datetime].to_date rescue Date.today
     clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
                                   :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                                   date,@patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
@@ -93,6 +93,11 @@ Check applicability of code below
   <%= touch_yes_no_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
       {:id => "refer_to_clinician",
         :helpText => "Refer patient to clinician" } %>
+  <%else%>
+    <%= hidden_field_tag(:refer_to_clinician, 'NO') %>
+    <%= hidden_field_tag("observations[][value_coded_or_text]", 'NO') %>
+    <%= hidden_field_tag("observations[][concept_name]", "ANY NEED TO SEE A CLINICIAN") %>
+    <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
   <%end%>
 
   <%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
