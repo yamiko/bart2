@@ -225,7 +225,7 @@
     var display = "<div><span class='title'>WHO Stage: " + $('who_stage').value + "</span></div>";
     display += "<div><span class='title'>Reason for ART Eligibility: " + $('reason_for_art_eligibility').value + "</span></div>";
     $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + display + '</div>' ;    
-    $("clearButton").className = "button gray navButton";
+    $("clearButton").style.display = "none";
     if (conditions.length > 0)
       $('inputFrame'+tstCurrentPage).innerHTML += '<div id="selected_stage_conditions"><hr /><br />' + conditions + '</div>' ;    
   }  
