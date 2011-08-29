@@ -487,8 +487,8 @@ class Task < ActiveRecord::Base
 
     tb_encounters =  [
                       'TB RECEPTION','UPDATE HIV STATUS','LAB ORDERS','SPUTUM SUBMISSION','LAB RESULTS',
-                      'TB_INITIAL','ART_INITIAL','VITALS','TB CLINIC VISIT','HIV STAGING','ART VISIT',
-                      'TB REGISTRATION','TB TREATMENT VISIT','ART ADHERENCE','TB ADHERENCE','TREATMENT'
+                      'TB_INITIAL','TB REGISTRATION','ART_INITIAL','VITALS','HIV STAGING','ART VISIT',
+                      'TB CLINIC VISIT','TB TREATMENT VISIT','ART ADHERENCE','TB ADHERENCE','TREATMENT'
                      ] 
     user_selected_activities = User.current_user.activities.collect{|a| a.upcase }.join(',') rescue []
     if user_selected_activities.blank? or tb_encounters.blank?

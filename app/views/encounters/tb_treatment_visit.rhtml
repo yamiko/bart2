@@ -84,9 +84,16 @@ Check applicability of code below
      :helpText => "Drug related side effects" } %>
 
   <%date = session[:datetime].to_date rescue Date.today
+    visit_type = []
+    visit_type << 'TB CLINIC VISIT'
+    visit_type << 'ART VISIT'
+    visit_type << 'PART_FOLLOWUP'
+    visit_type << 'HIV STAGING'
+    types = EncounterType.find(:all,:conditions => ["name IN (?)",visit_type]).collect{|n|n.encounter_type_id}
+
     clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
-                                  :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
-                                  date,@patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
+                                  :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type IN (?)",
+                                  date,@patient.id,types])
     if clinic_visit.blank?
   %>
   
