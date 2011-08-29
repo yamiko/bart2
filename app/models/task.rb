@@ -622,7 +622,7 @@ class Task < ActiveRecord::Base
             next
           end
 
-          if tb_reception_attributes.include?('Reason for visit:  Clinical review') and tb_reception_attributes.include?('Any need to see a clinician: Yes')
+          if tb_reception_attributes.include?('Reason for visit: Clinical examination') #and tb_reception_attributes.include?('Any need to see a clinician: Yes')
             next
           elsif tb_reception_attributes.include?('Reason for visit: Follow-up')
             next
@@ -657,7 +657,7 @@ class Task < ActiveRecord::Base
             next
           end 
 
-          if tb_reception_attributes.include?('Reason for visit: Clinical review') and tb_reception_attributes.include?('Any need to see a clinician: Yes')
+          if tb_reception_attributes.include?('Reason for visit: Clinical examination') #and tb_reception_attributes.include?('Any need to see a clinician: Yes')
             next
           elsif tb_reception_attributes.include?('Reason for visit: Follow-up')
             next
