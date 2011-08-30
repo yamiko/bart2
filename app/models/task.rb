@@ -486,7 +486,7 @@ class Task < ActiveRecord::Base
     #8. Manage dispensations - DISPENSING
 
     tb_encounters =  [
-                      'TB RECEPTION','UPDATE HIV STATUS','LAB ORDERS','SPUTUM SUBMISSION','LAB RESULTS',
+                      'UPDATE HIV STATUS','TB RECEPTION','LAB ORDERS','SPUTUM SUBMISSION','LAB RESULTS',
                       'TB_INITIAL','ART_INITIAL','VITALS','HIV STAGING','ART VISIT','TB REGISTRATION',
                       'TB TREATMENT VISIT','TB CLINIC VISIT','ART ADHERENCE','TB ADHERENCE','TREATMENT'
                      ] 
