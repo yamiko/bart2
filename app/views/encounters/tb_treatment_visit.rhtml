@@ -65,11 +65,17 @@ Check applicability of code below
          :helpText => "What method?" } %>
     <% end %>
    <% end %>
-     <%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms']),
+
+   <%= touch_yes_no_tag "SYMPTOMATIC", @patient, nil,
+      {:id => "any_tb_symptoms",
+       :helpText => "Any current TB signs?" } %>
+
+   <%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms']),
     {:id => "tb_symptoms",
      :multiple => true,
+     :condition => "$('any_tb_symptoms').value == 'YES'",
      :tt_pageStyleClass => "NoKeyboard",
-     :helpText => "Current TB signs"} %>
+     :helpText => "Select current TB signs"} %>
 
   <%= touch_yes_no_tag "SIDE EFFECTS", @patient, nil,
       {:id => "side_effects",
