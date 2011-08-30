@@ -81737,3 +81737,193 @@ concept_06780:
   datatype_id: 2
   concept_id: 6780
   date_created: 2008-04-17 11:54:03 +02:00
+concept_08005:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: e01fgr84-dq8a-11de-a277-002qw81bb76u
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2009-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 8005
+  date_created: 2008-04-17 11:54:03 +02:00
+concept_08006:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: e01fgr84-d78a-11de-a277-002qw81bb76u
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2009-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 8006
+  date_created: 2008-04-17 11:54:03 +02:00
+concept_08007:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: e01fgr84-dqga-11de-a277-002qw81bb76u
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2009-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 8007
+  date_created: 2008-04-17 11:54:03 +02:00
+concept_08008:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: e01for84-dq8a-11de-a277-002qw81bb76u
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2009-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 8008
+  date_created: 2008-04-17 11:54:03 +02:00
+concept_06849:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: e01fgr84-dq8a-11rt-a277-002qw81bb76u
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2009-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 6849
+  date_created: 2008-04-17 11:54:03 +02:00
+concept_06850:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: e01fgr84-dq8a-11de-a277-002qyu1bb76u
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2009-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 6850
+  date_created: 2008-04-17 11:54:03 +02:00
+concept_06851:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: e01fyt84-dq8a-11de-a277-002qw81bb76u
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2009-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 6851
+  date_created: 2008-04-17 11:54:03 +02:00
+concept_07819:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: e01fgr84-dq8a-11de-a277-002qwyubb76u
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2009-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 7819
+  date_created: 2008-04-17 11:54:03 +02:00
+concept_07820:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: e01fgr84-dq8a-11de-a277-002qwyuopb76u
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2009-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 7820
+  date_created: 2008-04-17 11:54:03 +02:00
+concept_07821:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: e01fio84-dq8a-11de-a277-002qwyubb76u
+  creator: 1
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2009-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 7821
+  date_created: 2008-04-17 11:54:03 +02:00
