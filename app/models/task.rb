@@ -530,6 +530,7 @@ class Task < ActiveRecord::Base
             return task
           end
         when 'VITALS' 
+=begin
           if not patient.hiv_status.match(/Positive/i) and not patient.tb_status.match(/treatment/i)
             next
           end 
@@ -559,6 +560,7 @@ class Task < ActiveRecord::Base
             task.url = "/patients/show/#{patient.id}"
             return task
           end 
+=end
         when 'TB RECEPTION'
           reception = Encounter.find(:first,:order => "encounter_datetime DESC",
                                      :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
