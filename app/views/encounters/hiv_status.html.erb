@@ -22,7 +22,14 @@
   function updateTestDate(){
     var testDate = new Date($('hiv_test_year').value, $('hiv_test_month').value - 1, $('hiv_test_day').value);
     $('hiv_test_date').value = testDate;
-    if ((3).months().ago() > testDate){
+
+    <% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
+    <% @todayDate = @session_date.to_date - 90 %>
+
+    var sessionDate = "<%="#{@todayDate}"%>";
+    var todayDate = new Date(sessionDate);
+
+    if (todayDate > testDate){
       showNegativeTestReminder = true
       }else {
       showNegativeTestReminder = false
