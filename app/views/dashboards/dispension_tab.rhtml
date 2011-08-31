@@ -129,12 +129,16 @@
 
 
     <% @prescriptions.each do | order | %>
-      row = document.getElementById("<%=order.id%>")
-      row.style.background = '';
+        row = document.getElementById("<%=order.id%>")
+        <% if order.drug_order.drug.tb_medication? %>
+            row.style.background = 'lightBlue';
+        <%else%>
+            row.style.background = '';
+        <% end %>        
     <% end %>
     order_id = "<%=params[:dispensed_order_id]%>";
     if (order_id.length > 0)
-      document.getElementById(order_id).style.background = 'lightBlue';
+      document.getElementById(order_id).style.background = 'lightGreen';
 
 
 </script>

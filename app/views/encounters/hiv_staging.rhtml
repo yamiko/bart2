@@ -279,13 +279,17 @@
   function showConditions() {
     try {
       cond = selected_stage_conditions[1].split(';');
-    }catch(e) { cond = [] }
+    }catch(e) { 
+      cond = [] 
+    }
     for (i = 0 ; i < cond.length ; i++) {
-      if(cond[i] == 'Asymptomatic HIV infection' || cond[i] == 'Asymptomatic')
+      if(cond[i] == 'Asymptomatic HIV infection' || cond[i] == 'Asymptomatic') {
         return false;
+      }
     }
     return true;
   }
+  
 </script>  
 <style type="text/css">
   .small .options li { font-size:1.1em; }
@@ -375,16 +379,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
            :tt_pageStyleClass => "NoKeyboard NoInput small" } %>
     <% end %>
 
-    <%# unless concept_set_options('WHO STAGE I ADULT').blank? %>
-      <%#= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE I ADULT'),
-        {:id => "stage_1_conditions_adults",
-         :multiple => true,
-         :optional => true,
-         :helpText => "Stage 1 Conditions (adults only)",
-         :tt_pageStyleClass => "NoKeyboard NoInput small" } %>
-    <%# end %>
-
-    <% unless concept_set_options('WHO STAGE II ADULT AND PEDS').blank? && concept_set_options('WHO STAGE II ADULT').blank? %>
+    <% if not (concept_set_options('WHO STAGE II ADULT AND PEDS').blank? and concept_set_options('WHO STAGE II ADULT').blank?) %>
       <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, (concept_set_options('WHO STAGE II ADULT').sort + concept_set_options('WHO STAGE II ADULT AND PEDS').sort).to_s,
           {:id => "stage_2_conditions",
            :multiple => true,
@@ -423,7 +418,6 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
          :helpText => "Stage 3 Conditions (adults only)",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <%# end %>
-
     <% unless concept_set_options('WHO STAGE IV ADULT AND PEDS').blank? && concept_set_options('WHO STAGE IV ADULT').blank? %>
       <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, (concept_set_options('WHO STAGE IV ADULT').sort + concept_set_options('WHO STAGE IV ADULT AND PEDS').sort).to_s,
           {:id => "stage_4_conditions",
@@ -434,15 +428,6 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
            :helpText => "Stage 4 Conditions",
            :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
     <% end %>
-
-    <%# unless concept_set_options('WHO STAGE IV ADULT').blank? %>
-      <%#= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, concept_set_options('WHO STAGE IV ADULT'),
-        {:id => "stage_4_conditions_adults",
-         :multiple => true,
-         :optional => true,
-         :helpText => "Stage 4 Conditions (adults only)",
-         :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
-    <%# end %>
 
     <label for='new_cd4_count_available'>CD4 count available?</label>
       <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_count_available', :tt_pageStyleClass => 'NoKeyboard' %>
