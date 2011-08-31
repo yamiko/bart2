@@ -103,8 +103,8 @@ class Patient < ActiveRecord::Base
     end
 
     hiv_status = self.hiv_status
-    alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.gsub(" ",'')}" == 'Negative' && self.months_since_last_hiv_test > 3)
-    alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.gsub(" ",'')}" == 'Unknown'
+    alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.strip}" == 'Negative' && self.months_since_last_hiv_test > 3)
+    alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.strip}" == 'Unknown'
     alerts << "Lab: Expecting submission of sputum" unless self.sputum_orders_without_submission.empty?
     alerts << "Lab: Waiting for sputum results" if self.sputum_submissions_waiting_for_results.empty? &&   !self.recent_sputum_submissions.empty?
 
@@ -1306,5 +1306,14 @@ EOF
     }
     return observations
   end
+
+	def residence
+		patient = Person.find(self.id)
+		return patient.address
+	end
   
+	def age
+		patient = Person.find(self.id)
+		return patient.age
+	end  
 end

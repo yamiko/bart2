@@ -68,6 +68,20 @@ Check applicability of code below
        :helpText => "Go to ART visit" } %>
   <% end %>
   
+  <% tb_status = @patient.tb_status.upcase rescue 'UNKNOWN'%>
+
+  <script>
+    try {
+      var tb_status = $('tb_status').value.toUpperCase();
+    }catch(e) { var tb_status = "<%=tb_status%>";}
+  </script>
+
+  <%= touch_yes_no_tag "Further examination for TB required", @patient, nil,
+    {:id => "art_visit",
+     :tt_pageStyleClass => "NoKeyboard",
+     :condition => "tb_status == 'UNKNOWN'",
+     :helpText => "X-ray" } %>
+  
   <%= submit_tag "Finish" %>    
 </form>
 

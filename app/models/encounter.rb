@@ -134,10 +134,9 @@ EOF
       ],
      'tb_clinic_visit_type' => [
         ['',''],
-        ['TB suspect (Sputum sample collection)','Sputum sample'],
-        ['TB suspect (Sputum submission)','Sputum submission'],
-        ['Sputum result (Collection)','Sputum result'],
-        ['Follow-up','Follow-up']
+        ['Lab analysis','Lab follow-up'],
+        ['Follow-up','Follow-up'],
+        ['Clinical review (Clinician visit)','Clinical review']
       ],
      'family_planning_methods' => [
        ['',''],

@@ -65,11 +65,17 @@ Check applicability of code below
          :helpText => "What method?" } %>
     <% end %>
    <% end %>
-     <%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms']),
+
+   <%= touch_yes_no_tag "SYMPTOMATIC", @patient, nil,
+      {:id => "any_tb_symptoms",
+       :helpText => "Any current TB signs?" } %>
+
+   <%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms']),
     {:id => "tb_symptoms",
      :multiple => true,
+     :condition => "$('any_tb_symptoms').value == 'YES'",
      :tt_pageStyleClass => "NoKeyboard",
-     :helpText => "Current TB signs"} %>
+     :helpText => "Select current TB signs"} %>
 
   <%= touch_yes_no_tag "SIDE EFFECTS", @patient, nil,
       {:id => "side_effects",
@@ -83,16 +89,28 @@ Check applicability of code below
      :tt_onUnLoad => "",
      :helpText => "Drug related side effects" } %>
 
-  <%date = session[:datetime].to_date rescue Date.today 
+  <%date = session[:datetime].to_date rescue Date.today
+    visit_type = []
+    visit_type << 'TB CLINIC VISIT'
+    visit_type << 'ART VISIT'
+    visit_type << 'PART_FOLLOWUP'
+    visit_type << 'HIV STAGING'
+    types = EncounterType.find(:all,:conditions => ["name IN (?)",visit_type]).collect{|n|n.encounter_type_id}
+
     clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
-                                  :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
-                                  date,@patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
+                                  :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type IN (?)",
+                                  date,@patient.id,types])
     if clinic_visit.blank?
   %>
   
   <%= touch_yes_no_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
       {:id => "refer_to_clinician",
         :helpText => "Refer patient to clinician" } %>
+  <%else%>
+    <%= hidden_field_tag(:refer_to_clinician, 'NO') %>
+    <%= hidden_field_tag("observations[][value_coded_or_text]", 'NO') %>
+    <%= hidden_field_tag("observations[][concept_name]", "ANY NEED TO SEE A CLINICIAN") %>
+    <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
   <%end%>
 
   <%= touch_yes_no_tag "Prescribe drugs", @patient, nil,

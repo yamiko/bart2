@@ -21,25 +21,9 @@
     for (var i=0; i<options.length; i++) {
       if (options[i].selected && options[i].value == 'Yes') {
         return new_relationship();
-      } else {
-        return null;
       }
     }
-  }
-
-  function setAttributes() {
-    l = document.getElementsByTagName('li');
-    for (i = 0 ; i < l.length ; i++) {
-        l[i].setAttribute("onmousedown","null; updateTouchscreenInputForSelect(this); updateNextButton();");
-    }
-  }
-
-  function updateNextButton() {
-    if ($('clinic_visit_type').value == 'Follow-up') {
-      $('nextButton').innerHTML = '<span>Next</span>';
-    }else{
-      $('nextButton').innerHTML = '<span>Finish</span>';
-    }
+    return null;
   }
 
   // Disable option No on Patient Present if Guardian is not present (or Unknown)
@@ -102,7 +86,7 @@
 
   <% phone_number_available = false 
      @patient.person.phone_numbers.each do |type , number |
-       unless number.blank?
+       if not number.blank? and not number.match(/[0-9]*/i)[0].blank?
         phone_number_available = true
         break
        end
@@ -126,38 +110,8 @@
   <label for='clinic_visit_type'>Clinic visit type</label>
     <%= touch_select_tag "TYPE OF VISIT", 
       @patient, options_for_select(@select_options['tb_clinic_visit_type']),
-      {:id => "clinic_visit_type",
-       :tt_onLoad => "setTimeout('setAttributes()',500);"
-      } 
+      {:id => "clinic_visit_type"} 
     %>
 
-  <label for='reason_for_clinic_visit'>Reason for clinical visit</label>
-    <%= touch_select_tag "REASON FOR CLINICAL VISIT", 
-      @patient, options_for_select(@select_options['reason_for_tb_clinic_visit']),
-      {
-        :id => "reason_for_clinic_visit",
-        :condition => "$('clinic_visit_type').value == 'Follow-up'"
-      } 
-    %>
-  <% if session[:datetime].nil? %>
-    <label for='need_to_see_clinician'>Any need to see a clinician?</label>
-      <%= touch_yes_no_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
-        {
-          :id => "need_to_see_clinician",
-          :condition => "$('clinic_visit_type').value == 'Follow-up'"
-        } %>
-  <% else %>
-    <label for='need_to_see_clinician'>Any need to see a clinician?</label>
-        <%= touch_yes_no_unknown_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
-          {
-            :id => "need_to_see_clinician",
-            :condition => "$('clinic_visit_type').value == 'Follow-up'"
-          } %>
-  <% end %>
-
-  <%if @patient.given_arvs_before? and @patient.get_identifier("ARV Number").blank?
-  %>
-  <% end %>
-  
   <%= submit_tag "Finish" %>    
 </form>
