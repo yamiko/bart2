@@ -12,7 +12,7 @@ class Encounter < ActiveRecord::Base
   # TODO, this needs to account for current visit, which needs to account for possible retrospective entry
   named_scope :current, :conditions => 'DATE(encounter.encounter_datetime) = CURRENT_DATE()'
 
-  def before_save    
+  def before_save
     self.provider = User.current_user if self.provider.blank?
     # TODO, this needs to account for current visit, which needs to account for possible retrospective entry
     self.encounter_datetime = Time.now if self.encounter_datetime.blank?
@@ -255,16 +255,11 @@ EOF
       'tb_symptoms' => [
         ['',''],
         ["Bloody cough", "Hemoptysis"],
-        ["Bronchial breathing", "Bronchial breathing"],
         ["Chest pain", "Chest pain"],
         ["Cough", "Cough lasting more than three weeks"],
-        ["Crackles", "Crackles"],
-        ["Failure to thrive", "Failure to thrive"],
         ["Fatigue", "Fatigue"],
         ["Fever", "Relapsing fever"],
-        ["Meningitis","Meningitis"],
         ["Night sweats","Night sweats"],
-        ["Peripheral neuropathy","Peripheral neuropathy"],
         ["Shortness of breath", "Shortness of breath"],
         ["Weight loss", "Weight loss"],
         ["Other", "Other"]
@@ -311,6 +306,11 @@ EOF
         ['Susceptible', 'Susceptible to tuberculosis drug'],
         ['Multi-drug resistant', 'Multi-drug resistant tuberculosis'],
         ['Extreme drug resistant', 'Extreme drug resistant tuberculosis']
+      ],
+      'tb_classification' => [
+        ['',''],
+        ['Pulmonary tuberculosis (PTB)', 'Pulmonary tuberculosis'],
+        ['Extrapulmonary tuberculosis (EPTB)', 'Extrapulmonary tuberculosis (EPTB)']
       ]
     }
   end

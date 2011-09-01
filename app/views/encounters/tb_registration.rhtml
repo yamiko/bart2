@@ -152,7 +152,7 @@ Check applicability of code below
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "Weeks of current cough" } %>
 
-  <%= touch_select_tag "TB classification", @patient, concept_set_options("TB classification"),
+  <%= touch_select_tag "TB classification", @patient, options_for_select(@select_options['tb_classification']),
     {:id => "tb_classification",
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "TB classification" } %>
