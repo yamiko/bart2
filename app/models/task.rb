@@ -564,6 +564,12 @@ class Task < ActiveRecord::Base
           end 
 =end
         when 'TB RECEPTION'
+          if (Location.current_health_center.name.match(/Martin Preuss Centre/i) or Location.current_health_center.name.match(/Lighthouse/i))
+            if (location.name.match(/TB Sputum Submission Station/i) or location.name.match(/Chronic Cough/i)).blank?
+              next
+            end
+          end
+
           reception = Encounter.find(:first,:order => "encounter_datetime DESC",
                                      :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                                      session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
@@ -587,7 +593,7 @@ class Task < ActiveRecord::Base
 
           next_lab_encounter =  self.next_lab_encounter(lab_order , session_date)
 
-          if not Location.current_health_center.name.match(/Martin Preuss Centre/i) or Location.current_health_center.name.match(/Lighthouse/i)
+          if not (Location.current_health_center.name.match(/Martin Preuss Centre/i) or Location.current_health_center.name.match(/Lighthouse/i))
             visit_reason = reception.to_s.split(':').last.strip.match(/Needs lab follow-up/i)
           else
             visit_reason = (location.name.match(/TB Sputum Submission Station/i) or location.name.match(/Chronic Cough/i)).to_s
@@ -618,7 +624,7 @@ class Task < ActiveRecord::Base
 
 
           next_lab_encounter =  self.next_lab_encounter(previous_sputum_sub , session_date)
-          if not Location.current_health_center.name.match(/Martin Preuss Centre/i) or Location.current_health_center.name.match(/Lighthouse/i)
+          if not (Location.current_health_center.name.match(/Martin Preuss Centre/i) or Location.current_health_center.name.match(/Lighthouse/i))
             visit_reason = reception.to_s.split(':').last.strip.match(/Needs lab follow-up/i)
           else
             visit_reason = (location.name.match(/TB Sputum Submission Station/i) or location.name.match(/Chronic Cough/i)).to_s
@@ -660,7 +666,7 @@ class Task < ActiveRecord::Base
                                       :conditions =>["DATE(encounter_datetime) <= ? AND patient_id = ? AND encounter_type = ?",
                                       session_date.to_date ,patient.id,EncounterType.find_by_name(type).id])
 
-          if not Location.current_health_center.name.match(/Martin Preuss Centre/i) or Location.current_health_center.name.match(/Lighthouse/i)
+          if not (Location.current_health_center.name.match(/Martin Preuss Centre/i) or Location.current_health_center.name.match(/Lighthouse/i))
             visit_reason = reception.to_s.split(':').last.strip.match(/Needs lab follow-up/i)
           else
             visit_reason = (location.name.match(/TB Sputum Submission Station/i) or location.name.match(/Chronic Cough/i)).to_s
