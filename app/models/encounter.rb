@@ -129,7 +129,7 @@ EOF
      'reason_for_tb_clinic_visit' => [
         ['',''],
         ['Clinical review (Children, Smear-, HIV+)','CLINICAL REVIEW'],
-        ['Smear Positive','SMEAR POSITIVE'],
+        ['Smear Positive (HIV-)','SMEAR POSITIVE'],
         ['X-ray result interpretation','X-RAY RESULT INTERPRETATION']
       ],
      'tb_clinic_visit_type' => [
