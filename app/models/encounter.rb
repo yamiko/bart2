@@ -322,8 +322,8 @@ EOF
       'tb_types' => [
         ['',''],
         ['Susceptible', 'Susceptible to tuberculosis drug'],
-        ['Multi-drug resistant', 'Multi-drug resistant tuberculosis'],
-        ['Extreme drug resistant', 'Extreme drug resistant tuberculosis']
+        ['Multi-drug resistant (MDR)', 'Multi-drug resistant tuberculosis'],
+        ['Extreme drug resistant (XDR)', 'Extreme drug resistant tuberculosis']
       ],
       'tb_classification' => [
         ['',''],
