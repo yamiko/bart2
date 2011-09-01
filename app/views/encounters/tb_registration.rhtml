@@ -8,12 +8,12 @@
   function showTaskName(){
     $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: TB Registration</span></div></div>';
   }
-  
-/*  
+
+/*
   function set_TB_program_values() {
     var tb_type = $('touchscreenInput'+tstCurrentPage).value;
     submitForm = document.getElementById("appointment");
- 
+
     if (tb_type == "Multi-drug resistant tuberculosis"){
       newElement = document.createElement("input");
       newElement.setAttribute("name","programs[][program_id]");
@@ -49,7 +49,7 @@
 
   function set_TB_program_values() {
     var tb_type = $('touchscreenInput'+tstCurrentPage).value;
-    var form = $('appointment');  
+    var form = $('appointment');
     if (tb_type == "Multi-drug resistant"){
       newElement = document.createElement("input")
       newElement.setAttribute("name",'programs[][patient_program_id]')
@@ -99,7 +99,21 @@
   }
 }
 
-</script> 
+function tb_number(){
+   inputElement = $('tt_page_tb_registration_number').getElementsByTagName("input")[0]
+    prefix = document.createElement("span")
+    style = document.createAttribute("style")
+    style.value = "position: absolute; z-index: 100; left: 47px; font-size: 44px;"
+    prefix.setAttributeNode(style)
+    inputElement.setAttribute("style","text-align:right;width:924px;")
+    prefix.innerHTML = "<%=GlobalProperty.find_by_property("site_prefix").property_value rescue nil %>-TB"
+    inputElement.parentNode.insertBefore(prefix, inputElement)
+    style.value+= 'left:35px;'
+    prefix.setAttributeNode(style)
+
+  }
+
+</script>
 
 <!--.........TODO...........
 This is referred to as ART Enrollment/HIV Visit in the specs
@@ -123,7 +137,7 @@ Check applicability of code below
   <div id="buttons" class="buttonsDiv" style="top:456;">
     <div id="tt_extraButtons"></div>
     <button onmousedown="window.location=tt_cancel_destination;" id="cancelButton" class="button navButton red"><span>Cancel</span></button>
-  </div>  
+  </div>
   <script>
 		setTimeout("window.location=tt_cancel_destination;", 5000);
   </script>
@@ -136,12 +150,13 @@ Check applicability of code below
 
   <%= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
 
-  <%= touch_text_field_tag "TB registration number", @patient, nil,
-    {:id => "tb_district_number",
-     :helpText => "TB registration number",
-     :field_type => 'number',
-     :tt_pageStyleClass=>"Numeric NumbersOnly"  } %>
-  
+  <%= touch_identifier_tag @patient, "District TB Number", @identifier_value,
+        {:id => "tb_district_number",
+         :optional => false,
+         :tt_onLoad => "press('num');tb_number();",
+         :tt_pageStyleClass => "Numeric NumbersOnly",
+         :helpText => "TB registration number" } %>
+
   <%= touch_select_tag "DOT Option", @patient, concept_set_options("DOT Option"),
     {:id => "dot_option",
      :tt_pageStyleClass => "NoKeyboard",
@@ -184,6 +199,6 @@ Check applicability of code below
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "Patient category" } %>
 
-  <%= submit_tag "Finish" %>    
+  <%= submit_tag "Finish" %>
 </form>
 <% end %>
