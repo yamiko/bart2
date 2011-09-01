@@ -71,7 +71,7 @@ class Patient < ActiveRecord::Base
     alerts = []
     type = EncounterType.find_by_name("APPOINTMENT")
     next_appt = self.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.last.to_s rescue nil
-    alerts << ('Latest ' + next_appt).capitalize unless next_appt.blank?
+    alerts << ('Next ' + next_appt).capitalize unless next_appt.blank?
 
     encounter_dates = Encounter.find_by_sql("SELECT * FROM encounter WHERE patient_id = #{self.id} AND encounter_type IN (" +
         ("SELECT encounter_type_id FROM encounter_type WHERE name IN ('VITALS', 'TREATMENT', " +
