@@ -101,9 +101,16 @@ class Patient < ActiveRecord::Base
       bmi_alert = self.current_bmi_alert
       alerts << bmi_alert if bmi_alert
     end
+    
+    program_id = Program.find_by_name("HIV PROGRAM").id
+    location_id = Location.current_health_center.location_id
+    
+    patient_hiv_program = PatientProgram.find(:all,:conditions =>["voided = 0 AND patient_id = ? AND program_id = ? AND location_id = ?", self.id , program_id, location_id])
 
     hiv_status = self.hiv_status
     alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.strip}" == 'Negative' && self.months_since_last_hiv_test > 3)
+    alerts << "Patient is HIV Positive but not on ART" if (("#{hiv_status.strip}" == 'Positive') && !self.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) ||
+                                                          ((self.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) && (ProgramWorkflowState.find_state(patient_hiv_program.last.patient_states.last.state).concept.fullname != "On antiretrovirals"))
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.strip}" == 'Unknown'
     alerts << "Lab: Expecting submission of sputum" unless self.sputum_orders_without_submission.empty?
     alerts << "Lab: Waiting for sputum results" if self.sputum_submissions_waiting_for_results.empty? &&   !self.recent_sputum_submissions.empty?
