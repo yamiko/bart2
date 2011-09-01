@@ -8,7 +8,7 @@
     font-weight:bold;
   }
   .recommendation {
-    :font-style:italic;
+    font-style:italic;
   }
   .warning {
     color:red;
@@ -101,6 +101,7 @@
       {:id => 'side_effects',
        :optional => true,
        :multiple => true,
+       :conditions => @patient.is_first_visit? == false,
        :helpText => "Side effects (select all that apply)" } %>
   <% else %>
     <%= touch_select_tag "SYMPTOM PRESENT", @patient, concept_set_options('MALAWI ART SYMPTOM SET'),
@@ -108,20 +109,22 @@
        :optional => true,
        :multiple => true,
        :helpText => "Symptoms (select all that apply)" } %>
-
-    <%= touch_select_tag "DRUG INDUCED", @patient, options_for_select([['', '']]),
-      {:id => 'drug_induced_effects',
-       :optional => true,
-       :multiple => true,
-       :condition => 'getNumberOfSymptoms() > 0',
-       :helpText => "Select which of these symptoms are likely drug induced<br />(select all that apply)",
-       :tt_onLoad => "getSelectedSymptoms()" } %>
+    <% if @patient.is_first_visit? == false %>
+      <%= touch_select_tag "DRUG INDUCED", @patient, options_for_select([['', '']]),
+        {:id => 'drug_induced_effects',
+         :optional => true,
+         :multiple => true,
+         :condition => 'getNumberOfSymptoms() > 0',
+         :helpText => "Select which of these symptoms are likely drug induced<br />(select all that apply)",
+         :tt_onLoad => "getSelectedSymptoms()" } %>
+      <% end %>
   <% end %>
 
   <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
     {:id => 'tb_status',
      :optional => true,
      :multiple => false,
+     :conditions => @patient.tb_status != "YES",
      :helpText => "TB Status" } %>
 
   <%if @patient.child_bearing_female?%>

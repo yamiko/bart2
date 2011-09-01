@@ -565,7 +565,7 @@ class Task < ActiveRecord::Base
 =end
         when 'TB RECEPTION'
           if (Location.current_health_center.name.match(/Martin Preuss Centre/i) or Location.current_health_center.name.match(/Lighthouse/i))
-            if (location.name.match(/TB Sputum Submission Station/i) or location.name.match(/Chronic Cough/i)).blank?
+            if not (location.name.match(/TB Sputum Submission Station/i) or location.name.match(/Chronic Cough/i)).blank?
               next
             end
           end
@@ -975,9 +975,38 @@ class Task < ActiveRecord::Base
                             :conditions =>["patient_id = ? AND encounter_type = ?",
                             patient.id,EncounterType.find_by_name('VITALS').id])
 
+
     if first_vitals.blank?
+      encounter = Encounter.find(:first,:order => "encounter_datetime DESC",
+                  :conditions =>["patient_id = ? AND encounter_type = ?",
+                  patient.id,EncounterType.find_by_name('LAB ORDERS').id])
+      
+      sup_result = self.next_lab_encounter(encounter, session_date)
+
+      reception = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                 :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                 session_date.to_date,patient.id,EncounterType.find_by_name('TB RECEPTION').id])
+
+      if reception.blank? and not sup_result.blank?
+        if user_selected_activities.match(/Manage TB Reception Visits/i)
+          task.encounter_type = 'TB RECEPTION'
+          task.url = "/encounters/new/tb_reception?show&patient_id=#{patient.id}"
+          return task
+        elsif not user_selected_activities.match(/Manage TB Reception Visits/i)
+          task.encounter_type = 'TB RECEPTION'
+          task.url = "/patients/show/#{patient.id}"
+          return task
+        end
+      end
+    end
+
+    if first_vitals.blank? and user_selected_activities.match(/Manage Vitals/i) 
       task.encounter_type = 'VITALS'
       task.url = "/encounters/new/vitals?patient_id=#{patient.id}"
+      return task
+    elsif first_vitals.blank? and not user_selected_activities.match(/Manage Vitals/i) 
+      task.encounter_type = 'VITALS'
+      task.url = "/patients/show/#{patient.id}"
       return task
     end
 
