@@ -52,8 +52,9 @@
   } 
 </script>
 <style>
-   .tt_controls_hiv_test_year #char { display: none; }
-
+  .tt_controls_hiv_test_year #char { display: none; }
+  .tt_controls_htc_serial_number #Unknown { display:block; }
+  .tt_controls_htc_serial_number #char { display:none; }
   .tt_controls_hiv_test_month .keyboard { display:none; }
   #tt_page_hiv_test_month .options{height:550px;}
   #tt_page_hiv_test_month .options li{font-size:35px;}
@@ -112,6 +113,7 @@
  <%= touch_numeric_tag "HTC SERIAL NUMBER", @patient, nil,
    {:id => "htc_serial_number",
      :condition => '$("hiv_status").value == "POSITIVE"',
+     :tt_pageStyleClass => "Numeric NumbersOnly",
      :helpText => "HTC serial number" } %>
      
 <%unless @art_patient%>     
