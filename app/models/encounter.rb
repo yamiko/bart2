@@ -297,9 +297,10 @@ EOF
       'tb_patient_categories' => [
         ['',''],
         ["New", "New patient"],
+        ["Failure", "Failed - TB"],
         ["Relapse", "Relapse MDR-TB patient"],
         ["Retreatment after default", "Treatment after default MDR-TB patient"],
-        ["Failure", "Failed - TB"]
+        ["Other", "Other"]
       ],
       'duration_of_current_cough' => [
         ['',''],
