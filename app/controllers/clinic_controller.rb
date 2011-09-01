@@ -209,5 +209,15 @@ class ClinicController < ApplicationController
     ]
     render :layout => false
   end
+  
+  def lab_tab
+    #only applicable in the sputum submission area
+    @types = ['LAB ORDERS', 'SPUTUM SUBMISSION', 'LAB RESULTS']
+    @me = Encounter.statistics(@types, :conditions => ['DATE(encounter_datetime) = DATE(NOW()) AND encounter.creator = ?', User.current_user.user_id])
+    @today = Encounter.statistics(@types, :conditions => ['DATE(encounter_datetime) = DATE(NOW())'])
+    @user = User.find(session[:user_id]).name rescue ""
+
+    render :template => 'clinic/lab_tab.rhtml' , :layout => false
+  end
 
 end
