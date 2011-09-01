@@ -159,7 +159,11 @@ class EncountersController < ApplicationController
       unless (arv_number_identifier_type != type) and @patient_identifier
         arv_number = identifier[:identifier].strip
         if arv_number.match(/(.*)[A-Z]/i).blank?
-          identifier[:identifier] = "#{PatientIdentifier.site_prefix} #{arv_number}"
+          if params['encounter']['encounter_type_name'] == 'TB REGISTRATION'
+            identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB-#{arv_number}"
+          else
+            identifier[:identifier] = "#{PatientIdentifier.site_prefix}-ARV-#{arv_number}"
+          end
         end
       end
 
