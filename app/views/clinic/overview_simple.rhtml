@@ -33,7 +33,7 @@
     <table id="stats" cellpadding="14">
       <tr style="color: #fff; background-color: #666;">
         <th style="text-align:left;">Task Type</th>
-        <th>Me</th>
+        <th><%= User.current_user.person.name rescue 'Me'%></th>
         <th>Today</th>
        <!-- <th>This Year</th>
         <th>Total to Date</th> -->
