@@ -252,14 +252,32 @@ EOF
         "Sputum-Culture" => ["Culture(1st)", "Culture(2nd)"],
         "Swab" => ["Microscopy", "Culture & sensitivity"]
       },
-      'tb_symptoms' => [
+      'tb_symptoms_short' => [
         ['',''],
         ["Bloody cough", "Hemoptysis"],
         ["Chest pain", "Chest pain"],
         ["Cough", "Cough lasting more than three weeks"],
         ["Fatigue", "Fatigue"],
         ["Fever", "Relapsing fever"],
+        ["Loss of appetite", "Loss of appetite"],
         ["Night sweats","Night sweats"],
+        ["Shortness of breath", "Shortness of breath"],
+        ["Weight loss", "Weight loss"],
+        ["Other", "Other"]
+      ],
+      'tb_symptoms_all' => [
+        ['',''],
+        ["Bloody cough", "Hemoptysis"],
+        ["Bronchial breathing", "Bronchial breathing"],
+        ["Crackles", "Crackles"],
+        ["Cough", "Cough lasting more than three weeks"],
+        ["Failure to thrive", "Failure to thrive"],
+        ["Fatigue", "Fatigue"],
+        ["Fever", "Relapsing fever"],
+        ["Loss of appetite", "Loss of appetite"],
+        ["Meningitis", "Meningitis"],
+        ["Night sweats","Night sweats"],
+        ["Peripheral neuropathy", "Peripheral neuropathy"],
         ["Shortness of breath", "Shortness of breath"],
         ["Weight loss", "Weight loss"],
         ["Other", "Other"]
@@ -279,9 +297,10 @@ EOF
       'tb_patient_categories' => [
         ['',''],
         ["New", "New patient"],
+        ["Failure", "Failed - TB"],
         ["Relapse", "Relapse MDR-TB patient"],
         ["Retreatment after default", "Treatment after default MDR-TB patient"],
-        ["Failure", "Failed - TB"]
+        ["Other", "Other"]
       ],
       'duration_of_current_cough' => [
         ['',''],
@@ -304,8 +323,8 @@ EOF
       'tb_types' => [
         ['',''],
         ['Susceptible', 'Susceptible to tuberculosis drug'],
-        ['Multi-drug resistant', 'Multi-drug resistant tuberculosis'],
-        ['Extreme drug resistant', 'Extreme drug resistant tuberculosis']
+        ['Multi-drug resistant (MDR)', 'Multi-drug resistant tuberculosis'],
+        ['Extreme drug resistant (XDR)', 'Extreme drug resistant tuberculosis']
       ],
       'tb_classification' => [
         ['',''],
