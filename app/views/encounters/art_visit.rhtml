@@ -140,16 +140,16 @@
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "What method?" } %>
   <%end%>
-
-  <%= touch_yes_no_unknown_tag "Prescribe ARVs this visit", @patient, nil,
-    {:optional => false,
-     :helpText => "Prescribe drugs during this visit" } %>
-
-<% if @patient.person.age >= 14 %>
+ 
+  <% if @patient.person.age >= 14 %>
   <%= touch_numeric_tag "CONDOMS", @patient, nil,
     {:optional => false,
      :helpText => "Number of Condoms given" } %>
  <% end %>
+
+  <%= touch_yes_no_unknown_tag "Prescribe ARVs this visit", @patient, nil,
+    {:optional => false,
+     :helpText => "Prescribe drugs during this visit" } %>
 
   <%
     session_date = session[:datetime].to_date rescue Date.today
