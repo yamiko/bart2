@@ -222,13 +222,14 @@ class EncountersController < ApplicationController
     
     @patient_has_closed_TB_program_at_current_location = PatientProgram.find(:all,:conditions =>
             ["voided = 0 AND patient_id = ? AND location_id = ? AND (program_id = ? OR program_id = ?)", @patient.id, Location.current_health_center.id, Program.find_by_name('TB PROGRAM').id, Program.find_by_name('MDR-TB PROGRAM').id]).last.closed? rescue true
-    
+
     @ipt_contacts = @patient.tb_contacts.collect{|person| person unless person.age > 6}.compact rescue []
     @select_options = Encounter.select_options
     @months_since_last_hiv_test = @patient.months_since_last_hiv_test
+    @current_user_role = self.current_user_role
     @tb_patient = @patient.tb_patient?
     @art_patient = @patient.art_patient?
-    
+
     use_regimen_short_names = GlobalProperty.find_by_property(
       "use_regimen_short_names").property_value rescue "false"
     show_other_regimen = GlobalProperty.find_by_property(
@@ -268,6 +269,11 @@ class EncountersController < ApplicationController
 	else
     	render :action => params[:encounter_type] if params[:encounter_type]
 	end
+  end
+
+  def current_user_role
+    @role = User.current_user.user_roles.map{|r|r.role}
+     return @role
   end
 
   def diagnoses
