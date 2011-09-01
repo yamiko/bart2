@@ -106,12 +106,13 @@
       :tt_onLoad => 'seen(tstCurrentPage);') %>
   <% end %>
 
-
-  <label for='clinic_visit_type'>Clinic visit type</label>
+  <%if not Location.current_health_center.name.match(/Martin Preuss Centre/i) or Location.current_health_center.name.match(/Lighthouse/i)%>
+  <label for='clinic_visit_type'>Reason for patient's clinic visit</label>
     <%= touch_select_tag "TYPE OF VISIT", 
       @patient, options_for_select(@select_options['tb_clinic_visit_type']),
       {:id => "clinic_visit_type"} 
     %>
+  <%end%>
 
   <%= submit_tag "Finish" %>    
 </form>

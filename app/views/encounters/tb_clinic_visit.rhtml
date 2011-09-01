@@ -5,6 +5,23 @@
     $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: Clinic Visit</span></div></div>' 
   }
 
+  function showEnrollPatient() {
+    if (tb_status.match(/treatment/i))
+      return false;
+
+    return true;
+  }
+
+  function setSelectedRow() {
+    l = document.getElementsByTagName('li');
+    for (i = 0 ; i < l.length ; i++) {
+      l[i].setAttribute("onmousedown","null;updateTouchscreenInputForSelect(this);upDateTBstatus();")
+    }
+  }
+
+  function upDateTBstatus() {
+    tb_status = $('tb_status').value;
+  }
 </script> 
 
 <!--.........TODO..........dd..
@@ -52,6 +69,7 @@ Check applicability of code below
     <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
     {:id => 'tb_status',
      :optional => true,
+     :tt_onLoad => "setTimeout('setSelectedRow()',500);",
      :multiple => false,
      :helpText => "TB Status" } %>
   <% end %>
@@ -80,8 +98,19 @@ Check applicability of code below
     {:id => "art_visit",
      :tt_pageStyleClass => "NoKeyboard",
      :condition => "tb_status == 'UNKNOWN'",
-     :helpText => "X-ray" } %>
+     :helpText => "Refer patient to X-ray scan" } %>
+
+  <%  
+      in_hiv_program = patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') rescue false
+      
+  %>
+    
+   <%if @patient.hiv_status.upcase == 'POSITIVE' and not in_hiv_program %>
+    <%= touch_yes_no_unknown_tag "Patient enrolled in IMB HIV program", @patient, nil,
+      {:id => "enroll_patient_in_art",
+       :condition => "showEnrollPatient() == true;",
+       :helpText => 'Enroll patient in ART'} %>
+  <%end%>
   
   <%= submit_tag "Finish" %>    
 </form>
-
