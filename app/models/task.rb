@@ -565,7 +565,7 @@ class Task < ActiveRecord::Base
 =end
         when 'TB RECEPTION'
           if (Location.current_health_center.name.match(/Martin Preuss Centre/i) or Location.current_health_center.name.match(/Lighthouse/i))
-            if (location.name.match(/TB Sputum Submission Station/i) or location.name.match(/Chronic Cough/i)).blank?
+            if not (location.name.match(/TB Sputum Submission Station/i) or location.name.match(/Chronic Cough/i)).blank?
               next
             end
           end
