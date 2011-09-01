@@ -90,6 +90,7 @@ class ClinicController < ApplicationController
     @today = Encounter.statistics(@types, :conditions => ['DATE(encounter_datetime) = DATE(NOW())'])
     @year = Encounter.statistics(@types, :conditions => ['YEAR(encounter_datetime) = YEAR(NOW())'])
     @ever = Encounter.statistics(@types)
+    @user = User.find(session[:user_id]).name rescue ""
 
     simple_overview = GlobalProperty.find_by_property("simple_application_dashboard").property_value rescue nil
     if simple_overview != nil

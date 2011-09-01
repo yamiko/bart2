@@ -43,7 +43,8 @@ Check applicability of code below
     <%= touch_yes_no_unknown_tag "PREGNANT?", @patient, nil,
       {:id => "pregnant",
        :helpText => "Pregnant?" } %>
-  <% end %>  
+  <% end %>
+
   <%  if @patient.person.age > 13 %>
     <%= touch_yes_no_unknown_tag "CURRENTLY USING FAMILY PLANNING METHOD", @patient, nil,
       {:id => "on_fpm",
@@ -66,22 +67,22 @@ Check applicability of code below
     <% end %>
    <% end %>
 
-   <%= touch_yes_no_tag "SYMPTOMATIC", @patient, nil,
+   <%#= touch_yes_no_tag "SYMPTOMATIC", @patient, nil,
       {:id => "any_tb_symptoms",
        :helpText => "Any current TB signs?" } %>
 
-   <%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms']),
+   <%#= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms']),
     {:id => "tb_symptoms",
      :multiple => true,
      :condition => "$('any_tb_symptoms').value == 'YES'",
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "Select current TB signs"} %>
 
-  <%= touch_yes_no_tag "SIDE EFFECTS", @patient, nil,
+  <%#= touch_yes_no_tag "SIDE EFFECTS", @patient, nil,
       {:id => "side_effects",
         :helpText => "Any side effects?" } %>
 
-     <%= touch_select_tag "Drug related side effects", @patient, options_for_select(@select_options['drug_related_side_effects']),
+     <%#= touch_select_tag "Drug related side effects", @patient, options_for_select(@select_options['drug_related_side_effects']),
     {:id => "drug_side_effects",
      :multiple => true,
      :condition => "$('side_effects').value == 'YES'",

@@ -280,10 +280,41 @@ class UserController < ApplicationController
     @activities = User.current_user.activities.reject{|activity| 
       GlobalProperty.find_by_property("disable_tasks").property_value.split(",").include?(activity)
     } rescue User.current_user.activities
+   
+
+    encounter_privilege_hash = generate_encounter_privilege_map   
+    @privileges = @privileges.collect do |privilege|
+      if !encounter_privilege_hash[privilege.privilege.squish.humanize].nil?
+          encounter_privilege_hash[privilege.privilege.squish.humanize].gsub('Hiv','HIV').gsub('Tb','TB')
+      else
+          privilege.privilege
+      end
+    end
+    
+    @activities = @activities.collect do |activity| 
+      if !encounter_privilege_hash[activity.squish.humanize].nil?
+          encounter_privilege_hash[activity.squish.humanize].gsub('Hiv','HIV').gsub('Tb','TB')
+      else
+          activity
+      end
+    end                            
+    
+    @privileges.sort!
     @patient_id = params[:patient_id]
   end
   
   def change_activities
+    privilege_encounter_hash = generate_privilege_encounter_map
+    
+    params[:user][:activities] = params[:user][:activities].collect do |activity| 
+      if !privilege_encounter_hash[activity.squish.humanize].nil?
+          privilege_encounter_hash[activity.squish.humanize].gsub('Hiv','HIV').gsub('Tb','TB')
+      else
+          activity
+      end
+    end
+    
+    activities = params[:user][:activities]
     User.current_user.activities = params[:user][:activities]
     if params[:id]
       session_date = session[:datetime].to_date rescue Date.today
@@ -291,6 +322,26 @@ class UserController < ApplicationController
       return 
     end
     redirect_to '/clinic'
+  end
+  
+  def generate_encounter_privilege_map
+      encounter_privilege_map = GlobalProperty.find_by_property("encounter_privilege_map").property_value.to_s rescue ''
+      encounter_privilege_map = encounter_privilege_map.split(",")
+      encounter_privilege_hash = {}
+      encounter_privilege_map.each do |encounter_privilege|
+          encounter_privilege_hash[encounter_privilege.split(":").last.squish.humanize] = encounter_privilege.split(":").first.squish.humanize
+      end
+      encounter_privilege_hash
+  end
+  
+  def generate_privilege_encounter_map
+      encounter_privilege_map = GlobalProperty.find_by_property("encounter_privilege_map").property_value.to_s rescue ''
+      encounter_privilege_map = encounter_privilege_map.split(",")
+      encounter_privilege_hash = {}
+      encounter_privilege_map.each do |encounter_privilege|
+          encounter_privilege_hash[encounter_privilege.split(":").first.squish.humanize] = encounter_privilege.split(":").last.squish.humanize
+      end
+      encounter_privilege_hash
   end
 
 end

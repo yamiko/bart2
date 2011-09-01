@@ -46,6 +46,14 @@
       @patient, options_for_select(@select_options['reason_for_tb_clinic_visit']),
       {:id => "reason_for_clinic_visit"}%>
 
+  <%= touch_yes_no_unknown_tag "SEND SMS", @patient, nil,
+    {:id => "send_sms",
+     :helpText => 'Can we send you and SMS for TB follow-up?'} %>
+
+  <%= touch_yes_no_unknown_tag "Follow up agreement", @patient, nil,
+    {:id => "follow_up_agreement",
+     :helpText => 'Can we visit you at home for TB follow-up?'} %>
+
   <%if @patient.hiv_status.upcase == 'POSITIVE' %> 
     <%= touch_yes_no_unknown_tag "Patient enrolled in IMB HIV program", @patient, nil,
       {:id => "enroll_patient_in_art",
@@ -54,11 +62,12 @@
 
   <%
     date = session[:datetime].to_date rescue Date.today
-    obs_ans = Observation.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND DATE(obs_datetime) = ?",
-              @patient.id, ConceptName.find_by_name("ANY NEED TO SEE A CLINICIAN").concept_id,date])) rescue nil
+    encounter = Encounter.find(:first,:order => "encounter_datetime DESC",
+              :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+              date,@patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
   %>
 
-  <% if obs_ans.blank? %>
+  <% if encounter.blank? %>
     <%= touch_yes_no_unknown_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
       {:id => "need_to_see_clinician",
        :helpText => "Any need to see a clinician?"
