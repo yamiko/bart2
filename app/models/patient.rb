@@ -146,7 +146,7 @@ class Patient < ActiveRecord::Base
     tb_within_last_two_yrs = "tb within last 2 yrs" unless demographics.tb_within_last_two_yrs.blank?
     eptb = "eptb" unless demographics.eptb.blank?
     pulmonary_tb = "Pulmonary tb" unless demographics.pulmonary_tb.blank?
- 
+
     cd4_count_date = nil ; cd4_count = nil ; pregnant = 'N/A'
 
     (hiv_staging.observations).map do | obs |
@@ -1176,9 +1176,12 @@ EOF
     test_date = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV test date").concept_id]).value_datetime rescue nil
     return test_date
   end
-  
+
   def months_since_last_hiv_test
-    today = Date.today
+    #this can be done better
+    session_date = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV test date").concept_id]).obs_datetime rescue Date.today
+
+    today =  session_date
     hiv_test_date = self.hiv_test_date
     months = (today.year * 12 + today.month) - (hiv_test_date.year * 12 + hiv_test_date.month) rescue nil
     return months

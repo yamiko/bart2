@@ -55,6 +55,35 @@ class RegimensController < ApplicationController
     start_date = session[:datetime] || Time.now
     auto_expire_date = session[:datetime] + params[:duration].to_i.days rescue Time.now + params[:duration].to_i.days
     auto_tb_expire_date = session[:datetime] + params[:tb_duration].to_i.days rescue Time.now + params[:tb_duration].to_i.days
+	auto_cpt_ipt_expire_date = session[:datetime] + params[:cpt_ipt_duration].to_i.days rescue Time.now + params[:cpt_ipt_duration].to_i.days
+	orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:tb_regimen]})
+    ActiveRecord::Base.transaction do
+      # Need to write an obs for the regimen they are on, note that this is ARV
+      # Specific at the moment and will likely need to have some kind of lookup
+      # or be made generic
+      obs = Observation.create(
+        :concept_name => "WHAT TYPE OF ANTIRETROVIRAL REGIMEN",
+        :person_id => @patient.person.person_id,
+        :encounter_id => encounter.encounter_id,
+        :value_coded => params[:tb_regimen_concept_id],
+        :obs_datetime => start_date) if prescribe_tb_drugs
+      orders.each do |order|
+        drug = Drug.find(order.drug_inventory_id)
+        regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept.name).name
+        DrugOrder.write_order(
+          encounter, 
+          @patient, 
+          obs, 
+          drug, 
+          start_date, 
+          auto_tb_expire_date, 
+          order.dose, 
+          order.frequency, 
+          order.prn, 
+          "#{drug.name}: #{order.instructions} (#{regimen_name})",
+          order.equivalent_daily_dose)  
+      end if prescribe_tb_drugs
+    end
 
     orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:regimen]})
     ActiveRecord::Base.transaction do
@@ -85,9 +114,6 @@ class RegimensController < ApplicationController
       end if prescribe_arvs
     end
 
-
-
-    
     ['CPT STARTED','ISONIAZID'].each do | concept_name |
       if concept_name == 'ISONIAZID'
         concept = 'NO' unless prescribe_ipt
@@ -122,7 +148,7 @@ class RegimensController < ApplicationController
           obs, 
           drug, 
           start_date, 
-          auto_expire_date, 
+          auto_cpt_ipt_expire_date, 
           order.dose, 
           order.frequency, 
           order.prn, 
@@ -131,35 +157,6 @@ class RegimensController < ApplicationController
       end
     end
 	
-	orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:tb_regimen]})
-    ActiveRecord::Base.transaction do
-      # Need to write an obs for the regimen they are on, note that this is ARV
-      # Specific at the moment and will likely need to have some kind of lookup
-      # or be made generic
-      obs = Observation.create(
-        :concept_name => "WHAT TYPE OF ANTIRETROVIRAL REGIMEN",
-        :person_id => @patient.person.person_id,
-        :encounter_id => encounter.encounter_id,
-        :value_coded => params[:tb_regimen_concept_id],
-        :obs_datetime => start_date) if prescribe_tb_drugs
-      orders.each do |order|
-        drug = Drug.find(order.drug_inventory_id)
-        regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept.name).name
-        DrugOrder.write_order(
-          encounter, 
-          @patient, 
-          obs, 
-          drug, 
-          start_date, 
-          auto_tb_expire_date, 
-          order.dose, 
-          order.frequency, 
-          order.prn, 
-          "#{drug.name}: #{order.instructions} (#{regimen_name})",
-          order.equivalent_daily_dose)  
-      end if prescribe_tb_drugs
-    end
-    
     # Send them back to treatment for now, eventually may want to go to workflow
     redirect_to "/patients/treatment_dashboard?patient_id=#{@patient.id}"
   end    
