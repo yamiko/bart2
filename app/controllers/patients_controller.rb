@@ -140,19 +140,19 @@ class PatientsController < ApplicationController
     patient = Patient.find(params[:id])
 
     @links << ["Demographics (Print)","/patients/print_demographics/#{patient.id}"]
-    @links << ["Visit summary (Print)","/patients/dashboard_print_visit/#{patient.id}"]
+    @links << ["Visit Summary (Print)","/patients/dashboard_print_visit/#{patient.id}"]
     @links << ["National ID (Print)","/patients/dashboard_print_national_id/#{patient.id}"]
 
     if use_filing_number and not patient.get_identifier('Filing Number').blank?
-      @links << ["Filing number (Print)","/patients/print_filing_number/#{patient.id}"]
+      @links << ["Filing Number (Print)","/patients/print_filing_number/#{patient.id}"]
     end 
 
     if use_filing_number and patient.get_identifier('Filing Number').blank?
-      @links << ["Filing number (Create)","/patients/set_filing_number/#{patient.id}"]
+      @links << ["Filing Number (Create)","/patients/set_filing_number/#{patient.id}"]
     end 
 
     if GlobalProperty.use_user_selected_activities
-      @links << ["Change user activities","/user/activities/#{User.current_user.id}?patient_id=#{patient.id}"]
+      @links << ["Change User Activities","/user/activities/#{User.current_user.id}?patient_id=#{patient.id}"]
     end
 
     @links << ["Recent Lab Orders Label","/patients/recent_lab_orders?patient_id=#{patient.id}"]
