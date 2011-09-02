@@ -306,7 +306,7 @@ class Patient < ActiveRecord::Base
           label.draw_multi_text("#{self.person.name.titleize.delete("'")} #{self.national_id_with_dashes}")
           label.draw_multi_text("#{lab_orders[i].name rescue nil}")
           label.draw_multi_text("#{accession_number rescue nil}")
-          label.draw_multi_text("#{DateTime.now.strftime("%d-%b-%Y %H:%M")}")
+          label.draw_multi_text("#{lab_orders[i].obs_datetime.strftime("%d-%b-%Y %H:%M")}")
           labels << label
           end
           i = i + 1
