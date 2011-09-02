@@ -101,7 +101,7 @@
       {:id => 'side_effects',
        :optional => true,
        :multiple => true,
-       :conditions => @patient.is_first_visit? == false,
+       :conditions => @art_first_visit == false,
        :helpText => "Side effects (select all that apply)" } %>
   <% else %>
     <%= touch_select_tag "SYMPTOM PRESENT", @patient, concept_set_options('MALAWI ART SYMPTOM SET'),
@@ -109,7 +109,7 @@
        :optional => true,
        :multiple => true,
        :helpText => "Symptoms (select all that apply)" } %>
-    <% if @patient.is_first_visit? == false %>
+    <% if @art_first_visit == false %>
       <%= touch_select_tag "DRUG INDUCED", @patient, options_for_select([['', '']]),
         {:id => 'drug_induced_effects',
          :optional => true,
@@ -120,12 +120,18 @@
       <% end %>
   <% end %>
 
-  <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
-    {:id => 'tb_status',
-     :optional => true,
-     :multiple => false,
-     :conditions => @patient.tb_status != "YES",
-     :helpText => "TB Status" } %>
+  <%  if @tb_programs_state.nil? %>
+    <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
+      {:id => 'tb_status',
+       :optional => true,
+       :multiple => false,
+       :helpText => "TB Status" } %>
+    <% else %>
+      <%= hidden_field_tag("observations[][concept_name]", "TB STATUS") %>
+      <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
+      <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+      <%= hidden_field_tag("observations[][value_coded]", Concept.find_by_name("#{@tb_programs_state}").id) %>
+    <% end %>
 
   <%if @patient.child_bearing_female?%>
   <%#= touch_yes_no_unknown_tag "DEPO-PROVERA", @patient, nil,
