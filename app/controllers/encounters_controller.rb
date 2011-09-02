@@ -259,6 +259,10 @@ class EncountersController < ApplicationController
     @sputum_orders = Hash.new()
     @sputum_submission_waiting_results = Hash.new()
 
+    @art_first_visit = is_first_art_visit(@patient.id)
+    @tb_first_registration = is_first_tb_registration(@patient.id)
+    @tb_programs_state = uncompleted_tb_programs_status(@patient.id)
+
     @patient.sputum_orders_without_submission.each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
     @patient.sputum_submissons_with_no_results.each{|order| @sputum_submission_waiting_results[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
     redirect_to "/" and return unless @patient
@@ -404,5 +408,39 @@ class EncountersController < ApplicationController
     #render :layout => "menu" 
     render :template => 'dashboards/treatment_dashboard', :layout => false
   end
-  
+
+  def is_first_art_visit(patient_id)
+    art_encounter = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
+                        patient_id, EncounterType.find_by_name('ART_INITIAL').id]) rescue ''
+    return false if art_encounter == ''
+    return true
+  end
+
+  def is_first_tb_registration(patient_id)
+    tb_registration = Encounter.find(:first,
+                                     :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
+                                     patient_id,EncounterType.find_by_name('TB REGISTRATION').id,session_date],
+                                     :order =>'encounter_datetime DESC') rescue ''
+
+    return false if tb_registration == ''
+    return true
+  end
+
+  def uncompleted_tb_programs_status(patient_id)
+      @patient =Patient.find(patient_id)
+
+      @tb_program_state = ''
+
+      @tb_programs = @patient.patient_programs.not_completed.in_programs('MDR-TB program') 
+      @tb_programs = @patient.patient_programs.not_completed.in_programs('XDR-TB program') if @tb_programs.blank?
+      @tb_programs = @patient.patient_programs.not_completed.in_programs('TB PROGRAM') if @tb_programs.blank?
+
+      unless @tb_programs.blank?
+        @tb_programs.each{|program|
+          @tb_status_pair = program.patient_states.last.program_workflow_state.concept.fullname
+        }
+      end
+      
+    return @tb_program_state
+  end
 end

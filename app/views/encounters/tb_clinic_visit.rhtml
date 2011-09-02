@@ -69,18 +69,19 @@ Check applicability of code below
      :condition => "$('any_tb_symptoms').value == 'YES'",
      :helpText => "Select current TB symptoms"} %>
   <% end %>
+  <% if @tb_first_registration == false %>
+    <%= touch_yes_no_tag "SIDE EFFECTS", @patient, nil,
+        {:id => "side_effects",
+          :helpText => "Any side effects?" } %>
 
-  <%= touch_yes_no_tag "SIDE EFFECTS", @patient, nil,
-      {:id => "side_effects",
-        :helpText => "Any side effects?" } %>
-
-     <%= touch_select_tag "Drug related side effects", @patient, options_for_select(@select_options['drug_related_side_effects']),
-    {:id => "drug_side_effects",
-     :multiple => true,
-     :condition => "$('side_effects').value == 'YES'",
-     :tt_pageStyleClass => "NoKeyboard",
-     :tt_onUnLoad => "",
-     :helpText => "Drug related side effects" } %>
+       <%= touch_select_tag "Drug related side effects", @patient, options_for_select(@select_options['drug_related_side_effects']),
+      {:id => "drug_side_effects",
+       :multiple => true,
+       :condition => "$('side_effects').value == 'YES'",
+       :tt_pageStyleClass => "NoKeyboard",
+       :tt_onUnLoad => "",
+       :helpText => "Drug related side effects" } %>
+  <% end %>
 
   <% session_date = session[:datetime].to_date rescue Date.today 
      reception = Encounter.find(:first,:order => "encounter_datetime DESC",
