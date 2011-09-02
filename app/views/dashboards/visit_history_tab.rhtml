@@ -41,9 +41,9 @@
                 <li class="data <%= cycle('even', 'odd') %>" encounter="<%= encounter.id %>">
                   <div class="void"><img src="/images/cancel_flat_small.png"/></div>
                   <% if encounter.name.humanize.include?('Hiv') %>
-                    <div class="encounter"><%=(h encounter.name.humanize).gsub('Hiv','HIV') %> at <%=h encounter.encounter_datetime.strftime("%k:%M") %></div>
+                    <div class="encounter"><%=(h encounter.name.humanize).gsub('Hiv','HIV').gsub('Tb','TB') %> at <%=h encounter.encounter_datetime.strftime("%k:%M") %></div>
                   <% else %>
-                    <div class="encounter"><%=(h encounter.name.humanize).gsub('Art','ART').gsub('hiv','HIV') %> at <%=h encounter.encounter_datetime.strftime("%k:%M") %></div>
+                    <div class="encounter"><%=(h encounter.name.humanize).gsub('Art','ART').gsub('hiv','HIV').gsub('Tb','TB') %> at <%=h encounter.encounter_datetime.strftime("%k:%M") %></div>
                   <% end %>
                 </li>
               <% end %>
