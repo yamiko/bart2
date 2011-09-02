@@ -261,8 +261,6 @@ class EncountersController < ApplicationController
 
     @art_first_visit = is_first_art_visit(@patient.id)
     @tb_first_registration = is_first_tb_registration(@patient.id)
-
-    raise @tb_first_registration.to_yaml
     @tb_programs_state = uncompleted_tb_programs_status(@patient.id)
 
     @patient.sputum_orders_without_submission.each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
