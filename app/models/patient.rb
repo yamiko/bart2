@@ -109,7 +109,7 @@ class Patient < ActiveRecord::Base
 
     hiv_status = self.hiv_status
     alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.strip}" == 'Negative' && self.months_since_last_hiv_test > 3)
-    alerts << "Patient is HIV Positive but not on ART" if (("#{hiv_status.strip}" == 'Positive') && !self.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) ||
+    alerts << "Patient not on ART" if (("#{hiv_status.strip}" == 'Positive') && !self.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) ||
                                                           ((self.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) && (ProgramWorkflowState.find_state(patient_hiv_program.last.patient_states.last.state).concept.fullname != "On antiretrovirals"))
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.strip}" == 'Unknown'
     alerts << "Lab: Expecting submission of sputum" unless self.sputum_orders_without_submission.empty?
