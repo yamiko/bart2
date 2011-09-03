@@ -417,9 +417,10 @@ class EncountersController < ApplicationController
   end
 
   def is_first_tb_registration(patient_id)
+    session_date = session[:datetime].to_date rescue Date.today
     tb_registration = Encounter.find(:first,
                                      :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
-                                     patient_id,EncounterType.find_by_name('TB REGISTRATION').id,session_date],
+                                     patient_id,EncounterType.find_by_name('TB REGISTRATION').id, session_date],
                                      :order =>'encounter_datetime DESC') rescue ''
 
     return false if tb_registration == ''
