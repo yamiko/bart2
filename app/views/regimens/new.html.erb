@@ -225,9 +225,9 @@
      durations = ['1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months']
      durations.each do |duration|
        if duration.match(/week/i)
-        days = ((duration.to_i)*7)
+        days = (((duration.to_i)*7) + 3)
        elsif duration.match(/month/i)
-        days = ((duration.to_i)*30)
+        days = (((duration.to_i)* 30) + 3)
        end
        optionsString += "<option value = '" + days.to_s + "'>" + duration + "</option>"
      end
@@ -284,17 +284,6 @@
 		:allowFreeText => "true",
 		:tt_pageStyleClass => "NumbersOnlyWithDecimal"}%>
 
-  <% optionsString = "<option>" "" "</option>"
-     durations = ['1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months']
-     durations.each do |duration|
-       if duration.match(/week/i)
-        days = ((duration.to_i)*7)
-       elsif duration.match(/month/i)
-        days = ((duration.to_i)*30)
-       end
-       optionsString += "<option value = '" + days.to_s + "'>" + duration + "</option>"
-     end
-  %>
   <%= select_tag :duration, optionsString, { 
 	:condition => '$("prescribe_arvs").value == "YES"',	
 	:helpText => 'Duration' } %> 

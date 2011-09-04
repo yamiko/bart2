@@ -182,7 +182,7 @@ class RegimensController < ApplicationController
 
     regimen_concepts = patient_program.regimens(patient_program.patient.current_weight).uniq
     @options = regimen_options(regimen_concepts, params[:patient_age].to_i)
-
+	#raise @options.to_yaml
     render :layout => false
   end
 
@@ -243,7 +243,4 @@ class RegimensController < ApplicationController
     end
   end
 
-private
-
-  
 end
