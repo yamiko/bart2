@@ -27,7 +27,7 @@ class RegimensController < ApplicationController
 
 	tb_treatment_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
                     :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
-                    session_date, @patient.id, EncounterType.find_by_name('TB TREATMENT VISIT').id]).observations rescue []
+                    session_date, @patient.id, EncounterType.find_by_name('TB CLINIC VISIT').id]).observations rescue []
 
     prescribe_tb_medication = false
     (tb_treatment_obs || []).each do | obs | 
