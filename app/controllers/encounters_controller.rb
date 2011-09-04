@@ -265,6 +265,9 @@ class EncountersController < ApplicationController
 
     @patient.sputum_orders_without_submission.each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
     @patient.sputum_submissons_with_no_results.each{|order| @sputum_submission_waiting_results[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
+    
+    @tb_status = check_tb_status_using_lab_results(@patient.id)
+
     redirect_to "/" and return unless @patient
 
     redirect_to next_task(@patient) and return unless params[:encounter_type]
@@ -444,4 +447,27 @@ class EncountersController < ApplicationController
       
     return @tb_program_state
   end
+  
+  def check_tb_status_using_lab_results(patient_id, session_date = Date.today)
+  
+    sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
+    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
+    
+    recent_lab_results = Encounter.find(:last,:conditions =>["encounter_type = ? AND patient_id = ? AND DATE(encounter_datetime) >= ?",
+                        EncounterType.find_by_name("LAB RESULTS").id, patient_id, (session_date.to_date - 3.month).strftime('%Y-%m-%d 00:00:00')])
+                        
+    positive_result = false                  
+
+    results = recent_lab_results.observations.map{|o| o if sputum_concept_ids.include?(o.concept_id)} rescue []
+
+    results.each do |result|
+        concept_name = Concept.find(result.value_coded).fullname.upcase rescue 'NEGATIVE'
+        if not ((concept_name).include? 'NEGATIVE')
+            positive_result = true
+        end
+    end
+
+    return positive_result
+  end
+
 end
