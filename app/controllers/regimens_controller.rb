@@ -8,18 +8,32 @@ class RegimensController < ApplicationController
 
     @current_regimens_for_programs = current_regimens_for_programs
     @current_regimen_names_for_programs = current_regimen_names_for_programs
-    
+
     session_date = session[:datetime].to_date rescue Date.today
-    
+
+    pre_art_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                    :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                    session_date.to_date, @patient.id, EncounterType.find_by_name('PART_FOLLOWUP').id])
+
+    art_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                    :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                    session_date.to_date, @patient.id, EncounterType.find_by_name('ART VISIT').id])
+	@art_visit = false
+	#raise pre_art_visit.blank?.to_s
+	if ((not pre_art_visit.blank?) or (not art_visit.blank?))
+		@art_visit = true		
+	end
+	#raise @art_visit.to_s
+
 	tb_treatment_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
                     :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
-                    session_date,@patient.id,EncounterType.find_by_name('TB TREATMENT VISIT').id]).observations rescue []
+                    session_date, @patient.id, EncounterType.find_by_name('TB TREATMENT VISIT').id]).observations rescue []
 
     prescribe_tb_medication = false
     (tb_treatment_obs || []).each do | obs | 
-            if obs.concept_id == (Concept.find_by_name('Prescribe drugs').concept_id rescue nil)
-                prescribe_tb_medication = true if Concept.find(obs.value_coded).fullname.upcase == 'YES' 
-            end
+        if obs.concept_id == (Concept.find_by_name('Prescribe drugs').concept_id rescue nil)
+            prescribe_tb_medication = true if Concept.find(obs.value_coded).fullname.upcase == 'YES' 
+        end
     end
     
 	@prescribe_tb_drugs = false	
