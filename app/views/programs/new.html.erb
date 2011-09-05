@@ -90,13 +90,13 @@ concept.concept_names.typed("SHORT").first
        :max => "#{(Date.today).strftime('%Y-%m-%d')}",
        :tt_pageStyleClass => "Date DatesOnly"} %>     
 <!--
-  <%= select_tag 'current_state', params[:current_state],     
-    {:id => 'current_state', 
-     :field_type => 'alpha', 
+  <%= select_tag 'current_state', params[:current_state],
+    {:id => 'current_state',
+     :field_type => 'alpha',
      :helpText => "Current state",
      :tt_onLoad => "set_workflow_for_states();",
-     :ajaxURL => "", 
-     :allowFreeText => false } %> 
+     :ajaxURL => "",
+     :allowFreeText => false } %>
 
   <%= text_field_tag 'current_date', params[:current_date] || (Time.now).year, 
       {:id => 'current_date',
