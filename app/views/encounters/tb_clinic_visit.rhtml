@@ -38,75 +38,60 @@
 -->
 
 <form id='appointment' action="/encounters/create" method='post'>
-  <%= hidden_field_tag "encounter[encounter_type_name]", "TB CLINIC VISIT" %>
-  <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
-  <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
-  <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
+	<%= hidden_field_tag "encounter[encounter_type_name]", "TB CLINIC VISIT" %>
+	<%= hidden_field_tag "encounter[patient_id]", @patient.id %>
+	<%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
+	<%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
-  <%#= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
-  
-  <% session_date = session[:datetime].to_date rescue Date.today 
-     reception = Encounter.find(:first,:order => "encounter_datetime DESC",
-                    :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
-                    session_date,@patient.id,EncounterType.find_by_name('TB RECEPTION').id])
-     reception_obs = reception.observations.map{|obs|obs.to_s.strip.upcase} rescue []
-  %>
+	<%#= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
 
-  <% if @patient.tb_status.match(/treatment/i).blank? and reception_obs.include?('REASON FOR CLINICAL VISIT:  XRAY RESULT INTERPRETATION')%>
-    <%= touch_select_tag "Xray result interpretation", @patient, options_for_select(@select_options['tb_xray_interpretation']),
-      {:id => "xray",
-       :tt_pageStyleClass => "NoKeyboard",
-       :helpText => "Interpret X-Ray" } %>
-  <% end %>
+	<% session_date = session[:datetime].to_date rescue Date.today 
+		reception = Encounter.find(:first,:order => "encounter_datetime DESC",
+			:conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+			session_date,@patient.id,EncounterType.find_by_name('TB RECEPTION').id])
+		reception_obs = reception.observations.map{|obs|obs.to_s.strip.upcase} rescue []
+	%>
 
-  <!--% if @patient.tb_status.match(/treatment/i).blank? %>
+	<%= touch_yes_no_tag "Refer to x-ray?", @patient, nil,
+		{	:id => "refer_to_xray",
+			:helpText => "Refer to x-ray scan?" } %>
+ 
+	<%= touch_yes_no_tag "interpret x-ray?", @patient, nil,
+		{	:id => "interpret_xray",
+			:condition => "$('refer_to_xray').value != 'YES'",
+			:helpText => "X-ray scan available for interpretation?" } %>
+
+	<%= touch_select_tag "Xray result interpretation", @patient, options_for_select(@select_options['tb_xray_interpretation']),
+		{	:id => "xray",
+			:tt_pageStyleClass => "NoKeyboard",
+			:condition => "$('interpret_xray').value == 'YES'",
+			:helpText => "Interpret X-Ray" } %>
+
     <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
-    {:id => 'tb_status',
-     :optional => true,
-     :tt_onLoad => "setTimeout('setSelectedRow()',500);",
-     :multiple => false,
-     :helpText => "TB Status" } %>
-  <% end %-->
+		{	:id => 'tb_status',
+			:optional => true,
+			:multiple => false,
+			:condition => "$('interpret_xray').value != 'YES'",
+			:helpText => "TB Status" } %>
 
-  <%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
-      {:id => "prescribe_drugs",
-       :helpText => "Prescribe drugs during this visit" } %> 
+	<%= touch_select_tag "TB classification", @patient, options_for_select(@select_options['tb_classification']),
+		{	:id => "tb_classification",
+		 	:tt_pageStyleClass => "NoKeyboard",
+			:condition => "$('refer_to_xray').value != 'YES' && ($('xray').value == 'Consistent of TB' || $('tb_status').value == 'Confirmed TB NOT on treatment')",
+		 	:helpText => "TB classification" } %>
 
-  <% enrolled_in_hiv_program = patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') rescue false 
-    if enrolled_in_hiv_program %>
-    <%= touch_yes_no_tag "ART visit", @patient, nil,
-      {:id => "art_visit",
-       :tt_pageStyleClass => "NoKeyboard",
-       :helpText => "Go to ART visit" } %>
-  <% end %>
-  
-  <% tb_status = @patient.tb_status.upcase rescue 'UNKNOWN'%>
+	<%= touch_select_tag "EPTB classification", @patient, options_for_select(@select_options['eptb_classification']),
+		{	:id => "further_tb_classification",
+		 	:condition => "$('tb_classification').value == 'Extrapulmonary tuberculosis (EPTB)' && $('refer_to_xray').value != 'YES' && ($('xray').value == 'Consistent of TB' || $('tb_status').value == 'Confirmed TB NOT on treatment')",
+		 	:tt_pageStyleClass => "NoKeyboard",
+		 	:helpText => "EPTB classification" } %>
 
-	<script>
-		try {
-			var tb_status = $('tb_status').value.toUpperCase();
-		} catch(e) { 
-			var tb_status = "<%=tb_status%>";
-		}
-	</script>
-
-  <%= touch_yes_no_tag "Further examination for TB required", @patient, nil,
-    {:id => "art_visit",
-     :tt_pageStyleClass => "NoKeyboard",
-     :condition => "tb_status == 'UNKNOWN'",
-     :helpText => "Refer patient to X-ray scan" } %>
-
-  <%  
-      in_hiv_program = patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') rescue false
-      
-  %>
-    
-   <%if @patient.hiv_status.upcase == 'POSITIVE' and not in_hiv_program %>
-    <%= touch_yes_no_unknown_tag "Patient enrolled in IMB HIV program", @patient, nil,
-      {:id => "enroll_patient_in_art",
-       :condition => "showEnrollPatient() == true;",
-       :helpText => 'Enroll patient in ART'} %>
-  <%end%>
+	<%= touch_select_tag "TB type", @patient, options_for_select(@select_options['tb_types']),
+		{	:id => "tb_type",
+		 	:tt_pageStyleClass => "NoKeyboard",
+			:condition => "$('refer_to_xray').value != 'YES' && ($('xray').value == 'Consistent of TB' || $('tb_status').value == 'Confirmed TB NOT on treatment')",
+		 	:helpText => "TB type / TB susceptibility"
+		 	} %>
   
   <%= submit_tag "Finish" %>    
 </form>
