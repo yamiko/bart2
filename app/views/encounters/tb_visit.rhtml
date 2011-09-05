@@ -42,6 +42,7 @@
   <% if @patient.person.gender == 'F' && @patient.person.age > 13 %>
     <%= touch_yes_no_unknown_tag "PREGNANT?", @patient, nil,
       {:id => "pregnant",
+      
        :helpText => "Pregnant?" } %>
   <% end %>
 
@@ -133,6 +134,27 @@
 		{	:id => "alergic_to_sulphur",
 			:condition => "$('refer_to_clinician').value == 'NO'" ,
 			:helpText => "Is patient alergic to sulphur" } %>
+			
+	<%= touch_yes_no_tag "Continue treatment", @patient, nil,
+		{	:id => "continue_treatment",
+			:condition => "$('refer_to_clinician').value == 'NO'" ,
+			:helpText => "Continue Treatment" } %>
+
+				
+  <%= touch_location_tag "Transfer to", @patient, nil,
+      {:id => 'transfer_out_location_id',
+       :field_type => 'alpha',
+       :helpText => "Transfer out to location",
+       :ajaxURL => '/programs/locations?q=',
+			 :condition => "$('continue_treatment').value == 'YES'" ,
+       :allowFreeText => true } %>
+
+  <%= touch_yes_no_unknown_tag "TRANSFER WITHIN RESPONSIBILITY", @patient, nil,
+      {:id => "transfer_within_responsibility",
+       :optional => false,
+			 :condition => "$('continue_treatment').value == 'YES'" ,
+       :helpText => "Transfer within responsibility (e.g. District)" } %>
+       
 
 	<%= submit_tag "Finish" %>    
 </form>
