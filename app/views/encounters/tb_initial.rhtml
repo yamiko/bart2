@@ -15,6 +15,15 @@
 
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
+  
+  function summary() {
+    var display = "<div><span class='title' style='font-size:40px;'>" + "Refer Patient to Clinician" + "</span></div>";
+    display += "<div><hr /><br /><span class='title' style='font-size:25px;'>Reason: Smear -ve patient </span></div>";
+    $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + display + '</div>' ;
+    $("clearButton").style.display = "none";
+
+  }
+
 </script>
 
 <% if @patient.patient_programs.current.local.map(&:program).map(&:name).include?('TB PROGRAM') %>
@@ -41,10 +50,13 @@
     {:id => "tb_treatment",
      :helpText => 'Ever received TB treatment'} %>
 
-  <label for='reason_for_clinic_visit'>Reason for clinical visit</label>
-    <%= touch_select_tag "REASON FOR CLINICAL VISIT",
-      @patient, options_for_select(@select_options['reason_for_tb_clinic_visit']),
-      {:id => "reason_for_clinic_visit"}%>
+
+  <%reason_for_clinic_visit = 'Smear -ve'%>
+  <% if @tb_status %>
+     <%reason_for_clinic_visit = 'Smear +ve'%>
+  <%end%>
+  
+  <%= touch_hidden_tag("REASON FOR CLINICAL VISIT", @patient.id, "#{reason_for_clinic_visit}", {:id => "reason_for_clinic_visit"}) %>
 
   <%= touch_yes_no_unknown_tag "SEND SMS", @patient, nil,
     {:id => "send_sms",
@@ -60,14 +72,12 @@
               :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
               date,@patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
   %>
-
-  <% if encounter.blank? %>
-    <%= touch_yes_no_unknown_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
-      {:id => "need_to_see_clinician",
-       :helpText => "Any need to see a clinician?"
-     } %>
+  
+  <% if !@tb_status %>
+    <label for='summary'>Summary</label>
+    <%= text_field_tag :summary, nil, { :tt_onLoad => "summary();", :optional => "true", :tt_pageStyleClass => "NoControls" , :helpText => ''} %>
   <%end%>
-
+  
   <%= submit_tag "Finish" %>    
 </form>
 <% end %>
