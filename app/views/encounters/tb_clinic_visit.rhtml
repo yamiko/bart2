@@ -25,16 +25,16 @@
 </script> 
 
 <!--.........TODO..........dd..
-This is referred to as ART Enrollment/HIV Visit in the specs
+	This is referred to as ART Enrollment/HIV Visit in the specs
 
-Concepts - mostly in caps
-Skip logic - implement and verify
-Get @answer_array_values
-Check multi select especially on WHO staging conditions
-Change the date fields to 3tier date
-Check appropriateness of Encounter type
+	Concepts - mostly in caps
+	Skip logic - implement and verify
+	Get @answer_array_values
+	Check multi select especially on WHO staging conditions
+	Change the date fields to 3tier date
+	Check appropriateness of Encounter type
 
-Check applicability of code below
+	Check applicability of code below
 -->
 
 <form id='appointment' action="/encounters/create" method='post'>
@@ -45,44 +45,6 @@ Check applicability of code below
 
   <%#= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
   
-   <%#= touch_select_tag "Clinical symptoms associated with TB", @patient, concept_set_options('Clinical symptoms associated with TB'),
-      {:id => 'side_effects',
-       :optional => true,
-       :multiple => true,
-       :helpText => "Clinical symptoms associated with TB" } %>
-  <%= touch_yes_no_tag "SYMPTOMATIC", @patient, nil,
-      {:id => "any_tb_symptoms",
-       :helpText => "Any current TB signs or symptoms?" } %>
-
-    <% if @current_user_role.include?("Doctor") || @current_user_role.include?("Nurse") || @current_user_role.include?("Clinician") %>
-    <%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms_all']),
-        {:id => 'tb_symptoms',
-         :optional => true,
-         :multiple => true,
-         :condition => "$('any_tb_symptoms').value == 'YES'",
-         :helpText => "Select current TB symptoms" } %>
-  <% else %>
-   <%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms_short']),
-    {:id => "tb_symptoms",
-     :multiple => true,
-     :tt_pageStyleClass => "NoKeyboard",
-     :condition => "$('any_tb_symptoms').value == 'YES'",
-     :helpText => "Select current TB symptoms"} %>
-  <% end %>
-  <% if @tb_first_registration == false %>
-    <%= touch_yes_no_tag "SIDE EFFECTS", @patient, nil,
-        {:id => "side_effects",
-          :helpText => "Any side effects?" } %>
-
-       <%= touch_select_tag "Drug related side effects", @patient, options_for_select(@select_options['drug_related_side_effects']),
-      {:id => "drug_side_effects",
-       :multiple => true,
-       :condition => "$('side_effects').value == 'YES'",
-       :tt_pageStyleClass => "NoKeyboard",
-       :tt_onUnLoad => "",
-       :helpText => "Drug related side effects" } %>
-  <% end %>
-
   <% session_date = session[:datetime].to_date rescue Date.today 
      reception = Encounter.find(:first,:order => "encounter_datetime DESC",
                     :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
@@ -97,14 +59,14 @@ Check applicability of code below
        :helpText => "Interpret X-Ray" } %>
   <% end %>
 
-  <% if @patient.tb_status.match(/treatment/i).blank? %>
+  <!--% if @patient.tb_status.match(/treatment/i).blank? %>
     <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
     {:id => 'tb_status',
      :optional => true,
      :tt_onLoad => "setTimeout('setSelectedRow()',500);",
      :multiple => false,
      :helpText => "TB Status" } %>
-  <% end %>
+  <% end %-->
 
   <%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
       {:id => "prescribe_drugs",
@@ -120,11 +82,13 @@ Check applicability of code below
   
   <% tb_status = @patient.tb_status.upcase rescue 'UNKNOWN'%>
 
-  <script>
-    try {
-      var tb_status = $('tb_status').value.toUpperCase();
-    }catch(e) { var tb_status = "<%=tb_status%>";}
-  </script>
+	<script>
+		try {
+			var tb_status = $('tb_status').value.toUpperCase();
+		} catch(e) { 
+			var tb_status = "<%=tb_status%>";
+		}
+	</script>
 
   <%= touch_yes_no_tag "Further examination for TB required", @patient, nil,
     {:id => "art_visit",

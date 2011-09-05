@@ -298,7 +298,7 @@
        :id => 'cpt_given',
        :helpText => "Prescribe CPT" } %>
 
-  <% if @patient.gender == 'F' && @patient.person.age >= 14 %>
+  <% if @patient.gender == 'Female' && @patient.person.age >= 14 %>
 		<%= touch_yes_no_tag "ISONIAZID", @patient, nil,
 		    {:optional => false,
 		     :id => 'ipt_given',
