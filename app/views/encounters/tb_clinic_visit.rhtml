@@ -71,7 +71,7 @@
 		{	:id => 'tb_status',
 			:optional => true,
 			:multiple => false,
-			:condition => "$('interpret_xray').value != 'YES'",
+			:condition => "$('interpret_xray').value != 'YES' && $('refer_to_xray').value != 'YES'",
 			:helpText => "TB Status" } %>
 
 	<%= touch_select_tag "TB classification", @patient, options_for_select(@select_options['tb_classification']),
