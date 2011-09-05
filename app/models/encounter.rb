@@ -235,8 +235,8 @@ EOF
       ],
       'tb_xray_interpretation' => [
         ['',''],
-        ['Consistent of TB',''],
-        ['Not Consistent of TB','']
+        ['Consistent of TB','Consistent of TB'],
+        ['Not Consistent of TB','Not Consistent of TB']
       ],
       'lab_orders' =>{
         "Blood" => ["Full blood count", "Malaria parasite", "Group & cross match", "Urea & Electrolytes", "CD4 count", "Resistance",
