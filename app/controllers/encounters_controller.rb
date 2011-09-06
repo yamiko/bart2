@@ -268,6 +268,11 @@ class EncountersController < ApplicationController
     
     @tb_status = check_tb_status_using_lab_results(@patient.id)
 
+
+	if params[:encounter_type].upcase == 'TB Visit' 
+    	
+	end
+
     redirect_to "/" and return unless @patient
 
     redirect_to next_task(@patient) and return unless params[:encounter_type]
