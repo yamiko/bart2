@@ -480,14 +480,14 @@ class Task < ActiveRecord::Base
     #4. Manage sputum submission - SPUTUM SUBMISSION
     #5. Manage Lab results - LAB RESULTS
     #6. Manage TB registration - TB REGISTRATION
-    #7. Manage TB followup - TB TREATMENT VISIT
+    #7. Manage TB followup - TB VISIT
     #8. Manage HIV status updates - UPDATE HIV STATUS
     #8. Manage prescriptions - TREATMENT
     #8. Manage dispensations - DISPENSING
 
     tb_encounters =  [
                       'UPDATE HIV STATUS','TB RECEPTION','LAB ORDERS','SPUTUM SUBMISSION','LAB RESULTS',
-                      'TB_INITIAL','TB REGISTRATION','TB TREATMENT VISIT','TB ADHERENCE','TB CLINIC VISIT',
+                      'TB_INITIAL','TB REGISTRATION','TB VISIT','TB ADHERENCE','TB CLINIC VISIT',
                       'ART_INITIAL','VITALS','HIV STAGING','ART VISIT','ART ADHERENCE','TREATMENT'
                      ] 
     user_selected_activities = User.current_user.activities.collect{|a| a.upcase }.join(',') rescue []
@@ -532,7 +532,7 @@ class Task < ActiveRecord::Base
             return task
           end
         when 'VITALS' 
-=begin
+
           if not patient.hiv_status.match(/Positive/i) and not patient.tb_status.match(/treatment/i)
             next
           end 
@@ -562,7 +562,7 @@ class Task < ActiveRecord::Base
             task.url = "/patients/show/#{patient.id}"
             return task
           end 
-=end
+
         when 'TB RECEPTION'
           if (Location.current_health_center.name.match(/Martin Preuss Centre/i) or Location.current_health_center.name.match(/Lighthouse/i))
             if not (location.name.match(/TB Sputum Submission Station/i) or location.name.match(/Chronic Cough/i)).blank?
@@ -799,7 +799,7 @@ class Task < ActiveRecord::Base
             task.url = "/patients/show/#{patient.id}"
             return task
           end 
-        when 'TB TREATMENT VISIT'
+        when 'TB VISIT'
           #checks if vitals have been taken already 
           vitals = self.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
           return vitals unless vitals.blank?
@@ -815,11 +815,11 @@ class Task < ActiveRecord::Base
           tb_followup = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                                       session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
-=begin
+
           if (tb_followup.encounter_datetime.to_date == tb_registration.encounter_datetime.to_date)
-            next
+			next
           end if not tb_followup.blank? and not tb_registration.blank?
-=end
+
           if tb_registration.blank?
             task.encounter_type = 'TB PROGRAM ENROLMENT'
             task.url = "/patients/show/#{patient.id}"
@@ -827,7 +827,7 @@ class Task < ActiveRecord::Base
           end if not tb_reception_attributes.include?('Reason for visit: Follow-up')
 
           if tb_followup.blank? and user_selected_activities.match(/Manage TB Registration visits/i)
-            task.url = "/encounters/new/tb_treatment_visit?show&patient_id=#{patient.id}"
+            task.url = "/encounters/new/tb_visit?show&patient_id=#{patient.id}"
             return task
           elsif tb_followup.blank? and not user_selected_activities.match(/Manage TB Registration visits/i)
             task.url = "/patients/show/#{patient.id}"
@@ -903,7 +903,7 @@ class Task < ActiveRecord::Base
                                     session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
 
           encounter_tb_visit = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
-                                   patient.id,EncounterType.find_by_name('TB TREATMENT VISIT').id,session_date],
+                                   patient.id,EncounterType.find_by_name('TB VISIT').id,session_date],
                                    :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
 
           prescribe_drugs = encounter_tb_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Prescribe drugs:  Yes'.upcase rescue false

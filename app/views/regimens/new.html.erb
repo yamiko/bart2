@@ -31,7 +31,11 @@
     height: 18em;
   }
     
-  .tt_controls_select_regimen .abcKeyboard {
+  .tt_controls_select_art_regimen .abcKeyboard {
+    display: none;
+  }
+
+  .tt_controls_select_tb_regimen .abcKeyboard {
     display: none;
   }
   
@@ -49,6 +53,7 @@
   var current_regimen_names_for_programs = <%= @current_regimen_names_for_programs.to_json -%>;
   var reason_for_art = "<%= @patient.reason_for_art_eligibility %>";
   var prescribeTBDrugs = "<%= @prescribe_tb_drugs %>";
+  var artVisit = "<%= @art_visit %>";
   var regimen_id = null; 
   var tb_regimen_id = null; 
 
@@ -147,10 +152,23 @@
   }
 
   function hasReasonForART() {
-    if(reason_for_art.match(/UNKNOWN/i) || reason_for_art.length == 0)
-      return false
+    if(reason_for_art.match(/UNKNOWN/i) || reason_for_art.length == 0) {
+      return false;
+	}
 
-    return true
+    return true;
+  }
+
+  function hasARTVisit() {
+	returnValue = false;  
+
+	if (artVisit == "true") {
+		returnValue = true;	
+	} else {
+		returnValue = false;
+	}
+
+	return returnValue;
   }
 
   
@@ -211,9 +229,9 @@
      durations = ['1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months']
      durations.each do |duration|
        if duration.match(/week/i)
-        days = ((duration.to_i)*7)
+        days = (((duration.to_i)*7) + 3)
        elsif duration.match(/month/i)
-        days = ((duration.to_i)*30)
+        days = (((duration.to_i)* 30) + 3)
        end
        optionsString += "<option value = '" + days.to_s + "'>" + duration + "</option>"
      end
@@ -270,17 +288,6 @@
 		:allowFreeText => "true",
 		:tt_pageStyleClass => "NumbersOnlyWithDecimal"}%>
 
-  <% optionsString = "<option>" "" "</option>"
-     durations = ['1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months']
-     durations.each do |duration|
-       if duration.match(/week/i)
-        days = ((duration.to_i)*7)
-       elsif duration.match(/month/i)
-        days = ((duration.to_i)*30)
-       end
-       optionsString += "<option value = '" + days.to_s + "'>" + duration + "</option>"
-     end
-  %>
   <%= select_tag :duration, optionsString, { 
 	:condition => '$("prescribe_arvs").value == "YES"',	
 	:helpText => 'Duration' } %> 
@@ -291,22 +298,27 @@
        :id => 'cpt_given',
        :helpText => "Prescribe CPT" } %>
 
-  <% if @patient.gender == 'F' && @patient.person.age >= 14 %>
+  <% if @patient.gender == 'Female' && @patient.person.age >= 14 %>
 		<%= touch_yes_no_tag "ISONIAZID", @patient, nil,
 		    {:optional => false,
 		     :id => 'ipt_given',
 		     :helpText => "Prescribe IPT" } %>
 	<%else%>
-		<%= hidden_field_tag(:ipt_given, "") %>
+		<%= touch_hidden_tag "ISONIAZID", @patient, "", :id => "ipt_given" %>
   <%end%>
   <%= select_tag :cpt_ipt_duration, optionsString, { 
 	:condition => '$("cpt_given").value == "YES" || $("ipt_given").value == "YES" ',	
 	:helpText => 'Duration' } %> 
 
+
   <% if @patient.person.age >= 14 %>
+	
 	  <%= touch_numeric_tag "CONDOMS", @patient, nil,
-		{:optional => false,
-		 :helpText => "Number of Condoms given" } %>
+		{	:optional => false,
+			:condition => 'hasARTVisit() == true;',
+			:helpText => "Number of Condoms given" 
+		} %>
+
  <% end %>
   
 </form>

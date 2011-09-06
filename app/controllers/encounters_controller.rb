@@ -220,228 +220,271 @@ class EncountersController < ApplicationController
     end
   end
 
-  def new
+	def new
+		@patient = Patient.find(params[:patient_id] || session[:patient_id])
+		session_date = session[:datetime].to_date rescue Date.today
 
-    @patient = Patient.find(params[:patient_id] || session[:patient_id])
-    
-    @patient_has_closed_TB_program_at_current_location = PatientProgram.find(:all,:conditions =>
-            ["voided = 0 AND patient_id = ? AND location_id = ? AND (program_id = ? OR program_id = ?)", @patient.id, Location.current_health_center.id, Program.find_by_name('TB PROGRAM').id, Program.find_by_name('MDR-TB PROGRAM').id]).last.closed? rescue true
+		@patient_has_closed_TB_program_at_current_location = PatientProgram.find(:all,:conditions =>
+			["voided = 0 AND patient_id = ? AND location_id = ? AND (program_id = ? OR program_id = ?)", @patient.id, Location.current_health_center.id, Program.find_by_name('TB PROGRAM').id, Program.find_by_name('MDR-TB PROGRAM').id]).last.closed? rescue true
 
-    @ipt_contacts = @patient.tb_contacts.collect{|person| person unless person.age > 6}.compact rescue []
-    @select_options = Encounter.select_options
-    @months_since_last_hiv_test = @patient.months_since_last_hiv_test
-    @current_user_role = self.current_user_role
-    @tb_patient = @patient.tb_patient?
-    @art_patient = @patient.art_patient?
+		@ipt_contacts = @patient.tb_contacts.collect{|person| person unless person.age > 6}.compact rescue []
+		@select_options = Encounter.select_options
+		@months_since_last_hiv_test = @patient.months_since_last_hiv_test
+		@current_user_role = self.current_user_role
+		@tb_patient = @patient.tb_patient?
+		@art_patient = @patient.art_patient?
 
-    use_regimen_short_names = GlobalProperty.find_by_property(
-      "use_regimen_short_names").property_value rescue "false"
-    show_other_regimen = GlobalProperty.find_by_property(
-      "show_other_regimen").property_value rescue 'false'
+		use_regimen_short_names = GlobalProperty.find_by_property("use_regimen_short_names").property_value rescue "false"
+		show_other_regimen = GlobalProperty.find_by_property("show_other_regimen").property_value rescue 'false'
 
-    @answer_array = arv_regimen_answers(:patient => @patient,
-      :use_short_names    => use_regimen_short_names == "true",
-      :show_other_regimen => show_other_regimen      == "true")
-      
-     hiv_program = Program.find_by_name('HIV Program')
-     @answer_array = regimen_options(hiv_program.regimens, @patient.person.age)
-     @answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
+		@answer_array = arv_regimen_answers(:patient => @patient,
+			:use_short_names    => use_regimen_short_names == "true",
+			:show_other_regimen => show_other_regimen      == "true")
 
-    @hiv_status = @patient.hiv_status
-    @hiv_test_date = @patient.hiv_test_date
-    @lab_activities = Encounter.lab_activities
-    @tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
-    @tb_patient_category = [["New","NEW"], ["Relapse","RELAPSE"], ["Retreatment after default","RETREATMENT AFTER DEFAULT"], ["Fail","FAIL"], ["Other","OTHER"]]
-    @sputum_visual_appearance = [['Muco-purulent','MUCO-PURULENT'],['Blood-stained','BLOOD-STAINED'],['Saliva','SALIVA']]
+		hiv_program = Program.find_by_name('HIV Program')
+		@answer_array = regimen_options(hiv_program.regimens, @patient.person.age)
+		@answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 
-    @sputum_results = [['Negative', 'NEGATIVE'], ['Scanty', 'SCANTY'], ['1+','1+'], ['2+','2+'], ['3+','3+']]
+		@hiv_status = @patient.hiv_status
+		@hiv_test_date = @patient.hiv_test_date
+		@lab_activities = Encounter.lab_activities
+		# @tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
+		@tb_patient_category = [["New","NEW"], ["Relapse","RELAPSE"], ["Retreatment after default","RETREATMENT AFTER DEFAULT"], ["Fail","FAIL"], ["Other","OTHER"]]
+		@sputum_visual_appearance = [['Muco-purulent','MUCO-PURULENT'],['Blood-stained','BLOOD-STAINED'],['Saliva','SALIVA']]
 
-    @sputum_orders = Hash.new()
-    @sputum_submission_waiting_results = Hash.new()
+		@sputum_results = [['Negative', 'NEGATIVE'], ['Scanty', 'SCANTY'], ['1+','1+'], ['2+','2+'], ['3+','3+']]
 
-    @art_first_visit = is_first_art_visit(@patient.id)
-    @tb_first_registration = is_first_tb_registration(@patient.id)
-    @tb_programs_state = uncompleted_tb_programs_status(@patient.id)
+		@sputum_orders = Hash.new()
+		@sputum_submission_waiting_results = Hash.new()
 
-    @patient.sputum_orders_without_submission.each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
-    @patient.sputum_submissons_with_no_results.each{|order| @sputum_submission_waiting_results[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
-    redirect_to "/" and return unless @patient
+		@art_first_visit = is_first_art_visit(@patient.id)
+		@tb_first_registration = is_first_tb_registration(@patient.id)
+		@tb_programs_state = uncompleted_tb_programs_status(@patient.id)
 
-    redirect_to next_task(@patient) and return unless params[:encounter_type]
+		@patient.sputum_orders_without_submission.each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
+		@patient.sputum_submissons_with_no_results.each{|order| @sputum_submission_waiting_results[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 
-    redirect_to :action => :create, 'encounter[encounter_type_name]' => params[:encounter_type].upcase, 'encounter[patient_id]' => @patient.id and return if ['registration'].include?(params[:encounter_type])
-	
-	
-	if params[:encounter_type].upcase == 'HIV_STAGING' and  (GlobalProperty.find_by_property('use.extended.staging.questions').property_value == "yes" rescue false)
-    	render :template => 'encounters/llh_hiv_staging'
-	else
-    	render :action => params[:encounter_type] if params[:encounter_type]
+		@tb_status = recent_lab_results(@patient.id, session_date)
+
+		@tb_classification = nil
+		@eptb_classification = nil
+		@tb_type = nil
+
+		if (params[:encounter_type].upcase rescue '') == 'TB_REGISTRATION'
+			
+			tb_clinic_visit_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
+				:conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+				session_date, @patient.id, EncounterType.find_by_name('TB CLINIC VISIT').id]).observations rescue []
+
+			(tb_clinic_visit_obs || []).each do | obs | 
+				if (obs.concept_id == (Concept.find_by_name('TB type').concept_id rescue nil) || obs.concept_id == (Concept.find_by_name('TB classification').concept_id rescue nil) || 	obs.concept_id == (Concept.find_by_name('EPTB classification').concept_id rescue nil))
+					@tb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if Concept.find_by_name('TB classification').concept_id
+					@eptb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('EPTB classification').concept_id
+					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('TB type').concept_id
+ 				end
+			end
+			#raise @tb_classification.to_s
+
+		end
+
+		redirect_to "/" and return unless @patient
+
+		redirect_to next_task(@patient) and return unless params[:encounter_type]
+
+		redirect_to :action => :create, 'encounter[encounter_type_name]' => params[:encounter_type].upcase, 'encounter[patient_id]' => @patient.id and return if ['registration'].include?(params[:encounter_type])
+
+
+		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (GlobalProperty.find_by_property('use.extended.staging.questions').property_value == "yes" rescue false)
+			render :template => 'encounters/llh_hiv_staging'
+		else
+			render :action => params[:encounter_type] if params[:encounter_type]
+		end
 	end
-  end
 
-  def current_user_role
-    @role = User.current_user.user_roles.map{|r|r.role}
-     return @role
-  end
+	def current_user_role
+		@role = User.current_user.user_roles.map{|r|r.role}
+		return @role
+	end
 
-  def diagnoses
-    search_string = (params[:search_string] || '').upcase
-    filter_list = params[:filter_list].split(/, */) rescue []
-    outpatient_diagnosis = ConceptName.find_by_name("DIAGNOSIS").concept
-    diagnosis_concepts = ConceptClass.find_by_name("Diagnosis", :include => {:concepts => :name}).concepts rescue []    
-    # TODO Need to check a global property for which concept set to limit things to
+	def diagnoses
+		search_string = (params[:search_string] || '').upcase
+		filter_list = params[:filter_list].split(/, */) rescue []
+		outpatient_diagnosis = ConceptName.find_by_name("DIAGNOSIS").concept
+		diagnosis_concepts = ConceptClass.find_by_name("Diagnosis", :include => {:concepts => :name}).concepts rescue []    
+		# TODO Need to check a global property for which concept set to limit things to
 
-      #diagnosis_concept_set = ConceptName.find_by_name('MALAWI NATIONAL DIAGNOSIS').concept This should be used when the concept becames available
-      diagnosis_concept_set = ConceptName.find_by_name('MALAWI ART SYMPTOM SET').concept
-      diagnosis_concepts = Concept.find(:all, :joins => :concept_sets, :conditions => ['concept_set = ?', diagnosis_concept_set.id])
+		#diagnosis_concept_set = ConceptName.find_by_name('MALAWI NATIONAL DIAGNOSIS').concept This should be used when the concept becames available
+		diagnosis_concept_set = ConceptName.find_by_name('MALAWI ART SYMPTOM SET').concept
+		diagnosis_concepts = Concept.find(:all, :joins => :concept_sets, :conditions => ['concept_set = ?', diagnosis_concept_set.id])
 
-    valid_answers = diagnosis_concepts.map{|concept| 
-      name = concept.fullname rescue nil
-      name.match(search_string) ? name : nil rescue nil
-    }.compact
-    previous_answers = []
-    # TODO Need to check global property to find out if we want previous answers or not (right now we)
-    previous_answers = Observation.find_most_common(outpatient_diagnosis, search_string)
-    @suggested_answers = (previous_answers + valid_answers).reject{|answer| filter_list.include?(answer) }.uniq[0..10] 
-    @suggested_answers = @suggested_answers - params[:search_filter].split(',') rescue @suggested_answers
-    render :text => "<li>" + @suggested_answers.join("</li><li>") + "</li>"
-  end
+		valid_answers = diagnosis_concepts.map{|concept| 
+			name = concept.fullname rescue nil
+			name.match(search_string) ? name : nil rescue nil
+		}.compact
+		previous_answers = []
+		# TODO Need to check global property to find out if we want previous answers or not (right now we)
+		previous_answers = Observation.find_most_common(outpatient_diagnosis, search_string)
+		@suggested_answers = (previous_answers + valid_answers).reject{|answer| filter_list.include?(answer) }.uniq[0..10] 
+		@suggested_answers = @suggested_answers - params[:search_filter].split(',') rescue @suggested_answers
+		render :text => "<li>" + @suggested_answers.join("</li><li>") + "</li>"
+	end
 
-  def treatment
-    search_string = (params[:search_string] || '').upcase
-    filter_list = params[:filter_list].split(/, */) rescue []
-    valid_answers = []
-    unless search_string.blank?
-      drugs = Drug.find(:all, :conditions => ["name LIKE ?", '%' + search_string + '%'])
-      valid_answers = drugs.map {|drug| drug.name.upcase }
-    end
-    treatment = ConceptName.find_by_name("TREATMENT").concept
-    previous_answers = Observation.find_most_common(treatment, search_string)
-    suggested_answers = (previous_answers + valid_answers).reject{|answer| filter_list.include?(answer) }.uniq[0..10] 
-    render :text => "<li>" + suggested_answers.join("</li><li>") + "</li>"
-  end
-  
-  def locations
-    search_string = (params[:search_string] || 'neno').upcase
-    filter_list = params[:filter_list].split(/, */) rescue []    
-    locations =  Location.find(:all, :select =>'name', :conditions => ["name LIKE ?", '%' + search_string + '%'])
-    render :text => "<li>" + locations.map{|location| location.name }.join("</li><li>") + "</li>"
-  end
+	def treatment
+		search_string = (params[:search_string] || '').upcase
+		filter_list = params[:filter_list].split(/, */) rescue []
+		valid_answers = []
+		unless search_string.blank?
+			drugs = Drug.find(:all, :conditions => ["name LIKE ?", '%' + search_string + '%'])
+			valid_answers = drugs.map {|drug| drug.name.upcase }
+		end
+		treatment = ConceptName.find_by_name("TREATMENT").concept
+		previous_answers = Observation.find_most_common(treatment, search_string)
+		suggested_answers = (previous_answers + valid_answers).reject{|answer| filter_list.include?(answer) }.uniq[0..10] 
+		render :text => "<li>" + suggested_answers.join("</li><li>") + "</li>"
+	end
 
-  def observations
-    # We could eventually include more here, maybe using a scope with includes
-    @encounter = Encounter.find(params[:id], :include => [:observations])
-    render :layout => false
-  end
+	def locations
+		search_string = (params[:search_string] || 'neno').upcase
+		filter_list = params[:filter_list].split(/, */) rescue []    
+		locations =  Location.find(:all, :select =>'name', :conditions => ["name LIKE ?", '%' + search_string + '%'])
+		render :text => "<li>" + locations.map{|location| location.name }.join("</li><li>") + "</li>"
+	end
 
-  def void 
-    @encounter = Encounter.find(params[:id])
-    @encounter.void
-    head :ok
-  end
+	def observations
+		# We could eventually include more here, maybe using a scope with includes
+		@encounter = Encounter.find(params[:id], :include => [:observations])
+		render :layout => false
+	end
 
-  # List ARV Regimens as options for a select HTML element
-  # <tt>options</tt> is a hash which should have the following keys and values
-  #
-  # <tt>patient</tt>: a Patient whose regimens will be listed
-  # <tt>use_short_names</tt>: true, false (whether to use concept short names or
-  #  names)
-  #
-  def arv_regimen_answers(options = {})
-    answer_array = Array.new
-    regimen_types = ['FIRST LINE ANTIRETROVIRAL REGIMEN', 
-      'ALTERNATIVE FIRST LINE ANTIRETROVIRAL REGIMEN',
-      'SECOND LINE ANTIRETROVIRAL REGIMEN'
-    ]
+	def void 
+		@encounter = Encounter.find(params[:id])
+		@encounter.void
+		head :ok
+	end
 
-    regimen_types.collect{|regimen_type|
-      Concept.find_by_name(regimen_type).concept_members.flatten.collect{|member|
-        next if member.concept.fullname.include?("Triomune Baby") and !options[:patient].child?
-        next if member.concept.fullname.include?("Triomune Junior") and !options[:patient].child?
-        if options[:use_short_names]
-          include_fixed = member.concept.fullname.match("(fixed)")
-          answer_array << [member.concept.shortname, member.concept_id] unless include_fixed
-          answer_array << ["#{member.concept.shortname} (fixed)", member.concept_id] if include_fixed
-          member.concept.shortname
-        else
-          answer_array << [member.concept.fullname.titleize, member.concept_id] unless member.concept.fullname.include?("+")
-          answer_array << [member.concept.fullname, member.concept_id] if member.concept.fullname.include?("+")
-        end
-      }
-    }
-    
-    if options[:show_other_regimen]
-      answer_array << "Other" if !answer_array.blank?
-    end
-    answer_array
+	# List ARV Regimens as options for a select HTML element
+	# <tt>options</tt> is a hash which should have the following keys and values
+	#
+	# <tt>patient</tt>: a Patient whose regimens will be listed
+	# <tt>use_short_names</tt>: true, false (whether to use concept short names or
+	#  names)
+	#
+	def arv_regimen_answers(options = {})
+		answer_array = Array.new
+		regimen_types = ['FIRST LINE ANTIRETROVIRAL REGIMEN', 
+			'ALTERNATIVE FIRST LINE ANTIRETROVIRAL REGIMEN',
+			'SECOND LINE ANTIRETROVIRAL REGIMEN'
+		]
 
-    # raise answer_array.inspect
-  end
-  
-  def lab
-    @patient = Patient.find(params[:encounter][:patient_id])
-    encounter_type = params[:observations][0][:value_coded_or_text] 
-    redirect_to "/encounters/new/#{encounter_type}?patient_id=#{@patient.id}"
-  end
-  
-  def lab_orders
-  
-    @lab_orders = Encounter.select_options['lab_orders'][params['sample']].collect{|order| order}
-    render :text => '<li onmousedown=updateInfoBar(this)>' + @lab_orders.join('</li><li onmousedown=updateInfoBar(this)>') + '</li>'
-  end
-  
-  def give_drugs
-    @patient = Patient.find(params[:patient_id] || session[:patient_id])
-     #@prescriptions = @patient.orders.current.prescriptions.all
-    type = EncounterType.find_by_name('TREATMENT')
-    session_date = session[:datetime].to_date rescue Date.today
-    @prescriptions = Order.find(:all,
-                     :joins => "INNER JOIN encounter e USING (encounter_id)",
-                     :conditions => ["encounter_type = ? AND e.patient_id = ? AND DATE(encounter_datetime) = ?",
-                     type.id,@patient.id,session_date])
-    @historical = @patient.orders.historical.prescriptions.all
-    @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
-    @restricted.each do |restriction|
-      @prescriptions = restriction.filter_orders(@prescriptions)
-      @historical = restriction.filter_orders(@historical)
-    end
-    #render :layout => "menu" 
-    render :template => 'dashboards/treatment_dashboard', :layout => false
-  end
+		regimen_types.collect{|regimen_type|
+			Concept.find_by_name(regimen_type).concept_members.flatten.collect{|member|
+				next if member.concept.fullname.include?("Triomune Baby") and !options[:patient].child?
+				next if member.concept.fullname.include?("Triomune Junior") and !options[:patient].child?
+				if options[:use_short_names]
+					include_fixed = member.concept.fullname.match("(fixed)")
+					answer_array << [member.concept.shortname, member.concept_id] unless include_fixed
+					answer_array << ["#{member.concept.shortname} (fixed)", member.concept_id] if include_fixed
+					member.concept.shortname
+				else
+					answer_array << [member.concept.fullname.titleize, member.concept_id] unless member.concept.fullname.include?("+")
+					answer_array << [member.concept.fullname, member.concept_id] if member.concept.fullname.include?("+")
+				end
+			}
+		}
 
-  def is_first_art_visit(patient_id)
-    art_encounter = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
-                        patient_id, EncounterType.find_by_name('ART_INITIAL').id]) rescue ''
-    return false if art_encounter == ''
-    return true
-  end
+		if options[:show_other_regimen]
+		  answer_array << "Other" if !answer_array.blank?
+		end
+		answer_array
 
-  def is_first_tb_registration(patient_id)
-    session_date = session[:datetime].to_date rescue Date.today
-    tb_registration = Encounter.find(:first,
-                                     :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
-                                     patient_id,EncounterType.find_by_name('TB REGISTRATION').id, session_date],
-                                     :order =>'encounter_datetime DESC') rescue ''
+		# raise answer_array.inspect
+	end
 
-    return false if tb_registration == ''
-    return true
-  end
+	def lab
+		@patient = Patient.find(params[:encounter][:patient_id])
+		encounter_type = params[:observations][0][:value_coded_or_text] 
+		redirect_to "/encounters/new/#{encounter_type}?patient_id=#{@patient.id}"
+	end
 
-  def uncompleted_tb_programs_status(patient_id)
-      @patient =Patient.find(patient_id)
+	def lab_orders
+		@lab_orders = Encounter.select_options['lab_orders'][params['sample']].collect{|order| order}
+		render :text => '<li onmousedown=updateInfoBar(this)>' + @lab_orders.join('</li><li onmousedown=updateInfoBar(this)>') + '</li>'
+	end
 
-      @tb_program_state = ''
+	def give_drugs
+		@patient = Patient.find(params[:patient_id] || session[:patient_id])
+		 #@prescriptions = @patient.orders.current.prescriptions.all
+		type = EncounterType.find_by_name('TREATMENT')
+		session_date = session[:datetime].to_date rescue Date.today
+		@prescriptions = Order.find(:all,
+				         :joins => "INNER JOIN encounter e USING (encounter_id)",
+				         :conditions => ["encounter_type = ? AND e.patient_id = ? AND DATE(encounter_datetime) = ?",
+				         type.id,@patient.id,session_date])
+		@historical = @patient.orders.historical.prescriptions.all
+		@restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
+		@restricted.each do |restriction|
+			@prescriptions = restriction.filter_orders(@prescriptions)
+			@historical = restriction.filter_orders(@historical)
+		end
+		#render :layout => "menu" 
+		render :template => 'dashboards/treatment_dashboard', :layout => false
+	end
 
-      @tb_programs = @patient.patient_programs.not_completed.in_programs('MDR-TB program') 
-      @tb_programs = @patient.patient_programs.not_completed.in_programs('XDR-TB program') if @tb_programs.blank?
-      @tb_programs = @patient.patient_programs.not_completed.in_programs('TB PROGRAM') if @tb_programs.blank?
+	def is_first_art_visit(patient_id)
+		art_encounter = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
+				patient_id, EncounterType.find_by_name('ART_INITIAL').id]) rescue ''
+		return false if art_encounter == ''
+		return true
+	end
 
-      unless @tb_programs.blank?
-        @tb_programs.each{|program|
-          @tb_status_pair = program.patient_states.last.program_workflow_state.concept.fullname
-        }
-      end
-      
-    return @tb_program_state
-  end
+	def is_first_tb_registration(patient_id)
+		session_date = session[:datetime].to_date rescue Date.today
+		tb_registration = Encounter.find(:first,
+			:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
+			patient_id,EncounterType.find_by_name('TB REGISTRATION').id, session_date],
+			:order =>'encounter_datetime DESC') rescue ''
+
+		return false if tb_registration == ''
+		return true
+	end
+
+	def uncompleted_tb_programs_status(patient_id)
+		@patient =Patient.find(patient_id)
+
+		@tb_program_state = ''
+
+		@tb_programs = @patient.patient_programs.not_completed.in_programs('MDR-TB program') 
+		@tb_programs = @patient.patient_programs.not_completed.in_programs('XDR-TB program') if @tb_programs.blank?
+		@tb_programs = @patient.patient_programs.not_completed.in_programs('TB PROGRAM') if @tb_programs.blank?
+
+		unless @tb_programs.blank?
+			@tb_programs.each{|program|
+				@tb_status_pair = program.patient_states.last.program_workflow_state.concept.fullname
+			}
+		end
+
+		return @tb_program_state
+	end
+
+	def recent_lab_results(patient_id, session_date = Date.today)
+		sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
+		sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
+
+		lab_results = Encounter.find(:last,:conditions =>["encounter_type = ? AND patient_id = ? AND DATE(encounter_datetime) >= ?",
+			EncounterType.find_by_name("LAB RESULTS").id, patient_id, (session_date.to_date - 3.month).strftime('%Y-%m-%d 00:00:00')])
+				            
+		positive_result = false                  
+
+		results = lab_results.observations.map{|o| o if sputum_concept_ids.include?(o.concept_id)} rescue []
+
+		results.each do |result|
+			concept_name = Concept.find(result.value_coded).fullname.upcase rescue 'NEGATIVE'
+			if not ((concept_name).include? 'NEGATIVE')
+				positive_result = true
+			end
+		end
+
+		return positive_result
+	end
+
 end
