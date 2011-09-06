@@ -459,7 +459,7 @@ class EncountersController < ApplicationController
 
 		unless @tb_programs.blank?
 			@tb_programs.each{|program|
-				@tb_status_pair = program.patient_states.last.program_workflow_state.concept.fullname
+				@tb_status_state = program.patient_states.last.program_workflow_state.concept.fullname
 			}
 		end
 
