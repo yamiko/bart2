@@ -265,7 +265,11 @@ class EncountersController < ApplicationController
 
 		@tb_status = check_tb_status_using_lab_results(@patient.id)
 
-		if params[:encounter_type].upcase == 'TB_REGISTRATION' 
+		@tb_classification = nil
+		@eptb_classification = nil
+		@tb_type = nil
+
+		if (params[:encounter_type].upcase rescue '') == 'TB_REGISTRATION' 
 
 			session_date = session[:datetime].to_date rescue Date.today
 			
@@ -273,18 +277,14 @@ class EncountersController < ApplicationController
 				:conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
 				session_date, @patient.id, EncounterType.find_by_name('TB CLINIC VISIT').id]).observations rescue []
 
-			tb_classification = nil
-			eptb_classification = nil
-			tb_type = nil
-
 			(tb_clinic_visit_obs || []).each do | obs | 
 				if (obs.concept_id == (Concept.find_by_name('TB type').concept_id rescue nil) || obs.concept_id == (Concept.find_by_name('TB classification').concept_id rescue nil) || 	obs.concept_id == (Concept.find_by_name('EPTB classification').concept_id rescue nil))
-					tb_classification = Concept.find(obs.value_coded).fullname if Concept.find_by_name('TB classification').concept_id
-					eptb_classification = Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('EPTB classification').concept_id
-					tb_type = Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('TB type').concept_id
+					@tb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name if Concept.find_by_name('TB classification').concept_id
+					@eptb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name if obs.concept_id == Concept.find_by_name('EPTB classification').concept_id
+					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name if obs.concept_id == Concept.find_by_name('TB type').concept_id
  				end
 			end
-			#raise tb_type.to_s
+			#raise @tb_classification.to_s
 
 		end
 
@@ -295,7 +295,7 @@ class EncountersController < ApplicationController
 		redirect_to :action => :create, 'encounter[encounter_type_name]' => params[:encounter_type].upcase, 'encounter[patient_id]' => @patient.id and return if ['registration'].include?(params[:encounter_type])
 
 
-		if params[:encounter_type].upcase == 'HIV_STAGING' and  (GlobalProperty.find_by_property('use.extended.staging.questions').property_value == "yes" rescue false)
+		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (GlobalProperty.find_by_property('use.extended.staging.questions').property_value == "yes" rescue false)
 			render :template => 'encounters/llh_hiv_staging'
 		else
 			render :action => params[:encounter_type] if params[:encounter_type]
