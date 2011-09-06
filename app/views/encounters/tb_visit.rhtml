@@ -141,19 +141,19 @@
 			:helpText => "Continue TB treatment at this clinic" } %>
 
 				
-  <%= touch_location_tag "Transfer to", @patient, nil,
-      {:id => 'transfer_out_location_id',
-       :field_type => 'alpha',
-       :helpText => "Transfer out to location",
-       :ajaxURL => '/programs/locations?q=',
-			 :condition => "$('continue_treatment').value == 'NO'" ,
-       :allowFreeText => true } %>
+	<%= touch_location_tag "Transfer to", @patient, nil,
+		{	:id => 'transfer_out_location_id',
+			:field_type => 'alpha',
+			:helpText => "Transfer out to location",
+			:ajaxURL => '/programs/locations?q=',
+			:condition => "$('continue_treatment').value == 'NO'" ,
+			:allowFreeText => true } %>
 
   <%= touch_yes_no_unknown_tag "TRANSFER WITHIN RESPONSIBILITY", @patient, nil,
-      {:id => "transfer_within_responsibility",
-       :optional => false,
-			 :condition => "$('continue_treatment').value == 'NO'" ,
-       :helpText => "Transfer within responsibility (e.g. District)" } %>
+		{	:id => "transfer_within_responsibility",
+			:optional => false,
+			:condition => "$('continue_treatment').value == 'NO'" ,
+			:helpText => "Transfer within responsibility (e.g. District)" } %>
        
 
 	<%= submit_tag "Finish" %>    

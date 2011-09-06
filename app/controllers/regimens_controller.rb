@@ -13,12 +13,12 @@ class RegimensController < ApplicationController
 		session_date = session[:datetime].to_date rescue Date.today
 
 		pre_art_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
-				                        :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
-				                        session_date.to_date, @patient.id, EncounterType.find_by_name('PART_FOLLOWUP').id])
+		    :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+		    session_date.to_date, @patient.id, EncounterType.find_by_name('PART_FOLLOWUP').id])
 
 		art_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
-				                        :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
-				                        session_date.to_date, @patient.id, EncounterType.find_by_name('ART VISIT').id])
+            :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+            session_date.to_date, @patient.id, EncounterType.find_by_name('ART VISIT').id])
 		@art_visit = false
 		#raise pre_art_visit.blank?.to_s
 		if ((not pre_art_visit.blank?) or (not art_visit.blank?))
@@ -27,8 +27,8 @@ class RegimensController < ApplicationController
 		#raise @art_visit.to_s
 
 		tb_treatment_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
-				        :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
-				        session_date, @patient.id, EncounterType.find_by_name('TB CLINIC VISIT').id]).observations rescue []
+		    :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+		    session_date, @patient.id, EncounterType.find_by_name('TB VISIT').id]).observations rescue []
 
 		prescribe_tb_medication = false
 		(tb_treatment_obs || []).each do | obs | 

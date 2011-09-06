@@ -269,7 +269,7 @@ class EncountersController < ApplicationController
     @tb_status = check_tb_status_using_lab_results(@patient.id)
 
 
-	if params[:encounter_type].upcase == 'TB Visit' 
+	if params[:encounter_type].upcase == 'TB registration' 
     	
 	end
 
