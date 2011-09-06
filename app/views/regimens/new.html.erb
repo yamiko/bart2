@@ -304,7 +304,7 @@
 		     :id => 'ipt_given',
 		     :helpText => "Prescribe IPT" } %>
 	<%else%>
-		<%= hidden_field_tag(:ipt_given, "") %>
+		<%= touch_hidden_tag "ISONIAZID", @patient, "", :id => "ipt_given" %>
   <%end%>
   <%= select_tag :cpt_ipt_duration, optionsString, { 
 	:condition => '$("cpt_given").value == "YES" || $("ipt_given").value == "YES" ',	
