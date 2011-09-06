@@ -222,6 +222,7 @@ class EncountersController < ApplicationController
 
 	def new
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
+		session_date = session[:datetime].to_date rescue Date.today
 
 		@patient_has_closed_TB_program_at_current_location = PatientProgram.find(:all,:conditions =>
 			["voided = 0 AND patient_id = ? AND location_id = ? AND (program_id = ? OR program_id = ?)", @patient.id, Location.current_health_center.id, Program.find_by_name('TB PROGRAM').id, Program.find_by_name('MDR-TB PROGRAM').id]).last.closed? rescue true
@@ -263,15 +264,13 @@ class EncountersController < ApplicationController
 		@patient.sputum_orders_without_submission.each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 		@patient.sputum_submissons_with_no_results.each{|order| @sputum_submission_waiting_results[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 
-		@tb_status = check_tb_status_using_lab_results(@patient.id)
+		@tb_status = recent_lab_results(@patient.id, session_date)
 
 		@tb_classification = nil
 		@eptb_classification = nil
 		@tb_type = nil
 
-		if (params[:encounter_type].upcase rescue '') == 'TB_REGISTRATION' 
-
-			session_date = session[:datetime].to_date rescue Date.today
+		if (params[:encounter_type].upcase rescue '') == 'TB_REGISTRATION'
 			
 			tb_clinic_visit_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
 				:conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
@@ -467,16 +466,16 @@ class EncountersController < ApplicationController
 		return @tb_program_state
 	end
 
-	def check_tb_status_using_lab_results(patient_id, session_date = Date.today)
+	def recent_lab_results(patient_id, session_date = Date.today)
 		sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
 		sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
 
-		recent_lab_results = Encounter.find(:last,:conditions =>["encounter_type = ? AND patient_id = ? AND DATE(encounter_datetime) >= ?",
+		lab_results = Encounter.find(:last,:conditions =>["encounter_type = ? AND patient_id = ? AND DATE(encounter_datetime) >= ?",
 			EncounterType.find_by_name("LAB RESULTS").id, patient_id, (session_date.to_date - 3.month).strftime('%Y-%m-%d 00:00:00')])
 				            
 		positive_result = false                  
 
-		results = recent_lab_results.observations.map{|o| o if sputum_concept_ids.include?(o.concept_id)} rescue []
+		results = lab_results.observations.map{|o| o if sputum_concept_ids.include?(o.concept_id)} rescue []
 
 		results.each do |result|
 			concept_name = Concept.find(result.value_coded).fullname.upcase rescue 'NEGATIVE'
