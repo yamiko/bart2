@@ -279,12 +279,12 @@ class EncountersController < ApplicationController
 
 			(tb_clinic_visit_obs || []).each do | obs | 
 				if (obs.concept_id == (Concept.find_by_name('TB type').concept_id rescue nil) || obs.concept_id == (Concept.find_by_name('TB classification').concept_id rescue nil) || 	obs.concept_id == (Concept.find_by_name('EPTB classification').concept_id rescue nil))
-					@tb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name if Concept.find_by_name('TB classification').concept_id
-					@eptb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name if obs.concept_id == Concept.find_by_name('EPTB classification').concept_id
-					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name if obs.concept_id == Concept.find_by_name('TB type').concept_id
+					@tb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if Concept.find_by_name('TB classification').concept_id
+					@eptb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('EPTB classification').concept_id
+					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('TB type').concept_id
  				end
 			end
-			#raise @tb_classification.to_s
+			raise @tb_classification.to_s
 
 		end
 
