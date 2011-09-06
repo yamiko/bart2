@@ -248,7 +248,7 @@ class EncountersController < ApplicationController
 		@hiv_status = @patient.hiv_status
 		@hiv_test_date = @patient.hiv_test_date
 		@lab_activities = Encounter.lab_activities
-		@tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
+		# @tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
 		@tb_patient_category = [["New","NEW"], ["Relapse","RELAPSE"], ["Retreatment after default","RETREATMENT AFTER DEFAULT"], ["Fail","FAIL"], ["Other","OTHER"]]
 		@sputum_visual_appearance = [['Muco-purulent','MUCO-PURULENT'],['Blood-stained','BLOOD-STAINED'],['Saliva','SALIVA']]
 
@@ -283,7 +283,7 @@ class EncountersController < ApplicationController
 					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('TB type').concept_id
  				end
 			end
-			raise @tb_classification.to_s
+			#raise @tb_classification.to_s
 
 		end
 

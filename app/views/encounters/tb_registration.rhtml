@@ -167,22 +167,35 @@ Check applicability of code below
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "Weeks of current cough" } %>
 
-  <%= touch_select_tag "TB classification", @patient, options_for_select(@select_options['tb_classification']),
-    {:id => "tb_classification",
-     :tt_pageStyleClass => "NoKeyboard",
-     :helpText => "TB classification" } %>
+	<% if @tb_classification == nil %>
+		<%= touch_select_tag "TB classification", @patient, options_for_select(@select_options['tb_classification']),
+			{	:id => "tb_classification",
+				:tt_pageStyleClass => "NoKeyboard",
+				:helpText => "TB classification" } %>
+	<% else %>
+		<%= touch_hidden_tag "TB classification", @patient, @tb_classification, :id => "tb_classification" %>
+	<% end %> 
 
-  <%= touch_select_tag "EPTB classification", @patient, options_for_select(@select_options['eptb_classification']),
-    {:id => "further_tb_classification",
-     :condition => '$("tb_classification").value == "Extrapulmonary tuberculosis (EPTB)"',
-     :tt_pageStyleClass => "NoKeyboard",
-     :helpText => "EPTB classification" } %>
+	<% if @eptb_classification == nil %>
+		<%= touch_select_tag "EPTB classification", @patient, options_for_select(@select_options['eptb_classification']),
+			{	:id => "further_tb_classification",
+				:condition => '$("tb_classification").value == "Extrapulmonary tuberculosis (EPTB)"',
+				:tt_pageStyleClass => "NoKeyboard",
+				:helpText => "EPTB classification" } %>
+	<% else %>
+		<%= touch_hidden_tag "EPTB classification", @patient, @eptb_classification, :id => "further_tb_classification" %>
+	<% end %> 
 
-  <%= touch_select_tag "TB type", @patient, options_for_select(@select_options['tb_types']),
-    {:id => "tb_type",
-     :tt_pageStyleClass => "NoKeyboard",
-     :helpText => "TB type / TB susceptibility",
-     :tt_OnUnload => "set_TB_program_values()"  } %>
+	<% if @tb_type == nil %>
+		<%= touch_select_tag "TB type", @patient, options_for_select(@select_options['tb_types']),
+			{	:id => "tb_type",
+				:tt_pageStyleClass => "NoKeyboard",
+				:helpText => "TB type / TB susceptibility",
+				:tt_OnUnload => "set_TB_program_values()"  } %>
+	<% else %>
+		<%= touch_hidden_tag "TB type", @patient, @tb_type, :id => "tb_type" %>
+	<% end %> 
+
 
   <% if !@patient.patient_programs.current.local.map(&:program).map(&:name).include?('TB PROGRAM') %>
       <%= hidden_field_tag("programs[][patient_program_id]", nil) %>
