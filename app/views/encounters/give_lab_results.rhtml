@@ -1,0 +1,52 @@
+<script>
+  var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
+
+  function showResults(){
+    var innerHtml = ''
+    <%if @patient.sputum_submissions_waiting_for_results.empty?%>
+      innerHtml = '<div id="summary" style="min-height:455px"><div>' + 
+        '<span class="title" style="font-size:36px;padding-top:7px;">No results were entered</span>' +
+        '<span style="float:right;padding:7px"><button class="button green" onclick="window.location = \'/encounters/new/lab_results?patient_id=<%= @patient.id -%>\'"><span>Enter results</span></button><br/></span>'+ 
+        '</div></div>' 
+  <%else%>
+    <%if @patient.sputum_results_given%>
+      innerHtml = '<div id="summary" style="min-height:455px"><div>' + 
+        '<span class="title" style="font-size:36px;padding-top:7px;">Results already given to patient</span>' +
+        '<span style="float:right;padding:7px"><button class="button gray" onclick="window.location = \'\'"><span>Results already given</span></button><br/></span>'+ 
+        '</div></div>'
+    <%else%>
+      innerHtml = '<div id="summary" style="min-height:455px"><div>' + 
+        '<span class="title" style="font-size:36px;padding-top:7px;">Give results</span>' +
+        '<span style="float:right;padding:7px"><button class="button green" onclick="window.location = \'/encounters/new/lab_results?patient_id=<%= @patient.id -%>\'"><span>Give results</span></button><br/></span>'+ 
+        '</div></div>' 
+    <%end%> 
+
+  <%end%>
+                                           
+  $('inputFrame'+tstCurrentPage).innerHTML = innerHtml
+  }
+
+  function changeNextButton(){
+    $('nextButton').setAttribute('onmousedown', 'cancelEntry()')
+  }
+
+</script> 
+
+<!--.........TODO..........dd..
+-->
+
+<form id='appointment' action="/encounters/create" method='post'>
+  <%= hidden_field_tag "encounter[encounter_type_name]", "TB CLINIC VISIT" %>
+  <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
+  <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
+  <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
+
+  <%= text_field_tag :task_name, nil,
+    { :tt_onLoad => "showResults();changeNextButton()",
+      :optional => "true",
+      :tt_pageStyleClass => "NoControls",
+      :helpText => 'Give results'
+  } %>
+  
+  <%= submit_tag "Finish" %>    
+</form>

@@ -1325,5 +1325,14 @@ EOF
 	def age
 		patient = Person.find(self.id)
 		return patient.age
-	end  
+	end 
+
+  def sputum_results_given
+    sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
+    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
+
+   Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("LAB RESULTS").id,self.id]).observations.map{|o| o if sputum_concept_ids.include?(o.concept_id)}.join' ' rescue []
+  end
+
 end
