@@ -138,7 +138,7 @@
 	<%= touch_yes_no_tag "Continue treatment", @patient, nil,
 		{	:id => "continue_treatment",
 			:condition => "$('refer_to_clinician').value == 'NO'" ,
-			:helpText => "Continue Treatment" } %>
+			:helpText => "Continue TB treatment at this clinic" } %>
 
 				
   <%= touch_location_tag "Transfer to", @patient, nil,
@@ -146,13 +146,13 @@
        :field_type => 'alpha',
        :helpText => "Transfer out to location",
        :ajaxURL => '/programs/locations?q=',
-			 :condition => "$('continue_treatment').value == 'YES'" ,
+			 :condition => "$('continue_treatment').value == 'NO'" ,
        :allowFreeText => true } %>
 
   <%= touch_yes_no_unknown_tag "TRANSFER WITHIN RESPONSIBILITY", @patient, nil,
       {:id => "transfer_within_responsibility",
        :optional => false,
-			 :condition => "$('continue_treatment').value == 'YES'" ,
+			 :condition => "$('continue_treatment').value == 'NO'" ,
        :helpText => "Transfer within responsibility (e.g. District)" } %>
        
 
