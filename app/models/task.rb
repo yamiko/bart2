@@ -735,7 +735,7 @@ class Task < ActiveRecord::Base
             return task
           end 
         when 'ART_INITIAL'
-          next unless patient.hiv_status.match(/Positive/i)
+          next if patient.hiv_status.match(/Positive/i)
         
           enrolled_in_hiv_program = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?",patient.id, 
             ConceptName.find_by_name("Patient enrolled in IMB HIV program").concept_id]).value_coded).concept_names.map{|c|c.name}[0].upcase rescue nil
@@ -768,7 +768,7 @@ class Task < ActiveRecord::Base
           next if patient.patient_programs.blank?
           next if not patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') 
 
-          next unless patient.hiv_status.match(/Positive/i)
+          next if patient.hiv_status.match(/Positive/i)
           hiv_staging = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
