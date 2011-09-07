@@ -248,7 +248,7 @@ class EncountersController < ApplicationController
 		@hiv_status = @patient.hiv_status
 		@hiv_test_date = @patient.hiv_test_date
 		@lab_activities = Encounter.lab_activities
-		@tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
+		# @tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
 		@tb_patient_category = [["New","NEW"], ["Relapse","RELAPSE"], ["Retreatment after default","RETREATMENT AFTER DEFAULT"], ["Fail","FAIL"], ["Other","OTHER"]]
 		@sputum_visual_appearance = [['Muco-purulent','MUCO-PURULENT'],['Blood-stained','BLOOD-STAINED'],['Saliva','SALIVA']]
 
@@ -265,6 +265,8 @@ class EncountersController < ApplicationController
 		@patient.sputum_submissons_with_no_results.each{|order| @sputum_submission_waiting_results[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 
 		@tb_status = recent_lab_results(@patient.id, session_date)
+
+    @cell_number = @patient.person.person_attributes.find_by_person_attribute_type_id(PersonAttributeType.find_by_name("Cell Phone Number").id).value rescue ''
 
 		@tb_classification = nil
 		@eptb_classification = nil
@@ -283,7 +285,7 @@ class EncountersController < ApplicationController
 					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('TB type').concept_id
  				end
 			end
-			raise @tb_classification.to_s
+			#raise @tb_classification.to_s
 
 		end
 
@@ -459,7 +461,7 @@ class EncountersController < ApplicationController
 
 		unless @tb_programs.blank?
 			@tb_programs.each{|program|
-				@tb_status_pair = program.patient_states.last.program_workflow_state.concept.fullname
+				@tb_status_state = program.patient_states.last.program_workflow_state.concept.fullname
 			}
 		end
 

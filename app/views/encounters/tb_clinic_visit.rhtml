@@ -2,7 +2,7 @@
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
 
   function showTaskName(){
-    $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: Clinic Visit</span></div></div>' 
+    $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: TB Clinic Visit</span></div></div>' 
   }
 
   function showEnrollPatient() {
@@ -43,7 +43,7 @@
 	<%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
 	<%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
-	<%#= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
+	<%= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
 
 	<% session_date = session[:datetime].to_date rescue Date.today 
 		reception = Encounter.find(:first,:order => "encounter_datetime DESC",
