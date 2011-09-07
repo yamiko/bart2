@@ -2,23 +2,28 @@
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
 
   function showResults(){
-    var innerHtml = ''
+    var innerHtml = '';
+    var resultString = '';
     <%if @patient.sputum_submissions_waiting_for_results.empty?%>
       innerHtml = '<div id="summary" style="min-height:455px"><div>' + 
         '<span class="title" style="font-size:36px;padding-top:7px;">No results were entered</span>' +
         '<span style="float:right;padding:7px"><button class="button green" onclick="window.location = \'/encounters/new/lab_results?patient_id=<%= @patient.id -%>\'"><span>Enter results</span></button><br/></span>'+ 
         '</div></div>' 
   <%else%>
-    <%if @patient.sputum_results_given%>
-      innerHtml = '<div id="summary" style="min-height:455px"><div>' + 
-        '<span class="title" style="font-size:36px;padding-top:7px;">Results already given to patient</span>' +
-        '<span style="float:right;padding:7px"><button class="button gray" onclick="window.location = \'\'"><span>Results already given</span></button><br/></span>'+ 
-        '</div></div>'
-    <%else%>
+    resultString = '<%=@patient.recent_lab_results.collect{|observation| "<b>#{(observation.concept.concept_names.last.name) rescue ""}</b>: #{observation.answer_string}"}.join("<br />")%>'
+
+    <%if @patient.sputum_results_given.empty?%>
       innerHtml = '<div id="summary" style="min-height:455px"><div>' + 
         '<span class="title" style="font-size:36px;padding-top:7px;">Give results</span>' +
         '<span style="float:right;padding:7px"><button class="button green" onclick="window.location = \'/encounters/new/lab_results?patient_id=<%= @patient.id -%>\'"><span>Give results</span></button><br/></span>'+ 
+        '<div>' + resultString + '</div>' +
         '</div></div>' 
+    <%else%>
+      innerHtml = '<div id="summary" style="min-height:455px"><div>' + 
+        '<span class="title" style="font-size:36px;padding-top:7px;">Results already given to patient</span>' +
+        '<span style="float:right;padding:7px"><button class="button gray" onclick="window.location = \'\'"><span>Results already given</span></button><br/></span>'+ 
+        '<div>' + resultString + '</div>' +
+        '</div></div>'
     <%end%> 
 
   <%end%>
