@@ -320,5 +320,72 @@
 		} %>
 
  <% end %>
+ 
+  <% initial_date = "#{session[:datetime].strftime('%Y-%m-%d')}" rescue "#{(Date.today).strftime('%Y-%m-%d')}" %>
+  <%
+    transfer_location_id = nil
+    transfer_within_responsibility_value = 'Unknown'
+    current_state_value = nil
+    
+    program_workflow = ProgramWorkflow.all(:conditions => ['program_id = ?', Program.find_by_name("TB PROGRAM").id], :include => :concept)
+    program_workflow_id = program_workflow.first.program_workflow_id
+    
+    states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ?', program_workflow_id], :include => :concept)
+    
+    states.each do |state|
+          concept = state.concept
+          if (concept.fullname == "Patient transferred out")
+             current_state_value = state.program_workflow_state_id
+             break
+          end
+    end
+    
+    
+  %>
   
+  <% for obs in @encounter.observations do %>
+
+          <% if obs.concept_id == ConceptName.find_by_name("Transfer to").concept_id %>
+                <%=transfer_location_id = "#{obs.to_s(["short", "order"]).to_s.split(":")[1].to_i}" %>
+
+          <% elsif obs.concept_id == ConceptName.find_by_name("Transfer within responsibility").concept_id %>
+                <%=transfer_within_responsibility_value = "#{obs.to_s(["short", "order"]).to_s.split(":")[1].to_i}" %>
+
+          <%end%>
+  <% end %>
+
+  <%
+      program = PatientProgram.find(:all,:conditions =>["voided = 0 AND patient_id = ?
+                AND program_id = ? AND location_id = ?", @patient.id ,
+                Program.find_by_name("TB PROGRAM").id, Location.current_health_center.id]).last rescue nil
+  %>
+  
+  <%  if program != nil %>
+
+      <%  if (program.date_completed.blank?) %>
+            <% if !transfer_location_id.blank? %>
+                <%= hidden_field_tag "transfer_data[]transfer_out_location_id", transfer_location_id %>
+                <%= hidden_field_tag "transfer_data[]current_state", "#{current_state_value}" %>           
+                <%= hidden_field_tag "transfer_data[]current_date", "#{initial_date}" %>
+      
+                <%= hidden_field_tag "transfer_data[]patient_program_id", "#{program.id}" %>
+
+
+                <%= hidden_field_tag "transfer_data[]patient_id", @patient.id %>
+                <%= hidden_field_tag "transfer_data[]location", Location.current_health_center.id %>
+
+                <%= hidden_field_tag "transfer_data[]encounter[provider_id]", session[:user_id] %>
+                <%= hidden_field_tag "transfer_data[]encounter[encounter_type_name]", "TRANSFER OUT" %>
+                <%= hidden_field_tag "transfer_data[]encounter[patient_id]", @patient.id %>    
+                <%= hidden_field_tag "transfer_data[]encounter[encounter_datetime]", DateTime.now() %>
+                     
+
+                <%= hidden_field_tag "transfer_data[]observations[][patient_id]", @patient.id  %>  
+                <%= hidden_field_tag "transfer_data[]observations[][concept_name]", "TRANSFER WITHIN RESPONSIBILITY" %>
+                <%= hidden_field_tag "transfer_data[]observations[][obs_datetime]", DateTime.now() %>
+                <%= hidden_field_tag "transfer_data[]observations[][value_coded_or_text]", "#{transfer_within_responsibility_value}"%>
+            <%end%>
+            
+        <%end%>
+  <%end%>
 </form>

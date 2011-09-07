@@ -4,6 +4,7 @@ class RegimensController < ApplicationController
 		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
 		@programs = @patient.patient_programs.all
 		@hiv_programs = @patient.patient_programs.not_completed.in_programs('HIV PROGRAM')
+    @encounter = Encounter.find(:all, :conditions=>["patient_id = ? AND encounter_type = ?", @patient.id, EncounterType.find_by_name("TB visit").id], :include => [:observations]).last
 
 		@tb_programs = @patient.patient_programs.not_completed.in_programs('TB PROGRAM')
 
@@ -171,7 +172,11 @@ class RegimensController < ApplicationController
 				order.equivalent_daily_dose)    
 			end
 		end
-
+   
+	 if !params[:transfer_data].nil?
+            transfer_out_patient(params[:transfer_data][0])
+   end
+    
 		# Send them back to treatment for now, eventually may want to go to workflow
 		redirect_to "/patients/treatment_dashboard?patient_id=#{@patient.id}"
 	end    
@@ -242,5 +247,60 @@ class RegimensController < ApplicationController
 	  		result[program.patient_program_id] = program.current_regimen ? Concept.find_by_concept_id(program.current_regimen).concept_names.tagged(["short"]).map(&:name) : nil; result 
 		end
 	end
+	
+def transfer_out_patient(params)
+    
+    patient_program = PatientProgram.find(params[:patient_program_id])
+    
+
+    
+    #we don't want to have more than one open states - so we have to close the current active on before opening/creating a new one
+
+    current_active_state = patient_program.patient_states.last
+    current_active_state.end_date = params[:current_date].to_date
+
+
+     # set current location via params if given
+    Location.current_location = Location.find(params[:location]) if params[:location]
+
+    patient_state = patient_program.patient_states.build( :state => params[:current_state], :start_date => params[:current_date])
+
+
+    if patient_state.save
+      #Close and save current_active_state if a new state has been created
+      current_active_state.save
+
+      if patient_state.program_workflow_state.concept.fullname.upcase == 'PATIENT TRANSFERRED OUT'
+      
+        encounter = Encounter.new(params[:encounter])
+        encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
+        c = encounter.save
+
+        (params[:observations] || [] ).each do |observation|
+          #for now i do this
+          obs = {}
+          obs[:concept_name] = observation[:concept_name] 
+          obs[:value_coded_or_text] = observation[:value_coded_or_text] 
+          obs[:encounter_id] = encounter.id
+          obs[:obs_datetime] = encounter.encounter_datetime || Time.now()
+          obs[:person_id] ||= encounter.patient_id  
+          Observation.create(obs)
+        end
+
+        observation = {} 
+        observation[:concept_name] = 'TRANSFER OUT TO'
+        observation[:encounter_id] = encounter.id
+        observation[:obs_datetime] = encounter.encounter_datetime || Time.now()
+        observation[:person_id] ||= encounter.patient_id
+        observation[:value_text] = Location.find(params[:transfer_out_location_id]).name rescue "UNKNOWN"
+        Observation.create(observation)
+      end
+
+      date_completed = params[:current_date].to_date rescue Time.now()
+      
+      PatientProgram.update_all "date_completed = '#{date_completed.strftime('%Y-%m-%d %H:%M:%S')}'",
+                                 "patient_program_id = #{patient_program.patient_program_id}"
+    end
+end
 
 end
