@@ -50,7 +50,6 @@
     {:id => "tb_treatment",
      :helpText => 'Ever received TB treatment'} %>
 
-
   <%reason_for_clinic_visit = 'Smear -ve'%>
   <% if @tb_status %>
      <%reason_for_clinic_visit = 'Smear +ve'%>
@@ -58,10 +57,13 @@
   
   <%= touch_hidden_tag("REASON FOR CLINICAL VISIT", @patient.id, "#{reason_for_clinic_visit}", {:id => "reason_for_clinic_visit"}) %>
 
-  <%= touch_yes_no_unknown_tag "SEND SMS", @patient, nil,
-    {:id => "send_sms",
-     :helpText => 'Can we send you an SMS for TB follow-up?'} %>
+  <%  if @cell_number.to_i != 0 %>
 
+    <%= touch_yes_no_unknown_tag "SEND SMS", @patient, nil,
+      {:id => "send_sms",
+       :helpText => 'Can we send you an SMS for TB follow-up?'} %>
+
+  <% end %>
   <%= touch_yes_no_unknown_tag "Follow up agreement", @patient, nil,
     {:id => "follow_up_agreement",
      :helpText => 'Can we visit you at home for TB follow-up?'} %>
