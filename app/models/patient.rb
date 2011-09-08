@@ -117,6 +117,7 @@ class Patient < ActiveRecord::Base
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.strip}" == 'Unknown'
     alerts << "Lab: Expecting submission of sputum" unless self.sputum_orders_without_submission.empty?
     alerts << "Lab: Waiting for sputum results" if self.sputum_submissions_waiting_for_results.empty? &&   !self.recent_sputum_submissions.empty?
+    alerts << "Lab: Results not given to patient" if self.sputum_results_given.empty?
 
     alerts
   end
@@ -1328,5 +1329,16 @@ EOF
 	def age
 		patient = Person.find(self.id)
 		return patient.age
-	end  
+	end 
+
+  def sputum_results_given
+   given_results = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("GIVE LAB RESULTS").id,self.id]).observations.map{|o| o if self.recent_sputum_orders.collect{|observation| observation.accession_number}.include?(o.accession_number)} rescue []
+  end
+  
+  def recent_lab_results
+   Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("LAB RESULTS").id,self.id]).observations.map{|o| o }
+  end
+
 end
