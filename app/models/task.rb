@@ -292,7 +292,7 @@ class Task < ActiveRecord::Base
         task.url = "/encounters/new/opd_reception?show&patient_id=#{patient.id}"
         task.encounter_type = 'OUTPATIENT RECEPTION'
       else
-        task.encounter_type = 'Patient dashboard ...'
+        task.encounter_type = 'NONE'
         task.url = "/patients/show/#{patient.id}"
       end
       return task
@@ -460,7 +460,7 @@ class Task < ActiveRecord::Base
       end
     end
     #task.encounter_type = 'Visit complete ...'
-    task.encounter_type = 'Patient dashboard ...'
+    task.encounter_type = 'NONE'
     task.url = "/patients/show/#{patient.id}"
     return task
   end
@@ -488,7 +488,7 @@ class Task < ActiveRecord::Base
     tb_encounters =  [
                       'UPDATE HIV STATUS','TB RECEPTION','LAB ORDERS','SPUTUM SUBMISSION','LAB RESULTS',
                       'TB_INITIAL','TB REGISTRATION','TB VISIT','TB ADHERENCE','TB CLINIC VISIT',
-                      'ART_INITIAL','VITALS','HIV STAGING','ART VISIT','ART ADHERENCE','TREATMENT'
+                      'ART_INITIAL','VITALS','TREATMENT','HIV STAGING','ART VISIT','ART ADHERENCE','DISPENSING'
                      ] 
     user_selected_activities = User.current_user.activities.collect{|a| a.upcase }.join(',') rescue []
     if user_selected_activities.blank? or tb_encounters.blank?
@@ -600,7 +600,7 @@ class Task < ActiveRecord::Base
           end
 
           if (lab_order.encounter_datetime.to_date == session_date.to_date)
-            task.encounter_type = 'Patient dashboard ...'
+            task.encounter_type = 'NONE'
             task.url = "/patients/show/#{patient.id}"
             return task
           end if not visit_reason.blank? and not lab_order.blank? 
@@ -631,7 +631,7 @@ class Task < ActiveRecord::Base
           end
 
           if (previous_sputum_sub.encounter_datetime.to_date == session_date.to_date)
-            task.encounter_type = 'Patient dashboard ...'
+            task.encounter_type = 'NONE'
             task.url = "/patients/show/#{patient.id}"
             return task
           end if not previous_sputum_sub.blank? 
@@ -647,7 +647,7 @@ class Task < ActiveRecord::Base
           end if next_lab_encounter.blank? 
 
           if next_lab_encounter.blank? and previous_sputum_sub.encounter_datetime.to_date == session_date.to_date
-            task.encounter_type = 'Patient dashboard ...'
+            task.encounter_type = 'NONE'
             task.url = "/patients/show/#{patient.id}"
             return task
           end if not previous_sputum_sub.blank?
@@ -718,14 +718,14 @@ class Task < ActiveRecord::Base
           vitals = self.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
           return vitals unless vitals.blank?
 
-          next if not patient.tb_status.match(/treatment/i)
+          #next if not patient.tb_status.match(/treatment/i)
           tb_initial = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
 
           next if not tb_initial.blank?
 
-          enrolled_in_tb_program = patient.patient_programs.collect{|p|p.program.name}.include?('TB PROGRAM') rescue false
+          #enrolled_in_tb_program = patient.patient_programs.collect{|p|p.program.name}.include?('TB PROGRAM') rescue false
 
           if user_selected_activities.match(/Manage TB initial visits/i)
             task.url = "/encounters/new/tb_initial?show&patient_id=#{patient.id}"
@@ -923,10 +923,21 @@ class Task < ActiveRecord::Base
             task.url = "/patients/show/#{patient.id}"
             return task
           end if prescribe_drugs
+        when 'DISPENSING'
+          treatment = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
+                            patient.id,session_date,EncounterType.find_by_name('TREATMENT').id])
+
+          if encounter_available.blank? and user_selected_activities.match(/Manage drug dispensations/i)
+            task.url = "/patients/treatment_dashboard/#{patient.id}"
+            return task
+          elsif encounter_available.blank? and not user_selected_activities.match(/Manage drug dispensations/i)
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if not treatment.blank?
       end
     end
     #task.encounter_type = 'Visit complete ...'
-    task.encounter_type = 'Patient dashboard ...'
+    task.encounter_type = 'NONE'
     task.url = "/patients/show/#{patient.id}"
     return task
   end

@@ -62,13 +62,16 @@ class Patient < ActiveRecord::Base
     alert
   end
     
-  def alerts
+  def alerts(session_date = Date.today) 
     # next appt
     # adherence
     # drug auto-expiry
     # cd4 due
     
     alerts = []
+
+    alerts << "Next task: #{(Task.next_task(Location.current_location, self, session_date).encounter_type || 'DONE').capitalize rescue 'DONE'}"
+
     type = EncounterType.find_by_name("APPOINTMENT")
     next_appt = self.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.last.to_s rescue nil
     alerts << ('Next ' + next_appt).capitalize unless next_appt.blank?
