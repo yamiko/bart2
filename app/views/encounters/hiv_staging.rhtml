@@ -23,10 +23,6 @@
 	var cd4_count_numeric, cd4_count_estimate, cd4_count_modifier;
 	var selected_stage_conditions = {};
 
-	function showTaskName(){
-		$('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: HIV Staging</span></div></div>';
-	}
-
 	function updateCD4Count() {
 		var cd4_available = $('new_cd4_count_available').value == 'YES';
 		var cd4_count = cd4_available ? $('cd4_count').value : null;
@@ -352,8 +348,6 @@
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
-
-	<%= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
 
   <%= touch_select_tag "PRESUMED SEVERE HIV CRITERIA PRESENT", @patient, concept_set_options('PRESUMED SEVERE HIV CRITERIA IN INFANTS'),
     {:id => "presumed_severe_hiv_conditions",

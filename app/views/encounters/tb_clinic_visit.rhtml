@@ -1,10 +1,6 @@
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
 
-  function showTaskName(){
-    $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: TB Clinic Visit</span></div></div>' 
-  }
-
   function showEnrollPatient() {
     if (tb_status.match(/treatment/i))
       return false;
@@ -43,7 +39,6 @@
 	<%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
 	<%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
-	<%= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
 
 	<%= touch_yes_no_tag "SYMPTOMATIC", @patient, nil,
 		{	:id => "any_tb_symptoms",

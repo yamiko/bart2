@@ -48,10 +48,6 @@
         $('final_tests').value = val_arr.join(';');
     }
 
-    function showTaskName(){
-        $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: Lab Order</span></div></div>' 
-    }
-
     function colourfy(){
         alert('AA');
     }
@@ -76,11 +72,11 @@
         tstTimerFunctionCall = null;
         number_of_selected_test = tstInputTarget.value.split(';').length;
 
-        if (tstCurrentPage == 1 || tstCurrentPage == 2){
+        if (tstCurrentPage == 0 || tstCurrentPage == 1){
             if (tstInputTarget.value == ''){
                 //$('nextButton').innerHTML = '<span>Finish</span>';
                 $('nextButton').innerHTML = '<span>Next</span>';
-                if(number_of_selected_test < 2 && tstCurrentPage == 2){
+                if(number_of_selected_test < 2 && tstCurrentPage == 1){
                     $('nextButton').setAttribute("onmousedown","showMessage('Please select 2 or more tests');");
                 }
                 else{
@@ -90,7 +86,7 @@
             }
             else{
                 $('nextButton').innerHTML = '<span>Next</span>';
-                if(number_of_selected_test < 2 && tstCurrentPage == 2){
+                if(number_of_selected_test < 2 && tstCurrentPage == 1){
                     $('nextButton').setAttribute("onmousedown","showMessage('Please select 2 or more tests');");
                 }
                 else{
@@ -138,8 +134,6 @@
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
-
-  <%= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
 
 <%# select_tag "main_tests", options_for_select(@select_options['lab_orders'].sort.collect{|k,v| k}.unshift(" ")), %>
 

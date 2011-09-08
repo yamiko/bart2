@@ -12,10 +12,6 @@
 
 <script>
 	var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
-
-	function showTaskName(){
-		$('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: ART Initial</span></div></div>';
-	}
 </script>
 
 <% if @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM') %>
@@ -37,8 +33,6 @@
 		<%= hidden_field_tag "encounter[patient_id]", @patient.id %>
 		<%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
 		<%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
-
-		<%= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
 
 		<label for='ever_received_art'>Ever received ARVs?</label>
 		<%= hidden_field_tag("programs[][patient_program_id]", nil) %>

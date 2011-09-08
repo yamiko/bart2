@@ -62,13 +62,16 @@ class Patient < ActiveRecord::Base
     alert
   end
     
-  def alerts
+  def alerts(session_date = Date.today) 
     # next appt
     # adherence
     # drug auto-expiry
     # cd4 due
     
     alerts = []
+
+    alerts << "Next task: #{(Task.next_task(Location.current_location, self, session_date).encounter_type || 'DONE').capitalize rescue 'DONE'}"
+
     type = EncounterType.find_by_name("APPOINTMENT")
     next_appt = self.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.last.to_s rescue nil
     alerts << ('Next ' + next_appt).capitalize unless next_appt.blank?
@@ -114,6 +117,7 @@ class Patient < ActiveRecord::Base
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.strip}" == 'Unknown'
     alerts << "Lab: Expecting submission of sputum" unless self.sputum_orders_without_submission.empty?
     alerts << "Lab: Waiting for sputum results" if self.sputum_submissions_waiting_for_results.empty? &&   !self.recent_sputum_submissions.empty?
+    alerts << "Lab: Results not given to patient" if self.sputum_results_given.empty?
 
     alerts
   end
@@ -1325,5 +1329,16 @@ EOF
 	def age
 		patient = Person.find(self.id)
 		return patient.age
-	end  
+	end 
+
+  def sputum_results_given
+   given_results = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("GIVE LAB RESULTS").id,self.id]).observations.map{|o| o if self.recent_sputum_orders.collect{|observation| observation.accession_number}.include?(o.accession_number)} rescue []
+  end
+  
+  def recent_lab_results
+   Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("LAB RESULTS").id,self.id]).observations.map{|o| o }
+  end
+
 end

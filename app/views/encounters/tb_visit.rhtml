@@ -1,10 +1,6 @@
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
 
-  function showTaskName(){
-    $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: TB Visit</span></div></div>' 
-  }
-
   function checkIfExists(searchItem,searchElement){
     var elem = document.getElementById(searchElement);
     var elemArray = elem.options;
@@ -42,8 +38,6 @@
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
-
-	<%= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
 
   <% if @patient.person.gender == 'F' && @patient.person.age > 13 %>
     <%= touch_yes_no_unknown_tag "PREGNANT?", @patient, nil,
@@ -145,10 +139,10 @@
 			:condition => "$('refer_to_clinician').value == 'NO'" ,
 			:helpText => "Prescribe drugs during this visit" } %>
 
-	<%= touch_yes_no_tag "Alergic to sulphur", @patient, nil,
-		{	:id => "alergic_to_sulphur",
+	<%= touch_yes_no_tag "Allergic to sulphur", @patient, nil,
+		{	:id => "allergic_to_sulphur",
 			:condition => "$('refer_to_clinician').value == 'NO'" ,
-			:helpText => "Is patient alergic to sulphur" } %>
+			:helpText => "Is patient allergic to sulphur" } %>
 			
 	<%= touch_yes_no_tag "Continue treatment", @patient, nil,
 		{	:id => "continue_treatment",

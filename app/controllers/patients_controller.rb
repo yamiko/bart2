@@ -7,7 +7,7 @@ class PatientsController < ApplicationController
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
-    @alerts = @patient.alerts
+    @alerts = @patient.alerts(session_date)
     # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|    
@@ -477,7 +477,7 @@ class PatientsController < ApplicationController
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
-    @alerts = @patient.alerts
+    @alerts = @patient.alerts(session_date)
     # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|
@@ -497,7 +497,7 @@ class PatientsController < ApplicationController
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
-    @alerts = @patient.alerts
+    @alerts = @patient.alerts(session_date)
     # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|
@@ -515,7 +515,7 @@ class PatientsController < ApplicationController
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
-    @alerts = @patient.alerts
+    @alerts = @patient.alerts(session_date)
     # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|

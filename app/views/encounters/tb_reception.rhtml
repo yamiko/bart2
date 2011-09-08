@@ -10,10 +10,7 @@
   %>
 
 <script>
-  function showTaskName(){
-    $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: TB Reception</span></div></div>';
-  }
-
+ 
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
   
   function new_relationship() {
@@ -76,7 +73,6 @@
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
   <% if session[:guardian_added] == nil  %>
-	<%= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
     <% if Person.find(@patient.patient_id).relationships.first.blank? %>
        <label for='guardian_present'>Guardian Present</label>
         <%= select_tag "observations[][value_text]", relationship_options(@patient),
