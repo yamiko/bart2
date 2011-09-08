@@ -266,6 +266,8 @@ class EncountersController < ApplicationController
 
 		@tb_status = recent_lab_results(@patient.id, session_date)
 
+    @cell_number = @patient.person.person_attributes.find_by_person_attribute_type_id(PersonAttributeType.find_by_name("Cell Phone Number").id).value rescue ''
+
 		@tb_classification = nil
 		@eptb_classification = nil
 		@tb_type = nil
