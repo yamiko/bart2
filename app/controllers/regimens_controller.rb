@@ -4,7 +4,8 @@ class RegimensController < ApplicationController
 		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
 		@programs = @patient.patient_programs.all
 		@hiv_programs = @patient.patient_programs.not_completed.in_programs('HIV PROGRAM')
-    @encounter = Encounter.find(:all, :conditions=>["patient_id = ? AND encounter_type = ?", @patient.id, EncounterType.find_by_name("TB visit").id], :include => [:observations]).last
+    	
+		@tb_encounter = Encounter.find(:all, :conditions=>["patient_id = ? AND encounter_type = ?", @patient.id, EncounterType.find_by_name("TB visit").id], :include => [:observations]).last
 
 		@tb_programs = @patient.patient_programs.not_completed.in_programs('TB PROGRAM')
 
@@ -89,7 +90,7 @@ class RegimensController < ApplicationController
 			# Specific at the moment and will likely need to have some kind of lookup
 			# or be made generic
 			obs = Observation.create(
-				:concept_name => "WHAT TYPE OF ANTIRETROVIRAL REGIMEN",
+				:concept_name => "WHAT TYPE OF TUBERCULOSIS REGIMEN",
 				:person_id => @patient.person.person_id,
 				:encounter_id => encounter.encounter_id,
 				:value_coded => params[:tb_regimen_concept_id],
