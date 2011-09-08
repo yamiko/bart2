@@ -488,7 +488,7 @@ class Task < ActiveRecord::Base
     tb_encounters =  [
                       'UPDATE HIV STATUS','TB RECEPTION','LAB ORDERS','SPUTUM SUBMISSION','LAB RESULTS',
                       'TB_INITIAL','TB REGISTRATION','TB VISIT','TB ADHERENCE','TB CLINIC VISIT',
-                      'ART_INITIAL','VITALS','HIV STAGING','ART VISIT','ART ADHERENCE','TREATMENT'
+                      'ART_INITIAL','VITALS','TREATMENT','HIV STAGING','ART VISIT','ART ADHERENCE','DISPENSING'
                      ] 
     user_selected_activities = User.current_user.activities.collect{|a| a.upcase }.join(',') rescue []
     if user_selected_activities.blank? or tb_encounters.blank?
@@ -923,6 +923,17 @@ class Task < ActiveRecord::Base
             task.url = "/patients/show/#{patient.id}"
             return task
           end if prescribe_drugs
+        when 'DISPENSING'
+          treatment = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
+                            patient.id,session_date,EncounterType.find_by_name('TREATMENT').id])
+
+          if encounter_available.blank? and user_selected_activities.match(/Manage drug dispensations/i)
+            task.url = "/patients/treatment_dashboard/#{patient.id}"
+            return task
+          elsif encounter_available.blank? and not user_selected_activities.match(/Manage drug dispensations/i)
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if not treatment.blank?
       end
     end
     #task.encounter_type = 'Visit complete ...'
