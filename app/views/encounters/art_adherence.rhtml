@@ -9,10 +9,6 @@
 <script>
 	var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
 
-	function showTaskName(){
-		$('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: ART Adherence</span></div></div>';
-	}
-
 	function dateCreate(date_str){
 		intyear = 0 ; intmonth = 0 ; intday = 0;
 		intyear = parseInt(date_str.substring(0,4))
@@ -34,8 +30,6 @@
 	<%= hidden_field_tag "encounter[patient_id]", @patient.id %>
 	<%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
 	<%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
-
-	<%= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
 
 	<%session_date = session[:datetime] || Time.now() %>
 	<% @patient.drug_given_before(session_date.to_date).arv.prescriptions.each do |order| %>

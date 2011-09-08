@@ -1,8 +1,5 @@
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>";
-	function showTaskName(){
-		$('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary"><div><span class="title" style="font-size:40px;">Next Task: Vitals</span></div></div>' 
-	}
 </script>
   <style type="text/css">
     #summary {
@@ -138,8 +135,6 @@
     <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
     <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
-	<%= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
-  
     <% if ask_temperature %>
       <label for="temperature">Temperature (C)</label>
         <%= text_field_tag "observations[][value_numeric]", nil,
