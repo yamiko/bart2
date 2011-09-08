@@ -72,11 +72,11 @@
         tstTimerFunctionCall = null;
         number_of_selected_test = tstInputTarget.value.split(';').length;
 
-        if (tstCurrentPage == 1 || tstCurrentPage == 2){
+        if (tstCurrentPage == 0 || tstCurrentPage == 1){
             if (tstInputTarget.value == ''){
                 //$('nextButton').innerHTML = '<span>Finish</span>';
                 $('nextButton').innerHTML = '<span>Next</span>';
-                if(number_of_selected_test < 2 && tstCurrentPage == 2){
+                if(number_of_selected_test < 2 && tstCurrentPage == 1){
                     $('nextButton').setAttribute("onmousedown","showMessage('Please select 2 or more tests');");
                 }
                 else{
@@ -86,7 +86,7 @@
             }
             else{
                 $('nextButton').innerHTML = '<span>Next</span>';
-                if(number_of_selected_test < 2 && tstCurrentPage == 2){
+                if(number_of_selected_test < 2 && tstCurrentPage == 1){
                     $('nextButton').setAttribute("onmousedown","showMessage('Please select 2 or more tests');");
                 }
                 else{
