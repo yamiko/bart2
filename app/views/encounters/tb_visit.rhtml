@@ -119,10 +119,7 @@
 			{	:id => "refer_to_clinician",
 				:helpText => "Refer patient to clinician" } %>
 	<%else%>
-		<%= hidden_field_tag(:refer_to_clinician, 'NO') %>
-		<%= hidden_field_tag("observations[][value_coded_or_text]", 'NO') %>
-		<%= hidden_field_tag("observations[][concept_name]", "ANY NEED TO SEE A CLINICIAN") %>
-		<%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
+      <%= touch_hidden_tag "ANY NEED TO SEE A CLINICIAN", @patient, "NO", :id => "refer_to_clinician" %>
 	<%end%>
 
 	<%= touch_yes_no_tag "Prescribe drugs", @patient, nil,

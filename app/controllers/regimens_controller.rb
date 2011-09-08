@@ -38,6 +38,17 @@ class RegimensController < ApplicationController
 			end
 		end
 
+    sulphur_allergy_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
+		    :conditions => ["patient_id = ? AND encounter_type IN (?)",
+		    @patient.id, EncounterType.find(:all,:select => 'encounter_type_id', :conditions => ["name IN (?)",["ART VISIT", "TB VISIT"]])]).observations rescue []
+
+    @alergic_to_suphur = false
+    (sulphur_allergy_obs || []).each do | obs |
+			if obs.concept_id == (Concept.find_by_name('sulphur alergy').concept_id rescue nil)
+				@alergic_to_suphur = true if Concept.find(obs.value_coded).fullname.upcase == 'YES'
+			end
+		end
+
 		@prescribe_tb_drugs = false	
 		if (not @tb_programs.blank?) and prescribe_tb_medication
 			@prescribe_tb_drugs = true

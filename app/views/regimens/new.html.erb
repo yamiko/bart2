@@ -293,10 +293,14 @@
 	:helpText => 'Duration' } %> 
 
 	<!-- CPT & IPT-->
-  <%= touch_yes_no_tag "Prescribe cotramoxazole", @patient, nil,
-      {:optional => false,
-       :id => 'cpt_given',
-       :helpText => "Prescribe CPT" } %>
+  <% if @alergic_to_suphur == true %>
+    <%= touch_hidden_tag "Prescribe cotramoxazole", @patient, "NO", :id => "cpt_given" %>
+  <% else %>
+    <%= touch_yes_no_tag "Prescribe cotramoxazole", @patient, nil,
+        {:optional => false,
+         :id => 'cpt_given',
+         :helpText => "Prescribe CPT" } %>
+  <% end %>
 
   <% if @patient.gender == 'Female' && @patient.person.age >= 14 %>
 		<%= touch_yes_no_tag "ISONIAZID", @patient, nil,
