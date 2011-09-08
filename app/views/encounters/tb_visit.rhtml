@@ -110,15 +110,24 @@
 
 
 
-	<%	date = session[:datetime].to_date rescue Date.today
+	<%	
+    show_clinic_question = true
+    for encounter in @current_encounters.reverse do
+        if encounter.name.humanize == "TB clinic visit".humanize
+           show_clinic_question = false
+           break
+        end
+    end
+
+    date = session[:datetime].to_date rescue Date.today
 		visit_type = []
 		visit_type << 'TB VISIT'
 		types = EncounterType.find(:all,:conditions => ["name IN (?)",visit_type]).collect{|n|n.encounter_type_id}
 
-		clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
+		tb_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
 				                  :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type IN (?)",
 				                  date,@patient.id,types])
-		if clinic_visit.blank?
+		if (tb_visit.blank?) || (show_clinic_question == true)
 	%>
   
 		<%= touch_yes_no_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,

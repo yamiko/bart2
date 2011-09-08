@@ -45,6 +45,26 @@
 
 	<%= text_field_tag :task_name, nil, { :tt_onLoad => "showTaskName()", :optional => "true", :tt_pageStyleClass => "NoControls", :helpText => 'Task'} %>
 
+	<%= touch_yes_no_tag "SYMPTOMATIC", @patient, nil,
+		{	:id => "any_tb_symptoms",
+			:helpText => "Any current TB signs?" } %>
+
+	<% if @current_user_role.include?("Doctor") || @current_user_role.include?("Nurse") || @current_user_role.include?("Clinician") %>
+		<%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms_all']),
+			{	:id => 'tb_symptoms',
+				:optional => true,
+				:multiple => true,
+				:condition => "$('any_tb_symptoms').value == 'YES'",
+				:helpText => "Select current TB symptoms" } %>
+	<% else %>
+		<%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms_short']),
+			{	:id => "tb_symptoms",
+				:multiple => true,
+				:tt_pageStyleClass => "NoKeyboard",
+				:condition => "$('any_tb_symptoms').value == 'YES'",
+				:helpText => "Select current TB symptoms"} %>
+	<% end %>
+
 	<% session_date = session[:datetime].to_date rescue Date.today 
 		reception = Encounter.find(:first,:order => "encounter_datetime DESC",
 			:conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",

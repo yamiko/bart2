@@ -223,6 +223,7 @@ class EncountersController < ApplicationController
 	def new
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		session_date = session[:datetime].to_date rescue Date.today
+    @current_encounters = @patient.encounters.find_by_date(session_date)
 
 		@patient_has_closed_TB_program_at_current_location = PatientProgram.find(:all,:conditions =>
 			["voided = 0 AND patient_id = ? AND location_id = ? AND (program_id = ? OR program_id = ?)", @patient.id, Location.current_health_center.id, Program.find_by_name('TB PROGRAM').id, Program.find_by_name('MDR-TB PROGRAM').id]).last.closed? rescue true
