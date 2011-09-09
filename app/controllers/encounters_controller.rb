@@ -253,7 +253,7 @@ class EncountersController < ApplicationController
 		@tb_patient_category = [["New","NEW"], ["Relapse","RELAPSE"], ["Retreatment after default","RETREATMENT AFTER DEFAULT"], ["Fail","FAIL"], ["Other","OTHER"]]
 		@sputum_visual_appearance = [['Muco-purulent','MUCO-PURULENT'],['Blood-stained','BLOOD-STAINED'],['Saliva','SALIVA']]
 
-		@sputum_results = [['Negative', 'NEGATIVE'], ['Scanty', 'SCANTY'], ['Weakly positive','1+'], ['Moderately positive','2+'], ['Strongly positive','3+']]
+		@sputum_results = [['Negative', 'NEGATIVE'], ['Scanty', 'SCANTY'], ['1+', 'Weakly positive'], ['2+', 'Moderately positive'], ['3+', 'Strongly positive']]
 
 		@sputum_orders = Hash.new()
 		@sputum_submission_waiting_results = Hash.new()
