@@ -253,7 +253,7 @@ class EncountersController < ApplicationController
 		@tb_patient_category = [["New","NEW"], ["Relapse","RELAPSE"], ["Retreatment after default","RETREATMENT AFTER DEFAULT"], ["Fail","FAIL"], ["Other","OTHER"]]
 		@sputum_visual_appearance = [['Muco-purulent','MUCO-PURULENT'],['Blood-stained','BLOOD-STAINED'],['Saliva','SALIVA']]
 
-		@sputum_results = [['Negative', 'NEGATIVE'], ['Scanty', 'SCANTY'], ['1+','1+'], ['2+','2+'], ['3+','3+']]
+		@sputum_results = [['Negative', 'NEGATIVE'], ['Scanty', 'SCANTY'], ['Weakly positive','1+'], ['Moderately positive','2+'], ['Strongly positive','3+']]
 
 		@sputum_orders = Hash.new()
 		@sputum_submission_waiting_results = Hash.new()
@@ -410,7 +410,7 @@ class EncountersController < ApplicationController
 	end
 
 	def lab_orders
-		@lab_orders = Encounter.select_options['lab_orders'][params['sample']].collect{|order| order}
+		@lab_orders = select_options['lab_orders'][params['sample']].collect{|order| order}
 		render :text => '<li></li><li>' + @lab_orders.join('</li><li>') + '</li>'
 	end
 

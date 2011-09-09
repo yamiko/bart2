@@ -277,8 +277,6 @@ class UserController < ApplicationController
     role_privileges = RolePrivilege.find(:all,:conditions => ["role IN (?)", user_roles])
     @privileges = Privilege.find(:all,:conditions => ["privilege IN (?)", role_privileges.collect{|r|r.privilege}])
 
-    raise @privileges.to_yaml
-
     @activities = User.current_user.activities.reject{|activity| 
       GlobalProperty.find_by_property("disable_tasks").property_value.split(",").include?(activity)
     } rescue User.current_user.activities
@@ -300,7 +298,7 @@ class UserController < ApplicationController
           activity.gsub('Hiv','HIV').gsub('Tb','TB').gsub('Art','ART').gsub('hiv','HIV')
       end
     end                            
-
+    
     @privileges.sort!
     @patient_id = params[:patient_id]
   end
