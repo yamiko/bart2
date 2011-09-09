@@ -411,7 +411,7 @@ class EncountersController < ApplicationController
 
 	def lab_orders
 		@lab_orders = Encounter.select_options['lab_orders'][params['sample']].collect{|order| order}
-		render :text => '<li onmousedown=updateInfoBar(this)>' + @lab_orders.join('</li><li onmousedown=updateInfoBar(this)>') + '</li>'
+		render :text => '<li></li><li>' + @lab_orders.join('</li><li>') + '</li>'
 	end
 
 	def give_drugs
