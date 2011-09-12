@@ -693,6 +693,22 @@ class Task < ActiveRecord::Base
 
           if not obs_ans.blank?
             next if obs_ans.match(/ANY NEED TO SEE A CLINICIAN: NO/i)
+            if obs_ans.match(/ANY NEED TO SEE A CLINICIAN: YES/i)
+              tb_visits = Encounter.find(:all,:order => "encounter_datetime DESC",
+                            :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                            session_date.to_date,patient.id,EncounterType.find_by_name('TB VISIT').id])
+              if (tb_visits.length == 1) 
+                if user_selected_activities.match(/Manage TB Registration visits/i)
+                  task.encounter_type = 'TB VISIT'
+                  task.url = "/encounters/new/tb_visit?show&patient_id=#{patient.id}"
+                  return task
+                elsif not user_selected_activities.match(/Manage TB Registration visits/i)
+                  task.encounter_type = 'TB VISIT'
+                  task.url = "/patients/show/#{patient.id}"
+                  return task
+                end
+              end
+            end
           end
 
           visit_type = Observation.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND DATE(obs_datetime) = ?", 
@@ -817,7 +833,7 @@ class Task < ActiveRecord::Base
                                       session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
 
           if (tb_followup.encounter_datetime.to_date == tb_registration.encounter_datetime.to_date)
-			next
+			      next
           end if not tb_followup.blank? and not tb_registration.blank?
 
           if tb_registration.blank?
