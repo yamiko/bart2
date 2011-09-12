@@ -682,7 +682,7 @@ class EncountersController < ApplicationController
         ['',''],
         ['Pulmonary effusion', 'Pulmonary effusion'],
         ['Lymphadenopathy', 'Lymphadenopathy'],
-        ['Pericardial effusion, nos', 'Pericardial effusion, nos'],
+        ['Pericardial effusion', 'Pericardial effusion'],
         ['Ascites', 'Ascites'],
         ['Spinal disease', 'Spinal disease'],
         ['Meningitis','Meningitis'],

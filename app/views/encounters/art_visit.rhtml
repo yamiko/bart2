@@ -130,7 +130,7 @@
       <%= hidden_field_tag("observations[][concept_name]", "TB STATUS") %>
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
       <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-      <%= hidden_field_tag("observations[][value_coded]", Concept.find_by_name("#{@tb_programs_state}").id) %>
+      <%= hidden_field_tag("observations[][value_coded]", ConceptName.find_by_name("#{@patient.tb_status}").concept_id) %>
     <% end %>
 
   <%if @patient.child_bearing_female?%>
