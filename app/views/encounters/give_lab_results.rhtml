@@ -2,37 +2,52 @@
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
 
   function showResults(){
-    var innerHtml = '';
-    var resultString = '';
-    <%if @patient.sputum_submissions_waiting_for_results.empty?%>
-      innerHtml = '<div id="summary" style="min-height:455px"><div>' + 
-        '<span class="title" style="font-size:36px;padding-top:7px;">No results were entered</span>' +
-        '<span style="float:right;padding:7px"><button class="button green" onclick="window.location = \'/encounters/new/lab_results?patient_id=<%= @patient.id -%>\'"><span>Enter results</span></button><br/></span>'+ 
-        '</div></div>' 
-  <%else%>
-    resultString = '<%=@patient.recent_lab_results.collect{|observation| "<b>#{(observation.concept.concept_names.last.name) rescue ""}</b>: #{observation.answer_string}"}.join("<br />")%>'
+      var innerHtml = '';
+      var resultString = '';
+      
+      <%if @patient.sputum_submissions_waiting_for_results.empty?%>
+      
+        <div class="inputPage NoKeyboard" id="page" style="display: block;">
+            <div id="trigger"></div>
+            <div id="infoBar" class="infoBarClass"></div>
+            <label id="helpText" class="helpTextClass" for="">This patient has no recent Lab results</label>
+            </div>
+            <div id="buttons" class="buttonsDiv" style="top:456;">
+            <div id="tt_extraButtons"></div>
+            <button onmousedown="window.location=tt_cancel_destination;" id="cancelButton" class="button navButton red"><span>Cancel</span></button>
+        </div>
+        
+        <script>
+	        setTimeout("window.location=tt_cancel_destination;", 5000);
+        </script>
+              
+      <%else%>
+      
+          resultString = '<ul>'
+          resultString += '<%=@patient.recent_lab_results.collect{|observation| "<li>" + "<b>#{observation.to_s(["short", "order"]).to_s.split(":")[0]}</b>" + " : "+ "#{observation.to_s(["short", "order"]).to_s.split(":")[1]}" if observation.concept.fullname.humanize != "Workstation location".humanize}.join("</li>")%>'   
+          resultString += '</li></ul>'
+    
+          <%if @patient.sputum_results_given.empty?%>
+              innerHtml = '<div id="summary" style="min-height:400px"><div>' + 
+              '<span class="title" style="font-size:25px;padding-top:7px;">' + resultString + '</span>' +  
+              '</div></div>'
+          
+          <%else%>
+              innerHtml = '<div id="summary" style="min-height:455px"><div>' + 
+              '<span class="title" style="font-size:36px;padding-top:7px;">Results already given to patient</span>' +
+              '<span style="float:right;padding:7px"><button class="button gray" onclick="window.location = \'\'"><span>Results already given</span></button><br/></span>'+ 
+              '<div>' + resultString + '</div>' +
+              '</div></div>'
+              
+          <%end%> 
 
-    <%if @patient.sputum_results_given.empty?%>
-      innerHtml = '<div id="summary" style="min-height:455px"><div>' + 
-        '<span class="title" style="font-size:36px;padding-top:7px;">Give results</span>' +
-        '<span style="float:right;padding:7px"><button class="button green" onclick="window.location = \'/encounters/new/lab_results?patient_id=<%= @patient.id -%>\'"><span>Give results</span></button><br/></span>'+ 
-        '<div>' + resultString + '</div>' +
-        '</div></div>' 
-    <%else%>
-      innerHtml = '<div id="summary" style="min-height:455px"><div>' + 
-        '<span class="title" style="font-size:36px;padding-top:7px;">Results already given to patient</span>' +
-        '<span style="float:right;padding:7px"><button class="button gray" onclick="window.location = \'\'"><span>Results already given</span></button><br/></span>'+ 
-        '<div>' + resultString + '</div>' +
-        '</div></div>'
-    <%end%> 
-
-  <%end%>
-                                           
-  $('inputFrame'+tstCurrentPage).innerHTML = innerHtml
+      <%end%>
+                         
+      $('inputFrame'+tstCurrentPage).innerHTML = innerHtml
   }
 
   function changeNextButton(){
-    $('nextButton').setAttribute('onmousedown', 'cancelEntry()')
+      $('nextButton').setAttribute('onmousedown', 'cancelEntry()')
   }
 
 </script> 
@@ -41,17 +56,21 @@
 -->
 
 <form id='appointment' action="/encounters/create" method='post'>
-  <%= hidden_field_tag "encounter[encounter_type_name]", "TB CLINIC VISIT" %>
-  <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
-  <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
-  <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
-  <%= text_field_tag :task_name, nil,
-    { :tt_onLoad => "showResults();changeNextButton()",
-      :optional => "true",
-      :tt_pageStyleClass => "NoControls",
-      :helpText => 'Give results'
-  } %>
-  
-  <%= submit_tag "Finish" %>    
+    <%= hidden_field_tag "encounter[encounter_type_name]", "GIVE LAB RESULTS" %>
+    <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
+    <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
+    <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
+
+    <%= text_field_tag :task_name, nil,
+        {   :tt_onLoad => "showResults();",
+            :optional => "true",
+            :tt_pageStyleClass => "NoControls",
+            :helpText => 'Give results' } %>
+
+    <%= touch_yes_no_tag "LABORATORY RESULTS GIVEN TO PATIENT", @patient, nil,
+        {   :id => "laboratory_results",
+            :helpText => "RESULTS GIVEN TO PATIENT?".humanize } %>
+
+    <%= submit_tag "Finish" %>
 </form>

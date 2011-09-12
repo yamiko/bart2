@@ -70,7 +70,7 @@ class Patient < ActiveRecord::Base
     
     alerts = []
 
-    alerts << "Next task: #{(Task.next_task(Location.current_location, self, session_date).encounter_type || 'DONE').capitalize rescue 'DONE'}"
+    alerts << "Next task: #{(Task.next_task(Location.current_location, self, session_date).encounter_type || 'DONE').humanize.gsub('Hiv','HIV').gsub('Art','ART').gsub('Tb','TB')  rescue 'DONE'}"
 
     type = EncounterType.find_by_name("APPOINTMENT")
     next_appt = self.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.last.to_s rescue nil
@@ -116,8 +116,8 @@ class Patient < ActiveRecord::Base
                                                           ((self.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) && (ProgramWorkflowState.find_state(patient_hiv_program.last.patient_states.last.state).concept.fullname != "On antiretrovirals"))
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.strip}" == 'Unknown'
     alerts << "Lab: Expecting submission of sputum" unless self.sputum_orders_without_submission.empty?
-    alerts << "Lab: Waiting for sputum results" if self.sputum_submissions_waiting_for_results.empty? &&   !self.recent_sputum_submissions.empty?
-    alerts << "Lab: Results not given to patient" if self.sputum_results_given.empty?
+    alerts << "Lab: Waiting for sputum results" if self.recent_sputum_results.empty? && !self.recent_sputum_submissions.empty?
+    alerts << "Lab: Results not given to patient" if self.sputum_results_given.empty? && !self.recent_sputum_results.empty?
 
     alerts
   end
@@ -1239,14 +1239,14 @@ EOF
     sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
     Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?) OR value_text in (?))", self.id, ConceptName.find_by_name('Sputum submission').concept_id, sputum_concept_ids, sputum_concept_names], :order => "obs_datetime desc", :limit => 3) rescue []
   end
+  
+    def recent_sputum_results
+        sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
+        sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
 
-  def sputum_submissions_waiting_for_results
-    sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
-    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
-
-   Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
-        EncounterType.find_by_name("LAB RESULTS").id,self.id]).observations.map{|o| o if sputum_concept_ids.include?(o.concept_id)}.join' ' rescue []
-  end
+        Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("LAB RESULTS").id,self.id]).observations.map{|o| o if sputum_concept_ids.include?(o.concept_id)}.join' ' rescue []  
+    end
 
   def is_first_visit?
     clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",
