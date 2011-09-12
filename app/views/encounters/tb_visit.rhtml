@@ -107,7 +107,7 @@
 	<%	
     show_clinic_question = true
     for encounter in @current_encounters.reverse do
-        if encounter.name.humanize == "TB clinic visit".humanize
+        if encounter.name.humanize == "TB VISIT".humanize
            show_clinic_question = false
            break
         end
