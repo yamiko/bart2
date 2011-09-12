@@ -927,10 +927,14 @@ class Task < ActiveRecord::Base
           treatment = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
                             patient.id,session_date,EncounterType.find_by_name('TREATMENT').id])
 
-          if encounter_available.blank? and user_selected_activities.match(/Manage drug dispensations/i)
+          encounter = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
+                                 patient.id,EncounterType.find_by_name('DISPENSING').id,session_date],
+                                 :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
+
+          if encounter.blank? and user_selected_activities.match(/Manage drug dispensations/i)
             task.url = "/patients/treatment_dashboard/#{patient.id}"
             return task
-          elsif encounter_available.blank? and not user_selected_activities.match(/Manage drug dispensations/i)
+          elsif encounter.blank? and not user_selected_activities.match(/Manage drug dispensations/i)
             task.url = "/patients/show/#{patient.id}"
             return task
           end if not treatment.blank?

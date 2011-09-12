@@ -8,30 +8,64 @@
     return true;
   }
 
-  function setSelectedRow() {
-    l = document.getElementsByTagName('li');
-    for (i = 0 ; i < l.length ; i++) {
-      l[i].setAttribute("onmousedown","null;updateTouchscreenInputForSelect(this);upDateTBstatus();")
-    }
+  function checkTBstatus() {
+    try {
+      tb_status = $('tb_status').value;
+      if (tb_status.length > 0)
+        return 
+    }catch(e) {}
+
+    try {
+      tb_type = $('tb_type').value;
+      if (tb_type.length > 0 && $('set_tb_status')) {
+        $('set_tb_status').value = "Confirmed TB NOT on treatment"
+        return
+      }
+
+      if (tb_type.length > 0) {
+        submitForm = document.getElementById("appointment");
+
+        newElement = document.createElement("input");
+        newElement.setAttribute("name","observations[][concept_name]");
+        newElement.setAttribute("type","hidden");
+        newElement.value = "TB STATUS";
+        submitForm.appendChild(newElement);
+
+        newElement = document.createElement("input");
+        newElement.setAttribute("name","observations[][value_coded_or_text]");
+        newElement.setAttribute("id","set_tb_status");
+        newElement.setAttribute("type","hidden");
+        newElement.value =  "Confirmed TB NOT on treatment";
+        submitForm.appendChild(newElement);
+
+        newElement = document.createElement("input");
+        newElement.setAttribute("name","observations[][patient_id]");
+        newElement.setAttribute("type","hidden");
+        newElement.value =  "<%= @patient.id %>";
+        submitForm.appendChild(newElement);
+      }
+    }catch(e) {}
   }
 
-  function upDateTBstatus() {
-    tb_status = $('tb_status').value;
+  function setAttributes() {
+    var next_button = $('nextButton');
+    var back_button = $('backButton');
+
+    next_button.setAttribute("onmousedown","checkTBstatus();gotoNextPage();")
+    back_button.setAttribute("onmousedown","resetTBstatus();gotoPage(" + (tstCurrentPage - 1) + ")")
+  }
+
+  function resetTBstatus() {
+    var next_button = $('nextButton');
+    var back_button = $('backButton');
+
+    next_button.setAttribute("onmousedown","gotoNextPage();")
+  
+    try {
+      document.getElementById("appointment").removeChild($('set_tb_status'));
+    }catch(e) {}
   }
 </script> 
-
-<!--.........TODO..........dd..
-	This is referred to as ART Enrollment/HIV Visit in the specs
-
-	Concepts - mostly in caps
-	Skip logic - implement and verify
-	Get @answer_array_values
-	Check multi select especially on WHO staging conditions
-	Change the date fields to 3tier date
-	Check appropriateness of Encounter type
-
-	Check applicability of code below
--->
 
 <form id='appointment' action="/encounters/create" method='post'>
 	<%= hidden_field_tag "encounter[encounter_type_name]", "TB CLINIC VISIT" %>
@@ -86,7 +120,7 @@
 		{	:id => 'tb_status',
 			:optional => true,
 			:multiple => false,
-			:condition => "$('interpret_xray').value != 'YES' && $('refer_to_xray').value != 'YES'",
+			:condition => "$('interpret_xray').value != 'YES' && $('refer_to_xray').value != 'YES' && $('xray').value == 'Consistent of TB'",
 			:helpText => "TB Status" } %>
 
 	<%= touch_select_tag "TB classification", @patient, options_for_select(@select_options['tb_classification']),
@@ -104,6 +138,8 @@
 	<%= touch_select_tag "TB type", @patient, options_for_select(@select_options['tb_types']),
 		{	:id => "tb_type",
 		 	:tt_pageStyleClass => "NoKeyboard",
+		 	:tt_onUnLoad => "checkTBstatus();",
+		 	:tt_onLoad => "setAttributes();",
 			:condition => "$('refer_to_xray').value != 'YES' && ($('xray').value == 'Consistent of TB' || $('tb_status').value == 'Confirmed TB NOT on treatment')",
 		 	:helpText => "TB type / TB susceptibility"
 		 	} %>
