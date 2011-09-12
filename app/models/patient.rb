@@ -70,7 +70,7 @@ class Patient < ActiveRecord::Base
     
     alerts = []
 
-    alerts << "Next task: #{(Task.next_task(Location.current_location, self, session_date).encounter_type || 'DONE').humanize.gsub('Hiv','HIV').gsub('Art','ART').gsub('Tb','TB')  rescue 'DONE'}"
+    alerts << "Next task: #{(Task.next_task(Location.current_location, self, session_date).encounter_type || 'None').humanize.gsub('Hiv','HIV').gsub('Art','ART').gsub('Tb','TB')  rescue 'None'}"
 
     type = EncounterType.find_by_name("APPOINTMENT")
     next_appt = self.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.last.to_s rescue nil
@@ -1218,6 +1218,16 @@ EOF
   def sputum_orders_without_submission
     self.recent_sputum_orders.collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", self.id, Concept.find_by_name("Sputum submission")]).map{|o| o.accession_number}.include?(order.accession_number)}.compact rescue []
   end
+  
+  def recent_sputum_results
+    sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
+    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
+    obs = Observation.find(:all, :conditions => ["person_id = ? AND concept_id IN (?)", self.id, sputum_concept_ids], :order => "obs_datetime desc", :limit => 3)
+  end
+
+  def sputum_results_not_given
+    self.recent_sputum_results.collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", self.id, Concept.find_by_name("Lab test result").concept_id]).map{|o| o.accession_number}.include?(order.accession_number)}.compact 
+  end
 
   def sputum_submissons_with_no_results
     sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)", "Culture(1st)", "Culture(2nd)"]
@@ -1239,14 +1249,6 @@ EOF
     sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
     Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?) OR value_text in (?))", self.id, ConceptName.find_by_name('Sputum submission').concept_id, sputum_concept_ids, sputum_concept_names], :order => "obs_datetime desc", :limit => 3) rescue []
   end
-  
-    def recent_sputum_results
-        sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
-        sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
-
-        Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
-        EncounterType.find_by_name("LAB RESULTS").id,self.id]).observations.map{|o| o if sputum_concept_ids.include?(o.concept_id)}.join' ' rescue []  
-    end
 
   def is_first_visit?
     clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",

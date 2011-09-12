@@ -238,10 +238,8 @@ class Task < ActiveRecord::Base
           return task
         elsif reasons.upcase == 'UNKNOWN' or reasons.blank?
           task.url = "/patients/summary?patient_id={patient}&skipped={encounter_type}" 
-          task.url = task.url.gsub(/\{encounter_type\}/, "PRE_ART_FOLLOWUP") 
           return task
         end
-
         task.url = "/patients/summary?patient_id={patient}&skipped={encounter_type}" 
         task.url = task.url.gsub(/\{encounter_type\}/, "#{art_encounters[4].gsub(' ','_')}") 
         return task
@@ -960,7 +958,7 @@ class Task < ActiveRecord::Base
 
           if not prescribe_drugs
             encounter_pre_art_visit = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
-                                   patient.id,EncounterType.find_by_name('PRE_ART_FOLLOWUP').id,session_date],
+                                   patient.id,EncounterType.find_by_name('PART_FOLLOWUP').id,session_date],
                                    :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
 
             prescribe_drugs = encounter_pre_art_visit.observations.map{|obs| obs.to_s.squish.strip.upcase }.include? 'Prescribe drugs: Yes'.upcase rescue false
