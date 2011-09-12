@@ -802,7 +802,7 @@ class Task < ActiveRecord::Base
         when 'TB REGISTRATION'
           #checks if patient needs to be stage before continuing
           next_task = self.need_art_enrollment(task,patient,location,session_date,user_selected_activities,reason_for_art)
-          return next_task unless next_task.blank?
+          return next_task if not next_task.blank? and user_selected_activities.match(/Manage HIV staging visits/i)
 
           next unless patient.tb_status.match(/treatment/i)
           tb_registration = Encounter.find(:first,:order => "encounter_datetime DESC",
