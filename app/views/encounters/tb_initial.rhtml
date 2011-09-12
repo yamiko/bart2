@@ -1,16 +1,7 @@
 <style>
-  .tt_controls_date_of_confirmatory_hiv_test #num { display:none; }
+  .tt_controls_tb_registration_number_at_previous_location #Unknown { display:block; }
+  .tt_controls_weight_at_tb_initiation #Unknown { display:block; }
 
-  .tt_controls_date_art_last_taken #num { display:none; }
-
-  .tt_controls_date_of_confirmatory_hiv_test table {  position: absolute; top: -360px; }
-
-  .tt_controls_date_art_last_taken table {  position: absolute; top: -360px; }
-
-  .tt_controls_last_arv_drugs_taken .keyboard { display:none; }
-  #tt_page_last_arv_drugs_taken .options{height:450px;}
-  #tt_page_last_arv_drugs_taken .options li{font-size:35px;}
-  #space {display:inline;}
 </style>
 
 <script>
@@ -50,6 +41,43 @@
     {:id => "tb_treatment",
      :helpText => 'Ever received TB treatment'} %>
 
+  <%= touch_yes_no_unknown_tag "Transfer in", @patient, nil,
+      {:id => "transfer_in",
+       :condition => "$('tb_treatment').value =='YES'",
+       :helpText => 'Transfer in?'} %>
+
+  <%= touch_text_field_tag "Clinic Location", @patient, nil,
+      {:id => "location_of_tb_initiation",
+       :condition => "$('transfer_in').value =='YES'",
+       :ajaxURL => '/people/tb_initialization_district?',
+       :allowFreeText => true,
+       :helpText => 'Location of TB initiation'} %>
+
+  <%= touch_date_tag "CONFIRMATORY HIV TEST DATE", @patient, nil,
+			{:id => "date_of_tb_initiation",
+			 :condition => "$('transfer_in').value =='YES'",
+			 :max => "#{session[:datetime].to_date rescue Date.today}",
+			 :helpText => "Date of TB initiation"} %>
+
+  <%= touch_text_field_tag "TB REGISTRATION NUMBER", @patient, nil,
+			{	:id => "previous_tb_registration_number",
+			  :field_type => 'number',
+			  :condition => "$('transfer_in').value =='YES'",
+			  :tt_pageStyleClass => "Numeric NumbersOnly",
+				:helpText => "TB registration number at previous location" } %>
+
+  <%= touch_text_field_tag "PREVIOUS WEIGHT", @patient, nil,
+			{	:id => "weight_at_tb_initiation",
+			  :field_type => 'number',
+			  :condition => "$('transfer_in').value =='YES'",
+			  :tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal",
+				:helpText => "Weight at TB initiation" } %>
+
+  <%= touch_select_tag "LAST ART DRUGS TAKEN", @patient, options_for_select([['',''],['RH','Rifampicin and isoniazid'],['RHZ','Rifampicin isoniazid and pyrazinamide'], ['E','Ethambutol']]),
+			{:id => "last_tb_drugs_taken",
+			 :condition => "$('transfer_in').value =='YES'",
+			 :helpText => "Last TB drugs taken" } %>
+
   <%reason_for_clinic_visit = 'Smear -ve'%>
   <% if @tb_status %>
      <%reason_for_clinic_visit = 'Smear +ve'%>
@@ -66,7 +94,7 @@
   <% end %>
   <%= touch_yes_no_unknown_tag "Follow up agreement", @patient, nil,
     {:id => "follow_up_agreement",
-     :helpText => 'Can we visit you at home for TB follow-up?'} %>
+     :helpText => 'Can we follow-up with you for TB treatment?'} %>
 
   <%
     date = session[:datetime].to_date rescue Date.today

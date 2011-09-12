@@ -53,6 +53,7 @@
   var current_regimen_names_for_programs = <%= @current_regimen_names_for_programs.to_json -%>;
   var reason_for_art = "<%= @patient.reason_for_art_eligibility %>";
   var prescribeTBDrugs = "<%= @prescribe_tb_drugs %>";
+  var prescribeARTDrugs = "<%= @prescribe_art_drugs %>";
   var artVisit = "<%= @art_visit %>";
   var regimen_id = null; 
   var tb_regimen_id = null; 
@@ -171,6 +172,13 @@
 	return returnValue;
   }
 
+  function prescribeAntiretroviralDrugs() {
+	var prescribe = false;    
+	if(prescribeARTDrugs == 'true'){
+      prescribe = true;
+	}
+	return prescribe;
+  }
   
   function isRegisteredForTB() {
 	var isRegistered = false;    
@@ -229,9 +237,9 @@
      durations = ['1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months']
      durations.each do |duration|
        if duration.match(/week/i)
-        days = (((duration.to_i)*7) + 3)
+        days = (((duration.to_i)*7))
        elsif duration.match(/month/i)
-        days = (((duration.to_i)* 30) + 3)
+        days = (((duration.to_i)* 30))
        end
        optionsString += "<option value = '" + days.to_s + "'>" + duration + "</option>"
      end
@@ -253,7 +261,7 @@
   <%= touch_yes_no_tag "PRESCRIBE ARVS", @patient, nil,
       {:optional => false,
        :id => 'prescribe_arvs',
-       :condition => 'hasReasonForART() == true',
+       :condition => 'hasReasonForART() == true && prescribeAntiretroviralDrugs() == true',
        :helpText => "Prescribe ARVS" } %>
 
   <%= select_tag :continue_existing_regimen, options_for_select([['',''],['YES','YES'],['NO','NO']], ''), {
@@ -288,10 +296,6 @@
 		:allowFreeText => "true",
 		:tt_pageStyleClass => "NumbersOnlyWithDecimal"}%>
 
-  <%= select_tag :duration, optionsString, { 
-	:condition => '$("prescribe_arvs").value == "YES"',	
-	:helpText => 'Duration' } %> 
-
 	<!-- CPT & IPT-->
   <% if @alergic_to_suphur == true %>
     <%= touch_hidden_tag "Prescribe cotramoxazole", @patient, "NO", :id => "cpt_given" %>
@@ -299,6 +303,7 @@
     <%= touch_yes_no_tag "Prescribe cotramoxazole", @patient, nil,
         {:optional => false,
          :id => 'cpt_given',
+		:condition => 'prescribeAntiretroviralDrugs() == true',
          :helpText => "Prescribe CPT" } %>
   <% end %>
 
@@ -306,12 +311,14 @@
 		<%= touch_yes_no_tag "ISONIAZID", @patient, nil,
 		    {:optional => false,
 		     :id => 'ipt_given',
+			:condition => 'prescribeAntiretroviralDrugs()',
 		     :helpText => "Prescribe IPT" } %>
 	<%else%>
 		<%= touch_hidden_tag "ISONIAZID", @patient, "", :id => "ipt_given" %>
   <%end%>
-  <%= select_tag :cpt_ipt_duration, optionsString, { 
-	:condition => '$("cpt_given").value == "YES" || $("ipt_given").value == "YES" ',	
+
+  <%= select_tag :duration, optionsString, { 
+	:condition => '$("prescribe_arvs").value == "YES" || $("cpt_given").value == "YES" || $("ipt_given").value == "YES"',	
 	:helpText => 'Duration' } %> 
 
 
@@ -325,7 +332,7 @@
 
  <% end %>
  
-  <% initial_date = "#{session[:datetime].strftime('%Y-%m-%d')}" rescue "#{(Date.today).strftime('%Y-%m-%d')}" %>
+ <% initial_date = "#{session[:datetime].strftime('%Y-%m-%d')}" rescue "#{(Date.today).strftime('%Y-%m-%d')}" %>
   
 <%
     transfer_location_id = nil

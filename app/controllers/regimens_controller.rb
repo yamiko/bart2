@@ -39,24 +39,34 @@ class RegimensController < ApplicationController
 			end
 		end
 
-    sulphur_allergy_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
-		    :conditions => ["patient_id = ? AND encounter_type IN (?)",
-		    @patient.id, EncounterType.find(:all,:select => 'encounter_type_id', :conditions => ["name IN (?)",["ART VISIT", "TB VISIT"]])]).observations rescue []
+		sulphur_allergy_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
+			:conditions => ["patient_id = ? AND encounter_type IN (?)",
+			@patient.id, EncounterType.find(:all,:select => 'encounter_type_id', :conditions => ["name IN (?)",["ART VISIT", "TB VISIT"]])]).observations rescue []
 
-    @alergic_to_suphur = false
-    (sulphur_allergy_obs || []).each do | obs |
-			if obs.concept_id == (Concept.find_by_name('sulphur alergy').concept_id rescue nil)
+		@alergic_to_suphur = false
+		(sulphur_allergy_obs || []).each do | obs |
+			if obs.concept_id == (Concept.find_by_name('sulphur allergy').concept_id rescue nil)
 				@alergic_to_suphur = true if Concept.find(obs.value_coded).fullname.upcase == 'YES'
 			end
 		end
+
+		art_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
+			:conditions => ["patient_id = ? AND encounter_type IN (?)",
+			@patient.id, EncounterType.find(:all,:select => 'encounter_type_id', :conditions => ["name IN (?)",["ART VISIT"]])]).observations rescue []
+
+		@prescribe_art_drugs = false
+		(art_obs || []).each do | obs |
+			if obs.concept_id == (Concept.find_by_name('Prescribe arvs').concept_id rescue nil)
+				@prescribe_art_drugs = true if Concept.find(obs.value_coded).fullname.upcase == 'YES'
+			end
+		end
+
 
 		@prescribe_tb_drugs = false	
 		if (not @tb_programs.blank?) and prescribe_tb_medication
 			@prescribe_tb_drugs = true
 		end
 
-		#raise @prescribe_tb_drugs.to_s
-		#raise @tb_programs.to_yaml
 	end
   
 	def create
@@ -83,7 +93,7 @@ class RegimensController < ApplicationController
 		start_date = session[:datetime] || Time.now
 		auto_expire_date = session[:datetime] + params[:duration].to_i.days rescue Time.now + params[:duration].to_i.days
 		auto_tb_expire_date = session[:datetime] + params[:tb_duration].to_i.days rescue Time.now + params[:tb_duration].to_i.days
-		auto_cpt_ipt_expire_date = session[:datetime] + params[:cpt_ipt_duration].to_i.days rescue Time.now + params[:cpt_ipt_duration].to_i.days
+		auto_cpt_ipt_expire_date = session[:datetime] + params[:duration].to_i.days rescue Time.now + params[:duration].to_i.days
 		orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:tb_regimen]})
 		ActiveRecord::Base.transaction do
 			# Need to write an obs for the regimen they are on, note that this is ARV
