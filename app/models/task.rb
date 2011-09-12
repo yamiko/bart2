@@ -240,7 +240,6 @@ class Task < ActiveRecord::Base
           task.url = "/patients/summary?patient_id={patient}&skipped={encounter_type}" 
           return task
         end
-
         task.url = "/patients/summary?patient_id={patient}&skipped={encounter_type}" 
         task.url = task.url.gsub(/\{encounter_type\}/, "#{art_encounters[4].gsub(' ','_')}") 
         return task
