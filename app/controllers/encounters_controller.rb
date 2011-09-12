@@ -257,6 +257,7 @@ class EncountersController < ApplicationController
 
 		@sputum_orders = Hash.new()
 		@sputum_submission_waiting_results = Hash.new()
+		@sputum_results_not_given = Hash.new()
 
 		@art_first_visit = is_first_art_visit(@patient.id)
 		@tb_first_registration = is_first_tb_registration(@patient.id)
@@ -264,6 +265,7 @@ class EncountersController < ApplicationController
 
 		@patient.sputum_orders_without_submission.each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 		@patient.sputum_submissons_with_no_results.each{|order| @sputum_submission_waiting_results[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
+		@patient.sputum_results_not_given.each{|order| @sputum_results_not_given[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 
 		@tb_status = recent_lab_results(@patient.id, session_date)
 
