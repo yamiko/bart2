@@ -1003,7 +1003,7 @@ class Task < ActiveRecord::Base
     enrolled_in_hiv_program = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?",patient.id,
       ConceptName.find_by_name("Patient enrolled in IMB HIV program").concept_id]).value_coded).concept_names.map{|c|c.name}[0].upcase rescue nil
 
-    next unless enrolled_in_hiv_program == 'YES'
+    return unless enrolled_in_hiv_program == 'YES'
 
     #return if not reason_for_art.upcase == 'UNKNOWN' and not reason_for_art.blank?
 
