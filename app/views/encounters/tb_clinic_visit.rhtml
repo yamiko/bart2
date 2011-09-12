@@ -143,6 +143,12 @@
 			:condition => "$('refer_to_xray').value != 'YES' && ($('xray').value == 'Consistent of TB' || $('tb_status').value == 'Confirmed TB NOT on treatment')",
 		 	:helpText => "TB type / TB susceptibility"
 		 	} %>
+
+  <%if @patient.hiv_status.upcase == 'POSITIVE' and not @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')%>
+    <%= touch_yes_no_unknown_tag "Patient enrolled in IMB HIV program", @patient, nil,
+      {:id => "enroll_patient_in_art",
+       :helpText => 'Enroll patient in ART'} %>
+  <%end%>
   
   <%= submit_tag "Finish" %>    
 </form>
