@@ -103,7 +103,7 @@
 
 	<%= touch_yes_no_tag "Refer to x-ray?", @patient, nil,
 		{	:id => "refer_to_xray",
-			:helpText => "Refer patient to x-ray scan?" } %>
+			:helpText => "Refer patient to x-ray?" } %>
  
 	<%= touch_yes_no_tag "interpret x-ray?", @patient, nil,
 		{	:id => "interpret_xray",
@@ -114,7 +114,7 @@
 		{	:id => "xray",
 			:tt_pageStyleClass => "NoKeyboard",
 			:condition => "$('interpret_xray').value == 'YES'",
-			:helpText => "Interpret X-Ray" } %>
+			:helpText => "Interpret x-ray" } %>
 
     <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
 		{	:id => 'tb_status',
