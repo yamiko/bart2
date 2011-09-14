@@ -818,6 +818,22 @@ class Task < ActiveRecord::Base
             return task
           end
         when 'TB VISIT'
+          if patient.child?
+            clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["patient_id = ? AND encounter_type = ?",
+                                      patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
+
+            if clinic_visit.blank? and user_selected_activities.match(/Manage TB clinic visits/i)
+              task.encounter_type = "TB CLINIC VISIT"
+              task.url = "/encounters/new/tb_clinic_visit?show&patient_id=#{patient.id}"
+              return task
+            elsif clinic_visit.blank? and not user_selected_activities.match(/Manage TB clinic visits/i)
+              task.encounter_type = "TB CLINIC VISIT"
+              task.url = "/patients/show/#{patient.id}"
+              return task
+            end 
+          end
+
           #checks if vitals have been taken already 
           vitals = self.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
           return vitals unless vitals.blank?
@@ -953,6 +969,8 @@ class Task < ActiveRecord::Base
           encounter_art_visit = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                                    patient.id,EncounterType.find_by_name('ART VISIT').id,session_date],
                                    :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
+
+          prescribe_drugs = false
 
           prescribe_drugs = encounter_art_visit.observations.map{|obs| obs.to_s.squish.strip.upcase }.include? 'Prescribe ARVs this visit: Yes'.upcase rescue false
 
