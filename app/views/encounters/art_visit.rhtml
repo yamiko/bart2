@@ -170,7 +170,7 @@
     <%= touch_hidden_tag "REFER TO ART CLINICIAN", @patient, "NO", :id => "refer_to_clinician" %>
   <%end%>
 
-  <%= touch_yes_no_tag "Allergic to sulphur", @patient, nil,
+  <%= touch_yes_no_unknown_tag "Allergic to sulphur", @patient, nil,
 		{	:id => "allergic_to_sulphur",
 			:condition => "$('refer_to_clinician').value == 'NO'" ,
 			:helpText => "Is patient allergic to sulphur" } %>

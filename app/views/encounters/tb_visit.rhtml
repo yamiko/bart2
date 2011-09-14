@@ -136,7 +136,7 @@
 			:condition => "$('refer_to_clinician').value == 'NO'" ,
 			:helpText => "Prescribe drugs during this visit" } %>
 
-	<%= touch_yes_no_tag "Allergic to sulphur", @patient, nil,
+	<%= touch_yes_no_unknown_tag "Allergic to sulphur", @patient, nil,
 		{	:id => "allergic_to_sulphur",
 			:condition => "$('refer_to_clinician').value == 'NO'" ,
 			:helpText => "Is patient allergic to sulphur" } %>
