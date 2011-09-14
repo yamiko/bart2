@@ -61,9 +61,7 @@
 
   <%= touch_text_field_tag "TB REGISTRATION NUMBER", @patient, nil,
 			{	:id => "previous_tb_registration_number",
-			  :field_type => 'number',
 			  :condition => "$('transfer_in').value =='YES'",
-			  :tt_pageStyleClass => "Numeric NumbersOnly",
 				:helpText => "TB registration number at previous location" } %>
 
   <%= touch_text_field_tag "PREVIOUS WEIGHT", @patient, nil,
