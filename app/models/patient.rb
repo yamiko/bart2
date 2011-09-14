@@ -70,8 +70,6 @@ class Patient < ActiveRecord::Base
     
     alerts = []
 
-    alerts << "Next task: #{(Task.next_task(Location.current_location, self, session_date).encounter_type || 'None').humanize.gsub('Hiv','HIV').gsub('Art','ART').gsub('Tb','TB')  rescue 'None'}"
-
     type = EncounterType.find_by_name("APPOINTMENT")
     next_appt = self.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.last.to_s rescue nil
     alerts << ('Next ' + next_appt).capitalize unless next_appt.blank?
@@ -1332,6 +1330,11 @@ EOF
 		patient = Person.find(self.id)
 		return patient.age
 	end 
+
+  def child?
+    return self.age <= 14 unless self.age.nil?
+    return false
+  end
 
   def sputum_results_given
    given_results = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
