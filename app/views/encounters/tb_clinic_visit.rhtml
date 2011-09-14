@@ -8,11 +8,21 @@
     return true;
   }
 
+  function assignTBstatus() {
+      tb_status = $('tb_suspected').value;
+      if (tb_status == "YES") {
+        $('tb_status').value = "Confirmed TB NOT on treatment";
+      }
+  }
+
   function checkTBstatus() {
     try {
       tb_status = $('tb_status').value;
-      if (tb_status.length > 0)
-        return 
+      tb_suspected = $('tb_suspected').value;
+
+      if (tb_status.length == 0 && $('tb_suspected').value == 0)
+        $('tb_status').value = "Confirmed TB NOT on treatment";
+        return
     }catch(e) {}
 
     try {
@@ -105,7 +115,7 @@
 		{	:id => "refer_to_xray",
 			:helpText => "Refer patient to x-ray?" } %>
  
-	<%= touch_yes_no_tag "interpret x-ray?", @patient, nil,
+	<%= touch_yes_no_tag "interpret x-ray?", @patient, 'gdgdg',
 		{	:id => "interpret_xray",
 			:condition => "$('refer_to_xray').value != 'YES'",
 			:helpText => "X-ray scan available for interpretation?" } %>
@@ -116,12 +126,15 @@
 			:condition => "$('interpret_xray').value == 'YES'",
 			:helpText => "Interpret x-ray" } %>
 
-    <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
+   <%= touch_yes_no_unknown_tag "TB SUSPECTED", @patient, nil,
+			{	:id => "tb_suspected",
+			  :tt_onUnload => 'assignTBstatus();',
+				:condition => "$('interpret_xray').value != 'YES' && $('refer_to_xray').value != 'YES'",
+				:helpText => 'Does the patient have TB?'} %>
+
+    <%= touch_hidden_tag "TB STATUS", @patient, nil,
 		{	:id => 'tb_status',
-			:optional => true,
-			:multiple => false,
-			:condition => "$('interpret_xray').value != 'YES' && $('refer_to_xray').value != 'YES'",
-			:helpText => "TB Status" } %>
+			:condition => "($('interpret_xray').value != 'YES' && $('refer_to_xray').value != 'YES')" } %>
 
 	<%= touch_select_tag "TB classification", @patient, options_for_select(@select_options['tb_classification']),
 		{	:id => "tb_classification",
