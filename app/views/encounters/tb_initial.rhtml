@@ -37,9 +37,14 @@
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
-  <%= touch_yes_no_unknown_tag "EVER RECEIVED TB TREATMENT", @patient, nil,
-    {:id => "tb_treatment",
-     :helpText => 'Ever received TB treatment'} %>
+  <%  if @any_previous_tb_programs %>
+    <%= touch_hidden_tag("EVER RECEIVED TB TREATMENT", @patient, "Yes", {:id => "tb_treatment"}) %>
+  <% else %>
+
+    <%= touch_yes_no_unknown_tag "EVER RECEIVED TB TREATMENT", @patient, nil,
+      {:id => "tb_treatment",
+       :helpText => 'Ever received TB treatment'} %>
+  <% end %>
 
   <%= touch_yes_no_unknown_tag "Transfer in", @patient, nil,
       {:id => "transfer_in",
