@@ -6,7 +6,10 @@
         var resultString = '';
 
         resultString = '<ul>'
-        resultString += '<%=@patient.recent_lab_results.collect{|observation| "<li>" + "<b>#{observation.to_s(["short", "order"]).to_s.split(":")[0]}</b>" + " : "+ "#{observation.to_s(["short", "order"]).to_s.split(":")[1]}" if observation.concept.fullname.humanize != "Workstation location".humanize}.join("</li>")%>'   
+
+        <% if !@patient.recent_lab_results.nil? %>
+               resultString += '<%= @patient.recent_lab_results.collect{|observation| "<li>" + "<b>#{observation.to_s(["short", "order"]).to_s.split(":")[0]}</b>" + " : "+ "#{observation.to_s(["short", "order"]).to_s.split(":")[1]}" if observation.concept.fullname.humanize != "Workstation location".humanize}.join("</li>")%>'   
+        <% end %>
         resultString += '</li></ul>'
 
         innerHtml = '<div id="summary" style="min-height:400px"><div>' + 
