@@ -1343,7 +1343,7 @@ EOF
   
   def recent_lab_results
    Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
-        EncounterType.find_by_name("LAB RESULTS").id,self.id]).observations.map{|o| o }
+        EncounterType.find_by_name("LAB RESULTS").id,self.id]).observations.map{|o| o } rescue nil
   end
 
 end
