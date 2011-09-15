@@ -299,7 +299,7 @@ class Task < ActiveRecord::Base
     if User.current_user.activities.include?('Manage Lab Orders') or User.current_user.activities.include?('Manage Lab Results') or
        User.current_user.activities.include?('Manage Sputum Submissions') or User.current_user.activities.include?('Manage TB Clinic Visits') or
        User.current_user.activities.include?('Manage TB Reception Visits') or User.current_user.activities.include?('Manage TB Registration Visits') or
-       User.current_user.activities.include?('Manage HIV Status Visits') 
+       User.current_user.activities.include?('Update HIV status') 
          return self.tb_next_form(location , patient , session_date)
     end
      
@@ -508,6 +508,9 @@ class Task < ActiveRecord::Base
       task.encounter_type = type 
       case type
         when 'UPDATE HIV STATUS'
+          next_task = self.checks_if_labs_results_are_avalable_to_be_shown(location , patient , session_date , task)
+          return next_task unless next_task.blank?
+
           next if patient.hiv_status.match(/Positive/i)
           if not patient.patient_programs.blank?
             next if patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') 
@@ -522,10 +525,10 @@ class Task < ActiveRecord::Base
             next 
           end if not hiv_status.blank?
 
-          if hiv_status.blank? and user_selected_activities.match(/Manage HIV Status Visits/i)
+          if hiv_status.blank? and user_selected_activities.match(/Update HIV status/i)
             task.url = "/encounters/new/hiv_status?show&patient_id=#{patient.id}"
             return task
-          elsif hiv_status.blank? and not user_selected_activities.match(/Manage HIV Status Visits/i)
+          elsif hiv_status.blank? and not user_selected_activities.match(/Update HIV status/i)
             task.url = "/patients/show/#{patient.id}"
             return task
           end
@@ -1200,6 +1203,31 @@ class Task < ActiveRecord::Base
       task.url = "/patients/show/#{patient.id}"
       return task
     end 
+  end
+
+  def self.checks_if_labs_results_are_avalable_to_be_shown(location , patient , session_date , task)
+    lab_result = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                :conditions =>["DATE(encounter_datetime) <= ? AND patient_id = ? AND encounter_type = ?",
+                                session_date.to_date ,patient.id,EncounterType.find_by_name('LAB RESULTS').id])
+
+    give_lab_results = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                :conditions =>["DATE(encounter_datetime) >= ? AND patient_id = ? AND encounter_type = ?",
+                                session_date.to_date ,patient.id,EncounterType.find_by_name('GIVE LAB RESULTS').id])
+
+    if not lab_result.blank? and give_lab_results.blank?
+      task.encounter_type = 'GIVE LAB RESULTS'
+      task.url = "/encounters/new/give_lab_results?patient_id=#{patient.id}"
+      return task
+    end
+
+    if not give_lab_results.blank?
+      if not give_lab_results.give_lab_results.observations.collect{|obs|obs.to_s.squish}.include?('Laboratory results given to patient: Yes')
+        task.encounter_type = 'GIVE LAB RESULTS'
+        task.url = "/encounters/new/give_lab_results?patient_id=#{patient.id}"
+        return task
+      end if not give_lab_results.encounter_datetime.to_date == session_date.to_date
+    end
+
   end
 
 end
