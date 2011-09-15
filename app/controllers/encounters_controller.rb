@@ -262,6 +262,7 @@ class EncountersController < ApplicationController
 		@art_first_visit = is_first_art_visit(@patient.id)
 		@tb_first_registration = is_first_tb_registration(@patient.id)
 		@tb_programs_state = uncompleted_tb_programs_status(@patient.id)
+    @had_tb_treatment_before = ever_received_tb_treatment(@patient.id)
 
 		@patient.sputum_orders_without_submission.each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 		@patient.sputum_submissons_with_no_results.each{|order| @sputum_submission_waiting_results[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
@@ -702,4 +703,23 @@ class EncountersController < ApplicationController
     }
   end
 
+  def ever_received_tb_treatment(patient_id)
+		encounters = Encounter.find(:all,:conditions =>["patient_id = ? AND encounter_type = ?",
+				patient_id, EncounterType.find_by_name('TB_INITIAL').id],
+        :include => [:observations],:order =>'encounter_datetime ASC') rescue nil
+
+    tb_treatment_value = ''
+    unless encounters.nil?
+      encounters.each { |encounter|
+        encounter.observations.each { |observation|
+           if observation.concept_id == ConceptName.find_by_name("Ever received TB treatment").concept_id
+              tb_treatment_value = ConceptName.find_by_concept_id(observation.value_coded).name
+           end
+        }
+      }
+    end
+		return true if tb_treatment_value == "Yes"
+		return false
+	end
+  
 end
