@@ -336,28 +336,57 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
      :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
 
   <% if @patient.person.age > 14 
-    if @patient.person.gender == 'F' 
-      obs_date = session[:datetime].to_date rescue Date.today
-      patient_pregnant = Observation.find(:first,:conditions =>["concept_id = ? AND person_id = ? AND DATE(obs_datetime) = ?",
-                       ConceptName.find_by_name('IS PATIENT PREGNANT?').concept_id,
-                       @patient.id,obs_date])
-    %>
+    if @patient.person.gender == 'F' %>
 
-      <% if patient_pregnant.blank? %>
-      <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
-        {:id => "pregnant",
-        :optional => false,
-        :tt_onLoad => "$('nextButton').style.display = 'none';",
-        :tt_requireNextClick => false,
-        :helpText => "Is patient pregnant?" } %>
-      <% end %>    
-      
-      <%= touch_yes_no_unknown_tag "BREASTFEEDING", @patient, nil,
-        {:id => "breast_feeding",
-        :optional => false,
-        :tt_onLoad => "$('nextButton').style.display = 'none';",
-        :tt_requireNextClick => false,
-        :helpText => "Is patient breast feeding?" } %>
+        <% is_patient_pregnant_value = nil %>
+        <% is_patient_breast_feeding_value = nil %>
+
+        <% for encounter in @current_encounters.reverse do %>
+
+                  <% if encounter.name.humanize.include?('Art visit') || encounter.name.humanize.include?('Tb visit') %>
+
+                        <% encounter = Encounter.find(encounter.id, :include => [:observations]) %>
+
+                        <% for obs in encounter.observations do %>
+                                <% if obs.concept_id == ConceptName.find_by_name("IS PATIENT PREGNANT?").concept_id %>
+                                      <% is_patient_pregnant_value = "#{obs.to_s(["short", "order"]).to_s.split(":")[1]}" %>
+                                <%end%>
+
+                                <% if obs.concept_id == ConceptName.find_by_name("IS PATIENT BREAST FEEDING?").concept_id %>
+                                      <% is_patient_breast_feeding_value = "#{obs.to_s(["short", "order"]).to_s.split(":")[1]}" %>
+                                <%end%>
+                        <%end%>
+
+                <% end %>
+
+        <% end %>
+
+        <% if is_patient_pregnant_value.nil?%>
+
+            <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
+            {:id => "pregnant",
+            :optional => false,
+            :tt_onLoad => "$('nextButton').style.display = 'none';",
+            :tt_requireNextClick => false,
+            :helpText => "Is patient pregnant?" } %>
+
+        <%else%>
+            <%= touch_hidden_tag "IS PATIENT PREGNANT?" , @patient, is_patient_pregnant_value , :id => "pregnant" %>
+        <%end%>
+
+        <% if is_patient_breast_feeding_value.nil?%>
+
+            <%= touch_yes_no_unknown_tag "IS PATIENT BREAST FEEDING?", @patient, nil,
+            {:id => "breast_feeding",
+            :optional => false,
+            :tt_onLoad => "$('nextButton').style.display = 'none';",
+            :tt_requireNextClick => false,
+            :helpText => "Is patient breast feeding?" } %>
+
+        <%else%>
+            <%= touch_hidden_tag "IS PATIENT BREAST FEEDING?" , @patient, is_patient_breast_feeding_value , :id => "breast_feeding" %>
+        <%end%>
+
     <% end %>    
 
     <%    
