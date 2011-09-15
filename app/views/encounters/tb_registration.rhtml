@@ -109,6 +109,13 @@ function tb_number(){
 
   }
 
+  function summary() {
+    var display = "<div><span class='title' style='font-size:40px;'>" + "Patient has previously been on TB treatment" + "</span></div>";
+    $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + display + '</div>' ;
+    $("clearButton").style.display = "none";
+
+  }
+
 </script>
 
 <!--.........TODO...........
@@ -143,6 +150,12 @@ Check applicability of code below
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
+
+  <% if @had_tb_treatment_before %>
+    <%= text_field_tag :summary, nil, { :tt_onLoad => "summary();",
+      :optional => "true", :tt_pageStyleClass => "NoControls" ,
+      :helpText => ''} %>
+  <% end %>
 
   <%= touch_identifier_tag @patient, "District TB Number", @identifier_value,
         {:id => "tb_district_number",
