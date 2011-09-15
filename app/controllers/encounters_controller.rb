@@ -263,6 +263,7 @@ class EncountersController < ApplicationController
 		@tb_first_registration = is_first_tb_registration(@patient.id)
 		@tb_programs_state = uncompleted_tb_programs_status(@patient.id)
     @had_tb_treatment_before = ever_received_tb_treatment(@patient.id)
+    @any_previous_tb_programs = any_previous_tb_programs(@patient.id)
 
 		@patient.sputum_orders_without_submission.each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 		@patient.sputum_submissons_with_no_results.each{|order| @sputum_submission_waiting_results[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
@@ -720,6 +721,23 @@ class EncountersController < ApplicationController
     end
 		return true if tb_treatment_value == "Yes"
 		return false
+	end
+
+  def any_previous_tb_programs(patient_id)
+    @tb_programs = ''
+    patient_programs = PatientProgram.find_all_by_patient_id(patient_id)
+
+    unless patient_programs.blank?
+      patient_programs.each{ |patient_program|
+        if patient_program.program_id == Program.find_by_name("MDR-TB program").program_id ||
+           patient_program.program_id == Program.find_by_name("TB PROGRAM").program_id
+          @tb_programs = true
+          break
+        end
+      }
+    end
+		return false if @tb_programs.blank?
+    return true
 	end
   
 end
