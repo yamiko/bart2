@@ -136,7 +136,7 @@
 		tb_clinic = Encounter.find(:first,:order => "encounter_datetime DESC",
 				                  :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type IN (?)",
 				                  date,@patient.id,types])
-		if tb_clinic.blank?
+		if tb_clinic.blank? and not (@current_user_role.include?("Doctor") || @current_user_role.include?("Clinician"))
 	%>
   
 		<%= touch_yes_no_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
