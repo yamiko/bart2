@@ -157,9 +157,15 @@
 		 	:helpText => "TB type / TB susceptibility"
 		 	} %>
 
-	<%if @patient.hiv_status.upcase == 'POSITIVE' and not @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')%>
-		<%= touch_yes_no_unknown_tag "Patient enrolled in IMB HIV program", @patient, nil,
-			{	:id => "enroll_patient_in_art",
+	<%if @patient.hiv_status.upcase == 'POSITIVE' and not 
+      @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')%>
+    <%= select_tag(:enroll_tb, options_for_select([" ", "Yes", "No"]),
+        :helpText =>'Patient will continue TB treatment here') %>    
+
+		<%= touch_yes_no_unknown_tag "Patient enrolled in IMB HIV program", 
+        @patient, nil,
+			  {	:id => "enroll_patient_in_art",
+			  :condition => "$('enroll_tb').value == 'Yes'",
 				:helpText => 'Enroll patient in ART'} %>
 	<%end%>
 
