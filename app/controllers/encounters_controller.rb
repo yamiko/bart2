@@ -212,6 +212,8 @@ class EncountersController < ApplicationController
     #find a way of printing the lab_orders labels
      if params['encounter']['encounter_type_name'] == "LAB ORDERS"
        redirect_to"/patients/print_lab_orders/?patient_id=#{@patient.id}"
+     elsif params['encounter']['encounter_type_name'] == "TB suspect source of referral" && !params[:gender].empty? && !params[:family_name].empty? && !params[:given_name].empty?
+       redirect_to"/encounters/new/tb_suspect_source_of_referral/?patient_id=#{@patient.id}&gender=#{params[:gender]}&family_name=#{params[:family_name]}&given_name=#{params[:given_name]}"
      else
       redirect_to next_task(@patient)
      end
@@ -274,6 +276,7 @@ class EncountersController < ApplicationController
 		@tb_classification = nil
 		@eptb_classification = nil
 		@tb_type = nil
+    @people = Person.search(params) if params['encounter_type'].upcase rescue '' == "TB_SUSPECT_SOURCE_OF_REFERRAL"
 
 		if (params[:encounter_type].upcase rescue '') == 'TB_REGISTRATION'
 			
