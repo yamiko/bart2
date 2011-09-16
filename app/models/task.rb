@@ -821,7 +821,7 @@ class Task < ActiveRecord::Base
             return task
           end
         when 'TB VISIT'
-          if patient.child?
+          if patient.child? or patient.hiv_status.match(/Positive/i)
             clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
