@@ -508,6 +508,9 @@ class Task < ActiveRecord::Base
       task.encounter_type = type 
       case type
         when 'UPDATE HIV STATUS'
+          next_task = self.checks_if_labs_results_are_avalable_to_be_shown(patient , session_date , task)
+          return next_task unless next_task.blank?
+
           next if patient.hiv_status.match(/Positive/i)
           if not patient.patient_programs.blank?
             next if patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') 
@@ -818,6 +821,22 @@ class Task < ActiveRecord::Base
             return task
           end
         when 'TB VISIT'
+          if patient.child? or patient.hiv_status.match(/Positive/i)
+            clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["patient_id = ? AND encounter_type = ?",
+                                      patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
+
+            if clinic_visit.blank? and user_selected_activities.match(/Manage TB clinic visits/i)
+              task.encounter_type = "TB CLINIC VISIT"
+              task.url = "/encounters/new/tb_clinic_visit?show&patient_id=#{patient.id}"
+              return task
+            elsif clinic_visit.blank? and not user_selected_activities.match(/Manage TB clinic visits/i)
+              task.encounter_type = "TB CLINIC VISIT"
+              task.url = "/patients/show/#{patient.id}"
+              return task
+            end 
+          end
+
           #checks if vitals have been taken already 
           vitals = self.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
           return vitals unless vitals.blank?
@@ -953,6 +972,8 @@ class Task < ActiveRecord::Base
           encounter_art_visit = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                                    patient.id,EncounterType.find_by_name('ART VISIT').id,session_date],
                                    :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
+
+          prescribe_drugs = false
 
           prescribe_drugs = encounter_art_visit.observations.map{|obs| obs.to_s.squish.strip.upcase }.include? 'Prescribe ARVs this visit: Yes'.upcase rescue false
 
@@ -1182,6 +1203,35 @@ class Task < ActiveRecord::Base
       task.url = "/patients/show/#{patient.id}"
       return task
     end 
+  end
+
+  def self.checks_if_labs_results_are_avalable_to_be_shown(patient , session_date , task)
+    lab_result = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                :conditions =>["DATE(encounter_datetime) <= ? 
+                                AND patient_id = ? AND encounter_type = ?",
+                                session_date.to_date ,patient.id,
+                                EncounterType.find_by_name('LAB RESULTS').id])
+
+    give_lab_results = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                :conditions =>["DATE(encounter_datetime) >= ? 
+                                AND patient_id = ? AND encounter_type = ?",
+                                lab_result.encounter_datetime.to_date , patient.id,
+                                EncounterType.find_by_name('GIVE LAB RESULTS').id]) rescue nil
+
+    if not lab_result.blank? and give_lab_results.blank?
+      task.encounter_type = 'GIVE LAB RESULTS'
+      task.url = "/encounters/new/give_lab_results?patient_id=#{patient.id}"
+      return task
+    end
+
+    if not give_lab_results.blank?
+      if not give_lab_results.observations.collect{|obs|obs.to_s.squish}.include?('Laboratory results given to patient: Yes')
+        task.encounter_type = 'GIVE LAB RESULTS'
+        task.url = "/encounters/new/give_lab_results?patient_id=#{patient.id}"
+        return task
+      end if not (give_lab_results.encounter_datetime.to_date == session_date.to_date)
+    end
+
   end
 
 end
