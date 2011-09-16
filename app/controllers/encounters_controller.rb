@@ -223,7 +223,12 @@ class EncountersController < ApplicationController
 	def new
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		session_date = session[:datetime].to_date rescue Date.today
-    @current_encounters = @patient.encounters.find_by_date(session_date)
+        @current_encounters = @patient.encounters.find_by_date(session_date)
+        
+        @is_patient_pregnant_value = nil
+        @is_patient_breast_feeding_value = nil
+        @currently_using_family_planning_methods = nil
+        @family_planning_methods = []
 
 		@patient_has_closed_TB_program_at_current_location = PatientProgram.find(:all,:conditions =>
 			["voided = 0 AND patient_id = ? AND location_id = ? AND (program_id = ? OR program_id = ?)", @patient.id, Location.current_health_center.id, Program.find_by_name('TB PROGRAM').id, Program.find_by_name('MDR-TB PROGRAM').id]).last.closed? rescue true
@@ -293,6 +298,43 @@ class EncountersController < ApplicationController
 			#raise @tb_classification.to_s
 
 		end
+		
+        if  ['ART_VISIT', 'TB_VISIT', 'HIV_STAGING'].include?((params[:encounter_type].upcase rescue ''))
+            for encounter in @current_encounters.reverse do
+
+                if encounter.name.humanize.include?('Hiv staging') || encounter.name.humanize.include?('Tb visit') || encounter.name.humanize.include?('Art visit') 
+                    
+                    encounter = Encounter.find(encounter.id, :include => [:observations])
+
+                    for obs in encounter.observations do
+                        if obs.concept_id == ConceptName.find_by_name("IS PATIENT PREGNANT?").concept_id
+                            @is_patient_pregnant_value = "#{obs.to_s(["short", "order"]).to_s.split(":")[1]}"
+                        end
+                        
+                        if obs.concept_id == ConceptName.find_by_name("IS PATIENT BREAST FEEDING?").concept_id
+                            @is_patient_breast_feeding_value = "#{obs.to_s(["short", "order"]).to_s.split(":")[1]}"
+                        end
+                        
+                    end
+
+                    if encounter.name.humanize.include?('Tb visit') || encounter.name.humanize.include?('Art visit')
+
+                        encounter = Encounter.find(encounter.id, :include => [:observations])
+                        for obs in encounter.observations do
+                            if obs.concept_id == ConceptName.find_by_name("CURRENTLY USING FAMILY PLANNING METHOD").concept_id
+                                @currently_using_family_planning_methods = "#{obs.to_s(["short", "order"]).to_s.split(":")[1]}".squish
+                            end
+
+                            if obs.concept_id == ConceptName.find_by_name("FAMILY PLANNING METHOD").concept_id
+                                @family_planning_methods << "#{obs.to_s(["short", "order"]).to_s.split(":")[1]}".squish
+                            end
+                        end
+                        
+                    end
+                    
+                end
+            end
+        end
 
 		redirect_to "/" and return unless @patient
 
@@ -306,6 +348,7 @@ class EncountersController < ApplicationController
 		else
 			render :action => params[:encounter_type] if params[:encounter_type]
 		end
+		
 	end
 
 	def current_user_role
