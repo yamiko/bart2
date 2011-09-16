@@ -101,8 +101,6 @@
             <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
             {:id => "pregnant",
             :optional => false,
-            :tt_onLoad => "$('nextButton').style.display = 'none';",
-            :tt_requireNextClick => false,
             :helpText => "Is patient pregnant?" } %>
 
         <%else%>
