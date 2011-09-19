@@ -699,11 +699,16 @@ class Task < ActiveRecord::Base
                             :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                             session_date.to_date,patient.id,EncounterType.find_by_name('TB VISIT').id])
               if (tb_visits.length == 1) 
-                if user_selected_activities.match(/Manage TB Registration visits/i)
+                if not (User.current_user.user_roles.map{|u|u.role.match(/Clinician/i)} or 
+                  User.current_user.user_roles.map{|u|u.role.match(/Doctor/i)})
+                    task.encounter_type = 'TB VISIT'
+                    task.url = "/patients/show/#{patient.id}"
+                    return task
+                elsif user_selected_activities.match(/Manage TB Treatment Visits/i)
                   task.encounter_type = 'TB VISIT'
                   task.url = "/encounters/new/tb_visit?show&patient_id=#{patient.id}"
                   return task
-                elsif not user_selected_activities.match(/Manage TB Registration visits/i)
+                elsif not user_selected_activities.match(/Manage TB Treatment Visits/i)
                   task.encounter_type = 'TB VISIT'
                   task.url = "/patients/show/#{patient.id}"
                   return task
@@ -826,11 +831,11 @@ class Task < ActiveRecord::Base
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
 
-            if clinic_visit.blank? and user_selected_activities.match(/Manage TB clinic visits/i)
+            if clinic_visit.blank? and user_selected_activities.match(/Manage TB Treatment Visits/i)
               task.encounter_type = "TB CLINIC VISIT"
               task.url = "/encounters/new/tb_clinic_visit?show&patient_id=#{patient.id}"
               return task
-            elsif clinic_visit.blank? and not user_selected_activities.match(/Manage TB clinic visits/i)
+            elsif clinic_visit.blank? and not user_selected_activities.match(/Manage TB Treatment Visits/i)
               task.encounter_type = "TB CLINIC VISIT"
               task.url = "/patients/show/#{patient.id}"
               return task

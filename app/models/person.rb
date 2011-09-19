@@ -321,10 +321,12 @@ class Person < ActiveRecord::Base
 
     person = Person.create(person_params)
 
-    if birthday_params["birth_year"] == "Unknown"
-      person.set_birthdate_by_age(birthday_params["age_estimate"],self.session_datetime || Date.today)
-    else
-      person.set_birthdate(birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
+    unless birthday_params.empty?
+      if birthday_params["birth_year"] == "Unknown"
+        person.set_birthdate_by_age(birthday_params["age_estimate"],self.session_datetime || Date.today)
+      else
+        person.set_birthdate(birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
+      end
     end
     person.save
     person.names.create(names_params)
