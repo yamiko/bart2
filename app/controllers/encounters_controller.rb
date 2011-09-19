@@ -226,7 +226,6 @@ class EncountersController < ApplicationController
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		session_date = session[:datetime].to_date rescue Date.today
         @current_encounters = @patient.encounters.find_by_date(session_date)
-        
         @is_patient_pregnant_value = nil
         @is_patient_breast_feeding_value = nil
         @currently_using_family_planning_methods = nil
@@ -280,9 +279,13 @@ class EncountersController < ApplicationController
 
     @cell_number = @patient.person.person_attributes.find_by_person_attribute_type_id(PersonAttributeType.find_by_name("Cell Phone Number").id).value rescue ''
 
+    @continue_treatment_at_site = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("TB CLINIC VISIT").id,@patient.id]).observations.map{|o| o.answer_string if o.to_s.include?("Continue treatment")  } rescue nil
+
 		@tb_classification = nil
 		@eptb_classification = nil
 		@tb_type = nil
+
     @people = Person.search(params) if params['encounter_type'].upcase rescue '' == "TB_SUSPECT_SOURCE_OF_REFERRAL"
 
 		if (params[:encounter_type].upcase rescue '') == 'TB_REGISTRATION'
