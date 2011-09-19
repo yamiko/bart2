@@ -723,11 +723,13 @@ class EncountersController < ApplicationController
       ],
       'duration_of_current_cough' => [
         ['',''],
+        ["Less than a week", "Less than once a week"],
         ["1 Week", "1 week"],
         ["2 Weeks", "2 weeks"],
         ["3 Weeks", "3 weeks"],
         ["4 Weeks", "4 weeks"],
-        ["More than 4 Weeks", "More than 4 weeks"]
+        ["More than 4 Weeks", "More than 4 weeks"],
+        ["Unknown", "Unknown"]
       ],
       'eptb_classification'=> [
         ['',''],
