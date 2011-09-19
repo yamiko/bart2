@@ -122,7 +122,7 @@
  
 	<%= touch_yes_no_tag "interpret x-ray?", @patient, 'gdgdg',
 		{	:id => "interpret_xray",
-			:helpText => "X-ray scan available for interpretation?" } %>
+			:helpText => "Is X-ray film available?" } %>
 
 	<%= touch_select_tag "Xray result interpretation", @patient, options_for_select(@select_options['tb_xray_interpretation']),
 		{	:id => "xray",
