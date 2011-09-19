@@ -118,11 +118,9 @@
 		reception_obs = reception.observations.map{|obs|obs.to_s.strip.upcase} rescue []
 	%>
 
-
- 
-	<%= touch_yes_no_tag "interpret x-ray?", @patient, 'gdgdg',
+	<%= touch_yes_no_tag "interpret x-ray?", @patient,  nil,
 		{	:id => "interpret_xray",
-			:helpText => "X-ray scan available for interpretation?" } %>
+			:helpText => "Is X-ray film available?" } %>
 
 	<%= touch_select_tag "Xray result interpretation", @patient, options_for_select(@select_options['tb_xray_interpretation']),
 		{	:id => "xray",
@@ -167,13 +165,14 @@
 
 	<%if @patient.hiv_status.upcase == 'POSITIVE' and not 
       @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')%>
-    <%= select_tag(:enroll_tb, options_for_select([" ", "Yes", "No"]),
-        :helpText =>'Patient will continue TB treatment here') %>    
+    <%= touch_yes_no_tag "Continue treatment", @patient, nil,
+		  {	:id => "continue_treatment",
+			  :helpText => "Continue TB treatment at this clinic" } %>
 
 		<%= touch_yes_no_unknown_tag "Patient enrolled in IMB HIV program", 
         @patient, nil,
 			  {	:id => "enroll_patient_in_art",
-			  :condition => "$('enroll_tb').value == 'Yes'",
+			  :condition => "$('continue_treatment').value == 'YES'",
 				:helpText => 'Enroll patient in ART'} %>
 	<%end%>
 
