@@ -69,7 +69,7 @@
               <option value='/patients/past_visits_summary?patient_id=<%= @patient.id %>'>Past Visits</option>
               <option value='/patients/personal/<%= @patient.id -%>'>Printouts/Other</option>
               <option value='/patients/next_task_description?task_id=<%= task.id -%>'>
-                NEXT TASK: <%= task_name %>
+                NEXT TASK: <%= task_name.gsub('_',' ') %>
               </option>
             </select>
             <% if @patient.person.dead == 1%>

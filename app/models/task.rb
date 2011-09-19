@@ -736,10 +736,37 @@ class Task < ActiveRecord::Base
             task.url = "/patients/show/#{patient.id}"
             return task
           end 
-        when 'TB_INITIAL'
-          vitals = self.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
-          return vitals unless vitals.blank?
 
+          xray = Observation.find(Observation.find(:last, 
+                    :conditions => ["person_id = ? AND concept_id = ?", 
+                    patient.id, ConceptName.find_by_name("Refer to x-ray?").concept_id,
+                    ])).to_s.strip.squish.upcase rescue ''
+
+          if xray.match(/: Yes/i)
+            task.encounter_type = "Xray scan"
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end
+
+          clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["patient_id = ? AND encounter_type = ?",
+                                      patient.id,EncounterType.find_by_name(type).id])
+
+          clinic_visit_obs = clinic_visit.observations.map{|o|
+            o.to_s.upcase.strip.squish
+          }.include?("REFER TO X-RAY?: YES") rescue false
+
+          if clinic_visit_obs
+            if user_selected_activities.match(/Manage TB clinic visits/i)
+              task.url = "/encounters/new/tb_clinic_visit?show&patient_id=#{patient.id}"
+              return task
+            elsif not user_selected_activities.match(/Manage TB clinic visits/i)
+              task.url = "/patients/show/#{patient.id}"
+              return task
+            end 
+          end if clinic_visit_obs
+
+        when 'TB_INITIAL'
           #next if not patient.tb_status.match(/treatment/i)
           tb_initial = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
