@@ -10,6 +10,14 @@
       //tt_cancel_destination = '/clinic';
       tt_cancel_show = '/clinic';
     </script>
+    <style>
+      #tab5 {
+        background-color: white;
+        border: 0 none;
+        color: black;
+        font-weight: bold;
+      }
+    </style>
   </head>
   <body><div id='content'>
       <div id='description' style='color:#777;position:absolute;margin-top:-70px;'></div><center>
@@ -52,13 +60,15 @@
               <% end 
                  session_date = session[:datetime].to_date rescue Date.today
               %>
-              <span value="<%= (Task.next_task(Location.current_location,@patient,session_date).encounter_type || 'None').humanize.gsub('hiv','HIV').gsub('art','ART').gsub('tb','TB').gsub('Tb','TB').gsub('Hiv','HIV').gsub('Art','ART') rescue 'None'%>">NEXT TASK</span>
             </div>
             <select id="tabs">
               <option value='/patients/overview?patient_id=<%= @patient.id %>'>Overview</option>
               <option value='/patients/visit_history?patient_id=<%= @patient.id %>'>Current Visit</option>
               <option value='/patients/past_visits_summary?patient_id=<%= @patient.id %>'>Past Visits</option>
               <option value='/patients/personal/<%= @patient.id -%>'>Printouts/Other</option>
+              <option value='#'>NEXT TASK:<%='&nbsp'*2%>
+                <%= (Task.next_task(Location.current_location,@patient,session_date).encounter_type || 'None').upcase %>
+              </option>
             </select>
             <% if @patient.person.dead == 1%>
               <select id="links">
