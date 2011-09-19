@@ -699,11 +699,16 @@ class Task < ActiveRecord::Base
                             :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                             session_date.to_date,patient.id,EncounterType.find_by_name('TB VISIT').id])
               if (tb_visits.length == 1) 
-                if user_selected_activities.match(/Manage TB Registration visits/i)
+                if not (User.current_user.user_roles.map{|u|u.role.match(/Clinician/i)} or 
+                  User.current_user.user_roles.map{|u|u.role.match(/Doctor/i)})
+                    task.encounter_type = 'TB VISIT'
+                    task.url = "/patients/show/#{patient.id}"
+                    return task
+                elsif user_selected_activities.match(/Manage TB Treatment Visits/i)
                   task.encounter_type = 'TB VISIT'
                   task.url = "/encounters/new/tb_visit?show&patient_id=#{patient.id}"
                   return task
-                elsif not user_selected_activities.match(/Manage TB Registration visits/i)
+                elsif not user_selected_activities.match(/Manage TB Treatment Visits/i)
                   task.encounter_type = 'TB VISIT'
                   task.url = "/patients/show/#{patient.id}"
                   return task
@@ -731,10 +736,37 @@ class Task < ActiveRecord::Base
             task.url = "/patients/show/#{patient.id}"
             return task
           end 
-        when 'TB_INITIAL'
-          vitals = self.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
-          return vitals unless vitals.blank?
 
+          xray = Observation.find(Observation.find(:last, 
+                    :conditions => ["person_id = ? AND concept_id = ?", 
+                    patient.id, ConceptName.find_by_name("Refer to x-ray?").concept_id,
+                    ])).to_s.strip.squish.upcase rescue ''
+
+          if xray.match(/: Yes/i)
+            task.encounter_type = "Xray scan"
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end
+
+          clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
+                                      :conditions =>["patient_id = ? AND encounter_type = ?",
+                                      patient.id,EncounterType.find_by_name(type).id])
+
+          clinic_visit_obs = clinic_visit.observations.map{|o|
+            o.to_s.upcase.strip.squish
+          }.include?("REFER TO X-RAY?: YES") rescue false
+
+          if clinic_visit_obs
+            if user_selected_activities.match(/Manage TB clinic visits/i)
+              task.url = "/encounters/new/tb_clinic_visit?show&patient_id=#{patient.id}"
+              return task
+            elsif not user_selected_activities.match(/Manage TB clinic visits/i)
+              task.url = "/patients/show/#{patient.id}"
+              return task
+            end 
+          end if clinic_visit_obs
+
+        when 'TB_INITIAL'
           #next if not patient.tb_status.match(/treatment/i)
           tb_initial = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
@@ -826,11 +858,11 @@ class Task < ActiveRecord::Base
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
 
-            if clinic_visit.blank? and user_selected_activities.match(/Manage TB clinic visits/i)
+            if clinic_visit.blank? and user_selected_activities.match(/Manage TB Treatment Visits/i)
               task.encounter_type = "TB CLINIC VISIT"
               task.url = "/encounters/new/tb_clinic_visit?show&patient_id=#{patient.id}"
               return task
-            elsif clinic_visit.blank? and not user_selected_activities.match(/Manage TB clinic visits/i)
+            elsif clinic_visit.blank? and not user_selected_activities.match(/Manage TB Treatment Visits/i)
               task.encounter_type = "TB CLINIC VISIT"
               task.url = "/patients/show/#{patient.id}"
               return task

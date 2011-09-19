@@ -147,7 +147,7 @@
 				                  date,@patient.id,types])
 		if tb_clinic.blank? and not (@current_user_role.include?("Doctor") || @current_user_role.include?("Clinician"))
 	%>
-  
+
 		<%= touch_yes_no_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
 			{	:id => "refer_to_clinician",
 				:helpText => "Refer patient to clinician" } %>
@@ -164,13 +164,17 @@
 		{	:id => "allergic_to_sulphur",
 			:condition => "$('refer_to_clinician').value == 'NO'" ,
 			:helpText => "Is patient allergic to sulphur" } %>
-			
-	<%= touch_yes_no_tag "Continue treatment", @patient, nil,
-		{	:id => "continue_treatment",
-			:condition => "$('refer_to_clinician').value == 'NO'" ,
-			:helpText => "Continue TB treatment at this clinic" } %>
 
-				
+  <% if @continue_treatment_at_site.blank? %>
+	  <%= touch_yes_no_tag "Continue treatment", @patient, nil,
+		  {	:id => "continue_treatment",
+			  :condition => "$('refer_to_clinician').value == 'NO'",
+			  :helpText => "Continue TB treatment at this clinic" } %>
+  <% else %>
+    <%= touch_hidden_tag "Continue treatment", @patient, "#{@continue_treatment_at_site.to_s.strip.upcase}",
+       :id => "continue_treatment" %>
+  <% end %>
+
 	<%= touch_location_tag "Transfer to", @patient, nil,
 		{	:id => 'transfer_out_location_id',
 			:field_type => 'alpha',
