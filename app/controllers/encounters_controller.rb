@@ -235,6 +235,8 @@ class EncountersController < ApplicationController
        EncounterType.find_by_name("GIVE LAB RESULTS").id,@patient.id]).observations.map{|o|
          o.answer_string if o.to_s.include?("Laboratory results given to patient")} rescue nil
 
+    @recent_sputum_results = @patient.recent_sputum_results rescue nil
+
 		@patient_has_closed_TB_program_at_current_location = PatientProgram.find(:all,:conditions =>
 			["voided = 0 AND patient_id = ? AND location_id = ? AND (program_id = ? OR program_id = ?)", @patient.id, Location.current_health_center.id, Program.find_by_name('TB PROGRAM').id, Program.find_by_name('MDR-TB PROGRAM').id]).last.closed? rescue true
 
