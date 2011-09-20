@@ -231,6 +231,10 @@ class EncountersController < ApplicationController
         @currently_using_family_planning_methods = nil
         @family_planning_methods = []
 
+    @given_lab_results = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+       EncounterType.find_by_name("GIVE LAB RESULTS").id,@patient.id]).observations.map{|o|
+         o.answer_string if o.to_s.include?("Laboratory results given to patient")} rescue nil
+
 		@patient_has_closed_TB_program_at_current_location = PatientProgram.find(:all,:conditions =>
 			["voided = 0 AND patient_id = ? AND location_id = ? AND (program_id = ? OR program_id = ?)", @patient.id, Location.current_health_center.id, Program.find_by_name('TB PROGRAM').id, Program.find_by_name('MDR-TB PROGRAM').id]).last.closed? rescue true
 
