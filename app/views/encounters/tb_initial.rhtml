@@ -64,6 +64,18 @@
 			 :max => "#{session[:datetime].to_date rescue Date.today}",
 			 :helpText => "Date of TB initiation"} %>
 
+ <%= touch_select_tag "SPUTUM RESULT", @patient, options_for_select([['',''],['Negative','Negative'],['Positive','Positive'], ['NA','NA']]),
+  {:id => "sputum_result",
+	 :condition => "$('transfer_in').value =='YES'",
+	 :helptext => "Smear results at initiation"}
+  %>
+
+  <%= touch_date_tag "DATE OF SPUTUM MICROSCOPY", @patient, nil,
+			{:id => "date_of_initial_smear_results",
+			 :condition => "$('sputum_result').value != 'NA'",
+			 :max => "#{session[:datetime].to_date rescue Date.today}",
+			 :helpText => "Date of initial smear results"} %>
+  
   <%= touch_text_field_tag "TB REGISTRATION NUMBER", @patient, nil,
 			{	:id => "previous_tb_registration_number",
 			  :condition => "$('transfer_in').value =='YES'",
