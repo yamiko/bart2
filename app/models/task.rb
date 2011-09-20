@@ -532,6 +532,17 @@ class Task < ActiveRecord::Base
             task.url = "/patients/show/#{patient.id}"
             return task
           end
+
+          refered_to_htc = Observation.find(Observation.find(:last, 
+                    :conditions => ["person_id = ? AND concept_id = ?", 
+                    patient.id, ConceptName.find_by_name("Refer to HTC").concept_id,
+                    ])).to_s.strip.squish.upcase rescue nil
+
+          if ('Refer to HTC: Yes'.upcase == refered_to_htc)
+            task.encounter_type = 'Refered to HTC'
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end
         when 'VITALS' 
 
           if not patient.hiv_status.match(/Positive/i) and not patient.tb_status.match(/treatment/i)
