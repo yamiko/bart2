@@ -72,7 +72,7 @@
 
   <%= touch_date_tag "DATE OF SPUTUM MICROSCOPY", @patient, nil,
 			{:id => "date_of_initial_smear_results",
-			 :condition => "$('sputum_result').value != 'NA'",
+			 :condition => "$('sputum_result').value != 'NA' && $('transfer_in').value =='YES'",
 			 :max => "#{session[:datetime].to_date rescue Date.today}",
 			 :helpText => "Date of initial smear results"} %>
   
