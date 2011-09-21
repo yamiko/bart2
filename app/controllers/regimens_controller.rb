@@ -22,21 +22,41 @@ class RegimensController < ApplicationController
             :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
             session_date.to_date, @patient.id, EncounterType.find_by_name('ART VISIT').id])
 		@art_visit = false
-		#raise pre_art_visit.blank?.to_s
+
 		if ((not pre_art_visit.blank?) or (not art_visit.blank?))
 			@art_visit = true		
 		end
-		#raise @art_visit.to_s
 
-		tb_treatment_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
+		treatment_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
+		    :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+		    session_date, @patient.id, EncounterType.find_by_name('TREATMENT').id]).observations rescue []
+
+		tb_medication_prescribed = false
+		arvs_prescribed = false
+		(treatment_obs || []).each do | obs | 
+			if obs.concept_id == (Concept.find_by_name('TB regimen type').concept_id rescue nil)
+				tb_medication_prescribed = true 
+			end
+
+			if obs.concept_id == (Concept.find_by_name('ARV regimen type').concept_id rescue nil)
+				arvs_prescribed = true 
+			end
+		end
+
+		tb_visit_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
 		    :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
 		    session_date, @patient.id, EncounterType.find_by_name('TB VISIT').id]).observations rescue []
 
 		prescribe_tb_medication = false
-		(tb_treatment_obs || []).each do | obs | 
+		(tb_visit_obs || []).each do | obs | 
 			if obs.concept_id == (Concept.find_by_name('Prescribe drugs').concept_id rescue nil)
 				prescribe_tb_medication = true if Concept.find(obs.value_coded).fullname.upcase == 'YES' 
 			end
+		end
+
+		@prescribe_tb_drugs = false	
+		if (not @tb_programs.blank?) and prescribe_tb_medication and !tb_medication_prescribed
+			@prescribe_tb_drugs = true
 		end
 
 		sulphur_allergy_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
@@ -50,23 +70,17 @@ class RegimensController < ApplicationController
 			end
 		end
 
-		art_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
+		art_visit_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
 			:conditions => ["patient_id = ? AND encounter_type IN (?)",
 			@patient.id, EncounterType.find(:all,:select => 'encounter_type_id', :conditions => ["name IN (?)",["ART VISIT"]])]).observations rescue []
 
 		@prescribe_art_drugs = false
-		(art_obs || []).each do | obs |
+		(art_visit_obs || []).each do | obs |
 			if obs.concept_id == (Concept.find_by_name('Prescribe arvs').concept_id rescue nil)
-				@prescribe_art_drugs = true if Concept.find(obs.value_coded).fullname.upcase == 'YES'
+				@prescribe_art_drugs = true if Concept.find(obs.value_coded).fullname.upcase == 'YES' and !arvs_prescribed
 			end
 		end
 
-
-		@prescribe_tb_drugs = false	
-		if (not @tb_programs.blank?) and prescribe_tb_medication
-			@prescribe_tb_drugs = true
-		end
-		
 	    session_date = session[:datetime].to_date rescue Date.today
         current_encounters = @patient.encounters.find_by_date(session_date)
         @family_planning_methods = []
@@ -101,6 +115,7 @@ class RegimensController < ApplicationController
                 
             end
         end
+		
 
 
 	end
@@ -111,7 +126,8 @@ class RegimensController < ApplicationController
 		prescribe_arvs = false
 		prescribe_cpt = false
 		prescribe_ipt = false
-
+		clinical_notes = nil
+		condoms = nil
 		(params[:observations] || []).each do |observation|
 			if observation['concept_name'].upcase == 'PRESCRIBE DRUGS'
 				prescribe_tb_drugs = ('YES' == observation['value_coded_or_text'])
@@ -121,6 +137,10 @@ class RegimensController < ApplicationController
 				prescribe_cpt = ('YES' == observation['value_coded_or_text'])
 			elsif observation['concept_name'] == 'ISONIAZID'
 				prescribe_ipt = ('YES' == observation['value_coded_or_text'])
+			elsif observation['concept_name'] == 'CLINICAL NOTES CONSTRUCT'
+				clinical_notes = observation['value_text']
+			elsif observation['concept_name'] == 'CONDOMS'
+				condoms = observation['value_numeric']
 			end
 		end
 		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
@@ -231,9 +251,23 @@ class RegimensController < ApplicationController
 			end
 		end
    
-	 if !params[:transfer_data].nil?
-            transfer_out_patient(params[:transfer_data][0])
-   end
+		obs = Observation.create(
+			:concept_name => "CLINICAL NOTES CONSTRUCT",
+			:person_id => @patient.person.person_id,
+			:encounter_id => encounter.encounter_id,
+			:value_text => clinical_notes,
+			:obs_datetime => start_date) if !clinical_notes.blank?
+
+		obs = Observation.create(
+			:concept_name => "CONDOMS",
+			:person_id => @patient.person.person_id,
+			:encounter_id => encounter.encounter_id,
+			:value_numeric => condoms,
+			:obs_datetime => start_date) if !condoms.blank?
+		
+		if !params[:transfer_data].nil?
+			transfer_out_patient(params[:transfer_data][0])
+		end
     
 		# Send them back to treatment for now, eventually may want to go to workflow
 		redirect_to "/patients/treatment_dashboard?patient_id=#{@patient.id}"

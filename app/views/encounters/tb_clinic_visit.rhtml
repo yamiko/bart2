@@ -150,7 +150,7 @@
 
 	<%= touch_select_tag "EPTB classification", @patient, options_for_select(@select_options['eptb_classification']),
 		{	:id => "further_tb_classification",
-			:condition => "$('tb_suspected').value == 'YES'",
+			:condition => '$("tb_classification").value == "Extrapulmonary tuberculosis (EPTB)"',
 		 	:tt_pageStyleClass => "NoKeyboard",
 		 	:helpText => "EPTB classification" } %>
 
