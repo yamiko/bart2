@@ -245,7 +245,8 @@ private
       # Notice this swaps them!
       new_relationship_url(:patient_id => primary_person_id, :relation => found_person_id)
     else
-      url_for(:controller => :encounters, :action => :new, :patient_id => found_person_id)
+      #url_for(:controller => :encounters, :action => :new, :patient_id => found_person_id)
+      url_for(:controller => :people, :action => :confirm , :found_person_id =>found_person_id)
     end
   end
 end
