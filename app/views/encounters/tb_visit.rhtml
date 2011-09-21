@@ -14,6 +14,7 @@
     }
     return "False";
   }
+
 </script>
 
 <style>
@@ -32,6 +33,7 @@
 
 	Check applicability of code below
 -->
+<% @smear_positive = @recent_sputum_results.map{|obs| obs.to_s if obs.answer_string.to_s.strip != "Negative"} %>
 
 <form id='appointment' action="/encounters/create" method='post'>
   <%= hidden_field_tag "encounter[encounter_type_name]", "TB VISIT" %>
@@ -100,26 +102,34 @@
 		<% end %>
 	<% end %>
 
-	<%= touch_yes_no_tag "SYMPTOMATIC", @patient, nil,
-		{	:id => "any_tb_symptoms",
-			:helpText => "Any current TB signs?" } %>
+  <% if @tb_symptoms.empty? %>
+	  <%= touch_yes_no_tag "SYMPTOMATIC", @patient, nil,
+		  {	:id => "any_tb_symptoms",
+			  :helpText => "Any current TB signs?" } %>
 
-	<% if @current_user_role.include?("Doctor") || @current_user_role.include?("Nurse") || @current_user_role.include?("Clinician") %>
-		<%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms_all']),
-			{	:id => 'tb_symptoms',
-				:optional => true,
-				:multiple => true,
-				:condition => "$('any_tb_symptoms').value == 'YES'",
-				:helpText => "Select current TB symptoms" } %>
-	<% else %>
-		<%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms_short']),
-			{	:id => "tb_symptoms",
-				:multiple => true,
-				:tt_pageStyleClass => "NoKeyboard",
-				:condition => "$('any_tb_symptoms').value == 'YES'",
-				:helpText => "Select current TB symptoms"} %>
-	<% end %>
- 
+	  <% if @current_user_role.include?("Doctor") || @current_user_role.include?("Nurse") || @current_user_role.include?("Clinician") %>
+		  <%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms_all']),
+			  {	:id => 'tb_symptoms',
+				  :optional => true,
+				  :multiple => true,
+				  :condition => "$('any_tb_symptoms').value == 'YES'",
+				  :helpText => "Select current TB symptoms" } %>
+	  <% else %>
+		  <%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms_short']),
+			  {	:id => "tb_symptoms",
+				  :multiple => true,
+				  :tt_pageStyleClass => "NoKeyboard",
+				  :condition => "$('any_tb_symptoms').value == 'YES'",
+				  :helpText => "Select current TB symptoms"} %>
+	  <% end %>
+  <% else %>
+    <%= touch_hidden_tag "SYMPTOMATIC", @patient, "YES", :id => "any_tb_symptoms" %>
+
+    <% @tb_symptoms.each do |symptom| %>
+      <%= touch_hidden_tag "TB symptoms", @patient, "#{symptom}", :id => "tb_symptoms" %>
+    <% end %>
+  <% end %>
+
 	<% if @tb_first_registration == false %>
 		<%= touch_yes_no_tag "SIDE EFFECTS", @patient, nil,
 			{	:id => "side_effects",
@@ -133,8 +143,6 @@
 				:tt_onUnLoad => "",
 				:helpText => "Drug related side effects" } %>
 	<% end %>
-
-
 
 	<%	
     date = session[:datetime].to_date rescue Date.today
@@ -188,12 +196,11 @@
 			:optional => false,
 			:condition => "$('continue_treatment').value == 'NO'" ,
 			:helpText => "Transfer within responsibility (e.g. District)" } %>
-       
 
-	<%= submit_tag "Finish" %>    
+	<%= submit_tag "Finish" %>
 </form>
 
 <div id='sulfurAlert' class='messageBar' style='display:none'>
   Ask if patient is alergic to Sulfur<br /> 
   <button onmousedown="$('sulfurAlert').style.display = 'none';"><span>OK</span></button>
-</div> 
+</div>
