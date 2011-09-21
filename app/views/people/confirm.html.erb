@@ -139,7 +139,7 @@
     jQuery.plot(jQuery("#charts"), get_data(null, null), plot_options);
   }
 
-  function submitPage(patient_id) {
+  function submitPage(patient_id,concept_name) {
      submitForm = document.getElementById("confirm");
     
      newElement = document.createElement("input");                             
@@ -163,7 +163,7 @@
      newElement = document.createElement("input");                             
      newElement.setAttribute("name","observations[][concept_name]");                 
      newElement.setAttribute("type","hidden");                                 
-     newElement.value = "REFER TO X-RAY?";      
+     newElement.value = concept_name;      
      submitForm.appendChild(newElement);
 
      newElement = document.createElement("input");                             
@@ -229,12 +229,22 @@
                     :conditions => ["person_id = ? AND concept_id = ?",                      
                     @person.id, ConceptName.find_by_name("Refer to x-ray?").concept_id,  
                     ])).to_s.strip.squish.upcase rescue '' 
+      
+          refered_to_htc = Observation.find(Observation.find(:last,                       
+                    :conditions => ["person_id = ? AND concept_id = ?",                      
+                    @person.id, ConceptName.find_by_name("Refer to HTC").concept_id,  
+                    ])).to_s.strip.squish.upcase rescue '' 
         %>
         <th>Next task</th><td><%= next_task %></td>
-        <% if xray.match(/: Yes/i) %>
+        <% if refered_to_htc.match(/: Yes/i) %>
+        <th style="float:right;"><%='&nbsp;'*45%>HTC done?</th>
+        <td><span style="float:right;">
+          <a href="javascript:submitPage('<%=@person.id%>','Refer to HTC')">YES</a></span>
+        </td>
+        <% elsif xray.match(/: Yes/i) %>
         <th style="float:right;"><%='&nbsp;'*45%>Xray details available?</th>
         <td><span style="float:right;">
-          <a href="javascript:submitPage('<%=@person.id%>')">YES</a></span>
+          <a href="javascript:submitPage('<%=@person.id%>','Refer to x-ray?')">YES</a></span>
         </td>
         <% end %>
       </tr>

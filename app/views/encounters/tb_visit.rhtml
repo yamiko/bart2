@@ -165,7 +165,7 @@
 			:condition => "$('refer_to_clinician').value == 'NO'" ,
 			:helpText => "Is patient allergic to sulphur" } %>
 
-  <% if @continue_treatment_at_site.blank? %>
+  <% if @continue_treatment_at_site.to_s.strip.upcase != "YES" %>
 	  <%= touch_yes_no_tag "Continue treatment", @patient, nil,
 		  {	:id => "continue_treatment",
 			  :condition => "$('refer_to_clinician').value == 'NO'",

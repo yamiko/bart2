@@ -167,7 +167,7 @@
       @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')%>
     <%= touch_yes_no_tag "Continue treatment", @patient, nil,
 		  {	:id => "continue_treatment",
-			  :helpText => "Continue TB treatment at this clinic" } %>
+			  :helpText => "Do you plan to continue picking up TB drugs at this clinic?" } %>
 
 		<%= touch_yes_no_unknown_tag "Patient enrolled in IMB HIV program", 
         @patient, nil,
