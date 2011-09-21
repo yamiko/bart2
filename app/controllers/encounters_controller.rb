@@ -229,6 +229,7 @@ class EncountersController < ApplicationController
         @is_patient_pregnant_value = nil
         @is_patient_breast_feeding_value = nil
         @currently_using_family_planning_methods = nil
+        @local_tb_dot_sites_tag = local_tb_dot_sites_tag
         @family_planning_methods = []
 
     @given_lab_results = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
