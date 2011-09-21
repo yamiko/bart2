@@ -46,6 +46,7 @@ class RelationshipsController < ApplicationController
       end
     end
   end
+  end
   
   def void
     @relationship = Relationship.find(params[:id])
