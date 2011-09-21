@@ -226,11 +226,24 @@ class EncountersController < ApplicationController
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		session_date = session[:datetime].to_date rescue Date.today
         @current_encounters = @patient.encounters.find_by_date(session_date)
-        
         @is_patient_pregnant_value = nil
         @is_patient_breast_feeding_value = nil
         @currently_using_family_planning_methods = nil
         @family_planning_methods = []
+
+    @given_lab_results = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+       EncounterType.find_by_name("GIVE LAB RESULTS").id,@patient.id]).observations.map{|o|
+         o.answer_string if o.to_s.include?("Laboratory results given to patient")} rescue nil
+
+    @transfer_to = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+       EncounterType.find_by_name("TB VISIT").id,@patient.id]).observations.map{|o|
+         o.answer_string if o.to_s.include?("Transfer out to")} rescue nil
+
+    @recent_sputum_results = @patient.recent_sputum_results rescue nil
+
+   @continue_treatment_at_site = []
+     Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("TB CLINIC VISIT").id,@patient.id]).observations.map{|o| @continue_treatment_at_site << o.answer_string if o.to_s.include?("Continue treatment")  } rescue nil
 
 		@patient_has_closed_TB_program_at_current_location = PatientProgram.find(:all,:conditions =>
 			["voided = 0 AND patient_id = ? AND location_id = ? AND (program_id = ? OR program_id = ?)", @patient.id, Location.current_health_center.id, Program.find_by_name('TB PROGRAM').id, Program.find_by_name('MDR-TB PROGRAM').id]).last.closed? rescue true
@@ -280,13 +293,24 @@ class EncountersController < ApplicationController
 
     @cell_number = @patient.person.person_attributes.find_by_person_attribute_type_id(PersonAttributeType.find_by_name("Cell Phone Number").id).value rescue ''
 
+    @tb_symptoms = []
+
+    if (params[:encounter_type].upcase rescue '') == 'TB_VISIT'
+      @current_encounters.reverse.each do |enc|
+         enc.observations.each do |o|
+           @tb_symptoms << o.answer_string.strip if o.to_s.include?("TB symptoms") rescue nil
+         end
+       end
+    end
+
 		@tb_classification = nil
 		@eptb_classification = nil
 		@tb_type = nil
+
     @people = Person.search(params) if params['encounter_type'].upcase rescue '' == "TB_SUSPECT_SOURCE_OF_REFERRAL"
 
 		if (params[:encounter_type].upcase rescue '') == 'TB_REGISTRATION'
-			
+
 			tb_clinic_visit_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
 				:conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
 				session_date, @patient.id, EncounterType.find_by_name('TB CLINIC VISIT').id]).observations rescue []
@@ -301,7 +325,7 @@ class EncountersController < ApplicationController
 			#raise @tb_classification.to_s
 
 		end
-		
+
         if  ['ART_VISIT', 'TB_VISIT', 'HIV_STAGING'].include?((params[:encounter_type].upcase rescue ''))
             for encounter in @current_encounters.reverse do
 
@@ -334,7 +358,7 @@ class EncountersController < ApplicationController
                         end
                         
                     end
-                    
+
                 end
             end
         end
@@ -720,11 +744,13 @@ class EncountersController < ApplicationController
       ],
       'duration_of_current_cough' => [
         ['',''],
+        ["Less than 1 week", "Less than once a week"],
         ["1 Week", "1 week"],
         ["2 Weeks", "2 weeks"],
         ["3 Weeks", "3 weeks"],
         ["4 Weeks", "4 weeks"],
-        ["More than 4 Weeks", "More than 4 weeks"]
+        ["More than 4 Weeks", "More than 4 weeks"],
+        ["Unknown", "Unknown"]
       ],
       'eptb_classification'=> [
         ['',''],

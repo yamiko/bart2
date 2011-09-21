@@ -330,7 +330,7 @@ class Person < ActiveRecord::Base
     end
     person.save
     person.names.create(names_params)
-    person.addresses.create(address_params)
+    person.addresses.create(address_params) unless address_params.empty? rescue nil
 
     person.person_attributes.create(
       :person_attribute_type_id => PersonAttributeType.find_by_name("Occupation").person_attribute_type_id,

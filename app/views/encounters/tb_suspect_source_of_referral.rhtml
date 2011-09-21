@@ -176,7 +176,7 @@ end -%>
       <input type="hidden" name="address2" value="<%=h params[:address2] -%>" />
       <input type="hidden" name="relation" value="<%=h params[:relation] -%>" />
       <input type="hidden" name="patient_id"  value="<%=params[:patient_id]%>" />
-      <input type="hidden" name="relationship" value="<%=h RelationshipType.find_by_b_is_to_a('Other').id -%>" />
+      <input type="hidden" name="relationship" value="<%=h RelationshipType.find_by_b_is_to_a('TB Index Person').id -%>" />
     <% end -%>
   <% end -%>
 </body>
