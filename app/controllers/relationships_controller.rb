@@ -26,6 +26,11 @@ class RelationshipsController < ApplicationController
                                         } 
                                         )
         person_id = person.id
+      @relationship = Relationship.new(
+        :person_a => @patient.patient_id,
+        :person_b => params[:relation],
+        :relationship => params[:relationship])
+      if @relationship.save
       end
 
     else

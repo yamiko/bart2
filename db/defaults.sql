@@ -187,5 +187,5 @@ Kabudula Rural Hospital,
 Mitundu Rural hospital");
 
 /* Remove unwanted relationships */;
-DELETE FROM relationship_type WHERE b_is_to_a NOT IN ("Parent", "Child", "Sibling", "Spouse/Partner", "Village Health Worker", "Other");
+DELETE FROM relationship_type WHERE b_is_to_a NOT IN ("Parent", "Child", "Sibling", "Spouse/Partner", "Village Health Worker","TB Index Person","TB contact Person","Other");
 -- Dump completed on 2010-03-17 15:18:37
