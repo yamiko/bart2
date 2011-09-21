@@ -129,62 +129,10 @@ SET @'workstation_tag_id' = (SELECT location_tag_id FROM location_tag WHERE name
 INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) SELECT `location_id`, @'workstation_tag_id' FROM `location` WHERE `description` = 'Workstation Location';
 
 SET @'workstation_tag_id' = (SELECT location_tag_id FROM location_tag WHERE name = 'Central TB DOT Sites');
-INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) SELECT `location_id`, @'workstation_tag_id' FROM `location` WHERE `name` IN ("UNC Project  Bwaila Hospital,
-Kamuzu Central Hospital,
-Lighthouse,
-Nkhoma Hospita,
-St Gabriel Hospital,
-Likuni Hospital,
-Partners in hope,
-Dae-Yang Hospital,
-Kabudula Rural Hospital,
-Mitundu Rural hospital,
-Kawale Urban Health centre, UNC Project Kawale,
-Kamuzu Barracks Dispensary,
-SOS clinic,
-Area 18 urban Health centre, UNC project Area 18,
-Kang'oma Health Centre,
-UNC Project Area 25, Area 25 urban Health centre,
-Chiwamba Health Centre,
-Lumbadzi Health centre,
-Ngoni Health centre,
-Mbabvi Health centre,
-Ukwe Health centre,
-Nsaru Health centre,
-Malembo Health Centre,
-Chokowa Health Centre (Lilongwe),
-Khongoni Health Centre,
-Chileka Health Centre (Lilongwe),
-Ndaula Health Centre,
-Ming'ongo Health Centre,
-Malingunde Health Centre,
-Dickson Health Centre,
-Chiunjiza Health Centre,
-Mlale Hospital,
-Kachale Health Centre,
-Chadza Health Cetntre,
-Nathenje Health Centre,
-Matapila ealth Centre,
-Mtenthera Health Centre,
-Diamphwe Health Centre,
-Chimbalanga Health Centre,
-Nthondo Health Centre,
-Chitedze Health Centre,
-Nambuma Health Centre ,
-Mbang'ombe 1 Health Centre,
-Baylor Childrens centre");
+INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) SELECT `location_id`, @'workstation_tag_id' FROM `location` WHERE `name` IN ("UNC Project Bwaila Hospital", "Kamuzu Central Hospital", "Lighthouse", "Nkhoma Hospita", "St Gabriel Hospital", "Likuni Hospital", "Partners in hope", "Dae-Yang Hospital", "Kabudula Rural Hospital", "Mitundu Rural hospital", "Kawale Urban Health centre", " UNC Project Kawale", "Kamuzu Barracks Dispensary", "SOS clinic", "Area 18 urban Health centre", " UNC project Area 18", "Kang'oma Health Centre", "UNC Project Area 25", " Area 25 urban Health centre", "Chiwamba Health Centre", "Lumbadzi Health centre", "Ngoni Health centre", "Mbabvi Health centre", "Ukwe Health centre", "Nsaru Health centre", "Malembo Health Centre", "Chokowa Health Centre (Lilongwe)", "Khongoni Health Centre", "Chileka Health Centre (Lilongwe)", "Ndaula Health Centre", "Ming'ongo Health Centre", "Malingunde Health Centre", "Dickson Health Centre", "Chiunjiza Health Centre", "Mlale Hospital", "Kachale Health Centre", "Chadza Health Cetntre", "Nathenje Health Centre", "Matapila ealth Centre", "Mtenthera Health Centre", "Diamphwe Health Centre", "Chimbalanga Health Centre", "Nthondo Health Centre", "Chitedze Health Centre", "Nambuma Health Centre ", "Mbang'ombe 1 Health Centre", "Baylor Childrens centre");
 
 SET @'workstation_tag_id' = (SELECT location_tag_id FROM location_tag WHERE name = 'Central TB Registration Centres');
-INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) SELECT `location_id`, @'workstation_tag_id' FROM `location` WHERE `name` IN ("UNC Project  Bwaila Hospital,
-Kamuzu Central Hospital,
-Lighthouse,
-Nkhoma Hospita,
-St Gabriel Hospital,
-Likuni Hospital,
-Partners in hope,
-Dae-Yang Hospital,
-Kabudula Rural Hospital,
-Mitundu Rural hospital");
+INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) SELECT `location_id`, @'workstation_tag_id' FROM `location` WHERE `name` IN ("UNC Project Bwaila Hospital", "Kamuzu Central Hospital", "Lighthouse", "Nkhoma Hospita", "St Gabriel Hospital", "Likuni Hospital", "Partners in hope", "Dae-Yang Hospital", "Kabudula Rural Hospital", "Mitundu Rural hospital");
 
 /* Remove unwanted relationships */;
 DELETE FROM relationship_type WHERE b_is_to_a NOT IN ("Parent", "Child", "Sibling", "Spouse/Partner", "Village Health Worker", "Other");
