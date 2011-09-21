@@ -135,5 +135,5 @@ SET @'workstation_tag_id' = (SELECT location_tag_id FROM location_tag WHERE name
 INSERT INTO `location_tag_map` (`location_id`, `location_tag_id`) SELECT `location_id`, @'workstation_tag_id' FROM `location` WHERE `name` IN ("UNC Project Bwaila Hospital", "Kamuzu Central Hospital", "Lighthouse", "Nkhoma Hospita", "St Gabriel Hospital", "Likuni Hospital", "Partners in hope", "Dae-Yang Hospital", "Kabudula Rural Hospital", "Mitundu Rural hospital");
 
 /* Remove unwanted relationships */;
-DELETE FROM relationship_type WHERE b_is_to_a NOT IN ("Parent", "Child", "Sibling", "Spouse/Partner", "Village Health Worker", "Other");
+DELETE FROM relationship_type WHERE b_is_to_a NOT IN ("Parent", "Child", "Sibling", "Spouse/Partner", "Village Health Worker","TB Index Person","TB contact Person","Other");
 -- Dump completed on 2010-03-17 15:18:37

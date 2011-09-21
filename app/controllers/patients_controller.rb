@@ -642,7 +642,12 @@ class PatientsController < ApplicationController
     @lab_order_labels = patient.get_recent_lab_orders_label
     @patient_id = params[:patient_id]
   end
-  
+
+  def next_task_description
+    @task = Task.find(params[:task_id])
+    render :template => 'dashboards/next_task_description', :layout => false
+  end
+    
   private
   
   

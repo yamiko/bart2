@@ -91,7 +91,7 @@
       :tt_onUnload=> "updateTestDate();"
     } %>
 
-  <%= text_field_tag :summary, nil, 
+  <%#= text_field_tag :summary, nil, 
     {:tt_onLoad => '$("hivTestReminder").style.display = "block";$("nextButton").innerHTML = "<span>Finish</span>";', 
      :optional => "true", 
      :tt_pageStyleClass => "NoControls", 
@@ -119,6 +119,14 @@
 <%end%>
 
  <%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
+
+
+   <%= touch_yes_no_unknown_tag "Refer to HTC", @patient, nil,                     
+   {:id => "refer_to_htc",                                                      
+    :condition => '$("hiv_status").value != "POSITIVE" && updateTestDate() == true',
+    :tt_pageStyleClass => "NoKeyboard",                                         
+    :helpText => "Patient has been -ve for more than 3 months. Refer patient to HTC?" } %>
+
 
      <%= submit_tag "Finish" %>    
 
