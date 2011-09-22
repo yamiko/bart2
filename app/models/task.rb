@@ -691,8 +691,8 @@ class Task < ActiveRecord::Base
                             :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                             session_date.to_date,patient.id,EncounterType.find_by_name('TB VISIT').id])
               if (tb_visits.length == 1) 
-                if not (User.current_user.user_roles.map{|u|u.role.match(/Clinician/i)} or 
-                  User.current_user.user_roles.map{|u|u.role.match(/Doctor/i)})
+                roles = User.current_user.user_roles.map{|u|u.role}.join(',') rescue ''
+                if not (roles.match(/Clinician/i) or roles.match(/Doctor/i))
                     task.encounter_type = 'TB VISIT'
                     task.url = "/patients/show/#{patient.id}"
                     return task
@@ -825,6 +825,11 @@ class Task < ActiveRecord::Base
 
           next if not tb_registration.blank?
           #enrolled_in_tb_program = patient.patient_programs.collect{|p|p.program.name}.include?('TB PROGRAM') rescue false
+
+          #checks if vitals have been taken already 
+          vitals = self.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
+          return vitals unless vitals.blank?
+
     
           if user_selected_activities.match(/Manage TB Registration visits/i)
             task.url = "/encounters/new/tb_registration?show&patient_id=#{patient.id}"

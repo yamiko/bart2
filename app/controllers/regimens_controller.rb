@@ -5,7 +5,10 @@ class RegimensController < ApplicationController
 		@programs = @patient.patient_programs.all
 		@hiv_programs = @patient.patient_programs.not_completed.in_programs('HIV PROGRAM')
     	
-		@tb_encounter = Encounter.find(:all, :conditions=>["patient_id = ? AND encounter_type = ?", @patient.id, EncounterType.find_by_name("TB visit").id], :include => [:observations]).last
+		@tb_encounter = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
+                    :conditions=>["patient_id = ? AND encounter_type = ?", 
+                    @patient.id, EncounterType.find_by_name("TB visit").id], 
+                    :include => [:observations]) rescue nil
 
 		@tb_programs = @patient.patient_programs.not_completed.in_programs(['TB PROGRAM', 'MDR-TB PROGRAM'])
 		
@@ -14,11 +17,11 @@ class RegimensController < ApplicationController
 
 		session_date = session[:datetime].to_date rescue Date.today
 
-		pre_art_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
+		pre_art_visit = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
 		    :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
 		    session_date.to_date, @patient.id, EncounterType.find_by_name('PART_FOLLOWUP').id])
 
-		art_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
+		art_visit = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
             :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
             session_date.to_date, @patient.id, EncounterType.find_by_name('ART VISIT').id])
 		@art_visit = false
@@ -27,7 +30,7 @@ class RegimensController < ApplicationController
 			@art_visit = true		
 		end
 
-		treatment_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
+		treatment_obs = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
 		    :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
 		    session_date, @patient.id, EncounterType.find_by_name('TREATMENT').id]).observations rescue []
 
@@ -43,7 +46,7 @@ class RegimensController < ApplicationController
 			end
 		end
 
-		tb_visit_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
+		tb_visit_obs = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
 		    :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
 		    session_date, @patient.id, EncounterType.find_by_name('TB VISIT').id]).observations rescue []
 
@@ -59,7 +62,7 @@ class RegimensController < ApplicationController
 			@prescribe_tb_drugs = true
 		end
 
-		sulphur_allergy_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
+		sulphur_allergy_obs = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
 			:conditions => ["patient_id = ? AND encounter_type IN (?)",
 			@patient.id, EncounterType.find(:all,:select => 'encounter_type_id', :conditions => ["name IN (?)",["ART VISIT", "TB VISIT"]])]).observations rescue []
 
@@ -70,7 +73,7 @@ class RegimensController < ApplicationController
 			end
 		end
 
-		art_visit_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
+		art_visit_obs = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
 			:conditions => ["patient_id = ? AND encounter_type IN (?)",
 			@patient.id, EncounterType.find(:all,:select => 'encounter_type_id', :conditions => ["name IN (?)",["ART VISIT"]])]).observations rescue []
 
