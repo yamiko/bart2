@@ -509,21 +509,21 @@ class EncountersController < ApplicationController
 	end
 
 	def is_first_art_visit(patient_id)
-		art_encounter = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
-				patient_id, EncounterType.find_by_name('ART_INITIAL').id]) rescue ''
-		return false if art_encounter == ''
-		return true
+		session_date = session[:datetime].to_date rescue Date.today
+		art_encounter = Encounter.find(:first,:conditions =>["voided = 0 AND patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) < ?",
+				patient_id, EncounterType.find_by_name('ART_INITIAL').id, session_date ]) rescue nil
+		return true if art_encounter.nil?
+		return false
 	end
 
 	def is_first_tb_registration(patient_id)
 		session_date = session[:datetime].to_date rescue Date.today
 		tb_registration = Encounter.find(:first,
-			:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
-			patient_id,EncounterType.find_by_name('TB REGISTRATION').id, session_date],
-			:order =>'encounter_datetime DESC') rescue ''
+			:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) < ?",
+			patient_id,EncounterType.find_by_name('TB REGISTRATION').id, session_date]) rescue nil
 
-		return false if tb_registration == ''
-		return true
+		return true if tb_registration.nil?
+		return false
 	end
 
 	def uncompleted_tb_programs_status(patient_id)
