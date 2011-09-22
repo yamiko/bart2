@@ -647,6 +647,10 @@ class PatientsController < ApplicationController
     @task = Task.find(params[:task_id])
     render :template => 'dashboards/next_task_description', :layout => false
   end
+
+  def tb_treatment_card
+    render :layout => 'menu'
+  end
     
   private
   

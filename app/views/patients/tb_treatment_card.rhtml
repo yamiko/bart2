@@ -1,0 +1,222 @@
+<script>
+  var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_id %>"
+</script>
+
+<style>
+
+  #treatmentcard-container {
+    display: table;
+    width: 994px;
+    font-size: 13px;
+  }
+  .main-row  {
+    display: table-row;
+  }
+  .row-container {
+    display: table;
+  }
+  .smaller-row  {
+    display: table-row;
+  }
+  .bordered-row  {
+    display: table-row;
+  }
+  .left, .right, .middle {
+    display: table-cell;
+  }
+  .demographics-headers-cell{
+    display: table-cell;
+    width: 115px;
+    padding: 3px;
+  }
+  .demographics-cell{
+    display: table-cell;
+    border-style: solid;
+    width: 570px;
+  }
+  .registration-cell{
+    border-style: solid;
+    width: 160px;
+    display: inline-block;
+  }
+  .registration-headers{
+    width: 90px;
+    display: inline-block;
+  }
+  .circle{
+    -moz-border-radius:50px 50px 50px 50px;
+    background:none repeat scroll 0 0 #fff;
+    border-style:solid;
+    text-align:center;
+    width:40px;
+    display: inline-block;
+    float: left;
+    margin-top: 3px;
+  }
+  .non-circle{
+    text-align:center;
+    margin-top: 6px;
+    width:40px;
+    display: inline-block;
+  }
+
+</style>
+<div id="treatmentcard-container">
+
+  <div class="main-row" id="tb-card-demographics">
+    <div class="row-container">
+      <div class="smaller-row">
+        <div class"left">
+             <div class="row-container">
+            <div class="smaller-row">
+              &nbsp; 
+            </div>
+            <div class="smaller-row">
+              <div class="demographics-headers-cell">
+                Name:
+              </div>
+            </div>
+            <div class="smaller-row">
+              <div class="demographics-headers-cell">
+                Address: (in full)
+              </div>
+            </div>
+            <div class="smaller-row">
+              <div class="demographics-headers-cell">
+                Name and address of Guardians
+              </div>
+            </div><br />
+            <div class="smaller-row">
+              <div class="demographics-headers-cell" style="height:40px">
+                Sex:
+              </div>
+            </div><br />
+            <div class="smaller-row">
+              <div class="demographics-headers-cell">
+                Disease Class. & Patient Category
+              </div>
+            </div><br />
+          </div>
+        </div>
+        <div class="middle">
+          <div class="row-container">
+            <div class="smaller-row">
+              &nbsp;
+            </div>
+            <div class="smaller-row">
+              <div class="demographics-cell">
+                <%= @patient.name rescue "Could not display name" %>
+              </div>
+            </div>
+            <div class="smaller-row">
+              <div class="demographics-cell">
+                <%= @patient.person.addresses.first.city_village %>
+              </div>
+            </div>
+            <div class="smaller-row">
+              <div class="demographics-cell">
+                @Guardian name here
+              </div>
+            </div>
+            <div class="smaller-row">
+              <div class="demographics-cell">
+                @guardian adress
+              </div>
+            </div><br />
+            <div class="smaller-row">
+              <div class="row-container">
+                <div class="smaller-row">
+                  <div class="left" style="border-style:solid;width:90px;height:40px;">
+                    <%if @patient.gender == 'Male'%>
+                      <span class="circle">M</span><span class="non-circle">F</span>
+                    <%else%>
+                      <span class="circle">F</span><span class="non-circle">M</span>
+                    <%end%>
+                  </div>
+                  <div class="left" style="width:20px;">
+                    &nbsp;
+                  </div>
+                  <div class="left" style="width:40px;">
+                    Age:
+                  </div>
+                  <div class="left" style="border-style:solid;width:90px;">
+                    <%= @patient.age%>
+                  </div>
+                </div>
+              </div>
+            </div><br />
+            <div class="smaller-row">
+              <div class="row-container">
+                <div class="smaller-row">
+                  <div class="left" style="border-style:solid;width:90px;height:40px;">
+                    <span class="non-circle">P</span><span class="non-circle">EP</span>
+                  </div>  
+                  <div class="left" style="width:20px;">
+                    &nbsp;
+                  </div>  
+                  <div class="left" style="border-style:solid;width:210px;height:40px;">
+                    <span class="non-circle">New</span><span class="non-circle">Relap</span>
+                    <span class="non-circle">RAD</span><span class="non-circle">Fail</span>
+                    <span class="non-circle">Oth</span>
+                  </div>  
+                  <div class="left" style="width:20px;">
+                    &nbsp;
+                  </div>
+                  <div class="left" style="width:85px;font-size:13px">
+                    Specify Other:
+                  </div>
+                  <div class="left" style="border-style:solid;width:135px;">
+                    <!--Other goes here-->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="right" style="width:25px">
+        </div>
+        <div class="right" id="right-column">
+          <div class="row-container">
+            <div class="smaller-row">
+              <div class="left">
+                <span class="registration-headers">District TB No</span>
+                <span class="registration-cell">&nbsp;</span>
+              </div>
+            </div>
+            <div class="smaller-row">
+              <div class="left">
+                <span class="registration-headers">Health Unit</span>
+                <span class="registration-cell">&nbsp;</span>
+              </div>
+            </div>
+            <div class="smaller-row">
+              <div class="left">
+                <span class="registration-headers">Registr. Date</span>
+                <span class="registration-cell">&nbsp;</span>
+              </div>
+            </div><br />
+            <div class="smaller-row">
+              <div class="row-container" style="border-style:solid;height:155px;width:255px">
+                <div class="smaller-row">
+                  <div class="left">
+                    Management of HIV+ Patients
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr /><!-- ____________________________________________________________   -->
+  <div class="main-row" id="tb-card-initial-phase">
+    <div class="row-container">
+    </div>
+  </div>
+  <div class="main-row" id="tb-card-cotinuation-phase">
+    <div class="row-container">
+    </div>
+  </div>
+</div>
+
