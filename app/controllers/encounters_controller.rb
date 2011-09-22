@@ -232,9 +232,11 @@ class EncountersController < ApplicationController
         @local_tb_dot_sites_tag = local_tb_dot_sites_tag
         @family_planning_methods = []
 
-    @given_lab_results = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
-       EncounterType.find_by_name("GIVE LAB RESULTS").id,@patient.id]).observations.map{|o|
-         o.answer_string if o.to_s.include?("Laboratory results given to patient")} rescue nil
+    @given_lab_results = Encounter.find(:last,
+      :order => "encounter_datetime DESC,date_created DESC",
+      :conditions =>["encounter_type = ? and patient_id = ?",
+      EncounterType.find_by_name("GIVE LAB RESULTS").id,@patient.id]).observations.map{|o|
+      o.answer_string if o.to_s.include?("Laboratory results given to patient")} rescue nil
 
     @transfer_to = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
        EncounterType.find_by_name("TB VISIT").id,@patient.id]).observations.map{|o|
@@ -300,6 +302,15 @@ class EncountersController < ApplicationController
       @current_encounters.reverse.each do |enc|
          enc.observations.each do |o|
            @tb_symptoms << o.answer_string.strip if o.to_s.include?("TB symptoms") rescue nil
+         end
+       end
+    end
+
+    @location_transferred_to = []
+    if (params[:encounter_type].upcase rescue '') == 'APPOINTMENT'
+      @current_encounters.reverse.each do |enc|
+         enc.observations.each do |o|
+           @location_transferred_to << o.to_s_location_name.strip if o.to_s.include?("Transfer out to") rescue nil
          end
        end
     end
@@ -509,21 +520,21 @@ class EncountersController < ApplicationController
 	end
 
 	def is_first_art_visit(patient_id)
-		art_encounter = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
-				patient_id, EncounterType.find_by_name('ART_INITIAL').id]) rescue ''
-		return false if art_encounter == ''
-		return true
+		session_date = session[:datetime].to_date rescue Date.today
+		art_encounter = Encounter.find(:first,:conditions =>["voided = 0 AND patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) < ?",
+				patient_id, EncounterType.find_by_name('ART_INITIAL').id, session_date ]) rescue nil
+		return true if art_encounter.nil?
+		return false
 	end
 
 	def is_first_tb_registration(patient_id)
 		session_date = session[:datetime].to_date rescue Date.today
 		tb_registration = Encounter.find(:first,
-			:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
-			patient_id,EncounterType.find_by_name('TB REGISTRATION').id, session_date],
-			:order =>'encounter_datetime DESC') rescue ''
+			:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) < ?",
+			patient_id,EncounterType.find_by_name('TB REGISTRATION').id, session_date]) rescue nil
 
-		return false if tb_registration == ''
-		return true
+		return true if tb_registration.nil?
+		return false
 	end
 
 	def uncompleted_tb_programs_status(patient_id)
@@ -745,7 +756,7 @@ class EncountersController < ApplicationController
       ],
       'duration_of_current_cough' => [
         ['',''],
-        ["Less than 1 week", "Less than once a week"],
+        ["Less than 1 week", "Less than one week"],
         ["1 Week", "1 week"],
         ["2 Weeks", "2 weeks"],
         ["3 Weeks", "3 weeks"],

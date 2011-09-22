@@ -250,8 +250,8 @@ private
 		#
 		# TODO: This needs to be redesigned!!!!!!!!!!!
 		#
-      url_for(:controller => :encounters, :action => :new, :patient_id => found_person_id)
-      #url_for(:controller => :people, :action => :confirm , :found_person_id =>found_person_id)
+      #url_for(:controller => :encounters, :action => :new, :patient_id => found_person_id)
+      url_for(:controller => :people, :action => :confirm , :found_person_id =>found_person_id)
     end
   end
 end
