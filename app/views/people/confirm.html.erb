@@ -54,8 +54,8 @@
 
 <%
   session_date = session[:datetime] || Date.today  
-  task = Task.next_task(Location.current_location,@person.patient,session_date.to_date).encounter_type rescue nil
-  next_task = task.gsub('_',' ') rescue nil
+  task = Task.next_task(Location.current_location,@person.patient,session_date.to_date)
+  next_task = task.encounter_type.gsub('_',' ') rescue nil
 
   xray = Observation.find(Observation.find(:last,                       
             :conditions => ["person_id = ? AND concept_id = ?",                      
@@ -85,6 +85,10 @@
     <% if refered_to_htc.match(/: Yes/i) %>
       conntinue.setAttribute("onmousedown","gotoUpdateHIVstatus();")
     <% end %>
+
+    <%if Location.current_location.name.match(/HIV|ART/i) and not Location.current_location.name.match(/Reception/i)%>
+      weightGraph();
+    <%end%>
   }
 
   function continueToNext(){
@@ -106,7 +110,9 @@
   }
 
   function go() {
-    document.forms[0].submit();
+    submit_form = $('confirm');
+    submit_form.action = "<%= task.url %>"
+    submit_form.submit();
   }
 
   function weightGraph(){
@@ -206,9 +212,9 @@
   }
 </script>
 
-<body onload = "setTimeout('changeAttributes()',500);weightGraph();">
+<body onload = "setTimeout('changeAttributes()',500);">
 
-<form method='post' action="/people/confirm" id = "confirm" onload = "" >
+<form method='post' action="/people/confirm" id = "confirm">
   <%= hidden_field_tag(:found_person_id, @found_person_id) %>
   <%= hidden_field_tag(:relation, @relation) %>
 </form>
