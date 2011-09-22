@@ -10,7 +10,7 @@ class RegimensController < ApplicationController
                     @patient.id, EncounterType.find_by_name("TB visit").id], 
                     :include => [:observations]) rescue nil
 
-		@tb_programs = @patient.patient_programs.not_completed.in_programs(['TB PROGRAM', 'MDR-TB PROGRAM'])
+		@tb_programs = @patient.patient_programs.in_uncompleted_programs(['TB PROGRAM', 'MDR-TB PROGRAM'])
 		
 		@current_regimens_for_programs = current_regimens_for_programs
 		@current_regimen_names_for_programs = current_regimen_names_for_programs

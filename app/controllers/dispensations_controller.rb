@@ -1,6 +1,7 @@
 class DispensationsController < ApplicationController
   def new
     @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
+
     #@prescriptions = @patient.orders.current.prescriptions.all
     type = EncounterType.find_by_name('TREATMENT')
     session_date = session[:datetime].to_date rescue Date.today
@@ -10,7 +11,7 @@ class DispensationsController < ApplicationController
                      type.id,@patient.id,session_date]) 
     @options = @prescriptions.map{|presc| [presc.drug_order.drug.name, presc.drug_order.drug_inventory_id]}
   end
-  
+
   def create
     if (params[:identifier])
       params[:drug_id] = params[:identifier].match(/^\d+/).to_s
@@ -65,8 +66,14 @@ class DispensationsController < ApplicationController
     if obs.save
       @patient.patient_programs.find_last_by_program_id(Program.find_by_name("HIV PROGRAM")).transition(
                :state => "On antiretrovirals",:start_date => session[:datetime] || Time.now()) if @drug.arv? rescue nil
-      @patient.patient_programs.find_last_by_program_id(Program.find_by_name("TB PROGRAM")).transition(
-               :state => "Currently in treatment",:start_date => session[:datetime] || Time.now()) if @drug.tb_medication? rescue nil
+
+    @tb_programs = @patient.patient_programs.in_uncompleted_programs(['TB PROGRAM', 'MDR-TB PROGRAM'])
+
+      if !@tb_programs.blank?
+        @patient.patient_programs.find_last_by_program_id(Program.find_by_name("TB PROGRAM")).transition(
+               :state => "Currently in treatment",:start_date => session[:datetime] || Time.now()) if   @drug.tb_medication? rescue nil
+      end
+
       unless @order.blank?
         @order.drug_order.total_drug_supply(@patient, @encounter,session_date.to_date)
 

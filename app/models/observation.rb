@@ -158,4 +158,11 @@ class Observation < ActiveRecord::Base
     "#{formatted_name}:  #{Location.find(self.answer_string(tags)).name}"
   end
 
+  def to_s_location_name(tags=[])
+    formatted_name = self.concept_name.tagged(tags).name rescue nil
+    formatted_name ||= self.concept_name.name rescue nil
+    formatted_name ||= self.concept.concept_names.tagged(tags).first.name rescue nil
+    formatted_name ||= self.concept.concept_names.first.name rescue 'Unknown concept name'
+    "#{Location.find(self.answer_string(tags)).name}"
+  end
 end

@@ -304,6 +304,15 @@ class EncountersController < ApplicationController
        end
     end
 
+    @location_transferred_to = []
+    if (params[:encounter_type].upcase rescue '') == 'APPOINTMENT'
+      @current_encounters.reverse.each do |enc|
+         enc.observations.each do |o|
+           @location_transferred_to << o.to_s_location_name.strip if o.to_s.include?("Transfer out to") rescue nil
+         end
+       end
+    end
+
 		@tb_classification = nil
 		@eptb_classification = nil
 		@tb_type = nil
@@ -745,7 +754,7 @@ class EncountersController < ApplicationController
       ],
       'duration_of_current_cough' => [
         ['',''],
-        ["Less than 1 week", "Less than once a week"],
+        ["Less than 1 week", "Less than one week"],
         ["1 Week", "1 week"],
         ["2 Weeks", "2 weeks"],
         ["3 Weeks", "3 weeks"],
