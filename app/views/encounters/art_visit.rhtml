@@ -187,9 +187,5 @@
 			:condition => "$('refer_to_clinician').value == 'NO'" ,
 			:helpText => "Is patient allergic to sulphur" } %>
 
-
-  <%= touch_text_area_tag("CLINICAL NOTES CONSTRUCT", @patient, nil,
-    {:optional => true,:helpText => "Clinical notes (optional)"}, time=DateTime.now()) %>
-
   <%= submit_tag "Finish" %>    
 </form>

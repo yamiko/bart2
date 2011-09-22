@@ -251,7 +251,7 @@
     :allowFreeText => 'false',
     :condition => 'current_regimens_for_programs[$("tb_patient_program").value] != null && $("prescribe_tb_drugs").value == "YES"',
     :tt_onLoad => '$("infoBar"+tstCurrentPage).innerHTML = current_regimen_names_for_programs[$("tb_patient_program").value]',
-    :helpText => "Continue existing TB regimen?"}%>
+    :helpText => "Continue current TB regimen?"}%>
 
 
  <%= select_tag :tb_regimen_concept_id, nil, {
@@ -305,7 +305,7 @@
     :allowFreeText => 'false',
     :condition => 'hasReasonForART() == true && current_regimens_for_programs[$("patient_program").value] != null && $("prescribe_arvs").value == "YES"',
     :tt_onLoad => '$("infoBar"+tstCurrentPage).innerHTML = current_regimen_names_for_programs[$("patient_program").value]',
-    :helpText => "Continue existing ART regimen?"}%>
+    :helpText => "Continue current ART regimen?"}%>
 
   <%= select_tag :regimen_concept_id, nil, {
     :ajaxUrl => "",
@@ -367,6 +367,12 @@
 		} %>
 
  <% end %>
+
+  <%= touch_text_area_tag "CLINICAL NOTES CONSTRUCT", @patient, nil,
+		{	:id => "clinical_notes", 
+			:optional => true,
+			:helpText => "Clinical notes (optional)"
+		}, time=DateTime.now() %>
  
  <% initial_date = "#{session[:datetime].strftime('%Y-%m-%d')}" rescue "#{(Date.today).strftime('%Y-%m-%d')}" %>
   
