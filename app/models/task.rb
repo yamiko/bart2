@@ -869,6 +869,10 @@ class Task < ActiveRecord::Base
             clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
+            #checks if vitals have been taken already 
+            vitals = self.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
+            return vitals unless vitals.blank?
+
 
             if clinic_visit.blank? and user_selected_activities.match(/Manage TB Treatment Visits/i)
               task.encounter_type = "TB CLINIC VISIT"
