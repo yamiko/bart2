@@ -183,10 +183,10 @@
        :id => "continue_treatment" %>
     <% end %>
 
-  <%= select_tag "transfer_type", options_for_select(["Local TB DOT site", "Transfer Out"]),
+  <%= select_tag "transfer_type", options_for_select(["Peripheral site", "Another TB registration centre"]),
     {
      :condition => "$('continue_treatment').value == 'NO'" ,
-     :helpText => "Transfer Type" } %>
+     :helpText => "Transfer out to" } %>
 
   <%
     ajax_url = "/programs/locations?transfer_type=#{@local_tb_dot_sites_tag}&q="
@@ -200,7 +200,7 @@
 		    :field_type => 'alpha',
 		    :helpText => "Transfer out to location",
 		    :ajaxURL => "#{ajax_url}",
-		    :condition => "($('continue_treatment').value == 'NO') && ($('transfer_type').value == 'Local TB DOT site')" ,
+		    :condition => "($('continue_treatment').value == 'NO') && ($('transfer_type').value == 'Peripheral site')" ,
 		    :allowFreeText => true } %>
 
     <%= touch_location_tag "Transfer to", @patient, nil,
@@ -208,7 +208,7 @@
 		    :field_type => 'alpha',
 		    :helpText => "Transfer out to location",
 		    :ajaxURL => '/programs/locations?q=',
-		    :condition => "($('continue_treatment').value == 'NO') && ($('transfer_type').value == 'Transfer Out')"   ,
+		    :condition => "($('continue_treatment').value == 'NO') && ($('transfer_type').value == 'Another TB registration centre')"   ,
 		    :allowFreeText => true } %>
 
     <%= touch_yes_no_unknown_tag "TRANSFER WITHIN RESPONSIBILITY", @patient, nil,
