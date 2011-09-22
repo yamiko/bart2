@@ -7,7 +7,7 @@ class RegimensController < ApplicationController
     	
 		@tb_encounter = Encounter.find(:all, :conditions=>["patient_id = ? AND encounter_type = ?", @patient.id, EncounterType.find_by_name("TB visit").id], :include => [:observations]).last
 
-		@tb_programs = @patient.patient_programs.not_completed.in_programs(['TB PROGRAM', 'MDR-TB PROGRAM'])
+		@tb_programs = @patient.patient_programs.in_uncompleted_programs(['TB PROGRAM', 'MDR-TB PROGRAM'])
 		
 		@current_regimens_for_programs = current_regimens_for_programs
 		@current_regimen_names_for_programs = current_regimen_names_for_programs
