@@ -80,6 +80,16 @@ class PatientsController < ApplicationController
       @prescriptions = restriction.filter_orders(@prescriptions)
     end
 
+    @encounters = @patient.encounters.find_by_date(session_date)
+
+    @transfer_out_site = nil
+
+    @encounters.each do |enc|
+      enc.observations.map do |obs|
+       @transfer_out_site = obs.to_s if obs.to_s.include?('Transfer out to')
+     end
+    end
+
     # render :template => 'dashboards/treatment', :layout => 'dashboard'
     render :template => 'dashboards/dispension_tab', :layout => false
   end

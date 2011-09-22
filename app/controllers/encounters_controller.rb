@@ -232,9 +232,11 @@ class EncountersController < ApplicationController
         @local_tb_dot_sites_tag = local_tb_dot_sites_tag
         @family_planning_methods = []
 
-    @given_lab_results = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
-       EncounterType.find_by_name("GIVE LAB RESULTS").id,@patient.id]).observations.map{|o|
-         o.answer_string if o.to_s.include?("Laboratory results given to patient")} rescue nil
+    @given_lab_results = Encounter.find(:last,
+      :order => "encounter_datetime DESC,date_created DESC",
+      :conditions =>["encounter_type = ? and patient_id = ?",
+      EncounterType.find_by_name("GIVE LAB RESULTS").id,@patient.id]).observations.map{|o|
+      o.answer_string if o.to_s.include?("Laboratory results given to patient")} rescue nil
 
     @transfer_to = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
        EncounterType.find_by_name("TB VISIT").id,@patient.id]).observations.map{|o|
@@ -300,6 +302,15 @@ class EncountersController < ApplicationController
       @current_encounters.reverse.each do |enc|
          enc.observations.each do |o|
            @tb_symptoms << o.answer_string.strip if o.to_s.include?("TB symptoms") rescue nil
+         end
+       end
+    end
+
+    @location_transferred_to = []
+    if (params[:encounter_type].upcase rescue '') == 'APPOINTMENT'
+      @current_encounters.reverse.each do |enc|
+         enc.observations.each do |o|
+           @location_transferred_to << o.to_s_location_name.strip if o.to_s.include?("Transfer out to") rescue nil
          end
        end
     end
@@ -745,7 +756,7 @@ class EncountersController < ApplicationController
       ],
       'duration_of_current_cough' => [
         ['',''],
-        ["Less than 1 week", "Less than once a week"],
+        ["Less than 1 week", "Less than one week"],
         ["1 Week", "1 week"],
         ["2 Weeks", "2 weeks"],
         ["3 Weeks", "3 weeks"],
