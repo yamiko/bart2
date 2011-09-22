@@ -102,7 +102,7 @@
 		<% end %>
 	<% end %>
 
-  <% if @tb_symptoms.empty? %>
+  <% if @tb_symptoms.empty? || (@current_user_role.include?("Doctor") || @current_user_role.include?("Nurse") || @current_user_role.include?("Clinician")) %>
 	  <%= touch_yes_no_tag "SYMPTOMATIC", @patient, nil,
 		  {	:id => "any_tb_symptoms",
 			  :helpText => "Any current TB signs?" } %>
