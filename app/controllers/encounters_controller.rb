@@ -232,9 +232,11 @@ class EncountersController < ApplicationController
         @local_tb_dot_sites_tag = local_tb_dot_sites_tag
         @family_planning_methods = []
 
-    @given_lab_results = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
-       EncounterType.find_by_name("GIVE LAB RESULTS").id,@patient.id]).observations.map{|o|
-         o.answer_string if o.to_s.include?("Laboratory results given to patient")} rescue nil
+    @given_lab_results = Encounter.find(:last,
+      :order => "encounter_datetime DESC,date_created DESC",
+      :conditions =>["encounter_type = ? and patient_id = ?",
+      EncounterType.find_by_name("GIVE LAB RESULTS").id,@patient.id]).observations.map{|o|
+      o.answer_string if o.to_s.include?("Laboratory results given to patient")} rescue nil
 
     @transfer_to = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
        EncounterType.find_by_name("TB VISIT").id,@patient.id]).observations.map{|o|
