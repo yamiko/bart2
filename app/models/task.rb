@@ -302,7 +302,15 @@ class Task < ActiveRecord::Base
        User.current_user.activities.include?('Manage HIV Status Visits') 
          return self.tb_next_form(location , patient , session_date)
     end
-     
+    
+    current_day_encounters = Encounter.find(:all,
+              :conditions =>["patient_id = ? AND DATE(encounter_datetime) = ?",
+              patient.id,session_date.to_date]).map{|e|e.name}
+    
+    if current_day_encounters.include?("TB Reception")
+      return self.tb_next_form(location , patient , session_date)
+    end
+
     #we get the sequence of clinic questions(encounters) form the GlobalProperty table
     #property: list.of.clinical.encounters.sequentially
     #property_value: ?
