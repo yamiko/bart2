@@ -533,7 +533,8 @@ class Task < ActiveRecord::Base
             return task
           end
 
-          refered_to_htc = Observation.find(Observation.find(:last, 
+          refered_to_htc = Observation.find(Observation.find(:first,
+                    :order => "obs_datetime DESC,date_created DESC" 
                     :conditions => ["person_id = ? AND concept_id = ?", 
                     patient.id, ConceptName.find_by_name("Refer to HTC").concept_id,
                     ])).to_s.strip.squish.upcase rescue nil
