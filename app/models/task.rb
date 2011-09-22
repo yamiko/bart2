@@ -893,10 +893,10 @@ class Task < ActiveRecord::Base
             return task
           end if not tb_reception_attributes.include?('Reason for visit: Follow-up')
 
-          if tb_followup.blank? and user_selected_activities.match(/Manage TB Registration visits/i)
+          if tb_followup.blank? and user_selected_activities.match(/Manage TB Treatment Visits/i)
             task.url = "/encounters/new/tb_visit?show&patient_id=#{patient.id}"
             return task
-          elsif tb_followup.blank? and not user_selected_activities.match(/Manage TB Registration visits/i)
+          elsif tb_followup.blank? and not user_selected_activities.match(/Manage TB Treatment Visits/i)
             task.url = "/patients/show/#{patient.id}"
             return task
           end
