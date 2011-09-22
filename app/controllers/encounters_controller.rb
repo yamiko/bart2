@@ -308,7 +308,7 @@ class EncountersController < ApplicationController
     if (params[:encounter_type].upcase rescue '') == 'APPOINTMENT'
       @current_encounters.reverse.each do |enc|
          enc.observations.each do |o|
-           @location_transferred_to << o.to_s_location.strip if o.to_s.include?("Transfer out to") rescue nil
+           @location_transferred_to << o.to_s_location_name.strip if o.to_s.include?("Transfer out to") rescue nil
          end
        end
     end
