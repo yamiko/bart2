@@ -939,7 +939,7 @@ class Task < ActiveRecord::Base
         when 'TB ADHERENCE'
           drugs_given_before = (not patient.drug_given_before(session_date).prescriptions.blank?) rescue false
            
-          tb_adherence = Encounter.find(:first,:order => "encounter_datetime DESC",
+          tb_adherence = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                                     session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
 
@@ -953,7 +953,7 @@ class Task < ActiveRecord::Base
         when 'ART ADHERENCE'
           art_drugs_given_before = (not patient.drug_given_before(session_date).arv.prescriptions.blank?) rescue false
 
-          art_adherence = Encounter.find(:first,:order => "encounter_datetime DESC",
+          art_adherence = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                                     session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
 
