@@ -103,9 +103,9 @@
     $('helpText'+tstCurrentPage).innerHTML = "Select doses. Current patient weight:&nbsp;<%=@patient.current_weight%>";
 
     if(continueExistingRegimen == 'YES') {
-      var reg_id = current_regimens_for_programs[patientProgram]      
-    }else{
-      var reg_id = encodeURIComponent(regimenConceptId); 
+		var reg_id = current_regimens_for_programs[patientProgram];
+    } else {
+		var reg_id = encodeURIComponent(regimenConceptId); 
     }
 
     current_page = $('page'+tstCurrentPage);
@@ -144,8 +144,10 @@
   function setRegimenId(regimen) {
 	if(regimen == 'ART') {
     	$('regimen').value = regimen_id
-	} else {
+	} else if(regimen == 'TB'){
     	$('tb_regimen').value = regimen_id
+	} else {
+    	$('tb_continuation_regimen').value = regimen_id
 	}
     $('clearButton').style.display = 'inline';
     $('keyboard').style.display = 'inline';
@@ -234,7 +236,7 @@
       {:optional => false,
        :id => 'prescribe_tb_drugs',
        :condition => 'isRegisteredForTB() == true',
-       :helpText => "Prescribe TB Regimen" } %>
+       :helpText => "Prescribe TB Regimen?" } %>
 
   <% unless @tb_programs.count == 1 %>
   	<%= select_tag :tb_patient_program, options_for_select(@tb_programs.map{|program| [program.program.name, program.patient_program_id] if PatientProgram.find(program.patient_program_id).date_completed == nil}), {
@@ -253,21 +255,26 @@
     :tt_onLoad => '$("infoBar"+tstCurrentPage).innerHTML = current_regimen_names_for_programs[$("tb_patient_program").value]',
     :helpText => "Continue current TB regimen?"}%>
 
+	<%	initial_regimen_help_text = "Select TB regimen" 
+		if @transfer_out_patient 
+			initial_regimen_help_text = "Select Inital TB regimen"		
+		end %>
 
- <%= select_tag :tb_regimen_concept_id, nil, {
-    :ajaxUrl => "",
-    :allowFreeText => 'false',
-    :tt_onLoad => "set_patient_program_for_suggestions($('tb_patient_program').value);setTimeout('setSelectedRow()',500);",
-    :condition => '$("prescribe_tb_drugs").value == "YES" && $("tb_continue_existing_regimen").value != "YES"',
-    :helpText => "Select TB regimen"}%>
+	<%= select_tag :tb_regimen_concept_id, nil, 
+		{	:ajaxUrl => "",
+			:allowFreeText => 'false',
+			:tt_onLoad => "set_patient_program_for_suggestions($('tb_patient_program').value);setTimeout('setSelectedRow()',500);",
+			:condition => '$("prescribe_tb_drugs").value == "YES" && $("tb_continue_existing_regimen").value != "YES"',
+			:helpText => "#{initial_regimen_help_text}" } %>
   
- <%= text_field_tag :tb_regimen, nil, {
-    :ajaxUrl => "",
-    :tt_onUnLoad => "setRegimenId('TB');" ,
-    :allowFreeText => true ,
-    :tt_onLoad => "set_regimen_concept_id_for_regimen($('tb_patient_program').value, $('tb_regimen_concept_id').value);buildPrescriptionPage($('tb_continue_existing_regimen').value,  $('tb_patient_program').value, $('tb_regimen_concept_id').value, 'tb_prescription_container');",
-    :condition => '$("prescribe_tb_drugs").value == "YES"',
-    :helpText => "Select formulations and doses"}%>
+	<%= text_field_tag :tb_regimen, nil, 
+		{
+			:ajaxUrl => "",
+			:tt_onUnLoad => "setRegimenId('TB');" ,
+			:allowFreeText => true ,
+			:tt_onLoad => "set_regimen_concept_id_for_regimen($('tb_patient_program').value, $('tb_regimen_concept_id').value);buildPrescriptionPage($('tb_continue_existing_regimen').value,  $('tb_patient_program').value, $('tb_regimen_concept_id').value, 'tb_prescription_container');",
+			:condition => '$("prescribe_tb_drugs").value == "YES"',
+			:helpText => "Select formulations and doses" } %>
 
   <% optionsString = "<option>" "" "</option>"
      durations = ['1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months']
@@ -284,6 +291,35 @@
 	:condition => '$("prescribe_tb_drugs").value == "YES"',	
 	:helpText => 'Duration' } %> 
 
+	<% if @transfer_out_patient %>
+		<%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
+			{	:optional => false,
+				:id => 'prescribe_continuation_tb_drugs',
+				:condition => 'isRegisteredForTB() == true',
+				:helpText => "Prescribe Continuation TB Regimen?" } %>
+
+		<%= select_tag :tb_continuation_regimen_concept_id, nil, 
+			{	:ajaxUrl => "",
+				:allowFreeText => 'false',
+				:tt_onLoad => "set_patient_program_for_suggestions($('tb_patient_program').value);setTimeout('setSelectedRow()',500);",
+				:condition => '$("prescribe_continuation_tb_drugs").value == "YES"',
+				:helpText => "Select TB regimen" } %>
+		
+		<%= text_field_tag :tb_continuation_regimen, nil, 
+			{
+				:ajaxUrl => "",
+				:tt_onUnLoad => "setRegimenId('TB Continuation');" ,
+				:allowFreeText => true ,
+				:tt_onLoad => "set_regimen_concept_id_for_regimen($('tb_patient_program').value, $('tb_continuation_regimen_concept_id').value);buildPrescriptionPage('NO',  $('tb_patient_program').value, $('tb_continuation_regimen_concept_id').value, 'tb_prescription_container');",
+				:condition => '$("prescribe_continuation_tb_drugs").value == "YES"',
+				:helpText => "Select formulations and doses" } %>
+
+		<%= select_tag :tb_continuation_duration, optionsString, 
+			{	:condition => '$("prescribe_continuation_tb_drugs").value == "YES"',	
+				:helpText => 'Duration' } %> 
+		
+	<% end %>
+
 	<!-- HIV Regimen -->
   <% if @hiv_programs.count > 1 %>
   	<%= select_tag :patient_program, options_for_select(@hiv_programs.map{|program| [program.program.name, program.patient_program_id] if PatientProgram.find(program.patient_program_id).date_completed == nil}), {
@@ -298,7 +334,7 @@
       {:optional => false,
        :id => 'prescribe_arvs',
        :condition => 'hasReasonForART() == true && prescribeAntiretroviralDrugs() == true',
-       :helpText => "Prescribe ARVS" } %>
+       :helpText => "Prescribe ARVS?" } %>
 
   <%= select_tag :continue_existing_regimen, options_for_select([['',''],['YES','YES'],['NO','NO']], ''), {
     :textCase => "upper", 

@@ -51,12 +51,17 @@ class RegimensController < ApplicationController
 		    session_date, @patient.id, EncounterType.find_by_name('TB VISIT').id]).observations rescue []
 
 		prescribe_tb_medication = false
+		@transfer_out_patient = false;
 		(tb_visit_obs || []).each do | obs | 
 			if obs.concept_id == (Concept.find_by_name('Prescribe drugs').concept_id rescue nil)
 				prescribe_tb_medication = true if Concept.find(obs.value_coded).fullname.upcase == 'YES' 
 			end
-		end
 
+			if obs.concept_id == (Concept.find_by_name('Continue treatment').concept_id rescue nil)
+				@transfer_out_patient = true if Concept.find(obs.value_coded).fullname.upcase == 'NO' 
+			end
+		end
+		
 		@prescribe_tb_drugs = false	
 		if (not @tb_programs.blank?) and prescribe_tb_medication and !tb_medication_prescribed
 			@prescribe_tb_drugs = true
@@ -126,6 +131,7 @@ class RegimensController < ApplicationController
 	def create
 
 		prescribe_tb_drugs = false   
+		prescribe_tb_continuation_drugs = false   
 		prescribe_arvs = false
 		prescribe_cpt = false
 		prescribe_ipt = false
@@ -134,6 +140,7 @@ class RegimensController < ApplicationController
 		(params[:observations] || []).each do |observation|
 			if observation['concept_name'].upcase == 'PRESCRIBE DRUGS'
 				prescribe_tb_drugs = ('YES' == observation['value_coded_or_text'])
+				prescribe_tb_continuation_drugs = ('YES' == observation['value_coded_or_text'])
 			elsif observation['concept_name'] == 'PRESCRIBE ARVS'
 				prescribe_arvs = ('YES' == observation['value_coded_or_text'])
 			elsif observation['concept_name'] == 'Prescribe cotramoxazole'
@@ -152,7 +159,9 @@ class RegimensController < ApplicationController
 		start_date = session[:datetime] || Time.now
 		auto_expire_date = session[:datetime] + params[:duration].to_i.days rescue Time.now + params[:duration].to_i.days
 		auto_tb_expire_date = session[:datetime] + params[:tb_duration].to_i.days rescue Time.now + params[:tb_duration].to_i.days
+		auto_tb_continuation_expire_date = session[:datetime] + params[:tb_continuation_duration].to_i.days rescue Time.now + params[:tb_continuation_duration].to_i.days
 		auto_cpt_ipt_expire_date = session[:datetime] + params[:duration].to_i.days rescue Time.now + params[:duration].to_i.days
+
 		orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:tb_regimen]})
 		ActiveRecord::Base.transaction do
 			# Need to write an obs for the regimen they are on, note that this is ARV
@@ -180,6 +189,35 @@ class RegimensController < ApplicationController
 					"#{drug.name}: #{order.instructions} (#{regimen_name})",
 					order.equivalent_daily_dose)  
 			end if prescribe_tb_drugs
+		end
+
+		orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:tb_continuation_regimen]})
+		ActiveRecord::Base.transaction do
+			# Need to write an obs for the regimen they are on, note that this is ARV
+			# Specific at the moment and will likely need to have some kind of lookup
+			# or be made generic
+			obs = Observation.create(
+				:concept_name => "WHAT TYPE OF TUBERCULOSIS REGIMEN",
+				:person_id => @patient.person.person_id,
+				:encounter_id => encounter.encounter_id,
+				:value_coded => params[:tb_continuation_regimen_concept_id],
+				:obs_datetime => start_date) if prescribe_tb_continuation_drugs
+			orders.each do |order|
+				drug = Drug.find(order.drug_inventory_id)
+				regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept.name).name
+				DrugOrder.write_order(
+					encounter, 
+					@patient, 
+					obs, 
+					drug, 
+					start_date, 
+					auto_tb_continuation_expire_date, 
+					order.dose, 
+					order.frequency, 
+					order.prn, 
+					"#{drug.name}: #{order.instructions} (#{regimen_name})",
+					order.equivalent_daily_dose)  
+			end if prescribe_tb_continuation_drugs
 		end
 
 		orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:regimen]})
