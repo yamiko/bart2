@@ -225,7 +225,8 @@ class EncountersController < ApplicationController
 	def new
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		session_date = session[:datetime].to_date rescue Date.today
-        @current_encounters = @patient.encounters.find_by_date(session_date)
+        @current_encounters = @patient.encounters.find_by_date(session_date)   
+        @previous_tb_visit = previous_tb_visit(@patient.id)
         @is_patient_pregnant_value = nil
         @is_patient_breast_feeding_value = nil
         @currently_using_family_planning_methods = nil
@@ -822,6 +823,22 @@ class EncountersController < ApplicationController
     end
 		return false if @tb_programs.blank?
     return true
+	end
+	
+	def previous_tb_visit(patient_id)
+		session_date = session[:datetime].to_date rescue Date.today
+        encounter = Encounter.find(:all, :conditions=>["patient_id = ? \
+                    AND encounter_type = ? AND DATE(encounter_datetime) < ? ", patient_id, \
+                    EncounterType.find_by_name("TB VISIT").id, session_date]).last rescue nil
+        @date = encounter.encounter_datetime.to_date rescue nil
+        previous_visit_obs = []
+
+        if !encounter.nil?
+            for obs in encounter.observations do
+                    previous_visit_obs << "#{(obs.to_s(["short", "order"])).gsub('hiv','HIV').gsub('Hiv','HIV')}".squish
+            end
+        end
+        previous_visit_obs
 	end
   
 end

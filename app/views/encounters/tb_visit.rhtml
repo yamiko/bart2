@@ -15,6 +15,29 @@
     return "False";
   }
 
+    function showLastTBsigns(){
+        var innerHtml = '';
+        var resultString = '';      
+
+       <% if @previous_tb_visit.length != 0 %>
+                resultString += '<b>Previous TB visit summary<br> Date: <%="#{@date}"%></b><br><ul>'
+       <%        
+                previous_tb_visit = @previous_tb_visit.sort.map do |method|
+                                    "<li> #{method}</li>"
+                end 
+            end
+        %>
+
+        resultString += <%= "'#{previous_tb_visit}'" %>
+        resultString += '</ul>'
+
+        innerHtml = '<div id="summary" style="min-height:400px"><div>' + 
+        '<span class="title" style="font-size:25px;padding-top:7px;">' + resultString + '</span>' +  
+        '</div></div>'
+                     
+        $('inputFrame'+tstCurrentPage).innerHTML = innerHtml
+    }
+
 </script>
 
 <style>
@@ -41,6 +64,13 @@
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
+    <% if @previous_tb_visit.length != 0 %> 
+        <%= text_field_tag :task_name, nil,
+            {   :tt_onLoad => "showLastTBsigns();",
+                :optional => "true",
+                :tt_pageStyleClass => "NoControls",
+                :helpText => '' } %>
+    <% end %>
   <% if @patient.person.gender == 'F' && @patient.person.age > 13 %>
     
           <% if @is_patient_pregnant_value.nil? %>
