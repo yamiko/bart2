@@ -827,7 +827,7 @@ class Task < ActiveRecord::Base
           return next_task if not next_task.blank? and user_selected_activities.match(/Manage HIV staging visits/i)
 
           next unless patient.tb_status.match(/treatment/i)
-          tb_registration = Encounter.find(:first,:order => "encounter_datetime DESC",
+          tb_registration = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
 
@@ -1051,7 +1051,9 @@ class Task < ActiveRecord::Base
   def self.need_art_enrollment(task,patient,location,session_date,user_selected_activities,reason_for_art)
     return unless patient.hiv_status.match(/Positive/i)
 
-    enrolled_in_hiv_program = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?",patient.id,
+    enrolled_in_hiv_program = Concept.find(Observation.find(:first,
+      :order => "obs_datetime DESC,date_created DESC", 
+      :conditions => ["person_id = ? AND concept_id = ?",patient.id,
       ConceptName.find_by_name("Patient enrolled in IMB HIV program").concept_id]).value_coded).concept_names.map{|c|c.name}[0].upcase rescue nil
 
     return unless enrolled_in_hiv_program == 'YES'
@@ -1060,7 +1062,7 @@ class Task < ActiveRecord::Base
 
     art_initial = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
                              patient.id,EncounterType.find_by_name('ART_INITIAL').id],
-                                   :order =>'encounter_datetime DESC',:limit => 1)
+                             :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
 
     if art_initial.blank? and user_selected_activities.match(/Manage HIV first visits/i)
       task.encounter_type = 'ART_INITIAL'

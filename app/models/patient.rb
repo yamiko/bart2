@@ -1163,11 +1163,17 @@ EOF
   #from TB ART TO BART
   
   def tb_status
-    Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).concept_names.map{|c|c.name}[0] rescue "UNKNOWN"
+    Concept.find(Observation.find(:last, 
+    :order => "obs_datetime DESC,date_created DESC",
+    :conditions => ["person_id = ? AND concept_id = ?", self.id, 
+    ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).concept_names.map{|c|c.name}[0] rescue "UNKNOWN"
   end
   
   def hiv_status
-    status = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).concept_names.map{|c|c.name}[0] rescue "UNKNOWN"
+    status = Concept.find(Observation.find(:last, 
+    :order => "obs_datetime DESC,date_created DESC",
+    :conditions => ["person_id = ? AND concept_id = ?", self.id, 
+    ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).concept_names.map{|c|c.name}[0] rescue "UNKNOWN"
     if status.upcase == 'UNKNOWN'
       return self.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') ? 'Positive' : status
     end
