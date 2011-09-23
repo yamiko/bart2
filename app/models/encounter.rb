@@ -6,14 +6,14 @@ class Encounter < ActiveRecord::Base
   has_many :drug_orders,  :through   => :orders,  :foreign_key => 'order_id'
   has_many :orders, :dependent => :destroy, :conditions => {:voided => 0}
   belongs_to :type, :class_name => "EncounterType", :foreign_key => :encounter_type, :conditions => {:retired => 0}
-  belongs_to :provider, :class_name => "User", :foreign_key => :provider_id, :conditions => {:retired => 0}
+  belongs_to :provider, :class_name => "Person", :foreign_key => :provider_id, :conditions => {:voided => 0}
   belongs_to :patient, :conditions => {:voided => 0}
 
   # TODO, this needs to account for current visit, which needs to account for possible retrospective entry
   named_scope :current, :conditions => 'DATE(encounter.encounter_datetime) = CURRENT_DATE()'
 
   def before_save
-    self.provider_id = User.current_user.person_id if self.provider.blank?
+    self.provider = User.current_user.person if self.provider.blank?
     # TODO, this needs to account for current visit, which needs to account for possible retrospective entry
     self.encounter_datetime = Time.now if self.encounter_datetime.blank?
   end
@@ -23,7 +23,6 @@ class Encounter < ActiveRecord::Base
   end
 
   def after_void(reason = nil)
-    self.orders.each{|row| Pharmacy.voided_stock_adjustment(order) if row.order_type_id == 1 } rescue []
     self.observations.each do |row| 
       if not row.order_id.blank?
         ActiveRecord::Base.connection.execute <<EOF
@@ -32,7 +31,10 @@ EOF
       end rescue nil
       row.void(reason) 
     end rescue []
-    self.find_by_sql("SELECT * FROM encounter ORDER BY encounter_datetime DESC LIMIT 1").orders.each{|row| row.void(reason) } rescue []
+
+    self.orders.each do |order|
+      order.void(reason) 
+    end
   end
 
   def encounter_type_name=(encounter_type_name)

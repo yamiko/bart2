@@ -246,8 +246,9 @@ class EncountersController < ApplicationController
     @recent_sputum_results = @patient.recent_sputum_results rescue nil
 
    @continue_treatment_at_site = []
-     Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
-        EncounterType.find_by_name("TB CLINIC VISIT").id,@patient.id]).observations.map{|o| @continue_treatment_at_site << o.answer_string if o.to_s.include?("Continue treatment")  } rescue nil
+     Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ? AND DATE(encounter_datetime) = ?",
+     EncounterType.find_by_name("TB CLINIC VISIT").id,
+     @patient.id,session_date.to_date]).observations.map{|o| @continue_treatment_at_site << o.answer_string if o.to_s.include?("Continue treatment")} rescue nil
 
 		@patient_has_closed_TB_program_at_current_location = PatientProgram.find(:all,:conditions =>
 			["voided = 0 AND patient_id = ? AND location_id = ? AND (program_id = ? OR program_id = ?)", @patient.id, Location.current_health_center.id, Program.find_by_name('TB PROGRAM').id, Program.find_by_name('MDR-TB PROGRAM').id]).last.closed? rescue true

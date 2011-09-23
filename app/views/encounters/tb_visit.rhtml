@@ -174,24 +174,24 @@
 				:helpText => "Drug related side effects" } %>
 	<% end %>
 
-    <%	
-    date = session[:datetime].to_date rescue Date.today
-        visit_type = []
-        visit_type << 'TB CLINIC VISIT'
-        types = EncounterType.find(:all,:conditions => ["name IN (?)",visit_type]).collect{|n|n.encounter_type_id}
+	<%	
+		date = session[:datetime].to_date rescue Date.today
+		visit_type = []
+		visit_type << 'TB CLINIC VISIT'
+		types = EncounterType.find(:all,:conditions => ["name IN (?)",visit_type]).collect{|n|n.encounter_type_id}
 
-        tb_clinic = Encounter.find(:first,:order => "encounter_datetime DESC",
-		                          :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type IN (?)",
-		                          date,@patient.id,types])
-        if tb_clinic.blank? and not (@current_user_role.include?("Doctor") || @current_user_role.include?("Clinician"))
-    %>
+		tb_clinic = Encounter.find(:first,:order => "encounter_datetime DESC",
+			:conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type IN (?)",
+			date,@patient.id,types])
+		if tb_clinic.blank? and not (@current_user_role.include?("Doctor") || @current_user_role.include?("Clinician"))
+	%>
 
         <%= touch_yes_no_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
 	        {	:id => "refer_to_clinician",
 		        :helpText => "Refer patient to clinician" } %>
-    <%else%>
-            <%= touch_hidden_tag "ANY NEED TO SEE A CLINICIAN", @patient, "NO", :id => "refer_to_clinician" %>
-    <%end%>
+	<% else %>
+		<%= touch_hidden_tag "ANY NEED TO SEE A CLINICIAN", @patient, "NO", :id => "refer_to_clinician" %>
+	<% end %>
 
     <%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
 	    {	:id => "prescribe_drugs",
@@ -204,13 +204,13 @@
 		    :helpText => "Is patient allergic to sulphur" } %>
 
     <% if @continue_treatment_at_site.to_s.strip.upcase != "YES" %>
-      <%= touch_yes_no_tag "Continue treatment", @patient, nil,
-	      {	:id => "continue_treatment",
-		      :condition => "$('refer_to_clinician').value == 'NO'",
-		      :helpText => "Continue TB treatment at this clinic" } %>
+		<%= touch_yes_no_tag "Continue treatment", @patient, nil,
+			{	:id => "continue_treatment",
+				:condition => "$('refer_to_clinician').value == 'NO'",
+				:helpText => "Continue TB treatment at this clinic" } %>
     <% else %>
-    <%= touch_hidden_tag "Continue treatment", @patient, "#{@continue_treatment_at_site.to_s.strip.upcase}",
-       :id => "continue_treatment" %>
+		<%= touch_hidden_tag "Continue treatment", @patient, "#{@continue_treatment_at_site.to_s.strip.upcase}",
+			:id => "continue_treatment" %>
     <% end %>
 
   <%= select_tag "transfer_type", options_for_select(["Peripheral site", "Another TB registration centre"]),
@@ -240,12 +240,6 @@
 		    :ajaxURL => '/programs/locations?q=',
 		    :condition => "($('continue_treatment').value == 'NO') && ($('transfer_type').value == 'Another TB registration centre')"   ,
 		    :allowFreeText => true } %>
-
-    <%= touch_yes_no_unknown_tag "TRANSFER WITHIN RESPONSIBILITY", @patient, nil,
-	    {	:id => "transfer_within_responsibility",
-		    :optional => false,
-		    :condition => "$('continue_treatment').value == 'NO'" ,
-		    :helpText => "Transfer within responsibility (e.g. District)" } %>
 
     <%= submit_tag "Finish" %>
 </form>
