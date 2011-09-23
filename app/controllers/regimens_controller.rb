@@ -68,8 +68,9 @@ class RegimensController < ApplicationController
 		end
 
 		sulphur_allergy_obs = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
-			:conditions => ["patient_id = ? AND encounter_type IN (?)",
-			@patient.id, EncounterType.find(:all,:select => 'encounter_type_id', :conditions => ["name IN (?)",["ART VISIT", "TB VISIT"]])]).observations rescue []
+			:conditions => ["patient_id = ? AND encounter_type IN (?) AND DATE(encounter_datetime) = ?",
+			@patient.id, EncounterType.find(:all,:select => 'encounter_type_id', 
+      :conditions => ["name IN (?)",["ART VISIT", "TB VISIT"]]),session_date.to_date]).observations rescue []
 
 		@alergic_to_suphur = false
 		(sulphur_allergy_obs || []).each do | obs |
@@ -78,9 +79,11 @@ class RegimensController < ApplicationController
 			end
 		end
 
-		art_visit_obs = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
-			:conditions => ["patient_id = ? AND encounter_type IN (?)",
-			@patient.id, EncounterType.find(:all,:select => 'encounter_type_id', :conditions => ["name IN (?)",["ART VISIT"]])]).observations rescue []
+		art_visit_obs = Encounter.find(:first,
+      :order => "encounter_datetime DESC,date_created DESC",
+			:conditions => ["patient_id = ? AND encounter_type IN (?) AND DATE(encounter_datetime) = ?",
+			@patient.id, EncounterType.find(:all,:select => 'encounter_type_id', 
+      :conditions => ["name IN (?)",["ART VISIT"]]),session_date.to_date]).observations rescue []
 
 		@prescribe_art_drugs = false
 		(art_visit_obs || []).each do | obs |
