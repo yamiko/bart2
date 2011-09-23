@@ -305,9 +305,9 @@ class Task < ActiveRecord::Base
     
     current_day_encounters = Encounter.find(:all,
               :conditions =>["patient_id = ? AND DATE(encounter_datetime) = ?",
-              patient.id,session_date.to_date]).map{|e|e.name}
+              patient.id,session_date.to_date]).map{|e|e.name.upcase}
     
-    if current_day_encounters.include?("TB Reception")
+    if current_day_encounters.include?("TB RECEPTION")
       return self.tb_next_form(location , patient , session_date)
     end
 
