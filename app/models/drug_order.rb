@@ -166,5 +166,21 @@ class DrugOrder < ActiveRecord::Base
     end                                                                         
     return complete                                                             
   end  
+  
+  def self.prescription_dates(patient,date)
+    type = EncounterType.find_by_name('TREATMENT').id                           
+    all = Encounter.find(:all,                                                  
+      :conditions =>["patient_id = ? AND DATE(encounter_datetime) = ?           
+      AND encounter_type = ?",patient.id , date , type])                        
+                                                                                
+    start_date = date ; end_date = date                                         
+    (all || []).each do |encounter|                                             
+      encounter.orders.each do | order |                                        
+        end_date = order.auto_expire_date.to_date if (order.auto_expire_date.to_date < end_date)
+        start_date = order.start_date.to_date if (order.start_date.to_date < start_date)
+      end                                                                       
+    end                                                                         
+    return [start_date,end_date]
+  end
 
 end
