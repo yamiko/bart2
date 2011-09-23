@@ -1038,6 +1038,31 @@ class Task < ActiveRecord::Base
             task.url = "/patients/show/#{patient.id}"
             return task
           end if not treatment.blank?
+
+          complete = DrugOrder.all_orders_complete(patient,session_date.to_date)
+         
+          if not complete and user_selected_activities.match(/Manage drug dispensations/i)
+            task.url = "/patients/treatment_dashboard/#{patient.id}"
+            return task
+          elsif not complete and not user_selected_activities.match(/Manage drug dispensations/i)
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if not treatment.blank?
+         
+          appointment = Encounter.find(:first,:conditions =>["patient_id = ? AND 
+                        encounter_type = ? AND DATE(encounter_datetime) = ?",
+                        patient.id,EncounterType.find_by_name('APPOINTMENT').id,session_date],
+                        :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
+
+          if complete and user_selected_activities.match(/Manage Appointments/i)
+            task.encounter_type = "Set Appointment date"
+            task.url = "/encounters/new/appointment?end_date=2011-01-01&id=show&patient_id=43&start_date=2011-01-01/#{patient.id}"
+            return task
+          elsif complete and not user_selected_activities.match(/Manage Appointments/i)
+            task.encounter_type = "Set Appointment date"
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end if not treatment.blank? and appointment.blank?
       end
     end
     #task.encounter_type = 'Visit complete ...'

@@ -150,5 +150,21 @@ class DrugOrder < ActiveRecord::Base
   def total_required
     (duration * equivalent_daily_dose)
   end
-  
+
+  def self.all_orders_complete(patient,encounter_date)                               
+    type = EncounterType.find_by_name('TREATMENT').id                           
+    all = Encounter.find(:all,                                                  
+      :conditions =>["patient_id = ? AND DATE(encounter_datetime) = ?           
+      AND encounter_type = ?",patient.id , encounter_date , type])              
+                                                                                
+    complete = true                                                             
+    (all || []).each do |encounter|                                             
+      encounter.drug_orders.each do | drug_order |                              
+        complete = (drug_order.amount_needed <= 0)                              
+        return complete unless complete                                         
+      end                                                                       
+    end                                                                         
+    return complete                                                             
+  end  
+
 end

@@ -81,8 +81,11 @@ class DispensationsController < ApplicationController
         complete = dispension_complete(@patient,@encounter,@patient.current_treatment_encounter(session_date))
         if complete
           unless params[:location]
-            redirect_to :controller => 'encounters',:action => 'new',:start_date => @order.start_date.to_date,
-              :patient_id => @patient.id,:id =>"show",:encounter_type => "appointment" ,:end_date => @order.auto_expire_date.to_date
+            start_date , end_date = prescription_dates(@patient,session_date.to_date)
+            redirect_to :controller => 'encounters',:action => 'new',
+              :start_date => start_date,
+              :patient_id => @patient.id,:id =>"show",:encounter_type => "appointment" ,
+              :end_date => end_date
           else
             render :text => 'complete' and return
           end
@@ -126,17 +129,31 @@ class DispensationsController < ApplicationController
 
   def dispension_complete(patient,encounter,prescription)
     complete = false
-    prescription.orders.each do | order |
-      if (order.drug_order.amount_needed <= 0)
-        complete = true
-      else
-        complete = false and break
-      end 
+    prescription.drug_orders.each do | drug_order |
+      complete = (drug_order.amount_needed <= 0)
+      complete = false and break if not complete
     end
 
     if complete
       dispension_completed = patient.set_received_regimen(encounter,prescription) 
     end
-    return complete
+    return DrugOrder.all_orders_complete(patient,encounter.encounter_datetime.to_date)
   end
+
+  def prescription_dates(patient,date)
+    type = EncounterType.find_by_name('TREATMENT').id                           
+    all = Encounter.find(:all,                                                  
+      :conditions =>["patient_id = ? AND DATE(encounter_datetime) = ?           
+      AND encounter_type = ?",patient.id , date , type])
+
+    start_date = date ; end_date = date                                                             
+    (all || []).each do |encounter|                                             
+      encounter.orders.each do | order |                              
+        end_date = order.auto_expire_date.to_date if (order.auto_expire_date.to_date < end_date)                       
+        start_date = order.start_date.to_date if (order.start_date.to_date < start_date)                       
+      end                                                                       
+    end                                                                         
+    return [start_date,end_date]
+  end
+
 end
