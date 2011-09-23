@@ -596,8 +596,11 @@ EOF
     
     if (Observation.find(:first,:conditions => ["person_id = ? AND encounter_id = ? AND concept_id = ?",
             self.id,encounter.id,ConceptName.find_by_name('ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT').concept_id])).blank?
-      regimen_value_text = Concept.find(regimen_prescribed).shortname
-      regimen_value_text = ConceptName.find_by_concept_id(regimen_prescribed).name if regimen_value_text.blank?
+      regimen_value_text = Concept.find(regimen_prescribed).shortname rescue nil
+      if regimen_value_text.blank?
+        regimen_value_text = ConceptName.find_by_concept_id(regimen_prescribed).name rescue nil
+      end
+      return if regimen_value_text.blank?
       obs = Observation.new(
         :concept_name => "ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT",
         :person_id => self.id,
