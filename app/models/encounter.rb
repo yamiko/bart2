@@ -33,7 +33,6 @@ EOF
     end rescue []
 
     self.orders.each do |order|
-      Pharmacy.voided_stock_adjustment(order) if order.order_type_id == 1 rescue nil
       order.void(reason) 
     end
   end
