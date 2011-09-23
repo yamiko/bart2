@@ -1165,14 +1165,14 @@ EOF
   def tb_status
     Concept.find(Observation.find(:first, 
     :order => "obs_datetime DESC,date_created DESC",
-    :conditions => ["person_id = ? AND concept_id = ?", self.id, 
+    :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL", self.id, 
     ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).concept_names.map{|c|c.name}[0] rescue "UNKNOWN"
   end
   
   def hiv_status
     status = Concept.find(Observation.find(:first, 
     :order => "obs_datetime DESC,date_created DESC",
-    :conditions => ["person_id = ? AND concept_id = ?", self.id, 
+    :conditions => ["value_coded IS NOT NULL AND person_id = ? AND concept_id = ?", self.id, 
     ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).concept_names.map{|c|c.name}[0] rescue "UNKNOWN"
     if status.upcase == 'UNKNOWN'
       return self.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') ? 'Positive' : status
