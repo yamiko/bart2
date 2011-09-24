@@ -58,13 +58,13 @@
        :allowFreeText => true,
        :helpText => 'Location of TB initiation'} %>
 
-  <%= touch_date_tag "CONFIRMATORY HIV TEST DATE", @patient, nil,
+  <%= touch_date_tag "Date of TB initiation", @patient, nil,
 			{:id => "date_of_tb_initiation",
 			 :condition => "$('transfer_in').value =='YES'",
 			 :max => "#{session[:datetime].to_date rescue Date.today}",
 			 :helpText => "Date of TB initiation"} %>
 
- <%= touch_select_tag "SPUTUM RESULT", @patient, options_for_select([['',''],['Negative','Negative'],['Positive','Positive'], ['NA','NA']]),
+ <%= touch_select_tag "Sputum result at initiation", @patient, options_for_select([['',''],['Negative','Negative'],['Positive','Positive'], ['NA','NA']]),
   {:id => "sputum_result",
 	 :condition => "$('transfer_in').value =='YES'",
 	 :helptext => "Smear results at initiation"}
@@ -81,14 +81,14 @@
 			  :condition => "$('transfer_in').value =='YES'",
 				:helpText => "TB registration number at previous location" } %>
 
-  <%= touch_text_field_tag "PREVIOUS WEIGHT", @patient, nil,
+  <%= touch_text_field_tag "Weight at tuberculosis program initiation", @patient, nil,
 			{	:id => "weight_at_tb_initiation",
 			  :field_type => 'number',
 			  :condition => "$('transfer_in').value =='YES'",
 			  :tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal",
 				:helpText => "Weight at TB initiation" } %>
 
-  <%= touch_select_tag "LAST ART DRUGS TAKEN", @patient, options_for_select(@tb_regimen_array),
+  <%= touch_select_tag "Last tuberculosis drugs taken", @patient, options_for_select(@tb_regimen_array),
 			{:id => "last_tb_drugs_taken",
 			 :condition => "$('transfer_in').value =='YES'",
 			 :helpText => "Last TB drugs taken" } %>
