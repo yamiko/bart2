@@ -117,6 +117,7 @@ class Patient < ActiveRecord::Base
     alerts << "Lab: Waiting for sputum results" if self.recent_sputum_results.empty? && !self.recent_sputum_submissions.empty?
     alerts << "Lab: Results not given to patient" if !self.recent_sputum_results.empty? && self.given_sputum_results.to_s != "Yes"
     alerts << "Lab: Patient must order sputum test" if self.patient_need_sputum_test?
+    alerts << "Refer to ART clinic or wing" if show_alert_refer_to_ART_wing
 
     alerts
   end
@@ -1430,5 +1431,32 @@ EOF
         self.id, sputum_concept_ids, registration_date],
       :order => "obs_datetime desc", :limit => 3)
   end
+
+    def show_alert_refer_to_ART_wing
+        show_alert = false
+        refer_to_x_ray = nil
+        does_tb_status_obs_exist = false
+
+	    session_date = session[:datetime].to_date rescue Date.today
+        encounter = Encounter.find(:all, :conditions=>["patient_id = ? \
+                    AND encounter_type = ? AND DATE(encounter_datetime) = ? ", self.id, \
+                    EncounterType.find_by_name("TB CLINIC VISIT").id, session_date]).last rescue nil
+        @date = encounter.encounter_datetime.to_date rescue nil
+
+        if !encounter.nil?
+            for obs in encounter.observations do
+                if obs.concept_id == ConceptName.find_by_name("Refer to x-ray?").concept_id
+                    refer_to_x_ray = "#{obs.to_s(["short", "order"]).to_s.split(":")[1].squish}".squish
+                elsif obs.concept_id == ConceptName.find_by_name("TB status").concept_id
+                    does_tb_status_obs_exist = true
+                end
+            end
+        end
+
+        if refer_to_x_ray.upcase == 'NO' && does_tb_status_obs_exist.to_s == false.to_s && self.hiv_status.upcase == 'POSITIVE'
+           show_alert = true
+        end
+        show_alert
+    end
 
 end
