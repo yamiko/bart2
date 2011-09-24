@@ -117,12 +117,15 @@
               :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
               date,@patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
   %>
-  
+
   <% if !@tb_status %>
     <label for='summary'>Summary</label>
-    <%= text_field_tag :summary, nil, { :tt_onLoad => "summary();", :optional => "true", :tt_pageStyleClass => "NoControls" , :helpText => ''} %>
+    <%= text_field_tag :summary, nil, { :tt_onLoad => "summary();", :optional => "true",
+                       :tt_pageStyleClass => "NoControls" ,
+                       :condition => "$('transfer_in').value !='YES'",
+                       :helpText => ''} %>
   <%end%>
-  
+
   <%= submit_tag "Finish" %>    
 </form>
 <% end %>
