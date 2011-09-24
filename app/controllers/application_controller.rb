@@ -70,8 +70,8 @@ class ApplicationController < ActionController::Base
     GlobalProperty.find_by_property('use.user.selected.activities').property_value == "yes" rescue false
   end
   
-    def local_tb_dot_sites_tag
-        GlobalProperty.find_by_property('local.tb.dot.sites.tag').property_value rescue nil
+    def tb_dot_sites_tag
+        GlobalProperty.find_by_property('tb_dot_sites_tag').property_value rescue nil
     end
 
   # Convert a list +Concept+s of +Regimen+s for the given +Patient+ <tt>age</tt>

@@ -88,7 +88,7 @@
 			  :tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal",
 				:helpText => "Weight at TB initiation" } %>
 
-  <%= touch_select_tag "LAST ART DRUGS TAKEN", @patient, options_for_select([['',''],['RH','Rifampicin and isoniazid'],['RHZ','Rifampicin isoniazid and pyrazinamide'], ['E','Ethambutol']]),
+  <%= touch_select_tag "LAST ART DRUGS TAKEN", @patient, options_for_select(@tb_regimen_array),
 			{:id => "last_tb_drugs_taken",
 			 :condition => "$('transfer_in').value =='YES'",
 			 :helpText => "Last TB drugs taken" } %>
