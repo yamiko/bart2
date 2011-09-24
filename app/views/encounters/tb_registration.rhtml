@@ -169,10 +169,14 @@ Check applicability of code below
     {:id => "dot_option",
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "DOT option" } %>
+     
+<%= select_tag :patient_coughing, options_for_select([['',''],['Yes','YES'],['No','NO']], ''),
+	  { :helpText => "Is the patient coughing?", } %>
 
   <%= touch_select_tag "Duration of current cough", @patient, options_for_select(@select_options['duration_of_current_cough']),
     {:id => "number_of_weeks_of_current_cough",
      :tt_pageStyleClass => "NoKeyboard",
+     :condition => "($('patient_coughing').value == 'YES')" ,
      :helpText => "Weeks of current cough" } %>
 
 	<% if @tb_classification == nil %>
