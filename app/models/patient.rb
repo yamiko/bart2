@@ -117,7 +117,7 @@ class Patient < ActiveRecord::Base
     alerts << "Lab: Waiting for sputum results" if self.recent_sputum_results.empty? && !self.recent_sputum_submissions.empty?
     alerts << "Lab: Results not given to patient" if !self.recent_sputum_results.empty? && self.given_sputum_results.to_s != "Yes"
     alerts << "Lab: Patient must order sputum test" if self.patient_need_sputum_test?
-    alerts << "Refer to ART clinic or wing" if show_alert_refer_to_ART_wing
+    alerts << "Refer to ART wing" if show_alert_refer_to_ART_wing
 
     alerts
   end
