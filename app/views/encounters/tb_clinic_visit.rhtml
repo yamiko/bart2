@@ -137,7 +137,7 @@
 				
 	<%= touch_yes_no_tag "Refer to x-ray?", @patient, nil,
 		{	:id => "refer_to_xray",
-			:condition => "$('tb_suspected').value != 'YES'",
+			:condition => "$('tb_suspected').value != 'YES' && $('interpret_xray').value != 'YES'",
 			:helpText => "Refer patient to x-ray?" } %>
 
     <%= touch_hidden_tag "TB STATUS", @patient, nil, {:id => 'tb_status'} %>

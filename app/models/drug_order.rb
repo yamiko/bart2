@@ -171,11 +171,14 @@ class DrugOrder < ActiveRecord::Base
     type = EncounterType.find_by_name('TREATMENT').id                           
     all = Encounter.find(:all,                                                  
       :conditions =>["patient_id = ? AND DATE(encounter_datetime) = ?           
-      AND encounter_type = ?",patient.id , date , type])                        
+      AND encounter_type = ?",patient.id , date.to_date , type])                        
                                                                                 
-    start_date = date ; end_date = date                                         
+    start_date = nil ; end_date = nil                                        
     (all || []).each do |encounter|                                             
-      encounter.orders.each do | order |                                        
+      encounter.orders.each do | order |
+        start_date = order.start_date.to_date if start_date.blank?
+        end_date = order.auto_expire_date.to_date if end_date.blank?
+                                                
         end_date = order.auto_expire_date.to_date if (order.auto_expire_date.to_date < end_date)
         start_date = order.start_date.to_date if (order.start_date.to_date < start_date)
       end                                                                       

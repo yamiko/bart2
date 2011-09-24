@@ -811,22 +811,23 @@ class EncountersController < ApplicationController
 		return false
 	end
 
-  def any_previous_tb_programs(patient_id)
-    @tb_programs = ''
-    patient_programs = PatientProgram.find_all_by_patient_id(patient_id)
+    def any_previous_tb_programs(patient_id)
+        @tb_programs = ''
+        patient_programs = PatientProgram.find_all_by_patient_id(patient_id)
 
-    unless patient_programs.blank?
-      patient_programs.each{ |patient_program|
-        if patient_program.program_id == Program.find_by_name("MDR-TB program").program_id ||
-           patient_program.program_id == Program.find_by_name("TB PROGRAM").program_id
-          @tb_programs = true
-          break
+        unless patient_programs.blank?
+          patient_programs.each{ |patient_program|
+            if patient_program.program_id == Program.find_by_name("MDR-TB program").program_id ||
+               patient_program.program_id == Program.find_by_name("TB PROGRAM").program_id
+              @tb_programs = true
+              break
+            end
+          }
         end
-      }
+	    
+	    return false if @tb_programs.blank?
+        return true
     end
-		return false if @tb_programs.blank?
-    return true
-	end
 	
 	def previous_tb_visit(patient_id)
 		session_date = session[:datetime].to_date rescue Date.today

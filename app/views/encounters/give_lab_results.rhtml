@@ -20,6 +20,8 @@
                     elsif "#{observation.to_s(["short", "order"]).to_s.split(":")[1].squish}" == "Bloody"
                         concept_name_id  = ConceptName.find_by_name("#{observation.to_s(["short", "order"]).to_s.split(":")[1].squish}").concept_id
                         "<li> <b>#{observation.to_s(['short', 'order']).to_s.split(':')[0]}</b> : Blood-stained </li>"
+                    elsif observation.concept_id == ConceptName.find_by_name("TB status").concept_id
+                        "<li> <b>#{observation.to_s(['FULLY_SPECIFIED', 'order']).to_s.split(':')[0]}</b> : #{observation.to_s(['FULLY_SPECIFIED', 'order']).to_s.split(':')[1]} </li>"
                     else
                         "<li> <b>#{observation.to_s(['short', 'order']).to_s.split(':')[0]}</b> : #{observation.to_s(['short', 'order']).to_s.split(':')[1]} </li>"
                     end
