@@ -1458,7 +1458,7 @@ EOF
 
         if refer_to_x_ray.upcase == 'NO' && does_tb_status_obs_exist.to_s == false.to_s && self.hiv_status.upcase == 'POSITIVE'
            show_alert = true
-        end
+        end rescue nil
         show_alert
     end
 
