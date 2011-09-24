@@ -318,8 +318,7 @@ class Patient < ActiveRecord::Base
       print_labels = []
       label = 0
       while label <= labels.size
-        print_labels << labels[label].print(1) if labels[label] != nil
-        print_labels << labels[label].print(1) if labels[label] != nil
+        print_labels << labels[label].print(2) if labels[label] != nil
         label = label + 1
       end
 
