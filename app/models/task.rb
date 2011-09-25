@@ -928,6 +928,36 @@ class Task < ActiveRecord::Base
             task.url = "/patients/show/#{patient.id}"
             return task
           end
+
+          obs_ans = Observation.find(Observation.find(:first, 
+                    :order => "obs_datetime DESC,date_created DESC",
+                    :conditions => ["person_id = ? AND concept_id = ? AND DATE(obs_datetime) = ?",patient.id, 
+                    ConceptName.find_by_name("ANY NEED TO SEE A CLINICIAN").concept_id,session_date])).to_s.strip.squish rescue nil
+
+          if not obs_ans.blank?
+            next if obs_ans.match(/ANY NEED TO SEE A CLINICIAN: NO/i)
+            if obs_ans.match(/ANY NEED TO SEE A CLINICIAN: YES/i)
+              tb_visits = Encounter.find(:all,:order => "encounter_datetime DESC,date_created DESC",
+                            :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                            session_date.to_date,patient.id,EncounterType.find_by_name('TB VISIT').id])
+              if (tb_visits.length == 1) 
+                roles = User.current_user.user_roles.map{|u|u.role}.join(',') rescue ''
+                if not (roles.match(/Clinician/i) or roles.match(/Doctor/i))
+                    task.encounter_type = 'TB VISIT'
+                    task.url = "/patients/show/#{patient.id}"
+                    return task
+                elsif user_selected_activities.match(/Manage TB Treatment Visits/i)
+                  task.encounter_type = 'TB VISIT'
+                  task.url = "/encounters/new/tb_visit?show&patient_id=#{patient.id}"
+                  return task
+                elsif not user_selected_activities.match(/Manage TB Treatment Visits/i)
+                  task.encounter_type = 'TB VISIT'
+                  task.url = "/patients/show/#{patient.id}"
+                  return task
+                end
+              end
+            end
+          end
         when 'ART VISIT'  
           next unless patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') rescue false
           clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
