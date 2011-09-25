@@ -1291,15 +1291,14 @@ EOF
 
         if accession_number != ""
           label = 'label' + i.to_s
-          label = ZebraPrinter::StandardLabel.new
+          label = ZebraPrinter::Label.new(500,165)
           label.font_size = 2
-          label.font_horizontal_multiplier = 2
-          label.font_vertical_multiplier = 2
-          label.left_margin = 50
-          label.draw_barcode(50,180,0,1,5,15,120,false,"#{accession_number}")
+          label.font_horizontal_multiplier = 1
+          label.font_vertical_multiplier = 1
+          label.left_margin = 300
+          label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
           label.draw_multi_text("#{self.person.name.titleize.delete("'")} #{self.national_id_with_dashes}")
-          label.draw_multi_text("#{observation.name rescue nil}")
-          label.draw_multi_text("#{accession_number rescue nil}")
+          label.draw_multi_text("#{observation.name rescue nil} - #{accession_number rescue nil}")
           label.draw_multi_text("#{observation.date_created.strftime("%d-%b-%Y %H:%M")}")
           labels << label
          end
