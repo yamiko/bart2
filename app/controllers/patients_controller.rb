@@ -7,7 +7,7 @@ class PatientsController < ApplicationController
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
-    @alerts = @patient.alerts(session_date)
+    @alerts = alerts(@patient, session_date)
     # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|    
@@ -487,7 +487,7 @@ class PatientsController < ApplicationController
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
-    @alerts = @patient.alerts(session_date)
+    @alerts = alerts(@patient, session_date)
     # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|
@@ -507,7 +507,7 @@ class PatientsController < ApplicationController
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
-    @alerts = @patient.alerts(session_date)
+    @alerts = alerts(@patient, session_date)
     # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|
@@ -525,7 +525,7 @@ class PatientsController < ApplicationController
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
-    @alerts = @patient.alerts(session_date)
+    @alerts = alerts(@patient, session_date)
     # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|
@@ -661,6 +661,93 @@ class PatientsController < ApplicationController
   def tb_treatment_card
     render :layout => 'menu'
   end
+  
+  def alerts(patient, session_date = Date.today) 
+    # next appt
+    # adherence
+    # drug auto-expiry
+    # cd4 due
+    
+    alerts = []
+
+    type = EncounterType.find_by_name("APPOINTMENT")
+    next_appt = patient.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.last.to_s rescue nil
+    alerts << ('Next ' + next_appt).capitalize unless next_appt.blank?
+
+    encounter_dates = Encounter.find_by_sql("SELECT * FROM encounter WHERE patient_id = #{patient.id} AND encounter_type IN (" +
+        ("SELECT encounter_type_id FROM encounter_type WHERE name IN ('VITALS', 'TREATMENT', " +
+          "'HIV RECEPTION', 'HIV STAGING', 'ART VISIT', 'DISPENSING')") + ")").collect{|e|
+      e.encounter_datetime.strftime("%Y-%m-%d")
+    }.uniq
+
+    missed_appt = patient.encounters.find_last_by_encounter_type(type.id, 
+      :conditions => ["NOT (DATE_FORMAT(encounter_datetime, '%Y-%m-%d') IN (?)) AND encounter_datetime < NOW()",
+        encounter_dates], :order => "encounter_datetime").observations.last.to_s rescue nil
+    alerts << ('Missed ' + missed_appt).capitalize unless missed_appt.blank?
+
+    type = EncounterType.find_by_name("ART ADHERENCE")
+    patient.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.map do | adh |
+      next if adh.value_text.blank?
+      alerts << "Adherence: #{adh.order.drug_order.drug.name} (#{adh.value_text}%)"
+    end rescue []
+
+    type = EncounterType.find_by_name("DISPENSING")
+    patient.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.each do | obs |
+      next if obs.order.blank? and obs.order.auto_expire_date.blank?
+      alerts << "Auto expire date: #{obs.order.drug_order.drug.name} #{obs.order.auto_expire_date.to_date.strftime('%d-%b-%Y')}"
+    end rescue []
+
+    # BMI alerts
+    if patient.person.age >= 15
+      bmi_alert = patient.current_bmi_alert
+      alerts << bmi_alert if bmi_alert
+    end
+    
+    program_id = Program.find_by_name("HIV PROGRAM").id
+    location_id = Location.current_health_center.location_id
+    
+    patient_hiv_program = PatientProgram.find(:all,:conditions =>["voided = 0 AND patient_id = ? AND program_id = ? AND location_id = ?", patient.id , program_id, location_id])
+
+    hiv_status = patient.hiv_status
+    alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.strip}" == 'Negative' && patient.months_since_last_hiv_test > 3)
+    alerts << "Patient not on ART" if (("#{hiv_status.strip}" == 'Positive') && !patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) ||
+                                                          ((patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) && (ProgramWorkflowState.find_state(patient_hiv_program.last.patient_states.last.state).concept.fullname != "On antiretrovirals"))
+    alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.strip}" == 'Unknown'
+    alerts << "Lab: Expecting submission of sputum" unless patient.sputum_orders_without_submission.empty?
+    alerts << "Lab: Waiting for sputum results" if patient.recent_sputum_results.empty? && !patient.recent_sputum_submissions.empty?
+    alerts << "Lab: Results not given to patient" if !patient.recent_sputum_results.empty? && patient.given_sputum_results.to_s != "Yes"
+    alerts << "Lab: Patient must order sputum test" if patient.patient_need_sputum_test?
+    alerts << "Refer to ART wing" if show_alert_refer_to_ART_wing(patient)
+
+    alerts
+  end
+  
+    def show_alert_refer_to_ART_wing(patient)
+        show_alert = false
+        refer_to_x_ray = nil
+        does_tb_status_obs_exist = false
+
+	    session_date = session[:datetime].to_date rescue Date.today
+        encounter = Encounter.find(:all, :conditions=>["patient_id = ? \
+                    AND encounter_type = ? AND DATE(encounter_datetime) = ? ", patient.id, \
+                    EncounterType.find_by_name("TB CLINIC VISIT").id, session_date]).last rescue nil
+        @date = encounter.encounter_datetime.to_date rescue nil
+
+        if !encounter.nil?
+            for obs in encounter.observations do
+                if obs.concept_id == ConceptName.find_by_name("Refer to x-ray?").concept_id
+                    refer_to_x_ray = "#{obs.to_s(["short", "order"]).to_s.split(":")[1].squish}".squish
+                elsif obs.concept_id == ConceptName.find_by_name("TB status").concept_id
+                    does_tb_status_obs_exist = true
+                end
+            end
+        end
+
+        if refer_to_x_ray.upcase == 'NO' && does_tb_status_obs_exist.to_s == false.to_s && patient.hiv_status.upcase == 'POSITIVE'
+           show_alert = true
+        end rescue nil
+        show_alert
+    end
     
   private
   
