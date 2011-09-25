@@ -238,7 +238,7 @@ class EncountersController < ApplicationController
         @is_patient_pregnant_value = nil
         @is_patient_breast_feeding_value = nil
         @currently_using_family_planning_methods = nil
-
+        @transfer_in_TB_registration_number = encounter_observation(@patient.id, "TB_INITIAL", "TB registration number")
         @family_planning_methods = []
 
 		@given_lab_results = Encounter.find(:last,
@@ -851,6 +851,23 @@ class EncountersController < ApplicationController
             end
         end
         previous_visit_obs
+	end
+	
+	def encounter_observation(patient_id, encountertype_name, observation_name)
+		session_date = session[:datetime].to_date rescue Date.today
+        encounter = Encounter.find(:all, :conditions=>["patient_id = ? \
+                    AND encounter_type = ? AND DATE(encounter_datetime) = ? ", patient_id, \
+                    EncounterType.find_by_name("#{encountertype_name}").id, session_date]).last rescue nil
+        @date = encounter.encounter_datetime.to_date rescue nil
+        observation = nil
+        if !encounter.nil?
+            for obs in encounter.observations do
+                if obs.concept_id == ConceptName.find_by_name("#{observation_name}").concept_id
+                    observation = "#{obs.to_s(["short", "order"]).to_s.split(":")[1]}".squish
+                end
+            end
+        end
+        observation
 	end
   
 end

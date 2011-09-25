@@ -158,12 +158,16 @@ Check applicability of code below
       :helpText => ''} %>
   <% end %>
 
-  <%= touch_identifier_tag @patient, "District TB Number", @identifier_value,
-        {:id => "tb_district_number",
-         :optional => false,
-         :tt_onLoad => "press('num');tb_number();",
-         :tt_pageStyleClass => "Numeric NumbersOnly",
-         :helpText => "TB registration number" } %>
+    <% if @transfer_in_TB_registration_number.nil? %>
+      <%= touch_identifier_tag @patient, "District TB Number", @identifier_value,
+            {:id => "tb_district_number",
+             :optional => false,
+             :tt_onLoad => "press('num');tb_number();",
+             :tt_pageStyleClass => "Numeric NumbersOnly",
+             :helpText => "TB registration number" } %>
+    <%else%>
+        <%= touch_hidden_tag "TB registration number" , @patient, @transfer_in_TB_registration_number.to_s , :id => "on_fpm" %>
+    <%end%>
 
   <%= touch_select_tag "DOT Option", @patient, concept_set_options("DOT Option"),
     {:id => "dot_option",
