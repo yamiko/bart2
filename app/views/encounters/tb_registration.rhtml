@@ -175,7 +175,7 @@ Check applicability of code below
              :tt_pageStyleClass => "Numeric NumbersOnly",
              :helpText => "TB registration number" } %>
     <%else%>
-        <%= touch_hidden_tag "TB registration number" , @patient, @transfer_in_TB_registration_number.to_s , :id => "on_fpm" %>
+        <%= touch_hidden_tag "TB registration number" , @patient, @transfer_in_TB_registration_number.to_s , :id => "tb_district_number" %>
     <%end%>
 
   <%= touch_select_tag "DOT Option", @patient, concept_set_options("DOT Option"),
