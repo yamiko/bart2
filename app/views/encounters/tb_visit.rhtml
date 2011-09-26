@@ -248,7 +248,7 @@
 	         	:condition => '$("enroll_patient_in_art").value == "YES" && $("refer_to_clinician").value != "YES"',
 	         	:helpText => "Ever registered at an ART clinic?"} %>
 
-        <%= touch_date_tag "Date of ART initiation", @patient, nil,
+        <%= touch_date_tag "ART initiation date", @patient, nil,
 		        {:id => "date_of_art_initiation",
 		         :condition => "$('ever_registered_at_ART_clinic').value =='YES' && $('refer_to_clinician').value != 'YES'",
 		         :max => "#{session[:datetime].to_date rescue Date.today}",
