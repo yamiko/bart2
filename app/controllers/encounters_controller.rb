@@ -230,8 +230,13 @@ class EncountersController < ApplicationController
         @is_patient_pregnant_value = nil
         @is_patient_breast_feeding_value = nil
         @currently_using_family_planning_methods = nil
-        @transfer_in_TB_registration_number = encounter_observation(@patient.id, "TB_INITIAL", "TB registration number")
+        @transfer_in_TB_registration_number = get_todays_observation_answer_for_encounter(@patient.id, "TB_INITIAL", "TB registration number")
+        @referred_to_htc = nil
         @family_planning_methods = []
+        
+        if (params[:encounter_type].upcase rescue '') == 'UPDATE HIV STATUS'
+            @referred_to_htc = get_todays_observation_answer_for_encounter(@patient.id, "UPDATE HIV STATUS", "Refer to HTC")
+        end
 
 		@given_lab_results = Encounter.find(:last,
 			:order => "encounter_datetime DESC,date_created DESC",
@@ -845,7 +850,7 @@ class EncountersController < ApplicationController
         previous_visit_obs
 	end
 	
-	def encounter_observation(patient_id, encountertype_name, observation_name)
+	def get_todays_observation_answer_for_encounter(patient_id, encountertype_name, observation_name)
 		session_date = session[:datetime].to_date rescue Date.today
         encounter = Encounter.find(:all, :conditions=>["patient_id = ? \
                     AND encounter_type = ? AND DATE(encounter_datetime) = ? ", patient_id, \
