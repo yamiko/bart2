@@ -240,6 +240,31 @@
 		    :ajaxURL => '/programs/locations?q=',
 		    :condition => "($('continue_treatment').value == 'NO') && ($('transfer_type').value == 'Another TB registration centre')"   ,
 		    :allowFreeText => true } %>
+		    
+    <% if @patient.hiv_status.upcase == 'POSITIVE' && !@patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM') %>  
+               
+        <%= touch_yes_no_tag "Ever registered at ART clinic", @patient, nil,
+	        {	:id => "ever_registered_at_ART_clinic",
+	         	:condition => '$("enroll_patient_in_art").value == "YES" && $("refer_to_clinician").value != "YES"',
+	         	:helpText => "Ever registered at an ART clinic?"} %>
+
+        <%= touch_date_tag "Date of ART initiation", @patient, nil,
+		        {:id => "date_of_art_initiation",
+		         :condition => "$('ever_registered_at_ART_clinic').value =='YES' && $('refer_to_clinician').value != 'YES'",
+		         :max => "#{session[:datetime].to_date rescue Date.today}",
+		         :helpText => "Antiretroviral initiation date"} %>
+
+        <%= touch_location_tag "LOCATION OF ART INITIATION", @patient, nil,
+	        {	:id => "location_of_art_initialization",
+	         	:condition => '$("ever_registered_at_ART_clinic").value == "YES" && $("refer_to_clinician").value != "YES"',
+	         	:optional => false,
+	         	:helpText => "Location of ART initiation" } %>
+	         	
+        <%= touch_yes_no_tag "Patient enrolled in HIV program", @patient, nil,
+            {   :id => "enroll_patient_in_art",
+                :condition => '$("refer_to_clinician").value != "YES"',
+                :helpText => 'Enroll patient in ART' } %>
+    <% end %>
 
     <%= submit_tag "Finish" %>
 </form>
