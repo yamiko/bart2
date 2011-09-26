@@ -10,6 +10,7 @@ UPDATE `global_property` SET `property_value` = 'yes' WHERE `property` = 'demogr
 UPDATE `global_property` SET `property_value` = 'yes' WHERE `property` = 'demographics.sms_for_TB_therapy';
 UPDATE `global_property` SET `property_value` = 'yes' WHERE `property` = 'demographics.ground_phone';
 UPDATE `global_property` SET `property_value` = 'MPC' WHERE `property` = 'site_prefix';
+UPDATE `global_property` SET `property_value` = 'yes' WHERE `property` = 'create.from.remote';
 
 
 
