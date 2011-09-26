@@ -70,9 +70,13 @@ class ApplicationController < ActionController::Base
     GlobalProperty.find_by_property('use.user.selected.activities').property_value == "yes" rescue false
   end
   
-    def tb_dot_sites_tag
-        GlobalProperty.find_by_property('tb_dot_sites_tag').property_value rescue nil
-    end
+  def tb_dot_sites_tag
+    GlobalProperty.find_by_property('tb_dot_sites_tag').property_value rescue nil
+  end
+
+  def create_from_remote                                                        
+    GlobalProperty.find_by_property('create.from.remote').property_value == "yes" rescue false
+  end
 
   # Convert a list +Concept+s of +Regimen+s for the given +Patient+ <tt>age</tt>
   # into select options. See also +EncountersController#arv_regimen_answers+
