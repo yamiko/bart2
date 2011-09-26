@@ -594,7 +594,7 @@ class Task < ActiveRecord::Base
             return task
           end
 
-          if ('Refer to HTC: NO'.upcase == refered_to_htc) and location.name.match(/HTC/i)
+          if ('Refer to HTC: NO'.upcase == refered_to_htc) and location.name.upcase == "TB HTC"
             refered_to_htc = Encounter.find(:first,
               :joins => "INNER JOIN obs ON obs.encounter_id = encounter.encounter_id",
               :order => "encounter_datetime DESC,date_created DESC",
