@@ -34,6 +34,11 @@ INSERT INTO `users` VALUES (1,'1-8','admin','4a1750c8607d0fa237de36c6305715c2234
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
+LOCK TABLES `user_role` WRITE;
+DELETE FROM `user_role`;
+INSERT INTO `user_role` VALUES (1, 'System Developer'), (1, 'Superuser');
+UNLOCK TABLES;
+
 
 LOCK TABLES `person_address` WRITE;
 DELETE FROM `person_address`;
