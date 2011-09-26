@@ -246,13 +246,6 @@ Check applicability of code below
     {:id => "patient_category",
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "Patient category" } %>
-     
-  <%if @patient.hiv_status.upcase == 'POSITIVE' and not @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')%> 
-    <%= touch_yes_no_unknown_tag "Patient enrolled in IMB HIV program", @patient, nil,
-      {:id => "enroll_patient_in_art",
-       :helpText => 'Enroll patient in ART'} %>
-  <%end%>
-
   <%= submit_tag "Finish" %>
 </form>
 <% end %>
