@@ -1,6 +1,14 @@
 class EncountersController < ApplicationController
 
   def create
+    if params['encounter']['encounter_type_name'] == 'TB_INITIAL'
+      (params[:observations] || []).each do |observation|
+        if observation['concept_name'].upcase == 'TRANSFER IN' and observation['value_coded_or_text'] == "YES"
+          params[:observations] << {"concept_name" => "TB STATUS","value_coded_or_text" => "Confirmed TB on treatment"}
+        end
+      end
+    end
+
     if params['encounter']['encounter_type_name'] == 'ART_INITIAL'
       if params[:observations][0]['concept_name'].upcase == 'EVER RECEIVED ART' and params[:observations][0]['value_coded_or_text'].upcase == 'NO'
         observations = []

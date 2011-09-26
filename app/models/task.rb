@@ -579,14 +579,34 @@ class Task < ActiveRecord::Base
             return task
           end
 
+          
+          refered_to_htc_concept_id = ConceptName.find_by_name("Refer to HTC").concept_id
+
           refered_to_htc = Observation.find(Observation.find(:first,
                     :order => "obs_datetime DESC,date_created DESC",
                     :conditions => ["person_id = ? AND concept_id = ? AND DATE(obs_datetime) <= ?", 
-                    patient.id, ConceptName.find_by_name("Refer to HTC").concept_id,
+                    patient.id, refered_to_htc_concept_id,
                     session_date.to_date])).to_s.strip.squish.upcase rescue nil
 
           if ('Refer to HTC: Yes'.upcase == refered_to_htc)
             task.encounter_type = 'Refered to HTC'
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end
+
+          if ('Refer to HTC: NO'.upcase == refered_to_htc) and location.name.upcase == "TB HTC"
+            refered_to_htc = Encounter.find(:first,
+              :joins => "INNER JOIN obs ON obs.encounter_id = encounter.encounter_id",
+              :order => "encounter_datetime DESC,date_created DESC",
+              :conditions => ["patient_id = ? and concept_id = ? AND value_coded = ?",
+              patient.id,refered_to_htc_concept_id,ConceptName.find_by_name('YES').concept_id])
+
+            loc_name = refered_to_htc.observations.map do | obs |
+              next unless obs.to_s.match(/Workstation location/i)
+              obs.to_s.gsub('Workstation location:','').squish 
+            end
+
+            task.encounter_type = "#{loc_name}"
             task.url = "/patients/show/#{patient.id}"
             return task
           end
