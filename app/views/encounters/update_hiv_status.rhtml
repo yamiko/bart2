@@ -116,11 +116,13 @@ referred_to_htc = Observation.find(Observation.find(:first,
   <%= hidden_field_tag("observations[][concept_name]", "Refer to HTC") %>
   <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
 <%else%>
-  <%= touch_yes_no_unknown_tag "Refer to HTC", @patient, nil,
-    {:id => "refer_to_htc",
-    :condition => '$("hiv_status").value != "POSITIVE" && updateTestDate() == true',
-    :tt_pageStyleClass => "NoKeyboard",
-    :helpText => "Patient has been -ve for more than 3 months. Refer patient to HTC?" } %>
+  <% unless Location.current_location.name == "TB HTC" %>
+    <%= touch_yes_no_unknown_tag "Refer to HTC", @patient, nil,
+      {:id => "refer_to_htc",
+      :condition => '$("hiv_status").value != "POSITIVE" && updateTestDate() == true',
+      :tt_pageStyleClass => "NoKeyboard",
+      :helpText => "Patient has been -ve for more than 3 months. Refer patient to HTC?" } %>
+  <%end%>
 <%end%>
 
 <%= submit_tag "Finish" %>    
