@@ -106,7 +106,17 @@ class PeopleController < ApplicationController
  
   def create
     Person.session_datetime = session[:datetime].to_date rescue Date.today
-    person = Person.create_from_form(params[:person])
+
+    #for now BART2 will use BART1 for patient/person creation until we upgrade BART1 to 2
+    #if GlobalProperty.find_by_property('create.from.remote') and property_value == 'yes'
+    #then we create person from remote mahine
+
+    if create_from_remote
+      person = Person.create_remote(params[:person])
+    else
+      person = Person.create_from_form(params[:person])
+    end
+
     if params[:person][:patient]
       person.patient.national_id_label
       unless (params[:relation].blank?)
