@@ -69,6 +69,11 @@
 		newElement.setAttribute("type","hidden");
 		//newElement.value = 'Waiting for treatment'
 		newElement.value = 'Symptomatic but NOT in treatment'
+        <% if @transfer_in_TB_registration_number.nil? %>
+            newElement.value = 'Symptomatic but NOT in treatment'
+        <% else %>
+            newElement.value = 'Currently in treatment'
+        <% end %>
 		form.appendChild(newElement);
 	} else {
 		newElement = document.createElement("input")
@@ -90,7 +95,11 @@
 		newElement = document.createElement("input")
 		newElement.setAttribute("name",'programs[][states][][state]')
 		newElement.setAttribute("type","hidden");
-		newElement.value = 'Symptomatic but NOT in treatment'
+        <% if @transfer_in_TB_registration_number.nil? %>
+            newElement.value = 'Symptomatic but NOT in treatment'
+        <% else %>
+            newElement.value = 'Currently in treatment'
+        <% end %>
 		form.appendChild(newElement);
 	}
 }
@@ -224,7 +233,11 @@ Check applicability of code below
       <%= hidden_field_tag("programs[][program_id]", Program.find_by_name('TB PROGRAM').id)%>
       <%= hidden_field_tag("programs[][location_id]", Location.current_health_center.id) %>
       <%= hidden_field_tag("programs[][date_enrolled]", session[:datetime] ) %>
-      <%= hidden_field_tag("programs[][states][][state]", "Symptomatic but NOT in treatment") %>
+      <% if @transfer_in_TB_registration_number.nil? %>
+            <%= hidden_field_tag("programs[][states][][state]", "Symptomatic but NOT in treatment") %>
+      <% else %>
+            <%= hidden_field_tag("programs[][states][][state]", "Currently in treatment") %>
+      <% end %>
   <%end%>
 
   <!--TODO Reminder based on the answer to question 'ever received TB Treatment'-->
