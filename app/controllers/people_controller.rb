@@ -72,7 +72,7 @@ class PeopleController < ApplicationController
         # TODO - figure out how to write a test for this
         # This is sloppy - creating something as the result of a GET
         found_person_data = Person.find_remote_by_identifier(params[:identifier])
-        found_person =  Person.create_from_form(found_person_data) unless found_person_data.nil?
+        found_person =  Person.create_from_form(found_person_data['person']) unless found_person_data.nil?
       end
       if found_person
         #redirect_to search_complete_url(found_person.id, params[:relation]) and return
