@@ -31,11 +31,11 @@
   }
   .demographics-cell{
     display: table-cell;
-    border-style: solid;
+    border: 1px solid;
     width: 570px;
   }
   .registration-cell{
-    border-style: solid;
+    border:1px solid;
     width: 160px;
     display: inline-block;
   }
@@ -46,7 +46,7 @@
   .circle{
     -moz-border-radius:50px 50px 50px 50px;
     background:none repeat scroll 0 0 #fff;
-    border-style:solid;
+    border: 1px solid;
     text-align:center;
     width:38px;
     display: inline-block;
@@ -62,14 +62,22 @@
 
 </style>
 <div id="treatmentcard-container">
+  <div class="smaller-row">
+
+        <span style="display:inline-block;width:250px;text-align:center;">NATION TUBERCULOSIS PROGRAMME MALAWI</span>
+        <span style="display:inline-block;width:50px;">&nbsp;</span>
+        <span style="display:inline-block;width:360px;border: 1px solid;font-size:20px;text-align:center;"> TUBERCULOSIS TREATMENT CARD </span><br />
+  </div>
 
   <div class="main-row" id="tb-card-demographics">
     <div class="row-container">
+      
+      
       <div class="smaller-row">
         <div class"left">
              <div class="row-container">
             <div class="smaller-row">
-              &nbsp; 
+              &nbsp;
             </div>
             <div class="smaller-row">
               <div class="demographics-headers-cell">
@@ -109,24 +117,24 @@
               </div>
             </div>
             <div class="smaller-row">
-              <div class="demographics-cell">
+              <div class="demographics-cell" style="border-top:0px solid;">
                 <%= @patient.person.addresses.first.city_village %>
               </div>
             </div>
             <div class="smaller-row">
-              <div class="demographics-cell">
-                @Guardian name here
+              <div class="demographics-cell" style="border-top:0px solid;">
+                &nbsp;
               </div>
             </div>
             <div class="smaller-row">
-              <div class="demographics-cell">
-                @guardian adress
+              <div class="demographics-cell" style="border-top:0px solid;">
+                &nbsp;
               </div>
             </div><br />
             <div class="smaller-row">
               <div class="row-container">
                 <div class="smaller-row">
-                  <div class="left" style="border-style:solid;width:90px;height:40px;">
+                  <div class="left" style="border: 1px solid;width:90px;height:40px;">
                     <%if @patient.gender == 'Male'%>
                       <span class="circle">M</span><span class="non-circle">F</span>
                     <%else%>
@@ -139,7 +147,7 @@
                   <div class="left" style="width:40px;">
                     Age:
                   </div>
-                  <div class="left" style="border-style:solid;width:90px;">
+                  <div class="left" style="border: 1px solid;width:90px;">
                     <%= @patient.age%>
                   </div>
                 </div>
@@ -148,13 +156,13 @@
             <div class="smaller-row">
               <div class="row-container">
                 <div class="smaller-row">
-                  <div class="left" style="border-style:solid;width:90px;height:40px;">
+                  <div class="left" style="border: 1px solid;width:90px;height:40px;">
                     <span class="non-circle">P</span><span class="non-circle">EP</span>
                   </div>  
                   <div class="left" style="width:20px;">
                     &nbsp;
                   </div>  
-                  <div class="left" style="border-style:solid;width:210px;height:40px;">
+                  <div class="left" style="border: 1px solid;width:210px;height:40px;">
                     <span class="non-circle">New</span><span class="non-circle">Relap</span>
                     <span class="non-circle">RAD</span><span class="non-circle">Fail</span>
                     <span class="non-circle">Oth</span>
@@ -165,7 +173,7 @@
                   <div class="left" style="width:50px;font-size:13px">
                     Specify Other:
                   </div>
-                  <div class="left" style="border-style:solid;width:150px;">
+                  <div class="left" style="border: 1px solid;width:150px;">
                     <!--Other goes here-->
                   </div>
                 </div>
@@ -185,13 +193,13 @@
             <div class="smaller-row">
               <div class="left">
                 <span class="registration-headers">District TB No</span>
-                <span class="registration-cell">&nbsp;</span>
+                <span class="registration-cell" >&nbsp;</span>
               </div>
             </div>
             <div class="smaller-row">
               <div class="left">
                 <span class="registration-headers">Health Unit</span>
-                <span class="registration-cell">&nbsp;</span>
+                <span class="registration-cell" style="border-top:0px solid;border-bottom:0px solid">&nbsp;</span>
               </div>
             </div>
             <div class="smaller-row">
@@ -201,7 +209,7 @@
               </div>
             </div><br />
             <div class="smaller-row">
-              <div class="row-container" style="border-style:solid;width:290px">
+              <div class="row-container" style="border: 1px solid;width:290px">
                 <div class="smaller-row">
                   <div class="left">
                     Management of HIV+ Patients
@@ -214,17 +222,17 @@
                 </div>
                 <div class="small-row">
                   <div class="left">
-                    <span style="display:inline-block;width:80px">Start Date:</span><span style="display:inline-block;width:90px;border-style:solid">&nbsp;</span><span style="display:inline-block;width:90px;border-style:solid">&nbsp;</span>
+                    <span style="display:inline-block;width:80px">Start Date:</span><span style="display:inline-block;width:90px;border: 1px solid">&nbsp;</span><span style="display:inline-block;width:90px;border: 1px solid">&nbsp;</span>
                   </div>
                 </div>
                 <div class="small-row">
                   <div class="left">
-                    <span style="display:inline-block;width:80px">Arv No:</span><span style="display:inline-block;width:90px;border-style:solid">&nbsp;</span>
+                    <span style="display:inline-block;width:80px">Arv No:</span><span style="display:inline-block;width:90px;border-right:1px solid;border-left:1px solid;border-bottom:0px solid"">&nbsp;</span>
                   </div>
                 </div>
                 <div class="small-row">
                   <div class="left">
-                    <span style="display:inline-block;width:80px">ARV Status:</span><span style="display:inline-block;width:90px;border-style:solid">&nbsp;</span>
+                    <span style="display:inline-block;width:80px">ARV Status:</span><span style="display:inline-block;width:90px;border: 1px solid">&nbsp;</span>
                   </div>
                 </div>
                 <div class="small-row">
@@ -245,6 +253,9 @@
   <hr /><!-- ____________________________________________________________   -->
   <div class="main-row" id="tb-card-initial-phase">
     <div class="row-container">
+      <span style="width:280px;font-size:18px;display:inline-block"> 1. INITIAL INTENSIVE PHASE </span><span style="display:inline-block;width:710px;border:1px solid;border-bottom: 0px solid"> <span style="line-height:50px;display:inline-block;width: 100px;border-right: 1px solid">Time</span></span> <br />
+      <span style="width:280px;display:inline-block">&nbsp;</span><span style="display:inline-block;width:710px;border:1px solid;border-top:0px solid;border-bottom: 0px solid"> <span style="display:inline-block;width: 100px;border-right: 1px solid">&nbsp;</span><span style="display:inline-block;width: 100px;border-right: 1px solid">Test</span><span style="display:inline-block;width: 100px;border-right: 1px solid">Date</span><span style="display:inline-block;width: 100px;border-right: 1px solid">Serial No</span><span style="display:inline-block;width: 100px;border-right: 1px solid">results</span></span> <br />
+      <span style="width:280px;display:inline-block">Regimen and daily dosage of tablets / grams of S</span><span style="display:inline-block;width:710px;border:1px solid"> <span style="line-height:50px;">Initiation</span></span>
     </div>
   </div>
   <div class="main-row" id="tb-card-cotinuation-phase">
