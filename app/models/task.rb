@@ -481,10 +481,12 @@ class Task < ActiveRecord::Base
       last_active = PatientProgram.find(:first,:order => "date_completed DESC,date_created DESC",
                     :conditions => ["patient_id = ? AND program_id IN(?)",patient.id,ids])
 
-      state = last_active.patient_states.last.program_workflow_state.concept.fullname rescue 'NONE'
-      task.encounter_type = state
-      task.url = "/patients/show/#{patient.id}"
-      return task
+      if not last_active.blank?
+        state = last_active.patient_states.last.program_workflow_state.concept.fullname rescue 'NONE'
+        task.encounter_type = state
+        task.url = "/patients/show/#{patient.id}"
+        return task
+      end
     end
      
     #we get the sequence of clinic questions(encounters) form the GlobalProperty table
