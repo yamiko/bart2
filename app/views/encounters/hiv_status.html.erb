@@ -87,7 +87,7 @@
       :validationCode => "checkTestDate() == 'true'",
       :validationMessage => "HIV test date greater than #{session[:datetime].to_date rescue Date.today.to_date}",
       :condition => '($("hiv_test_year").value != "Unknown") && ($("hiv_test_month").value != "Unknown") && ($("hiv_status").value != "UNKNOWN")', 
-      :tt_onLoad => "getDayOfMonthPicker($('hiv_test_year').value;$('hiv_test_month').value);", 
+      :tt_onLoad => "getDayOfMonthPicker($('hiv_test_year').value,$('hiv_test_month').value);", 
       :tt_onUnload=> "updateTestDate();"
     } %>
 
