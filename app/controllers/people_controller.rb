@@ -111,9 +111,11 @@ class PeopleController < ApplicationController
     #if GlobalProperty.find_by_property('create.from.remote') and property_value == 'yes'
     #then we create person from remote mahine
 
+    
     if create_from_remote
+
       person_from_remote = Person.create_remote(params)
-      person = Person.create_from_form(params["person"]) unless person_from_remote.blank?
+      person = Person.create_from_form(person_from_remote["person"]) unless person_from_remote.blank?
       if person.blank?
         person = Person.create_from_form(params[:person])
       end

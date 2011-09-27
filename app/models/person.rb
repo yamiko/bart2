@@ -530,8 +530,10 @@ class Person < ActiveRecord::Base
     known_demographics["occupation"]
 
     begin
-      person["person"]["attributes"]["occupation"] = known_demographics["occupation"]
-      person["person"]["attributes"]["cell_phone_number"] = known_demographics["cell_phone"]["identifier"]
+      person["person"]["occupation"] = known_demographics["occupation"]
+      person["person"]["cell_phone_number"] = known_demographics["cell_phone"]["identifier"]
+      person["person"]["attributes"].delete("occupation")
+      person["person"]["attributes"].delete("cell_phone_number")
     rescue
     end
 
