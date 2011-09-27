@@ -458,7 +458,7 @@ class Person < ActiveRecord::Base
      new_params['gender'] == 'F' ? new_params['gender'] = "Female" : new_params['gender'] = "Male"
 
        known_demographics = {
-                  "occupation"=>"#{new_params[:attributes][:occupation]}",
+                  "occupation"=>"#{new_params[:occupation]}",
                    "patient_year"=>"#{new_params[:birth_year]}",
                    "patient"=>{
                     "gender"=>"#{new_params[:gender]}",
@@ -469,11 +469,11 @@ class Person < ActiveRecord::Base
                    "p_address"=>{
                     "identifier"=>"#{new_params[:addresses][:state_province]}"},
                    "home_phone"=>{
-                    "identifier"=>"#{new_params[:attributes][:home_phone_number]}"},
+                    "identifier"=>"#{new_params[:home_phone_number]}"},
                    "cell_phone"=>{
-                    "identifier"=>"#{new_params[:attributes][:cell_phone_number]}"},
+                    "identifier"=>"#{new_params[:cell_phone_number]}"},
                    "office_phone"=>{
-                    "identifier"=>"#{new_params[:attributes][:office_phone_number]}"},
+                    "identifier"=>"#{new_params[:office_phone_number]}"},
                    "patient_id"=>"",
                    "patient_day"=>"#{new_params[:birth_day]}",
                    "patientaddress"=>{"city_village"=>"#{new_params[:addresses][:city_village]}"},
@@ -534,7 +534,8 @@ class Person < ActiveRecord::Base
       person["person"]["attributes"]["cell_phone_number"] = known_demographics["cell_phone"]["identifier"]
     rescue
     end
-    person
+
+    person 
   end
 
 end
