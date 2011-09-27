@@ -303,6 +303,12 @@ class Task < ActiveRecord::Base
          return self.tb_next_form(location , patient , session_date)
     end
     
+    if User.current_user.activities.blank?
+      task.encounter_type = "NO TASKS SELECTED"
+      task.url = "/patients/show/#{patient.id}"
+      return task
+    end
+    
     current_day_encounters = Encounter.find(:all,
               :conditions =>["patient_id = ? AND DATE(encounter_datetime) = ?",
               patient.id,session_date.to_date]).map{|e|e.name.upcase}
