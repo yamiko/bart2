@@ -113,11 +113,12 @@ class PeopleController < ApplicationController
 
     
     if create_from_remote
-
       person_from_remote = Person.create_remote(params)
       person = Person.create_from_form(person_from_remote["person"]) unless person_from_remote.blank?
       if person.blank?
         person = Person.create_from_form(params[:person])
+      else
+        person.patient.remote_national_id
       end
     else
       person = Person.create_from_form(params[:person])
