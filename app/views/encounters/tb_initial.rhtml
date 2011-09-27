@@ -8,7 +8,7 @@
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
   
   function summary() {
-    var display = "<div><span class='title' style='font-size:40px;'>" + "Refer Patient to Clinician" + "</span></div>";
+    var display = "<div><span class='title' style='font-size:40px;'>" + "Refer Patient to Clinician after taking vitals from this desk" + "</span></div>";
     display += "<div><hr /><br /><span class='title' style='font-size:25px;'>Reason: Smear -ve patient </span></div>";
     $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + display + '</div>' ;
     $("clearButton").style.display = "none";
@@ -117,12 +117,15 @@
               :conditions => ["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
               date,@patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
   %>
-  
+
   <% if !@tb_status %>
     <label for='summary'>Summary</label>
-    <%= text_field_tag :summary, nil, { :tt_onLoad => "summary();", :optional => "true", :tt_pageStyleClass => "NoControls" , :helpText => ''} %>
+    <%= text_field_tag :summary, nil, { :tt_onLoad => "summary();", :optional => "true",
+                       :tt_pageStyleClass => "NoControls" ,
+                       :condition => "$('transfer_in').value !='YES'",
+                       :helpText => ''} %>
   <%end%>
-  
+
   <%= submit_tag "Finish" %>    
 </form>
 <% end %>

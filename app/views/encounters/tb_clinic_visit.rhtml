@@ -91,7 +91,7 @@
 	<%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
 
-	<%= touch_yes_no_tag "SYMPTOMATIC", @patient, nil,
+	<%= touch_yes_no_unknown_tag "SYMPTOMATIC", @patient, nil,
 		{	:id => "any_tb_symptoms",
 			:helpText => "Any current TB signs?" } %>
 

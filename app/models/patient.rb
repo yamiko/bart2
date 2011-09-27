@@ -61,66 +61,6 @@ class Patient < ActiveRecord::Base
 
     alert
   end
-    
-  def alerts(session_date = Date.today) 
-    # next appt
-    # adherence
-    # drug auto-expiry
-    # cd4 due
-    
-    alerts = []
-
-    type = EncounterType.find_by_name("APPOINTMENT")
-    next_appt = self.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.last.to_s rescue nil
-    alerts << ('Next ' + next_appt).capitalize unless next_appt.blank?
-
-    encounter_dates = Encounter.find_by_sql("SELECT * FROM encounter WHERE patient_id = #{self.id} AND encounter_type IN (" +
-        ("SELECT encounter_type_id FROM encounter_type WHERE name IN ('VITALS', 'TREATMENT', " +
-          "'HIV RECEPTION', 'HIV STAGING', 'ART VISIT', 'DISPENSING')") + ")").collect{|e|
-      e.encounter_datetime.strftime("%Y-%m-%d")
-    }.uniq
-
-    missed_appt = self.encounters.find_last_by_encounter_type(type.id, 
-      :conditions => ["NOT (DATE_FORMAT(encounter_datetime, '%Y-%m-%d') IN (?)) AND encounter_datetime < NOW()",
-        encounter_dates], :order => "encounter_datetime").observations.last.to_s rescue nil
-    alerts << ('Missed ' + missed_appt).capitalize unless missed_appt.blank?
-
-    type = EncounterType.find_by_name("ART ADHERENCE")
-    self.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.map do | adh |
-      next if adh.value_text.blank?
-      alerts << "Adherence: #{adh.order.drug_order.drug.name} (#{adh.value_text}%)"
-    end rescue []
-
-    type = EncounterType.find_by_name("DISPENSING")
-    self.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.each do | obs |
-      next if obs.order.blank? and obs.order.auto_expire_date.blank?
-      alerts << "Auto expire date: #{obs.order.drug_order.drug.name} #{obs.order.auto_expire_date.to_date.strftime('%d-%b-%Y')}"
-    end rescue []
-
-    # BMI alerts
-    if self.person.age >= 15
-      bmi_alert = self.current_bmi_alert
-      alerts << bmi_alert if bmi_alert
-    end
-    
-    program_id = Program.find_by_name("HIV PROGRAM").id
-    location_id = Location.current_health_center.location_id
-    
-    patient_hiv_program = PatientProgram.find(:all,:conditions =>["voided = 0 AND patient_id = ? AND program_id = ? AND location_id = ?", self.id , program_id, location_id])
-
-    hiv_status = self.hiv_status
-    alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.strip}" == 'Negative' && self.months_since_last_hiv_test > 3)
-    alerts << "Patient not on ART" if (("#{hiv_status.strip}" == 'Positive') && !self.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) ||
-                                                          ((self.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) && (ProgramWorkflowState.find_state(patient_hiv_program.last.patient_states.last.state).concept.fullname != "On antiretrovirals"))
-    alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.strip}" == 'Unknown'
-    alerts << "Lab: Expecting submission of sputum" unless self.sputum_orders_without_submission.empty?
-    alerts << "Lab: Waiting for sputum results" if self.recent_sputum_results.empty? && !self.recent_sputum_submissions.empty?
-    alerts << "Lab: Results not given to patient" if !self.recent_sputum_results.empty? && self.given_sputum_results.to_s != "Yes"
-    alerts << "Lab: Patient must order sputum test" if self.patient_need_sputum_test?
-    alerts << "Refer to ART wing" if show_alert_refer_to_ART_wing
-
-    alerts
-  end
 
   def summary
     #    verbiage << "Last seen #{visits.recent(1)}"
@@ -1172,14 +1112,14 @@ EOF
     Concept.find(Observation.find(:first, 
     :order => "obs_datetime DESC,date_created DESC",
     :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL", self.id, 
-    ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).concept_names.map{|c|c.name}[0] rescue "UNKNOWN"
+    ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
   end
   
   def hiv_status
     status = Concept.find(Observation.find(:first, 
     :order => "obs_datetime DESC,date_created DESC",
     :conditions => ["value_coded IS NOT NULL AND person_id = ? AND concept_id = ?", self.id, 
-    ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).concept_names.map{|c|c.name}[0] rescue "UNKNOWN"
+    ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
     if status.upcase == 'UNKNOWN'
       return self.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') ? 'Positive' : status
     end
@@ -1291,15 +1231,14 @@ EOF
 
         if accession_number != ""
           label = 'label' + i.to_s
-          label = ZebraPrinter::StandardLabel.new
+          label = ZebraPrinter::Label.new(500,165)
           label.font_size = 2
-          label.font_horizontal_multiplier = 2
-          label.font_vertical_multiplier = 2
-          label.left_margin = 50
-          label.draw_barcode(50,180,0,1,5,15,120,false,"#{accession_number}")
+          label.font_horizontal_multiplier = 1
+          label.font_vertical_multiplier = 1
+          label.left_margin = 300
+          label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
           label.draw_multi_text("#{self.person.name.titleize.delete("'")} #{self.national_id_with_dashes}")
-          label.draw_multi_text("#{observation.name rescue nil}")
-          label.draw_multi_text("#{accession_number rescue nil}")
+          label.draw_multi_text("#{observation.name rescue nil} - #{accession_number rescue nil}")
           label.draw_multi_text("#{observation.date_created.strftime("%d-%b-%Y %H:%M")}")
           labels << label
          end
@@ -1434,32 +1373,5 @@ EOF
         self.id, sputum_concept_ids, registration_date],
       :order => "obs_datetime desc", :limit => 3)
   end
-
-    def show_alert_refer_to_ART_wing
-        show_alert = false
-        refer_to_x_ray = nil
-        does_tb_status_obs_exist = false
-
-	    session_date = session[:datetime].to_date rescue Date.today
-        encounter = Encounter.find(:all, :conditions=>["patient_id = ? \
-                    AND encounter_type = ? AND DATE(encounter_datetime) = ? ", self.id, \
-                    EncounterType.find_by_name("TB CLINIC VISIT").id, session_date]).last rescue nil
-        @date = encounter.encounter_datetime.to_date rescue nil
-
-        if !encounter.nil?
-            for obs in encounter.observations do
-                if obs.concept_id == ConceptName.find_by_name("Refer to x-ray?").concept_id
-                    refer_to_x_ray = "#{obs.to_s(["short", "order"]).to_s.split(":")[1].squish}".squish
-                elsif obs.concept_id == ConceptName.find_by_name("TB status").concept_id
-                    does_tb_status_obs_exist = true
-                end
-            end
-        end
-
-        if refer_to_x_ray.upcase == 'NO' && does_tb_status_obs_exist.to_s == false.to_s && self.hiv_status.upcase == 'POSITIVE'
-           show_alert = true
-        end rescue nil
-        show_alert
-    end
 
 end

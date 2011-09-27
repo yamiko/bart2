@@ -1,6 +1,14 @@
 class EncountersController < ApplicationController
 
   def create
+    if params['encounter']['encounter_type_name'] == 'TB_INITIAL'
+      (params[:observations] || []).each do |observation|
+        if observation['concept_name'].upcase == 'TRANSFER IN' and observation['value_coded_or_text'] == "YES"
+          params[:observations] << {"concept_name" => "TB STATUS","value_coded_or_text" => "Confirmed TB on treatment"}
+        end
+      end
+    end
+
     if params['encounter']['encounter_type_name'] == 'ART_INITIAL'
       if params[:observations][0]['concept_name'].upcase == 'EVER RECEIVED ART' and params[:observations][0]['value_coded_or_text'].upcase == 'NO'
         observations = []
@@ -230,8 +238,13 @@ class EncountersController < ApplicationController
         @is_patient_pregnant_value = nil
         @is_patient_breast_feeding_value = nil
         @currently_using_family_planning_methods = nil
-
+        @transfer_in_TB_registration_number = get_todays_observation_answer_for_encounter(@patient.id, "TB_INITIAL", "TB registration number")
+        @referred_to_htc = nil
         @family_planning_methods = []
+        
+        if (params[:encounter_type].upcase rescue '') == 'UPDATE HIV STATUS'
+            @referred_to_htc = get_todays_observation_answer_for_encounter(@patient.id, "UPDATE HIV STATUS", "Refer to HTC")
+        end
 
 		@given_lab_results = Encounter.find(:last,
 			:order => "encounter_datetime DESC,date_created DESC",
@@ -843,6 +856,23 @@ class EncountersController < ApplicationController
             end
         end
         previous_visit_obs
+	end
+	
+	def get_todays_observation_answer_for_encounter(patient_id, encountertype_name, observation_name)
+		session_date = session[:datetime].to_date rescue Date.today
+        encounter = Encounter.find(:all, :conditions=>["patient_id = ? \
+                    AND encounter_type = ? AND DATE(encounter_datetime) = ? ", patient_id, \
+                    EncounterType.find_by_name("#{encountertype_name}").id, session_date]).last rescue nil
+        @date = encounter.encounter_datetime.to_date rescue nil
+        observation = nil
+        if !encounter.nil?
+            for obs in encounter.observations do
+                if obs.concept_id == ConceptName.find_by_name("#{observation_name}").concept_id
+                    observation = "#{obs.to_s(["short", "order"]).to_s.split(":")[1]}".squish
+                end
+            end
+        end
+        observation
 	end
   
 end

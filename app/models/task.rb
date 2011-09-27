@@ -474,6 +474,20 @@ class Task < ActiveRecord::Base
 
   def self.tb_next_form(location , patient , session_date = Date.today)
     task = self.first rescue self.new()
+    
+    if patient.patient_programs.in_uncompleted_programs(['TB PROGRAM', 'MDR-TB PROGRAM']).blank?
+      #Patient has no active TB program ...'
+      ids = Program.find(:all,:conditions =>["name IN(?)",['TB PROGRAM', 'MDR-TB PROGRAM']]).map{|p|p.id}
+      last_active = PatientProgram.find(:first,:order => "date_completed DESC,date_created DESC",
+                    :conditions => ["patient_id = ? AND program_id IN(?)",patient.id,ids])
+
+      if not last_active.blank?
+        state = last_active.patient_states.last.program_workflow_state.concept.fullname rescue 'NONE'
+        task.encounter_type = state
+        task.url = "/patients/show/#{patient.id}"
+        return task
+      end
+    end
      
     #we get the sequence of clinic questions(encounters) form the GlobalProperty table
     #property: list.of.clinical.encounters.sequentially
@@ -579,14 +593,34 @@ class Task < ActiveRecord::Base
             return task
           end
 
+          
+          refered_to_htc_concept_id = ConceptName.find_by_name("Refer to HTC").concept_id
+
           refered_to_htc = Observation.find(Observation.find(:first,
                     :order => "obs_datetime DESC,date_created DESC",
                     :conditions => ["person_id = ? AND concept_id = ? AND DATE(obs_datetime) <= ?", 
-                    patient.id, ConceptName.find_by_name("Refer to HTC").concept_id,
+                    patient.id, refered_to_htc_concept_id,
                     session_date.to_date])).to_s.strip.squish.upcase rescue nil
 
           if ('Refer to HTC: Yes'.upcase == refered_to_htc)
             task.encounter_type = 'Refered to HTC'
+            task.url = "/patients/show/#{patient.id}"
+            return task
+          end
+
+          if ('Refer to HTC: NO'.upcase == refered_to_htc) and location.name.upcase == "TB HTC"
+            refered_to_htc = Encounter.find(:first,
+              :joins => "INNER JOIN obs ON obs.encounter_id = encounter.encounter_id",
+              :order => "encounter_datetime DESC,date_created DESC",
+              :conditions => ["patient_id = ? and concept_id = ? AND value_coded = ?",
+              patient.id,refered_to_htc_concept_id,ConceptName.find_by_name('YES').concept_id])
+
+            loc_name = refered_to_htc.observations.map do | obs |
+              next unless obs.to_s.match(/Workstation location/i)
+              obs.to_s.gsub('Workstation location:','').squish 
+            end
+
+            task.encounter_type = "#{loc_name}"
             task.url = "/patients/show/#{patient.id}"
             return task
           end
@@ -927,6 +961,36 @@ class Task < ActiveRecord::Base
           elsif tb_followup.blank? and not user_selected_activities.match(/Manage TB Treatment Visits/i)
             task.url = "/patients/show/#{patient.id}"
             return task
+          end
+
+          obs_ans = Observation.find(Observation.find(:first, 
+                    :order => "obs_datetime DESC,date_created DESC",
+                    :conditions => ["person_id = ? AND concept_id = ? AND DATE(obs_datetime) = ?",patient.id, 
+                    ConceptName.find_by_name("ANY NEED TO SEE A CLINICIAN").concept_id,session_date])).to_s.strip.squish rescue nil
+
+          if not obs_ans.blank?
+            next if obs_ans.match(/ANY NEED TO SEE A CLINICIAN: NO/i)
+            if obs_ans.match(/ANY NEED TO SEE A CLINICIAN: YES/i)
+              tb_visits = Encounter.find(:all,:order => "encounter_datetime DESC,date_created DESC",
+                            :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                            session_date.to_date,patient.id,EncounterType.find_by_name('TB VISIT').id])
+              if (tb_visits.length == 1) 
+                roles = User.current_user.user_roles.map{|u|u.role}.join(',') rescue ''
+                if not (roles.match(/Clinician/i) or roles.match(/Doctor/i))
+                    task.encounter_type = 'TB VISIT'
+                    task.url = "/patients/show/#{patient.id}"
+                    return task
+                elsif user_selected_activities.match(/Manage TB Treatment Visits/i)
+                  task.encounter_type = 'TB VISIT'
+                  task.url = "/encounters/new/tb_visit?show&patient_id=#{patient.id}"
+                  return task
+                elsif not user_selected_activities.match(/Manage TB Treatment Visits/i)
+                  task.encounter_type = 'TB VISIT'
+                  task.url = "/patients/show/#{patient.id}"
+                  return task
+                end
+              end
+            end
           end
         when 'ART VISIT'  
           next unless patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') rescue false
