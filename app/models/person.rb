@@ -329,6 +329,7 @@ class Person < ActiveRecord::Base
       end
     end
     person.save
+   
     person.names.create(names_params)
     person.addresses.create(address_params) unless address_params.empty? rescue nil
 
@@ -416,7 +417,18 @@ class Person < ActiveRecord::Base
     # Currently returning the longest result - assuming that it has the most information
     # Can't return multiple results because there will be redundant data from sites
     result = results.sort{|a,b|b.length <=> a.length}.first
-    result ? JSON.parse(result) : nil
+    result ? person = JSON.parse(result) : nil
+    #Stupid hack to structure the hash for openmrs 1.7
+    person["person"]["occupation"] = person["person"]["attributes"]["occupation"]
+    person["person"]["cell_phone_number"] = person["person"]["attributes"]["cell_phone_number"]
+    person["person"]["home_phone_number"] =  person["person"]["attributes"]["home_phone_number"]
+    person["person"]["office_phone_number"] = person["person"]["attributes"]["office_phone_number"]
+    person["person"]["attributes"].delete("occupation")
+    person["person"]["attributes"].delete("cell_phone_number")
+    person["person"]["attributes"].delete("home_phone_number")
+    person["person"]["attributes"].delete("office_phone_number")
+
+    person
 
   end
 
@@ -520,9 +532,9 @@ class Person < ActiveRecord::Base
     post_data["_method"]="put"
 
     local_demographic_lookup_steps = [ 
-      "#{wget_base_command} -O /dev/null --post-data=\"login=#{login}&password=#{password}\" \"http://localhost:#{server_port}/session\"",
-      "#{wget_base_command} -O /dev/null --post-data=\"_method=put&location=#{location}\" \"http://localhost:#{server_port}/session\"",
-      "#{wget_base_command} -O - --post-data=\"#{post_data.to_param}\" \"http://localhost:#{server_port}/patient/create_remote\""
+      "#{wget_base_command} -O /dev/null --post-data=\"login=#{login}&password=#{password}\" \"http://localhost/session\"",
+      "#{wget_base_command} -O /dev/null --post-data=\"_method=put&location=#{location}\" \"http://localhost/session\"",
+      "#{wget_base_command} -O - --post-data=\"#{post_data.to_param}\" \"http://localhost/patient/create_remote\""
     ]
 
     results = []
@@ -535,7 +547,7 @@ class Person < ActiveRecord::Base
 
     result ? person = JSON.parse(result) : nil
 
-    person["person"]["addresses"]["addresses1"] = "#{new_params[:addresses][:address1]}"   
+    person["person"]["addresses"]["addresses1"] = "#{new_params[:addresses][:address1]}"
     person["person"]["names"]["middle_name"] = "#{new_params[:names][:middle_name]}"
     person["person"]["occupation"] = known_demographics["occupation"]
     person["person"]["cell_phone_number"] = known_demographics["cell_phone"]["identifier"]
@@ -545,8 +557,9 @@ class Person < ActiveRecord::Base
     person["person"]["attributes"].delete("cell_phone_number")
     person["person"]["attributes"].delete("home_phone_number")
     person["person"]["attributes"].delete("office_phone_number")
+   
+    person
 
-    person 
   end
 
 end
