@@ -285,11 +285,20 @@ class UserController < ApplicationController
     encounter_privilege_hash = generate_encounter_privilege_map   
     @privileges = @privileges.collect do |privilege|
       if !encounter_privilege_hash[privilege.privilege.squish].nil?
-          encounter_privilege_hash[privilege.privilege.squish].gsub('Hiv','HIV').gsub('Tb','TB').gsub('Art','ART').gsub('hiv','HIV')
+          encounter_privilege_hash[privilege.privilege.squish]
       else
-          privilege.privilege.gsub('Hiv','HIV').gsub('Tb','TB').gsub('Art','ART').gsub('hiv','HIV')
+          privilege.privilege
       end
     end
+    
+   #.gsub('Hiv','HIV') .gsub('Tb','TB').gsub('Art','ART').gsub('hiv','HIV')
+   # .gsub('Hiv','HIV').gsub('Tb','TB').gsub('Art','ART').gsub('hiv','HIV')
+    
+    @encounter_types = EncounterType.find(:all).map{|enc|enc.name.gsub(/.*\//,"").gsub(/\..*/,"").humanize}
+    @available_encounter_types = Dir.glob(RAILS_ROOT+"/app/views/encounters/*.rhtml").map{|file|file.gsub(/.*\//,"").gsub(/\..*/,"").humanize}
+    @available_encounter_types -= @available_encounter_types - @encounter_types
+
+    @privileges =   @privileges - (@privileges - @available_encounter_types)
     
     @activities = @activities.collect do |activity| 
       if !encounter_privilege_hash[activity].nil?
@@ -298,7 +307,11 @@ class UserController < ApplicationController
           activity.gsub('Hiv','HIV').gsub('Tb','TB').gsub('Art','ART').gsub('hiv','HIV')
       end
     end                            
-    
+
+    @privileges = @privileges.collect do |privilege|
+        privilege.gsub('Hiv','HIV').gsub('Tb','TB').gsub('Art','ART').gsub('hiv','HIV')
+    end
+        
     @privileges.sort!
     @patient_id = params[:patient_id]
   end
