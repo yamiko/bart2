@@ -28,6 +28,11 @@ module Openmrs
       name = name.to_s.gsub('_', ' ')
       self.find_by_name(name)
     end
+
+    # Include voided or retired records
+    def find_with_voided(options)
+      with_exclusive_scope { self.find(options)}
+    end
   end  
 
   def self.included(base)
