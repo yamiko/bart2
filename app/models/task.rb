@@ -303,6 +303,12 @@ class Task < ActiveRecord::Base
          return self.tb_next_form(location , patient , session_date)
     end
     
+    if User.current_user.activities.blank?
+      task.encounter_type = "NO TASKS SELECTED"
+      task.url = "/patients/show/#{patient.id}"
+      return task
+    end
+    
     current_day_encounters = Encounter.find(:all,
               :conditions =>["patient_id = ? AND DATE(encounter_datetime) = ?",
               patient.id,session_date.to_date]).map{|e|e.name.upcase}
@@ -474,6 +480,20 @@ class Task < ActiveRecord::Base
 
   def self.tb_next_form(location , patient , session_date = Date.today)
     task = self.first rescue self.new()
+    
+    if patient.patient_programs.in_uncompleted_programs(['TB PROGRAM', 'MDR-TB PROGRAM']).blank?
+      #Patient has no active TB program ...'
+      ids = Program.find(:all,:conditions =>["name IN(?)",['TB PROGRAM', 'MDR-TB PROGRAM']]).map{|p|p.id}
+      last_active = PatientProgram.find(:first,:order => "date_completed DESC,date_created DESC",
+                    :conditions => ["patient_id = ? AND program_id IN(?)",patient.id,ids])
+
+      if not last_active.blank?
+        state = last_active.patient_states.last.program_workflow_state.concept.fullname rescue 'NONE'
+        task.encounter_type = state
+        task.url = "/patients/show/#{patient.id}"
+        return task
+      end
+    end
      
     #we get the sequence of clinic questions(encounters) form the GlobalProperty table
     #property: list.of.clinical.encounters.sequentially
