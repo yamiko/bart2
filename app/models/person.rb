@@ -546,18 +546,19 @@ class Person < ActiveRecord::Base
     result = results.sort{|a,b|b.length <=> a.length}.first
 
     result ? person = JSON.parse(result) : nil
-
-    person["person"]["addresses"]["addresses1"] = "#{new_params[:addresses][:address1]}"
-    person["person"]["names"]["middle_name"] = "#{new_params[:names][:middle_name]}"
-    person["person"]["occupation"] = known_demographics["occupation"]
-    person["person"]["cell_phone_number"] = known_demographics["cell_phone"]["identifier"]
-    person["person"]["home_phone_number"] = known_demographics["home_phone"]["identifier"]
-    person["person"]["office_phone_number"] = known_demographics["office_phone"]["identifier"]
-    person["person"]["attributes"].delete("occupation")
-    person["person"]["attributes"].delete("cell_phone_number")
-    person["person"]["attributes"].delete("home_phone_number")
-    person["person"]["attributes"].delete("office_phone_number")
-   
+    begin
+        person["person"]["addresses"]["address1"] = "#{new_params[:addresses][:address1]}"
+        person["person"]["names"]["middle_name"] = "#{new_params[:names][:middle_name]}"
+        person["person"]["occupation"] = known_demographics["occupation"]
+        person["person"]["cell_phone_number"] = known_demographics["cell_phone"]["identifier"]
+        person["person"]["home_phone_number"] = known_demographics["home_phone"]["identifier"]
+        person["person"]["office_phone_number"] = known_demographics["office_phone"]["identifier"]
+        person["person"]["attributes"].delete("occupation")
+        person["person"]["attributes"].delete("cell_phone_number")
+        person["person"]["attributes"].delete("home_phone_number")
+        person["person"]["attributes"].delete("office_phone_number")
+    rescue
+    end   
     person
 
   end
