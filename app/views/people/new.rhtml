@@ -136,6 +136,33 @@
     listSuggestions(tstCurrentPage);
   }
 
+  function setAttributes () {
+    nextButton = $('nextButton');
+    backButton = $('backButton');
+    nextButton.setAttribute("onmousedown","gotoNextPage();showMsg();")
+    backButton.setAttribute("onmousedown","gotoPage(" + (tstCurrentPage - 1) + ");resetAttributes();")
+  }
+
+  function resetAttributes() {
+    nextButton = $('nextButton');
+    backButton = $('backButton');
+    nextButton.setAttribute("onmousedown","gotoNextPage();")
+    backButton.setAttribute("onmousedown","gotoPage(" + (tstCurrentPage - 1) + ");")
+  }
+
+  function showMsg() {
+    inputBox = $("touchscreenInput" + tstCurrentPage);
+    if (inputBox.value.length == 0)
+      return
+
+    $('nextButton').disabled = true;
+    msg = $('messageBar');
+    msg.innerHTML = "Creating a person<br />Please wait <blink>.....</blink>";
+    msg.style.background = "lightgreen" //yellow";
+    msg.style.borderColor = "lightgreen" //yellow";
+    msg.style.display = "inline";
+  }
+
 </script>
 
 <% form_for :person, @person, :url => { :action => "create" } do |f| %>
@@ -225,7 +252,13 @@
   
   <%#= select_tag("person[occupation]", options_for_select([" ", "Housewife", "Farmer", "Police", "Soldier", "Business", "Teacher", "Student", "Healthcare Worker"].sort.concat(["Other"]) ,params[:occupation]),:helpText =>"Occupation",:allowFreeText => true, :tt_onLoad => 'seen(tstCurrentPage);')%>
 
-  <%= select_tag("person[occupation]", options_for_select(@occupations ,params[:occupation]),:helpText =>"Occupation",:allowFreeText => false, :tt_onLoad => 'seen(tstCurrentPage);', :ttMatchFromBeginning => "true")%>
+  <%= select_tag("person[occupation]", options_for_select(@occupations ,params[:occupation]),
+      :helpText =>"Occupation",
+      :id => "occupation",
+      :allowFreeText => false, 
+      :tt_onLoad => 'seen(tstCurrentPage);setAttributes();', 
+      :tt_onUnLoad => 'resetAttributes();', 
+      :ttMatchFromBeginning => "true")%>
 
   <!-- Make sure patient is created -->
 
