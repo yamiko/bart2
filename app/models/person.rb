@@ -547,7 +547,7 @@ class Person < ActiveRecord::Base
 
     result ? person = JSON.parse(result) : nil
     begin
-        person["person"]["addresses"]["addresses1"] = "#{new_params[:addresses][:address1]}"
+        person["person"]["addresses"]["address1"] = "#{new_params[:addresses][:address1]}"
         person["person"]["names"]["middle_name"] = "#{new_params[:names][:middle_name]}"
         person["person"]["occupation"] = known_demographics["occupation"]
         person["person"]["cell_phone_number"] = known_demographics["cell_phone"]["identifier"]
