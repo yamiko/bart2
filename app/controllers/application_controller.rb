@@ -12,12 +12,16 @@ class ApplicationController < ActionController::Base
   def rescue_action_in_public(exception)
     @message = exception.message
     @backtrace = exception.backtrace.join("\n") unless exception.nil?
+    logger.info @message
+    logger.info @backtrace
     render :file => "#{RAILS_ROOT}/app/views/errors/error.rhtml", :layout=> false, :status => 404
   end if RAILS_ENV == 'development' || RAILS_ENV == 'test'
 
   def rescue_action(exception)
     @message = exception.message
     @backtrace = exception.backtrace.join("\n") unless exception.nil?
+    logger.info @message
+    logger.info @backtrace
     render :file => "#{RAILS_ROOT}/app/views/errors/error.rhtml", :layout=> false, :status => 404
   end if RAILS_ENV == 'production'
 
