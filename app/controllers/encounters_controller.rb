@@ -79,7 +79,10 @@ class EncountersController < ApplicationController
       params[:observations] = observations unless observations.blank?
     end
 
-    @patient = Patient.find(params[:encounter][:patient_id])
+    @patient = Patient.find(params[:encounter][:patient_id]) rescue nil
+    if params[:location] and @patient.nil?
+      @patient = Patient.find_with_voided(params[:encounter][:patient_id])
+    end
 
     # set current location via params if given
     Location.current_location = Location.find(params[:location]) if params[:location]

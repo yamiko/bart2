@@ -3,6 +3,7 @@ require 'yaml'
 
 Thread.abort_on_exception = true
 
+LOG_FILE = RAILS_ROOT + '/log/migrator.log'
 
 # set the right number of mongrels in config/mongrel_cluster.yml
 # (e.g. servers: 4) and the starting port (port: 8000)
@@ -18,15 +19,12 @@ def initialize_variables
   print_time("initialization started")
   
   read_config
-  
-  @import_paths = ['/tmp/migrator-1', '/tmp/migrator-2', '/tmp/migrator-3',
-                 '/tmp/migrator-4']
  
   @bart_urls = {
-    'first' => 'admin:test@localhost:8000',
-    'second' => 'admin:test@localhost:8001',
-    'third' => 'admin:test@localhost:8002',
-    'fourth' => 'admin:test@localhost:8003'
+    'first' => 'admin:test@localhost:7000',
+    'second' => 'admin:test@localhost:7001',
+    'third' => 'admin:test@localhost:7002',
+    'fourth' => 'admin:test@localhost:7003'
   }
 
   @importers = {
@@ -61,9 +59,27 @@ def import_encounters(afile, import_path,bart_url)
 	puts "-----#{import_path}/#{afile} imported after #{Time.now - @start_time}s"
 end
 
+def log(msg)
+  system("echo \"#{msg}\" >> #{LOG_FILE}")
+end
+
 def print_time(message)
   @time = Time.now
-  puts "-----#{message} at - #{@time} -----"
+  log "BART::Migrator-----#{message} at - #{@time} -----"
+end
+
+# mysqldump the database in current environment
+def dump_db(year)
+  config = ActiveRecord::Base.configurations[RAILS_ENV]
+  username = config['username']
+  password = config['password']
+  host     = config['host']
+  db       = config['database']
+  sql_file = "#{RAILS_ROOT}/db/#{db}-#{year}.sql"
+
+  cmd = "mysqldump -u #{username} -p#{password} -h #{host} #{db} > #{sql_file}"
+  
+  system(cmd)
 end
 
 threads = []
@@ -73,17 +89,25 @@ print_time("import utility started")
 initialize_variables
 
 @import_years.each do |year|
+  threads = []
   @quarters.each do |quarter|
-      threads << Thread.new(quarter) do |path|
-        current_dir = @import_path + "/#{year}/#{quarter}"
-        @ordered_files.each do |file|
-          import_encounters(file, current_dir,quarter) #added quarter to ensure that we get the right bart_url_import_path
-        end
-        puts '******#{Thread.name} ******************'
+    threads << Thread.new(quarter) do |path|
+      current_dir = @import_path + "/#{year}/#{quarter}"
+      @ordered_files.each do |file|
+        import_encounters(file, current_dir,quarter) #added quarter to ensure that we get the right bart_url_import_path
+        log "BART-Migrator:***********File #{year}-#{quarter} #{file} imported ******************"
       end
+      puts "BART-Migrator:*********#{year}-#{quarter} completed ******************"
+      log "BART-Migrator:*********#{year}-#{quarter} completed ******************"
+    end
   end
+
+  threads.each {|thread| thread.join}
+  puts "\nBART-Migrator:*************Finished importing Year: #{year} ********************"
+  log "\nBART-Migrator:*************Finished importing Year: #{year} ********************"
+  dump_db(year)
+  log "\nDumped database at year #{year}"
 end
-threads.each {|thread| thread.join}
 
 print_time("----- Finished Import Script in #{Time.now - @start_time}s -----")
 
