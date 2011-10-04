@@ -47,7 +47,7 @@ class Mastercard
     regimens = {}
     regimen_types = ['FIRST LINE ANTIRETROVIRAL REGIMEN','ALTERNATIVE FIRST LINE ANTIRETROVIRAL REGIMEN','SECOND LINE ANTIRETROVIRAL REGIMEN']
     regimen_types.map do | regimen |
-      concept_member_ids = Concept.find_by_name(regimen).concept_members.collect{|c|c.concept_id}
+      concept_member_ids = ConceptName.find_by_name(regimen).concept.concept_members.collect{|c|c.concept_id}
       case regimen
         when 'FIRST LINE ANTIRETROVIRAL REGIMEN'
           regimens[regimen] = concept_member_ids
@@ -58,50 +58,42 @@ class Mastercard
       end
     end
 
-    first_treatment_encounters = []
-    encounter_type = EncounterType.find_by_name('TREATMENT').id
-    regimens.map do | regimen_type , ids |
-      encounter = Encounter.find(:first,
-                                 :joins => "INNER JOIN orders ON encounter.encounter_id = orders.encounter_id",
-                                 :conditions =>["encounter_type=? AND encounter.patient_id = ? AND concept_id IN (?) 
-                                 AND encounter.voided = 0",encounter_type , patient_obj.id , ids ],
-                                 :order =>"encounter_datetime")
-      first_treatment_encounters << encounter unless encounter.blank?
-    end
-
-
-    visits.first_line_drugs = []
-    visits.alt_first_line_drugs = []
-    visits.second_line_drugs = []
-
-    first_treatment_encounters.map do | treatment_encounter | 
-      treatment_encounter.orders.map{|order|
-        if order.drug_order
-          drug = Drug.find(order.drug_order.drug_inventory_id) unless order.drug_order.quantity == 0
-          drug_concept_id = drug.concept.concept_id
-          regimens.map do | regimen_type , concept_ids |
-            if regimen_type == 'FIRST LINE ANTIRETROVIRAL REGIMEN' and concept_ids.include?(drug_concept_id)
-              visits.date_of_first_line_regimen = treatment_encounter.encounter_datetime.to_date 
-              visits.first_line_drugs << drug.concept.shortname
-            elsif regimen_type == 'ALTERNATIVE FIRST LINE ANTIRETROVIRAL REGIMEN' and concept_ids.include?(drug_concept_id)
-              visits.date_of_first_alt_line_regimen = treatment_encounter.encounter_datetime.to_date
-              visits.alt_first_line_drugs << drug.concept.shortname
-            elsif regimen_type == 'SECOND LINE ANTIRETROVIRAL REGIMEN' and concept_ids.include?(drug_concept_id)
-              visits.date_of_second_line_regimen = treatment_encounter.encounter_datetime.to_date
-              visits.second_line_drugs << drug.concept.shortname
-=begin
-            elsif drug.arv? and regimen_type == 'FIRST LINE ANTIRETROVIRAL REGIMEN'
-              visits.first_line_drugs << drug.concept.shortname
-            elsif drug.arv? and regimen_type == 'ALTERNATIVE FIRST LINE ANTIRETROVIRAL REGIMEN'
-              visits.alt_first_line_drugs << drug.concept.shortname
-            elsif drug.arv? and regimen_type == 'SECOND LINE ANTIRETROVIRAL REGIMEN'
-              visits.second_line_drugs << drug.concept.shortname
-=end
-            end
-          end
-        end
-      }.compact
-    end
+    first_treatment_encounters = []                                             
+    encounter_type = EncounterType.find_by_name('DISPENSING').id                
+    amount_dispensed_concept_id = ConceptName.find_by_name('Amount dispensed').concept_id
+    regimens.map do | regimen_type , ids |                                      
+      encounter = Encounter.find(:first,                                        
+                                 :joins => "INNER JOIN obs ON encounter.encounter_id = obs.encounter_id",
+                                 :conditions =>["encounter_type=? AND encounter.patient_id = ? AND concept_id = ? 
+                                 AND encounter.voided = 0",encounter_type , patient_obj.id , amount_dispensed_concept_id ],
+                                 :order =>"encounter_datetime")                 
+      first_treatment_encounters << encounter unless encounter.blank?           
+    end                                                                         
+                                                                                
+                                                                                
+    visits.first_line_drugs = []                                                
+    visits.alt_first_line_drugs = []                                            
+    visits.second_line_drugs = []                                               
+                                                                                
+    first_treatment_encounters.map do | treatment_encounter |                   
+      treatment_encounter.observations.map{|obs|                                
+        next if not obs.concept_id == amount_dispensed_concept_id               
+        drug = Drug.find(obs.value_drug) if obs.value_numeric > 0               
+        drug_concept_id = drug.concept.concept_id                               
+        regimens.map do | regimen_type , concept_ids |                          
+          if regimen_type == 'FIRST LINE ANTIRETROVIRAL REGIMEN' and concept_ids.include?(drug_concept_id)
+            visits.date_of_first_line_regimen = treatment_encounter.encounter_datetime.to_date 
+            visits.first_line_drugs << drug.concept.shortname                   
+          elsif regimen_type == 'ALTERNATIVE FIRST LINE ANTIRETROVIRAL REGIMEN' and concept_ids.include?(drug_concept_id)
+            visits.date_of_first_alt_line_regimen = treatment_encounter.encounter_datetime.to_date
+            visits.alt_first_line_drugs << drug.concept.shortname               
+          elsif regimen_type == 'SECOND LINE ANTIRETROVIRAL REGIMEN' and concept_ids.include?(drug_concept_id)
+            visits.date_of_second_line_regimen = treatment_encounter.encounter_datetime.to_date
+            visits.second_line_drugs << drug.concept.shortname                  
+          end                                                                   
+        end                                                                     
+      }.compact                                                                 
+    end  
 
     ans = ["Extrapulmonary tuberculosis (EPTB)","Pulmonary tuberculosis within the last 2 years","Pulmonary tuberculosis","Kaposis sarcoma"]
     staging_ans = patient_obj.person.observations.recent(1).question("WHO STG CRIT").all
@@ -110,11 +102,6 @@ class Mastercard
     visits.tb_within_last_two_yrs = 'Yes' if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[1])
     visits.eptb = 'Yes' if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[0])
     visits.pulmonary_tb = 'Yes' if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[2])
-=begin
-
-    #visits.arv_number = patient_obj.ARV_national_id
-    visits.transfer =  patient_obj.transfer_in? ? "Yes" : "No"
-=end
 
     hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("HIV Staging").id,patient_obj.id])
