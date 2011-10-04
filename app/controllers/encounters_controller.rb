@@ -1,6 +1,6 @@
 class EncountersController < ApplicationController
 
-  def create
+  def create(params=params, session=session)
     if params['encounter']['encounter_type_name'] == 'TB_INITIAL'
       (params[:observations] || []).each do |observation|
         if observation['concept_name'].upcase == 'TRANSFER IN' and observation['value_coded_or_text'] == "YES"
@@ -80,12 +80,17 @@ class EncountersController < ApplicationController
     end
 
     @patient = Patient.find(params[:encounter][:patient_id]) rescue nil
-    if params[:location] and @patient.nil?
-      @patient = Patient.find_with_voided(params[:encounter][:patient_id])
-    end
+    if params[:location]
+      if @patient.nil?
+        @patient = Patient.find_with_voided(params[:encounter][:patient_id])
+      end
 
-    # set current location via params if given
-    Location.current_location = Location.find(params[:location]) if params[:location]
+      Person.migrated_datetime = params['encounter']['date_created']
+      Person.migrated_creator  = params['encounter']['creator'] rescue nil
+
+      # set current location via params if given
+      Location.current_location = Location.find(params[:location])
+    end
 
     # Encounter handling
     encounter = Encounter.new(params[:encounter])
@@ -230,6 +235,7 @@ class EncountersController < ApplicationController
      end
     else
       render :text => encounter.encounter_id.to_s and return
+      #return encounter.id.to_s  # support non-RESTful creation of encounters
     end
   end
 
