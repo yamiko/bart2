@@ -21,7 +21,7 @@ class DispensationsController < ApplicationController
     unless params[:location]
       session_date = session[:datetime] || Time.now()
     else
-      session_date = params[:imported_date_created] #Use date_created passed during import
+      session_date = params[:encounter_datetime] #Use date_created passed during import
     end
 
     @drug = Drug.find(params[:drug_id]) rescue nil
@@ -53,7 +53,7 @@ class DispensationsController < ApplicationController
       @drug_value = @order.drug_order.drug_inventory_id
     end
     #assign the order_id and  drug_inventory_id
-    # Try to dispense the drug    
+    # Try to dispense the drug
       
     obs = Observation.new(
       :concept_name => "AMOUNT DISPENSED",
