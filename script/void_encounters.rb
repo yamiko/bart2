@@ -2,9 +2,10 @@
 LOG_FILE_UNVOIDED = RAILS_ROOT + '/log/unvoided_encounters.log'
 LOG_FILE_VOIDED = RAILS_ROOT + '/log/voided_encounters.log'
 LOG_FILE_MISSING = RAILS_ROOT + '/log/missing_encounters.log'
+LOG_MONITOR = RAILS_ROOT + '/log/monitor.log'
 
-START_DATE = '01-01-2010'
-END_DATE = '31-12-2010'
+START_DATE = '01-01-2011'
+END_DATE = '31-12-2011'
 
 def read_config
   config = YAML.load_file("config/migration.yml")
@@ -18,10 +19,17 @@ def log(msg,log_file)
 end
 
 encounters_to_void = []
-encounters = BartOneEncounter.find(:all, :limit => 5,
-   :joins => :bart_one_observations,
-   :conditions => ['obs.voided = ? AND encounter.date_created BETWEEN ? AND ?',
-          1, Time.parse(START_DATE), Time.parse(END_DATE)])
+
+encounter_ids = BartOneObservation.find(:all,
+                  :select => 'DISTINCT encounter_id', 
+                  :conditions => ['voided = ? AND date_created BETWEEN ? AND ?',
+                                 1, Time.parse(START_DATE), 
+                                 Time.parse(END_DATE)]).map(&:encounter_id)
+
+encounters = BartOneEncounter.find(:all,
+                         :include => :bart_one_observations,
+                         :conditions => ['encounter_id IN (?)', encounter_ids])
+
 encounters.each{|encounter|
 
   if encounter.voided?
@@ -61,3 +69,5 @@ encounters_to_void.each{|enc|
 
 }
 
+log_message = "***********finished importing for #{START_DATE} AND #{END_DATE} ************"
+log(log_message,LOG_MONITOR)
