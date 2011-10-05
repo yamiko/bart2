@@ -287,7 +287,7 @@ class UserController < ApplicationController
     encounter_privilege_hash = generate_encounter_privilege_map   
     @privileges = @privileges.collect do |privilege|
       if !encounter_privilege_hash[privilege.privilege.squish].nil?
-          encounter_privilege_hash[privilege.privilege.squish]
+          encounter_privilege_hash[privilege.privilege.squish].humanize
       else
           privilege.privilege
       end
