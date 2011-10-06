@@ -300,8 +300,14 @@ class UserController < ApplicationController
     @available_encounter_types = Dir.glob(RAILS_ROOT+"/app/views/encounters/*.rhtml").map{|file|file.gsub(/.*\//,"").gsub(/\..*/,"").humanize}
     @available_encounter_types -= @available_encounter_types - @encounter_types
 
-    @privileges =   @privileges - (@privileges - @available_encounter_types)
+    available_privileges_not_from_encounters_folder = []
     
+    privileges_not_from_encounters_folder = ['Manage Prescriptions','Manage Appointments', 'Manage Drug Dispensations']
+    
+    available_privileges_not_from_encounters_folder += privileges_not_from_encounters_folder.select{|pri| @privileges.include?(pri)}
+
+    @privileges =   @privileges - (@privileges - @available_encounter_types) + available_privileges_not_from_encounters_folder
+
     @activities = @activities.collect do |activity| 
       if !encounter_privilege_hash[activity].nil?
           encounter_privilege_hash[activity.squish].gsub('Hiv','HIV').gsub('Tb','TB').gsub('Art','ART').gsub('hiv','HIV')
@@ -313,7 +319,7 @@ class UserController < ApplicationController
     @privileges = @privileges.collect do |privilege|
         privilege.gsub('Hiv','HIV').gsub('Tb','TB').gsub('Art','ART').gsub('hiv','HIV')
     end
-    @privileges += ['Manage prescriptions','Manage appointments', 'Dispensation']  
+    #@privileges += ['Manage prescriptions','Manage appointments', 'Dispensation']  
     @privileges.sort!
     @patient_id = params[:patient_id]
   end
