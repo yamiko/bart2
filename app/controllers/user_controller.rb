@@ -170,6 +170,7 @@ class UserController < ApplicationController
   def update
     #find_by_person_id(params[:id])
     @user = User.find(params[:id])
+    params[:user]['username'] = User.current_user.username if  params[:user]['username'].nil?
     if params[:user]['username']
       @user.update_attributes(:username => params[:user]['username'])
     end
