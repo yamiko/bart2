@@ -58,6 +58,11 @@
                   <span value="<%= @patient.arv_number rescue "" %>">ARV Number</span>
 
                <% end %>
+               <% if (@patient.filing_number rescue nil) != nil && (@patient.filing_number) != " " %>
+
+                <span value="<%= @patient.filing_number rescue "" %>">Filing Number</span>
+
+               <% end %>
                <% if (@patient.eid_number rescue nil) != nil && (@patient.eid_number) != " " %>
 
                  <span value="<%= @patient.eid_number rescue "" %>">EID Number</span>
