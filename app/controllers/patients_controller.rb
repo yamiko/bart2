@@ -671,7 +671,11 @@ class PatientsController < ApplicationController
     alerts = []
 
     type = EncounterType.find_by_name("APPOINTMENT")
-    next_appt = patient.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.last.to_s rescue nil
+    next_appt = Observation.find(:first,:order => "encounter_datetime DESC,encounter.date_created DESC",
+               :joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
+               :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?",
+               ConceptName.find_by_name('Appointment date').concept_id,
+               type.id,patient.id]).to_s rescue nil
     alerts << ('Next ' + next_appt).capitalize unless next_appt.blank?
 
     encounter_dates = Encounter.find_by_sql("SELECT * FROM encounter WHERE patient_id = #{patient.id} AND encounter_type IN (" +
