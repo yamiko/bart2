@@ -2,7 +2,7 @@
 
   .tt_controls_year_of_birth #Unknown { display:block; }
   .tt_controls_age_estimate #Unknown { display:none; }
-  
+
   .tt_controls_middle_name  #na { display: block; }
   .tt_controls_ground_phone_number #Unknown { display:block; }
 
@@ -14,6 +14,7 @@
   #tt_page_month_of_birth .options li{font-size:30px;}
 
   .tt_controls_home_village #space , #apostrophe { display:inline; }
+  .tt_controls_home_district #num  { display:none; }
 
   .tt_controls_current_traditional_authority_ta #space { display:inline; }
 
@@ -29,18 +30,21 @@
     #tt_page_occupation .options{height:500px;}
     #tt_page_occupation .options li{font-size:30px;}
     #space {display:inline;}
-    
+
     .nota #na {
         display: block;
     }
-    
-     #num{ display:none; }
+
+     #num{ display:block; }
      #char{ display:none; }
      #apostrophe { display:inline; }
-     
+
+    .tt_controls_home_district #num{ display:none; }
+    .tt_controls_current_district #num{ display:none; }
+
     .tt_controls_current_city_place_or_area_of_residence #num{ display:block; }
     .tt_controls_current_city_place_or_area_of_residence #char{ display:block; }
-    
+
     .tt_controls_closest_landmark_or_plot_number #num{ display:block; }
     .tt_controls_closest_landmark_or_plot_number #char{ display:block; }
 
@@ -57,7 +61,7 @@
   var set_dob = null;
 
   var skipped = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-  
+
   function seen(page) {
     for (var i = page; i >= 0; i--) {
       skipped[i] = 1;
