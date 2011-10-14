@@ -496,7 +496,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
       {:id => "cd4_count_date",
        :condition => '$("new_cd4_count_available").value == "YES"',
        :helpText => "CD4 Count Date",
-       :max => "#{(Date.today).strftime('%Y-%m-%d')}"} %>
+       :max => "#{session[:datetime].to_date rescue Date.today}"} %>
 
     <%= touch_numeric_tag "CD4 COUNT", @patient, nil,
       {:id => "cd4_count",
@@ -521,7 +521,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
       {:id => "lymphocyte_count_date",
        :condition => '$("new_lymphocyte_count_available").value == "YES"',
        :helpText => "Lymphocyte Count Date",
-       :max => "#{(Date.today).strftime('%Y-%m-%d')}"} %>
+       :max => "#{session[:datetime].to_date rescue Date.today}"} %>
 
     <%= touch_numeric_tag "LYMPHOCYTE COUNT", @patient, nil,
       {:id => "lymphocyte_count",
@@ -616,7 +616,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
       {:id => "cd4_count_date",
        :condition => '$("new_cd4_count_available").value == "YES"',
        :helpText => "CD4 Count Date",
-       :max => "#{(Date.today).strftime('%Y-%m-%d')}"} %>
+       :max => "#{session[:datetime].to_date rescue Date.today}"} %>
 
     <%= touch_numeric_tag "CD4 COUNT", @patient, nil,
       {:id => "cd4_count",
@@ -641,7 +641,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
       {:id => "cd4_percent_date",
        :condition => '$("new_cd4_percent_available").value == "YES"',
        :helpText => "CD4 Percent Date",
-       :max => "#{(Date.today).strftime('%Y-%m-%d')}"} %>
+       :max => "#{session[:datetime].to_date rescue Date.today}"} %>
 
     <%= touch_numeric_tag "CD4 PERCENT", @patient, nil,
       {:id => "cd4_percent",
@@ -663,7 +663,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
       {:id => "lymphocyte_count_date",
        :condition => '$("new_lymphocyte_count_available").value == "YES"',
        :helpText => "Lymphocyte Count Date",
-       :max => "#{(Date.today).strftime('%Y-%m-%d')}"} %>
+       :max => "#{session[:datetime].to_date rescue Date.today}"} %>
 
     <%= touch_numeric_tag "LYMPHOCYTE COUNT", @patient, nil,
       {:id => "lymphocyte_count",
