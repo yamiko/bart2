@@ -12,6 +12,23 @@
 
 <script>
 	var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
+
+  function checkBirthDate(){
+    var dateCheck = "";
+    var confirmatoryHIVtestDate = new Date ($('confirmatory_hiv_test_date').value);
+    var patientBirthDate = new Date("<%= @patient.person.birthdate.year %>","<%= @patient.person.birthdate.month %>","<%= @patient.person.birthdate.day %>")
+
+    <% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
+
+    var sessionDate = new Date("<%="#{@session_date.to_date.year},#{@session_date.to_date.month},#{@session_date.to_date.day}"%>");
+
+    if (patientBirthDate < confirmatoryHIVtestDate){
+      dateCheck = 'true'
+    } else {
+      dateCheck = 'false'
+    }
+   return dateCheck
+  }
 </script>
 
 <% if @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM') %>
@@ -89,7 +106,7 @@
 			{	:id => "agrees_to_followup",
 				:helpText => "Agrees to follow-up?" } %>
 
-		<%= touch_select_tag "CONFIRMATORY HIV TEST TYPE", @patient, options_for_select([['HIV Rapid Test','HIV RAPID TEST'],['HIV PCR','HIV PCR'],['Unknown','UNKNOWN']]),
+		<%= touch_select_tag "CONFIRMATORY HIV TEST TYPE", @patient, options_for_select([['HIV Rapid Test','HIV RAPID TEST'],['HIV PCR','HIV DNA polymerase chain reaction'],['Unknown','UNKNOWN']]),
 			{	:id => "type_of_confirmatory_hiv_test",
 			 	:helpText => "Type of confirmatory HIV test" } %>
 
@@ -100,7 +117,17 @@
 		<%= touch_date_tag "CONFIRMATORY HIV TEST DATE", @patient, nil,
 			{	:id => "confirmatory_hiv_test_date",
 			 	:max => "#{session[:datetime].to_date rescue Date.today}",
+			 	:validationCode => "checkBirthDate() == 'true'",
+			 	:validationMessage => "Confirmatory HIV test date is greater than patient's date of birth #{@patient.person.birthdate}",
 			 	:helpText => "Date of confirmatory HIV test"} %>
+
+    <% session_date = session[:datetime].to_date rescue nil                       
+    if session_date %>                                                          
+      <%= touch_select_tag "Provider", @patient, options_for_select([]),        
+        { :id => "provider",                                                    
+          :ajaxURL => '/user/username?username=',                               
+          :helpText => "Staff who provided the information (Provider)"} %>      
+    <%end%>
 		<%= submit_tag "Finish" %>    
 	</form>
 <% end %>

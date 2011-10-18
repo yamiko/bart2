@@ -85,6 +85,13 @@ Check applicability of code below
        <%= touch_hidden_tag "SPUTUM SUBMISSION", @patient, nil, :id => destination_id, :accession_number =>  0%>
     <%end%>
 
+  <% session_date = session[:datetime].to_date rescue nil                       
+    if session_date %>                                                          
+      <%= touch_select_tag "Provider", @patient, options_for_select([]),        
+        { :id => "provider",                                                    
+          :ajaxURL => '/user/username?username=',                               
+          :helpText => "Staff who provided the information (Provider)"} %>      
+    <%end%> 
   <%= submit_tag "Finish" %>    
 </form>
 <%end%>

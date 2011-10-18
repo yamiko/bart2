@@ -246,6 +246,14 @@ Check applicability of code below
     {:id => "patient_category",
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "Patient category" } %>
+
+  <% session_date = session[:datetime].to_date rescue nil                       
+    if session_date %>                                                          
+      <%= touch_select_tag "Provider", @patient, options_for_select([]),        
+        { :id => "provider",                                                    
+          :ajaxURL => '/user/username?username=',                               
+          :helpText => "Staff who provided the information (Provider)"} %>      
+    <%end%> 
   <%= submit_tag "Finish" %>
 </form>
 <% end %>

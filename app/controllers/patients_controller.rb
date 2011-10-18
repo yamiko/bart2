@@ -7,8 +7,9 @@ class PatientsController < ApplicationController
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
-    @alerts = alerts(@patient, session_date)
+    @alerts = alerts(@patient, session_date) rescue nil
     # This code is pretty hacky at the moment
+    #raise cd4_count_datetime(@patient).to_yaml
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|    
       @encounters = restriction.filter_encounters(@encounters)
@@ -507,7 +508,7 @@ class PatientsController < ApplicationController
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
-    @alerts = alerts(@patient, session_date)
+    @alerts = alerts(@patient, session_date) rescue nil
     # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|
@@ -525,7 +526,7 @@ class PatientsController < ApplicationController
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
-    @alerts = alerts(@patient, session_date)
+    @alerts = alerts(@patient, session_date) rescue nil
     # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|
@@ -661,17 +662,21 @@ class PatientsController < ApplicationController
   def tb_treatment_card
     render :layout => 'menu'
   end
-  
+
   def alerts(patient, session_date = Date.today) 
     # next appt
     # adherence
     # drug auto-expiry
     # cd4 due
-    
+
     alerts = []
 
     type = EncounterType.find_by_name("APPOINTMENT")
-    next_appt = patient.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.last.to_s rescue nil
+    next_appt = Observation.find(:first,:order => "encounter_datetime DESC,encounter.date_created DESC",
+               :joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
+               :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?",
+               ConceptName.find_by_name('Appointment date').concept_id,
+               type.id,patient.id]).to_s rescue nil
     alerts << ('Next ' + next_appt).capitalize unless next_appt.blank?
 
     encounter_dates = Encounter.find_by_sql("SELECT * FROM encounter WHERE patient_id = #{patient.id} AND encounter_type IN (" +
@@ -705,7 +710,7 @@ class PatientsController < ApplicationController
     
     program_id = Program.find_by_name("HIV PROGRAM").id
     location_id = Location.current_health_center.location_id
-    
+
     patient_hiv_program = PatientProgram.find(:all,:conditions =>["voided = 0 AND patient_id = ? AND program_id = ? AND location_id = ?", patient.id , program_id, location_id])
 
     hiv_status = patient.hiv_status
@@ -716,13 +721,36 @@ class PatientsController < ApplicationController
     alerts << "Lab: Expecting submission of sputum" unless patient.sputum_orders_without_submission.empty?
     alerts << "Lab: Waiting for sputum results" if patient.recent_sputum_results.empty? && !patient.recent_sputum_submissions.empty?
     alerts << "Lab: Results not given to patient" if !patient.recent_sputum_results.empty? && patient.given_sputum_results.to_s != "Yes"
+    alerts << "Patient go for CD4 count testing" if cd4_count_datetime(patient) == true
     alerts << "Lab: Patient must order sputum test" if patient.patient_need_sputum_test?
     alerts << "Refer to ART wing" if show_alert_refer_to_ART_wing(patient)
 
     alerts
   end
+
+  def cd4_count_datetime(patient)
+    session_date = session[:datetime].to_date rescue Date.today
   
-    def show_alert_refer_to_ART_wing(patient)
+  #raise session_date.to_yaml
+    hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+          EncounterType.find_by_name("HIV Staging").id,patient.id]) rescue nil
+
+    if !hiv_staging.blank?
+      (hiv_staging.observations).map do |obs|
+        if obs.concept_id == ConceptName.find_by_name('CD4 count datetime').concept_id
+           months = (session_date.year * 12 + session_date.month) - (obs.value_datetime.year * 12 + obs.value_datetime.month) rescue nil
+    #raise obs.value_datetime.to_yaml
+          if months >= 6
+            return true
+          else
+            return false
+          end
+        end
+      end
+    end
+  end
+
+  def show_alert_refer_to_ART_wing(patient)
         show_alert = false
         refer_to_x_ray = nil
         does_tb_status_obs_exist = false

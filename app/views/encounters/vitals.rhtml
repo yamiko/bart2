@@ -256,6 +256,12 @@
     
     <label for='showSummary'>Summary </label>
     <%= text_field_tag :showSummary, nil, { :tt_onLoad => "growthIndicators()", :optional => "true", :tt_pageStyleClass => "NoControls" } %>
-   
-  <%= submit_tag "Finish" %>    
+    <% session_date = session[:datetime].to_date rescue nil                       
+    if session_date %>                                                          
+      <%= touch_select_tag "Provider", @patient, options_for_select([]),        
+        { :id => "provider",                                                    
+          :ajaxURL => '/user/username?username=',                               
+          :helpText => "Staff who provided the information (Provider)"} %>      
+    <%end%>
+   <%= submit_tag "Finish" %>    
   </form>

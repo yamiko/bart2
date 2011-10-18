@@ -104,7 +104,7 @@
                   (value.primary_diagnosis || []).map do | val | 
                     if visit_value.blank?
                       visit_value = val
-                    else visit_value+="<br />#{visit_value}" end
+                    else visit_value+="<br />#{val}" end
                   end
                 %>
                 <%= visit_value || '&nbsp;' %>
@@ -115,7 +115,7 @@
                   (value.treatment || []).map do | val | 
                     if visit_value.blank?
                       visit_value = val
-                    else visit_value+="<br />#{visit_value}" end
+                    else visit_value+="<br />#{val}" end
                   end
                 %>
                 <%= visit_value || '&nbsp;' %>
