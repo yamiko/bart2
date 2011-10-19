@@ -157,6 +157,9 @@ class Cohort
     cohort_report['Unknown reason'] = 0
     cohort_report['WHO stage 3'] = 0
     cohort_report['WHO stage 4'] = 0
+    cohort_report['Patient pregnant'] = 0
+    cohort_report['Patient breastfeeding'] = 0
+    cohort_report['HIV infected'] = 0
 
     ( self.start_reason || [] ).each do | reason | 
       if reason.match(/Presumed/i)
@@ -171,6 +174,12 @@ class Cohort
         cohort_report['WHO stage 3'] += 1
       elsif reason[0..11].strip.upcase == 'WHO STAGE IV'
         cohort_report['WHO stage 4'] += 1
+      elsif reason.strip.humanize == 'Patient pregnant'
+        cohort_report['Patient pregnant'] += 1
+      elsif reason.strip.humanize == 'Breastfeeding'
+        cohort_report['Patient breastfeeding'] += 1
+      elsif reason.strip.upcase == 'HIV INFECTED'
+        cohort_report['HIV infected'] += 1
       else 
         cohort_report['Unknown reason'] += 1
       end
@@ -183,6 +192,9 @@ class Cohort
     cohort_report['Total Unknown reason'] = 0
     cohort_report['Total WHO stage 3'] = 0
     cohort_report['Total WHO stage 4'] = 0
+    cohort_report['Total Patient pregnant'] = 0
+    cohort_report['Total Patient breastfeeding'] = 0
+    cohort_report['Total HIV infected'] = 0
 
     ( self.start_reason(@@first_registration_date,@end_date) || [] ).each do | reason | 
       if reason.match(/Presumed/i)
@@ -195,8 +207,14 @@ class Cohort
         cohort_report['Total WHO stage 2, total lymphocytes'] += 1
       elsif reason[0..13].strip == 'WHO STAGE III'
         cohort_report['Total WHO stage 3'] += 1
-      elsif reason[0..11] == 'WHO STAGE IV'
+      elsif reason[0..11].strip.upcase == 'WHO STAGE IV'
         cohort_report['Total WHO stage 4'] += 1
+      elsif reason.strip.humanize == 'Patient pregnant'
+        cohort_report['Total Patient pregnant'] += 1
+      elsif reason.strip.humanize == 'Breastfeeding'
+        cohort_report['Total Patient breastfeeding'] += 1
+      elsif reason.strip.upcase == 'HIV INFECTED'
+        cohort_report['Total HIV infected'] += 1
       else 
         cohort_report['Total Unknown reason'] += 1
       end
@@ -542,7 +560,7 @@ class Cohort
         return 'A9' if age > 14
         return 'P9'
       else
-        return 'Unknown regimen'
+        return 'UNKNOWN ANTIRETROVIRAL DRUG'
     end
   end
 end
