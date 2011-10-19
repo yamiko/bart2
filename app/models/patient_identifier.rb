@@ -35,10 +35,13 @@ class PatientIdentifier < ActiveRecord::Base
     current_arv_code = self.site_prefix
     type = PatientIdentifierType.find_by_name('ARV Number').id
     current_arv_number_identifiers = PatientIdentifier.find(:all,:conditions => ["identifier_type = ? AND voided = 0",type])
+
     assigned_arv_ids = current_arv_number_identifiers.collect{|identifier|
-      $1.to_i if identifier.identifier.match(/#{current_arv_code} *(\d+)/)
+      $1.to_i if identifier.identifier.match(/#{current_arv_code}-ARV- *(\d+)/)
     }.compact unless current_arv_number_identifiers.nil?
+
     next_available_number = nil
+
     if assigned_arv_ids.empty?
       next_available_number = 1
     else

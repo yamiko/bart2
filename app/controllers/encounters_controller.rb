@@ -79,6 +79,21 @@ class EncountersController < ApplicationController
       params[:observations] = observations unless observations.blank?
     end
 
+   if params['encounter']['encounter_type_name'].upcase == 'REFER PATIENT OUT?'
+      observations = []
+      (params[:observations] || []).each do |observation|
+        if observation['concept_name'].upcase == 'REFERRAL CLINIC IF REFERRED'
+          observation['value_numeric'] = observation['value_coded_or_text'] rescue nil
+          observation['value_text'] = Location.find(observation['value_coded_or_text']).name.to_s rescue ""
+          observation['value_coded_or_text'] = ""
+        end
+
+        observations << observation
+      end
+
+      params[:observations] = observations unless observations.blank?
+    end
+
     @patient = Patient.find(params[:encounter][:patient_id]) rescue nil
     if params[:location]
       if @patient.nil?
@@ -471,7 +486,7 @@ class EncountersController < ApplicationController
 		render :layout => false
 	end
 
-	def void 
+	def void
 		@encounter = Encounter.find(params[:id])
 		@encounter.void
 		head :ok

@@ -212,7 +212,7 @@
 				} else if (ageInMonths < 12 && firstPositiveHivTestType == "HIV DNA POLYMERASE CHAIN REACTION") {
 					reasonForArtEligibility = "HIV DNA POLYMERASE CHAIN REACTION";
 				} else if (ageInMonths >= 12 && ageInMonths < 24) {
-					reasonForArtEligibility = "CHILD HIV POSITIVE";
+					reasonForArtEligibility = "HIV infected";
 				} else if (cd4_count_numeric <= 750 && (ageInMonths >= 24 && ageInMonths < 56) && (whoStage) <= 2) {
 					reasonForArtEligibility = "CD4 COUNT LESS THAN 750";
 				} else if ($('cd4_count_less_than_350') && $('cd4_count_less_than_350').value == "YES" && (whoStage) <= 2) {
@@ -465,7 +465,7 @@
       {:id => "cd4_count_date",
        :condition => '$("new_cd4_count_available").value == "YES"',
        :helpText => "CD4 Count Date",
-       :max => "#{(Date.today).strftime('%Y-%m-%d')}"} %>
+       :max => "#{session[:datetime].to_date rescue Date.today}"} %>
 
     <%= touch_numeric_tag "CD4 COUNT", @patient, nil,
       {:id => "cd4_count",
@@ -490,7 +490,7 @@
       {:id => "lymphocyte_count_date",
        :condition => '$("new_lymphocyte_count_available").value == "YES"',
        :helpText => "Lymphocyte Count Date",
-       :max => "#{(Date.today).strftime('%Y-%m-%d')}"} %>
+		 	 :max => "#{session[:datetime].to_date rescue Date.today}"} %>
 
     <%= touch_numeric_tag "LYMPHOCYTE COUNT", @patient, nil,
       {:id => "lymphocyte_count",
@@ -598,7 +598,7 @@
       {:id => "cd4_count_date",
        :condition => '$("new_cd4_count_available").value == "YES"',
        :helpText => "CD4 Count Date",
-       :max => "#{(Date.today).strftime('%Y-%m-%d')}"} %>
+       :max => "#{session[:datetime].to_date rescue Date.today}"} %>
 
     <%= touch_numeric_tag "CD4 COUNT", @patient, nil,
       {:id => "cd4_count",
@@ -623,7 +623,7 @@
       {:id => "cd4_percent_date",
        :condition => '$("new_cd4_percent_available").value == "YES"',
        :helpText => "CD4 Percent Date",
-       :max => "#{(Date.today).strftime('%Y-%m-%d')}"} %>
+  		 :max => "#{session[:datetime].to_date rescue Date.today}"} %>
 
     <%= touch_numeric_tag "CD4 PERCENT", @patient, nil,
       {:id => "cd4_percent",
@@ -645,7 +645,7 @@
       {:id => "lymphocyte_count_date",
        :condition => '$("new_lymphocyte_count_available").value == "YES"',
        :helpText => "Lymphocyte Count Date",
-       :max => "#{(Date.today).strftime('%Y-%m-%d')}"} %>
+       :max => "#{session[:datetime].to_date rescue Date.today}"} %>
 
     <%= touch_numeric_tag "LYMPHOCYTE COUNT", @patient, nil,
       {:id => "lymphocyte_count",
@@ -662,7 +662,14 @@
   
   <label for='summary'>Summary</label>
   <%= text_field_tag :summary, nil, { :tt_onLoad => "summary();", :optional => "true", :tt_pageStyleClass => "NoControls" } %>
-  
+
+  <% session_date = session[:datetime].to_date rescue nil                       
+    if session_date %>                                                          
+      <%= touch_select_tag "Provider", @patient, options_for_select([]),        
+        { :id => "provider",                                                    
+          :ajaxURL => '/user/username?username=',                               
+          :helpText => "Staff who provided the information (Provider)"} %>      
+    <%end%> 
   <%= submit_tag "Finish" %>    
 </form>
 

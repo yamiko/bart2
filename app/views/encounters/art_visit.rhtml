@@ -122,13 +122,14 @@
   <% end %>
 
   <%  if @tb_programs_state.nil? %>
+  
     <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
       {:id => 'tb_status',
        :optional => true,
        :multiple => false,
        :helpText => "TB Status" } %>
     <% else %>
-        <%= touch_hidden_tag "TB STATUS" , @patient, ConceptName.find_by_name("#{@patient.tb_status}").concept_id, {:id => "tb_status"} %>
+        <%= touch_hidden_tag "TB STATUS" , @patient, ConceptName.find_by_name("#{@patient.tb_status}").name, {:id => "tb_status"} %>
     <% end %>
 
   <%if @patient.child_bearing_female?%>
@@ -207,5 +208,13 @@
 			  :condition => "$('refer_to_clinician').value == 'NO'" ,
 			  :helpText => "Is patient allergic to sulphur" } %>
   <%end%>
+  
+  <% session_date = session[:datetime].to_date rescue nil                       
+    if session_date %>                                                          
+      <%= touch_select_tag "Provider", @patient, options_for_select([]),        
+        { :id => "provider",                                                    
+          :ajaxURL => '/user/username?username=',                               
+          :helpText => "Staff who provided the information (Provider)"} %>      
+    <%end%>
   <%= submit_tag "Finish" %>    
 </form>
