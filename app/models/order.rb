@@ -36,9 +36,9 @@ class Order < ActiveRecord::Base
       national_identifier_id  = PatientIdentifierType.find_by_name('National id').patient_identifier_type_id
 
       missed_dispensations_data = self.find_by_sql(["SELECT order_id, patient_id, date_created from orders 
-                   WHERE NOT EXISTS (SELECT * FROM obs
+                  WHERE NOT EXISTS (SELECT * FROM obs
                    WHERE orders.order_id = obs.order_id AND obs.concept_id = ?)
-                    AND date_created >= ? AND date_created <= ?", pills_dispensed_id, start_date , end_date ])
+                    AND date_created >= ? AND date_created <= ? AND orders.voided = 0", pills_dispensed_id, start_date , end_date ])
 
         prescriptions_without_dispensations = []
 
@@ -63,7 +63,7 @@ class Order < ActiveRecord::Base
       missed_prescriptions_data = Observation.find(:all, :select =>  "person_id, value_drug, date_created",
                                                   :conditions =>["order_id IS NULL
                                                     AND date_created >= ? AND date_created <= ? AND
-                                                        concept_id = ?" ,start_date , end_date, pills_dispensed_id])
+                                                        concept_id = ? AND voided = 0" ,start_date , end_date, pills_dispensed_id])
 
         dispensations_without_prescriptions = []
 
@@ -79,4 +79,3 @@ class Order < ActiveRecord::Base
         dispensations_without_prescriptions
   end
 end
-

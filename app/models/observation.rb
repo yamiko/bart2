@@ -126,7 +126,8 @@ class Observation < ActiveRecord::Base
                                                   WHERE observation.concept_id = ?
                                                     AND observation.person_id = obs.person_id) >= 1
                                                     AND date_created >= ? AND date_created <= ?
-                                                    AND obs.concept_id = ?", art_eligibility_id, start_date , end_date, art_eligibility_id])
+                                                    AND obs.concept_id = ?
+                                                    AND obs.voided = 0", art_eligibility_id, start_date , end_date, art_eligibility_id])
     patients_data = []
 
     patients.each do |reason|
@@ -140,7 +141,7 @@ class Observation < ActiveRecord::Base
 
     patients_data
   end
-  
+
   def self.new_accession_number
     last_accn_number = Observation.find(:last, :conditions => ["accession_number IS NOT NULL" ], :order => "accession_number + 0").accession_number.to_s rescue "00" #the rescue is for the initial accession number start up
     last_accn_number_with_no_chk_dgt = last_accn_number.chop.to_i
