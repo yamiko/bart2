@@ -72,6 +72,7 @@ class PatientIdentifier < ActiveRecord::Base
     out_of_range_arv_numbers  = PatientIdentifier.find_by_sql(["SELECT patient_id, identifier, date_created FROM patient_identifier
                                                                 WHERE identifier_type = ? AND  identifier >= ?
                                                                 AND identifier <= ?
+                                                                AND voided = 0
                                                                 AND (NOT EXISTS(SELECT * FROM patient_identifier
                                                                     WHERE identifier_type = ? AND date_created >= ? AND date_created <= ?))",
                                                                       arv_number_id,  arv_start_number,  arv_end_number,
@@ -84,7 +85,6 @@ class PatientIdentifier < ActiveRecord::Base
       out_of_range_arv_numbers_data <<[arv_num_data[:patient_id], arv_num_data[:identifier], patient.name,
                 national_id,patient.gender,patient.age,patient.birthdate,arv_num_data[:date_created].strftime("%Y-%m-%d %H:%M:%S")]
     end
-
     out_of_range_arv_numbers_data
   end
 
