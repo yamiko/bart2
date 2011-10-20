@@ -188,6 +188,9 @@ class ProgramsController < ApplicationController
           PatientProgram.update_all "date_completed = '#{date_completed.strftime('%Y-%m-%d %H:%M:%S')}'",
                                      "patient_program_id = #{patient_program.patient_program_id}"
         else
+          person = patient_program.patient.person
+          person.dead = 0
+          person.save
           date_completed = nil
           PatientProgram.update_all "date_completed = NULL",
                                      "patient_program_id = #{patient_program.patient_program_id}"

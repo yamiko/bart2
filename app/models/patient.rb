@@ -426,13 +426,12 @@ class Patient < ActiveRecord::Base
   def self.males_allegedly_pregnant(start_date, end_date)
     national_identifier_id  = PatientIdentifierType.find_by_name('National id').patient_identifier_type_id
     arv_number_id           = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
-    pregnant_patient_concept_id = ConceptName.find_by_name('PATIENT PREGNANT').concept_id
-
+    pregnant_patient_concept_id = ConceptName.find_by_name('IS PATIENT PREGNANT?').concept_id
     patients = PatientIdentifier.find_by_sql(["SELECT person.person_id,obs.obs_datetime
                                    FROM obs INNER JOIN person
                                    ON obs.person_id = person.person_id
                                    WHERE person.gender = 'M' AND
-                                   obs.concept_id = ? AND obs.obs_datetime >= ? AND obs.obs_datetime <= ?",
+                                   obs.concept_id = ? AND obs.obs_datetime >= ? AND obs.obs_datetime <= ? AND obs.voided = 0",
         pregnant_patient_concept_id, '2008-12-23 00:00:00', end_date])
 
     patients_data  = []
