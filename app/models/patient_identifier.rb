@@ -35,10 +35,13 @@ class PatientIdentifier < ActiveRecord::Base
     current_arv_code = self.site_prefix
     type = PatientIdentifierType.find_by_name('ARV Number').id
     current_arv_number_identifiers = PatientIdentifier.find(:all,:conditions => ["identifier_type = ? AND voided = 0",type])
+
     assigned_arv_ids = current_arv_number_identifiers.collect{|identifier|
-      $1.to_i if identifier.identifier.match(/#{current_arv_code} *(\d+)/)
+      $1.to_i if identifier.identifier.match(/#{current_arv_code}-ARV- *(\d+)/)
     }.compact unless current_arv_number_identifiers.nil?
+
     next_available_number = nil
+
     if assigned_arv_ids.empty?
       next_available_number = 1
     else
@@ -69,6 +72,7 @@ class PatientIdentifier < ActiveRecord::Base
     out_of_range_arv_numbers  = PatientIdentifier.find_by_sql(["SELECT patient_id, identifier, date_created FROM patient_identifier
                                                                 WHERE identifier_type = ? AND  identifier >= ?
                                                                 AND identifier <= ?
+                                                                AND voided = 0
                                                                 AND (NOT EXISTS(SELECT * FROM patient_identifier
                                                                     WHERE identifier_type = ? AND date_created >= ? AND date_created <= ?))",
                                                                       arv_number_id,  arv_start_number,  arv_end_number,
@@ -81,7 +85,6 @@ class PatientIdentifier < ActiveRecord::Base
       out_of_range_arv_numbers_data <<[arv_num_data[:patient_id], arv_num_data[:identifier], patient.name,
                 national_id,patient.gender,patient.age,patient.birthdate,arv_num_data[:date_created].strftime("%Y-%m-%d %H:%M:%S")]
     end
-
     out_of_range_arv_numbers_data
   end
 

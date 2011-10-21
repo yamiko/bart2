@@ -9,7 +9,6 @@ class PatientsController < ApplicationController
     @programs = @patient.patient_programs.all
     @alerts = alerts(@patient, session_date) rescue nil
     # This code is pretty hacky at the moment
-    #raise cd4_count_datetime(@patient).to_yaml
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|    
       @encounters = restriction.filter_encounters(@encounters)
@@ -544,9 +543,10 @@ class PatientsController < ApplicationController
     @encounter_dates = @previous_visits.map{|encounter| encounter.encounter_datetime.to_date}.uniq.reverse.first(6) rescue []
 
     @past_encounter_dates = []
-      @encounter_dates.each do |encounter|
-        @past_encounter_dates << encounter if encounter < (Date.today).to_date || encounter < (session[:datetime].to_date rescue Date.today.to_date)
-      end
+
+    @encounter_dates.each do |encounter|
+      @past_encounter_dates << encounter if encounter < (session[:datetime].to_date rescue Date.today.to_date)
+    end
 
     render :template => 'dashboards/past_visits_summary_tab', :layout => false
   end

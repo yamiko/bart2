@@ -207,7 +207,7 @@
         } else if (ageInMonths < 12 && firstPositiveHivTestType == "HIV DNA POLYMERASE CHAIN REACTION") {
           reasonForArtEligibility = "HIV DNA POLYMERASE CHAIN REACTION";
         } else if (ageInMonths >= 12 && ageInMonths < 24) {
-          reasonForArtEligibility = "CHILD HIV POSITIVE";
+          reasonForArtEligibility = "HIV infected";
         } else if (cd4_count_numeric <= 750 && (ageInMonths >= 24 && ageInMonths < 56) && (whoStage) <= 2) {
           reasonForArtEligibility = "CD4 COUNT LESS THAN 750";
         } else if ($('cd4_count_less_than_350') && $('cd4_count_less_than_350').value == "YES" && (whoStage) <= 2) {

@@ -426,13 +426,12 @@ class Patient < ActiveRecord::Base
   def self.males_allegedly_pregnant(start_date, end_date)
     national_identifier_id  = PatientIdentifierType.find_by_name('National id').patient_identifier_type_id
     arv_number_id           = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
-    pregnant_patient_concept_id = ConceptName.find_by_name('PATIENT PREGNANT').concept_id
-
+    pregnant_patient_concept_id = ConceptName.find_by_name('IS PATIENT PREGNANT?').concept_id
     patients = PatientIdentifier.find_by_sql(["SELECT person.person_id,obs.obs_datetime
                                    FROM obs INNER JOIN person
                                    ON obs.person_id = person.person_id
                                    WHERE person.gender = 'M' AND
-                                   obs.concept_id = ? AND obs.obs_datetime >= ? AND obs.obs_datetime <= ?",
+                                   obs.concept_id = ? AND obs.obs_datetime >= ? AND obs.obs_datetime <= ? AND obs.voided = 0",
         pregnant_patient_concept_id, '2008-12-23 00:00:00', end_date])
 
     patients_data  = []
@@ -515,31 +514,31 @@ class Patient < ActiveRecord::Base
   end
 
   def set_received_regimen(encounter,prescription)
-    dispense_finish = true ; dispensed_drugs_concept_ids = []
+    dispense_finish = true ; dispensed_drugs_inventory_ids = []
     
     prescription.orders.each do | order |
       next if not order.drug_order.drug.arv?
-      dispensed_drugs_concept_ids << order.drug_order.drug.concept_id
+      dispensed_drugs_inventory_ids << order.drug_order.drug.id
       if (order.drug_order.amount_needed > 0)
         dispense_finish = false
       end
     end
 
     return unless dispense_finish
-    return if dispensed_drugs_concept_ids.blank?
+    return if dispensed_drugs_inventory_ids.blank?
 
-    regimen_id = ActiveRecord::Base.connection.select_value <<EOF
-SELECT concept_id FROM drug_ingredient 
-WHERE ingredient_id IN (SELECT distinct ingredient_id 
-FROM drug_ingredient 
-WHERE concept_id IN (#{dispensed_drugs_concept_ids.join(',')}))
-GROUP BY concept_id
-HAVING COUNT(*) = (SELECT COUNT(distinct ingredient_id) 
-FROM drug_ingredient 
-WHERE concept_id IN (#{dispensed_drugs_concept_ids.join(',')}))
+    regimen_id = ActiveRecord::Base.connection.select_all <<EOF
+SELECT r.concept_id ,
+(SELECT COUNT(t3.regimen_id) FROM regimen_drug_order t3 
+WHERE t3.regimen_id = t.regimen_id GROUP BY t3.regimen_id) as c
+FROM regimen_drug_order t, regimen r  
+WHERE t.drug_inventory_id IN (#{dispensed_drugs_inventory_ids.join(',')})
+AND r.regimen_id = t.regimen_id
+GROUP BY r.concept_id
+HAVING c = #{dispensed_drugs_inventory_ids.length}
 EOF
-  
-    regimen_prescribed = regimen_id.to_i rescue ConceptName.find_by_name('UNKNOWN ANTIRETROVIRAL DRUG').concept_id
+    
+    regimen_prescribed = regimen_id.first['concept_id'].to_i rescue ConceptName.find_by_name('UNKNOWN ANTIRETROVIRAL DRUG').concept_id
     
     if (Observation.find(:first,:conditions => ["person_id = ? AND encounter_id = ? AND concept_id = ?",
             self.id,encounter.id,ConceptName.find_by_name('ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT').concept_id])).blank?
