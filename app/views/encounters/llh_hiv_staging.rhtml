@@ -292,6 +292,27 @@
 
   }
 
+  function ifShowConditions(pageID) {
+    //try {
+    pageTitle = $(pageID).getAttribute("helptext");
+    if (pageTitle == "Asymptomatic HIV infection");
+      return true;
+
+    for (condition in selected_stage_conditions) {
+      if (selected_stage_conditions[condition].length > 0) {
+        conditions = selected_stage_conditions[condition].split(';');
+        for (i = 0 ; i < conditions.length ; i++) {
+          if(conditions[i] == "Asymptomatic HIV infection"){
+            goNextPage();
+            break;
+          }
+        }
+      }
+    }
+    return true
+    //}catch(e){return true}
+  }
+    
 </script>  
 <style type="text/css">
   .small .options li { font-size:1.1em; }
