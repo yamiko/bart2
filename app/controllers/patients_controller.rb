@@ -166,6 +166,7 @@ class PatientsController < ApplicationController
     end
 
     @links << ["Recent Lab Orders Label","/patients/recent_lab_orders?patient_id=#{patient.id}"]
+    @links << ["Transfer out label (Print)","/patients/print_transfer_out_label/#{patient.id}"]
 
     render :template => 'dashboards/personal_tab', :layout => false
   end
@@ -233,6 +234,10 @@ class PatientsController < ApplicationController
     print_and_redirect("/patients/filing_number_label/#{params[:id]}", "/patients/show/#{params[:id]}")  
   end
    
+  def print_transfer_out_label
+    print_and_redirect("/patients/transfer_out_label?patient_id=#{params[:id]}", "/patients/show/#{params[:id]}")  
+  end
+   
   def patient_demographics_label
     print_string = Patient.find(params[:id]).demographics_label 
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:id]}#{rand(10000)}.lbl", :disposition => "inline")
@@ -274,6 +279,16 @@ class PatientsController < ApplicationController
   def mastercard_record_label
     print_string = @patient.visit_label(params[:date].to_date) 
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", :disposition => "inline")
+  end
+
+  def transfer_out_label
+    patient = Patient.find(params[:patient_id]) 
+    print_string = patient.transfer_out_label
+    send_data(print_string,
+      :type=>"application/label; charset=utf-8", 
+      :stream=> false, 
+      :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", 
+      :disposition => "inline")
   end
 
   def mastercard_menu
