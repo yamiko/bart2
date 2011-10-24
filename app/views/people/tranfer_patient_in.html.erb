@@ -45,10 +45,10 @@
 <%= javascript_include_tag "prototype" %>
 <%= javascript_include_tag "barcode" %> 
 <script>
-
+var tt_cancel_destination = "/clinic"
 </script>
 
-<body onload = "setTimeout('changeAttributes()',500);">
+<body>
 
 <form method='post' action="/people/tranfer_patient_in" id = "confirm">
   <div style="float:left;margin-bottom:-6px;"><label for="barcode" style="margin-top:-5px;">
