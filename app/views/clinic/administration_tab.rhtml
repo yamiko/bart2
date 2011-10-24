@@ -38,7 +38,8 @@
     if (result == "Transfer Patient IN") {
       td.innerHTML = "<base target='_parent'>"
       td.innerHTML += "<a href ='" + path + "'>" +  result + "</a>"
-      return td.innerHTML += "</base>"
+      td.innerHTML += "</base>";
+      return td.innerHTML
     }
     td.innerHTML = "<a href ='" + path + "' target='" + target + "'>" +  result + "</a>"
   }
