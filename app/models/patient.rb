@@ -240,13 +240,14 @@ class Patient < ActiveRecord::Base
     demographics = Mastercard.demographics(self)
     demographics_str = []
     demographics_str << "Name: #{demographics.name}"
+    demographics_str << "DOB: #{self.person.birthdate}"
+    demographics_str << "DOB-E: #{self.person.birthdate_estimated}"
+    demographics_str << "Sex: #{demographics.sex}"
     demographics_str << "Guardian name: #{demographics.guardian}"
     demographics_str << "ARV number: #{demographics.arv_number}"
     demographics_str << "National ID: #{demographics.national_id}"
-    demographics_str << "Sex: #{demographics.sex}"
 
     demographics_str << "Address: #{demographics.address}"
-    demographics_str << "Age: #{demographics.age}"
     demographics_str << "FU: #{demographics.agrees_to_followup}"
     demographics_str << "1st alt line: #{demographics.alt_first_line_drugs.join(':')}"
     demographics_str << "BMI: #{demographics.bmi}"

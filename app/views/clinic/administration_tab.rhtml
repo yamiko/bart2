@@ -35,6 +35,11 @@
   function setInnerHtmlData(id,path,result, target) {
     td = document.getElementById(id);
     path += "?dashboard=<%=@landing_dashboard%>"
+    if (result == "Transfer Patient IN") {
+      td.innerHTML = "<base target='_parent'>"
+      td.innerHTML += "<a href ='" + path + "'>" +  result + "</a>"
+      return td.innerHTML += "</base>"
+    }
     td.innerHTML = "<a href ='" + path + "' target='" + target + "'>" +  result + "</a>"
   }
 </script>
