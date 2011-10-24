@@ -259,7 +259,7 @@ class Patient < ActiveRecord::Base
 
     demographics_str << "1st pos HIV test site: #{demographics.first_positive_hiv_test_site}"
     demographics_str << "1st pos HIV test type: #{demographics.first_positive_hiv_test_type}"
-    demographics_str << "Test date: #{demographics.hiv_test_date}"
+    demographics_str << "Test date: #{demographics.hiv_test_date.gsub('/','-')}" if demographics.hiv_test_date
     demographics_str << "Test loc: #{demographics.hiv_test_location}"
     demographics_str << "Init HT: #{demographics.init_ht}"
     demographics_str << "Init WT: #{demographics.init_wt}"
@@ -296,7 +296,7 @@ class Patient < ActiveRecord::Base
     end
     
     label = ZebraPrinter::StandardLabel.new
-    label.draw_2D_barcode(0,3,1,2,50,true,"#{demographics_str.join(',')}")
+    label.draw_2D_barcode(80,20,'P',700,600,'x2','y7','l100','r100','f0','s5',"#{demographics_str.join(',').gsub('/','')}")
     label.print(1)
   end
   
