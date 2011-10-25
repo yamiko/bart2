@@ -36,7 +36,7 @@ class Mastercard
     visits.hiv_test_date = visits.hiv_test_date.to_s.split(':')[1].strip rescue nil
     visits.hiv_test_location = patient_obj.person.observations.recent(1).question("Confirmatory HIV test location").all rescue nil
     visits.hiv_test_location = visits.hiv_test_location.to_s.split(':')[1].strip rescue nil
-    visits.guardian = patient_obj.person.relationships.map{|r|Person.find(r.person_b).name}.join(' : ') rescue 'NONE'
+    visits.guardian = patient_obj.art_guardian
     visits.reason_for_art_eligibility = patient_obj.reason_for_art_eligibility
     visits.transfer_in = patient_obj.transfer_in? #pb: bug-2677 Made this to use the newly created patient model method 'transfer_in?'
     visits.transfer_in == false ? visits.transfer_in = 'NO' : visits.transfer_in = 'YES'
@@ -84,12 +84,15 @@ class Mastercard
           if regimen_type == 'FIRST LINE ANTIRETROVIRAL REGIMEN' and concept_ids.include?(drug_concept_id)
             visits.date_of_first_line_regimen = treatment_encounter.encounter_datetime.to_date 
             visits.first_line_drugs << drug.concept.shortname                   
+            visits.first_line_drugs = visits.first_line_drugs.uniq rescue []
           elsif regimen_type == 'ALTERNATIVE FIRST LINE ANTIRETROVIRAL REGIMEN' and concept_ids.include?(drug_concept_id)
             visits.date_of_first_alt_line_regimen = treatment_encounter.encounter_datetime.to_date
             visits.alt_first_line_drugs << drug.concept.shortname               
+            visits.alt_first_line_drugs = visits.alt_first_line_drugs.uniq rescue []  
           elsif regimen_type == 'SECOND LINE ANTIRETROVIRAL REGIMEN' and concept_ids.include?(drug_concept_id)
             visits.date_of_second_line_regimen = treatment_encounter.encounter_datetime.to_date
             visits.second_line_drugs << drug.concept.shortname                  
+            visits.second_line_drugs = visits.second_line_drugs.uniq rescue []
           end                                                                   
         end                                                                     
       }.compact                                                                 

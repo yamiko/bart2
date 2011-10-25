@@ -154,7 +154,8 @@ class ClinicController < ApplicationController
   def administration_tab
     @reports =  [
                   ['/clinic/users_tab','User Accounts/Settings'],
-                  ['/clinic/location_management_tab','Location Management']
+                  ['/clinic/location_management_tab','Location Management'],
+                  ['/people/tranfer_patient_in','Transfer Patient IN']
                 ]
     if User.current_user.admin?
       @reports << ['/clinic/management_tab','Drug Management']
