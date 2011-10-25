@@ -70,7 +70,9 @@ class PropertiesController < ApplicationController
     return wkdays
   end
 
-  def site_code
+  def site_code  
+    location = Location.find(Location.current_health_center.id)
+    @neighborhood_cell = location.neighborhood_cell
     if request.post?
       location = Location.find(Location.current_health_center.id)
       location.neighborhood_cell = params[:site_code]
