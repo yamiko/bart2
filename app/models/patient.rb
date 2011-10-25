@@ -1101,7 +1101,7 @@ EOF
 
       identifier = params['identifiers'][0][:identifier].strip
       if identifier.match(/(.*)[A-Z]/i).blank?
-        params['identifiers'][0][:identifier] = "#{PatientIdentifier.site_prefix} #{identifier}"
+        params['identifiers'][0][:identifier] = "#{PatientIdentifier.site_prefix}-ARV-#{identifier}"
       end
       patient.patient_identifiers.create(params[:identifiers])
     when "name"

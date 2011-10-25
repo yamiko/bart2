@@ -70,13 +70,13 @@ class PatientIdentifier < ActiveRecord::Base
     arv_end_number            = arv_number_range.last
 
     out_of_range_arv_numbers  = PatientIdentifier.find_by_sql(["SELECT patient_id, identifier, date_created FROM patient_identifier
-                                                                WHERE identifier_type = ? AND  identifier >= ?
-                                                                AND identifier <= ?
-                                                                AND voided = 0
-                                                                AND (NOT EXISTS(SELECT * FROM patient_identifier
-                                                                    WHERE identifier_type = ? AND date_created >= ? AND date_created <= ?))",
-                                                                      arv_number_id,  arv_start_number,  arv_end_number,
-                                                                      arv_number_id, start_date, end_date])
+                                   WHERE identifier_type = ? AND REPLACE(identifier, 'MPC-ARV-', '') >= ?
+                                   AND REPLACE(identifier, 'MPC-ARV-', '') <= ?
+                                   AND voided = 0
+                                   AND (NOT EXISTS(SELECT * FROM patient_identifier
+                                   WHERE identifier_type = ? AND date_created >= ? AND date_created <= ?))",
+                                   arv_number_id,  arv_start_number,  arv_end_number, arv_number_id, start_date, end_date])
+
     out_of_range_arv_numbers_data = []
     out_of_range_arv_numbers.each do |arv_num_data|
       patient     = Person.find(arv_num_data[:patient_id].to_i)
