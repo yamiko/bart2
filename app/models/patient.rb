@@ -382,6 +382,7 @@ class Patient < ActiveRecord::Base
     arv_number_id           = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
     patient_died_concept    = ConceptName.find_by_name('PATIENT DIED').concept_id
 
+=begin
     dead_patients = "SELECT dead_patient_program.patient_program_id,
     dead_state.state, dead_patient_program.patient_id, dead_state.date_changed
     FROM patient_state dead_state INNER JOIN patient_program dead_patient_program
@@ -406,10 +407,19 @@ class Patient < ActiveRecord::Base
     WHERE death_observations.concept_id != active_visits.concept_id AND death_observations.concept_id =  #{patient_died_concept} AND death_observations.obs_datetime < active_visits.obs_datetime
       AND death_observations.obs_datetime >='#{start_date}' AND death_observations.obs_datetime <= '#{end_date}'"
 
-    all_dead_patients_with_visits = " SELECT dead.patient_id, dead.date_changed AS date_of_death, living.date_changed
+    all_dead_patients_with_visits_ = " SELECT dead.patient_id, dead.date_changed AS date_of_death, living.date_changed
     FROM (#{dead_patients}) dead,  (#{living_patients}) living
     WHERE living.patient_id = dead.patient_id AND dead.date_changed < living.date_changed
     UNION ALL #{dead_patients_with_observations_visits}"
+=end
+   
+    all_dead_patients_with_visits = "SELECT * 
+    FROM (SELECT observation.person_id AS patient_id, DATE(p.death_date) AS date_of_death, DATE(observation.date_created) AS date_started
+          FROM person p right join obs observation ON p.person_id = observation.person_id
+          WHERE p.dead = 1 AND DATE(p.death_date) < DATE(observation.date_created) AND observation.voided = 0
+          ORDER BY observation.date_created ASC) AS dead_patients_visits
+    WHERE DATE(date_of_death) >= DATE('#{start_date}') AND DATE(date_of_death) <= DATE('#{end_date}')
+    GROUP BY patient_id"
 
     patients = self.find_by_sql([all_dead_patients_with_visits])
     patients_data  = []
@@ -418,7 +428,7 @@ class Patient < ActiveRecord::Base
       national_id    = PatientIdentifier.identifier(patient_data_row[:patient_id], national_identifier_id).identifier rescue ""
       arv_number     = PatientIdentifier.identifier(patient_data_row[:patient_id], arv_number_id).identifier rescue ""
       patients_data <<[patient_data_row[:patient_id], arv_number, patient.name,
-        national_id,patient.gender,patient.age,patient.birthdate, patient.phone_numbers, patient_data_row[:date_changed]]
+        national_id,patient.gender,patient.age,patient.birthdate, patient.phone_numbers, patient_data_row[:date_started]]
     end
     patients_data
   end
