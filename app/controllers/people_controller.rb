@@ -92,6 +92,67 @@ class PeopleController < ApplicationController
     @person = Person.find(@found_person_id) rescue nil
     render :layout => 'menu'
   end
+
+  def tranfer_patient_in
+    @data_demo = {}
+    if request.post?
+      params[:data].split(',').each do | data |
+        if data[0..4] == "Name:"
+          @data_demo['name'] = data.split(':')[1]
+          next
+        end
+        if data.match(/guardian/i)
+          @data_demo['guardian'] = data.split(':')[1]
+          next
+        end
+        if data.match(/sex/i)
+          @data_demo['sex'] = data.split(':')[1]
+          next
+        end
+        if data[0..3] == 'DOB:'
+          @data_demo['dob'] = data.split(':')[1]
+          next
+        end
+        if data.match(/National ID:/i)
+          @data_demo['national_id'] = data.split(':')[1]
+          next
+        end
+        if data[0..3] == "BMI:"
+          @data_demo['bmi'] = data.split(':')[1]
+          next
+        end
+        if data.match(/ARV number:/i)
+          @data_demo['arv_number'] = data.split(':')[1]
+          next
+        end
+        if data.match(/Address:/i)
+          @data_demo['address'] = data.split(':')[1]
+          next
+        end
+        if data.match(/1st pos HIV test site:/i)
+          @data_demo['first_positive_hiv_test_site'] = data.split(':')[1]
+          next
+        end
+        if data.match(/1st pos HIV test date:/i)
+          @data_demo['first_positive_hiv_test_date'] = data.split(':')[1]
+          next
+        end
+        if data.match(/FU:/i)
+          @data_demo['agrees_to_followup'] = data.split(':')[1]
+          next
+        end
+        if data.match(/1st line date:/i)
+          @data_demo['date_of_first_line_regimen'] = data.split(':')[1]
+          next
+        end
+        if data.match(/SR:/i)
+          @data_demo['reason_for_art_eligibility'] = data.split(':')[1]
+          next
+        end
+      end
+    end
+    render :layout => "menu"
+  end
  
   # This method is just to allow the select box to submit, we could probably do this better
   def select
