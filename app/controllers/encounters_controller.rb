@@ -246,6 +246,9 @@ class EncountersController < ApplicationController
      elsif params['encounter']['encounter_type_name'] == "TB suspect source of referral" && !params[:gender].empty? && !params[:family_name].empty? && !params[:given_name].empty?
        redirect_to"/encounters/new/tb_suspect_source_of_referral/?patient_id=#{@patient.id}&gender=#{params[:gender]}&family_name=#{params[:family_name]}&given_name=#{params[:given_name]}"
      else
+      if params['encounter']['encounter_type_name'] == "APPOINTMENT" && !params[:report_url].match(/report/).nil?
+         redirect_to  params[:report_url].to_s and return
+      end
       redirect_to next_task(@patient)
      end
     else
@@ -261,6 +264,7 @@ class EncountersController < ApplicationController
   end
 
 	def new
+	
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		session_date = session[:datetime].to_date rescue Date.today
         @current_encounters = @patient.encounters.find_by_date(session_date)   
@@ -361,6 +365,8 @@ class EncountersController < ApplicationController
 
 		@location_transferred_to = []
 		if (params[:encounter_type].upcase rescue '') == 'APPOINTMENT'
+		  @report_url = nil
+		  @report_url =  params[:report_url] if !params[:report_url].nil?
 		  @current_encounters.reverse.each do |enc|
 		     enc.observations.each do |o|
 		       @location_transferred_to << o.to_s_location_name.strip if o.to_s.include?("Transfer out to") rescue nil
