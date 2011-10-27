@@ -1477,19 +1477,19 @@ EOF
     patients_who_moved_from_nd_to_st_line_drugs = "SELECT * FROM (
         SELECT patient_on_second_line_drugs.* , DATE(patient_on_first_line_drugs.date_created) AS date_started FROM (
         SELECT person_id, date_created
-        FROM openmrs_b2.obs
+        FROM obs
         WHERE value_drug IN (
         SELECT drug_id 
-        FROM openmrs_b2.drug 
+        FROM drug 
         WHERE concept_id IN (SELECT concept_id FROM concept_name 
         WHERE name IN #{second_line_regimen}))
         ) AS patient_on_second_line_drugs inner join
 
         (SELECT person_id, date_created
-        FROM openmrs_b2.obs
+        FROM obs
         WHERE value_drug IN (
         SELECT drug_id 
-        FROM openmrs_b2.drug 
+        FROM drug 
         WHERE concept_id IN (SELECT concept_id FROM concept_name 
         WHERE name IN #{first_line_regimen}))
         ) AS patient_on_first_line_drugs
