@@ -1,6 +1,7 @@
 class EncountersController < ApplicationController
 
   def create(params=params, session=session)
+    params.to_yaml
     if params['encounter']['encounter_type_name'] == 'TB_INITIAL'
       (params[:observations] || []).each do |observation|
         if observation['concept_name'].upcase == 'TRANSFER IN' and observation['value_coded_or_text'] == "YES"
@@ -263,7 +264,7 @@ class EncountersController < ApplicationController
       redirect_to next_task(@patient)
      end
     else
-      unless params[:voided]
+      if params[:voided]
         encounter.void(params[:void_reason],
                        params[:date_voided],
                        params[:voided_by])

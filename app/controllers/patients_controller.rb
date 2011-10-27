@@ -707,8 +707,8 @@ class PatientsController < ApplicationController
 
     type = EncounterType.find_by_name("ART ADHERENCE")
     patient.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.map do | adh |
-      next if adh.value_text.blank?
-      alerts << "Adherence: #{adh.order.drug_order.drug.name} (#{adh.value_text}%)"
+      next if adh.value_numeric.blank?
+      alerts << "Adherence: #{adh.order.drug_order.drug.name} (#{adh.value_numeric}%)"
     end rescue []
 
     type = EncounterType.find_by_name("DISPENSING")
