@@ -187,14 +187,16 @@ class CohortToolController < ApplicationController
 
       @dead_patients_with_visits       = Patient.dead_with_visits(start_date, end_date)
       @males_allegedly_pregnant        = Patient.males_allegedly_pregnant(start_date, end_date)
+      @move_from_second_line_to_first = Patient.patients_who_moved_from_second_to_first_line_drugs(start_date, end_date)
       @patients_with_wrong_start_dates = Patient.with_drug_start_dates_less_than_program_enrollment_dates(start_date, end_date)
       session[:data_consistency_check] = { :dead_patients_with_visits => @dead_patients_with_visits,
                                            :males_allegedly_pregnant  => @males_allegedly_pregnant,
-                                           :patients_with_wrong_start_dates => @patients_with_wrong_start_dates
+                                           :patients_with_wrong_start_dates => @patients_with_wrong_start_dates,
+                                           :move_from_second_line_to_first =>  @move_from_second_line_to_first
                                          }
       @checks = [['Dead patients with Visits', @dead_patients_with_visits.length],
                  ['Male patients with a pregnant observation', @males_allegedly_pregnant.length],
-                 ['Patients who moved from 2nd to 1st line drugs', 0],
+                 ['Patients who moved from 2nd to 1st line drugs', @move_from_second_line_to_first.length],
                  ['patients with start dates > first receive drug dates', @patients_with_wrong_start_dates.length]]
       render :layout => 'report'
   end
@@ -207,7 +209,7 @@ class CohortToolController < ApplicationController
        when 'Dead patients with Visits' then
             @report  =  session[:data_consistency_check][:dead_patients_with_visits]
        when 'Patients who moved from 2nd to 1st line drugs'then
-
+             @report =  session[:data_consistency_check][:move_from_second_line_to_first]
        when 'Male patients with a pregnant observation' then
              @report =  session[:data_consistency_check][:males_allegedly_pregnant]
        when 'patients with start dates > first receive drug dates' then

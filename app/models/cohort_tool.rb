@@ -442,8 +442,8 @@ class CohortTool < ActiveRecord::Base
   adherences  = Hash.new(0)
   adherence_concept_id = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
 
- adherence_sql_statement= " SELECT worse_adherence_dif, pat_ad.person_id as patient_id, pat_ad.value_text AS adherence_rate_worse
-                            FROM (SELECT ABS(100 - Abs(value_text)) as worse_adherence_dif, obs_id, person_id, concept_id, encounter_id, order_id, obs_datetime, location_id, value_text
+ adherence_sql_statement= " SELECT worse_adherence_dif, pat_ad.person_id as patient_id, pat_ad.value_numeric AS adherence_rate_worse
+                            FROM (SELECT ABS(100 - Abs(value_numeric)) as worse_adherence_dif, obs_id, person_id, concept_id, encounter_id, order_id, obs_datetime, location_id, value_numeric
                                   FROM obs q
                                   WHERE concept_id = #{adherence_concept_id} AND order_id IS NOT NULL
                                   ORDER BY q.obs_datetime DESC, worse_adherence_dif DESC, person_id ASC)pat_ad
@@ -491,8 +491,8 @@ class CohortTool < ActiveRecord::Base
                                         ROUND(DATEDIFF(obs_inner_order.obs_datetime, oders.start_date)* obs_inner_order.equivalent_daily_dose, 0) AS expected_remaining,
                                         obs_inner_order.quantity AS quantity, obs_inner_order.encounter_id, obs_inner_order.order_id
                                FROM (SELECT latest_adherence.obs_datetime, latest_adherence.adherence_rate, latest_adherence.id, latest_adherence.patient_id, latest_adherence.order_id, drugOrder.drug_inventory_id, drugOrder.equivalent_daily_dose, drugOrder.quantity, latest_adherence.encounter_id
-                                    FROM (SELECT all_adherences.obs_datetime, all_adherences.value_text AS adherence_rate, all_adherences.obs_id as id, all_adherences.person_id as patient_id,all_adherences.order_id, all_adherences.encounter_id
-                                          FROM (SELECT obs_id, person_id, concept_id, encounter_id, order_id, obs_datetime, location_id, value_text
+                                    FROM (SELECT all_adherences.obs_datetime, all_adherences.value_numeric AS adherence_rate, all_adherences.obs_id as id, all_adherences.person_id as patient_id,all_adherences.order_id, all_adherences.encounter_id
+                                          FROM (SELECT obs_id, person_id, concept_id, encounter_id, order_id, obs_datetime, location_id, value_numeric
                                                 FROM obs Observations
                                                 WHERE concept_id = #{adherence_concept_id}
                                                 ORDER BY person_id ASC , Observations.obs_datetime DESC )all_adherences
@@ -505,8 +505,8 @@ class CohortTool < ActiveRecord::Base
                                     orders oders
                                On     oders.order_id = obs_inner_order.order_id) patients_with_adherence  "
 
-      worse_adherence_per_patient =" (SELECT worse_adherence_dif, pat_ad.person_id as patient_id, pat_ad.value_text AS adherence_rate_worse
-                                FROM (SELECT ABS(100 - Abs(value_text)) as worse_adherence_dif, obs_id, person_id, concept_id, encounter_id, order_id, obs_datetime, location_id, value_text
+      worse_adherence_per_patient =" (SELECT worse_adherence_dif, pat_ad.person_id as patient_id, pat_ad.value_numeric AS adherence_rate_worse
+                                FROM (SELECT ABS(100 - Abs(value_numeric)) as worse_adherence_dif, obs_id, person_id, concept_id, encounter_id, order_id, obs_datetime, location_id, value_numeric
                                       FROM obs q
                                       WHERE concept_id = #{adherence_concept_id} AND order_id IS NOT NULL
                                       ORDER BY q.obs_datetime DESC, worse_adherence_dif DESC, person_id ASC)pat_ad

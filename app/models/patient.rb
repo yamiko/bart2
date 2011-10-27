@@ -545,12 +545,16 @@ class Patient < ActiveRecord::Base
          ) antiretrovirals_obs"
 
     drug_start_dates_less_than_program_enrollment_dates_sql= "
-      SELECT patients_on_antiretrovirals.patient_id, patients_on_antiretrovirals.date_started_ARV,
-             antiretrovirals_obs.obs_datetime, antiretrovirals_obs.value_drug
-      FROM #{patients_on_antiretrovirals_sql}, #{antiretrovirals_obs_sql}
-      WHERE patients_on_antiretrovirals.Date_Started_ARV > antiretrovirals_obs.obs_datetime
-            AND patients_on_antiretrovirals.patient_id = antiretrovirals_obs.person_id
-            AND patients_on_antiretrovirals.Date_Started_ARV >='#{start_date}' AND patients_on_antiretrovirals.Date_Started_ARV <= '#{end_date}'"
+      SELECT * FROM (
+                  SELECT patients_on_antiretrovirals.patient_id, DATE(patients_on_antiretrovirals.date_started_ARV) AS date_started_ARV,
+                         antiretrovirals_obs.obs_datetime, antiretrovirals_obs.value_drug
+                  FROM #{patients_on_antiretrovirals_sql}, #{antiretrovirals_obs_sql}
+                  WHERE patients_on_antiretrovirals.Date_Started_ARV > antiretrovirals_obs.obs_datetime
+                        AND patients_on_antiretrovirals.patient_id = antiretrovirals_obs.person_id
+                        AND patients_on_antiretrovirals.Date_Started_ARV >='#{start_date}' AND patients_on_antiretrovirals.Date_Started_ARV <= '#{end_date}'
+                  ORDER BY patients_on_antiretrovirals.date_started_ARV ASC) AS patient_select
+      GROUP BY patient_id"
+
 
     patients       = self.find_by_sql(drug_start_dates_less_than_program_enrollment_dates_sql)
     patients_data  = []
@@ -1463,6 +1467,49 @@ EOF
       :conditions => ["person_id = ? AND concept_id IN (?) AND date_created < ?",
         self.id, sputum_concept_ids, registration_date],
       :order => "obs_datetime desc", :limit => 3)
+  end
+  
+  def self.patients_who_moved_from_second_to_first_line_drugs(start_date, end_date)
+  
+    first_line_regimen = "('D4T+3TC+NVP', 'd4T 3TC + d4T 3TC NVP')"
+    second_line_regimen = "('AZT+3TC+NVP', 'D4T+3TC+EFV', 'AZT+3TC+EFV', 'TDF+3TC+EFV', 'TDF+3TC+NVP', 'TDF/3TC+LPV/r', 'AZT+3TC+LPV/R', 'ABC/3TC+LPV/r')"
+    
+    patients_who_moved_from_nd_to_st_line_drugs = "SELECT * FROM (
+        SELECT patient_on_second_line_drugs.* , DATE(patient_on_first_line_drugs.date_created) AS date_started FROM (
+        SELECT person_id, date_created
+        FROM openmrs_b2.obs
+        WHERE value_drug IN (
+        SELECT drug_id 
+        FROM openmrs_b2.drug 
+        WHERE concept_id IN (SELECT concept_id FROM concept_name 
+        WHERE name IN #{second_line_regimen}))
+        ) AS patient_on_second_line_drugs inner join
+
+        (SELECT person_id, date_created
+        FROM openmrs_b2.obs
+        WHERE value_drug IN (
+        SELECT drug_id 
+        FROM openmrs_b2.drug 
+        WHERE concept_id IN (SELECT concept_id FROM concept_name 
+        WHERE name IN #{first_line_regimen}))
+        ) AS patient_on_first_line_drugs
+        ON patient_on_first_line_drugs.person_id = patient_on_second_line_drugs.person_id
+        WHERE DATE(patient_on_first_line_drugs.date_created) > DATE(patient_on_second_line_drugs.date_created) AND
+              DATE(patient_on_first_line_drugs.date_created) >= DATE('#{start_date}') AND DATE(patient_on_first_line_drugs.date_created) <= DATE('#{end_date}')
+        ORDER BY patient_on_first_line_drugs.date_created ASC) AS patients
+        GROUP BY person_id"
+
+    patients = self.find_by_sql([patients_who_moved_from_nd_to_st_line_drugs])
+    
+    patients_data  = []
+    patients.each do |patient_data_row|
+      patient        = Person.find(patient_data_row[:person_id].to_i)
+      national_id    = PatientIdentifier.identifier(patient_data_row[:person_id], national_identifier_id).identifier rescue ""
+      arv_number     = PatientIdentifier.identifier(patient_data_row[:person_id], arv_number_id).identifier rescue ""
+      patients_data <<[patient_data_row[:person_id], arv_number, patient.name,
+        national_id,patient.gender,patient.age,patient.birthdate, patient.phone_numbers, patient_data_row[:date_started]]
+    end
+    patients_data
   end
 
 end
