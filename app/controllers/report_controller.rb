@@ -263,6 +263,33 @@ class ReportController < ApplicationController
     render :layout => 'appointment_dates'
   end
 
+  def missed_appointments
+
+    @report_url =  params[:report_url] 
+    @patients =  Patient.appointment_dates(params[:date])
+    @report  = []
+    
+    @patients.each do |patient_data_row|
+
+        next if (Encounter.find_by_sql("SELECT encounter_id
+                                         FROM encounter
+                                         WHERE patient_id=#{patient_data_row.patient_id}
+                                               AND DATE(date_created)=DATE('#{params[:date]}')
+                                               AND voided = 0").map{|e|e.encounter_id}.count > 0)    
+        
+        patient        = Person.find(patient_data_row[:patient_id].to_i)
+        national_id    = patient_data_row.national_id
+        arv_number     = patient_data_row.arv_number
+        last_visit = last_appointment_date(patient.id, params[:date]).strftime('%Y-%m-%d') rescue ""
+        
+        @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> arv_number, 'name'=> patient.name,
+                   'birthdate'=> patient.birthdate, 'national_id' => national_id, 'gender' => patient.gender,
+                   'age'=> patient.age, 'phone_numbers'=>patient.phone_numbers, 'last_visit'=> last_visit,
+                   'date_started'=>patient_data_row[:date_started]}
+    end
+    @report
+  end
+
   def data_cleaning_tab
       @reports = {
                     'Missing Prescriptions'=>'dispensations_without_prescriptions',
