@@ -1,7 +1,7 @@
 class EncountersController < ApplicationController
 
   def create(params=params, session=session)
-    params.to_yaml
+
     if params['encounter']['encounter_type_name'] == 'TB_INITIAL'
       (params[:observations] || []).each do |observation|
         if observation['concept_name'].upcase == 'TRANSFER IN' and observation['value_coded_or_text'] == "YES"
@@ -113,7 +113,7 @@ class EncountersController < ApplicationController
         encounter_id_s = Observation.find_by_sql("SELECT encounter_id
                        FROM obs
                        WHERE concept_id = #{concept_id} AND person_id = #{@patient.id}
-                            AND DATE(value_datetime) = DATE('#{params[:old_appointment]}')
+                            AND DATE(value_datetime) = DATE('#{params[:old_appointment]}') AND voided = 0
                        ").map{|obs| obs.encounter_id}.each do |encounter_id|
                                     Encounter.find(encounter_id).void
                        end   
