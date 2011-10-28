@@ -79,7 +79,7 @@
         "Appointments scheduled on</br>" +
         @date.strftime('%A, %d %b %Y') + ": " + @patients.length.to_s + " patient(s)"
         %>
-        <button id="missed_app_button" onmousedown="javascript:document.location='/reports/missed_appointments?date=<%=@date%>'">Missed app</button>
+        <button id="missed_app_button" onmousedown="javascript:document.location='/report/missed_appointments?date=<%=@date%>&&report_url=<%=request.request_uri.to_s-%>'">Missed app</button>
         <button id="finish_button" onmousedown="javascript:document.location='/clinic'">Finish</button>
         </div>
         <%="</br>"*5%>
