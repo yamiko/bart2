@@ -255,7 +255,7 @@ class PatientsController < ApplicationController
   def lab_orders_label
     patient = Patient.find(@patient.id)
     label_commands = patient.lab_orders_label
-    send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbl", :disposition => "inline")
+    send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbs", :disposition => "inline")
   end
 
   def filing_number_label
@@ -649,7 +649,7 @@ class PatientsController < ApplicationController
     lab_orders_label = params[:lab_tests].split(":")
 
     label_commands = patient.recent_lab_orders_label(lab_orders_label)
-    send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbl", :disposition => "inline")
+    send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbs", :disposition => "inline")
   end
 
   def print_recent_lab_orders_label

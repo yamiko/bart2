@@ -249,6 +249,12 @@ class EncountersController < ApplicationController
       redirect_to next_task(@patient)
      end
     else
+      unless params[:voided]
+        encounter.void(params[:void_reason],
+                       params[:date_voided],
+                       params[:voided_by])
+      end
+      #made restful the default due to time
       render :text => encounter.encounter_id.to_s and return
       #return encounter.id.to_s  # support non-RESTful creation of encounters
     end
