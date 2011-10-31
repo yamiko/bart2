@@ -47,7 +47,13 @@ class UserController < ApplicationController
   
  def username
   users = User.find(:all,:conditions => ["username LIKE (?)","%#{params[:username]}%"])
-  users = users.map{| u | "<li value='#{u.username}'>#{u.username}</li>" } 
+
+  @users_with_provider_role = []
+  users.each do |user|
+    @users_with_provider_role << user if UserRole.find_by_user_id(user.user_id).role == "Provider"
+  end
+
+  users = @users_with_provider_role.map{| u | "<li value='#{u.username}'>#{u.username}</li>" } 
   render :text => users.join('') and return
  end
   
