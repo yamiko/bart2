@@ -705,10 +705,15 @@ class PatientsController < ApplicationController
         encounter_dates], :order => "encounter_datetime").observations.last.to_s rescue nil
     alerts << ('Missed ' + missed_appt).capitalize unless missed_appt.blank?
 
+    @adherence_level = ConceptName.find_by_name('What was the patients adherence for this drug order').concept_id
     type = EncounterType.find_by_name("ART ADHERENCE")
-    patient.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.map do | adh |
-      next if adh.value_text.blank?
-      alerts << "Adherence: #{adh.order.drug_order.drug.name} (#{adh.value_text}%)"
+
+    patient.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.map do |adh|
+      if adh.concept_id == @adherence_level
+        if (adh.value_numeric.to_i < 95 || adh.value_numeric.to_i > 105)
+          alerts << "Adherence: #{adh.order.drug_order.drug.name} (#{adh.value_numeric}%)"
+        end
+      end
     end rescue []
 
     type = EncounterType.find_by_name("DISPENSING")

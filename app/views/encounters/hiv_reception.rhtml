@@ -1,6 +1,6 @@
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
-  
+
   function new_relationship() {
     var current = '/encounters/new/hiv_reception?patient_id=<%= @patient.patient_id %>';
     window.location = "/relationships/search?patient_id=<%= @patient.patient_id %>&return_to=" + escape(current) + "&guardian_added=true"
@@ -11,9 +11,9 @@
     $('tt_extraButtons').innerHTML = button
   }
   
-  function hide_new_relationship_button() {
+ function hide_new_relationship_button() {
     $('tt_extraButtons').innerHTML = "";    
-  }
+ }
 
   // Don't save Guardian: None. We might later want to start saving this answer
   function cleanup_guardian_options() {
@@ -89,11 +89,12 @@
   <% end %>
 
   <% session_date = session[:datetime].to_date rescue nil                       
-    if session_date %>                                                          
-      <%= touch_select_tag "Provider", @patient, options_for_select([]),        
-        { :id => "provider",                                                    
-          :ajaxURL => '/user/username?username=',                               
-          :helpText => "Staff who provided the information (Provider)"} %>      
-    <%end%>   
-  <%= submit_tag "Finish" %>    
+    if session_date %>
+
+    <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
+<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+    <% else %>
+      <%= hidden_field_tag "filter[provider]", nil %>
+    <%end%>
+  <%= submit_tag "Finish" %>
 </form>
