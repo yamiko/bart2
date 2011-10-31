@@ -86,12 +86,13 @@ Check applicability of code below
     <%end%>
 
   <% session_date = session[:datetime].to_date rescue nil                       
-    if session_date %>                                                          
-      <%= touch_select_tag "Provider", @patient, options_for_select([]),        
-        { :id => "provider",                                                    
-          :ajaxURL => '/user/username?username=',                               
-          :helpText => "Staff who provided the information (Provider)"} %>      
-    <%end%> 
+    if session_date %>
+
+    <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
+<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+    <% else %>
+      <%= hidden_field_tag "filter[provider]", nil %>
+    <%end%>
   <%= submit_tag "Finish" %>    
 </form>
 <%end%>

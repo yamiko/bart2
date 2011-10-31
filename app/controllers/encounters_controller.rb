@@ -1,7 +1,7 @@
 class EncountersController < ApplicationController
 
   def create(params=params, session=session)
-
+    #params.to_yaml
     if params['encounter']['encounter_type_name'] == 'TB_INITIAL'
       (params[:observations] || []).each do |observation|
         if observation['concept_name'].upcase == 'TRANSFER IN' and observation['value_coded_or_text'] == "YES"
@@ -126,6 +126,15 @@ class EncountersController < ApplicationController
     else
       encounter.encounter_datetime = params['encounter']['encounter_datetime']
     end
+
+    if !params[:filter][:provider].blank?
+     user_person_id = User.find_by_username(params[:filter][:provider]).person_id
+     encounter.provider_id = user_person_id
+    else
+     user_person_id = User.find_by_user_id(encounter[:provider_id]).person_id
+     encounter.provider_id = user_person_id
+    end
+
     encounter.save    
 
     # Observation handling
@@ -342,7 +351,6 @@ class EncountersController < ApplicationController
 		@sputum_orders = Hash.new()
 		@sputum_submission_waiting_results = Hash.new()
 		@sputum_results_not_given = Hash.new()
-
 		@art_first_visit = is_first_art_visit(@patient.id)
 		@tb_first_registration = is_first_tb_registration(@patient.id)
 		@tb_programs_state = uncompleted_tb_programs_status(@patient.id)

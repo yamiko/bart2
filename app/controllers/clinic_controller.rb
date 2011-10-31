@@ -1,12 +1,5 @@
 class ClinicController < ApplicationController
   def index
-    @types = GlobalProperty.find_by_property("statistics.show_encounter_types").property_value rescue EncounterType.all.map(&:name).join(",")
-    @types = @types.split(/,/)
-    @me = Encounter.statistics(@types, :conditions => ['DATE(encounter_datetime) = DATE(NOW()) AND encounter.creator = ?', User.current_user.user_id])
-    @today = Encounter.statistics(@types, :conditions => ['DATE(encounter_datetime) = DATE(NOW())'])
-    @year = Encounter.statistics(@types, :conditions => ['YEAR(encounter_datetime) = YEAR(NOW())'])
-    @ever = Encounter.statistics(@types)
-
     @facility = Location.current_health_center.name rescue ''
 
     @location = Location.find(session[:location_id]).name rescue ""
@@ -84,20 +77,31 @@ class ClinicController < ApplicationController
   end
 
   def overview_tab
+    simple_overview_property = GlobalProperty.find_by_property("simple_application_dashboard").property_value rescue nil
+
+    simple_overview = false
+    if simple_overview_property != nil
+      if simple_overview_property == 'true'
+        simple_overview = true
+      end
+    end
+
     @types = GlobalProperty.find_by_property("statistics.show_encounter_types").property_value rescue EncounterType.all.map(&:name).join(",")
     @types = @types.split(/,/)
+
     @me = Encounter.statistics(@types, :conditions => ['DATE(encounter_datetime) = DATE(NOW()) AND encounter.creator = ?', User.current_user.user_id])
     @today = Encounter.statistics(@types, :conditions => ['DATE(encounter_datetime) = DATE(NOW())'])
-    @year = Encounter.statistics(@types, :conditions => ['YEAR(encounter_datetime) = YEAR(NOW())'])
-    @ever = Encounter.statistics(@types)
-    @user = User.find(session[:user_id]).name rescue ""
 
-    simple_overview = GlobalProperty.find_by_property("simple_application_dashboard").property_value rescue nil
-    if simple_overview != nil
-      if simple_overview == 'true'
+    if !simple_overview
+      @year = Encounter.statistics(@types, :conditions => ['YEAR(encounter_datetime) = YEAR(NOW())'])
+      @ever = Encounter.statistics(@types)
+    end
+
+    @user = User.find(session[:user_id]).person.name rescue ""
+
+    if simple_overview
         render :template => 'clinic/overview_simple.rhtml' , :layout => false
         return
-      end
     end
     render :layout => false
   end
