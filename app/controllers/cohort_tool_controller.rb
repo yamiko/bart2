@@ -29,10 +29,10 @@ class CohortToolController < ApplicationController
         return
 
         when "non_eligible_patients_in_cohort"
-          date = Report.generate_cohort_date_range(params[:quarter])
+          date = Report.generate_cohort_date_range(params[:report])
 
-          redirect_to :action       => "cohort_debugger",
-                      :controller   => "reports",
+          redirect_to :action       => "non_eligible_patients_in_art",
+                      :controller   => "report",
                       :start_date   => date.first.to_s,
                       :end_date     => date.last.to_s,
                       :id           => "start_reason_other",
