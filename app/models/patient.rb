@@ -33,16 +33,16 @@ class Patient < ActiveRecord::Base
     }.flatten.compact
   end
 
-  def current_treatment_encounter(date = Time.now())
+  def current_treatment_encounter(date = Time.now(), provider = user_person_id)
     type = EncounterType.find_by_name("TREATMENT")
     encounter = encounters.find(:first,:conditions =>["DATE(encounter_datetime) = ? AND encounter_type = ?",date.to_date,type.id])
-    encounter ||= encounters.create(:encounter_type => type.id,:encounter_datetime => date)
+    encounter ||= encounters.create(:encounter_type => type.id,:encounter_datetime => date, :provider_id => provider)
   end
 
-  def current_dispensation_encounter(date = Time.now())
+  def current_dispensation_encounter(date = Time.now(), provider = user_person_id)
     type = EncounterType.find_by_name("DISPENSING")
     encounter = encounters.find(:first,:conditions =>["DATE(encounter_datetime) = ? AND encounter_type = ?",date.to_date,type.id])
-    encounter ||= encounters.create(:encounter_type => type.id,:encounter_datetime => date)
+    encounter ||= encounters.create(:encounter_type => type.id,:encounter_datetime => date, :provider_id => provider)
   end
 
   # Get the any BMI-related alert for this patient
