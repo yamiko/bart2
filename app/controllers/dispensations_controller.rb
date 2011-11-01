@@ -34,9 +34,15 @@ class DispensationsController < ApplicationController
     # set current location via params if given
     Location.current_location = Location.find(params[:location]) if params[:location]
 
-    @encounter = @patient.current_dispensation_encounter(session_date)
+		if !params[:filter][:provider].blank?
+     user_person_id = User.find_by_username(params[:filter][:provider]).person_id
+    else
+     user_person_id = User.find_by_user_id(session[:user_id]).person_id
+    end
 
-    @order = @patient.current_treatment_encounter(session_date).drug_orders.find(:first,:conditions => ['drug_order.drug_inventory_id = ?', 
+    @encounter = @patient.current_dispensation_encounter(session_date, user_person_id)
+
+    @order = @patient.current_treatment_encounter(session_date, user_person_id).drug_orders.find(:first,:conditions => ['drug_order.drug_inventory_id = ?', 
              params[:drug_id]]).order rescue []
 
     # Do we have an order for the specified drug?
@@ -78,7 +84,7 @@ class DispensationsController < ApplicationController
         @order.drug_order.total_drug_supply(@patient, @encounter,session_date.to_date)
 
         #checks if the prescription is satisfied
-        complete = dispension_complete(@patient,@encounter,@patient.current_treatment_encounter(session_date))
+        complete = dispension_complete(@patient,@encounter,@patient.current_treatment_encounter(session_date, user_person_id))
         if complete
           unless params[:location]
             start_date , end_date = DrugOrder.prescription_dates(@patient,session_date.to_date)
