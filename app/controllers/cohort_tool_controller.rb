@@ -138,7 +138,7 @@ class CohortToolController < ApplicationController
       date_range  = Report.generate_cohort_date_range(params[:quarter])
       start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
       end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
-      @report     = Order.prescriptions_without_dispensations_data(start_date , end_date)
+      @report     = report_prescriptions_without_dispensations_data(start_date , end_date)
 
       render :layout => 'report'
   end
@@ -149,7 +149,7 @@ class CohortToolController < ApplicationController
       date_range  = Report.generate_cohort_date_range(params[:quarter])
       start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
       end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
-      @report     = Order.dispensations_without_prescriptions_data(start_date , end_date)
+      @report     = report_dispensations_without_prescriptions_data(start_date , end_date)
 
        render :layout => 'report'
   end
@@ -160,7 +160,7 @@ class CohortToolController < ApplicationController
       date_range  = Report.generate_cohort_date_range(params[:quarter])
       start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
       end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
-      @report     = Observation.patients_with_multiple_start_reasons(start_date , end_date)
+      @report     = report_patients_with_multiple_start_reasons(start_date , end_date)
 
       render :layout => 'report'
   end
@@ -174,7 +174,7 @@ class CohortToolController < ApplicationController
       end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
       arv_number_range  = [params[:arv_start_number].to_i, params[:arv_end_number].to_i]
 
-      @report = PatientIdentifier.out_of_range_arv_numbers(arv_number_range, start_date, end_date)
+      @report = report_out_of_range_arv_numbers(arv_number_range, start_date, end_date)
 
       render :layout => 'report'
   end
@@ -185,10 +185,10 @@ class CohortToolController < ApplicationController
       start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
       end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
 
-      @dead_patients_with_visits       = Patient.dead_with_visits(start_date, end_date)
-      @males_allegedly_pregnant        = Patient.males_allegedly_pregnant(start_date, end_date)
-      @move_from_second_line_to_first = Patient.patients_who_moved_from_second_to_first_line_drugs(start_date, end_date)
-      @patients_with_wrong_start_dates = Patient.with_drug_start_dates_less_than_program_enrollment_dates(start_date, end_date)
+      @dead_patients_with_visits       = report_dead_with_visits(start_date, end_date)
+      @males_allegedly_pregnant        = report_males_allegedly_pregnant(start_date, end_date)
+      @move_from_second_line_to_first =  report_patients_who_moved_from_second_to_first_line_drugs(start_date, end_date)
+      @patients_with_wrong_start_dates = report_with_drug_start_dates_less_than_program_enrollment_dates(start_date, end_date)
       session[:data_consistency_check] = { :dead_patients_with_visits => @dead_patients_with_visits,
                                            :males_allegedly_pregnant  => @males_allegedly_pregnant,
                                            :patients_with_wrong_start_dates => @patients_with_wrong_start_dates,
@@ -293,5 +293,275 @@ def adherence
       render :layout => 'report'
       return
   end
+
+  def report_patients_with_multiple_start_reasons(start_date , end_date)
+
+    art_eligibility_id = ConceptName.find_by_name('REASON FOR ART ELIGIBILITY').concept_id    
+    patients = Observation.find_by_sql(
+                ["SELECT person_id, concept_id, date_created, obs_datetime, value_coded_name_id
+                 FROM obs
+                 WHERE (SELECT COUNT(*)
+                        FROM obs observation
+                        WHERE   observation.concept_id = ?
+                                AND observation.person_id = obs.person_id) > 1                                
+                                AND date_created >= ? AND date_created <= ?
+                                AND obs.concept_id = ?
+                                AND obs.voided = 0", art_eligibility_id, start_date, end_date, art_eligibility_id])
+
+    patients_data = []
+
+    patients.each do |reason|
+      patient = Patient.find(reason[:person_id])
+      patients_data << {'person_id' => patient.id,
+                        'arv_number' => patient.arv_number,
+                        'national_id' => patient.national_id,
+                        'date_created' => reason[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
+                        'start_reason' => ConceptName.find(reason[:value_coded_name_id]).name
+                       }
+    end
+   patients_data
+  end
+  
+  def report_out_of_range_arv_numbers(arv_number_range, start_date , end_date)
+    arv_number_id             = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
+    arv_start_number          = arv_number_range.first
+    arv_end_number            = arv_number_range.last
+
+    out_of_range_arv_numbers  = PatientIdentifier.find_by_sql(["SELECT patient_id, identifier, date_created FROM patient_identifier
+                                   WHERE identifier_type = ? AND REPLACE(identifier, 'MPC-ARV-', '') >= ?
+                                   AND REPLACE(identifier, 'MPC-ARV-', '') <= ?
+                                   AND voided = 0
+                                   AND (NOT EXISTS(SELECT * FROM patient_identifier
+                                   WHERE identifier_type = ? AND date_created >= ? AND date_created <= ?))",
+                                   arv_number_id,  arv_start_number,  arv_end_number, arv_number_id, start_date, end_date])
+
+    out_of_range_arv_numbers_data = []
+    out_of_range_arv_numbers.each do |arv_num_data|
+      patient     = Person.find(arv_num_data[:patient_id].to_i)
+      national_id = patient.patient.national_id
+
+      out_of_range_arv_numbers_data <<{'person_id' => patient.id,
+                                       'arv_number' => arv_num_data[:identifier],
+                                       'name' => patient.name,
+                                       'national_id' => national_id,
+                                       'gender' => patient.gender,
+                                       'age' => patient.age,
+                                       'birthdate' => patient.birthdate,
+                                       'date_created' => arv_num_data[:date_created].strftime("%Y-%m-%d %H:%M:%S")
+                                       }
+    end
+    out_of_range_arv_numbers_data
+  end
+  
+  def report_dispensations_without_prescriptions_data(start_date , end_date)
+    pills_dispensed_id      = ConceptName.find_by_name('PILLS DISPENSED').concept_id
+
+    missed_prescriptions_data = Observation.find(:all, :select =>  "person_id, value_drug, date_created",
+                                              :conditions =>["order_id IS NULL
+                                                AND date_created >= ? AND date_created <= ? AND
+                                                    concept_id = ? AND voided = 0" ,start_date , end_date, pills_dispensed_id])
+    dispensations_without_prescriptions = []
+
+    missed_prescriptions_data.each do |dispensation|
+        patient = Patient.find(dispensation[:person_id])
+        drug_name    = Drug.find(dispensation[:value_drug]).name
+
+        dispensations_without_prescriptions << { 'person_id' => patient.id,
+                                              'arv_number' => patient.arv_number,
+                                              'national_id' => patient.national_id,
+                                              'date_created' => dispensation[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
+                                              'drug_name' => drug_name
+                                             }
+    end
+
+    dispensations_without_prescriptions
+  end
+  
+  def report_prescriptions_without_dispensations_data(start_date , end_date)
+    pills_dispensed_id      = ConceptName.find_by_name('PILLS DISPENSED').concept_id
+
+    missed_dispensations_data = Observation.find_by_sql(["SELECT order_id, patient_id, date_created from orders 
+              WHERE NOT EXISTS (SELECT * FROM obs
+               WHERE orders.order_id = obs.order_id AND obs.concept_id = ?)
+                AND date_created >= ? AND date_created <= ? AND orders.voided = 0", pills_dispensed_id, start_date , end_date ])
+
+    prescriptions_without_dispensations = []
+
+    missed_dispensations_data.each do |prescription|
+        patient      = Patient.find(prescription[:patient_id])
+        drug_id      = DrugOrder.find(prescription[:order_id]).drug_inventory_id
+        drug_name    = Drug.find(drug_id).name
+
+        prescriptions_without_dispensations << {'person_id' => patient.id,
+                                                'arv_number' => patient.arv_number,
+                                                'national_id' => patient.national_id,
+                                                'date_created' => prescription[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
+                                                'drug_name' => drug_name
+                                                }
+    end
+    prescriptions_without_dispensations
+  end
+
+  def report_dead_with_visits(start_date, end_date)
+    patient_died_concept    = ConceptName.find_by_name('PATIENT DIED').concept_id
+
+    all_dead_patients_with_visits = "SELECT * 
+    FROM (SELECT observation.person_id AS patient_id, DATE(p.death_date) AS date_of_death, DATE(observation.date_created) AS date_started
+          FROM person p right join obs observation ON p.person_id = observation.person_id
+          WHERE p.dead = 1 AND DATE(p.death_date) < DATE(observation.date_created) AND observation.voided = 0
+          ORDER BY observation.date_created ASC) AS dead_patients_visits
+    WHERE DATE(date_of_death) >= DATE('#{start_date}') AND DATE(date_of_death) <= DATE('#{end_date}')
+    GROUP BY patient_id"
+    patients = Patient.find_by_sql([all_dead_patients_with_visits])
+    
+    patients_data  = []
+    patients.each do |patient_data_row|
+    person = Person.find(patient_data_row[:patient_id].to_i)
+      patients_data <<{ 'person_id' => person.id,
+                        'arv_number' => person.patient.arv_number,
+                        'name' => person.name,
+                        'national_id' => person.patient.national_id,
+                        'gender' => person.gender,
+                        'age' => person.age,
+                        'birthdate' => person.birthdate,
+                        'phone' => person.phone_numbers, 
+                        'date_created' => patient_data_row[:date_started]
+                       }
+    end
+    patients_data
+  end
+  
+  def report_males_allegedly_pregnant(start_date, end_date)
+    pregnant_patient_concept_id = ConceptName.find_by_name('IS PATIENT PREGNANT?').concept_id
+    patients = PatientIdentifier.find_by_sql(["
+                                   SELECT person.person_id,obs.obs_datetime
+                                       FROM obs INNER JOIN person ON obs.person_id = person.person_id
+                                           WHERE person.gender = 'M' AND
+                                           obs.concept_id = ? AND obs.obs_datetime >= ? AND obs.obs_datetime <= ? AND obs.voided = 0",
+        pregnant_patient_concept_id, '2008-12-23 00:00:00', end_date])
+
+        patients_data  = []
+        patients.each do |patient_data_row|
+          person = Person.find(patient_data_row[:person_id].to_i)
+
+          patients_data <<{ 'person_id' => person.id,
+                            'arv_number' => person.patient.arv_number,
+                            'name' => person.name,
+                            'national_id' => person.patient.national_id,
+                            'gender' => person.gender,
+                            'age' => person.age,
+                            'birthdate' => person.birthdate,
+                            'phone' => person.phone_numbers, 
+                            'date_created' => patient_data_row[:obs_datetime]
+                           }
+        end
+        patients_data
+  end
+  
+  def report_patients_who_moved_from_second_to_first_line_drugs(start_date, end_date)
+  
+    first_line_regimen = "('D4T+3TC+NVP', 'd4T 3TC + d4T 3TC NVP')"
+    second_line_regimen = "('AZT+3TC+NVP', 'D4T+3TC+EFV', 'AZT+3TC+EFV', 'TDF+3TC+EFV', 'TDF+3TC+NVP', 'TDF/3TC+LPV/r', 'AZT+3TC+LPV/R', 'ABC/3TC+LPV/r')"
+    
+    patients_who_moved_from_nd_to_st_line_drugs = "SELECT * FROM (
+        SELECT patient_on_second_line_drugs.* , DATE(patient_on_first_line_drugs.date_created) AS date_started FROM (
+        SELECT person_id, date_created
+        FROM obs
+        WHERE value_drug IN (
+        SELECT drug_id 
+        FROM drug 
+        WHERE concept_id IN (SELECT concept_id FROM concept_name 
+        WHERE name IN #{second_line_regimen}))
+        ) AS patient_on_second_line_drugs inner join
+
+        (SELECT person_id, date_created
+        FROM obs
+        WHERE value_drug IN (
+        SELECT drug_id 
+        FROM drug 
+        WHERE concept_id IN (SELECT concept_id FROM concept_name 
+        WHERE name IN #{first_line_regimen}))
+        ) AS patient_on_first_line_drugs
+        ON patient_on_first_line_drugs.person_id = patient_on_second_line_drugs.person_id
+        WHERE DATE(patient_on_first_line_drugs.date_created) > DATE(patient_on_second_line_drugs.date_created) AND
+              DATE(patient_on_first_line_drugs.date_created) >= DATE('#{start_date}') AND DATE(patient_on_first_line_drugs.date_created) <= DATE('#{end_date}')
+        ORDER BY patient_on_first_line_drugs.date_created ASC) AS patients
+        GROUP BY person_id"
+
+    patients = Patient.find_by_sql([patients_who_moved_from_nd_to_st_line_drugs])
+    
+    patients_data  = []
+    patients.each do |patient_data_row|
+      person = Person.find(patient_data_row[:person_id].to_i)
+
+      patients_data <<{ 'person_id' => person.id,
+                        'arv_number' => person.patient.arv_number,
+                        'name' => person.name,
+                        'national_id' => person.patient.national_id,
+                        'gender' => person.gender,
+                        'age' => person.age,
+                        'birthdate' => person.birthdate,
+                        'phone' => person.phone_numbers, 
+                        'date_created' => patient_data_row[:date_started]
+                       }
+    end
+    patients_data
+  end
+  
+  def report_with_drug_start_dates_less_than_program_enrollment_dates(start_date, end_date)
+
+    arv_drugs_concepts      = Drug.arv_drugs.inject([]) {|result, drug| result << drug.concept_id}
+    on_arv_concept_id       = ConceptName.find_by_name('ON ANTIRETROVIRALS').concept_id
+    hvi_program_id          = Program.find_by_name('HIV PROGRAM').program_id
+    national_identifier_id  = PatientIdentifierType.find_by_name('National id').patient_identifier_type_id
+    arv_number_id           = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
+
+    patients_on_antiretrovirals_sql = "
+         (SELECT p.patient_id, s.date_created as Date_Started_ARV
+          FROM patient_program p INNER JOIN patient_state s
+          ON  p.patient_program_id = s.patient_program_id
+          WHERE s.state IN (SELECT program_workflow_state_id
+                            FROM program_workflow_state g
+                            WHERE g.concept_id = #{on_arv_concept_id})
+                            AND p.program_id = #{hvi_program_id}
+         ) patients_on_antiretrovirals"
+
+    antiretrovirals_obs_sql = "
+         (SELECT * FROM obs
+          WHERE  value_drug IN (SELECT drug_id FROM drug
+          WHERE concept_id IN ( #{arv_drugs_concepts.join(', ')} ) )
+         ) antiretrovirals_obs"
+
+    drug_start_dates_less_than_program_enrollment_dates_sql= "
+      SELECT * FROM (
+                  SELECT patients_on_antiretrovirals.patient_id, DATE(patients_on_antiretrovirals.date_started_ARV) AS date_started_ARV,
+                         antiretrovirals_obs.obs_datetime, antiretrovirals_obs.value_drug
+                  FROM #{patients_on_antiretrovirals_sql}, #{antiretrovirals_obs_sql}
+                  WHERE patients_on_antiretrovirals.Date_Started_ARV > antiretrovirals_obs.obs_datetime
+                        AND patients_on_antiretrovirals.patient_id = antiretrovirals_obs.person_id
+                        AND patients_on_antiretrovirals.Date_Started_ARV >='#{start_date}' AND patients_on_antiretrovirals.Date_Started_ARV <= '#{end_date}'
+                  ORDER BY patients_on_antiretrovirals.date_started_ARV ASC) AS patient_select
+      GROUP BY patient_id"
+
+
+    patients       = Patient.find_by_sql(drug_start_dates_less_than_program_enrollment_dates_sql)
+    patients_data  = []
+    patients.each do |patient_data_row|
+      person = Person.find(patient_data_row[:patient_id])
+
+      patients_data <<{ 'person_id' => person.id,
+                        'arv_number' => person.patient.arv_number,
+                        'name' => person.name,
+                        'national_id' => person.patient.national_id,
+                        'gender' => person.gender,
+                        'age' => person.age,
+                        'birthdate' => person.birthdate,
+                        'phone' => person.phone_numbers, 
+                        'date_created' => patient_data_row[:date_started_ARV]
+                       }
+    end
+    patients_data
+  end
+  
 end
 
