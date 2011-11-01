@@ -925,7 +925,8 @@ function updateTouchscreenInputForSelect(element){
     } else {
         if (element.value.length>1){
             inputTarget.value = element.value;
-		} else if (element.innerHTML.length>0){
+		}
+        else if (element.innerHTML.length>0){
             inputTarget.value = element.innerHTML;
 		}
     }
