@@ -751,7 +751,7 @@ class PatientsController < ApplicationController
     alerts << "Lab: Waiting for sputum results" if patient.recent_sputum_results.empty? && !patient.recent_sputum_submissions.empty?
     alerts << "Lab: Results not given to patient" if !patient.recent_sputum_results.empty? && patient.given_sputum_results.to_s != "Yes"
     alerts << "Patient go for CD4 count testing" if cd4_count_datetime(patient) == true
-    alerts << "Lab: Patient must order sputum test" if patient.patient_need_sputum_test?
+    alerts << "Lab: Patient must order sputum test" if patient_need_sputum_test?(patient.id)
     alerts << "Refer to ART wing" if show_alert_refer_to_ART_wing(patient)
 
     alerts
@@ -805,6 +805,77 @@ class PatientsController < ApplicationController
         end rescue nil
         show_alert
     end
+
+  def patient_need_sputum_test?(patient_id)
+    encounter_date = Encounter.find(:last,
+                      :conditions => ["encounter_type = ? and patient_id = ?",
+                      EncounterType.find_by_name("TB Registration").id,
+                      patient_id]).encounter_datetime rescue ''
+    smear_positive_patient = false
+    has_no_results = false
+
+    unless encounter_date.blank?
+      sputum_results = previous_sputum_results(encounter_date, patient_id)
+      sputum_results.each { |obs|
+        if obs.value_coded != ConceptName.find_by_name("Negative").id
+            smear_positive_patient = true
+            break
+        end
+      }
+      if smear_positive_patient == true
+        date_diff = (Date.today - encounter_date.to_date).to_i
+
+        if date_diff > 60 and date_diff < 110
+          results = Encounter.find(:last,
+                    :conditions => ["encounter_type = ? and " \
+                     "patient_id = ? AND encounter_datetime BETWEEN ? AND ?",
+                    EncounterType.find_by_name("LAB RESULTS").id,
+                     patient_id, (encounter_date + 60).to_s, (encounter_date + 110).to_s],
+                   :include => observations) rescue ''
+
+          if results.blank?
+            has_no_results = true
+          else
+            has_no_results = false
+          end
+
+        elsif date_diff > 110 and date_diff < 140
+          results = Encounter.find(:last,
+                    :conditions => ["encounter_type = ? and " \
+                     "patient_id = ? AND encounter_datetime BETWEEN ? AND ?",
+                    EncounterType.find_by_name("LAB RESULTS").id,
+                     patient_id, (encounter_date + 111).to_s, (encounter_date + 140).to_s],
+                   :include => observations) rescue ''
+
+          if results.blank?
+            has_no_results = true
+          else
+            has_no_results = false
+          end
+
+        elsif date_diff > 140
+            has_no_results = true
+        else
+            has_no_results = false
+        end
+      end
+    end
+
+    return false if smear_positive_patient == false
+    return false if has_no_results == false
+    return true
+  end
+
+  def previous_sputum_results(registration_date, patient_id)
+    sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results",
+      "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
+    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)",
+        sputum_concept_names]).map(&:concept_id)
+    obs = Observation.find(:all,
+      :conditions => ["person_id = ? AND concept_id IN (?) AND date_created < ?",
+        patient_id, sputum_concept_ids, registration_date],
+      :order => "obs_datetime desc", :limit => 3)
+  end
     
   private
   
