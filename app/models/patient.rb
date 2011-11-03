@@ -23,7 +23,7 @@ class Patient < ActiveRecord::Base
     self.orders.each {|row| row.void(reason) }
     self.encounters.each {|row| row.void(reason) }
   end
-
+=begin
   def current_diagnoses
     self.encounters.current.all(:include => [:observations]).map{|encounter| 
       encounter.observations.all(
@@ -32,19 +32,21 @@ class Patient < ActiveRecord::Base
           ConceptName.find_by_name("DIAGNOSIS, NON-CODED").concept_id])
     }.flatten.compact
   end
-
-  def current_treatment_encounter(date = Time.now())
+=end
+=begin
+  def current_treatment_encounter(date = Time.now(), provider = user_person_id)
     type = EncounterType.find_by_name("TREATMENT")
     encounter = encounters.find(:first,:conditions =>["DATE(encounter_datetime) = ? AND encounter_type = ?",date.to_date,type.id])
-    encounter ||= encounters.create(:encounter_type => type.id,:encounter_datetime => date)
+    encounter ||= encounters.create(:encounter_type => type.id,:encounter_datetime => date, :provider_id => provider)
   end
-
-  def current_dispensation_encounter(date = Time.now())
+=end
+=begin
+  def current_dispensation_encounter(date = Time.now(), provider = user_person_id)
     type = EncounterType.find_by_name("DISPENSING")
     encounter = encounters.find(:first,:conditions =>["DATE(encounter_datetime) = ? AND encounter_type = ?",date.to_date,type.id])
-    encounter ||= encounters.create(:encounter_type => type.id,:encounter_datetime => date)
+    encounter ||= encounters.create(:encounter_type => type.id,:encounter_datetime => date, :provider_id => provider)
   end
-
+=end
   # Get the any BMI-related alert for this patient
   def current_bmi_alert
     weight = self.current_weight
@@ -111,11 +113,14 @@ class Patient < ActiveRecord::Base
         pregnant = obs.to_s.split(':')[1] rescue nil
       end
     end rescue []
-
-    phone_numbers = self.person.phone_numbers
-    phone_number = phone_numbers["Office phone number"] if not phone_numbers["Office phone number"].downcase == "not available" and not phone_numbers["Office phone number"].downcase == "unknown" rescue nil
-    phone_number= phone_numbers["Home phone number"] if not phone_numbers["Home phone number"].downcase == "not available" and not phone_numbers["Home phone number"].downcase == "unknown" rescue nil
-    phone_number = phone_numbers["Cell phone number"] if not phone_numbers["Cell phone number"].downcase == "not available" and not phone_numbers["Cell phone number"].downcase == "unknown" rescue nil
+    
+    office_phone_number = self.person.get_attribute('Office phone number')
+    home_phone_number = self.person.get_attribute('Home phone number')
+    cell_phone_number = self.person.get_attribute('Cell phone number')
+    
+    phone_number = office_phone_number if not office_phone_number.downcase == "not available" and not office_phone_number.downcase == "unknown" rescue nil
+    phone_number= home_phone_number if not home_phone_number.downcase == "not available" and not home_phone_number.downcase == "unknown" rescue nil
+    phone_number = cell_phone_number if not cell_phone_number.downcase == "not available" and not cell_phone_number.downcase == "unknown" rescue nil
 
 
     label = ZebraPrinter::StandardLabel.new
@@ -440,128 +445,6 @@ class Patient < ActiveRecord::Base
 
   def name
     "#{self.person.name}"
-  end
-
-  def self.dead_with_visits(start_date, end_date)
-    national_identifier_id  = PatientIdentifierType.find_by_name('National id').patient_identifier_type_id
-    arv_number_id           = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
-    patient_died_concept    = ConceptName.find_by_name('PATIENT DIED').concept_id
-
-=begin
-    dead_patients = "SELECT dead_patient_program.patient_program_id,
-    dead_state.state, dead_patient_program.patient_id, dead_state.date_changed
-    FROM patient_state dead_state INNER JOIN patient_program dead_patient_program
-    ON   dead_state.patient_program_id = dead_patient_program.patient_program_id
-    WHERE  EXISTS
-      (SELECT * FROM program_workflow_state p
-        WHERE dead_state.state = program_workflow_state_id AND concept_id = #{patient_died_concept})
-          AND dead_state.date_changed >='#{start_date}' AND dead_state.date_changed <= '#{end_date}'"
-
-    living_patients = "SELECT living_patient_program.patient_program_id,
-    living_state.state, living_patient_program.patient_id, living_state.date_changed
-    FROM patient_state living_state
-    INNER JOIN patient_program living_patient_program
-    ON living_state.patient_program_id = living_patient_program.patient_program_id
-    WHERE  NOT EXISTS
-      (SELECT * FROM program_workflow_state p
-        WHERE living_state.state = program_workflow_state_id AND concept_id =  #{patient_died_concept})"
-
-    dead_patients_with_observations_visits = "SELECT death_observations.person_id,death_observations.obs_datetime AS date_of_death, active_visits.obs_datetime AS date_living
-    FROM obs active_visits INNER JOIN obs death_observations
-    ON death_observations.person_id = active_visits.person_id
-    WHERE death_observations.concept_id != active_visits.concept_id AND death_observations.concept_id =  #{patient_died_concept} AND death_observations.obs_datetime < active_visits.obs_datetime
-      AND death_observations.obs_datetime >='#{start_date}' AND death_observations.obs_datetime <= '#{end_date}'"
-
-    all_dead_patients_with_visits_ = " SELECT dead.patient_id, dead.date_changed AS date_of_death, living.date_changed
-    FROM (#{dead_patients}) dead,  (#{living_patients}) living
-    WHERE living.patient_id = dead.patient_id AND dead.date_changed < living.date_changed
-    UNION ALL #{dead_patients_with_observations_visits}"
-=end
-   
-    all_dead_patients_with_visits = "SELECT * 
-    FROM (SELECT observation.person_id AS patient_id, DATE(p.death_date) AS date_of_death, DATE(observation.date_created) AS date_started
-          FROM person p right join obs observation ON p.person_id = observation.person_id
-          WHERE p.dead = 1 AND DATE(p.death_date) < DATE(observation.date_created) AND observation.voided = 0
-          ORDER BY observation.date_created ASC) AS dead_patients_visits
-    WHERE DATE(date_of_death) >= DATE('#{start_date}') AND DATE(date_of_death) <= DATE('#{end_date}')
-    GROUP BY patient_id"
-
-    patients = self.find_by_sql([all_dead_patients_with_visits])
-    patients_data  = []
-    patients.each do |patient_data_row|
-      patient        = Person.find(patient_data_row[:patient_id].to_i)
-      national_id    = PatientIdentifier.identifier(patient_data_row[:patient_id], national_identifier_id).identifier rescue ""
-      arv_number     = PatientIdentifier.identifier(patient_data_row[:patient_id], arv_number_id).identifier rescue ""
-      patients_data <<[patient_data_row[:patient_id], arv_number, patient.name,
-        national_id,patient.gender,patient.age,patient.birthdate, patient.phone_numbers, patient_data_row[:date_started]]
-    end
-    patients_data
-  end
-
-  def self.males_allegedly_pregnant(start_date, end_date)
-    national_identifier_id  = PatientIdentifierType.find_by_name('National id').patient_identifier_type_id
-    arv_number_id           = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
-    pregnant_patient_concept_id = ConceptName.find_by_name('IS PATIENT PREGNANT?').concept_id
-    patients = PatientIdentifier.find_by_sql(["SELECT person.person_id,obs.obs_datetime
-                                   FROM obs INNER JOIN person
-                                   ON obs.person_id = person.person_id
-                                   WHERE person.gender = 'M' AND
-                                   obs.concept_id = ? AND obs.obs_datetime >= ? AND obs.obs_datetime <= ? AND obs.voided = 0",
-        pregnant_patient_concept_id, '2008-12-23 00:00:00', end_date])
-
-    patients_data  = []
-    patients.each do |patient_data_row|
-      patient        = Person.find(patient_data_row[:person_id].to_i)
-      national_id    = PatientIdentifier.identifier(patient_data_row[:person_id], national_identifier_id).identifier rescue ""
-      arv_number     = PatientIdentifier.identifier(patient_data_row[:person_id], arv_number_id).identifier rescue ""
-      patients_data <<[patient_data_row[:person_id], arv_number, patient.name,
-        national_id,patient.gender,patient.age,patient.birthdate, patient.phone_numbers, patient_data_row[:obs_datetime]]
-    end
-    patients_data
-  end
-
-  def self.with_drug_start_dates_less_than_program_enrollment_dates(start_date, end_date)
-
-    arv_drugs_concepts      = Drug.arv_drugs.inject([]) {|result, drug| result << drug.concept_id}
-    on_arv_concept_id       = ConceptName.find_by_name('ON ANTIRETROVIRALS').concept_id
-    hvi_program_id          = Program.find_by_name('HIV PROGRAM').program_id
-    national_identifier_id  = PatientIdentifierType.find_by_name('National id').patient_identifier_type_id
-    arv_number_id           = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
-
-    patients_on_antiretrovirals_sql = "
-         (SELECT p.patient_id, s.date_created as Date_Started_ARV
-          FROM patient_program p INNER JOIN patient_state s
-          ON  p.patient_program_id = s.patient_program_id
-          WHERE s.state IN (SELECT program_workflow_state_id
-                            FROM program_workflow_state g
-                            WHERE g.concept_id = #{on_arv_concept_id})
-                            AND p.program_id = #{hvi_program_id}
-         ) patients_on_antiretrovirals"
-
-    antiretrovirals_obs_sql = "
-         (SELECT * FROM obs
-          WHERE  value_drug IN (SELECT drug_id FROM drug
-          WHERE concept_id IN ( #{arv_drugs_concepts.join(', ')} ) )
-         ) antiretrovirals_obs"
-
-    drug_start_dates_less_than_program_enrollment_dates_sql= "
-      SELECT patients_on_antiretrovirals.patient_id, patients_on_antiretrovirals.date_started_ARV,
-             antiretrovirals_obs.obs_datetime, antiretrovirals_obs.value_drug
-      FROM #{patients_on_antiretrovirals_sql}, #{antiretrovirals_obs_sql}
-      WHERE patients_on_antiretrovirals.Date_Started_ARV > antiretrovirals_obs.obs_datetime
-            AND patients_on_antiretrovirals.patient_id = antiretrovirals_obs.person_id
-            AND patients_on_antiretrovirals.Date_Started_ARV >='#{start_date}' AND patients_on_antiretrovirals.Date_Started_ARV <= '#{end_date}'"
-
-    patients       = self.find_by_sql(drug_start_dates_less_than_program_enrollment_dates_sql)
-    patients_data  = []
-    patients.each do |patient_data_row|
-      patient     = Person.find(patient_data_row[:patient_id].to_i)
-      national_id = PatientIdentifier.identifier(patient_data_row[:patient_id], national_identifier_id).identifier rescue ""
-      arv_number  = PatientIdentifier.identifier(patient_data_row[:patient_id], arv_number_id).identifier rescue ""
-      patients_data <<[patient_data_row[:patient_id], arv_number, patient.name,
-        national_id,patient.gender,patient.age,patient.birthdate, patient.phone_numbers, patient_data_row[:date_started_ARV]]
-    end
-    patients_data
   end
 
   def self.appointment_dates(start_date, end_date = nil)
@@ -1157,10 +1040,6 @@ EOF
   def pre_art_number
     pre_art_number_id = PatientIdentifierType.find_by_name('Pre ART Number (Old format)').patient_identifier_type_id
     PatientIdentifier.identifier(self.patient_id, pre_art_number_id).identifier rescue nil
-  end
-
-  def traditional_authority
-    self.person.demographics['person']['addresses']['county_district'].to_s
   end
   
   def appointment_dates(start_date, end_date = nil)

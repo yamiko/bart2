@@ -49,7 +49,7 @@
    <td class='demo_data'><%= @patient.person.birthdate_formatted rescue nil-%></td>
    <td class='demo_data'><%= @patient.person.age rescue nil-%></td>
    <td class='demo_data'><%= @patient.person.sex rescue nil-%></td>
-   <td class='demo_data' colspan="10"><%= @patient.traditional_authority-%></td>
+   <td class='demo_data' colspan="10"><%= @patient.person.addresses.first.county_district -%></td>
   </tr>
   <tr>
    <td><%= link_to "Location:", "/patients/mastercard_modify?field=location&id=#{@patient.id}&source=opd" -%></td>
@@ -58,8 +58,8 @@
   </tr>
   <tr class="master_data">
    <td class='demo_data'><%= @patient.person.addresses[0].city_village rescue nil-%></td>
-   <td class='demo_data' colspan="3"><%= @patient.person.demographics['person']['addresses']['address2'].to_s -%></td>
-   <td class='demo_data' colspan="5"><%= @patient.person.demographics['person']['attributes']['occupation'].to_s-%></td>
+   <td class='demo_data' colspan="3"><%= @patient.person.addresses.first.address2.to_s -%></td>
+   <td class='demo_data' colspan="5"><%= @patient.person.get_attribute('Occupation').to_s-%></td>
   </tr>
 </table>
 </div>

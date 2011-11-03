@@ -262,6 +262,9 @@
 
 <% if @location_transferred_to.empty? %>
   <form id='appointment' action="/encounters/create" method='post'>
+
+    <%= hidden_field_tag "old_appointment", @old_appointment %>  
+    <%= hidden_field_tag "report_url", @report_url %>
     <%= hidden_field_tag "encounter[encounter_type_name]", "APPOINTMENT" %>
     <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
     <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
@@ -296,11 +299,12 @@
            :id => 'next_appointment_date'}) %>
 
     <% session_date = session[:datetime].to_date rescue nil                       
-    if session_date %>                                                          
-      <%= touch_select_tag "Provider", @patient, options_for_select([]),        
-        { :id => "provider",                                                    
-          :ajaxURL => '/user/username?username=',                               
-          :helpText => "Staff who provided the information (Provider)"} %>      
+    if session_date %>
+
+    <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
+<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+    <% else %>
+      <%= hidden_field_tag "filter[provider]", nil %>
     <%end%>
     <%= submit_tag "Finish" %>
   </form>

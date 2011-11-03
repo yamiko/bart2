@@ -213,7 +213,7 @@ class ReportController < ApplicationController
   end
 
   def appointment_dates
-
+    @report = []
     if (!params[:date].blank?) # retrieve appointment dates for a given day
       @date       = params[:date].to_date
       @patients   = Patient.appointment_dates(@date)
@@ -227,6 +227,102 @@ class ReportController < ApplicationController
       @end_date    = date_range.last.to_date
       @patients   = Patient.appointment_dates(@start_date, @end_date)
     end
+
+    @patients.each do |patient|
+    
+        last_appointment_date = last_appointment_date(patient.id, @date)
+        drugs_given_to_patient = patient_present?(patient.id, last_appointment_date)
+        drugs_given_to_guardian = guardian_present?(patient.id, last_appointment_date)
+        drugs_given_to_both_patient_and_guardian = patient_and_guardian_present?(patient.id, last_appointment_date)
+
+        visit_by = "Guardian visit" if drugs_given_to_guardian
+        visit_by = "Patient visit" if drugs_given_to_patient
+        visit_by = "PG visit" if drugs_given_to_both_patient_and_guardian
+
+        phone_number = nil
+        
+        phone_numbers(patient.person).each do |type,number|
+            case type
+                when "Cell phone number"
+                    phone_number = number if number.match(/\d+/)
+                when "Home phone number"
+                    phone_number = number if number.match(/\d+/)
+                when "Office phone number"
+                    phone_number = number if number.match(/\d+/)
+            end
+        end rescue nil
+        
+        last_visit = last_appointment_date.strftime('%Y-%m-%d') rescue ""
+        outcome = outcome(patient.id, @date)
+        @report << {'arv_number'=> patient.arv_number, 'name'=> patient.name,
+                   'birthdate'=> patient.person.birthdate, 'last_visit'=> last_visit,
+                   'visit_by'=> visit_by, 'phone_number'=>phone_number, 'outcome'=>outcome, 'patient_id'=>patient.id}
+
+    end
+    
+    render :layout => 'appointment_dates'
+  end
+
+  def missed_appointments
+
+    @report_url =  params[:report_url] 
+    @patients =  Patient.appointment_dates(params[:date])
+    @report  = []
+    
+    @patients.each do |patient_data_row|
+
+        next if (Encounter.find_by_sql("SELECT encounter_id
+                                         FROM encounter
+                                         WHERE patient_id=#{patient_data_row.patient_id}
+                                               AND DATE(date_created)=DATE('#{params[:date]}')
+                                               AND voided = 0").map{|e|e.encounter_id}.count > 0)    
+        
+        patient        = Person.find(patient_data_row[:patient_id].to_i)
+        national_id    = patient_data_row.national_id
+        arv_number     = patient_data_row.arv_number
+        last_visit = last_appointment_date(patient.id, params[:date]).strftime('%Y-%m-%d') rescue ""
+        
+        @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> arv_number, 'name'=> patient.name,
+                   'birthdate'=> patient.birthdate, 'national_id' => national_id, 'gender' => patient.gender,
+                   'age'=> patient.age, 'phone_numbers'=>phone_numbers(patient), 'last_visit'=> last_visit,
+                   'date_started'=>patient_data_row[:date_started]}
+    end
+    @report
+  end
+  
+  def non_eligible_patients_in_art
+    @report_type = params[:report_type]
+    start_date = params[:start_date]
+    end_date   = params[:end_date]
+    encounter_type = EncounterType.find_by_name("DISPENSING").encounter_type_id
+    
+    @report  = []
+
+    patient_with_dispensations = Encounter.find_by_sql("
+        SELECT * 
+        FROM (
+                SELECT patient_id, DATE(encounter_datetime) AS encounter_datetime
+                FROM encounter
+                WHERE encounter_type = #{encounter_type} AND DATE(encounter_datetime) >= DATE('#{start_date}')
+                      AND DATE(encounter_datetime) < DATE('#{end_date}')
+                ORDER BY patient_id ASC, encounter_datetime ASC) AS patient_with_dispensations
+        GROUP BY patient_id")
+    
+    patient_with_dispensations.each do |patient_data_row|
+        person = Person.find(patient_data_row[:patient_id].to_i)
+        
+        next if !person.patient.reason_for_art_eligibility.blank?
+        
+        outcome = outcome(person.id, patient_data_row[:encounter_datetime])
+        art_date = art_start_date(person.id)
+        @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> person.patient.arv_number, 'name'=> person.name,
+                   'birthdate'=> person.birthdate, 'national_id' => person.patient.national_id , 'gender' => person.gender,
+                   'age'=> person.age, 'phone_numbers'=>phone_numbers(person),
+                   'art_start_date'=>art_start_date(person.id), "date_registered_at_clinic" => person.patient.date_created.strftime('%d-%b-%Y'),
+                   'art_start_age' => age_at(art_date, person.birthdate), 'outcome' => outcome(person.id, end_date)}
+    end
+    
+     @report
   end
 
   def data_cleaning_tab
@@ -284,6 +380,90 @@ class ReportController < ApplicationController
                               :conditions => ["obs.concept_id = ? AND name LIKE (?)",
                               concept_id,"%#{params[:search_string]}%"],:group =>'name').map{|c|c.name}
     render :text => "<li>" + @names.map{|n| n } .join("</li><li>") + "</li>"
+  end
+  
+    
+  def last_appointment_date(patient_id, date=Date.today)
+    encounter_type_id = EncounterType.find_by_name("HIV Reception").id
+    enc = Encounter.find(:first,:conditions =>["patient_id=? and encounter_type=#{encounter_type_id} and Date(encounter_datetime) <=DATE(?)",patient_id, date.to_date],:order => "encounter_datetime desc")
+    enc.encounter_datetime rescue nil
+  end
+  
+  def patient_present?(patient_id, date=Date.today)
+      encounter_type_id = EncounterType.find_by_name("HIV Reception").id
+      concept_id  = ConceptName.find_by_name("Patient present").concept_id
+      encounter = Encounter.find_by_sql("SELECT *
+                                        FROM encounter
+                                        WHERE patient_id = #{patient_id} AND DATE(date_created) = DATE('#{date.strftime("%Y-%m-%d")}') AND encounter_type = #{encounter_type_id}
+                                        ORDER BY date_created DESC").last rescue nil
+                                        
+      patient_present = encounter.observations.find_last_by_concept_id(concept_id).to_s unless encounter.nil?
+
+      return false if patient_present.blank?
+      return false if patient_present.match(/No/)
+      return true
+  end
+
+  def guardian_present?(patient_id, date=Date.today)
+      encounter_type_id = EncounterType.find_by_name("HIV Reception").id
+      concept_id  = ConceptName.find_by_name("Guardian present").concept_id
+      encounter = Encounter.find_by_sql("SELECT *
+                                        FROM encounter
+                                        WHERE patient_id = #{patient_id} AND DATE(date_created) = DATE('#{date.strftime("%Y-%m-%d")}') AND encounter_type = #{encounter_type_id}
+                                        ORDER BY date_created DESC").last rescue nil
+
+      guardian_present=encounter.observations.find_last_by_concept_id(concept_id).to_s unless encounter.nil?
+
+      return false if guardian_present.blank?
+      return false if guardian_present.match(/No/)
+      return true
+  end
+
+  def patient_and_guardian_present?(patient_id, date=Date.today)
+      patient_present = self.patient_present?(patient_id, date)
+      guardian_present = self.guardian_present?(patient_id, date)
+
+      return false if !patient_present || !guardian_present
+      return true
+  end
+
+  def outcome(patient_id, on_date=Date.today)
+    state = PatientState.find(:first,
+                              :joins => "INNER JOIN patient_program p ON p.patient_program_id = patient_state.patient_program_id",
+                              :conditions =>["patient_state.voided = 0 AND p.voided = 0 AND p.patient_id = #{patient_id} AND DATE(start_date) <= DATE('#{on_date}')"],:order => "start_date DESC")
+                              
+   state.program_workflow_state.concept.shortname rescue state.program_workflow_state.concept.fullname rescue 'Unknown state'     
+  end
+  
+  def art_start_date(patient_id)
+    selected_state = nil
+    
+    Patient.find(patient_id).patient_programs.in_programs("HIV PROGRAM").each do |program|
+        program.patient_states.each do |state|
+            if !state.to_s.match(/On ARVs/).nil?
+                if selected_state.nil?
+                    selected_state = state
+                elsif selected_state.date_created.to_date < state.date_created.to_date
+                    selected_state = state
+                end
+            end
+        end
+    end
+    
+    selected_state.date_created.to_date rescue nil
+  end
+  
+  def age_at(date, dob)
+        
+      year = nil
+      
+      if !date.blank? && !dob.blank?
+       day_diff = date.day - dob.day
+       month_diff = date.month - dob.month - (day_diff < 0 ? 1 : 0)
+       year = date.year - dob.year - (month_diff < 0 ? 1 : 0)
+      end 
+      
+      year  
   end
 
 end

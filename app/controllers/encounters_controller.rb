@@ -1,6 +1,7 @@
 class EncountersController < ApplicationController
 
   def create(params=params, session=session)
+    #params.to_yaml
     if params['encounter']['encounter_type_name'] == 'TB_INITIAL'
       (params[:observations] || []).each do |observation|
         if observation['concept_name'].upcase == 'TRANSFER IN' and observation['value_coded_or_text'] == "YES"
@@ -106,6 +107,17 @@ class EncountersController < ApplicationController
       # set current location via params if given
       Location.current_location = Location.find(params[:location])
     end
+    
+    if params['encounter']['encounter_type_name'].to_s.upcase == "APPOINTMENT" && !params[:report_url].match(/report/).nil?
+        concept_id = ConceptName.find_by_name("RETURN VISIT DATE").concept_id
+        encounter_id_s = Observation.find_by_sql("SELECT encounter_id
+                       FROM obs
+                       WHERE concept_id = #{concept_id} AND person_id = #{@patient.id}
+                            AND DATE(value_datetime) = DATE('#{params[:old_appointment]}') AND voided = 0
+                       ").map{|obs| obs.encounter_id}.each do |encounter_id|
+                                    Encounter.find(encounter_id).void
+                       end   
+    end
 
     # Encounter handling
     encounter = Encounter.new(params[:encounter])
@@ -114,6 +126,15 @@ class EncountersController < ApplicationController
     else
       encounter.encounter_datetime = params['encounter']['encounter_datetime']
     end
+
+    if !params[:filter][:provider].blank?
+     user_person_id = User.find_by_username(params[:filter][:provider]).person_id
+     encounter.provider_id = user_person_id
+    else
+     user_person_id = User.find_by_user_id(encounter[:provider_id]).person_id
+     encounter.provider_id = user_person_id
+    end
+
     encounter.save    
 
     # Observation handling
@@ -246,15 +267,24 @@ class EncountersController < ApplicationController
      elsif params['encounter']['encounter_type_name'] == "TB suspect source of referral" && !params[:gender].empty? && !params[:family_name].empty? && !params[:given_name].empty?
        redirect_to"/encounters/new/tb_suspect_source_of_referral/?patient_id=#{@patient.id}&gender=#{params[:gender]}&family_name=#{params[:family_name]}&given_name=#{params[:given_name]}"
      else
+      if params['encounter']['encounter_type_name'].to_s.upcase == "APPOINTMENT" && !params[:report_url].match(/report/).nil?
+         redirect_to  params[:report_url].to_s and return
+      end
       redirect_to next_task(@patient)
      end
     else
+      if params[:voided]
+        encounter.void(params[:void_reason],
+                       params[:date_voided],
+                       params[:voided_by])
+      end
+      #made restful the default due to time
       render :text => encounter.encounter_id.to_s and return
       #return encounter.id.to_s  # support non-RESTful creation of encounters
     end
   end
 
-	def new
+	def new	
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		session_date = session[:datetime].to_date rescue Date.today
         @current_encounters = @patient.encounters.find_by_date(session_date)   
@@ -265,6 +295,10 @@ class EncountersController < ApplicationController
         @transfer_in_TB_registration_number = get_todays_observation_answer_for_encounter(@patient.id, "TB_INITIAL", "TB registration number")
         @referred_to_htc = nil
         @family_planning_methods = []
+        
+        if 'tb_reception'.upcase == (params[:encounter_type].upcase rescue '')
+            @phone_numbers = phone_numbers(Person.find(params[:patient_id]))
+        end
         
         if (params[:encounter_type].upcase rescue '') == 'UPDATE HIV STATUS'
             @referred_to_htc = get_todays_observation_answer_for_encounter(@patient.id, "UPDATE HIV STATUS", "Refer to HTC")
@@ -310,7 +344,7 @@ class EncountersController < ApplicationController
 
 		@hiv_status = @patient.hiv_status
 		@hiv_test_date = @patient.hiv_test_date
-		@lab_activities = Encounter.lab_activities
+		@lab_activities = lab_activities
 		# @tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
 		@tb_patient_category = [["New","NEW"], ["Relapse","RELAPSE"], ["Retreatment after default","RETREATMENT AFTER DEFAULT"], ["Fail","FAIL"], ["Other","OTHER"]]
 		@sputum_visual_appearance = [['Muco-purulent','MUCO-PURULENT'],['Blood-stained','BLOOD-STAINED'],['Saliva','SALIVA']]
@@ -320,7 +354,6 @@ class EncountersController < ApplicationController
 		@sputum_orders = Hash.new()
 		@sputum_submission_waiting_results = Hash.new()
 		@sputum_results_not_given = Hash.new()
-
 		@art_first_visit = is_first_art_visit(@patient.id)
 		@tb_first_registration = is_first_tb_registration(@patient.id)
 		@tb_programs_state = uncompleted_tb_programs_status(@patient.id)
@@ -355,6 +388,9 @@ class EncountersController < ApplicationController
 
 		@location_transferred_to = []
 		if (params[:encounter_type].upcase rescue '') == 'APPOINTMENT'
+		  @old_appointment = nil
+		  @report_url = nil
+		  @report_url =  params[:report_url]  and @old_appointment = params[:old_appointment] if !params[:report_url].nil?
 		  @current_encounters.reverse.each do |enc|
 		     enc.observations.each do |o|
 		       @location_transferred_to << o.to_s_location_name.strip if o.to_s.include?("Transfer out to") rescue nil
@@ -898,5 +934,13 @@ class EncountersController < ApplicationController
         end
         observation
 	end
-  
+
+  def lab_activities
+    lab_activities = [
+      ['Lab Orders', 'lab_orders'],
+      ['Sputum Submission', 'sputum_submission'],
+      ['Lab Results', 'lab_results'],
+    ]
+  end
+
 end

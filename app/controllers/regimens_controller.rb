@@ -126,9 +126,6 @@ class RegimensController < ApplicationController
                 
             end
         end
-		
-
-
 	end
   
 	def create
@@ -156,9 +153,18 @@ class RegimensController < ApplicationController
 				condoms = observation['value_numeric']
 			end
 		end
+
 		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
 		session_date = session[:datetime] || Time.now()
-		encounter = @patient.current_treatment_encounter(session_date)
+
+		if !params[:filter][:provider].blank?
+     user_person_id = User.find_by_username(params[:filter][:provider]).person_id
+    else
+     user_person_id = User.find_by_user_id(session[:user_id]).person_id
+    end
+
+		user_person_id = user_person_id rescue User.find_by_user_id(session[:user_id]).person_id
+		encounter = current_treatment_encounter(session_date, user_person_id)
 		start_date = session[:datetime] || Time.now
 		auto_expire_date = session[:datetime] + params[:duration].to_i.days rescue Time.now + params[:duration].to_i.days
 		auto_tb_expire_date = session[:datetime] + params[:tb_duration].to_i.days rescue Time.now + params[:tb_duration].to_i.days
@@ -188,8 +194,8 @@ class RegimensController < ApplicationController
 					auto_tb_expire_date, 
 					order.dose, 
 					order.frequency, 
-					order.prn, 
-					"#{drug.name}: #{order.instructions} (#{regimen_name})",
+					order.prn,
+  				"#{drug.name}: #{order.instructions} (#{regimen_name})",
 					order.equivalent_daily_dose)  
 			end if prescribe_tb_drugs
 		end

@@ -96,87 +96,10 @@ class Person < ActiveRecord::Base
     self.birthdate_estimated = 1
   end
 
-  def demographics
-
-    if self.birthdate_estimated==1
-      birth_day = "Unknown"
-      if self.birthdate.month == 7 and self.birthdate.day == 1
-        birth_month = "Unknown"
-      else
-        birth_month = self.birthdate.month
-      end
-    else
-      birth_month = self.birthdate.month
-      birth_day = self.birthdate.day
-    end
-
-    demographics = {"person" => {
-      "date_changed" => self.date_changed.to_s,
-      "gender" => self.gender,
-      "birth_year" => self.birthdate.year,
-      "birth_month" => birth_month,
-      "birth_day" => birth_day,
-      "names" => {
-        "given_name" => self.names[0].given_name,
-        "family_name" => self.names[0].family_name,
-        "family_name2" => self.names[0].family_name2
-      },
-      "addresses" => {
-        "county_district" => self.addresses[0].county_district,
-        "city_village" => self.addresses[0].city_village,
-        "address1" => self.addresses[0].address1,
-        "address2" => self.addresses[0].address2
-      },
-    "attributes" => {"occupation" => self.get_attribute('Occupation'),
-                     "cell_phone_number" => self.get_attribute('Cell Phone Number')}}}
- 
-    if not self.patient.patient_identifiers.blank? 
-      demographics["person"]["patient"] = {"identifiers" => {}}
-      self.patient.patient_identifiers.each{|identifier|
-        demographics["person"]["patient"]["identifiers"][identifier.type.name] = identifier.identifier
-      }
-    end
-
-    return demographics
-  end
-
   def self.occupations
     ['','Driver','Housewife','Messenger','Business','Farmer','Salesperson','Teacher',
      'Student','Security guard','Domestic worker', 'Police','Office worker',
      'Preschool child','Mechanic','Prisoner','Craftsman','Healthcare Worker','Soldier'].sort.concat(["Other","Unknown"])
-  end
-
-  def remote_demographics
-    demo = self.demographics
-
-    demographics = {
-                   "person" =>
-                   {"attributes" => {
-                      "occupation" => demo['person']['occupation'],
-                      "cell_phone_number" => demo['person']['cell_phone_number']
-                    } ,
-                    "addresses" => 
-                     { "address2"=> demo['person']['addresses']['location'],
-                       "city_village" => demo['person']['addresses']['city_village'],
-                       "address1"  => demo['person']['addresses']['address1'],
-                       "county_district" => ""
-                     },
-                    "age_estimate" => self.birthdate_estimated ,
-                    "birth_month"=> self.birthdate.month ,
-                    "patient" =>{"identifiers"=>
-                                {"National id"=> demo['person']['patient']['identifiers']['National id'] }
-                               },
-                    "gender" => self.gender.first ,
-                    "birth_day" => self.birthdate.day ,
-                    "date_changed" => demo['person']['date_changed'] ,
-                    "names"=>
-                      {
-                        "family_name2" => demo['person']['names']['family_name2'],
-                        "family_name" => demo['person']['names']['family_name'] ,
-                        "given_name" => demo['person']['names']['given_name']
-                      },
-                    "birth_year" => self.birthdate.year }
-                    }
   end
 
   def self.search_by_identifier(identifier)
@@ -437,10 +360,6 @@ class Person < ActiveRecord::Base
         PersonAttributeType.find_by_name(attribute).id,self.id]).value rescue nil
   end
 
-  def phone_numbers
-    PersonAttribute.phone_numbers(self.person_id)
-  end
-
   def sex
     if self.gender == "M"
       return "Male"
@@ -449,24 +368,6 @@ class Person < ActiveRecord::Base
     else
       return nil
     end
-  end
-
-
-  def phone_numbers
-    phone_numbers = {}
-    phone_numbers['Cell phone number'] = PersonAttribute.find(:first,
-                                         :conditions => ["person_id = ? AND person_attribute_type_id = ?",
-                                         self.id,PersonAttributeType.find_by_name("Cell Phone Number").id]).value rescue nil
-
-    phone_numbers['Office phone number'] = PersonAttribute.find(:first,
-                                         :conditions => ["person_id = ? AND person_attribute_type_id = ?",
-                                         self.id,PersonAttributeType.find_by_name("Office Phone Number").id]).value rescue nil
-
-    phone_numbers['Home phone number'] = PersonAttribute.find(:first,
-                                         :conditions => ["person_id = ? AND person_attribute_type_id = ?",
-                                         self.id,PersonAttributeType.find_by_name("Home Phone Number").id]).value rescue nil
-
-    phone_numbers
   end
   
   def self.create_remote(received_params)

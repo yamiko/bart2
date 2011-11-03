@@ -16,21 +16,17 @@
   function checkBirthDate(){
     var dateCheck = "";
     var confirmatoryHIVtestDate = new Date ($('confirmatory_hiv_test_date').value);
-    var patientBirthDate = new Date("<%= @patient.person.birthdate.year %>","<%= @patient.person.birthdate.month %>","<%= @patient.person.birthdate.day %>")
+    var patientBirthDate = new Date("<%= @patient.person.birthdate.year %>","<%= @patient.person.birthdate.month - 1 %>","<%= @patient.person.birthdate.day %>");
 
-    <% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
-
-    var sessionDate = new Date("<%="#{@session_date.to_date.year},#{@session_date.to_date.month},#{@session_date.to_date.day}"%>");
-
-    if (patientBirthDate < confirmatoryHIVtestDate){
+    if (patientBirthDate <= confirmatoryHIVtestDate){
       dateCheck = 'true'
     } else {
       dateCheck = 'false'
     }
-   return dateCheck
+    return dateCheck; 
   }
 </script>
-
+<%#= raise @patient.person.birthdate.day.to_s %>
 <% if @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM') %>
 	<div class="inputPage NoKeyboard" id="page" style="display: block;">
 		<div id="trigger"></div>
@@ -121,12 +117,13 @@
 			 	:validationMessage => "Confirmatory HIV test date is greater than patient's date of birth #{@patient.person.birthdate}",
 			 	:helpText => "Date of confirmatory HIV test"} %>
 
-    <% session_date = session[:datetime].to_date rescue nil                       
-    if session_date %>                                                          
-      <%= touch_select_tag "Provider", @patient, options_for_select([]),        
-        { :id => "provider",                                                    
-          :ajaxURL => '/user/username?username=',                               
-          :helpText => "Staff who provided the information (Provider)"} %>      
+   <% session_date = session[:datetime].to_date rescue nil                       
+    if session_date %>
+
+    <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
+<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+    <% else %>
+      <%= hidden_field_tag "filter[provider]", nil %>
     <%end%>
 		<%= submit_tag "Finish" %>    
 	</form>

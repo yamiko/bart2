@@ -255,7 +255,7 @@ class PatientsController < ApplicationController
   def lab_orders_label
     patient = Patient.find(@patient.id)
     label_commands = patient.lab_orders_label
-    send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbl", :disposition => "inline")
+    send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbs", :disposition => "inline")
   end
 
   def filing_number_label
@@ -552,8 +552,17 @@ class PatientsController < ApplicationController
     render :template => 'dashboards/visit_history_tab', :layout => false
   end
 
+   def get_previous_encounters(patient_id)
+    previous_encounters = Encounter.find(:all,
+              :conditions => ["encounter.voided = ? and patient_id = ?", 0, patient_id],
+              :include => [:observations]
+            )
+
+    return previous_encounters
+  end
+
   def past_visits_summary
-    @previous_visits  = Encounter.get_previous_encounters(params[:patient_id])
+    @previous_visits  = get_previous_encounters(params[:patient_id])
 
     @encounter_dates = @previous_visits.map{|encounter| encounter.encounter_datetime.to_date}.uniq.reverse.first(6) rescue []
 
@@ -649,7 +658,7 @@ class PatientsController < ApplicationController
     lab_orders_label = params[:lab_tests].split(":")
 
     label_commands = patient.recent_lab_orders_label(lab_orders_label)
-    send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbl", :disposition => "inline")
+    send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbs", :disposition => "inline")
   end
 
   def print_recent_lab_orders_label
@@ -705,10 +714,15 @@ class PatientsController < ApplicationController
         encounter_dates], :order => "encounter_datetime").observations.last.to_s rescue nil
     alerts << ('Missed ' + missed_appt).capitalize unless missed_appt.blank?
 
+    @adherence_level = ConceptName.find_by_name('What was the patients adherence for this drug order').concept_id
     type = EncounterType.find_by_name("ART ADHERENCE")
-    patient.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.map do | adh |
-      next if adh.value_text.blank?
-      alerts << "Adherence: #{adh.order.drug_order.drug.name} (#{adh.value_text}%)"
+
+    patient.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.map do |adh|
+      if adh.concept_id == @adherence_level
+        if (adh.value_numeric.to_i < 95 || adh.value_numeric.to_i > 105)
+          alerts << "Adherence: #{adh.order.drug_order.drug.name} (#{adh.value_numeric}%)"
+        end
+      end
     end rescue []
 
     type = EncounterType.find_by_name("DISPENSING")

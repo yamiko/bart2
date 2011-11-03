@@ -170,7 +170,7 @@
 			  :condition => "$('tb_suspected').value == 'YES'",
 			  :helpText => "Do you plan to continue picking up TB drugs at this clinic?" } %>
 
-		<%= touch_yes_no_unknown_tag "Patient enrolled in IMB HIV program", 
+		<%= touch_yes_no_unknown_tag "Patient enrolled in HIV program", 
         @patient, nil,
 			  {	:id => "enroll_patient_in_art",
 			  :condition => "$('continue_treatment').value == 'YES'",
@@ -178,11 +178,12 @@
 	<%end%>
 
   <% session_date = session[:datetime].to_date rescue nil                       
-    if session_date %>                                                          
-      <%= touch_select_tag "Provider", @patient, options_for_select([]),        
-        { :id => "provider",                                                    
-          :ajaxURL => '/user/username?username=',                               
-          :helpText => "Staff who provided the information (Provider)"} %>      
-    <%end%> 
+    if session_date %>
+
+    <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
+<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+    <% else %>
+      <%= hidden_field_tag "filter[provider]", nil %>
+    <%end%>
   <%= submit_tag "Finish" %>    
 </form>

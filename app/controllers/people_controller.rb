@@ -42,14 +42,13 @@ class PeopleController < ApplicationController
       patient.save
       patient.national_id_label 
     end
-    #render :text => person.demographics.to_json
-    render :text => person.remote_demographics.to_json
+    render :text => remote_demographics(person).to_json
   end
 
   def demographics
     # Search by the demographics that were passed in and then return demographics
     people = Person.find_by_demographics(params)
-    result = people.empty? ? {} : people.first.demographics
+    result = people.empty? ? {} : demographics(people.first)
     render :text => result.to_json
   end
   
@@ -315,6 +314,21 @@ class PeopleController < ApplicationController
       "<li value='#{v.address1}'>#{v.address1}</li>"
     end
     render :text => landmarks.join('') and return
+  end
+
+  #This method was taken out of encounter model. It is been used in
+  #people/index (view) which seems not to be used at present.
+  def count_by_type_for_date(date)
+    # This query can be very time consuming, because of this we will not consider
+    # that some of the encounters on the specific date may have been voided
+    ActiveRecord::Base.connection.select_all("SELECT count(*) as number, encounter_type FROM encounter GROUP BY encounter_type")
+    todays_encounters = Encounter.find(:all, :include => "type", :conditions => ["DATE(encounter_datetime) = ?",date])
+    encounters_by_type = Hash.new(0)
+    todays_encounters.each{|encounter|
+      next if encounter.type.nil?
+      encounters_by_type[encounter.type.name] += 1
+    }
+    encounters_by_type
   end
 
 private
