@@ -1269,7 +1269,7 @@ EOF
    Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("LAB RESULTS").id,self.id]).observations.map{|o| o } rescue nil
   end
-
+=begin
   def patient_need_sputum_test?
     encounter_date = Encounter.find(:last,
                       :conditions => ["encounter_type = ? and patient_id = ?",
@@ -1340,5 +1340,5 @@ EOF
         self.id, sputum_concept_ids, registration_date],
       :order => "obs_datetime desc", :limit => 3)
   end
-
+=end
 end
