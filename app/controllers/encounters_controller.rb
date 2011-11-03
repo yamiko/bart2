@@ -284,8 +284,7 @@ class EncountersController < ApplicationController
     end
   end
 
-	def new
-	
+	def new	
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		session_date = session[:datetime].to_date rescue Date.today
         @current_encounters = @patient.encounters.find_by_date(session_date)   
@@ -296,6 +295,10 @@ class EncountersController < ApplicationController
         @transfer_in_TB_registration_number = get_todays_observation_answer_for_encounter(@patient.id, "TB_INITIAL", "TB registration number")
         @referred_to_htc = nil
         @family_planning_methods = []
+        
+        if 'tb_reception'.upcase == (params[:encounter_type].upcase rescue '')
+            @phone_numbers = phone_numbers(Person.find(params[:patient_id]))
+        end
         
         if (params[:encounter_type].upcase rescue '') == 'UPDATE HIV STATUS'
             @referred_to_htc = get_todays_observation_answer_for_encounter(@patient.id, "UPDATE HIV STATUS", "Refer to HTC")

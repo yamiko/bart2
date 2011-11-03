@@ -421,7 +421,7 @@ class CohortTool < ActiveRecord::Base
                         :gender       => (visit.patient.gender || ""),
                         :age          => (visit.patient.person.age || ""),
                         :birthdate    => (visit.patient.person.birthdate.strftime("%d-%b-%Y") || ""),
-                        :phone_number => (visit.patient.person.phone_numbers[:cell_phone_number] || ""),
+                        :phone_number => (visit.patient.person.get_attribute('Cell phone number') || ""),
                         :start_date   => (visit.patient.encounters.last.encounter_datetime.strftime("%d-%b-%Y") || "")
       }
 

@@ -241,7 +241,7 @@ class ReportController < ApplicationController
 
         phone_number = nil
         
-        patient.person.phone_numbers.each do |type,number|
+        phone_numbers(patient.person).each do |type,number|
             case type
                 when "Cell phone number"
                     phone_number = number if number.match(/\d+/)
@@ -284,7 +284,7 @@ class ReportController < ApplicationController
         
         @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> arv_number, 'name'=> patient.name,
                    'birthdate'=> patient.birthdate, 'national_id' => national_id, 'gender' => patient.gender,
-                   'age'=> patient.age, 'phone_numbers'=>patient.phone_numbers, 'last_visit'=> last_visit,
+                   'age'=> patient.age, 'phone_numbers'=>phone_numbers(patient), 'last_visit'=> last_visit,
                    'date_started'=>patient_data_row[:date_started]}
     end
     @report
@@ -317,7 +317,7 @@ class ReportController < ApplicationController
         art_date = art_start_date(person.id)
         @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> person.patient.arv_number, 'name'=> person.name,
                    'birthdate'=> person.birthdate, 'national_id' => person.patient.national_id , 'gender' => person.gender,
-                   'age'=> person.age, 'phone_numbers'=>person.phone_numbers,
+                   'age'=> person.age, 'phone_numbers'=>phone_numbers(person),
                    'art_start_date'=>art_start_date(person.id), "date_registered_at_clinic" => person.patient.date_created.strftime('%d-%b-%Y'),
                    'art_start_age' => age_at(art_date, person.birthdate), 'outcome' => outcome(person.id, end_date)}
     end
