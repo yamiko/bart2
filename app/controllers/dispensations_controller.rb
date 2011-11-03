@@ -42,7 +42,7 @@ class DispensationsController < ApplicationController
 
     @encounter = @patient.current_dispensation_encounter(session_date, user_person_id)
 
-    @order = @patient.current_treatment_encounter(session_date, user_person_id).drug_orders.find(:first,:conditions => ['drug_order.drug_inventory_id = ?', 
+    @order = current_treatment_encounter(session_date, user_person_id).drug_orders.find(:first,:conditions => ['drug_order.drug_inventory_id = ?', 
              params[:drug_id]]).order rescue []
 
     # Do we have an order for the specified drug?
@@ -84,7 +84,7 @@ class DispensationsController < ApplicationController
         @order.drug_order.total_drug_supply(@patient, @encounter,session_date.to_date)
 
         #checks if the prescription is satisfied
-        complete = dispension_complete(@patient,@encounter,@patient.current_treatment_encounter(session_date, user_person_id))
+        complete = dispension_complete(@patient,@encounter,current_treatment_encounter(session_date, user_person_id))
         if complete
           unless params[:location]
             start_date , end_date = DrugOrder.prescription_dates(@patient,session_date.to_date)
