@@ -23,7 +23,7 @@ class Patient < ActiveRecord::Base
     self.orders.each {|row| row.void(reason) }
     self.encounters.each {|row| row.void(reason) }
   end
-
+=begin
   def current_diagnoses
     self.encounters.current.all(:include => [:observations]).map{|encounter| 
       encounter.observations.all(
@@ -32,13 +32,14 @@ class Patient < ActiveRecord::Base
           ConceptName.find_by_name("DIAGNOSIS, NON-CODED").concept_id])
     }.flatten.compact
   end
-
+=end
+=begin
   def current_treatment_encounter(date = Time.now(), provider = user_person_id)
     type = EncounterType.find_by_name("TREATMENT")
     encounter = encounters.find(:first,:conditions =>["DATE(encounter_datetime) = ? AND encounter_type = ?",date.to_date,type.id])
     encounter ||= encounters.create(:encounter_type => type.id,:encounter_datetime => date, :provider_id => provider)
   end
-
+=end
   def current_dispensation_encounter(date = Time.now(), provider = user_person_id)
     type = EncounterType.find_by_name("DISPENSING")
     encounter = encounters.find(:first,:conditions =>["DATE(encounter_datetime) = ? AND encounter_type = ?",date.to_date,type.id])
