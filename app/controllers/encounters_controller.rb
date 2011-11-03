@@ -344,7 +344,7 @@ class EncountersController < ApplicationController
 
 		@hiv_status = @patient.hiv_status
 		@hiv_test_date = @patient.hiv_test_date
-		@lab_activities = Encounter.lab_activities
+		@lab_activities = lab_activities
 		# @tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
 		@tb_patient_category = [["New","NEW"], ["Relapse","RELAPSE"], ["Retreatment after default","RETREATMENT AFTER DEFAULT"], ["Fail","FAIL"], ["Other","OTHER"]]
 		@sputum_visual_appearance = [['Muco-purulent','MUCO-PURULENT'],['Blood-stained','BLOOD-STAINED'],['Saliva','SALIVA']]
@@ -934,5 +934,13 @@ class EncountersController < ApplicationController
         end
         observation
 	end
-  
+
+  def lab_activities
+    lab_activities = [
+      ['Lab Orders', 'lab_orders'],
+      ['Sputum Submission', 'sputum_submission'],
+      ['Lab Results', 'lab_results'],
+    ]
+  end
+
 end
