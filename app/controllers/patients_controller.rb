@@ -552,8 +552,17 @@ class PatientsController < ApplicationController
     render :template => 'dashboards/visit_history_tab', :layout => false
   end
 
+   def get_previous_encounters(patient_id)
+    previous_encounters = Encounter.find(:all,
+              :conditions => ["encounter.voided = ? and patient_id = ?", 0, patient_id],
+              :include => [:observations]
+            )
+
+    return previous_encounters
+  end
+
   def past_visits_summary
-    @previous_visits  = Encounter.get_previous_encounters(params[:patient_id])
+    @previous_visits  = get_previous_encounters(params[:patient_id])
 
     @encounter_dates = @previous_visits.map{|encounter| encounter.encounter_datetime.to_date}.uniq.reverse.first(6) rescue []
 

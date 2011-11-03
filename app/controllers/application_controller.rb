@@ -198,6 +198,10 @@ class ApplicationController < ActionController::Base
 
   end
 
+  def initial_encounter
+    Encounter.find_by_sql("SELECT * FROM encounter ORDER BY encounter_datetime LIMIT 1").first
+  end
+
 private
 
   def find_patient
