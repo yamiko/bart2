@@ -40,7 +40,7 @@ class DispensationsController < ApplicationController
      user_person_id = User.find_by_user_id(session[:user_id]).person_id
     end
 
-    @encounter = @patient.current_dispensation_encounter(session_date, user_person_id)
+    @encounter = current_dispensation_encounter(session_date, user_person_id)
 
     @order = current_treatment_encounter(session_date, user_person_id).drug_orders.find(:first,:conditions => ['drug_order.drug_inventory_id = ?', 
              params[:drug_id]]).order rescue []
@@ -129,6 +129,12 @@ class DispensationsController < ApplicationController
     end
     amounts = amounts.flatten.compact.uniq
     render :text => "<li>" + amounts.join("</li><li>") + "</li>"
+  end
+
+  def current_dispensation_encounter(date = Time.now(), provider = user_person_id)
+    type = EncounterType.find_by_name("DISPENSING")
+    encounter = encounters.find(:first,:conditions =>["DATE(encounter_datetime) = ? AND encounter_type = ?",date.to_date,type.id])
+    encounter ||= encounters.create(:encounter_type => type.id,:encounter_datetime => date, :provider_id => provider)
   end
 
   private
