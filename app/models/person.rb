@@ -31,11 +31,7 @@ class Person < ActiveRecord::Base
 
   def name
     "#{self.names.first.given_name} #{self.names.first.family_name}".titleize rescue nil
-  end  
-
-  def address
-    "#{self.addresses.first.city_village}"  rescue nil
-  end 
+  end
 
   def age(today = Date.today)
     return nil if self.birthdate.nil?
@@ -56,7 +52,7 @@ class Person < ActiveRecord::Base
     months = (today.month - self.birthdate.month)
     (years * 12) + months
   end
-    
+
   def birthdate_formatted
     if self.birthdate_estimated==1
       if self.birthdate.day == 1 and self.birthdate.month == 7
@@ -122,53 +118,6 @@ class Person < ActiveRecord::Base
     ]) if people.blank?
 
     return people
-    
-    # temp removed
-    # AND (person_name.family_name2 LIKE ? OR person_name_code.family_name2_code LIKE ? OR person_name.family_name2 IS NULL )"    
-    #  params[:family_name2],
-    #  (params[:family_name2] || '').soundex,
-
-
-
-
-# CODE below is TODO, untested and NOT IN USE
-#    people = []
-#    people = PatientIdentifier.find_all_by_identifier(params[:identifier]).map{|id| id.patient.person} unless params[:identifier].blank?
-#    if people.size == 1
-#      return people
-#    elsif people.size >2
-#      filtered_by_family_name_and_gender = []
-#      filtered_by_family_name = []
-#      filtered_by_gender = []
-#      people.each{|person|
-#        gender_match = person.gender == params[:gender] unless params[:gender].blank?
-#        filtered_by_gender.push person if gender_match
-#        family_name_match = person.first.names.collect{|name|name.family_name.soundex}.include? params[:family_name].soundex
-#        filtered_by_family_name.push person if gender_match?
-#        filtered_by_family_name_and_gender.push person if family_name_match? and gender_match?
-#      }
-#      return filtered_by_family_name_and_gender unless filtered_by_family_name_and_gender.empty?
-#      return filtered_by_family_name unless filtered_by_family_name.empty?
-#      return filtered_by_gender unless filtered_by_gender.empty?
-#      return people
-#    else
-#    return people if people.size == 1
-#    people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patient], :conditions => [
-#    "gender = ? AND \
-#     (person_name.given_name LIKE ? OR person_name_code.given_name_code LIKE ?) AND \
-#     (person_name.family_name LIKE ? OR person_name_code.family_name_code LIKE ?)",
-#    params[:gender],
-#    params[:given_name],
-#    (params[:given_name] || '').soundex,
-#    params[:family_name],
-#    (params[:family_name] || '').soundex
-#    ]) if people.blank?
-#    
-    # temp removed
-    # AND (person_name.family_name2 LIKE ? OR person_name_code.family_name2_code LIKE ? OR person_name.family_name2 IS NULL )"    
-    #  params[:family_name2],
-    #  (params[:family_name2] || '').soundex,
-
   end
 
   def self.find_by_demographics(person_demographics)
@@ -183,48 +132,21 @@ class Person < ActiveRecord::Base
     search_params = {:gender => gender, :given_name => given_name, :family_name => family_name }
 
     results = Person.search(search_params)
+  end
 
-=begin
-    national_id = person_demographics["person"]["patient"]["identifiers"]["National id"] rescue nil
-    person = Person.search_by_identifier(national_id) unless national_id.nil?
-    return {} if person.blank? 
+  def get_attribute(attribute)
+    PersonAttribute.find(:first,:conditions =>["voided = 0 AND person_attribute_type_id = ? AND person_id = ?",
+        PersonAttributeType.find_by_name(attribute).id,self.id]).value rescue nil
+  end
 
-    #person_demographics = person.demographics
-    results = {}
-    result_hash = {}
-    gender = person_demographics["person"]["gender"] rescue nil
-    given_name = person_demographics["person"]["names"]["given_name"] rescue nil
-    family_name = person_demographics["person"]["names"]["family_name"] rescue nil
-   # raise"#{gender}"
-    result_hash = {
-      "gender" =>  person_demographics["person"]["gender"],
-      "names" => {"given_name" =>  person_demographics["person"]["names"]["given_name"],
-                  "family_name" =>  person_demographics["person"]["names"]["family_name"],
-                  "family_name2" => person_demographics["person"]["names"]["family_name2"]
-                  },
-      "birth_year" => person_demographics['person']['birth_year'],
-      "birth_month" => person_demographics['person']['birth_month'],
-      "birth_day" => person_demographics['person']['birth_day'],
-      "addresses" => {"city_village" => person_demographics['person']['addresses']['city_village'],
-                      "address2" => nil,
-                      "state_province" => nil,
-                      "county_district" => nil
-                      },
-      "attributes" => {"occupation" => person_demographics['person']['occupation'],
-                      "home_phone_number" => nil,
-                      "office_phone_number" => nil,
-                      "cell_phone_number" => nil
-                      },
-      "patient" => {"identifiers" => {"National id" => person_demographics['person']['patient']['identifiers']['National id'],
-                                      "ARV Number" => ['person']['patient']['identifiers']['ARV Number']
-                                      }
-                   },
-      "date_changed" => person_demographics['person']['date_changed']
-
-    }
-    results["person"] = result_hash
-    return results
-=end
+  def sex
+    value = nil
+    if self.gender == "M"
+      value = "Male"
+    elsif self.gender == "F"
+      value = "Female"
+    end
+    value
   end
 
   def self.create_from_form(params)
@@ -355,21 +277,6 @@ class Person < ActiveRecord::Base
 
   end
 
-  def get_attribute(attribute)
-    PersonAttribute.find(:first,:conditions =>["voided = 0 AND person_attribute_type_id = ? AND person_id = ?",
-        PersonAttributeType.find_by_name(attribute).id,self.id]).value rescue nil
-  end
-
-  def sex
-    if self.gender == "M"
-      return "Male"
-    elsif self.gender == "F"
-      return "Female"
-    else
-      return nil
-    end
-  end
-  
   def self.create_remote(received_params)
     #raise known_demographics.to_yaml
 
@@ -461,7 +368,5 @@ class Person < ActiveRecord::Base
     rescue
     end   
     person
-
   end
-
 end

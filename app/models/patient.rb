@@ -1244,7 +1244,7 @@ EOF
 
 	def residence
 		patient = Person.find(self.id)
-		return patient.address
+		return patient.person.addresses.first.city_village
 	end
   
 	def age
