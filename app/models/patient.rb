@@ -113,11 +113,14 @@ class Patient < ActiveRecord::Base
         pregnant = obs.to_s.split(':')[1] rescue nil
       end
     end rescue []
-
-    phone_numbers = self.person.phone_numbers
-    phone_number = phone_numbers["Office phone number"] if not phone_numbers["Office phone number"].downcase == "not available" and not phone_numbers["Office phone number"].downcase == "unknown" rescue nil
-    phone_number= phone_numbers["Home phone number"] if not phone_numbers["Home phone number"].downcase == "not available" and not phone_numbers["Home phone number"].downcase == "unknown" rescue nil
-    phone_number = phone_numbers["Cell phone number"] if not phone_numbers["Cell phone number"].downcase == "not available" and not phone_numbers["Cell phone number"].downcase == "unknown" rescue nil
+    
+    office_phone_number = self.person.get_attribute('Office phone number')
+    home_phone_number = self.person.get_attribute('Home phone number')
+    cell_phone_number = self.person.get_attribute('Cell phone number')
+    
+    phone_number = office_phone_number if not office_phone_number.downcase == "not available" and not office_phone_number.downcase == "unknown" rescue nil
+    phone_number= home_phone_number if not home_phone_number.downcase == "not available" and not home_phone_number.downcase == "unknown" rescue nil
+    phone_number = cell_phone_number if not cell_phone_number.downcase == "not available" and not cell_phone_number.downcase == "unknown" rescue nil
 
 
     label = ZebraPrinter::StandardLabel.new

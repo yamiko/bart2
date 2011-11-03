@@ -197,6 +197,16 @@ class ApplicationController < ActionController::Base
     encounter ||= encounters.create(:encounter_type => type.id,:encounter_datetime => date, :provider_id => provider)
 
   end
+  
+  def phone_numbers(person_obj)
+    phone_numbers = {}
+
+    phone_numbers['Cell phone number'] = person_obj.get_attribute('Cell phone number') rescue nil
+    phone_numbers['Office phone number'] = person_obj.get_attribute('Office phone number') rescue nil
+    phone_numbers['Home phone number'] = person_obj.get_attribute('Home phone number') rescue nil
+
+    phone_numbers
+  end
 
   def initial_encounter
     Encounter.find_by_sql("SELECT * FROM encounter ORDER BY encounter_datetime LIMIT 1").first

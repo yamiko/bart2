@@ -55,4 +55,5 @@ class CohortTool < ActiveRecord::Base
 
     cohort.total_registered = SurvivalAnalysis.report(cohort)
   end
+
 end

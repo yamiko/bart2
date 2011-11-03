@@ -814,7 +814,7 @@ class CohortToolController < ApplicationController
                         'gender' => person.gender,
                         'age' => person.age,
                         'birthdate' => person.birthdate,
-                        'phone' => person.phone_numbers, 
+                        'phone' => phone_numbers(person), 
                         'date_created' => patient_data_row[:date_started]
                        }
     end
@@ -841,7 +841,7 @@ class CohortToolController < ApplicationController
                             'gender' => person.gender,
                             'age' => person.age,
                             'birthdate' => person.birthdate,
-                            'phone' => person.phone_numbers, 
+                            'phone' => phone_numbers(person),
                             'date_created' => patient_data_row[:obs_datetime]
                            }
         end
@@ -891,7 +891,7 @@ class CohortToolController < ApplicationController
                         'gender' => person.gender,
                         'age' => person.age,
                         'birthdate' => person.birthdate,
-                        'phone' => person.phone_numbers, 
+                        'phone' => phone_numbers(person), 
                         'date_created' => patient_data_row[:date_started]
                        }
     end
@@ -946,7 +946,7 @@ class CohortToolController < ApplicationController
                         'gender' => person.gender,
                         'age' => person.age,
                         'birthdate' => person.birthdate,
-                        'phone' => person.phone_numbers, 
+                        'phone' => phone_numbers(person), 
                         'date_created' => patient_data_row[:date_started_ARV]
                        }
     end
