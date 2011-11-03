@@ -40,12 +40,13 @@ class Patient < ActiveRecord::Base
     encounter ||= encounters.create(:encounter_type => type.id,:encounter_datetime => date, :provider_id => provider)
   end
 =end
+=begin
   def current_dispensation_encounter(date = Time.now(), provider = user_person_id)
     type = EncounterType.find_by_name("DISPENSING")
     encounter = encounters.find(:first,:conditions =>["DATE(encounter_datetime) = ? AND encounter_type = ?",date.to_date,type.id])
     encounter ||= encounters.create(:encounter_type => type.id,:encounter_datetime => date, :provider_id => provider)
   end
-
+=end
   # Get the any BMI-related alert for this patient
   def current_bmi_alert
     weight = self.current_weight
