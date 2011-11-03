@@ -164,7 +164,7 @@ class RegimensController < ApplicationController
     end
 
 		user_person_id = user_person_id rescue User.find_by_user_id(session[:user_id]).person_id
-		encounter = @patient.current_treatment_encounter(session_date, user_person_id)
+		encounter = current_treatment_encounter(session_date, user_person_id)
 		start_date = session[:datetime] || Time.now
 		auto_expire_date = session[:datetime] + params[:duration].to_i.days rescue Time.now + params[:duration].to_i.days
 		auto_tb_expire_date = session[:datetime] + params[:tb_duration].to_i.days rescue Time.now + params[:tb_duration].to_i.days

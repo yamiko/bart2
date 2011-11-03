@@ -87,7 +87,8 @@ class ApplicationController < ActionController::Base
   def regimen_options(regimen_concepts, age)
     options = regimen_concepts.map{ |r|
       [r.concept_id,
-       (r.concept_names.typed("SHORT").first ||
+
+        (r.concept_names.typed("SHORT").first ||
         r.concept_names.typed("FULLY_SPECIFIED").first).name]
     }
 	
@@ -188,6 +189,13 @@ class ApplicationController < ActionController::Base
     end
 
     return demographics
+  end
+  
+  def current_treatment_encounter(date = Time.now(), provider = user_person_id)
+    type = EncounterType.find_by_name("TREATMENT")
+    encounter = encounters.find(:first,:conditions =>["DATE(encounter_datetime) = ? AND encounter_type = ?",date.to_date,type.id])
+    encounter ||= encounters.create(:encounter_type => type.id,:encounter_datetime => date, :provider_id => provider)
+
   end
 
 private
