@@ -47,7 +47,7 @@ class PeopleController < ApplicationController
 
   def demographics
     # Search by the demographics that were passed in and then return demographics
-    people = Person.find_by_demographics(params)
+    people = find_person_by_demographics(params)
     result = people.empty? ? {} : demographics(people.first)
     render :text => result.to_json
   end
@@ -70,7 +70,7 @@ class PeopleController < ApplicationController
       else
         # TODO - figure out how to write a test for this
         # This is sloppy - creating something as the result of a GET
-        found_person_data = Person.find_remote_by_identifier(params[:identifier])
+        found_person_data = find_remote_person_by_identifier(params[:identifier])
         found_person =  Person.create_from_form(found_person_data['person']) unless found_person_data.nil?
       end
       if found_person
@@ -174,7 +174,7 @@ class PeopleController < ApplicationController
 
     
     if create_from_remote
-      person_from_remote = Person.create_remote(params)
+      person_from_remote = create_remote_person(params)
       person = Person.create_from_form(person_from_remote["person"]) unless person_from_remote.blank?
       if !person.blank?
         success = true
