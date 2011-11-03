@@ -42,14 +42,13 @@ class PeopleController < ApplicationController
       patient.save
       patient.national_id_label 
     end
-    #render :text => person.demographics.to_json
-    render :text => person.remote_demographics.to_json
+    render :text => remote_demographics(person).to_json
   end
 
   def demographics
     # Search by the demographics that were passed in and then return demographics
     people = Person.find_by_demographics(params)
-    result = people.empty? ? {} : people.first.demographics
+    result = people.empty? ? {} : demographics(people.first)
     render :text => result.to_json
   end
   

@@ -16,17 +16,15 @@ class Mastercard
 
   def self.demographics(patient_obj)
     visits = self.new()
-    person_demographics = patient_obj.person.demographics
     visits.patient_id = patient_obj.id
     visits.arv_number = patient_obj.get_identifier('ARV Number')
-    visits.address = person_demographics['person']['addresses']['city_village']
-    visits.national_id = person_demographics['person']['patient']['identifiers']['National id']
-    visits.name = person_demographics['person']['names']['given_name'] + ' ' + person_demographics['person']['names']['family_name'] rescue nil
-    visits.sex = person_demographics['person']['gender']
-    visits.age =patient_obj.person.age
-    visits.occupation = person_demographics['person']['attributes']['occupation']
-    visits.address = person_demographics['person']['addresses']['city_village']
-    visits.landmark = person_demographics['person']['addresses']['address1']
+    visits.address = patient_obj.person.addresses.first.city_village
+    visits.national_id = patient_obj.national_id
+    visits.name = patient_obj.person.names.first.given_name + ' ' + patient_obj.person.names.first.family_name rescue nil
+    visits.sex = patient_obj.gender
+    visits.age = patient_obj.age
+    visits.occupation = patient_obj.person.get_attribute('Occupation')
+    visits.landmark = patient_obj.person.addresses.first.address1
     visits.init_wt = patient_obj.initial_weight
     visits.init_ht = patient_obj.initial_height
     visits.bmi = patient_obj.initial_bmi

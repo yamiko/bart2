@@ -113,6 +113,83 @@ class ApplicationController < ActionController::Base
 
   end
 
+  def remote_demographics(person_obj)
+    demo = demographics(person_obj)
+
+    demographics = {
+                   "person" =>
+                   {"attributes" => {
+                      "occupation" => demo['person']['occupation'],
+                      "cell_phone_number" => demo['person']['cell_phone_number']
+                    } ,
+                    "addresses" => 
+                     { "address2"=> demo['person']['addresses']['location'],
+                       "city_village" => demo['person']['addresses']['city_village'],
+                       "address1"  => demo['person']['addresses']['address1'],
+                       "county_district" => ""
+                     },
+                    "age_estimate" => person_obj.birthdate_estimated ,
+                    "birth_month"=> person_obj.birthdate.month ,
+                    "patient" =>{"identifiers"=>
+                                {"National id"=> demo['person']['patient']['identifiers']['National id'] }
+                               },
+                    "gender" => person_obj.gender.first ,
+                    "birth_day" => person_obj.birthdate.day ,
+                    "date_changed" => demo['person']['date_changed'] ,
+                    "names"=>
+                      {
+                        "family_name2" => demo['person']['names']['family_name2'],
+                        "family_name" => demo['person']['names']['family_name'] ,
+                        "given_name" => demo['person']['names']['given_name']
+                      },
+                    "birth_year" => person_obj.birthdate.year }
+                    }
+  end
+
+  def demographics(person_obj)
+
+    if person_obj.birthdate_estimated==1
+      birth_day = "Unknown"
+      if person_obj.birthdate.month == 7 and person_obj.birthdate.day == 1
+        birth_month = "Unknown"
+      else
+        birth_month = person_obj.birthdate.month
+      end
+    else
+      birth_month = person_obj.birthdate.month
+      birth_day = person_obj.birthdate.day
+    end
+
+    demographics = {"person" => {
+      "date_changed" => person_obj.date_changed.to_s,
+      "gender" => person_obj.gender,
+      "birth_year" => person_obj.birthdate.year,
+      "birth_month" => birth_month,
+      "birth_day" => birth_day,
+      "names" => {
+        "given_name" => person_obj.names[0].given_name,
+        "family_name" => person_obj.names[0].family_name,
+        "family_name2" => person_obj.names[0].family_name2
+      },
+      "addresses" => {
+        "county_district" => person_obj.addresses[0].county_district,
+        "city_village" => person_obj.addresses[0].city_village,
+        "address1" => person_obj.addresses[0].address1,
+        "address2" => person_obj.addresses[0].address2
+      },
+    "attributes" => {"occupation" => person_obj.get_attribute('Occupation'),
+                     "cell_phone_number" => person_obj.get_attribute('Cell Phone Number')}}}
+ 
+    if not person_obj.patient.patient_identifiers.blank? 
+      demographics["person"]["patient"] = {"identifiers" => {}}
+      person_obj.patient.patient_identifiers.each{|identifier|
+        demographics["person"]["patient"]["identifiers"][identifier.type.name] = identifier.identifier
+      }
+    end
+
+    return demographics
+  end
+
 private
 
   def find_patient

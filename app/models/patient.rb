@@ -1036,10 +1036,6 @@ EOF
     pre_art_number_id = PatientIdentifierType.find_by_name('Pre ART Number (Old format)').patient_identifier_type_id
     PatientIdentifier.identifier(self.patient_id, pre_art_number_id).identifier rescue nil
   end
-
-  def traditional_authority
-    self.person.demographics['person']['addresses']['county_district'].to_s
-  end
   
   def appointment_dates(start_date, end_date = nil)
 
