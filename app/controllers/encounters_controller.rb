@@ -300,6 +300,22 @@ class EncountersController < ApplicationController
             @phone_numbers = phone_numbers(Person.find(params[:patient_id]))
         end
         
+        if 'ART_VISIT' == (params[:encounter_type].upcase rescue '')
+            session_date = session[:datetime].to_date rescue Date.today
+
+            @allergic_to_sulphur = Observation.find(Observation.find(:first,                   
+                            :order => "obs_datetime DESC,date_created DESC",            
+                            :conditions => ["person_id = ? AND concept_id = ? 
+                            AND DATE(obs_datetime) = ?",@patient.id,
+                            ConceptName.find_by_name("Allergic to sulphur").concept_id,session_date])).to_s.strip.squish rescue ''
+
+            @obs_ans = Observation.find(Observation.find(:first,                   
+                            :order => "obs_datetime DESC,date_created DESC",            
+                            :conditions => ["person_id = ? AND concept_id = ? AND DATE(obs_datetime) = ?",
+                            @patient.id,ConceptName.find_by_name("Prescribe drugs").concept_id,session_date])).to_s.strip.squish rescue ''        
+        
+        end
+        
         if (params[:encounter_type].upcase rescue '') == 'UPDATE HIV STATUS'
             @referred_to_htc = get_todays_observation_answer_for_encounter(@patient.id, "UPDATE HIV STATUS", "Refer to HTC")
         end
