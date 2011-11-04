@@ -46,8 +46,8 @@
               <% if (@patient.reason_for_art_eligibility rescue nil) != nil && (@patient.reason_for_art_eligibility) != "" %>
                 <span value="<%= @patient.reason_for_art_eligibility rescue "" %>">Reason for Starting</span>
               <% end %>
-              <% if (@patient.hiv_status rescue nil) != nil && (@patient.hiv_status) != "" %>
-                <span value="<%= @patient.hiv_status rescue "" %>">HIV Status</span>
+              <% if (@hiv_status rescue nil) != nil && (@hiv_status) != "" %>
+                <span value="<%= @hiv_status rescue "" %>">HIV Status</span>
               <% end %>
               <% if (@patient.arv_number rescue nil) != nil && (@patient.arv_number) != " " %>
                 <span value="<%= @patient.arv_number rescue "" %>">ARV Number</span>
