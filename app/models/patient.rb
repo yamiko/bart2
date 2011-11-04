@@ -24,23 +24,6 @@ class Patient < ActiveRecord::Base
     self.encounters.each {|row| row.void(reason) }
   end
 
-  # Get the any BMI-related alert for this patient
-  def current_bmi_alert
-    weight = self.current_weight
-    height = self.current_height
-    alert = nil
-    unless weight == 0 || height == 0
-      current_bmi = (weight/(height*height)*10000).round(1);
-      if current_bmi <= 18.5 && current_bmi > 17.0
-        alert = 'Low BMI: Eligible for counseling'
-      elsif current_bmi <= 17.0
-        alert = 'Low BMI: Eligible for therapeutic feeding'
-      end
-    end
-
-    alert
-  end
-
   def summary
     #    verbiage << "Last seen #{visits.recent(1)}"
     verbiage = []
@@ -1165,42 +1148,6 @@ EOF
     return true if current_date == first_encounter_date
     return false if current_date > first_encounter_date
 
-  end
-
-  def recent_lab_orders_label(test_list)
-    lab_orders = test_list
-    labels = []
-    i = 0
-    lab_orders.each{|test|
-      observation = Observation.find(test.to_i)
-
-      accession_number = "#{observation.accession_number rescue nil}"
-
-        if accession_number != ""
-          label = 'label' + i.to_s
-          label = ZebraPrinter::Label.new(500,165)
-          label.font_size = 2
-          label.font_horizontal_multiplier = 1
-          label.font_vertical_multiplier = 1
-          label.left_margin = 300
-          label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
-          label.draw_multi_text("#{self.person.name.titleize.delete("'")} #{self.national_id_with_dashes}")
-          label.draw_multi_text("#{observation.name rescue nil} - #{accession_number rescue nil}")
-          label.draw_multi_text("#{observation.date_created.strftime("%d-%b-%Y %H:%M")}")
-          labels << label
-         end
-
-         i = i + 1
-    }
-
-      print_labels = []
-      label = 0
-      while label <= labels.size
-        print_labels << labels[label].print(1) if labels[label] != nil
-        label = label + 1
-      end
-
-      return print_labels
   end
 
 	def residence
