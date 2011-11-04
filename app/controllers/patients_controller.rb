@@ -750,8 +750,8 @@ class PatientsController < ApplicationController
                                                           ((patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) && (ProgramWorkflowState.find_state(patient_hiv_program.last.patient_states.last.state).concept.fullname != "On antiretrovirals"))
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.strip}" == 'Unknown'
     alerts << "Lab: Expecting submission of sputum" unless patient.sputum_orders_without_submission.empty?
-    alerts << "Lab: Waiting for sputum results" if patient.recent_sputum_results.empty? && !recent_sputum_submissions(patient.id).empty?
-    alerts << "Lab: Results not given to patient" if !patient.recent_sputum_results.empty? && given_sputum_results(patient.id).to_s != "Yes"
+    alerts << "Lab: Waiting for sputum results" if recent_sputum_results(patient.id).empty? && !recent_sputum_submissions(patient.id).empty?
+    alerts << "Lab: Results not given to patient" if !recent_sputum_results(patient.id).empty? && given_sputum_results(patient.id).to_s != "Yes"
     alerts << "Patient go for CD4 count testing" if cd4_count_datetime(patient) == true
     alerts << "Lab: Patient must order sputum test" if patient_need_sputum_test?(patient.id)
     alerts << "Refer to ART wing" if show_alert_refer_to_ART_wing(patient)
