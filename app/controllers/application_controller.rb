@@ -505,7 +505,7 @@ class ApplicationController < ActionController::Base
           next_task = checks_if_labs_results_are_avalable_to_be_shown(patient , session_date , task)
           return next_task unless next_task.blank?
 
-          next if patient.hiv_status.match(/Positive/i)
+          next if patient_hiv_status(patient).match(/Positive/i)
           if not patient.patient_programs.blank?
             next if patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') 
           end
@@ -572,7 +572,7 @@ class ApplicationController < ActionController::Base
           end
         when 'VITALS' 
 
-          if not patient.hiv_status.match(/Positive/i) and not patient.tb_status.match(/treatment/i)
+          if not patient_hiv_status(patient).match(/Positive/i) and not patient.tb_status.match(/treatment/i)
             next
           end 
 
@@ -582,9 +582,9 @@ class ApplicationController < ActionController::Base
 
           if not patient.tb_status.match(/treatment/i) and not tb_reception_attributes.include?('Any need to see a clinician: Yes') 
             next
-          end if not patient.hiv_status.match(/Positive/i) 
+          end if not patient_hiv_status(patient).match(/Positive/i)
 
-          if patient.tb_status.match(/treatment/i) and not patient.hiv_status.match(/Positive/i)
+          if patient.tb_status.match(/treatment/i) and not patient_hiv_status(patient).match(/Positive/i)
             next
           end if not first_vitals.blank?
 
@@ -781,7 +781,7 @@ class ApplicationController < ActionController::Base
             return task
           end 
         when 'ART_INITIAL'
-          next unless patient.hiv_status.match(/Positive/i)
+          next unless patient_hiv_status(patient).match(/Positive/i)
         
           enrolled_in_hiv_program = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?",patient.id, 
             ConceptName.find_by_name("Patient enrolled in IMB HIV program").concept_id]).value_coded).concept_names.map{|c|c.name}[0].upcase rescue nil
@@ -814,7 +814,7 @@ class ApplicationController < ActionController::Base
           next if patient.patient_programs.blank?
           next if not patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') 
 
-          next unless patient.hiv_status.match(/Positive/i)
+          next unless patient_hiv_status(patient).match(/Positive/i)
           hiv_staging = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
@@ -855,7 +855,7 @@ class ApplicationController < ActionController::Base
             return task
           end
         when 'TB VISIT'
-          if patient.child? or patient.hiv_status.match(/Positive/i)
+          if patient.child? or patient_hiv_status(patient).match(/Positive/i)
             clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
@@ -1675,7 +1675,7 @@ private
       return task
     end
 
-    return if patient.tb_status.match(/treatment/i) and not patient.hiv_status.match(/Positive/i)
+    return if patient.tb_status.match(/treatment/i) and not patient_hiv_status(patient).match(/Positive/i)
 
     vitals = Encounter.find(:first,:order => "encounter_datetime DESC",
                             :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
@@ -1693,7 +1693,7 @@ private
   end
   
   def need_art_enrollment(task,patient,location,session_date,user_selected_activities,reason_for_art)
-    return unless patient.hiv_status.match(/Positive/i)
+    return unless patient_hiv_status(patient).match(/Positive/i)
 
     enrolled_in_hiv_program = Concept.find(Observation.find(:first,
       :order => "obs_datetime DESC,date_created DESC", 
@@ -1824,6 +1824,30 @@ private
     Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?) OR value_text in (?))", patient_id, ConceptName.find_by_name('Tests ordered').concept_id, sputum_concept_ids, sputum_concept_names], :order => "obs_datetime desc", :limit => 3)
   end
 
-  
+  def hiv_test_date(patient_id)
+    test_date = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", patient_id, ConceptName.find_by_name("HIV test date").concept_id]).value_datetime rescue nil
+    return test_date
+  end
+
+  def months_since_last_hiv_test(patient_id)
+    #this can be done better
+    session_date = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", patient_id, ConceptName.find_by_name("HIV test date").concept_id]).obs_datetime rescue Date.today
+
+    today =  session_date
+    hiv_test_date = hiv_test_date(patient_id)
+    months = (today.year * 12 + today.month) - (hiv_test_date.year * 12 + hiv_test_date.month) rescue nil
+    return months
+  end
+
+  def patient_hiv_status(patient)
+    status = Concept.find(Observation.find(:first,
+    :order => "obs_datetime DESC,date_created DESC",
+    :conditions => ["value_coded IS NOT NULL AND person_id = ? AND concept_id = ?", patient.id,
+    ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
+    if status.upcase == 'UNKNOWN'
+      return patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') ? 'Positive' : status
+    end
+    return status
+  end
   
 end
