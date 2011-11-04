@@ -982,7 +982,7 @@ class EncountersController < ApplicationController
   end
 
   def sputum_results_not_given(patient_id)
-    recent_sputum_results.collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", patient_id, Concept.find_by_name("Lab test result").concept_id]).map{|o| o.accession_number}.include?(order.accession_number)}.compact
+    recent_sputum_results(patient_id).collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", patient_id, Concept.find_by_name("Lab test result").concept_id]).map{|o| o.accession_number}.include?(order.accession_number)}.compact
   end
 
 end
