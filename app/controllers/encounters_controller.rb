@@ -357,7 +357,7 @@ class EncountersController < ApplicationController
 		@sputum_results_not_given = Hash.new()
 		@art_first_visit = is_first_art_visit(@patient.id)
 		@tb_first_registration = is_first_tb_registration(@patient.id)
-		@tb_programs_state = uncompleted_tb_programs_status(@patient.id)
+		@tb_programs_state = uncompleted_tb_programs_status(@patient)
 		@had_tb_treatment_before = ever_received_tb_treatment(@patient.id)
 		@any_previous_tb_programs = any_previous_tb_programs(@patient.id)
 
@@ -615,22 +615,21 @@ class EncountersController < ApplicationController
 		return false
 	end
 
-	def uncompleted_tb_programs_status(patient_id)
-		@patient =Patient.find(patient_id)
+	def uncompleted_tb_programs_status(patient)
 
-		@tb_program_state = ''
+		tb_program_state = nil
 
-		@tb_programs = @patient.patient_programs.not_completed.in_programs('MDR-TB program') 
-		@tb_programs = @patient.patient_programs.not_completed.in_programs('XDR-TB program') if @tb_programs.blank?
-		@tb_programs = @patient.patient_programs.not_completed.in_programs('TB PROGRAM') if @tb_programs.blank?
+		tb_programs = patient.patient_programs.not_completed.in_programs('MDR-TB program') 
+		tb_programs = patient.patient_programs.not_completed.in_programs('XDR-TB program') if tb_programs.blank?
+		tb_programs = patient.patient_programs.not_completed.in_programs('TB PROGRAM') if tb_programs.blank?
 
-		unless @tb_programs.blank?
-			@tb_programs.each{|program|
-				@tb_status_state = program.patient_states.last.program_workflow_state.concept.fullname
+		unless tb_programs.blank?
+			tb_programs.each{|program|
+				tb_status_state = program.patient_states.last.program_workflow_state.concept.fullname
 			}
 		end
 
-		return @tb_program_state
+		return tb_program_state
 	end
 
 	def recent_lab_results(patient_id, session_date = Date.today)
