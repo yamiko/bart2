@@ -330,6 +330,7 @@ class EncountersController < ApplicationController
 		@current_user_role = self.current_user_role
 		@tb_patient = @patient.tb_patient?
 		@art_patient = @patient.art_patient?
+    @recent_lab_results = patient_recent_lab_results(@patient.id)
 
 		use_regimen_short_names = GlobalProperty.find_by_property("use_regimen_short_names").property_value rescue "false"
 		show_other_regimen = GlobalProperty.find_by_property("show_other_regimen").property_value rescue 'false'
@@ -941,6 +942,12 @@ class EncountersController < ApplicationController
       ['Sputum Submission', 'sputum_submission'],
       ['Lab Results', 'lab_results'],
     ]
+  end
+
+  #originally recent_lab_results. Changed to portray the usage
+  def patient_recent_lab_results(patient_id)
+   Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("LAB RESULTS").id,patient_id]).observations.map{|o| o } rescue nil
   end
 
 end

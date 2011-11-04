@@ -674,7 +674,7 @@ class PatientsController < ApplicationController
 
   def recent_lab_orders
     patient = Patient.find(params[:patient_id])
-    @lab_order_labels = patient.get_recent_lab_orders_label
+    @lab_order_labels = get_recent_lab_orders_label(patient.id)
     @patient_id = params[:patient_id]
   end
 
@@ -749,7 +749,7 @@ class PatientsController < ApplicationController
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.strip}" == 'Unknown'
     alerts << "Lab: Expecting submission of sputum" unless patient.sputum_orders_without_submission.empty?
     alerts << "Lab: Waiting for sputum results" if patient.recent_sputum_results.empty? && !patient.recent_sputum_submissions.empty?
-    alerts << "Lab: Results not given to patient" if !patient.recent_sputum_results.empty? && patient.given_sputum_results.to_s != "Yes"
+    alerts << "Lab: Results not given to patient" if !patient.recent_sputum_results.empty? && given_sputum_results(patient.id).to_s != "Yes"
     alerts << "Patient go for CD4 count testing" if cd4_count_datetime(patient) == true
     alerts << "Lab: Patient must order sputum test" if patient_need_sputum_test?(patient.id)
     alerts << "Refer to ART wing" if show_alert_refer_to_ART_wing(patient)
@@ -875,6 +875,28 @@ class PatientsController < ApplicationController
       :conditions => ["person_id = ? AND concept_id IN (?) AND date_created < ?",
         patient_id, sputum_concept_ids, registration_date],
       :order => "obs_datetime desc", :limit => 3)
+  end
+
+  def given_sputum_results(patient_id)
+   @given_results = []
+    Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("GIVE LAB RESULTS").id,patient_id]).observations.map{|o| @given_results << o.answer_string.to_s.strip if o.to_s.include?("Laboratory results given to patient")} rescue []
+ end
+
+  def get_recent_lab_orders_label(patient_id)
+    encounters = Encounter.find(:all,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("LAB ORDERS").id,patient_id]).last(5)
+      observations = []
+
+    encounters.each{|encounter|
+      encounter.observations.each{|observation|
+       unless observation['concept_id'] == Concept.find_by_name("Workstation location").concept_id
+          observations << ["#{ConceptName.find_by_concept_id(observation['value_coded'].to_i).name} : #{observation['date_created'].strftime("%Y-%m-%d") }",
+                            "#{observation['obs_id']}"]
+       end
+      }
+    }
+    return observations
   end
     
   private
