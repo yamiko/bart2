@@ -330,7 +330,7 @@ class EncountersController < ApplicationController
 			EncounterType.find_by_name("TB VISIT").id,@patient.id]).observations.map{|o|
 				o.answer_string if o.to_s.include?("Transfer out to")} rescue nil
 
-		@recent_sputum_results = @patient.recent_sputum_results rescue nil
+		@recent_sputum_results = recent_sputum_results(@patient.id) rescue nil
     @recent_sputum_submissions = recent_sputum_submissions(@patient_id) rescue nil
 
 		@continue_treatment_at_site = []
@@ -380,7 +380,7 @@ class EncountersController < ApplicationController
 
 		@patient.sputum_orders_without_submission.each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 		sputum_submissons_with_no_results(@patient.id).each{|order| @sputum_submission_waiting_results[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
-		@patient.sputum_results_not_given.each{|order| @sputum_results_not_given[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
+		sputum_results_not_given(@patient.id).each{|order| @sputum_results_not_given[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 
 		@tb_status = recent_lab_results(@patient.id, session_date)
 
@@ -979,6 +979,10 @@ class EncountersController < ApplicationController
                        accessor_history.size == 0
                     }
     sputums_array
+  end
+
+  def sputum_results_not_given(patient_id)
+    recent_sputum_results.collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", patient_id, Concept.find_by_name("Lab test result").concept_id]).map{|o| o.accession_number}.include?(order.accession_number)}.compact
   end
 
 end
