@@ -245,7 +245,7 @@ class PatientsController < ApplicationController
   end
   
   def national_id_label
-    print_string = @patient.national_id_label rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a national id label for that patient")
+    print_string = patient_national_id_label(@patient) rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a national id label for that patient")
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", :disposition => "inline")
   end
 
@@ -267,7 +267,7 @@ class PatientsController < ApplicationController
  
   def filing_number_and_national_id
     patient = Patient.find(params[:patient_id])
-    label_commands = patient.national_id_label + patient.filing_number_label
+    label_commands = patient_national_id_label(patient) + patient.filing_number_label
 
     send_data(label_commands,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbl", :disposition => "inline")
   end
@@ -659,7 +659,7 @@ class PatientsController < ApplicationController
     patient = Patient.find(params[:id])
     lab_orders_label = params[:lab_tests].split(":")
 
-    label_commands = patient.recent_lab_orders_label(lab_orders_label)
+    label_commands = patient.recent_lab_orders_label(lab_orders_label, patient)
     send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbs", :disposition => "inline")
   end
 
@@ -735,7 +735,7 @@ class PatientsController < ApplicationController
 
     # BMI alerts
     if patient.person.age >= 15
-      bmi_alert = patient.current_bmi_alert
+      bmi_alert = current_bmi_alert(patient.current_weight, patient.current_height)
       alerts << bmi_alert if bmi_alert
     end
     
@@ -750,7 +750,7 @@ class PatientsController < ApplicationController
                                                           ((patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) && (ProgramWorkflowState.find_state(patient_hiv_program.last.patient_states.last.state).concept.fullname != "On antiretrovirals"))
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.strip}" == 'Unknown'
     alerts << "Lab: Expecting submission of sputum" unless patient.sputum_orders_without_submission.empty?
-    alerts << "Lab: Waiting for sputum results" if patient.recent_sputum_results.empty? && !patient.recent_sputum_submissions.empty?
+    alerts << "Lab: Waiting for sputum results" if patient.recent_sputum_results.empty? && !recent_sputum_submissions(patient.id).empty?
     alerts << "Lab: Results not given to patient" if !patient.recent_sputum_results.empty? && given_sputum_results(patient.id).to_s != "Yes"
     alerts << "Patient go for CD4 count testing" if cd4_count_datetime(patient) == true
     alerts << "Lab: Patient must order sputum test" if patient_need_sputum_test?(patient.id)
@@ -883,7 +883,7 @@ class PatientsController < ApplicationController
    @given_results = []
     Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("GIVE LAB RESULTS").id,patient_id]).observations.map{|o| @given_results << o.answer_string.to_s.strip if o.to_s.include?("Laboratory results given to patient")} rescue []
- end
+  end
 
   def get_recent_lab_orders_label(patient_id)
     encounters = Encounter.find(:all,:conditions =>["encounter_type = ? and patient_id = ?",
@@ -899,6 +899,59 @@ class PatientsController < ApplicationController
       }
     }
     return observations
+  end
+
+  def recent_lab_orders_label(test_list, patient)
+    lab_orders = test_list
+    labels = []
+    i = 0
+    lab_orders.each{|test|
+      observation = Observation.find(test.to_i)
+
+      accession_number = "#{observation.accession_number rescue nil}"
+
+        if accession_number != ""
+          label = 'label' + i.to_s
+          label = ZebraPrinter::Label.new(500,165)
+          label.font_size = 2
+          label.font_horizontal_multiplier = 1
+          label.font_vertical_multiplier = 1
+          label.left_margin = 300
+          label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
+          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient.national_id_with_dashes}")
+          label.draw_multi_text("#{observation.name rescue nil} - #{accession_number rescue nil}")
+          label.draw_multi_text("#{observation.date_created.strftime("%d-%b-%Y %H:%M")}")
+          labels << label
+         end
+
+         i = i + 1
+    }
+
+      print_labels = []
+      label = 0
+      while label <= labels.size
+        print_labels << labels[label].print(1) if labels[label] != nil
+        label = label + 1
+      end
+
+      return print_labels
+  end
+
+  # Get the any BMI-related alert for this patient
+  def current_bmi_alert(patient_weight, patient_height)
+    weight = patient_weight
+    height = patient_height
+    alert = nil
+    unless weight == 0 || height == 0
+      current_bmi = (weight/(height*height)*10000).round(1);
+      if current_bmi <= 18.5 && current_bmi > 17.0
+        alert = 'Low BMI: Eligible for counseling'
+      elsif current_bmi <= 17.0
+        alert = 'Low BMI: Eligible for therapeutic feeding'
+      end
+    end
+
+    alert
   end
     
   private

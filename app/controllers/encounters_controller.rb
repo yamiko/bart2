@@ -315,6 +315,7 @@ class EncountersController < ApplicationController
 				o.answer_string if o.to_s.include?("Transfer out to")} rescue nil
 
 		@recent_sputum_results = @patient.recent_sputum_results rescue nil
+    @recent_sputum_submissions = recent_sputum_submissions(@patient_id) rescue nil
 
 		@continue_treatment_at_site = []
 		Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ? AND DATE(encounter_datetime) = ?",
@@ -362,7 +363,7 @@ class EncountersController < ApplicationController
 		@any_previous_tb_programs = any_previous_tb_programs(@patient.id)
 
 		@patient.sputum_orders_without_submission.each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
-		@patient.sputum_submissons_with_no_results.each{|order| @sputum_submission_waiting_results[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
+		sputum_submissons_with_no_results(@patient.id).each{|order| @sputum_submission_waiting_results[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 		@patient.sputum_results_not_given.each{|order| @sputum_results_not_given[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 
 		@tb_status = recent_lab_results(@patient.id, session_date)
@@ -947,6 +948,21 @@ class EncountersController < ApplicationController
   def patient_recent_lab_results(patient_id)
    Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("LAB RESULTS").id,patient_id]).observations.map{|o| o } rescue nil
+  end
+
+  def sputum_submissons_with_no_results(patient_id)
+    sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)", "Culture(1st)", "Culture(2nd)"]
+    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
+    sputums_array = Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?) OR value_text in (?))", patient_id, ConceptName.find_by_name('Tests ordered').concept_id, sputum_concept_ids, sputum_concept_names], :order => "obs_datetime desc", :limit => 3)
+
+    results_concept_name = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
+    sputum_results_id = ConceptName.find(:all, :conditions => ["name IN (?)", results_concept_name ]).map(&:concept_id)
+
+    sputums_array = sputums_array.select { |order|
+                       accessor_history = Observation.find(:all, :conditions => ["person_id = ? AND accession_number  = (?) AND voided = 0 AND concept_id IN (?)",  patient_id, order.accession_number, sputum_results_id]);
+                       accessor_history.size == 0
+                    }
+    sputums_array
   end
 
 end

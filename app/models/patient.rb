@@ -24,23 +24,6 @@ class Patient < ActiveRecord::Base
     self.encounters.each {|row| row.void(reason) }
   end
 
-  # Get the any BMI-related alert for this patient
-  def current_bmi_alert
-    weight = self.current_weight
-    height = self.current_height
-    alert = nil
-    unless weight == 0 || height == 0
-      current_bmi = (weight/(height*height)*10000).round(1);
-      if current_bmi <= 18.5 && current_bmi > 17.0
-        alert = 'Low BMI: Eligible for counseling'
-      elsif current_bmi <= 17.0
-        alert = 'Low BMI: Eligible for therapeutic feeding'
-      end
-    end
-
-    alert
-  end
-
   def summary
     #    verbiage << "Last seen #{visits.recent(1)}"
     verbiage = []
@@ -200,22 +183,6 @@ class Patient < ActiveRecord::Base
     end
     return "#{label.print(1)} #{label2.print(1)} #{label3.print(1)}" if !extra_lines.blank?
     return "#{label.print(1)} #{label2.print(1)}"
-  end
-
-  def national_id_label
-    return unless self.national_id
-    sex =  self.person.gender.match(/F/i) ? "(F)" : "(M)"
-    address = self.person.address.strip[0..24].humanize rescue ""
-    label = ZebraPrinter::StandardLabel.new
-    label.font_size = 2
-    label.font_horizontal_multiplier = 2
-    label.font_vertical_multiplier = 2
-    label.left_margin = 50
-    label.draw_barcode(50,180,0,1,5,15,120,false,"#{self.national_id}")
-    label.draw_multi_text("#{self.person.name.titleize}")
-    label.draw_multi_text("#{self.national_id_with_dashes} #{self.person.birthdate_formatted}#{sex}")
-    label.draw_multi_text("#{address}")
-    label.print(1)
   end
 
   def transfer_out_label
@@ -1126,27 +1093,6 @@ EOF
     self.recent_sputum_results.collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", self.id, Concept.find_by_name("Lab test result").concept_id]).map{|o| o.accession_number}.include?(order.accession_number)}.compact 
   end
 
-  def sputum_submissons_with_no_results
-    sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)", "Culture(1st)", "Culture(2nd)"]
-    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
-    sputums_array = Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?) OR value_text in (?))", self.id, ConceptName.find_by_name('Tests ordered').concept_id, sputum_concept_ids, sputum_concept_names], :order => "obs_datetime desc", :limit => 3)
-
-    results_concept_name = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
-    sputum_results_id = ConceptName.find(:all, :conditions => ["name IN (?)", results_concept_name ]).map(&:concept_id)
-
-    sputums_array = sputums_array.select { |order|
-                       accessor_history = Observation.find(:all, :conditions => ["person_id = ? AND accession_number  = (?) AND voided = 0 AND concept_id IN (?)",  self.id, order.accession_number, sputum_results_id]);
-                       accessor_history.size == 0
-                    }
-    sputums_array
-  end
-
-  def recent_sputum_submissions
-    sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)", "Culture(1st)", "Culture(2nd)"]
-    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
-    Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?) OR value_text in (?))", self.id, ConceptName.find_by_name('Sputum submission').concept_id, sputum_concept_ids, sputum_concept_names], :order => "obs_datetime desc", :limit => 3) rescue []
-  end
-
   def is_first_visit?
     clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",
                           'ART ADHERENCE','DISPENSING','ART_INITIAL', "LAB ORDERS",
@@ -1165,42 +1111,6 @@ EOF
     return true if current_date == first_encounter_date
     return false if current_date > first_encounter_date
 
-  end
-
-  def recent_lab_orders_label(test_list)
-    lab_orders = test_list
-    labels = []
-    i = 0
-    lab_orders.each{|test|
-      observation = Observation.find(test.to_i)
-
-      accession_number = "#{observation.accession_number rescue nil}"
-
-        if accession_number != ""
-          label = 'label' + i.to_s
-          label = ZebraPrinter::Label.new(500,165)
-          label.font_size = 2
-          label.font_horizontal_multiplier = 1
-          label.font_vertical_multiplier = 1
-          label.left_margin = 300
-          label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
-          label.draw_multi_text("#{self.person.name.titleize.delete("'")} #{self.national_id_with_dashes}")
-          label.draw_multi_text("#{observation.name rescue nil} - #{accession_number rescue nil}")
-          label.draw_multi_text("#{observation.date_created.strftime("%d-%b-%Y %H:%M")}")
-          labels << label
-         end
-
-         i = i + 1
-    }
-
-      print_labels = []
-      label = 0
-      while label <= labels.size
-        print_labels << labels[label].print(1) if labels[label] != nil
-        label = label + 1
-      end
-
-      return print_labels
   end
 
 	def residence
