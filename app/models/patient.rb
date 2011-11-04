@@ -1029,33 +1029,6 @@ EOF
     ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
   end
   
-  def hiv_status
-    status = Concept.find(Observation.find(:first, 
-    :order => "obs_datetime DESC,date_created DESC",
-    :conditions => ["value_coded IS NOT NULL AND person_id = ? AND concept_id = ?", self.id, 
-    ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
-    if status.upcase == 'UNKNOWN'
-      return self.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') ? 'Positive' : status
-    end
-    return status
-  end
-
-  def hiv_test_date
-    test_date = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV test date").concept_id]).value_datetime rescue nil
-    return test_date
-  end
-
-  def months_since_last_hiv_test
-    #this can be done better
-    session_date = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?", self.id, ConceptName.find_by_name("HIV test date").concept_id]).obs_datetime rescue Date.today
-
-    today =  session_date
-    hiv_test_date = self.hiv_test_date
-    months = (today.year * 12 + today.month) - (hiv_test_date.year * 12 + hiv_test_date.month) rescue nil
-    return months
-  end
-  
-  
 =begin # could not find where it is being used DFFI
   def is_first_visit?
     clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",
