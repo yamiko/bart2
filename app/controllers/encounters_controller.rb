@@ -327,7 +327,7 @@ class EncountersController < ApplicationController
 
 		@ipt_contacts = @patient.tb_contacts.collect{|person| person unless person.age > 6}.compact rescue []
 		@select_options = select_options
-		@months_since_last_hiv_test = @patient.months_since_last_hiv_test
+		@months_since_last_hiv_test = months_since_last_hiv_test(@patient.id)
 		@current_user_role = self.current_user_role
 		@tb_patient = tb_patient?(@patient)
 		@art_patient = @patient.art_patient?
@@ -344,7 +344,7 @@ class EncountersController < ApplicationController
 		@answer_array = regimen_options(hiv_program.regimens, @patient.person.age)
 		@answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 
-		@hiv_status = @patient.hiv_status
+		@hiv_status = patient_hiv_status(@patient)
 		@hiv_test_date = @patient.hiv_test_date
 		@lab_activities = lab_activities
 		# @tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
