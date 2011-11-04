@@ -163,7 +163,7 @@
 		 	:helpText => "TB type / TB susceptibility"
 		 	} %>
 
-	<%if @patient.hiv_status.upcase == 'POSITIVE' and not 
+	<%if @hiv_status.upcase == 'POSITIVE' and not
       @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')%>
     <%= touch_yes_no_tag "Continue treatment", @patient, nil,
 		  {	:id => "continue_treatment",
