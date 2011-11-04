@@ -24,6 +24,7 @@ class PatientsController < ApplicationController
         render :template => 'dashboards/opdtreatment_dashboard', :layout => false
      else
         @task = main_next_task(Location.current_location,@patient,session_date)
+        @hiv_status = patient_hiv_status(@patient)
         render :template => 'patients/index', :layout => false
      end
   end
@@ -515,6 +516,8 @@ class PatientsController < ApplicationController
     @date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
     @task = main_next_task(Location.current_location,@patient,session_date)
     
+    @hiv_status = patient_hiv_status(@patient)
+
     render :template => 'patients/index', :layout => false
   end
 
@@ -744,8 +747,8 @@ class PatientsController < ApplicationController
 
     patient_hiv_program = PatientProgram.find(:all,:conditions =>["voided = 0 AND patient_id = ? AND program_id = ? AND location_id = ?", patient.id , program_id, location_id])
 
-    hiv_status = patient.hiv_status
-    alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.strip}" == 'Negative' && patient.months_since_last_hiv_test > 3)
+    hiv_status = patient_hiv_status(patient)
+    alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.strip}" == 'Negative' && months_since_last_hiv_test(patient.id) > 3)
     alerts << "Patient not on ART" if (("#{hiv_status.strip}" == 'Positive') && !patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) ||
                                                           ((patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) && (ProgramWorkflowState.find_state(patient_hiv_program.last.patient_states.last.state).concept.fullname != "On antiretrovirals"))
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.strip}" == 'Unknown'
@@ -802,7 +805,7 @@ class PatientsController < ApplicationController
             end
         end
 
-        if refer_to_x_ray.upcase == 'NO' && does_tb_status_obs_exist.to_s == false.to_s && patient.hiv_status.upcase == 'POSITIVE'
+        if refer_to_x_ray.upcase == 'NO' && does_tb_status_obs_exist.to_s == false.to_s && patient_hiv_status(patient).upcase == 'POSITIVE'
            show_alert = true
         end rescue nil
         show_alert
