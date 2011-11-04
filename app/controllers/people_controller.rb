@@ -82,6 +82,8 @@ class PeopleController < ApplicationController
   end
   
   def confirm
+    session_date = session[:datetime] || Date.today
+    
     if request.post?
       redirect_to search_complete_url(params[:found_person_id], params[:relation]) and return
     end
