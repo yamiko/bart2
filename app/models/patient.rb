@@ -185,22 +185,6 @@ class Patient < ActiveRecord::Base
     return "#{label.print(1)} #{label2.print(1)}"
   end
 
-  def national_id_label
-    return unless self.national_id
-    sex =  self.person.gender.match(/F/i) ? "(F)" : "(M)"
-    address = self.person.address.strip[0..24].humanize rescue ""
-    label = ZebraPrinter::StandardLabel.new
-    label.font_size = 2
-    label.font_horizontal_multiplier = 2
-    label.font_vertical_multiplier = 2
-    label.left_margin = 50
-    label.draw_barcode(50,180,0,1,5,15,120,false,"#{self.national_id}")
-    label.draw_multi_text("#{self.person.name.titleize}")
-    label.draw_multi_text("#{self.national_id_with_dashes} #{self.person.birthdate_formatted}#{sex}")
-    label.draw_multi_text("#{address}")
-    label.print(1)
-  end
-
   def transfer_out_label
     demographics = Mastercard.demographics(self)
     demographics_str = []
