@@ -1,15 +1,15 @@
 class LocationController < ApplicationController
     def management
-        render :layout => "menu"
+      render :layout => "menu"
     end
     
     def new
-        @act = 'create'
+      @act = 'create'
     end
     
     def search
-            @names = Location.search(params[:search_string].to_s, params[:act].to_s)
-            render :text => "<li>" + @names.map{|n| n } .join("</li><li>") + "</li>"           
+      @names = Location.search(params[:search_string].to_s, params[:act].to_s)
+      render :text => "<li>" + @names.map{|n| n } .join("</li><li>") + "</li>"           
     end
 
     def create
