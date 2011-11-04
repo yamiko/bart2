@@ -62,7 +62,7 @@
                 <span value="<%= @patient.pre_art_number rescue "" %>">Pre-ART Number</span>
               <% end 
                  session_date = session[:datetime].to_date rescue Date.today
-                 task = Task.next_task(Location.current_location,@patient,session_date)
+                 task = @task
                  task_name = (task.encounter_type || 'NONE').upcase rescue 'NONE'
               %>
             </div>

@@ -23,6 +23,7 @@ class PatientsController < ApplicationController
      if @location.downcase == "outpatient" || params[:source]== 'opd'
         render :template => 'dashboards/opdtreatment_dashboard', :layout => false
      else
+        @task = main_next_task(Location.current_location,@patient,session_date)
         render :template => 'patients/index', :layout => false
      end
   end
@@ -130,8 +131,8 @@ class PatientsController < ApplicationController
     	redirect_to :'clinic'
     	return
     else
-      next_form = next_task(@patient)
-      redirect_to next_form and return if next_form.match(/Reception/i)
+      next_form_to = next_task(@patient)
+      redirect_to next_form_to and return if next_form.match(/Reception/i)
 		  @relationships = @patient.relationships rescue []
 		  @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
 		  @restricted.each do |restriction|
@@ -512,7 +513,8 @@ class PatientsController < ApplicationController
     end
 
     @date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
-
+    @task = main_next_task(Location.current_location,@patient,session_date)
+    
     render :template => 'patients/index', :layout => false
   end
 

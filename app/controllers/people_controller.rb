@@ -82,13 +82,13 @@ class PeopleController < ApplicationController
   end
   
   def confirm
-
     if request.post?
       redirect_to search_complete_url(params[:found_person_id], params[:relation]) and return
     end
     @found_person_id = params[:found_person_id] 
     @relation = params[:relation]
     @person = Person.find(@found_person_id) rescue nil
+    @task = main_next_task(Location.current_location,@person.patient,session_date.to_date)
     render :layout => 'menu'
   end
 
