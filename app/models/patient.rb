@@ -1055,34 +1055,8 @@ EOF
     return months
   end
   
-  def tb_patient?
-    return self.given_tb_medication_before?
-  end
   
-  def given_tb_medication_before?
-    self.orders.each{|order|
-      drug_order = order.drug_order
-      drug_order_quantity = drug_order.quantity
-      if drug_order_quantity == nil
-        drug_order_quantity = 0
-      end
-      next if drug_order == nil
-      next unless drug_order_quantity > 0
-      return true if drug_order.drug.tb_medication?
-    }
-    false
-  end
-  
-  def recent_sputum_orders
-    sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)", "Culture(1st)", "Culture(2nd)"]
-    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
-    Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?) OR value_text in (?))", self.id, ConceptName.find_by_name('Tests ordered').concept_id, sputum_concept_ids, sputum_concept_names], :order => "obs_datetime desc", :limit => 3)
-  end
-
-  def sputum_orders_without_submission
-    self.recent_sputum_orders.collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", self.id, Concept.find_by_name("Sputum submission")]).map{|o| o.accession_number}.include?(order.accession_number)}.compact rescue []
-  end
-  
+=begin # could not find where it is being used DFFI
   def is_first_visit?
     clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",
                           'ART ADHERENCE','DISPENSING','ART_INITIAL', "LAB ORDERS",
@@ -1102,7 +1076,7 @@ EOF
     return false if current_date > first_encounter_date
 
   end
-
+=end
 	def residence
 		patient = Person.find(self.id)
 		return patient.person.addresses.first.city_village
@@ -1117,10 +1091,11 @@ EOF
     return self.age <= 14 unless self.age.nil?
     return false
   end
-
+=begin # could not find a place where the method below is being used, therefore just disabled it
+for further investigation
   def sputum_results_given
    given_results = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("GIVE LAB RESULTS").id,self.id]).observations.map{|o| o if self.recent_sputum_orders.collect{|observation| observation.accession_number}.include?(o.accession_number)} rescue []
   end
-  
+=end
 end

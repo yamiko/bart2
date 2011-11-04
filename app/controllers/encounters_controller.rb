@@ -345,7 +345,7 @@ class EncountersController < ApplicationController
 		@select_options = select_options
 		@months_since_last_hiv_test = @patient.months_since_last_hiv_test
 		@current_user_role = self.current_user_role
-		@tb_patient = @patient.tb_patient?
+		@tb_patient = tb_patient?(@patient)
 		@art_patient = @patient.art_patient?
     @recent_lab_results = patient_recent_lab_results(@patient.id)
 
@@ -378,7 +378,7 @@ class EncountersController < ApplicationController
 		@had_tb_treatment_before = ever_received_tb_treatment(@patient.id)
 		@any_previous_tb_programs = any_previous_tb_programs(@patient.id)
 
-		@patient.sputum_orders_without_submission.each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
+		sputum_orders_without_submission(@patient.id).each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 		sputum_submissons_with_no_results(@patient.id).each{|order| @sputum_submission_waiting_results[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 		sputum_results_not_given(@patient.id).each{|order| @sputum_results_not_given[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 
@@ -983,6 +983,24 @@ class EncountersController < ApplicationController
 
   def sputum_results_not_given(patient_id)
     recent_sputum_results(patient_id).collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", patient_id, Concept.find_by_name("Lab test result").concept_id]).map{|o| o.accession_number}.include?(order.accession_number)}.compact
+  end
+
+  def tb_patient?(patient)
+    return given_tb_medication_before?(patient)
+  end
+
+  def given_tb_medication_before?(patient)
+    patient.orders.each{|order|
+      drug_order = order.drug_order
+      drug_order_quantity = drug_order.quantity
+      if drug_order_quantity == nil
+        drug_order_quantity = 0
+      end
+      next if drug_order == nil
+      next unless drug_order_quantity > 0
+      return true if drug_order.drug.tb_medication?
+    }
+    false
   end
 
 end

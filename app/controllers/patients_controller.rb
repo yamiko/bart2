@@ -749,7 +749,7 @@ class PatientsController < ApplicationController
     alerts << "Patient not on ART" if (("#{hiv_status.strip}" == 'Positive') && !patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) ||
                                                           ((patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) && (ProgramWorkflowState.find_state(patient_hiv_program.last.patient_states.last.state).concept.fullname != "On antiretrovirals"))
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.strip}" == 'Unknown'
-    alerts << "Lab: Expecting submission of sputum" unless patient.sputum_orders_without_submission.empty?
+    alerts << "Lab: Expecting submission of sputum" unless sputum_orders_without_submission(patient.id).empty?
     alerts << "Lab: Waiting for sputum results" if recent_sputum_results(patient.id).empty? && !recent_sputum_submissions(patient.id).empty?
     alerts << "Lab: Results not given to patient" if !recent_sputum_results(patient.id).empty? && given_sputum_results(patient.id).to_s != "Yes"
     alerts << "Patient go for CD4 count testing" if cd4_count_datetime(patient) == true
