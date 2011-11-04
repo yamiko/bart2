@@ -1785,5 +1785,21 @@ private
       return task
     end if prescribe_drugs
   end
+
+  def patient_national_id_label(patient)
+    return unless patient.national_id
+    sex =  patient.person.gender.match(/F/i) ? "(F)" : "(M)"
+    address = patient.person.address.strip[0..24].humanize rescue ""
+    label = ZebraPrinter::StandardLabel.new
+    label.font_size = 2
+    label.font_horizontal_multiplier = 2
+    label.font_vertical_multiplier = 2
+    label.left_margin = 50
+    label.draw_barcode(50,180,0,1,5,15,120,false,"#{patient.national_id}")
+    label.draw_multi_text("#{patient.person.name.titleize}")
+    label.draw_multi_text("#{patient.national_id_with_dashes} #{patient.person.birthdate_formatted}#{sex}")
+    label.draw_multi_text("#{address}")
+    label.print(1)
+  end
   
 end
