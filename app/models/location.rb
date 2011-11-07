@@ -44,16 +44,4 @@ class Location < ActiveRecord::Base
   def self.current_arv_code
     current_health_center.neighborhood_cell rescue nil
   end
-  
-  def location_label
-    return unless self.location_id
-    label = ZebraPrinter::StandardLabel.new
-    label.font_size = 2
-    label.font_horizontal_multiplier = 2
-    label.font_vertical_multiplier = 2
-    label.left_margin = 50
-    label.draw_barcode(50,180,0,1,5,15,120,false,"#{self.location_id}")
-    label.draw_multi_text("#{self.name}")
-    label.print(1)
-  end
 end
