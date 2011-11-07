@@ -812,10 +812,6 @@ EOF
 		return patient.age
 	end 
 
-  def child?
-    return self.age <= 14 unless self.age.nil?
-    return false
-  end
 =begin # could not find a place where the method below is being used, therefore just disabled it
 # for further investigation
   def sputum_results_given
