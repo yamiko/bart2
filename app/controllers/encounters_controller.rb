@@ -563,8 +563,8 @@ class EncountersController < ApplicationController
 
 		regimen_types.collect{|regimen_type|
 			Concept.find_by_name(regimen_type).concept_members.flatten.collect{|member|
-				next if member.concept.fullname.include?("Triomune Baby") and !options[:patient].child?
-				next if member.concept.fullname.include?("Triomune Junior") and !options[:patient].child?
+				next if member.concept.fullname.include?("Triomune Baby") and !patient_is_child?(options[:patient])
+				next if member.concept.fullname.include?("Triomune Junior") and !patient_is_child?(options[:patient])
 				if options[:use_short_names]
 					include_fixed = member.concept.fullname.match("(fixed)")
 					answer_array << [member.concept.shortname, member.concept_id] unless include_fixed
