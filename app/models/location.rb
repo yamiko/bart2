@@ -11,29 +11,6 @@ class Location < ActiveRecord::Base
     raise "The id for this location has not been set (#{Location.current_location.name}, #{Location.current_location.id})"   
   end
 
-  # Looks for the most commonly used element in the database and sorts the results based on the first part of the string
-  def self.most_common_program_locations(search)
-    return (self.find_by_sql([
-      "SELECT DISTINCT location.name AS name, location.location_id AS location_id \
-       FROM location \
-       INNER JOIN patient_program ON patient_program.location_id = location.location_id AND patient_program.voided = 0 \
-       WHERE location.retired = 0 AND name LIKE ? \
-       GROUP BY patient_program.location_id \
-       ORDER BY INSTR(name, ?) ASC, COUNT(name) DESC, name ASC \
-       LIMIT 10", 
-       "%#{search}%","#{search}"]) + [self.current_health_center]).uniq
-  end
-
-  def self.most_common_locations(search)
-    return (self.find_by_sql([
-      "SELECT DISTINCT location.name AS name, location.location_id AS location_id \
-       FROM location \
-       WHERE location.retired = 0 AND name LIKE ? \
-       ORDER BY name ASC \
-       LIMIT 10", 
-       "%#{search}%"])).uniq
-  end
-
   def children
     return [] if self.name.match(/ - /)
     Location.find(:all, :conditions => ["name LIKE ?","%" + self.name + " - %"])
@@ -79,29 +56,4 @@ class Location < ActiveRecord::Base
     label.draw_multi_text("#{self.name}")
     label.print(1)
   end
-
-  def self.search(search_string, act)
-      field_name = "name"
-      if act == "delete"  || act == "print" then
-          sql = "SELECT *
-                 FROM location
-                 WHERE location_id IN (SELECT location_id
-                              FROM location_tag_map
-                              WHERE location_tag_id = (SELECT location_tag_id
-	                                   FROM location_tag
-	                                   WHERE name = 'Workstation Location'))
-                 ORDER BY name ASC"
-      elsif act == "create" then
-          sql = "SELECT *
-                 FROM location
-                 WHERE location_id NOT IN (SELECT location_id
-                              FROM location_tag_map
-                              WHERE location_tag_id = (SELECT location_tag_id
-	                                   FROM location_tag
-	                                   WHERE name = 'Workstation Location'))  AND name LIKE '%#{search_string}%'
-                 ORDER BY name ASC"
-      end
-      self.find_by_sql(sql).collect{|name| name.send(field_name)}
-  end
-
 end

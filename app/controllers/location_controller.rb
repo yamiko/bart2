@@ -8,9 +8,33 @@ class LocationController < ApplicationController
     end
     
     def search
-      @names = Location.search(params[:search_string].to_s, params[:act].to_s)
+      @names = search_locations(params[:search_string].to_s, params[:act].to_s)
       render :text => "<li>" + @names.map{|n| n } .join("</li><li>") + "</li>"           
     end
+
+    def search_locations(search_string, act)
+      field_name = "name"
+      if act == "delete"  || act == "print" then
+          sql = "SELECT *
+                 FROM location
+                 WHERE location_id IN (SELECT location_id
+                              FROM location_tag_map
+                              WHERE location_tag_id = (SELECT location_tag_id
+	                                   FROM location_tag
+	                                   WHERE name = 'Workstation Location'))
+                 ORDER BY name ASC"
+      elsif act == "create" then
+          sql = "SELECT *
+                 FROM location
+                 WHERE location_id NOT IN (SELECT location_id
+                              FROM location_tag_map
+                              WHERE location_tag_id = (SELECT location_tag_id
+	                                   FROM location_tag
+	                                   WHERE name = 'Workstation Location'))  AND name LIKE '%#{search_string}%'
+                 ORDER BY name ASC"
+      end
+      Location.find_by_sql(sql).collect{|name| name.send(field_name)}
+  end
 
     def create
         clinic_name = params[:location_name]
@@ -62,8 +86,9 @@ class LocationController < ApplicationController
     end
     
     def new
-        @act = params[:act]
+      @act = params[:act]
     end
+
     def print
       location_name = params[:location_name][:clinic_name].to_s
       print_location_and_redirect("/location/location_label?location_name=#{location_name}", "/clinic/location_management")
