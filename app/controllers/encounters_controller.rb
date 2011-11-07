@@ -361,7 +361,8 @@ class EncountersController < ApplicationController
 		@answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 
 		@hiv_status = patient_hiv_status(@patient)
-		@hiv_test_date = @patient.hiv_test_date
+		@hiv_test_date = hiv_test_date(@patient.id)
+
 		@lab_activities = lab_activities
 		# @tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
 		@tb_patient_category = [["New","NEW"], ["Relapse","RELAPSE"], ["Retreatment after default","RETREATMENT AFTER DEFAULT"], ["Fail","FAIL"], ["Other","OTHER"]]
