@@ -31,11 +31,7 @@ class Person < ActiveRecord::Base
 
   def name
     "#{self.names.first.given_name} #{self.names.first.family_name}".titleize rescue nil
-  end  
-
-  def address
-    "#{self.addresses.first.city_village}"  rescue nil
-  end 
+  end
 
   def age(today = Date.today)
     return nil if self.birthdate.nil?
@@ -56,7 +52,7 @@ class Person < ActiveRecord::Base
     months = (today.month - self.birthdate.month)
     (years * 12) + months
   end
-    
+
   def birthdate_formatted
     if self.birthdate_estimated==1
       if self.birthdate.day == 1 and self.birthdate.month == 7
@@ -96,89 +92,6 @@ class Person < ActiveRecord::Base
     self.birthdate_estimated = 1
   end
 
-  def demographics
-
-    if self.birthdate_estimated==1
-      birth_day = "Unknown"
-      if self.birthdate.month == 7 and self.birthdate.day == 1
-        birth_month = "Unknown"
-      else
-        birth_month = self.birthdate.month
-      end
-    else
-      birth_month = self.birthdate.month
-      birth_day = self.birthdate.day
-    end
-
-    demographics = {"person" => {
-      "date_changed" => self.date_changed.to_s,
-      "gender" => self.gender,
-      "birth_year" => self.birthdate.year,
-      "birth_month" => birth_month,
-      "birth_day" => birth_day,
-      "names" => {
-        "given_name" => self.names[0].given_name,
-        "family_name" => self.names[0].family_name,
-        "family_name2" => self.names[0].family_name2
-      },
-      "addresses" => {
-        "county_district" => self.addresses[0].county_district,
-        "city_village" => self.addresses[0].city_village,
-        "address1" => self.addresses[0].address1,
-        "address2" => self.addresses[0].address2
-      },
-    "attributes" => {"occupation" => self.get_attribute('Occupation'),
-                     "cell_phone_number" => self.get_attribute('Cell Phone Number')}}}
- 
-    if not self.patient.patient_identifiers.blank? 
-      demographics["person"]["patient"] = {"identifiers" => {}}
-      self.patient.patient_identifiers.each{|identifier|
-        demographics["person"]["patient"]["identifiers"][identifier.type.name] = identifier.identifier
-      }
-    end
-
-    return demographics
-  end
-
-  def self.occupations
-    ['','Driver','Housewife','Messenger','Business','Farmer','Salesperson','Teacher',
-     'Student','Security guard','Domestic worker', 'Police','Office worker',
-     'Preschool child','Mechanic','Prisoner','Craftsman','Healthcare Worker','Soldier'].sort.concat(["Other","Unknown"])
-  end
-
-  def remote_demographics
-    demo = self.demographics
-
-    demographics = {
-                   "person" =>
-                   {"attributes" => {
-                      "occupation" => demo['person']['occupation'],
-                      "cell_phone_number" => demo['person']['cell_phone_number']
-                    } ,
-                    "addresses" => 
-                     { "address2"=> demo['person']['addresses']['location'],
-                       "city_village" => demo['person']['addresses']['city_village'],
-                       "address1"  => demo['person']['addresses']['address1'],
-                       "county_district" => ""
-                     },
-                    "age_estimate" => self.birthdate_estimated ,
-                    "birth_month"=> self.birthdate.month ,
-                    "patient" =>{"identifiers"=>
-                                {"National id"=> demo['person']['patient']['identifiers']['National id'] }
-                               },
-                    "gender" => self.gender.first ,
-                    "birth_day" => self.birthdate.day ,
-                    "date_changed" => demo['person']['date_changed'] ,
-                    "names"=>
-                      {
-                        "family_name2" => demo['person']['names']['family_name2'],
-                        "family_name" => demo['person']['names']['family_name'] ,
-                        "given_name" => demo['person']['names']['given_name']
-                      },
-                    "birth_year" => self.birthdate.year }
-                    }
-  end
-
   def self.search_by_identifier(identifier)
     PatientIdentifier.find_all_by_identifier(identifier).map{|id| id.patient.person} unless identifier.blank? rescue nil
   end
@@ -199,109 +112,6 @@ class Person < ActiveRecord::Base
     ]) if people.blank?
 
     return people
-    
-    # temp removed
-    # AND (person_name.family_name2 LIKE ? OR person_name_code.family_name2_code LIKE ? OR person_name.family_name2 IS NULL )"    
-    #  params[:family_name2],
-    #  (params[:family_name2] || '').soundex,
-
-
-
-
-# CODE below is TODO, untested and NOT IN USE
-#    people = []
-#    people = PatientIdentifier.find_all_by_identifier(params[:identifier]).map{|id| id.patient.person} unless params[:identifier].blank?
-#    if people.size == 1
-#      return people
-#    elsif people.size >2
-#      filtered_by_family_name_and_gender = []
-#      filtered_by_family_name = []
-#      filtered_by_gender = []
-#      people.each{|person|
-#        gender_match = person.gender == params[:gender] unless params[:gender].blank?
-#        filtered_by_gender.push person if gender_match
-#        family_name_match = person.first.names.collect{|name|name.family_name.soundex}.include? params[:family_name].soundex
-#        filtered_by_family_name.push person if gender_match?
-#        filtered_by_family_name_and_gender.push person if family_name_match? and gender_match?
-#      }
-#      return filtered_by_family_name_and_gender unless filtered_by_family_name_and_gender.empty?
-#      return filtered_by_family_name unless filtered_by_family_name.empty?
-#      return filtered_by_gender unless filtered_by_gender.empty?
-#      return people
-#    else
-#    return people if people.size == 1
-#    people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patient], :conditions => [
-#    "gender = ? AND \
-#     (person_name.given_name LIKE ? OR person_name_code.given_name_code LIKE ?) AND \
-#     (person_name.family_name LIKE ? OR person_name_code.family_name_code LIKE ?)",
-#    params[:gender],
-#    params[:given_name],
-#    (params[:given_name] || '').soundex,
-#    params[:family_name],
-#    (params[:family_name] || '').soundex
-#    ]) if people.blank?
-#    
-    # temp removed
-    # AND (person_name.family_name2 LIKE ? OR person_name_code.family_name2_code LIKE ? OR person_name.family_name2 IS NULL )"    
-    #  params[:family_name2],
-    #  (params[:family_name2] || '').soundex,
-
-  end
-
-  def self.find_by_demographics(person_demographics)
-    national_id = person_demographics["person"]["patient"]["identifiers"]["National id"] rescue nil
-    results = Person.search_by_identifier(national_id) unless national_id.nil?
-    return results unless results.blank?
-
-    gender = person_demographics["person"]["gender"] rescue nil
-    given_name = person_demographics["person"]["names"]["given_name"] rescue nil
-    family_name = person_demographics["person"]["names"]["family_name"] rescue nil
-
-    search_params = {:gender => gender, :given_name => given_name, :family_name => family_name }
-
-    results = Person.search(search_params)
-
-=begin
-    national_id = person_demographics["person"]["patient"]["identifiers"]["National id"] rescue nil
-    person = Person.search_by_identifier(national_id) unless national_id.nil?
-    return {} if person.blank? 
-
-    #person_demographics = person.demographics
-    results = {}
-    result_hash = {}
-    gender = person_demographics["person"]["gender"] rescue nil
-    given_name = person_demographics["person"]["names"]["given_name"] rescue nil
-    family_name = person_demographics["person"]["names"]["family_name"] rescue nil
-   # raise"#{gender}"
-    result_hash = {
-      "gender" =>  person_demographics["person"]["gender"],
-      "names" => {"given_name" =>  person_demographics["person"]["names"]["given_name"],
-                  "family_name" =>  person_demographics["person"]["names"]["family_name"],
-                  "family_name2" => person_demographics["person"]["names"]["family_name2"]
-                  },
-      "birth_year" => person_demographics['person']['birth_year'],
-      "birth_month" => person_demographics['person']['birth_month'],
-      "birth_day" => person_demographics['person']['birth_day'],
-      "addresses" => {"city_village" => person_demographics['person']['addresses']['city_village'],
-                      "address2" => nil,
-                      "state_province" => nil,
-                      "county_district" => nil
-                      },
-      "attributes" => {"occupation" => person_demographics['person']['occupation'],
-                      "home_phone_number" => nil,
-                      "office_phone_number" => nil,
-                      "cell_phone_number" => nil
-                      },
-      "patient" => {"identifiers" => {"National id" => person_demographics['person']['patient']['identifiers']['National id'],
-                                      "ARV Number" => ['person']['patient']['identifiers']['ARV Number']
-                                      }
-                   },
-      "date_changed" => person_demographics['person']['date_changed']
-
-    }
-    results["person"] = result_hash
-    return results
-=end
   end
 
   def self.create_from_form(params)
@@ -371,65 +181,14 @@ class Person < ActiveRecord::Base
     return person
   end
 
-  def self.find_remote_by_identifier(identifier)
-    known_demographics = {:person => {:patient => { :identifiers => {"National id" => identifier }}}}
-    Person.find_remote(known_demographics)
-  end
-
-  def self.find_remote(known_demographics)
-
-    servers = GlobalProperty.find(:first, :conditions => {:property => "remote_servers.parent"}).property_value.split(/,/) rescue nil
-
-    server_address_and_port = servers.to_s.split(':')
-
-    server_address = server_address_and_port.first
-    server_port = server_address_and_port.second
-
-    return nil if servers.blank?
-
-    wget_base_command = "wget --quiet --load-cookies=cookie.txt --quiet --cookies=on --keep-session-cookies --save-cookies=cookie.txt"
-    # use ssh to establish a secure connection then query the localhost
-    # use wget to login (using cookies and sessions) and set the location
-    # then pull down the demographics
-    # TODO fix login/pass and location with something better
-
-    login = GlobalProperty.find(:first, :conditions => {:property => "remote_bart.username"}).property_value.split(/,/) rescue ""
-    password = GlobalProperty.find(:first, :conditions => {:property => "remote_bart.password"}).property_value.split(/,/) rescue ""
-    location = GlobalProperty.find(:first, :conditions => {:property => "remote_bart.location"}).property_value.split(/,/) rescue nil
-    machine = GlobalProperty.find(:first, :conditions => {:property => "remote_machine.account_name"}).property_value.split(/,/) rescue ''
-
-    post_data = known_demographics
-    post_data["_method"]="put"
-
-    local_demographic_lookup_steps = [ 
-      "#{wget_base_command} -O /dev/null --post-data=\"login=#{login}&password=#{password}\" \"http://localhost/session\"",
-      "#{wget_base_command} -O /dev/null --post-data=\"_method=put&location=#{location}\" \"http://localhost/session\"",
-      "#{wget_base_command} -O - --post-data=\"#{post_data.to_param}\" \"http://localhost/people/demographics\""
-    ]
-
-    results = []
-    servers.each{|server|
-      command = "ssh #{machine}@#{server_address} '#{local_demographic_lookup_steps.join(";\n")}'"
-      output = `#{command}`
-      results.push output if output and output.match /person/
-    }
-    # TODO need better logic here to select the best result or merge them
-    # Currently returning the longest result - assuming that it has the most information
-    # Can't return multiple results because there will be redundant data from sites
-    result = results.sort{|a,b|b.length <=> a.length}.first
-    result ? person = JSON.parse(result) : nil
-    #Stupid hack to structure the hash for openmrs 1.7
-    person["person"]["occupation"] = person["person"]["attributes"]["occupation"]
-    person["person"]["cell_phone_number"] = person["person"]["attributes"]["cell_phone_number"]
-    person["person"]["home_phone_number"] =  person["person"]["attributes"]["home_phone_number"]
-    person["person"]["office_phone_number"] = person["person"]["attributes"]["office_phone_number"]
-    person["person"]["attributes"].delete("occupation")
-    person["person"]["attributes"].delete("cell_phone_number")
-    person["person"]["attributes"].delete("home_phone_number")
-    person["person"]["attributes"].delete("office_phone_number")
-
-    person
-
+  def sex
+    value = nil
+    if self.gender == "M"
+      value = "Male"
+    elsif self.gender == "F"
+      value = "Female"
+    end
+    value
   end
 
   def get_attribute(attribute)
@@ -437,130 +196,10 @@ class Person < ActiveRecord::Base
         PersonAttributeType.find_by_name(attribute).id,self.id]).value rescue nil
   end
 
-  def phone_numbers
-    PersonAttribute.phone_numbers(self.person_id)
-  end
-
-  def sex
-    if self.gender == "M"
-      return "Male"
-    elsif self.gender == "F"
-      return "Female"
-    else
-      return nil
-    end
-  end
-
-
-  def phone_numbers
-    phone_numbers = {}
-    phone_numbers['Cell phone number'] = PersonAttribute.find(:first,
-                                         :conditions => ["person_id = ? AND person_attribute_type_id = ?",
-                                         self.id,PersonAttributeType.find_by_name("Cell Phone Number").id]).value rescue nil
-
-    phone_numbers['Office phone number'] = PersonAttribute.find(:first,
-                                         :conditions => ["person_id = ? AND person_attribute_type_id = ?",
-                                         self.id,PersonAttributeType.find_by_name("Office Phone Number").id]).value rescue nil
-
-    phone_numbers['Home phone number'] = PersonAttribute.find(:first,
-                                         :conditions => ["person_id = ? AND person_attribute_type_id = ?",
-                                         self.id,PersonAttributeType.find_by_name("Home Phone Number").id]).value rescue nil
-
-    phone_numbers
-  end
-  
-  def self.create_remote(received_params)
-    #raise known_demographics.to_yaml
-
-    #Format params for BART
-     new_params = received_params[:person]
-     known_demographics = Hash.new()
-     new_params['gender'] == 'F' ? new_params['gender'] = "Female" : new_params['gender'] = "Male"
-
-       known_demographics = {
-                  "occupation"=>"#{new_params[:occupation]}",
-                   "patient_year"=>"#{new_params[:birth_year]}",
-                   "patient"=>{
-                    "gender"=>"#{new_params[:gender]}",
-                    "birthplace"=>"#{new_params[:addresses][:address2]}",
-                    "creator" => 1,
-                    "changed_by" => 1
-                    },
-                   "p_address"=>{
-                    "identifier"=>"#{new_params[:addresses][:state_province]}"},
-                   "home_phone"=>{
-                    "identifier"=>"#{new_params[:home_phone_number]}"},
-                   "cell_phone"=>{
-                    "identifier"=>"#{new_params[:cell_phone_number]}"},
-                   "office_phone"=>{
-                    "identifier"=>"#{new_params[:office_phone_number]}"},
-                   "patient_id"=>"",
-                   "patient_day"=>"#{new_params[:birth_day]}",
-                   "patientaddress"=>{"city_village"=>"#{new_params[:addresses][:city_village]}"},
-                   "patient_name"=>{
-                    "family_name"=>"#{new_params[:names][:family_name]}",
-                    "given_name"=>"#{new_params[:names][:given_name]}", "creator" => 1
-                    },
-                   "patient_month"=>"#{new_params[:birth_month]}",
-                   "patient_age"=>{
-                    "age_estimate"=>"#{new_params[:age_estimate]}"
-                    },
-                   "age"=>{
-                    "identifier"=>""
-                    },
-                   "current_ta"=>{
-                    "identifier"=>"#{new_params[:addresses][:county_district]}"}
-                  }
-
-
-    servers = GlobalProperty.find(:first, :conditions => {:property => "remote_servers.parent"}).property_value.split(/,/) rescue nil
-
-    server_address_and_port = servers.to_s.split(':')
-
-    server_address = server_address_and_port.first
-    server_port = server_address_and_port.second
-
-    return nil if servers.blank?
-
-    wget_base_command = "wget --quiet --load-cookies=cookie.txt --quiet --cookies=on --keep-session-cookies --save-cookies=cookie.txt"
-
-    login = GlobalProperty.find(:first, :conditions => {:property => "remote_bart.username"}).property_value.split(/,/) rescue ''
-    password = GlobalProperty.find(:first, :conditions => {:property => "remote_bart.password"}).property_value.split(/,/) rescue ''
-    location = GlobalProperty.find(:first, :conditions => {:property => "remote_bart.location"}).property_value.split(/,/) rescue nil
-    machine = GlobalProperty.find(:first, :conditions => {:property => "remote_machine.account_name"}).property_value.split(/,/) rescue ''
-    post_data = known_demographics
-    post_data["_method"]="put"
-
-    local_demographic_lookup_steps = [ 
-      "#{wget_base_command} -O /dev/null --post-data=\"login=#{login}&password=#{password}\" \"http://localhost/session\"",
-      "#{wget_base_command} -O /dev/null --post-data=\"_method=put&location=#{location}\" \"http://localhost/session\"",
-      "#{wget_base_command} -O - --post-data=\"#{post_data.to_param}\" \"http://localhost/patient/create_remote\""
-    ]
-
-    results = []
-    servers.each{|server|
-      command = "ssh #{machine}@#{server_address} '#{local_demographic_lookup_steps.join(";\n")}'"
-      output = `#{command}`
-      results.push output if output and output.match(/person/)
-    }
-    result = results.sort{|a,b|b.length <=> a.length}.first
-
-    result ? person = JSON.parse(result) : nil
-    begin
-        person["person"]["addresses"]["address1"] = "#{new_params[:addresses][:address1]}"
-        person["person"]["names"]["middle_name"] = "#{new_params[:names][:middle_name]}"
-        person["person"]["occupation"] = known_demographics["occupation"]
-        person["person"]["cell_phone_number"] = known_demographics["cell_phone"]["identifier"]
-        person["person"]["home_phone_number"] = known_demographics["home_phone"]["identifier"]
-        person["person"]["office_phone_number"] = known_demographics["office_phone"]["identifier"]
-        person["person"]["attributes"].delete("occupation")
-        person["person"]["attributes"].delete("cell_phone_number")
-        person["person"]["attributes"].delete("home_phone_number")
-        person["person"]["attributes"].delete("office_phone_number")
-    rescue
-    end   
-    person
-
+  def self.occupations
+    ['','Driver','Housewife','Messenger','Business','Farmer','Salesperson','Teacher',
+     'Student','Security guard','Domestic worker', 'Police','Office worker',
+     'Preschool child','Mechanic','Prisoner','Craftsman','Healthcare Worker','Soldier'].sort.concat(["Other","Unknown"])
   end
 
 end

@@ -23,6 +23,8 @@ class PatientsController < ApplicationController
      if @location.downcase == "outpatient" || params[:source]== 'opd'
         render :template => 'dashboards/opdtreatment_dashboard', :layout => false
      else
+        @task = main_next_task(Location.current_location,@patient,session_date)
+        @hiv_status = patient_hiv_status(@patient)
         render :template => 'patients/index', :layout => false
      end
   end
@@ -130,8 +132,8 @@ class PatientsController < ApplicationController
     	redirect_to :'clinic'
     	return
     else
-      next_form = next_task(@patient)
-      redirect_to next_form and return if next_form.match(/Reception/i)
+      next_form_to = next_task(@patient)
+      redirect_to next_form_to and return if next_form.match(/Reception/i)
 		  @relationships = @patient.relationships rescue []
 		  @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
 		  @restricted.each do |restriction|
@@ -239,12 +241,12 @@ class PatientsController < ApplicationController
   end
    
   def patient_demographics_label
-    print_string = Patient.find(params[:id]).demographics_label 
+    print_string = demographics_label(params[:id])
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:id]}#{rand(10000)}.lbl", :disposition => "inline")
   end
   
   def national_id_label
-    print_string = @patient.national_id_label rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a national id label for that patient")
+    print_string = patient_national_id_label(@patient) rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a national id label for that patient")
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", :disposition => "inline")
   end
 
@@ -253,20 +255,19 @@ class PatientsController < ApplicationController
   end
 
   def lab_orders_label
-    patient = Patient.find(@patient.id)
-    label_commands = patient.lab_orders_label
+    label_commands = patient_lab_orders_label(@patient.id)
     send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbs", :disposition => "inline")
   end
 
   def filing_number_label
     patient = Patient.find(params[:id])
-    label_commands = patient.filing_number_label
+    label_commands = patient_filing_number_label(patient)
     send_data(label_commands,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbl", :disposition => "inline")
   end
  
   def filing_number_and_national_id
     patient = Patient.find(params[:patient_id])
-    label_commands = patient.national_id_label + patient.filing_number_label
+    label_commands = patient_national_id_label(patient) + patient_filing_number_label(patient)
 
     send_data(label_commands,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbl", :disposition => "inline")
   end
@@ -282,8 +283,7 @@ class PatientsController < ApplicationController
   end
 
   def transfer_out_label
-    patient = Patient.find(params[:patient_id]) 
-    print_string = patient.transfer_out_label
+    print_string = patient_transfer_out_label(params[:patient_id])
     send_data(print_string,
       :type=>"application/label; charset=utf-8", 
       :stream=> false, 
@@ -512,6 +512,9 @@ class PatientsController < ApplicationController
     end
 
     @date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
+    @task = main_next_task(Location.current_location,@patient,session_date)
+    
+    @hiv_status = patient_hiv_status(@patient)
 
     render :template => 'patients/index', :layout => false
   end
@@ -552,8 +555,17 @@ class PatientsController < ApplicationController
     render :template => 'dashboards/visit_history_tab', :layout => false
   end
 
+   def get_previous_encounters(patient_id)
+    previous_encounters = Encounter.find(:all,
+              :conditions => ["encounter.voided = ? and patient_id = ?", 0, patient_id],
+              :include => [:observations]
+            )
+
+    return previous_encounters
+  end
+
   def past_visits_summary
-    @previous_visits  = Encounter.get_previous_encounters(params[:patient_id])
+    @previous_visits  = get_previous_encounters(params[:patient_id])
 
     @encounter_dates = @previous_visits.map{|encounter| encounter.encounter_datetime.to_date}.uniq.reverse.first(6) rescue []
 
@@ -648,7 +660,7 @@ class PatientsController < ApplicationController
     patient = Patient.find(params[:id])
     lab_orders_label = params[:lab_tests].split(":")
 
-    label_commands = patient.recent_lab_orders_label(lab_orders_label)
+    label_commands = recent_lab_orders_label(lab_orders_label, patient)
     send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbs", :disposition => "inline")
   end
 
@@ -665,7 +677,7 @@ class PatientsController < ApplicationController
 
   def recent_lab_orders
     patient = Patient.find(params[:patient_id])
-    @lab_order_labels = patient.get_recent_lab_orders_label
+    @lab_order_labels = get_recent_lab_orders_label(patient.id)
     @patient_id = params[:patient_id]
   end
 
@@ -724,7 +736,7 @@ class PatientsController < ApplicationController
 
     # BMI alerts
     if patient.person.age >= 15
-      bmi_alert = patient.current_bmi_alert
+      bmi_alert = current_bmi_alert(patient.current_weight, patient.current_height)
       alerts << bmi_alert if bmi_alert
     end
     
@@ -733,16 +745,16 @@ class PatientsController < ApplicationController
 
     patient_hiv_program = PatientProgram.find(:all,:conditions =>["voided = 0 AND patient_id = ? AND program_id = ? AND location_id = ?", patient.id , program_id, location_id])
 
-    hiv_status = patient.hiv_status
-    alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.strip}" == 'Negative' && patient.months_since_last_hiv_test > 3)
+    hiv_status = patient_hiv_status(patient)
+    alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.strip}" == 'Negative' && months_since_last_hiv_test(patient.id) > 3)
     alerts << "Patient not on ART" if (("#{hiv_status.strip}" == 'Positive') && !patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) ||
                                                           ((patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) && (ProgramWorkflowState.find_state(patient_hiv_program.last.patient_states.last.state).concept.fullname != "On antiretrovirals"))
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.strip}" == 'Unknown'
-    alerts << "Lab: Expecting submission of sputum" unless patient.sputum_orders_without_submission.empty?
-    alerts << "Lab: Waiting for sputum results" if patient.recent_sputum_results.empty? && !patient.recent_sputum_submissions.empty?
-    alerts << "Lab: Results not given to patient" if !patient.recent_sputum_results.empty? && patient.given_sputum_results.to_s != "Yes"
+    alerts << "Lab: Expecting submission of sputum" unless sputum_orders_without_submission(patient.id).empty?
+    alerts << "Lab: Waiting for sputum results" if recent_sputum_results(patient.id).empty? && !recent_sputum_submissions(patient.id).empty?
+    alerts << "Lab: Results not given to patient" if !recent_sputum_results(patient.id).empty? && given_sputum_results(patient.id).to_s != "Yes"
     alerts << "Patient go for CD4 count testing" if cd4_count_datetime(patient) == true
-    alerts << "Lab: Patient must order sputum test" if patient.patient_need_sputum_test?
+    alerts << "Lab: Patient must order sputum test" if patient_need_sputum_test?(patient.id)
     alerts << "Refer to ART wing" if show_alert_refer_to_ART_wing(patient)
 
     alerts
@@ -791,11 +803,412 @@ class PatientsController < ApplicationController
             end
         end
 
-        if refer_to_x_ray.upcase == 'NO' && does_tb_status_obs_exist.to_s == false.to_s && patient.hiv_status.upcase == 'POSITIVE'
+        if refer_to_x_ray.upcase == 'NO' && does_tb_status_obs_exist.to_s == false.to_s && patient_hiv_status(patient).upcase == 'POSITIVE'
            show_alert = true
         end rescue nil
         show_alert
     end
+
+  def patient_need_sputum_test?(patient_id)
+    encounter_date = Encounter.find(:last,
+                      :conditions => ["encounter_type = ? and patient_id = ?",
+                      EncounterType.find_by_name("TB Registration").id,
+                      patient_id]).encounter_datetime rescue ''
+    smear_positive_patient = false
+    has_no_results = false
+
+    unless encounter_date.blank?
+      sputum_results = previous_sputum_results(encounter_date, patient_id)
+      sputum_results.each { |obs|
+        if obs.value_coded != ConceptName.find_by_name("Negative").id
+            smear_positive_patient = true
+            break
+        end
+      }
+      if smear_positive_patient == true
+        date_diff = (Date.today - encounter_date.to_date).to_i
+
+        if date_diff > 60 and date_diff < 110
+          results = Encounter.find(:last,
+                    :conditions => ["encounter_type = ? and " \
+                     "patient_id = ? AND encounter_datetime BETWEEN ? AND ?",
+                    EncounterType.find_by_name("LAB RESULTS").id,
+                     patient_id, (encounter_date + 60).to_s, (encounter_date + 110).to_s],
+                   :include => observations) rescue ''
+
+          if results.blank?
+            has_no_results = true
+          else
+            has_no_results = false
+          end
+
+        elsif date_diff > 110 and date_diff < 140
+          results = Encounter.find(:last,
+                    :conditions => ["encounter_type = ? and " \
+                     "patient_id = ? AND encounter_datetime BETWEEN ? AND ?",
+                    EncounterType.find_by_name("LAB RESULTS").id,
+                     patient_id, (encounter_date + 111).to_s, (encounter_date + 140).to_s],
+                   :include => observations) rescue ''
+
+          if results.blank?
+            has_no_results = true
+          else
+            has_no_results = false
+          end
+
+        elsif date_diff > 140
+            has_no_results = true
+        else
+            has_no_results = false
+        end
+      end
+    end
+
+    return false if smear_positive_patient == false
+    return false if has_no_results == false
+    return true
+  end
+
+  def previous_sputum_results(registration_date, patient_id)
+    sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results",
+      "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
+    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)",
+        sputum_concept_names]).map(&:concept_id)
+    obs = Observation.find(:all,
+      :conditions => ["person_id = ? AND concept_id IN (?) AND date_created < ?",
+        patient_id, sputum_concept_ids, registration_date],
+      :order => "obs_datetime desc", :limit => 3)
+  end
+
+  def given_sputum_results(patient_id)
+   @given_results = []
+    Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("GIVE LAB RESULTS").id,patient_id]).observations.map{|o| @given_results << o.answer_string.to_s.strip if o.to_s.include?("Laboratory results given to patient")} rescue []
+  end
+
+  def get_recent_lab_orders_label(patient_id)
+    encounters = Encounter.find(:all,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("LAB ORDERS").id,patient_id]).last(5)
+      observations = []
+
+    encounters.each{|encounter|
+      encounter.observations.each{|observation|
+       unless observation['concept_id'] == Concept.find_by_name("Workstation location").concept_id
+          observations << ["#{ConceptName.find_by_concept_id(observation['value_coded'].to_i).name} : #{observation['date_created'].strftime("%Y-%m-%d") }",
+                            "#{observation['obs_id']}"]
+       end
+      }
+    }
+    return observations
+  end
+
+  def recent_lab_orders_label(test_list, patient)
+    lab_orders = test_list
+    labels = []
+    i = 0
+    lab_orders.each{|test|
+      observation = Observation.find(test.to_i)
+
+      accession_number = "#{observation.accession_number rescue nil}"
+
+        if accession_number != ""
+          label = 'label' + i.to_s
+          label = ZebraPrinter::Label.new(500,165)
+          label.font_size = 2
+          label.font_horizontal_multiplier = 1
+          label.font_vertical_multiplier = 1
+          label.left_margin = 300
+          label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
+          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient.national_id_with_dashes}")
+          label.draw_multi_text("#{observation.name rescue nil} - #{accession_number rescue nil}")
+          label.draw_multi_text("#{observation.date_created.strftime("%d-%b-%Y %H:%M")}")
+          labels << label
+         end
+
+         i = i + 1
+    }
+
+      print_labels = []
+      label = 0
+      while label <= labels.size
+        print_labels << labels[label].print(1) if labels[label] != nil
+        label = label + 1
+      end
+
+      return print_labels
+  end
+
+  # Get the any BMI-related alert for this patient
+  def current_bmi_alert(patient_weight, patient_height)
+    weight = patient_weight
+    height = patient_height
+    alert = nil
+    unless weight == 0 || height == 0
+      current_bmi = (weight/(height*height)*10000).round(1);
+      if current_bmi <= 18.5 && current_bmi > 17.0
+        alert = 'Low BMI: Eligible for counseling'
+      elsif current_bmi <= 17.0
+        alert = 'Low BMI: Eligible for therapeutic feeding'
+      end
+    end
+
+    alert
+  end
+  #moved from the patient model. Needs good testing
+  def demographics_label(patient_id)
+    patient = Patient.find(patient_id)
+    demographics = Mastercard.demographics(patient)
+    hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("HIV Staging").id,patient.id])
+
+    tb_within_last_two_yrs = "tb within last 2 yrs" unless demographics.tb_within_last_two_yrs.blank?
+    eptb = "eptb" unless demographics.eptb.blank?
+    pulmonary_tb = "Pulmonary tb" unless demographics.pulmonary_tb.blank?
+
+    cd4_count_date = nil ; cd4_count = nil ; pregnant = 'N/A'
+
+    (hiv_staging.observations).map do | obs |
+      concept_name = obs.to_s.split(':')[0].strip rescue nil
+      next if concept_name.blank?
+      case concept_name
+      when 'CD4 COUNT DATETIME'
+        cd4_count_date = obs.value_datetime.to_date
+      when 'CD4 COUNT'
+        cd4_count = obs.value_numeric
+      when 'IS PATIENT PREGNANT?'
+        pregnant = obs.to_s.split(':')[1] rescue nil
+      end
+    end rescue []
+
+    office_phone_number = patient.person.get_attribute('Office phone number')
+    home_phone_number = patient.person.get_attribute('Home phone number')
+    cell_phone_number = patient.person.get_attribute('Cell phone number')
+
+    phone_number = office_phone_number if not office_phone_number.downcase == "not available" and not office_phone_number.downcase == "unknown" rescue nil
+    phone_number= home_phone_number if not home_phone_number.downcase == "not available" and not home_phone_number.downcase == "unknown" rescue nil
+    phone_number = cell_phone_number if not cell_phone_number.downcase == "not available" and not cell_phone_number.downcase == "unknown" rescue nil
+
+
+    label = ZebraPrinter::StandardLabel.new
+    label.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",450,300,0,1,1,1,false)
+    label.draw_text("#{demographics.arv_number}",575,30,0,3,1,1,false)
+    label.draw_text("PATIENT DETAILS",25,30,0,3,1,1,false)
+    label.draw_text("Name:   #{demographics.name} (#{demographics.sex})",25,60,0,3,1,1,false)
+    label.draw_text("DOB:    #{patient.person.birthdate_formatted}",25,90,0,3,1,1,false)
+    label.draw_text("Phone: #{phone_number}",25,120,0,3,1,1,false)
+    if demographics.address.length > 48
+      label.draw_text("Addr:  #{demographics.address[0..47]}",25,150,0,3,1,1,false)
+      label.draw_text("    :  #{demographics.address[48..-1]}",25,180,0,3,1,1,false)
+      last_line = 180
+    else
+      label.draw_text("Addr:  #{demographics.address}",25,150,0,3,1,1,false)
+      last_line = 150
+    end
+
+    if last_line == 180 and demographics.guardian.length < 48
+      label.draw_text("Guard: #{demographics.guardian}",25,210,0,3,1,1,false)
+      last_line = 210
+    elsif last_line == 180 and demographics.guardian.length > 48
+      label.draw_text("Guard: #{demographics.guardian[0..47]}",25,210,0,3,1,1,false)
+      label.draw_text("     : #{demographics.guardian[48..-1]}",25,240,0,3,1,1,false)
+      last_line = 240
+    elsif last_line == 150 and demographics.guardian.length > 48
+      label.draw_text("Guard: #{demographics.guardian[0..47]}",25,180,0,3,1,1,false)
+      label.draw_text("     : #{demographics.guardian[48..-1]}",25,210,0,3,1,1,false)
+      last_line = 210
+    elsif last_line == 150 and demographics.guardian.length < 48
+      label.draw_text("Guard: #{demographics.guardian}",25,180,0,3,1,1,false)
+      last_line = 180
+    end
+
+    label.draw_text("TI:    #{demographics.transfer_in ||= 'No'}",25,last_line+=30,0,3,1,1,false)
+    label.draw_text("FUP:   (#{demographics.agrees_to_followup})",25,last_line+=30,0,3,1,1,false)
+
+
+    label2 = ZebraPrinter::StandardLabel.new
+    #Vertical lines
+=begin
+     label2.draw_line(45,40,5,242)
+     label2.draw_line(805,40,5,242)
+     label2.draw_line(365,40,5,242)
+     label2.draw_line(575,40,5,242)
+
+     #horizontal lines
+     label2.draw_line(45,40,795,3)
+     label2.draw_line(45,80,795,3)
+     label2.draw_line(45,120,795,3)
+     label2.draw_line(45,200,795,3)
+     label2.draw_line(45,240,795,3)
+     label2.draw_line(45,280,795,3)
+=end
+    label2.draw_line(25,170,795,3)
+    #label data
+    label2.draw_text("STATUS AT ART INITIATION",25,30,0,3,1,1,false)
+    label2.draw_text("(DSA:#{patient.date_started_art.strftime('%d-%b-%Y') rescue 'N/A'})",370,30,0,2,1,1,false)
+    label2.draw_text("#{demographics.arv_number}",580,20,0,3,1,1,false)
+    label2.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",25,300,0,1,1,1,false)
+
+    label2.draw_text("RFS: #{demographics.reason_for_art_eligibility}",25,70,0,2,1,1,false)
+    label2.draw_text("#{cd4_count} #{cd4_count_date}",25,110,0,2,1,1,false)
+    label2.draw_text("1st + Test: #{demographics.hiv_test_date}",25,150,0,2,1,1,false)
+
+    label2.draw_text("TB: #{tb_within_last_two_yrs} #{eptb} #{pulmonary_tb}",380,70,0,2,1,1,false)
+    label2.draw_text("KS:#{demographics.ks rescue nil}",380,110,0,2,1,1,false)
+    label2.draw_text("Preg:#{pregnant}",380,150,0,2,1,1,false)
+    label2.draw_text("#{demographics.first_line_drugs.join(',')[0..32] rescue nil}",25,190,0,2,1,1,false)
+    label2.draw_text("#{demographics.alt_first_line_drugs.join(',')[0..32] rescue nil}",25,230,0,2,1,1,false)
+    label2.draw_text("#{demographics.second_line_drugs.join(',')[0..32] rescue nil}",25,270,0,2,1,1,false)
+
+    label2.draw_text("HEIGHT: #{patient.initial_height}",570,70,0,2,1,1,false)
+    label2.draw_text("WEIGHT: #{patient.initial_weight}",570,110,0,2,1,1,false)
+    label2.draw_text("Init Age: #{patient.age_at_initiation(demographics.date_of_first_line_regimen) rescue nil}",570,150,0,2,1,1,false)
+
+    line = 190
+    extra_lines = []
+    label2.draw_text("STAGE DEFINING CONDITIONS",450,190,0,3,1,1,false)
+    (hiv_staging.observations).each{|obs|
+      name = obs.to_s.split(':')[0].strip rescue nil
+      condition = obs.to_s.split(':')[1].strip.humanize rescue nil
+      next unless name == 'WHO STAGES CRITERIA PRESENT'
+      line+=25
+      if line <= 290
+        label2.draw_text(condition[0..35],450,line,0,1,1,1,false)
+      end
+      extra_lines << condition[0..79] if line > 290
+    } rescue []
+
+    if line > 310 and !extra_lines.blank?
+      line = 30
+      label3 = ZebraPrinter::StandardLabel.new
+      label3.draw_text("STAGE DEFINING CONDITIONS",25,line,0,3,1,1,false)
+      label3.draw_text("#{patient.arv_number}",370,line,0,2,1,1,false)
+      label3.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",450,300,0,1,1,1,false)
+      extra_lines.each{|condition|
+        label3.draw_text(condition,25,line+=30,0,2,1,1,false)
+      } rescue []
+    end
+    return "#{label.print(1)} #{label2.print(1)} #{label3.print(1)}" if !extra_lines.blank?
+    return "#{label.print(1)} #{label2.print(1)}"
+  end
+
+  def patient_transfer_out_label(patient_id)
+    patient = Patient.find(patient_id)
+    demographics = Mastercard.demographics(patient)
+    demographics_str = []
+    demographics_str << "Name: #{demographics.name}"
+    demographics_str << "DOB: #{patient.person.birthdate}"
+    demographics_str << "DOB-E: #{patient.person.birthdate_estimated}"
+    demographics_str << "Sex: #{demographics.sex}"
+    demographics_str << "Guardian name: #{demographics.guardian}"
+    demographics_str << "ARV number: #{demographics.arv_number}"
+    demographics_str << "National ID: #{demographics.national_id}"
+
+    demographics_str << "Address: #{demographics.address}"
+    demographics_str << "FU: #{demographics.agrees_to_followup}"
+    demographics_str << "1st alt line: #{demographics.alt_first_line_drugs.join(':')}"
+    demographics_str << "BMI: #{demographics.bmi}"
+    demographics_str << "CD4: #{demographics.cd4_count}"
+    demographics_str << "CD4 date: #{demographics.cd4_count_date}"
+    demographics_str << "1st line date: #{demographics.date_of_first_line_regimen}"
+    demographics_str << "ERA: #{demographics.ever_received_art}"
+    demographics_str << "1st line: #{demographics.first_line_drugs.join(':')}"
+    demographics_str << "1st pos HIV test date: #{demographics.first_positive_hiv_test_date}"
+
+    demographics_str << "1st pos HIV test site: #{demographics.first_positive_hiv_test_site}"
+    demographics_str << "1st pos HIV test type: #{demographics.first_positive_hiv_test_type}"
+    demographics_str << "Test date: #{demographics.hiv_test_date.gsub('/','-')}" if demographics.hiv_test_date
+    demographics_str << "Test loc: #{demographics.hiv_test_location}"
+    demographics_str << "Init HT: #{demographics.init_ht}"
+    demographics_str << "Init WT: #{demographics.init_wt}"
+    demographics_str << "Landmark: #{demographics.landmark}"
+    demographics_str << "Occupation: #{demographics.occupation}"
+    demographics_str << "Preg: #{demographics.pregnant}" if patient.person.gender == 'F'
+    demographics_str << "SR: #{demographics.reason_for_art_eligibility}"
+    demographics_str << "2nd line: #{demographics.second_line_drugs}"
+    demographics_str << "TB status: #{demographics.tb_status_at_initiation}"
+    demographics_str << "TI: #{demographics.transfer_in}"
+    demographics_str << "TI date: #{demographics.transfer_in_date}"
+
+
+    visits = Mastercard.visits(patient) ; count = 0 ; visit_str = nil
+    (visits || {}).sort{|a,b| b[0].to_date<=>a[0].to_date}.each do | date,visit |
+      break if count > 3
+      visit_str = "Visit date: #{date}" if visit_str.blank?
+      visit_str += ";Visit date: #{date}" unless visit_str.blank?
+      visit_str += ";wt: #{visit.weight}" if visit.weight
+      visit_str += ";ht: #{visit.height}" if visit.height
+      visit_str += ";bmi: #{visit.bmi}" if visit.bmi
+      visit_str += ";Outcome: #{visit.outcome}" if visit.outcome
+      visit_str += ";Regimen: #{visit.reg}" if visit.reg
+      visit_str += ";Adh: #{visit.adherence.join(' ')}" if visit.adherence
+      visit_str += ";TB status: #{visit.tb_status}" if visit.tb_status
+      gave = nil
+      (visit.gave.uniq || []).each do | name , quantity |
+        gave += "  #{name} (#{quantity})" unless gave.blank?
+        gave = ";Gave: #{name} (#{quantity})" if gave.blank?
+      end rescue []
+      visit_str += gave unless gave.blank?
+      count+=1
+      demographics_str << visit_str
+    end
+
+    label = ZebraPrinter::StandardLabel.new
+    label.draw_2D_barcode(80,20,'P',700,600,'x2','y7','l100','r100','f0','s5',"#{demographics_str.join(',').gsub('/','')}")
+    label.print(1)
+  end
+
+  def patient_lab_orders_label(patient_id)
+    patient = Patient.find(patient_id)
+    lab_orders = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("LAB ORDERS").id,patient.id]).observations
+      labels = []
+      i = 0
+
+      while i <= lab_orders.size do
+        accession_number = "#{lab_orders[i].accession_number rescue nil}"
+
+        if accession_number != ""
+          label = 'label' + i.to_s
+          label = ZebraPrinter::Label.new(500,165)
+          label.font_size = 2
+          label.font_horizontal_multiplier = 1
+          label.font_vertical_multiplier = 1
+          label.left_margin = 300
+          label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
+          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient.national_id_with_dashes}")
+          label.draw_multi_text("#{lab_orders[i].name rescue nil} - #{accession_number rescue nil}")
+          label.draw_multi_text("#{lab_orders[i].obs_datetime.strftime("%d-%b-%Y %H:%M")}")
+          labels << label
+          end
+          i = i + 1
+      end
+
+      print_labels = []
+      label = 0
+      while label <= labels.size
+        print_labels << labels[label].print(2) if labels[label] != nil
+        label = label + 1
+      end
+
+      return print_labels
+  end
+
+  def patient_filing_number_label(patient, num = 1)
+    file = patient.get_identifier('Filing Number')[0..9]
+    file_type = file.strip[3..4]
+    version_number=file.strip[2..2]
+    number = file
+    len = number.length - 5
+    number = number[len..len] + "   " + number[(len + 1)..(len + 2)]  + " " +  number[(len + 3)..(number.length)]
+
+    label = ZebraPrinter::StandardLabel.new
+    label.draw_text("#{number}",75, 30, 0, 4, 4, 4, false)
+    label.draw_text("Filing area #{file_type}",75, 150, 0, 2, 2, 2, false)
+    label.draw_text("Version number: #{version_number}",75, 200, 0, 2, 2, 2, false)
+    label.print(num)
+  end
+
+
     
   private
   

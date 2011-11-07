@@ -53,8 +53,7 @@
 </style>
 
 <%
-  session_date = session[:datetime] || Date.today  
-  task = Task.next_task(Location.current_location,@person.patient,session_date.to_date)
+  task = @task
   next_task = task.encounter_type.gsub('_',' ') rescue nil
 
   xray = Observation.find(Observation.find(:last,                       

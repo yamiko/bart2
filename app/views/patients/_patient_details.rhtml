@@ -64,7 +64,7 @@ when "pink"
     <tr>
       <td colspan="6" style="border-top: 1px solid #000; border-left: 1px solid #000; 
           border-right: 1px solid #000; font-style: italic;">
-        <%= @patient.person.address rescue "&nbsp;" %>&nbsp;
+        <%= @patient.person.addresses.first.city_village rescue "&nbsp;" %>&nbsp;
       </td>
     </tr>
     <tr>
@@ -82,7 +82,7 @@ when "pink"
       <td colspan="2" style="border-top: 1px solid #000; border-left: 1px solid #000;
           border-right: 1px solid #000; border-bottom: 1px solid #000;">
         <sup>Guardian Phone</sup>&nbsp;
-        <%= Person.find(@patient.person.relationships.first.person_b).phone_numbers["Cell phone number"] rescue "&nbsp;" %>
+        <%= Person.find(@patient.person.relationships.first.person_b).get_attribute('Cell phone number') rescue "&nbsp;" %>
       </td>
     </tr>
   </table>
@@ -232,7 +232,7 @@ when "pink"
     </tr>
     <tr>
       <td colspan="5" style="border-top: 1px solid #000; border-left: 1px solid #000; font-style: italic">
-        <%= @patient.person.address rescue "&nbsp;" %>&nbsp;
+        <%= @patient.person.addresses.first.city_village rescue "&nbsp;" %>&nbsp;
       </td>
     </tr>
     <tr>
@@ -248,11 +248,11 @@ when "pink"
         Phone
       </td>
       <td colspan="3" style="border-top: 1px solid #000; border-left: 1px solid #000; width: 35%; font-style: italic">
-        <sup>Patient</sup>&nbsp;&nbsp;<%= @patient.person.phone_numbers["Cell phone number"] rescue "&nbsp;" %>
+        <sup>Patient</sup>&nbsp;&nbsp;<%= @patient.person.get_attribute('Cell phone number') rescue "&nbsp;" %>
       </td>
       <td colspan="2" style="border-top: 1px solid #000; border-left: 1px solid #000;">
         <sup>Guardian</sup>&nbsp;
-          <%= Person.find(@patient.person.relationships.first.person_b).phone_numbers["Cell phone number"] rescue "&nbsp;" %>
+          <%= Person.find(@patient.person.relationships.first.person_b).get_attribute('Cell phone number') rescue "&nbsp;" %>
       </td>
     </tr>
     <tr>

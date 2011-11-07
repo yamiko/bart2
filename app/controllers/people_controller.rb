@@ -40,16 +40,15 @@ class PeopleController < ApplicationController
       patient = Patient.new()
       patient.patient_id = person.id
       patient.save
-      patient.national_id_label 
+      patient_national_id_label(patient)
     end
-    #render :text => person.demographics.to_json
-    render :text => person.remote_demographics.to_json
+    render :text => remote_demographics(person).to_json
   end
 
   def demographics
     # Search by the demographics that were passed in and then return demographics
-    people = Person.find_by_demographics(params)
-    result = people.empty? ? {} : people.first.demographics
+    people = find_person_by_demographics(params)
+    result = people.empty? ? {} : demographics(people.first)
     render :text => result.to_json
   end
   
@@ -71,7 +70,7 @@ class PeopleController < ApplicationController
       else
         # TODO - figure out how to write a test for this
         # This is sloppy - creating something as the result of a GET
-        found_person_data = Person.find_remote_by_identifier(params[:identifier])
+        found_person_data = find_remote_person_by_identifier(params[:identifier])
         found_person =  Person.create_from_form(found_person_data['person']) unless found_person_data.nil?
       end
       if found_person
@@ -83,13 +82,15 @@ class PeopleController < ApplicationController
   end
   
   def confirm
-
+    session_date = session[:datetime] || Date.today
+    
     if request.post?
       redirect_to search_complete_url(params[:found_person_id], params[:relation]) and return
     end
     @found_person_id = params[:found_person_id] 
     @relation = params[:relation]
     @person = Person.find(@found_person_id) rescue nil
+    @task = main_next_task(Location.current_location,@person.patient,session_date.to_date)
     render :layout => 'menu'
   end
 
@@ -175,7 +176,7 @@ class PeopleController < ApplicationController
 
     
     if create_from_remote
-      person_from_remote = Person.create_remote(params)
+      person_from_remote = create_remote_person(params)
       person = Person.create_from_form(person_from_remote["person"]) unless person_from_remote.blank?
       if !person.blank?
         success = true
@@ -187,7 +188,7 @@ class PeopleController < ApplicationController
     end
 
     if params[:person][:patient] && success
-      person.patient.national_id_label
+      patient_national_id_label(person.patient)
       unless (params[:relation].blank?)
         redirect_to search_complete_url(person.id, params[:relation]) and return
       else
@@ -315,6 +316,21 @@ class PeopleController < ApplicationController
       "<li value='#{v.address1}'>#{v.address1}</li>"
     end
     render :text => landmarks.join('') and return
+  end
+
+  #This method was taken out of encounter model. It is been used in
+  #people/index (view) which seems not to be used at present.
+  def count_by_type_for_date(date)
+    # This query can be very time consuming, because of this we will not consider
+    # that some of the encounters on the specific date may have been voided
+    ActiveRecord::Base.connection.select_all("SELECT count(*) as number, encounter_type FROM encounter GROUP BY encounter_type")
+    todays_encounters = Encounter.find(:all, :include => "type", :conditions => ["DATE(encounter_datetime) = ?",date])
+    encounters_by_type = Hash.new(0)
+    todays_encounters.each{|encounter|
+      next if encounter.type.nil?
+      encounters_by_type[encounter.type.name] += 1
+    }
+    encounters_by_type
   end
 
 private

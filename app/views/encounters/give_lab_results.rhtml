@@ -8,9 +8,9 @@
         resultString = '<ul>'
 
         <% recent_lab_results = nil%>
-        <% if !@patient.recent_lab_results.nil? %>
+        <% if !@recent_lab_results.nil? %>
             <%
-            recent_lab_results = @patient.recent_lab_results.map do |observation|
+            recent_lab_results = @recent_lab_results.map do |observation|
 
                     if observation.concept.fullname.humanize != "Workstation location".humanize
 
@@ -49,7 +49,7 @@
 <!--.........TODO..........dd..
 -->
 
-<%if @patient.recent_lab_results.blank? %>
+<%if @recent_lab_results.blank? %>
     <div class="inputPage NoKeyboard" id="page" style="display: block;">
         <div id="trigger"></div>
         <div id="infoBar" class="infoBarClass"></div>
@@ -101,7 +101,7 @@
         <%
            results = []
            observation_id  = 0
-           @patient.recent_lab_results.each do |observation|
+           @recent_lab_results.each do |observation|
                 if ["AAFB(1st) results".upcase, "AAFB(2nd) results".upcase, "AAFB(3rd) results".upcase, "Culture(1st) Results".upcase, "Culture-2 Results".upcase].include?(observation.concept.fullname.upcase)
        %>           
                    <%= touch_hidden_tag "Lab test result", @patient, observation.concept.fullname, :id => "#{observation_id.to_s + '_obs_id'}" %> 
@@ -113,6 +113,14 @@
                 end
            end
         %>
+        <% session_date = session[:datetime].to_date rescue nil                       
+    if session_date %>
+
+    <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
+    <%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+    <% else %>
+      <%= hidden_field_tag "filter[provider]", nil %>
+    <%end%>
 
         <%= submit_tag "Finish" %>
     </form>
