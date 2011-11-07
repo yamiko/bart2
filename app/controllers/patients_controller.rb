@@ -284,8 +284,7 @@ class PatientsController < ApplicationController
   end
 
   def transfer_out_label
-    patient = Patient.find(params[:patient_id]) 
-    print_string = patient.transfer_out_label
+    print_string = patient_transfer_out_label(params[:patient_id])
     send_data(print_string,
       :type=>"application/label; charset=utf-8", 
       :stream=> false, 
@@ -1092,6 +1091,73 @@ class PatientsController < ApplicationController
     return "#{label.print(1)} #{label2.print(1)} #{label3.print(1)}" if !extra_lines.blank?
     return "#{label.print(1)} #{label2.print(1)}"
   end
+
+  def patient_transfer_out_label(patient_id)
+    patient = Patient.find(patient_id)
+    demographics = Mastercard.demographics(patient)
+    demographics_str = []
+    demographics_str << "Name: #{demographics.name}"
+    demographics_str << "DOB: #{patient.person.birthdate}"
+    demographics_str << "DOB-E: #{patient.person.birthdate_estimated}"
+    demographics_str << "Sex: #{demographics.sex}"
+    demographics_str << "Guardian name: #{demographics.guardian}"
+    demographics_str << "ARV number: #{demographics.arv_number}"
+    demographics_str << "National ID: #{demographics.national_id}"
+
+    demographics_str << "Address: #{demographics.address}"
+    demographics_str << "FU: #{demographics.agrees_to_followup}"
+    demographics_str << "1st alt line: #{demographics.alt_first_line_drugs.join(':')}"
+    demographics_str << "BMI: #{demographics.bmi}"
+    demographics_str << "CD4: #{demographics.cd4_count}"
+    demographics_str << "CD4 date: #{demographics.cd4_count_date}"
+    demographics_str << "1st line date: #{demographics.date_of_first_line_regimen}"
+    demographics_str << "ERA: #{demographics.ever_received_art}"
+    demographics_str << "1st line: #{demographics.first_line_drugs.join(':')}"
+    demographics_str << "1st pos HIV test date: #{demographics.first_positive_hiv_test_date}"
+
+    demographics_str << "1st pos HIV test site: #{demographics.first_positive_hiv_test_site}"
+    demographics_str << "1st pos HIV test type: #{demographics.first_positive_hiv_test_type}"
+    demographics_str << "Test date: #{demographics.hiv_test_date.gsub('/','-')}" if demographics.hiv_test_date
+    demographics_str << "Test loc: #{demographics.hiv_test_location}"
+    demographics_str << "Init HT: #{demographics.init_ht}"
+    demographics_str << "Init WT: #{demographics.init_wt}"
+    demographics_str << "Landmark: #{demographics.landmark}"
+    demographics_str << "Occupation: #{demographics.occupation}"
+    demographics_str << "Preg: #{demographics.pregnant}" if patient.person.gender == 'F'
+    demographics_str << "SR: #{demographics.reason_for_art_eligibility}"
+    demographics_str << "2nd line: #{demographics.second_line_drugs}"
+    demographics_str << "TB status: #{demographics.tb_status_at_initiation}"
+    demographics_str << "TI: #{demographics.transfer_in}"
+    demographics_str << "TI date: #{demographics.transfer_in_date}"
+
+
+    visits = Mastercard.visits(patient) ; count = 0 ; visit_str = nil
+    (visits || {}).sort{|a,b| b[0].to_date<=>a[0].to_date}.each do | date,visit |
+      break if count > 3
+      visit_str = "Visit date: #{date}" if visit_str.blank?
+      visit_str += ";Visit date: #{date}" unless visit_str.blank?
+      visit_str += ";wt: #{visit.weight}" if visit.weight
+      visit_str += ";ht: #{visit.height}" if visit.height
+      visit_str += ";bmi: #{visit.bmi}" if visit.bmi
+      visit_str += ";Outcome: #{visit.outcome}" if visit.outcome
+      visit_str += ";Regimen: #{visit.reg}" if visit.reg
+      visit_str += ";Adh: #{visit.adherence.join(' ')}" if visit.adherence
+      visit_str += ";TB status: #{visit.tb_status}" if visit.tb_status
+      gave = nil
+      (visit.gave.uniq || []).each do | name , quantity |
+        gave += "  #{name} (#{quantity})" unless gave.blank?
+        gave = ";Gave: #{name} (#{quantity})" if gave.blank?
+      end rescue []
+      visit_str += gave unless gave.blank?
+      count+=1
+      demographics_str << visit_str
+    end
+
+    label = ZebraPrinter::StandardLabel.new
+    label.draw_2D_barcode(80,20,'P',700,600,'x2','y7','l100','r100','f0','s5',"#{demographics_str.join(',').gsub('/','')}")
+    label.print(1)
+  end
+
     
   private
   
