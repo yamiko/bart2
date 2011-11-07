@@ -23,14 +23,15 @@ class Patient < ActiveRecord::Base
     self.orders.each {|row| row.void(reason) }
     self.encounters.each {|row| row.void(reason) }
   end
-
-  def summary
+=begin
+  def summary #
     #    verbiage << "Last seen #{visits.recent(1)}"
     verbiage = []
     verbiage << patient_programs.map{|prog| "Started #{prog.program.name.humanize} #{prog.date_enrolled.strftime('%b-%Y')}" rescue nil }
     verbiage << orders.unfinished.prescriptions.map{|presc| presc.to_s}
     verbiage.flatten.compact.join(', ') 
   end
+=end
 
   def national_id(force = true)
     id = self.patient_identifiers.find_by_identifier_type(PatientIdentifierType.find_by_name("National id").id).identifier rescue nil
@@ -50,56 +51,7 @@ class Patient < ActiveRecord::Base
     id[0..4] + "-" + id[5..8] + "-" + id[9..-1] rescue id
   end
 
-   def lab_orders_label
-    lab_orders = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
-        EncounterType.find_by_name("LAB ORDERS").id,self.id]).observations
-      labels = []
-      i = 0
-
-      while i <= lab_orders.size do
-        accession_number = "#{lab_orders[i].accession_number rescue nil}"
-
-        if accession_number != ""
-          label = 'label' + i.to_s
-          label = ZebraPrinter::Label.new(500,165)
-          label.font_size = 2
-          label.font_horizontal_multiplier = 1
-          label.font_vertical_multiplier = 1
-          label.left_margin = 300
-          label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
-          label.draw_multi_text("#{self.person.name.titleize.delete("'")} #{self.national_id_with_dashes}")
-          label.draw_multi_text("#{lab_orders[i].name rescue nil} - #{accession_number rescue nil}")
-          label.draw_multi_text("#{lab_orders[i].obs_datetime.strftime("%d-%b-%Y %H:%M")}")
-          labels << label
-          end
-          i = i + 1
-      end
-
-      print_labels = []
-      label = 0
-      while label <= labels.size
-        print_labels << labels[label].print(2) if labels[label] != nil
-        label = label + 1
-      end
-
-      return print_labels
-  end
-
-  def filing_number_label(num = 1)
-    file = self.get_identifier('Filing Number')[0..9]
-    file_type = file.strip[3..4]
-    version_number=file.strip[2..2]
-    number = file
-    len = number.length - 5
-    number = number[len..len] + "   " + number[(len + 1)..(len + 2)]  + " " +  number[(len + 3)..(number.length)]
-
-    label = ZebraPrinter::StandardLabel.new
-    label.draw_text("#{number}",75, 30, 0, 4, 4, 4, false)
-    label.draw_text("Filing area #{file_type}",75, 150, 0, 2, 2, 2, false)
-    label.draw_text("Version number: #{version_number}",75, 200, 0, 2, 2, 2, false)
-    label.print(num)
-  end  
-
+  
   def visit_label(date = Date.today)
     result = Location.current_location.name.match(/outpatient/i).nil?
     if result == false
@@ -860,12 +812,8 @@ EOF
 		return patient.age
 	end 
 
-  def child?
-    return self.age <= 14 unless self.age.nil?
-    return false
-  end
 =begin # could not find a place where the method below is being used, therefore just disabled it
-for further investigation
+# for further investigation
   def sputum_results_given
    given_results = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("GIVE LAB RESULTS").id,self.id]).observations.map{|o| o if self.recent_sputum_orders.collect{|observation| observation.accession_number}.include?(o.accession_number)} rescue []

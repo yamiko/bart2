@@ -255,20 +255,19 @@ class PatientsController < ApplicationController
   end
 
   def lab_orders_label
-    patient = Patient.find(@patient.id)
-    label_commands = patient.lab_orders_label
+    label_commands = patient_lab_orders_label(@patient.id)
     send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbs", :disposition => "inline")
   end
 
   def filing_number_label
     patient = Patient.find(params[:id])
-    label_commands = patient.filing_number_label
+    label_commands = patient_filing_number_label(patient)
     send_data(label_commands,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbl", :disposition => "inline")
   end
  
   def filing_number_and_national_id
     patient = Patient.find(params[:patient_id])
-    label_commands = patient_national_id_label(patient) + patient.filing_number_label
+    label_commands = patient_national_id_label(patient) + patient_filing_number_label(patient)
 
     send_data(label_commands,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbl", :disposition => "inline")
   end
@@ -661,7 +660,7 @@ class PatientsController < ApplicationController
     patient = Patient.find(params[:id])
     lab_orders_label = params[:lab_tests].split(":")
 
-    label_commands = patient.recent_lab_orders_label(lab_orders_label, patient)
+    label_commands = recent_lab_orders_label(lab_orders_label, patient)
     send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbs", :disposition => "inline")
   end
 
@@ -1157,6 +1156,58 @@ class PatientsController < ApplicationController
     label.draw_2D_barcode(80,20,'P',700,600,'x2','y7','l100','r100','f0','s5',"#{demographics_str.join(',').gsub('/','')}")
     label.print(1)
   end
+
+  def patient_lab_orders_label(patient_id)
+    patient = Patient.find(patient_id)
+    lab_orders = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("LAB ORDERS").id,patient.id]).observations
+      labels = []
+      i = 0
+
+      while i <= lab_orders.size do
+        accession_number = "#{lab_orders[i].accession_number rescue nil}"
+
+        if accession_number != ""
+          label = 'label' + i.to_s
+          label = ZebraPrinter::Label.new(500,165)
+          label.font_size = 2
+          label.font_horizontal_multiplier = 1
+          label.font_vertical_multiplier = 1
+          label.left_margin = 300
+          label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
+          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient.national_id_with_dashes}")
+          label.draw_multi_text("#{lab_orders[i].name rescue nil} - #{accession_number rescue nil}")
+          label.draw_multi_text("#{lab_orders[i].obs_datetime.strftime("%d-%b-%Y %H:%M")}")
+          labels << label
+          end
+          i = i + 1
+      end
+
+      print_labels = []
+      label = 0
+      while label <= labels.size
+        print_labels << labels[label].print(2) if labels[label] != nil
+        label = label + 1
+      end
+
+      return print_labels
+  end
+
+  def patient_filing_number_label(patient, num = 1)
+    file = patient.get_identifier('Filing Number')[0..9]
+    file_type = file.strip[3..4]
+    version_number=file.strip[2..2]
+    number = file
+    len = number.length - 5
+    number = number[len..len] + "   " + number[(len + 1)..(len + 2)]  + " " +  number[(len + 3)..(number.length)]
+
+    label = ZebraPrinter::StandardLabel.new
+    label.draw_text("#{number}",75, 30, 0, 4, 4, 4, false)
+    label.draw_text("Filing area #{file_type}",75, 150, 0, 2, 2, 2, false)
+    label.draw_text("Version number: #{version_number}",75, 200, 0, 2, 2, 2, false)
+    label.print(num)
+  end
+
 
     
   private
