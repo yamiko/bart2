@@ -171,15 +171,14 @@ module ApplicationHelper
   def generic_locations
     field_name = "name"
 
-    sql = "SELECT *
-          FROM location
+    Location.find_by_sql("SELECT *
+            FROM location
           WHERE location_id IN (SELECT location_id
                          FROM location_tag_map
                           WHERE location_tag_id = (SELECT location_tag_id
                                  FROM location_tag
                                  WHERE name = 'Workstation Location'))
-             ORDER BY name ASC"
-      Location.find_by_sql(sql).collect{|name| name.send(field_name)} rescue []
+             ORDER BY name ASC").collect{|name| name.send(field_name)} rescue []
   end
   
   def concept_sets(concept_name)
