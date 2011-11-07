@@ -23,14 +23,15 @@ class Patient < ActiveRecord::Base
     self.orders.each {|row| row.void(reason) }
     self.encounters.each {|row| row.void(reason) }
   end
-
-  def summary
+=begin
+  def summary #
     #    verbiage << "Last seen #{visits.recent(1)}"
     verbiage = []
     verbiage << patient_programs.map{|prog| "Started #{prog.program.name.humanize} #{prog.date_enrolled.strftime('%b-%Y')}" rescue nil }
     verbiage << orders.unfinished.prescriptions.map{|presc| presc.to_s}
     verbiage.flatten.compact.join(', ') 
   end
+=end
 
   def national_id(force = true)
     id = self.patient_identifiers.find_by_identifier_type(PatientIdentifierType.find_by_name("National id").id).identifier rescue nil
