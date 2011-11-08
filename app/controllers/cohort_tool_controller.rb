@@ -66,7 +66,7 @@ class CohortToolController < ApplicationController
 
         when "patients_with_adherence_greater_than_hundred"
           redirect_to :action  => "patients_with_adherence_greater_than_hundred",
-                      :quater => params[:report].gsub("_"," ")
+                      :quarter => params[:report].gsub("_"," ")
         return
 
         when "patients_with_multiple_start_reasons"
@@ -607,8 +607,8 @@ class CohortToolController < ApplicationController
   end
   
   def cohort
-    @quater = params[:quater]
-    start_date,end_date = Report.generate_cohort_date_range(@quater)
+    @quarter = params[:quarter]
+    start_date,end_date = Report.generate_cohort_date_range(@quarter)
     cohort = Cohort.new(start_date,end_date)
     @cohort = cohort.report
     @survival_analysis = SurvivalAnalysis.report(cohort)
@@ -620,11 +620,11 @@ class CohortToolController < ApplicationController
 
   def adherence
     adherences = get_adherence(params[:quarter])
-    @quater = params[:quarter]
+    @quarter = params[:quarter]
     type = "patients_with_adherence_greater_than_hundred"
     @report_type = "Adherence Histogram for all patients"
     @adherence_summary = "&nbsp;&nbsp;<button onclick='adhSummary();'>Summary</button>" unless adherences.blank?
-    @adherence_summary+="<input class='test_name' type=\"button\" onmousedown=\"document.location='/cohort_tool/reports?report=#{@quater}&report_type=#{type}';\" value=\"Over 100% Adherence\"/>"  unless adherences.blank?
+    @adherence_summary+="<input class='test_name' type=\"button\" onmousedown=\"document.location='/cohort_tool/reports?report=#{@quarter}&report_type=#{type}';\" value=\"Over 100% Adherence\"/>"  unless adherences.blank?
     @adherence_summary_hash = Hash.new(0)
     adherences.each{|adherence,value|
       adh_value = value.to_i
@@ -637,7 +637,7 @@ class CohortToolController < ApplicationController
         @adherence_summary_hash["> 100"]+= adh_value
       end
     }
-    @adherence_summary_hash['missing'] = CohortTool.missing_adherence(@quater).length rescue 0
+    @adherence_summary_hash['missing'] = CohortTool.missing_adherence(@quarter).length rescue 0
     @adherence_summary_hash.values.each{|n|@adherence_summary_hash["total"]+=n}
 
     data = ""
@@ -660,9 +660,9 @@ class CohortToolController < ApplicationController
       missing_adherence = true if params[:show_missing_adherence] == "yes"
       session[:list_of_patients] = nil
 
-      @patients = adherence_over_hundred(params[:quater],min_range,max_range,missing_adherence)
+      @patients = adherence_over_hundred(params[:quarter],min_range,max_range,missing_adherence)
 
-      @quater = params[:quater] + ": (#{@patients.length})" rescue  params[:quater]
+      @quarter = params[:quarter] + ": (#{@patients.length})" rescue  params[:quarter]
       if missing_adherence
         @report_type = "Patient(s) with missing adherence"
       elsif max_range.blank? and min_range.blank?
@@ -987,8 +987,8 @@ class CohortToolController < ApplicationController
   adherences
   end
 
-  def adherence_over_hundred(quater="Q1 2009",min_range = nil,max_range=nil,missing_adherence=false)
-    date_range                 = Report.generate_cohort_date_range(quater)
+  def adherence_over_hundred(quarter="Q1 2009",min_range = nil,max_range=nil,missing_adherence=false)
+    date_range                 = Report.generate_cohort_date_range(quarter)
     start_date                 = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
     end_date                   = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
     adherence_range_filter     = " (adherence_rate_worse >= #{min_range} AND adherence_rate_worse <= #{max_range}) "
