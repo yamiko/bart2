@@ -311,7 +311,7 @@ class ReportController < ApplicationController
     patient_with_dispensations.each do |patient_data_row|
         person = Person.find(patient_data_row[:patient_id].to_i)
         
-        next if !person.patient.reason_for_art_eligibility.blank?
+        next if !reason_for_art_eligibility(Patient.find(patient_data_row[:patient_id].to_i)).blank?
         
         outcome = outcome(person.id, patient_data_row[:encounter_datetime])
         art_date = art_start_date(person.id)

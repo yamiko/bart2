@@ -25,6 +25,8 @@ class PatientsController < ApplicationController
      else
         @task = main_next_task(Location.current_location,@patient,session_date)
         @hiv_status = patient_hiv_status(@patient)
+        @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
+
         render :template => 'patients/index', :layout => false
      end
   end
@@ -91,7 +93,8 @@ class PatientsController < ApplicationController
        @transfer_out_site = obs.to_s if obs.to_s.include?('Transfer out to')
      end
     end
-
+    @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
+    
     # render :template => 'dashboards/treatment', :layout => 'dashboard'
     render :template => 'dashboards/dispension_tab', :layout => false
   end
@@ -515,6 +518,7 @@ class PatientsController < ApplicationController
     @task = main_next_task(Location.current_location,@patient,session_date)
     
     @hiv_status = patient_hiv_status(@patient)
+    @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
 
     render :template => 'patients/index', :layout => false
   end
@@ -596,14 +600,18 @@ class PatientsController < ApplicationController
     }
 
     @dispensed_order_id = params[:dispensed_order_id]
+    @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
+    
     render :template => 'dashboards/treatment_dashboard', :layout => false
   end
 
   def guardians_dashboard
+    @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
     render :template => 'dashboards/relationships_dashboard', :layout => false
   end
 
   def programs_dashboard
+    @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
     render :template => 'dashboards/programs_dashboard', :layout => false
   end
 

@@ -346,7 +346,7 @@ class EncountersController < ApplicationController
 		@select_options = select_options
 		@months_since_last_hiv_test = months_since_last_hiv_test(@patient.id)
 		@current_user_role = self.current_user_role
-		@tb_patient = tb_patient?(@patient)
+		@tb_patient = is_tb_patient(@patient)
 		@art_patient = @patient.art_patient?
     @recent_lab_results = patient_recent_lab_results(@patient.id)
 
@@ -388,9 +388,9 @@ class EncountersController < ApplicationController
     # use @patient_tb_status  for the tb_status moved from the patient model
     @patient_tb_status = patient_tb_status(@patient)
 
-    @patient_is_transfer_in = transfer_in?(@patient)
-    @patient_transfer_in_date = transfer_in_date?(@patient)
-    @patient_is_child_bearing_female = child_bearing_female(@patient)
+    @patient_is_transfer_in = is_transfer_in(@patient)
+    @patient_transfer_in_date = get_transfer_in_date(@patient)
+    @patient_is_child_bearing_female = is_child_bearing_female(@patient)
 
     	@cell_number = @patient.person.person_attributes.find_by_person_attribute_type_id(PersonAttributeType.find_by_name("Cell Phone Number").id).value rescue ''
 
@@ -993,11 +993,11 @@ class EncountersController < ApplicationController
     recent_sputum_results(patient_id).collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", patient_id, Concept.find_by_name("Lab test result").concept_id]).map{|o| o.accession_number}.include?(order.accession_number)}.compact
   end
 
-  def tb_patient?(patient)
-    return given_tb_medication_before?(patient)
+  def is_tb_patient(patient)
+    return given_tb_medication_before(patient)
   end
 
-  def given_tb_medication_before?(patient)
+  def given_tb_medication_before(patient)
     patient.orders.each{|order|
       drug_order = order.drug_order
       drug_order_quantity = drug_order.quantity
@@ -1011,19 +1011,19 @@ class EncountersController < ApplicationController
     false
   end
 
-  def transfer_in_date?(patient)
+  def get_transfer_in_date(patient)
     patient_transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
     return patient_transfer_in.each{|datetime| return datetime.obs_datetime  if datetime.obs_datetime}
   end
 
-  def transfer_in?(patient)
+  def is_transfer_in(patient)
     patient_transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
     return false if patient_transfer_in.blank?
     return true
   end
 
-  def child_bearing_female?(patient)
-    (gender == "Female" && patient.person.age >= 9 && patient.person.age <= 45) ? true : false
+  def is_child_bearing_female(patient)
+    (patient.gender == "Female" && patient.person.age >= 9 && patient.person.age <= 45) ? true : false
   end
 
 end

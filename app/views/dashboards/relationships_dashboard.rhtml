@@ -30,9 +30,9 @@
                 <span id='patient_gender'><%= @patient.gender rescue "" %></span>
 
                 <div id="patient_card">
-                  <% if (@patient.reason_for_art_eligibility rescue nil) != nil && (@patient.reason_for_art_eligibility) != "" %>
+                  <% if (@reason_for_art_eligibility rescue nil) != nil && (@reason_for_art_eligibility) != "" %>
 
-                    <span value="<%= @patient.reason_for_art_eligibility rescue "" %>">Reason for Starting</span>
+                    <span value="<%= @reason_for_art_eligibility rescue "" %>">Reason for Starting</span>
                   <% end %>
 
                   <% if (@patient.arv_number rescue nil) != nil && (@patient.arv_number) != " " %>

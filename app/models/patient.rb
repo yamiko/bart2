@@ -704,11 +704,7 @@ EOF
     appointments
   end
 
-  def reason_for_art_eligibility
-    reasons = self.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue nil
-    reasons.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue nil
-  end
-
+  
 =begin # could not find where it is being used DFFI
   def is_first_visit?
     clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",

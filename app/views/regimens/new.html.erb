@@ -51,7 +51,7 @@
   var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_id %>"
   var current_regimens_for_programs = <%= @current_regimens_for_programs.to_json -%>;
   var current_regimen_names_for_programs = <%= @current_regimen_names_for_programs.to_json -%>;
-  var reason_for_art = "<%= @patient.reason_for_art_eligibility %>";
+  var reason_for_art = "<%= @reason_for_art_eligibility %>";
   var prescribeTBDrugs = "<%= @prescribe_tb_drugs %>";
   var prescribeARTDrugs = "<%= @prescribe_art_drugs %>";
   var artVisit = "<%= @art_visit %>";
