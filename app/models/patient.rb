@@ -779,10 +779,6 @@ EOF
 
   end
 =end
-	def residence
-		patient = Person.find(self.id)
-		return patient.person.addresses.first.city_village
-	end
  
 =begin # could not find a place where the method below is being used, therefore just disabled it
 # for further investigation
