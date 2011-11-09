@@ -284,7 +284,7 @@ class ReportController < ApplicationController
         
         @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> arv_number, 'name'=> patient.name,
                    'birthdate'=> patient.birthdate, 'national_id' => national_id, 'gender' => patient.gender,
-                   'age'=> patient.age, 'phone_numbers'=>phone_numbers(patient), 'last_visit'=> last_visit,
+                   'age'=> get_patient_attribute_value(patient, 'age'), 'phone_numbers'=>phone_numbers(patient), 'last_visit'=> last_visit,
                    'date_started'=>patient_data_row[:date_started]}
     end
     @report
