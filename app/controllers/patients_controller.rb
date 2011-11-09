@@ -1278,7 +1278,7 @@ class PatientsController < ApplicationController
     visits.hiv_test_date = visits.hiv_test_date.to_s.split(':')[1].strip rescue nil
     visits.hiv_test_location = patient_obj.person.observations.recent(1).question("Confirmatory HIV test location").all rescue nil
     visits.hiv_test_location = visits.hiv_test_location.to_s.split(':')[1].strip rescue nil
-    visits.guardian = patient_obj.art_guardian rescue nil
+    visits.guardian = art_guardian(patient_obj) rescue nil
     visits.reason_for_art_eligibility = patient_obj.reason_for_art_eligibility
     visits.transfer_in = patient_obj.transfer_in? rescue nil #pb: bug-2677 Made this to use the newly created patient model method 'transfer_in?'
     visits.transfer_in == false ? visits.transfer_in = 'NO' : visits.transfer_in = 'YES'
@@ -1685,6 +1685,12 @@ class PatientsController < ApplicationController
       provider_username = "#{'Recorded by: ' + User.find(encounter.creator).username}" rescue nil
     end
     provider_username
+  end
+
+  def art_guardian(patient)
+    person_id = Relationship.find(:first,:order => "date_created DESC",
+      :conditions =>["person_a = ?",patient.person.id]).person_b rescue nil
+    Person.find(person_id).name rescue nil
   end
   
   private

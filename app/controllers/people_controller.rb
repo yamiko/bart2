@@ -341,7 +341,7 @@ class PeopleController < ApplicationController
     results = {}
     result_hash = {}
 
-    if patient.art_patient?
+    if art_patient?(patient)
       clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",'ART ADHERENCE','DISPENSING','ART_INITIAL']
       clinic_encounter_ids = EncounterType.find(:all,:conditions => ["name IN (?)",clinic_encounters]).collect{| e | e.id }
       first_encounter_date = patient.encounters.find(:first,

@@ -1846,6 +1846,13 @@ EOF
     #patient = Person.find(self.id)
     return patient.person.age(initiation_date) unless initiation_date.nil?
   end
+
+  def art_patient?(patient)
+    program_id = Program.find_by_name('HIV PROGRAM').id
+    enrolled = PatientProgram.find(:first,:conditions =>["program_id = ? AND patient_id = ?",program_id,patient.id]).blank?
+    return true unless enrolled
+    false
+  end
   
 private
 

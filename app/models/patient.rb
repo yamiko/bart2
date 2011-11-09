@@ -163,18 +163,9 @@ EOF
     return date.to_date rescue nil
   end
 
-  def art_patient?
-    program_id = Program.find_by_name('HIV PROGRAM').id
-    enrolled = PatientProgram.find(:first,:conditions =>["program_id = ? AND patient_id = ?",program_id,self.id]).blank?
-    return true unless enrolled 
-    false
-  end
+  
 
-  def art_guardian
-    person_id = Relationship.find(:first,:order => "date_created DESC",
-      :conditions =>["person_a = ?",self.person.id]).person_b rescue nil
-    Person.find(person_id).name rescue nil
-  end
+  
 
   
   def set_new_filing_number

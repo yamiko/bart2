@@ -352,7 +352,7 @@ class EncountersController < ApplicationController
 		@months_since_last_hiv_test = months_since_last_hiv_test(@patient.id)
 		@current_user_role = self.current_user_role
 		@tb_patient = is_tb_patient(@patient)
-		@art_patient = @patient.art_patient?
+		@art_patient = art_patient?(@patient)
     @recent_lab_results = patient_recent_lab_results(@patient.id)
 
 		use_regimen_short_names = get_global_property_value("use_regimen_short_names") rescue "false"
