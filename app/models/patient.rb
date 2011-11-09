@@ -783,12 +783,7 @@ EOF
 		patient = Person.find(self.id)
 		return patient.person.addresses.first.city_village
 	end
-  
-	def age
-		patient = Person.find(self.id)
-		return patient.age
-	end 
-
+ 
 =begin # could not find a place where the method below is being used, therefore just disabled it
 # for further investigation
   def sputum_results_given
