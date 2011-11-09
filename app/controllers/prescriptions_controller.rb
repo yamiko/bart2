@@ -11,6 +11,8 @@ class PrescriptionsController < ApplicationController
   def new
     @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
     @patient_diagnoses = current_diagnoses(@patient.person.id)
+    @current_weight = get_patient_attribute_value(@patient, "current_weight")
+		@current_height = get_patient_attribute_value(@patient, "current_height")
   end
   
   def void 

@@ -1668,6 +1668,12 @@ class ApplicationController < ActionController::Base
      return patient.person.age
    when "RESIDENCE"
      return patient.person.addresses.first.city_village
+   when "CURRENT_HEIGHT"
+    obs = patient.person.observations.recent(1).question("HEIGHT (CM)").all
+    return obs.first.value_numeric rescue 0
+   when "CURRENT_WEIGHT"
+    obs = patient.person.observations.recent(1).question("WEIGHT (KG)").all
+    return obs.first.value_numeric rescue 0
    end
    
  end

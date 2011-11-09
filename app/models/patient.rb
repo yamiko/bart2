@@ -64,16 +64,6 @@ class Patient < ActiveRecord::Base
     obs.first.value_numeric rescue 0
   end
   
-  def current_weight
-    obs = person.observations.recent(1).question("WEIGHT (KG)").all
-    obs.first.value_numeric rescue 0
-  end
-  
-  def current_height
-    obs = person.observations.recent(1).question("HEIGHT (CM)").all
-    obs.first.value_numeric rescue 0
-  end
-  
   def initial_weight
     obs = person.observations.old(1).question("WEIGHT (KG)").all
     obs.last.value_numeric rescue 0
