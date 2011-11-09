@@ -63,17 +63,6 @@ class Patient < ActiveRecord::Base
     obs = person.observations.recent(1).question("WEIGHT (KG)").all
     obs.first.value_numeric rescue 0
   end
-  
-  def given_arvs_before?
-    self.orders.each{|order|
-      drug_order = order.drug_order
-      next if drug_order == nil
-      next if drug_order.quantity == nil
-      next unless drug_order.quantity > 0
-      return true if drug_order.drug.arv?
-    }
-    false
-  end
 
   def name
     "#{self.person.name}"

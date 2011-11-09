@@ -79,8 +79,7 @@
     <%= hidden_field_tag("observations[][concept_name]", "PATIENT PRESENT") %>
     <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
     <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>  
-
-  <%if @patient.given_arvs_before? and @patient.get_identifier("ARV Number").blank?
+  <%if @given_arvs_before and @patient.get_identifier("ARV Number").blank?
       show_arv_number = get_global_property_value('show_arv_number') rescue 'true'
       unless show_arv_number == 'false'
   %>
