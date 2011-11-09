@@ -68,20 +68,7 @@ class Patient < ActiveRecord::Base
     "#{self.person.name}"
   end
 
-  def self.appointment_dates(start_date, end_date = nil)
-
-    end_date = start_date if end_date.nil?
-
-    appointment_date_concept_id = Concept.find_by_name("APPOINTMENT DATE").concept_id rescue nil
-
-    appointments = Patient.find(:all,
-      :joins      => 'INNER JOIN obs ON patient.patient_id = obs.person_id',
-      :conditions => ["DATE(obs.value_datetime) >= ? AND DATE(obs.value_datetime) <= ? AND obs.concept_id = ? AND obs.voided = 0", start_date.to_date, end_date.to_date, appointment_date_concept_id],
-      :group      => "obs.person_id")
-
-    appointments
-  end
-
+  
   def arv_number
     arv_number_id = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
     PatientIdentifier.identifier(self.patient_id, arv_number_id).identifier rescue nil
