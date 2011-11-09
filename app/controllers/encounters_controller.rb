@@ -349,8 +349,8 @@ class EncountersController < ApplicationController
 		@art_patient = @patient.art_patient?
     @recent_lab_results = patient_recent_lab_results(@patient.id)
 
-		use_regimen_short_names = GlobalProperty.find_by_property("use_regimen_short_names").property_value rescue "false"
-		show_other_regimen = GlobalProperty.find_by_property("show_other_regimen").property_value rescue 'false'
+		use_regimen_short_names = get_global_property_value("use_regimen_short_names") rescue "false"
+		show_other_regimen = ("show_other_regimen") rescue 'false'
 
 		@answer_array = arv_regimen_answers(:patient => @patient,
 			:use_short_names    => use_regimen_short_names == "true",
@@ -478,7 +478,7 @@ class EncountersController < ApplicationController
 		redirect_to :action => :create, 'encounter[encounter_type_name]' => params[:encounter_type].upcase, 'encounter[patient_id]' => @patient.id and return if ['registration'].include?(params[:encounter_type])
 
 
-		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (GlobalProperty.find_by_property('use.extended.staging.questions').property_value == "yes" rescue false)
+		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (get_global_property_value('use.extended.staging.questions') == "yes" rescue false)
 			render :template => 'encounters/llh_hiv_staging'
 		else
 			render :action => params[:encounter_type] if params[:encounter_type]

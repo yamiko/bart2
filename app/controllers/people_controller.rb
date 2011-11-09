@@ -32,7 +32,7 @@ class PeopleController < ApplicationController
     end rescue []
 
     if Location.current_location.blank?
-      Location.current_location = Location.find(GlobalProperty.find_by_property('current_health_center_id').property_value)
+      Location.current_location = Location.find(get_global_property_value('current_health_center_id'))
     end rescue []
 
     person = Person.create_from_form(person_params)

@@ -228,7 +228,7 @@
     <th>National ID:</th><td><%=@person.patient.national_id_with_dashes%></td>
   </tr>
   <%
-  use_filing_number = GlobalProperty.find_by_property('use.filing.number').property_value rescue 'false'
+  use_filing_number = get_global_property_value('use.filing.number') rescue 'false'
   if Location.current_location.name.match(/HIV|ART/) and use_filing_number == 'true'%>
     <tr>
       <th>Filing number:</th><td><%=@person.patient.get_identifier('Filing number') || @person.patient.get_identifier('Archived filing number')%></td>
