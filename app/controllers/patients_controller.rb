@@ -687,8 +687,6 @@ class PatientsController < ApplicationController
   end
 
   def tb_treatment_card # to look at later - To test that is
-    patient = Patient.find(params[:patient_id])
-    @patient_age = get_patient_attribute_value(patient, "age")
     render :layout => 'menu'
   end
 
