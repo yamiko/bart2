@@ -1674,8 +1674,14 @@ class ApplicationController < ActionController::Base
    when "CURRENT_WEIGHT"
     obs = patient.person.observations.recent(1).question("WEIGHT (KG)").all
     return obs.first.value_numeric rescue 0
+   when "INITIAL_WEIGHT"
+    obs = patient.person.observations.old(1).question("WEIGHT (KG)").all
+    return obs.last.value_numeric rescue 0
+   when "INITIAL_HEIGHT"
+    obs = patient.person.observations.old(1).question("HEIGHT (CM)").all
+    return obs.last.value_numeric rescue 0
    end
-   
+
  end
 
  def patient_tb_status(patient)
