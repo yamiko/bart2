@@ -64,51 +64,11 @@ class Patient < ActiveRecord::Base
     obs.first.value_numeric rescue 0
   end
 
-  def min_weight
-    WeightHeight.min_weight(person.gender, person.age_in_months).to_f
-  end
-  
-  def max_weight
-    WeightHeight.max_weight(person.gender, person.age_in_months).to_f
-  end
-  
-  def min_height
-    WeightHeight.min_height(person.gender, person.age_in_months).to_f
-  end
-  
-  def max_height
-    WeightHeight.max_height(person.gender, person.age_in_months).to_f
-  end
-  
-  def given_arvs_before?
-    self.orders.each{|order|
-      drug_order = order.drug_order
-      next if drug_order == nil
-      next if drug_order.quantity == nil
-      next unless drug_order.quantity > 0
-      return true if drug_order.drug.arv?
-    }
-    false
-  end
-
   def name
     "#{self.person.name}"
   end
 
-  def self.appointment_dates(start_date, end_date = nil)
-
-    end_date = start_date if end_date.nil?
-
-    appointment_date_concept_id = Concept.find_by_name("APPOINTMENT DATE").concept_id rescue nil
-
-    appointments = Patient.find(:all,
-      :joins      => 'INNER JOIN obs ON patient.patient_id = obs.person_id',
-      :conditions => ["DATE(obs.value_datetime) >= ? AND DATE(obs.value_datetime) <= ? AND obs.concept_id = ? AND obs.voided = 0", start_date.to_date, end_date.to_date, appointment_date_concept_id],
-      :group      => "obs.person_id")
-
-    appointments
-  end
-
+  
   def arv_number
     arv_number_id = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
     PatientIdentifier.identifier(self.patient_id, arv_number_id).identifier rescue nil
@@ -689,21 +649,6 @@ EOF
     pre_art_number_id = PatientIdentifierType.find_by_name('Pre ART Number (Old format)').patient_identifier_type_id
     PatientIdentifier.identifier(self.patient_id, pre_art_number_id).identifier rescue nil
   end
-  
-  def appointment_dates(start_date, end_date = nil)
-
-    end_date = start_date if end_date.nil?
-
-    appointment_date_concept_id = Concept.find_by_name("APPOINTMENT DATE").concept_id rescue nil
-
-    appointments = Observation.find(:all,
-      :conditions => ["DATE(obs.value_datetime) >= ? AND DATE(obs.value_datetime) <= ? AND " +
-          "obs.concept_id = ? AND obs.voided = 0 AND obs.person_id = ?", start_date.to_date,
-        end_date.to_date, appointment_date_concept_id, self.id])
-
-    appointments
-  end
-
   
 =begin # could not find where it is being used DFFI
   def is_first_visit?

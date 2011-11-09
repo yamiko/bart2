@@ -216,16 +216,16 @@ class ReportController < ApplicationController
     @report = []
     if (!params[:date].blank?) # retrieve appointment dates for a given day
       @date       = params[:date].to_date
-      @patients   = Patient.appointment_dates(@date)
+      @patients   = all_appointment_dates(@date)
     elsif (!params[:start_date].blank? && !params[:end_date].blank?) # retrieve appointment dates for a given date range
       @start_date = params[:start_date].to_date
       @end_date   = params[:end_date].to_date
-      @patients   = Patient.appointment_dates(@start_date, @end_date)
+      @patients   = all_appointment_dates(@start_date, @end_date)
     elsif (!params[:quarter].blank?) # retrieve appointment dates for a quarter
       date_range  = Report.generate_cohort_date_range(params[:quarter])
       @start_date  = date_range.first.to_date
       @end_date    = date_range.last.to_date
-      @patients   = Patient.appointment_dates(@start_date, @end_date)
+      @patients   = all_appointment_dates(@start_date, @end_date)
     end
 
     @patients.each do |patient|
@@ -266,7 +266,7 @@ class ReportController < ApplicationController
   def missed_appointments
 
     @report_url =  params[:report_url] 
-    @patients =  Patient.appointment_dates(params[:date])
+    @patients =  all_appointment_dates(params[:date])
     @report  = []
     
     @patients.each do |patient_data_row|
@@ -464,6 +464,20 @@ class ReportController < ApplicationController
       end 
       
       year  
+  end
+
+  def all_appointment_dates(start_date, end_date = nil)
+
+    end_date = start_date if end_date.nil?
+
+    appointment_date_concept_id = Concept.find_by_name("APPOINTMENT DATE").concept_id rescue nil
+
+    appointments = Patient.find(:all,
+      :joins      => 'INNER JOIN obs ON patient.patient_id = obs.person_id',
+      :conditions => ["DATE(obs.value_datetime) >= ? AND DATE(obs.value_datetime) <= ? AND obs.concept_id = ? AND obs.voided = 0", start_date.to_date, end_date.to_date, appointment_date_concept_id],
+      :group      => "obs.person_id")
+
+    appointments
   end
 
 end
