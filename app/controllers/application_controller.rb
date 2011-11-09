@@ -1680,6 +1680,9 @@ class ApplicationController < ActionController::Base
    when "INITIAL_HEIGHT"
     obs = patient.person.observations.old(1).question("HEIGHT (CM)").all
     return obs.last.value_numeric rescue 0
+   when "INITIAL_BMI"
+    obs = patient.person.observations.old(1).question("BMI").all
+    return obs.last.value_numeric rescue nil
    end
 
  end

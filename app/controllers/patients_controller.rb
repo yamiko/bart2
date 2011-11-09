@@ -451,7 +451,7 @@ class PatientsController < ApplicationController
         csv << ["Name", "Age","Sex","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
         transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
         transfer_in.blank? == true ? transfer_in = 'NO' : transfer_in = 'YES'
-        csv << [patient.name,patient.person.age, patient.person.sex,get_patient_attribute_value(patient, "initial_weight"),get_patient_attribute_value(patient, "initial_height"),patient.initial_bmi,transfer_in]
+        csv << [patient.name,patient.person.age, patient.person.sex,get_patient_attribute_value(patient, "initial_weight"),get_patient_attribute_value(patient, "initial_height"),get_patient_attribute_value(patient, "initial_bmi"),transfer_in]
         csv << ["Location", "Land-mark","Occupation","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
 
 =begin
@@ -1262,7 +1262,7 @@ class PatientsController < ApplicationController
     visits.landmark = patient_obj.person.addresses.first.address1
     visits.init_wt = get_patient_attribute_value(patient_obj, "initial_weight")
     visits.init_ht = get_patient_attribute_value(patient_obj, "initial_height")
-    visits.bmi = patient_obj.initial_bmi
+    visits.bmi = get_patient_attribute_value(patient_obj, "initial_bmi")
     visits.agrees_to_followup = patient_obj.person.observations.recent(1).question("Agrees to followup").all rescue nil
     visits.agrees_to_followup = visits.agrees_to_followup.to_s.split(':')[1].strip rescue nil
     visits.hiv_test_date = patient_obj.person.observations.recent(1).question("Confirmatory HIV test date").all rescue nil
