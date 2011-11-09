@@ -204,7 +204,7 @@ class PeopleController < ApplicationController
         if use_filing_number and not tb_session
           person.patient.set_filing_number 
           archived_patient = person.patient.patient_to_be_archived
-          message = Patient.printing_message(person.patient,archived_patient,creating_new_patient = true) 
+          message = patient_printing_message(person.patient,archived_patient,creating_new_patient = true)
           unless message.blank?
             print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}" , next_task(person.patient),message,true,person.id) 
           else

@@ -424,7 +424,7 @@ class PatientsController < ApplicationController
     patient.set_filing_number
 
     archived_patient = patient.patient_to_be_archived
-    message = Patient.printing_message(patient,archived_patient,true)
+    message = patient_printing_message(patient,archived_patient,true)
     unless message.blank?
       print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/patients/show/#{patient.id}",message,true,patient.id)
     else
@@ -437,7 +437,7 @@ class PatientsController < ApplicationController
     patient.set_new_filing_number
 
     archived_patient = patient.patient_to_be_archived
-    message = Patient.printing_message(patient,archived_patient)
+    message = patient_printing_message(patient,archived_patient)
     unless message.blank?
       print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/people/confirm?found_person_id=#{patient.id}",message,true,patient.id)
     else
