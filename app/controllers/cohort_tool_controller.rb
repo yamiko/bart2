@@ -735,7 +735,7 @@ class CohortToolController < ApplicationController
                                        'name' => patient.name,
                                        'national_id' => national_id,
                                        'gender' => patient.gender,
-                                       'age' => patient.age,
+                                       'age' => get_patient_attribute_value(patient, "age"),
                                        'birthdate' => patient.birthdate,
                                        'date_created' => arv_num_data[:date_created].strftime("%Y-%m-%d %H:%M:%S")
                                        }
