@@ -288,6 +288,11 @@ class EncountersController < ApplicationController
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		session_date = session[:datetime].to_date rescue Date.today
 		    @current_height = get_patient_attribute_value(@patient, "current_height")
+		    @min_weight = get_patient_attribute_value(@patient, "min_weight")
+        @max_weight = get_patient_attribute_value(@patient, "max_weight")
+        @min_height = get_patient_attribute_value(@patient, "min_height")
+        @max_height = get_patient_attribute_value(@patient, "max_height")
+        @given_arvs_before = given_arvs_before(@patient)
         @current_encounters = @patient.encounters.find_by_date(session_date)   
         @previous_tb_visit = previous_tb_visit(@patient.id)
         @is_patient_pregnant_value = nil
@@ -350,8 +355,8 @@ class EncountersController < ApplicationController
 		@art_patient = @patient.art_patient?
     @recent_lab_results = patient_recent_lab_results(@patient.id)
 
-		use_regimen_short_names = GlobalProperty.find_by_property("use_regimen_short_names").property_value rescue "false"
-		show_other_regimen = GlobalProperty.find_by_property("show_other_regimen").property_value rescue 'false'
+		use_regimen_short_names = get_global_property_value("use_regimen_short_names") rescue "false"
+		show_other_regimen = ("show_other_regimen") rescue 'false'
 
 		@answer_array = arv_regimen_answers(:patient => @patient,
 			:use_short_names    => use_regimen_short_names == "true",
@@ -485,7 +490,7 @@ class EncountersController < ApplicationController
 		redirect_to :action => :create, 'encounter[encounter_type_name]' => params[:encounter_type].upcase, 'encounter[patient_id]' => @patient.id and return if ['registration'].include?(params[:encounter_type])
 
 
-		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (GlobalProperty.find_by_property('use.extended.staging.questions').property_value == "yes" rescue false)
+		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (get_global_property_value('use.extended.staging.questions') == "yes" rescue false)
 			render :template => 'encounters/llh_hiv_staging'
 		else
 			render :action => params[:encounter_type] if params[:encounter_type]
@@ -1024,6 +1029,17 @@ class EncountersController < ApplicationController
 
   def is_child_bearing_female(patient)
     (patient.gender == "Female" && patient.person.age >= 9 && patient.person.age <= 45) ? true : false
+  end
+
+  def given_arvs_before(patient)
+    patient.orders.each{|order|
+      drug_order = order.drug_order
+      next if drug_order == nil
+      next if drug_order.quantity == nil
+      next unless drug_order.quantity > 0
+      return true if drug_order.drug.arv?
+    }
+    false
   end
 
 end

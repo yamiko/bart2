@@ -64,33 +64,6 @@ class Patient < ActiveRecord::Base
     obs.first.value_numeric rescue 0
   end
 
-  def min_weight
-    WeightHeight.min_weight(person.gender, person.age_in_months).to_f
-  end
-  
-  def max_weight
-    WeightHeight.max_weight(person.gender, person.age_in_months).to_f
-  end
-  
-  def min_height
-    WeightHeight.min_height(person.gender, person.age_in_months).to_f
-  end
-  
-  def max_height
-    WeightHeight.max_height(person.gender, person.age_in_months).to_f
-  end
-  
-  def given_arvs_before?
-    self.orders.each{|order|
-      drug_order = order.drug_order
-      next if drug_order == nil
-      next if drug_order.quantity == nil
-      next unless drug_order.quantity > 0
-      return true if drug_order.drug.arv?
-    }
-    false
-  end
-
   def name
     "#{self.person.name}"
   end

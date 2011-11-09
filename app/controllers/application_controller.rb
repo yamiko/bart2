@@ -54,11 +54,11 @@ class ApplicationController < ActionController::Base
   end
 
   def show_lab_results
-    GlobalProperty.find_by_property('show.lab.results').property_value == "yes" rescue false
+    get_global_property_value('show.lab.results') == "yes" rescue false
   end
 
   def use_filing_number
-    GlobalProperty.find_by_property('use.filing.number').property_value == "yes" rescue false
+    get_global_property_value('use.filing.number') == "yes" rescue false
   end    
 
  def generic_locations
@@ -75,20 +75,20 @@ class ApplicationController < ActionController::Base
   end
 
   def site_prefix
-    site_prefix = GlobalProperty.find_by_property("site_prefix").property_value rescue false
+    site_prefix = get_global_property_value("site_prefix") rescue false
     return site_prefix
   end
 
   def use_user_selected_activities
-    GlobalProperty.find_by_property('use.user.selected.activities').property_value == "yes" rescue false
+    get_global_property_value('use.user.selected.activities') == "yes" rescue false
   end
   
   def tb_dot_sites_tag
-    GlobalProperty.find_by_property('tb_dot_sites_tag').property_value rescue nil
+    get_global_property_value('tb_dot_sites_tag') rescue nil
   end
 
   def create_from_remote                                                        
-    GlobalProperty.find_by_property('create.from.remote').property_value == "yes" rescue false
+    get_global_property_value('create.from.remote') == "yes" rescue false
   end
 
   # Convert a list +Concept+s of +Regimen+s for the given +Patient+ <tt>age</tt>
@@ -819,7 +819,7 @@ class ApplicationController < ActionController::Base
                                       patient.id,EncounterType.find_by_name(type).id])
 
           if hiv_staging.blank? and user_selected_activities.match(/Manage HIV staging visits/i) 
-            extended_staging_questions = GlobalProperty.find_by_property('use.extended.staging.questions')
+            extended_staging_questions = get_global_property_value('use.extended.staging.questions')
             extended_staging_questions = extended_staging_questions.property_value == 'yes' rescue false
             task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" if not extended_staging_questions 
             task.url = "/encounters/new/llh_hiv_staging?show&patient_id=#{patient.id}" if extended_staging_questions
@@ -1163,7 +1163,7 @@ class ApplicationController < ActionController::Base
     #10. Manage appointments - APPOINTMENT
     #11. Manage ART adherence - ART ADHERENCE
 
-    encounters_sequentially = GlobalProperty.find_by_property('list.of.clinical.encounters.sequentially')
+    encounters_sequentially = get_global_property_value('list.of.clinical.encounters.sequentially')
     encounters = encounters_sequentially.property_value.split(',') rescue []
     user_selected_activities = User.current_user.activities.collect{|a| a.upcase }.join(',') rescue []
     if encounters.blank? or user_selected_activities.blank?
@@ -1208,7 +1208,7 @@ class ApplicationController < ActionController::Base
           end if reason_for_art.upcase ==  'UNKNOWN'
         when 'HIV STAGING'
           if encounter_available.blank? and user_selected_activities.match(/Manage HIV staging visits/i) 
-            extended_staging_questions = GlobalProperty.find_by_property('use.extended.staging.questions')
+            extended_staging_questions = get_global_property_value('use.extended.staging.questions')
             extended_staging_questions = extended_staging_questions.property_value == 'yes' rescue false
             task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" if not extended_staging_questions 
             task.url = "/encounters/new/llh_hiv_staging?show&patient_id=#{patient.id}" if extended_staging_questions
@@ -1683,6 +1683,14 @@ class ApplicationController < ActionController::Base
    when "INITIAL_BMI"
     obs = patient.person.observations.old(1).question("BMI").all
     return obs.last.value_numeric rescue nil
+   when "MIN_WEIGHT"
+    return WeightHeight.min_weight(patient.person.gender, patient.person.age_in_months).to_f
+   when "MAX_WEIGHT"
+    return WeightHeight.max_weight(patient.person.gender, patient.person.age_in_months).to_f
+   when "MIN_HEIGHT"
+    return WeightHeight.min_height(patient.person.gender, patient.person.age_in_months).to_f
+   when "MAX_HEIGHT"
+    return WeightHeight.max_height(patient.person.gender, patient.person.age_in_months).to_f
    end
 
  end
@@ -1694,6 +1702,12 @@ class ApplicationController < ActionController::Base
                     patient.id,
     ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
  end
+ 
+  def get_global_property_value(global_property)
+    GlobalProperty.find(:first,
+                        :conditions => {:property => "#{global_property}"}
+                       ).property_value
+  end
 
  def reason_for_art_eligibility(patient)
     reasons = patient.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue nil
@@ -1852,7 +1866,7 @@ private
                                  patient.id,EncounterType.find_by_name('HIV STAGING').id])
 
     if hiv_staging.blank? and user_selected_activities.match(/Manage HIV staging visits/i)
-      extended_staging_questions = GlobalProperty.find_by_property('use.extended.staging.questions')
+      extended_staging_questions = get_global_property_value('use.extended.staging.questions')
       extended_staging_questions = extended_staging_questions.property_value == 'yes' rescue false
       task.encounter_type = 'HIV STAGING'
       task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" if not extended_staging_questions
