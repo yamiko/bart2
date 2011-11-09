@@ -4,6 +4,8 @@ class RegimensController < ApplicationController
 		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
 		@programs = @patient.patient_programs.all
 		@hiv_programs = @patient.patient_programs.not_completed.in_programs('HIV PROGRAM')
+
+    @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
     	
 		@tb_encounter = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                     :conditions=>["patient_id = ? AND encounter_type = ?", 
