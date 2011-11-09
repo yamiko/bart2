@@ -398,7 +398,7 @@
 	
 	  <%= touch_numeric_tag "CONDOMS", @patient, nil,
 		{	:optional => false,
-			:max => '500',
+			:max => '100',
 			:condition => 'hasARTVisit() == true;',
 			:helpText => 'Number of condoms given' 
 		} %>
