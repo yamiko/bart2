@@ -750,14 +750,7 @@ EOF
   end
   
   #from TB ART TO BART
-  
-  def tb_status
-    Concept.find(Observation.find(:first, 
-    :order => "obs_datetime DESC,date_created DESC",
-    :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL", self.id, 
-    ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
-  end
-  
+    
 =begin # could not find where it is being used DFFI
   def is_first_visit?
     clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",
