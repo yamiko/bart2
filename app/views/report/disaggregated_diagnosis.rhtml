@@ -25,19 +25,19 @@
       count_female_above_fourteen = 0
       @patient.each{|patient|
         if patient.value_coded == diagnosis.value_coded
-          if (patient.age < 5 )
+          if (patient.person.age < 5 )
             if (patient.gender == 'M')
               count_male_under_five += 1
             else
               count_female_under_five += 1
             end
-          elsif (patient.age >= 5 and patient.age <= 14)
+          elsif (patient.person.age >= 5 and patient.person.age <= 14)
             if (patient.gender == 'M')
               count_male_in_between += 1
             else
               count_female_in_between += 1
             end
-          elsif (patient.age > 14 )
+          elsif (patient.person.age > 14 )
             if (patient.gender == 'M')
               count_male_above_fourteen += 1
             else

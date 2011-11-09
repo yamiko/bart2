@@ -686,7 +686,7 @@ class PatientsController < ApplicationController
     render :template => 'dashboards/next_task_description', :layout => false
   end
 
-  def tb_treatment_card
+  def tb_treatment_card # to look at later - To test that is
     render :layout => 'menu'
   end
 

@@ -129,10 +129,10 @@
        :multiple => false,
        :helpText => "TB Status" } %>
     <% else %>
-        <%= touch_hidden_tag "TB STATUS" , @patient, ConceptName.find_by_name("#{@patient.tb_status}").name, {:id => "tb_status"} %>
+        <%= touch_hidden_tag "TB STATUS" , @patient, ConceptName.find_by_name("#{@patient_tb_status}").name, {:id => "tb_status"} %>
     <% end %>
 
-  <%if @patient.child_bearing_female?%>
+  <%if @patient_is_child_bearing_female%>
   <%#= touch_yes_no_unknown_tag "DEPO-PROVERA", @patient, nil,
       {:optional => false,
        :helpText => "Depo-provera injection given?" } %>

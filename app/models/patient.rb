@@ -724,30 +724,6 @@ EOF
     reasons.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue nil
   end
 
-  def child_bearing_female?
-    (gender == "Female" && self.person.age >= 9 && self.person.age <= 45) ? true : false
-  end
-  #pb: bug-2677 Added the block below to check if the patient was transfered in
-  def transfer_in?
-    patient_transfer_in = self.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
-    return false if patient_transfer_in.blank?
-    return true
-  end
-
-  def transfer_in_date?
-    patient_transfer_in = self.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
-    return patient_transfer_in.each{|datetime| return datetime.obs_datetime  if datetime.obs_datetime}
-  end
-  
-  #from TB ART TO BART
-  
-  def tb_status
-    Concept.find(Observation.find(:first, 
-    :order => "obs_datetime DESC,date_created DESC",
-    :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL", self.id, 
-    ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
-  end
-  
 =begin # could not find where it is being used DFFI
   def is_first_visit?
     clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",
@@ -769,16 +745,7 @@ EOF
 
   end
 =end
-	def residence
-		patient = Person.find(self.id)
-		return patient.person.addresses.first.city_village
-	end
-  
-	def age
-		patient = Person.find(self.id)
-		return patient.age
-	end 
-
+ 
 =begin # could not find a place where the method below is being used, therefore just disabled it
 # for further investigation
   def sputum_results_given
