@@ -1658,8 +1658,18 @@ class ApplicationController < ActionController::Base
 =end
 
  def patient_is_child?(patient)
-   return patient.age <= 14 unless patient.age.nil?
+   return get_patient_attribute_value(patient, "age") <= 14 unless get_patient_attribute_value(patient, "age").nil?
    return false
+ end
+
+ def get_patient_attribute_value(patient, attribute_name)
+   case attribute_name.upcase
+   when "AGE"
+     return patient.person.age
+   when "RESIDENCE"
+     return patient.person.addresses.first.city_village
+   end
+   
  end
 
 private
