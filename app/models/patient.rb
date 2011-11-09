@@ -113,55 +113,7 @@ class Patient < ActiveRecord::Base
     return true
   end
 
-  def number_of_days_to_add_to_next_appointment_date(date = Date.today)
-    #because a dispension/pill count can have several drugs,we pick the drug with the lowest pill count
-    #and we also make sure the drugs in the pill count/Adherence encounter are the same as the one in Dispension encounter
-    
-    concept_id = ConceptName.find_by_name('AMOUNT OF DRUG BROUGHT TO CLINIC').concept_id
-    encounter_type = EncounterType.find_by_name('ART ADHERENCE')
-    adherence = Observation.find(:all,
-      :joins => 'INNER JOIN encounter USING(encounter_id)',
-      :conditions =>["encounter_type = ? AND patient_id = ? AND concept_id = ? AND DATE(encounter_datetime)=?",
-        encounter_type.id,self.id,concept_id,date.to_date],:order => 'encounter_datetime DESC')
-    return 0 if adherence.blank?
-    concept_id = ConceptName.find_by_name('AMOUNT DISPENSED').concept_id
-    encounter_type = EncounterType.find_by_name('DISPENSING')
-    drug_dispensed = Observation.find(:all,
-      :joins => 'INNER JOIN encounter USING(encounter_id)',
-      :conditions =>["encounter_type = ? AND patient_id = ? AND concept_id = ? AND DATE(encounter_datetime)=?",
-        encounter_type.id,self.id,concept_id,date.to_date],:order => 'encounter_datetime DESC')
 
-    #check if what was dispensed is what was counted as remaing pills
-    return 0 unless (drug_dispensed.map{| d | d.value_drug } - adherence.map{|a|a.order.drug_order.drug_inventory_id}) == []
-   
-    #the folliwing block of code picks the drug with the lowest pill count
-    count_drug_count = []
-    (adherence).each do | adh |
-      unless count_drug_count.blank?
-        if adh.value_numeric < count_drug_count[1]
-          count_drug_count = [adh.order.drug_order.drug_inventory_id,adh.value_numeric]
-        end
-      end
-      count_drug_count = [adh.order.drug_order.drug_inventory_id,adh.value_numeric] if count_drug_count.blank?
-    end
-
-    #from the drug dispensed on that day,we pick the drug "plus it's daily dose" that match the drug with the lowest pill count    
-    equivalent_daily_dose = 1
-    (drug_dispensed).each do | dispensed_drug |
-      drug_order = dispensed_drug.order.drug_order
-      if count_drug_count[0] == drug_order.drug_inventory_id
-        equivalent_daily_dose = drug_order.equivalent_daily_dose
-      end
-    end
-    (count_drug_count[1] / equivalent_daily_dose).to_i
-  end
-
-
-  
-
-  
-
-  
   def set_new_filing_number
     ActiveRecord::Base.transaction do
       global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10'
