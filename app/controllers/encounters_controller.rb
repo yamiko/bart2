@@ -287,6 +287,7 @@ class EncountersController < ApplicationController
 	def new	
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		session_date = session[:datetime].to_date rescue Date.today
+		    @current_height = get_patient_attribute_value(@patient, "current_height")
         @current_encounters = @patient.encounters.find_by_date(session_date)   
         @previous_tb_visit = previous_tb_visit(@patient.id)
         @is_patient_pregnant_value = nil
@@ -386,6 +387,10 @@ class EncountersController < ApplicationController
 		@tb_status = recent_lab_results(@patient.id, session_date)
     # use @patient_tb_status  for the tb_status moved from the patient model
     @patient_tb_status = patient_tb_status(@patient)
+
+    @patient_is_transfer_in = transfer_in?(@patient)
+    @patient_transfer_in_date = transfer_in_date?(@patient)
+    @patient_is_child_bearing_female = child_bearing_female(@patient)
 
     	@cell_number = @patient.person.person_attributes.find_by_person_attribute_type_id(PersonAttributeType.find_by_name("Cell Phone Number").id).value rescue ''
 
@@ -1004,6 +1009,21 @@ class EncountersController < ApplicationController
       return true if drug_order.drug.tb_medication?
     }
     false
+  end
+
+  def transfer_in_date?(patient)
+    patient_transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
+    return patient_transfer_in.each{|datetime| return datetime.obs_datetime  if datetime.obs_datetime}
+  end
+
+  def transfer_in?(patient)
+    patient_transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
+    return false if patient_transfer_in.blank?
+    return true
+  end
+
+  def child_bearing_female?(patient)
+    (gender == "Female" && patient.person.age >= 9 && patient.person.age <= 45) ? true : false
   end
 
 end

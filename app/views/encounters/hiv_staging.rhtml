@@ -274,7 +274,7 @@
 	}
 
 	function transferInPatient() {
-		transfer_in = "<%= @patient.transfer_in? == true %>";
+		transfer_in = "<%= @patient_is_transfer_in == true %>";
 		if (transfer_in == 'true') {
 			return true;
 		}
@@ -365,7 +365,7 @@
                        @patient.id,obs_date])
     %>
 
-     <% if @patient.person.patient.transfer_in? && (@patient.person.patient.transfer_in_date? == session[:datetime])%> 
+     <% if @patient_is_transfer_in && (@patient_transfer_in_date == session[:datetime])%>
       <% if patient_pregnant.blank? %>
         <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
           {:id => "pregnant" ,

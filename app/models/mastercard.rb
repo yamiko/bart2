@@ -22,7 +22,7 @@ class Mastercard
     visits.national_id = patient_obj.national_id
     visits.name = patient_obj.person.names.first.given_name + ' ' + patient_obj.person.names.first.family_name rescue nil
     visits.sex = patient_obj.gender
-    visits.age = patient_obj.age
+    visits.age = patient_obj.person.age
     visits.occupation = patient_obj.person.get_attribute('Occupation')
     visits.landmark = patient_obj.person.addresses.first.address1
     visits.init_wt = patient_obj.initial_weight

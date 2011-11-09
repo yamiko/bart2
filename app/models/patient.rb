@@ -64,16 +64,6 @@ class Patient < ActiveRecord::Base
     obs.first.value_numeric rescue 0
   end
   
-  def current_weight
-    obs = person.observations.recent(1).question("WEIGHT (KG)").all
-    obs.first.value_numeric rescue 0
-  end
-  
-  def current_height
-    obs = person.observations.recent(1).question("HEIGHT (CM)").all
-    obs.first.value_numeric rescue 0
-  end
-  
   def initial_weight
     obs = person.observations.old(1).question("WEIGHT (KG)").all
     obs.last.value_numeric rescue 0
@@ -734,23 +724,6 @@ EOF
     reasons.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue nil
   end
 
-  def child_bearing_female?
-    (gender == "Female" && self.person.age >= 9 && self.person.age <= 45) ? true : false
-  end
-  #pb: bug-2677 Added the block below to check if the patient was transfered in
-  def transfer_in?
-    patient_transfer_in = self.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
-    return false if patient_transfer_in.blank?
-    return true
-  end
-
-  def transfer_in_date?
-    patient_transfer_in = self.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
-    return patient_transfer_in.each{|datetime| return datetime.obs_datetime  if datetime.obs_datetime}
-  end
-  
-  #from TB ART TO BART
-    
 =begin # could not find where it is being used DFFI
   def is_first_visit?
     clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",

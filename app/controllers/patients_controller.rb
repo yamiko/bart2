@@ -736,7 +736,7 @@ class PatientsController < ApplicationController
 
     # BMI alerts
     if patient.person.age >= 15
-      bmi_alert = current_bmi_alert(patient.current_weight, patient.current_height)
+      bmi_alert = current_bmi_alert(get_patient_attribute_value(patient, "current_weight"), get_patient_attribute_value(patient, "current_height"))
       alerts << bmi_alert if bmi_alert
     end
     
