@@ -54,7 +54,7 @@ class PeopleController < ApplicationController
   
   def art_information
     national_id = params["person"]["patient"]["identifiers"]["National id"] rescue nil
-    art_info = Patient.art_info_for_remote(national_id)
+    art_info = art_info_for_remote(national_id)
     render :text => art_info.to_json
   end
  
@@ -332,6 +332,61 @@ class PeopleController < ApplicationController
     }
     encounters_by_type
   end
+
+  def art_info_for_remote(national_id)
+
+    patient = Person.search_by_identifier(national_id).first.patient rescue []
+    return {} if patient.blank?
+
+    results = {}
+    result_hash = {}
+
+    if patient.art_patient?
+      clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",'ART ADHERENCE','DISPENSING','ART_INITIAL']
+      clinic_encounter_ids = EncounterType.find(:all,:conditions => ["name IN (?)",clinic_encounters]).collect{| e | e.id }
+      first_encounter_date = patient.encounters.find(:first,
+        :order => 'encounter_datetime',
+        :conditions => ['encounter_type IN (?)',clinic_encounter_ids]).encounter_datetime.strftime("%d-%b-%Y") rescue 'Uknown'
+
+      last_encounter_date = patient.encounters.find(:first,
+        :order => 'encounter_datetime DESC',
+        :conditions => ['encounter_type IN (?)',clinic_encounter_ids]).encounter_datetime.strftime("%d-%b-%Y") rescue 'Uknown'
+
+
+      art_start_date = patient.art_start_date.strftime("%d-%b-%Y") rescue 'Uknown'
+      last_given_drugs = patient.person.observations.recent(1).question("ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT").last rescue nil
+      last_given_drugs = last_given_drugs.value_text rescue 'Uknown'
+
+      program_id = Program.find_by_name('HIV PROGRAM').id
+      outcome = PatientProgram.find(:first,:conditions =>["program_id = ? AND patient_id = ?",program_id,patient.id],:order => "date_enrolled DESC")
+      art_clinic_outcome = outcome.patient_states.last.program_workflow_state.concept.fullname rescue 'Unknown'
+
+      date_tested_positive = patient.person.observations.recent(1).question("FIRST POSITIVE HIV TEST DATE").last rescue nil
+      date_tested_positive = date_tested_positive.to_s.split(':')[1].strip.to_date.strftime("%d-%b-%Y") rescue 'Uknown'
+
+      cd4_info = patient.person.observations.recent(1).question("CD4 COUNT").all rescue []
+      cd4_data_and_date_hash = {}
+
+      (cd4_info || []).map do | obs |
+        cd4_data_and_date_hash[obs.obs_datetime.to_date.strftime("%d-%b-%Y")] = obs.value_numeric
+      end
+
+      result_hash = {
+        'art_start_date' => art_start_date,
+        'date_tested_positive' => date_tested_positive,
+        'first_visit_date' => first_encounter_date,
+        'last_visit_date' => last_encounter_date,
+        'cd4_data' => cd4_data_and_date_hash,
+        'last_given_drugs' => last_given_drugs,
+        'art_clinic_outcome' => art_clinic_outcome,
+        'arv_number' => patient.arv_number
+      }
+    end
+
+    results["person"] = result_hash
+    return results
+  end
+
 
 private
   
