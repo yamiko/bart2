@@ -258,7 +258,7 @@
   }
 
   function transferInPatient() {
-    transfer_in = "<%= @patient.transfer_in? == true %>"
+    transfer_in = "<%=  @patient_is_transfer_in == true %>"
     if (transfer_in == 'true')
       return true
 
