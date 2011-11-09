@@ -111,7 +111,7 @@
      :multiple => false,
      :helpText => "TB Status" } %>
 
-  <%if @patient.child_bearing_female?%>
+  <%if @patient_is_child_bearing_female%>
   <%#= touch_yes_no_unknown_tag "DEPO-PROVERA", @patient, nil,
       {:optional => false,
        :helpText => "Depo-provera injection given?" } %>

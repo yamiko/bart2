@@ -155,7 +155,7 @@
   }
 
   function hasReasonForART() {
-    if(reason_for_art.match(/UNKNOWN/i) || reason_for_art.length == 0) {
+    if(reason_for_art.match(/UNKNOWN/i) || reason_for_art.length == 0 || reason_for_art.match(/NONE/i) ) {
       return false;
 	}
 
@@ -398,7 +398,7 @@
 	
 	  <%= touch_numeric_tag "CONDOMS", @patient, nil,
 		{	:optional => false,
-			:max => '500',
+			:max => '100',
 			:condition => 'hasARTVisit() == true;',
 			:helpText => 'Number of condoms given' 
 		} %>

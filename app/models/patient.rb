@@ -63,31 +63,6 @@ class Patient < ActiveRecord::Base
     obs = person.observations.recent(1).question("WEIGHT (KG)").all
     obs.first.value_numeric rescue 0
   end
-  
-  def current_weight
-    obs = person.observations.recent(1).question("WEIGHT (KG)").all
-    obs.first.value_numeric rescue 0
-  end
-  
-  def current_height
-    obs = person.observations.recent(1).question("HEIGHT (CM)").all
-    obs.first.value_numeric rescue 0
-  end
-  
-  def initial_weight
-    obs = person.observations.old(1).question("WEIGHT (KG)").all
-    obs.last.value_numeric rescue 0
-  end
-  
-  def initial_height
-    obs = person.observations.old(1).question("HEIGHT (CM)").all
-    obs.last.value_numeric rescue 0
-  end
-
-  def initial_bmi
-    obs = person.observations.old(1).question("BMI").all
-    obs.last.value_numeric rescue nil
-  end
 
   def min_weight
     WeightHeight.min_weight(person.gender, person.age_in_months).to_f
@@ -734,30 +709,6 @@ EOF
     reasons.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue nil
   end
 
-  def child_bearing_female?
-    (gender == "Female" && self.person.age >= 9 && self.person.age <= 45) ? true : false
-  end
-  #pb: bug-2677 Added the block below to check if the patient was transfered in
-  def transfer_in?
-    patient_transfer_in = self.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
-    return false if patient_transfer_in.blank?
-    return true
-  end
-
-  def transfer_in_date?
-    patient_transfer_in = self.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
-    return patient_transfer_in.each{|datetime| return datetime.obs_datetime  if datetime.obs_datetime}
-  end
-  
-  #from TB ART TO BART
-  
-  def tb_status
-    Concept.find(Observation.find(:first, 
-    :order => "obs_datetime DESC,date_created DESC",
-    :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL", self.id, 
-    ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
-  end
-  
 =begin # could not find where it is being used DFFI
   def is_first_visit?
     clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",
