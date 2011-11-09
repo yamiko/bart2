@@ -1842,6 +1842,11 @@ EOF
     return number[5..5] + " " + number[6..7] + " " + number[8..-1] unless number.nil?
   end
 
+  def patient_age_at_initiation(patient, initiation_date = nil)
+    #patient = Person.find(self.id)
+    return patient.person.age(initiation_date) unless initiation_date.nil?
+  end
+  
 private
 
   def find_patient

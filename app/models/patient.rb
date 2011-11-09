@@ -74,10 +74,7 @@ class Patient < ActiveRecord::Base
     PatientIdentifier.identifier(self.patient_id, arv_number_id).identifier rescue nil
   end
 
-  def age_at_initiation(initiation_date = nil)
-    patient = Person.find(self.id)
-    return patient.age(initiation_date) unless initiation_date.nil?
-  end
+ 
 
   def set_received_regimen(encounter,prescription)
     dispense_finish = true ; dispensed_drugs_inventory_ids = []

@@ -631,7 +631,8 @@ class PatientsController < ApplicationController
 
     @mastercard = mastercard_demographics(@patient)
     @visits = visits(@patient)   # (@patient, (session[:datetime].to_date rescue Date.today))
-
+    @patient_age_at_initiation = patient_age_at_initiation(@patient,
+                                              @patient.art_start_date)
     render :layout => false
   end
 
@@ -1087,7 +1088,7 @@ class PatientsController < ApplicationController
 
     label2.draw_text("HEIGHT: #{initial_height}",570,70,0,2,1,1,false)
     label2.draw_text("WEIGHT: #{initial_weight}",570,110,0,2,1,1,false)
-    label2.draw_text("Init Age: #{patient.age_at_initiation(demographics.date_of_first_line_regimen) rescue nil}",570,150,0,2,1,1,false)
+    label2.draw_text("Init Age: #{patient_age_at_initiation(patient, demographics.date_of_first_line_regimen) rescue nil}",570,150,0,2,1,1,false)
 
     line = 190
     extra_lines = []
