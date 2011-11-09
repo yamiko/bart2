@@ -225,7 +225,7 @@ class PatientsController < ApplicationController
   end
   
   def print_mastercard_record
-    print_and_redirect("/patients/mastercard_record_label/?patient_id=#{@patient.id}&date=#{params[:date]}", "/patients/visit?date=#{params[:date]}&patient_id=#{params[:patient_id]}")  
+    print_and_redirect("/patients/mastercard_record_label/?patient_id=#{@patient.id}&date=#{params[:date]}", "/patients/visit?date=#{params[:date]}&patient_id=#{params[:patient_id]}")
   end
   
   def print_demographics
@@ -273,12 +273,12 @@ class PatientsController < ApplicationController
   end
  
   def visit_label
-    print_string = @patient.visit_label rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a visit label for that patient")
+    print_string = patient_visit_label(@patient) rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a visit label for that patient")
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", :disposition => "inline")
   end
 
   def mastercard_record_label
-    print_string = @patient.visit_label(params[:date].to_date) 
+    print_string = patient_visit_label(@patient, params[:date].to_date)
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", :disposition => "inline")
   end
 
@@ -1208,9 +1208,29 @@ class PatientsController < ApplicationController
     label.print(num)
   end
 
+  def patient_visit_label(patient, date = Date.today)
+    result = Location.current_location.name.match(/outpatient/i).nil?
 
-    
+    if result == false
+      return Mastercard.mastercard_visit_label(patient,date)
+    else
+      label = ZebraPrinter::StandardLabel.new
+      label.font_size = 3
+      label.font_horizontal_multiplier = 1
+      label.font_vertical_multiplier = 1
+      label.left_margin = 50
+      encs = patient.encounters.find(:all,:conditions =>["DATE(encounter_datetime) = ?",date])
+      return nil if encs.blank?
+
+      label.draw_multi_text("Visit: #{encs.first.encounter_datetime.strftime("%d/%b/%Y %H:%M")}", :font_reverse => true)
+      encs.each {|encounter|
+        next if encounter.name.humanize == "Registration"
+        label.draw_multi_text("#{encounter.name.humanize}: #{encounter.to_s}", :font_reverse => false)
+      }
+      label.print(1)
+    end
+  end
+
   private
-  
-  
+
 end

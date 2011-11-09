@@ -51,29 +51,6 @@ class Patient < ActiveRecord::Base
     id[0..4] + "-" + id[5..8] + "-" + id[9..-1] rescue id
   end
 
-  
-  def visit_label(date = Date.today)
-    result = Location.current_location.name.match(/outpatient/i).nil?
-    if result == false
-      return Mastercard.mastercard_visit_label(self,date)
-    else
-      label = ZebraPrinter::StandardLabel.new
-      label.font_size = 3
-      label.font_horizontal_multiplier = 1
-      label.font_vertical_multiplier = 1
-      label.left_margin = 50
-      encs = encounters.find(:all,:conditions =>["DATE(encounter_datetime) = ?",date])
-      return nil if encs.blank?
-
-      label.draw_multi_text("Visit: #{encs.first.encounter_datetime.strftime("%d/%b/%Y %H:%M")}", :font_reverse => true)
-      encs.each {|encounter|
-        next if encounter.name.humanize == "Registration"
-        label.draw_multi_text("#{encounter.name.humanize}: #{encounter.to_s}", :font_reverse => false)
-      }
-      label.print(1)
-    end
-  end
-
   def get_identifier(type = 'National id')
     identifier_type = PatientIdentifierType.find_by_name(type)
     return if identifier_type.blank?
