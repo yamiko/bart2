@@ -734,23 +734,6 @@ EOF
     reasons.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue nil
   end
 
-  def child_bearing_female?
-    (gender == "Female" && self.person.age >= 9 && self.person.age <= 45) ? true : false
-  end
-  #pb: bug-2677 Added the block below to check if the patient was transfered in
-  def transfer_in?
-    patient_transfer_in = self.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
-    return false if patient_transfer_in.blank?
-    return true
-  end
-
-  def transfer_in_date?
-    patient_transfer_in = self.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
-    return patient_transfer_in.each{|datetime| return datetime.obs_datetime  if datetime.obs_datetime}
-  end
-  
-  #from TB ART TO BART
-    
 =begin # could not find where it is being used DFFI
   def is_first_visit?
     clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",
