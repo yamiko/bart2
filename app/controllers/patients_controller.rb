@@ -354,14 +354,14 @@ class PatientsController < ApplicationController
       @patient_id = session[:mastercard_ids][session[:mastercard_counter]]
       @data_demo = mastercard_demographics(Patient.find(@patient_id))
       @visits = visits(Patient.find(@patient_id))
-      @patient_art_visit_date = patient_art_start_date(@patient_id)
+      @patient_art_start_date = patient_art_start_date(@patient_id)
       # elsif session[:mastercard_ids].length.to_i != 0
       #  @patient_id = params[:patient_id]
       #  @data_demo = mastercard_demographics(Patient.find(@patient_id))
       #  @visits = visits(Patient.find(@patient_id))
     else
       @patient_id = params[:patient_id]
-      @patient_art_visit_date = patient_art_start_date(@patient_id)
+      @patient_art_start_date = patient_art_start_date(@patient_id)
       @data_demo = mastercard_demographics(Patient.find(@patient_id))
       @visits = visits(Patient.find(@patient_id))
     end
@@ -631,7 +631,7 @@ class PatientsController < ApplicationController
     end
 
     @mastercard = mastercard_demographics(@patient)
-    @patient_art_visit_date = patient_art_start_date(@patient.id)
+    @patient_art_start_date = patient_art_start_date(@patient.id)
     @visits = visits(@patient)   # (@patient, (session[:datetime].to_date rescue Date.today))
     @patient_age_at_initiation = patient_age_at_initiation(@patient,
                                               patient_art_start_date(@patient.id))
