@@ -1700,6 +1700,20 @@ class ApplicationController < ActionController::Base
     reasons.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue nil
  end
 
+ def patient_appointment_dates(patient, start_date, end_date = nil)
+
+    end_date = start_date if end_date.nil?
+
+    appointment_date_concept_id = Concept.find_by_name("APPOINTMENT DATE").concept_id rescue nil
+
+    appointments = Observation.find(:all,
+      :conditions => ["DATE(obs.value_datetime) >= ? AND DATE(obs.value_datetime) <= ? AND " +
+          "obs.concept_id = ? AND obs.voided = 0 AND obs.person_id = ?", start_date.to_date,
+        end_date.to_date, appointment_date_concept_id, patient.id])
+
+    appointments
+  end
+
 private
 
   def find_patient

@@ -690,21 +690,6 @@ EOF
     PatientIdentifier.identifier(self.patient_id, pre_art_number_id).identifier rescue nil
   end
   
-  def appointment_dates(start_date, end_date = nil)
-
-    end_date = start_date if end_date.nil?
-
-    appointment_date_concept_id = Concept.find_by_name("APPOINTMENT DATE").concept_id rescue nil
-
-    appointments = Observation.find(:all,
-      :conditions => ["DATE(obs.value_datetime) >= ? AND DATE(obs.value_datetime) <= ? AND " +
-          "obs.concept_id = ? AND obs.voided = 0 AND obs.person_id = ?", start_date.to_date,
-        end_date.to_date, appointment_date_concept_id, self.id])
-
-    appointments
-  end
-
-  
 =begin # could not find where it is being used DFFI
   def is_first_visit?
     clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",
