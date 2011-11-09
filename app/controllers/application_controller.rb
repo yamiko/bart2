@@ -1853,6 +1853,14 @@ EOF
     return true unless enrolled
     false
   end
+
+  def patient_art_start_date(patient_id)
+    date = ActiveRecord::Base.connection.select_value <<EOF
+SELECT patient_start_date(#{patient_id})
+EOF
+    return date.to_date rescue nil
+  end
+
   
 private
 

@@ -353,7 +353,7 @@ class PeopleController < ApplicationController
         :conditions => ['encounter_type IN (?)',clinic_encounter_ids]).encounter_datetime.strftime("%d-%b-%Y") rescue 'Uknown'
 
 
-      art_start_date = patient.art_start_date.strftime("%d-%b-%Y") rescue 'Uknown'
+      art_start_date = patient_art_start_date(patient.id).strftime("%d-%b-%Y") rescue 'Uknown'
       last_given_drugs = patient.person.observations.recent(1).question("ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT").last rescue nil
       last_given_drugs = last_given_drugs.value_text rescue 'Uknown'
 

@@ -156,12 +156,6 @@ class Patient < ActiveRecord::Base
     (count_drug_count[1] / equivalent_daily_dose).to_i
   end
 
-  def art_start_date
-    date = ActiveRecord::Base.connection.select_value <<EOF
-SELECT patient_start_date(#{self.id})
-EOF
-    return date.to_date rescue nil
-  end
 
   
 
