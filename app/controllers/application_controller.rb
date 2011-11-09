@@ -1668,11 +1668,23 @@ class ApplicationController < ActionController::Base
      return patient.person.age
    when "RESIDENCE"
      return patient.person.addresses.first.city_village
+   when "CURRENT_HEIGHT"
+    obs = patient.person.observations.recent(1).question("HEIGHT (CM)").all
+    return obs.first.value_numeric rescue 0
    when "CURRENT_WEIGHT"
-     obs = patient.person.observations.recent(1).question("WEIGHT (KG)").all
-     obs.first.value_numeric rescue 0
+    obs = patient.person.observations.recent(1).question("WEIGHT (KG)").all
+    return obs.first.value_numeric rescue 0
+   when "INITIAL_WEIGHT"
+    obs = patient.person.observations.old(1).question("WEIGHT (KG)").all
+    return obs.last.value_numeric rescue 0
+   when "INITIAL_HEIGHT"
+    obs = patient.person.observations.old(1).question("HEIGHT (CM)").all
+    return obs.last.value_numeric rescue 0
+   when "INITIAL_BMI"
+    obs = patient.person.observations.old(1).question("BMI").all
+    return obs.last.value_numeric rescue nil
    end
-   
+
  end
 
  def patient_tb_status(patient)

@@ -226,11 +226,11 @@ class PatientsController < ApplicationController
   def print_visit
     print_and_redirect("/patients/visit_label/?patient_id=#{@patient.id}", next_task(@patient))  
   end
-  
+
   def print_mastercard_record
     print_and_redirect("/patients/mastercard_record_label/?patient_id=#{@patient.id}&date=#{params[:date]}", "/patients/visit?date=#{params[:date]}&patient_id=#{params[:patient_id]}")
   end
-  
+
   def print_demographics
     print_and_redirect("/patients/patient_demographics_label/#{@patient.id}", "/patients/show/#{params[:id]}")
   end
@@ -352,16 +352,16 @@ class PatientsController < ApplicationController
 
       end
       @patient_id = session[:mastercard_ids][session[:mastercard_counter]]
-      @data_demo = Mastercard.demographics(Patient.find(@patient_id))
+      @data_demo = mastercard_demographics(Patient.find(@patient_id))
       @visits = Mastercard.visits(Patient.find(@patient_id))
 
       # elsif session[:mastercard_ids].length.to_i != 0
       #  @patient_id = params[:patient_id]
-      #  @data_demo = Mastercard.demographics(Patient.find(@patient_id))
+      #  @data_demo = mastercard_demographics(Patient.find(@patient_id))
       #  @visits = Mastercard.visits(Patient.find(@patient_id))
     else
       @patient_id = params[:patient_id]
-      @data_demo = Mastercard.demographics(Patient.find(@patient_id))
+      @data_demo = mastercard_demographics(Patient.find(@patient_id))
       @visits = Mastercard.visits(Patient.find(@patient_id))
     end
     render :layout => false
@@ -454,7 +454,7 @@ class PatientsController < ApplicationController
         csv << ["Name", "Age","Sex","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
         transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
         transfer_in.blank? == true ? transfer_in = 'NO' : transfer_in = 'YES'
-        csv << [patient.name,patient.person.age, patient.person.sex,patient.initial_weight,patient.initial_height,patient.initial_bmi,transfer_in]
+        csv << [patient.name,patient.person.age, patient.person.sex,get_patient_attribute_value(patient, "initial_weight"),get_patient_attribute_value(patient, "initial_height"),get_patient_attribute_value(patient, "initial_bmi"),transfer_in]
         csv << ["Location", "Land-mark","Occupation","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
 
 =begin
@@ -629,7 +629,7 @@ class PatientsController < ApplicationController
       @type = "blue"
     end
 
-    @mastercard = Mastercard.demographics(@patient)
+    @mastercard = mastercard_demographics(@patient)
     @visits = Mastercard.visits(@patient)   # (@patient, (session[:datetime].to_date rescue Date.today))
 
     render :layout => false
@@ -744,7 +744,7 @@ class PatientsController < ApplicationController
 
     # BMI alerts
     if patient.person.age >= 15
-      bmi_alert = current_bmi_alert(patient.current_weight, patient.current_height)
+      bmi_alert = current_bmi_alert(get_patient_attribute_value(patient, "current_weight"), get_patient_attribute_value(patient, "current_height"))
       alerts << bmi_alert if bmi_alert
     end
     
@@ -965,7 +965,7 @@ class PatientsController < ApplicationController
   #moved from the patient model. Needs good testing
   def demographics_label(patient_id)
     patient = Patient.find(patient_id)
-    demographics = Mastercard.demographics(patient)
+    demographics = mastercard_demographics(patient)
     hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("HIV Staging").id,patient.id])
 
@@ -996,6 +996,8 @@ class PatientsController < ApplicationController
     phone_number= home_phone_number if not home_phone_number.downcase == "not available" and not home_phone_number.downcase == "unknown" rescue nil
     phone_number = cell_phone_number if not cell_phone_number.downcase == "not available" and not cell_phone_number.downcase == "unknown" rescue nil
 
+    initial_height = get_patient_attribute_value(patient, "initial_height")
+    initial_weight = get_patient_attribute_value(patient, "initial_weight")
 
     label = ZebraPrinter::StandardLabel.new
     label.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",450,300,0,1,1,1,false)
@@ -1013,20 +1015,36 @@ class PatientsController < ApplicationController
       last_line = 150
     end
 
-    if last_line == 180 and demographics.guardian.length < 48
-      label.draw_text("Guard: #{demographics.guardian}",25,210,0,3,1,1,false)
-      last_line = 210
-    elsif last_line == 180 and demographics.guardian.length > 48
-      label.draw_text("Guard: #{demographics.guardian[0..47]}",25,210,0,3,1,1,false)
-      label.draw_text("     : #{demographics.guardian[48..-1]}",25,240,0,3,1,1,false)
-      last_line = 240
-    elsif last_line == 150 and demographics.guardian.length > 48
-      label.draw_text("Guard: #{demographics.guardian[0..47]}",25,180,0,3,1,1,false)
-      label.draw_text("     : #{demographics.guardian[48..-1]}",25,210,0,3,1,1,false)
-      last_line = 210
-    elsif last_line == 150 and demographics.guardian.length < 48
-      label.draw_text("Guard: #{demographics.guardian}",25,180,0,3,1,1,false)
-      last_line = 180
+    if !demographics.guardian.nil?
+      if last_line == 180 and demographics.guardian.length < 48
+        label.draw_text("Guard: #{demographics.guardian}",25,210,0,3,1,1,false)
+        last_line = 210
+      elsif last_line == 180 and demographics.guardian.length > 48
+        label.draw_text("Guard: #{demographics.guardian[0..47]}",25,210,0,3,1,1,false)
+        label.draw_text("     : #{demographics.guardian[48..-1]}",25,240,0,3,1,1,false)
+        last_line = 240
+      elsif last_line == 150 and demographics.guardian.length > 48
+        label.draw_text("Guard: #{demographics.guardian[0..47]}",25,180,0,3,1,1,false)
+        label.draw_text("     : #{demographics.guardian[48..-1]}",25,210,0,3,1,1,false)
+        last_line = 210
+      elsif last_line == 150 and demographics.guardian.length < 48
+        label.draw_text("Guard: #{demographics.guardian}",25,180,0,3,1,1,false)
+        last_line = 180
+      end
+    else
+      if last_line == 180
+        label.draw_text("Guard: None",25,210,0,3,1,1,false)
+        last_line = 210
+      elsif last_line == 180
+        label.draw_text("Guard: None}",25,210,0,3,1,1,false)
+        last_line = 240
+      elsif last_line == 150
+        label.draw_text("Guard: None",25,180,0,3,1,1,false)
+        last_line = 210
+      elsif last_line == 150
+        label.draw_text("Guard: None",25,180,0,3,1,1,false)
+        last_line = 180
+      end
     end
 
     label.draw_text("TI:    #{demographics.transfer_in ||= 'No'}",25,last_line+=30,0,3,1,1,false)
@@ -1067,8 +1085,8 @@ class PatientsController < ApplicationController
     label2.draw_text("#{demographics.alt_first_line_drugs.join(',')[0..32] rescue nil}",25,230,0,2,1,1,false)
     label2.draw_text("#{demographics.second_line_drugs.join(',')[0..32] rescue nil}",25,270,0,2,1,1,false)
 
-    label2.draw_text("HEIGHT: #{patient.initial_height}",570,70,0,2,1,1,false)
-    label2.draw_text("WEIGHT: #{patient.initial_weight}",570,110,0,2,1,1,false)
+    label2.draw_text("HEIGHT: #{initial_height}",570,70,0,2,1,1,false)
+    label2.draw_text("WEIGHT: #{initial_weight}",570,110,0,2,1,1,false)
     label2.draw_text("Init Age: #{patient.age_at_initiation(demographics.date_of_first_line_regimen) rescue nil}",570,150,0,2,1,1,false)
 
     line = 190
@@ -1101,7 +1119,7 @@ class PatientsController < ApplicationController
 
   def patient_transfer_out_label(patient_id)
     patient = Patient.find(patient_id)
-    demographics = Mastercard.demographics(patient)
+    demographics = mastercard_demographics(patient)
     demographics_str = []
     demographics_str << "Name: #{demographics.name}"
     demographics_str << "DOB: #{patient.person.birthdate}"
@@ -1237,6 +1255,160 @@ class PatientsController < ApplicationController
       }
       label.print(1)
     end
+  end
+
+  def mastercard_demographics(patient_obj)
+    visits = Mastercard.new()
+    visits.patient_id = patient_obj.id
+    visits.arv_number = patient_obj.get_identifier('ARV Number')
+    visits.address = patient_obj.person.addresses.first.city_village
+    visits.national_id = patient_obj.national_id
+    visits.name = patient_obj.person.names.first.given_name + ' ' + patient_obj.person.names.first.family_name rescue nil
+    visits.sex = patient_obj.gender
+    visits.age = patient_obj.person.age
+    visits.occupation = patient_obj.person.get_attribute('Occupation')
+    visits.landmark = patient_obj.person.addresses.first.address1
+    visits.init_wt = get_patient_attribute_value(patient_obj, "initial_weight")
+    visits.init_ht = get_patient_attribute_value(patient_obj, "initial_height")
+    visits.bmi = get_patient_attribute_value(patient_obj, "initial_bmi")
+    visits.agrees_to_followup = patient_obj.person.observations.recent(1).question("Agrees to followup").all rescue nil
+    visits.agrees_to_followup = visits.agrees_to_followup.to_s.split(':')[1].strip rescue nil
+    visits.hiv_test_date = patient_obj.person.observations.recent(1).question("Confirmatory HIV test date").all rescue nil
+    visits.hiv_test_date = visits.hiv_test_date.to_s.split(':')[1].strip rescue nil
+    visits.hiv_test_location = patient_obj.person.observations.recent(1).question("Confirmatory HIV test location").all rescue nil
+    visits.hiv_test_location = visits.hiv_test_location.to_s.split(':')[1].strip rescue nil
+    visits.guardian = patient_obj.art_guardian rescue nil
+    visits.reason_for_art_eligibility = patient_obj.reason_for_art_eligibility
+    visits.transfer_in = patient_obj.transfer_in? rescue nil #pb: bug-2677 Made this to use the newly created patient model method 'transfer_in?'
+    visits.transfer_in == false ? visits.transfer_in = 'NO' : visits.transfer_in = 'YES'
+
+    visits.transfer_in_date = patient_obj.person.observations.recent(1).question("HAS TRANSFER LETTER").all.collect{|o|
+            o.obs_datetime if o.answer_string.strip == "YES"}.last rescue nil
+
+    regimens = {}
+    regimen_types = ['FIRST LINE ANTIRETROVIRAL REGIMEN','ALTERNATIVE FIRST LINE ANTIRETROVIRAL REGIMEN','SECOND LINE ANTIRETROVIRAL REGIMEN']
+    regimen_types.map do | regimen |
+      concept_member_ids = ConceptName.find_by_name(regimen).concept.concept_members.collect{|c|c.concept_id}
+      case regimen
+        when 'FIRST LINE ANTIRETROVIRAL REGIMEN'
+          regimens[regimen] = concept_member_ids
+        when 'ALTERNATIVE FIRST LINE ANTIRETROVIRAL REGIMEN'
+          regimens[regimen] = concept_member_ids
+        when 'SECOND LINE ANTIRETROVIRAL REGIMEN'
+          regimens[regimen] = concept_member_ids
+      end
+    end
+
+    first_treatment_encounters = []
+    encounter_type = EncounterType.find_by_name('DISPENSING').id
+    amount_dispensed_concept_id = ConceptName.find_by_name('Amount dispensed').concept_id
+    regimens.map do | regimen_type , ids |
+      encounter = Encounter.find(:first,
+                                 :joins => "INNER JOIN obs ON encounter.encounter_id = obs.encounter_id",
+                                 :conditions =>["encounter_type=? AND encounter.patient_id = ? AND concept_id = ?
+                                 AND encounter.voided = 0",encounter_type , patient_obj.id , amount_dispensed_concept_id ],
+                                 :order =>"encounter_datetime")
+      first_treatment_encounters << encounter unless encounter.blank?
+    end
+
+
+    visits.first_line_drugs = []
+    visits.alt_first_line_drugs = []
+    visits.second_line_drugs = []
+
+    first_treatment_encounters.map do | treatment_encounter |
+      treatment_encounter.observations.map{|obs|
+        next if not obs.concept_id == amount_dispensed_concept_id
+        drug = Drug.find(obs.value_drug) if obs.value_numeric > 0
+        drug_concept_id = drug.concept.concept_id
+        regimens.map do | regimen_type , concept_ids |
+          if regimen_type == 'FIRST LINE ANTIRETROVIRAL REGIMEN' and concept_ids.include?(drug_concept_id)
+            visits.date_of_first_line_regimen = treatment_encounter.encounter_datetime.to_date
+            visits.first_line_drugs << drug.concept.shortname
+            visits.first_line_drugs = visits.first_line_drugs.uniq rescue []
+          elsif regimen_type == 'ALTERNATIVE FIRST LINE ANTIRETROVIRAL REGIMEN' and concept_ids.include?(drug_concept_id)
+            visits.date_of_first_alt_line_regimen = treatment_encounter.encounter_datetime.to_date
+            visits.alt_first_line_drugs << drug.concept.shortname
+            visits.alt_first_line_drugs = visits.alt_first_line_drugs.uniq rescue []
+          elsif regimen_type == 'SECOND LINE ANTIRETROVIRAL REGIMEN' and concept_ids.include?(drug_concept_id)
+            visits.date_of_second_line_regimen = treatment_encounter.encounter_datetime.to_date
+            visits.second_line_drugs << drug.concept.shortname
+            visits.second_line_drugs = visits.second_line_drugs.uniq rescue []
+          end
+        end
+      }.compact
+    end
+
+    ans = ["Extrapulmonary tuberculosis (EPTB)","Pulmonary tuberculosis within the last 2 years","Pulmonary tuberculosis","Kaposis sarcoma"]
+    staging_ans = patient_obj.person.observations.recent(1).question("WHO STG CRIT").all
+
+    visits.ks = 'Yes' if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[3])
+    visits.tb_within_last_two_yrs = 'Yes' if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[1])
+    visits.eptb = 'Yes' if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[0])
+    visits.pulmonary_tb = 'Yes' if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[2])
+
+    hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("HIV Staging").id,patient_obj.id])
+
+    visits.who_clinical_conditions = ""
+
+    (hiv_staging.observations).collect do |obs|
+      name = obs.to_s.split(':')[0].strip rescue nil
+      next unless name == 'WHO STAGES CRITERIA PRESENT'
+      condition = obs.to_s.split(':')[1].strip.humanize rescue nil
+      visits.who_clinical_conditions = visits.who_clinical_conditions + (condition) + "; "
+    end rescue []
+
+    # cd4_count_date cd4_count pregnant who_clinical_conditions
+
+    visits.cd4_count_date = nil ; visits.cd4_count = nil ; visits.pregnant = 'N/A'
+
+    (hiv_staging.observations).map do | obs |
+      concept_name = obs.to_s.split(':')[0].strip rescue nil
+      next if concept_name.blank?
+      case concept_name
+      when 'CD4 COUNT DATETIME'
+        visits.cd4_count_date = obs.value_datetime.to_date
+      when 'CD4 COUNT'
+        visits.cd4_count = obs.value_numeric
+      when 'IS PATIENT PREGNANT?'
+        visits.pregnant = obs.to_s.split(':')[1] rescue nil
+      when 'LYMPHOCYTE COUNT'
+        visits.tlc = obs.value_numeric
+      when 'LYMPHOCYTE COUNT DATETIME'
+        visits.tlc_date = obs.value_datetime.to_date
+      end
+    end rescue []
+
+    visits.tb_status_at_initiation = (!visits.tb_status.nil? ? "Curr" :
+          (!visits.tb_within_last_two_yrs.nil? ? (visits.tb_within_last_two_yrs.upcase == "YES" ? 
+              "Last 2yrs" : "Never/ >2yrs") : "Never/ >2yrs"))
+
+    art_initial = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("ART_INITIAL").id,patient_obj.id])
+
+    (art_initial.observations).map do | obs |
+      concept_name = obs.to_s.split(':')[0].strip rescue nil
+      next if concept_name.blank?
+      case concept_name
+      when 'Ever received ART?'
+        visits.ever_received_art = obs.to_s.split(':')[1].strip rescue nil
+      when 'Last ART drugs taken'
+        visits.last_art_drugs_taken = obs.to_s.split(':')[1].strip rescue nil
+      when 'Date ART last taken'
+        visits.last_art_drugs_date_taken = obs.value_datetime.to_date rescue nil
+      when 'Confirmatory HIV test location'
+        visits.first_positive_hiv_test_site = obs.to_s.split(':')[1].strip rescue nil
+      when 'ART number at previous location'
+        visits.first_positive_hiv_test_arv_number = obs.to_s.split(':')[1].strip rescue nil
+      when 'Confirmatory HIV test type'
+        visits.first_positive_hiv_test_type = obs.to_s.split(':')[1].strip rescue nil
+      when 'Confirmatory HIV test date'
+        visits.first_positive_hiv_test_date = obs.value_datetime.to_date rescue nil
+      end
+    end rescue []
+
+    visits
   end
 
   private

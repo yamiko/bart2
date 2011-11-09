@@ -49,7 +49,7 @@
      try{ 
       currentHeight = document.getElementById('height').value;
      }catch(e){
-      currentHeight = <%= @patient.current_height %>
+      currentHeight = <%= @current_height %>
      }
      currentWeight = document.getElementById('weight').value;
      medianWeightHeight = [<%= WeightHeightForAge.median_weight_height(@patient.person.age_in_months, @patient.person.gender).join(',') rescue nil -%>];
@@ -169,8 +169,8 @@
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
       <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 
-    <% if @patient.person.age > 18 and not @patient.current_height == 0 %>
-      <%= hidden_field_tag "observations[][value_numeric]",@patient.current_height %>
+    <% if @patient.person.age > 18 and not @current_height == 0 %>
+      <%= hidden_field_tag "observations[][value_numeric]",@current_height %>
       <%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
       <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
