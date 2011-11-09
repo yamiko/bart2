@@ -1683,6 +1683,14 @@ class ApplicationController < ActionController::Base
    when "INITIAL_BMI"
     obs = patient.person.observations.old(1).question("BMI").all
     return obs.last.value_numeric rescue nil
+   when "MIN_WEIGHT"
+    return WeightHeight.min_weight(patient.person.gender, patient.person.age_in_months).to_f
+   when "MAX_WEIGHT"
+    return WeightHeight.max_weight(patient.person.gender, patient.person.age_in_months).to_f
+   when "MIN_HEIGHT"
+    return WeightHeight.min_height(patient.person.gender, patient.person.age_in_months).to_f
+   when "MAX_HEIGHT"
+    return WeightHeight.max_height(patient.person.gender, patient.person.age_in_months).to_f
    end
 
  end

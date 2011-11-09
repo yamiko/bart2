@@ -288,6 +288,10 @@ class EncountersController < ApplicationController
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		session_date = session[:datetime].to_date rescue Date.today
 		    @current_height = get_patient_attribute_value(@patient, "current_height")
+		    @min_weight = get_patient_attribute_value(@patient, "min_weight")
+        @max_weight = get_patient_attribute_value(@patient, "max_weight")
+        @min_height = get_patient_attribute_value(@patient, "min_height")
+        @max_height = get_patient_attribute_value(@patient, "max_height")
         @current_encounters = @patient.encounters.find_by_date(session_date)   
         @previous_tb_visit = previous_tb_visit(@patient.id)
         @is_patient_pregnant_value = nil
