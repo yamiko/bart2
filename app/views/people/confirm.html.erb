@@ -236,7 +236,7 @@
   <%end%>
   <%if Location.current_location.name.match(/HIV|ART/) %>
     <tr>
-      <th>ARV number:</th><td><%=@person.patient.arv_number || 'N/A' %></td>
+      <th>ARV number:</th><td><%=@arv_number || 'N/A' %></td>
     </tr>
   <%end%>
   <tr>

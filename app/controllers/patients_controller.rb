@@ -26,6 +26,7 @@ class PatientsController < ApplicationController
         @task = main_next_task(Location.current_location,@patient,session_date)
         @hiv_status = patient_hiv_status(@patient)
         @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
+        @arv_number = arv_number(@patient)
 
         render :template => 'patients/index', :layout => false
      end
@@ -94,6 +95,7 @@ class PatientsController < ApplicationController
      end
     end
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
+    @arv_number = arv_number(@patient)
     
     # render :template => 'dashboards/treatment', :layout => 'dashboard'
     render :template => 'dashboards/dispension_tab', :layout => false
@@ -354,13 +356,14 @@ class PatientsController < ApplicationController
       @patient_id = session[:mastercard_ids][session[:mastercard_counter]]
       @data_demo = mastercard_demographics(Patient.find(@patient_id))
       @visits = visits(Patient.find(@patient_id))
-
+      @patient_art_start_date = patient_art_start_date(@patient_id)
       # elsif session[:mastercard_ids].length.to_i != 0
       #  @patient_id = params[:patient_id]
       #  @data_demo = mastercard_demographics(Patient.find(@patient_id))
       #  @visits = visits(Patient.find(@patient_id))
     else
       @patient_id = params[:patient_id]
+      @patient_art_start_date = patient_art_start_date(@patient_id)
       @data_demo = mastercard_demographics(Patient.find(@patient_id))
       @visits = visits(Patient.find(@patient_id))
     end
@@ -424,7 +427,7 @@ class PatientsController < ApplicationController
     patient.set_filing_number
 
     archived_patient = patient.patient_to_be_archived
-    message = Patient.printing_message(patient,archived_patient,true)
+    message = patient_printing_message(patient,archived_patient,true)
     unless message.blank?
       print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/patients/show/#{patient.id}",message,true,patient.id)
     else
@@ -437,7 +440,7 @@ class PatientsController < ApplicationController
     patient.set_new_filing_number
 
     archived_patient = patient.patient_to_be_archived
-    message = Patient.printing_message(patient,archived_patient)
+    message = patient_printing_message(patient,archived_patient)
     unless message.blank?
       print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/people/confirm?found_person_id=#{patient.id}",message,true,patient.id)
     else
@@ -519,6 +522,7 @@ class PatientsController < ApplicationController
     
     @hiv_status = patient_hiv_status(@patient)
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
+    @arv_number = arv_number(@patient)
 
     render :template => 'patients/index', :layout => false
   end
@@ -601,17 +605,21 @@ class PatientsController < ApplicationController
 
     @dispensed_order_id = params[:dispensed_order_id]
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
-    
+    @arv_number = arv_number(@patient)
+
     render :template => 'dashboards/treatment_dashboard', :layout => false
   end
 
   def guardians_dashboard
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
+    @arv_number = arv_number(@patient)
+
     render :template => 'dashboards/relationships_dashboard', :layout => false
   end
 
   def programs_dashboard
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
+    @arv_number = arv_number(@patient)
     render :template => 'dashboards/programs_dashboard', :layout => false
   end
 
@@ -630,8 +638,10 @@ class PatientsController < ApplicationController
     end
 
     @mastercard = mastercard_demographics(@patient)
+    @patient_art_start_date = patient_art_start_date(@patient.id)
     @visits = visits(@patient)   # (@patient, (session[:datetime].to_date rescue Date.today))
-
+    @patient_age_at_initiation = patient_age_at_initiation(@patient,
+                                              patient_art_start_date(@patient.id))
     render :layout => false
   end
 
@@ -1087,7 +1097,7 @@ class PatientsController < ApplicationController
 
     label2.draw_text("HEIGHT: #{initial_height}",570,70,0,2,1,1,false)
     label2.draw_text("WEIGHT: #{initial_weight}",570,110,0,2,1,1,false)
-    label2.draw_text("Init Age: #{patient.age_at_initiation(demographics.date_of_first_line_regimen) rescue nil}",570,150,0,2,1,1,false)
+    label2.draw_text("Init Age: #{patient_age_at_initiation(patient, demographics.date_of_first_line_regimen) rescue nil}",570,150,0,2,1,1,false)
 
     line = 190
     extra_lines = []
@@ -1277,7 +1287,7 @@ class PatientsController < ApplicationController
     visits.hiv_test_date = visits.hiv_test_date.to_s.split(':')[1].strip rescue nil
     visits.hiv_test_location = patient_obj.person.observations.recent(1).question("Confirmatory HIV test location").all rescue nil
     visits.hiv_test_location = visits.hiv_test_location.to_s.split(':')[1].strip rescue nil
-    visits.guardian = patient_obj.art_guardian rescue nil
+    visits.guardian = art_guardian(patient_obj) rescue nil
     visits.reason_for_art_eligibility = patient_obj.reason_for_art_eligibility
     visits.transfer_in = patient_obj.transfer_in? rescue nil #pb: bug-2677 Made this to use the newly created patient model method 'transfer_in?'
     visits.transfer_in == false ? visits.transfer_in = 'NO' : visits.transfer_in = 'YES'
@@ -1684,6 +1694,12 @@ class PatientsController < ApplicationController
       provider_username = "#{'Recorded by: ' + User.find(encounter.creator).username}" rescue nil
     end
     provider_username
+  end
+
+  def art_guardian(patient)
+    person_id = Relationship.find(:first,:order => "date_created DESC",
+      :conditions =>["person_a = ?",patient.person.id]).person_b rescue nil
+    Person.find(person_id).name rescue nil
   end
   
   private

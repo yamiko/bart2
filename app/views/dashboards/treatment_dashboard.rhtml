@@ -28,6 +28,7 @@
       }
 
     </script>
+
   </head>
   <body><div id='content'>
       <div id='description' style='color:#777;position:absolute;margin-top:-70px;'></div><center>
@@ -50,9 +51,9 @@
                  <span value="<%= @reason_for_art_eligibility rescue "" %>">Reason for Starting</span>
                <% end %>
 
-               <% if (@patient.arv_number rescue nil) != nil && (@patient.arv_number) != " " %>
+               <% if (@arv_number rescue nil) != nil && (@arv_number) != " " %>
 
-                  <span value="<%= @patient.arv_number rescue "" %>">ARV Number</span>
+                  <span value="<%= @arv_number rescue "" %>">ARV Number</span>
 
                <% end %>
                <% if (@patient.eid_number rescue nil) != nil && (@patient.eid_number) != " " %>
