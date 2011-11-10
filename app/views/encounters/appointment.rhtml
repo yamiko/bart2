@@ -36,7 +36,7 @@
 
 <script>
   var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_id %>";
-  var number_of_days_to_add = <%= @patient.number_of_days_to_add_to_next_appointment_date(session[:datetime] || Date.today) %>;
+  var number_of_days_to_add = <%= @number_of_days_to_add_to_next_appointment_date %>;
   var clinic_days = "<%= get_global_property_value('clinic.days') rescue 'Monday,Tuesday,Wednesday,Thursday,Friday' %>";
   var peads_clinic_days = "<%= get_global_property_value('peads.clinic.days') rescue '' %>";
   var patient_age = <%= @patient.person.age %>;
