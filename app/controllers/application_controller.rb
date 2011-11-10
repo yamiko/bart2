@@ -974,7 +974,7 @@ class ApplicationController < ActionController::Base
             return task
           end if not reason_for_art.upcase ==  'UNKNOWN'
         when 'TB ADHERENCE'
-          drugs_given_before = (not patient.drug_given_before(session_date).prescriptions.blank?) rescue false
+          drugs_given_before = (not drug_given_before(patient,session_date).prescriptions.blank?) rescue false
            
           tb_adherence = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
@@ -988,7 +988,7 @@ class ApplicationController < ActionController::Base
             return task
           end if drugs_given_before
         when 'ART ADHERENCE'
-          art_drugs_given_before = (not patient.drug_given_before(session_date).arv.prescriptions.blank?) rescue false
+          art_drugs_given_before = (not drug_given_before(patient,session_date).arv.prescriptions.blank?) rescue false
 
           art_adherence = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
@@ -1297,7 +1297,7 @@ class ApplicationController < ActionController::Base
           elsif encounter_available.blank? and not user_selected_activities.match(/Manage ART adherence/i)
             task.url = "/patients/show/#{patient.id}"
             return task
-          end if not patient.drug_given_before(session_date).blank?
+          end if not drug_given_before(patient,session_date).blank?
       end
     end
     #task.encounter_type = 'Visit complete ...'
@@ -1407,7 +1407,7 @@ class ApplicationController < ActionController::Base
         skip = true unless enc.present?
       end
 
-      if task.encounter_type == 'ART ADHERENCE' and patient.drug_given_before(session_date).blank?
+      if task.encounter_type == 'ART ADHERENCE' and drug_given_before(patient,session_date).blank?
         skip = true
       end
       
@@ -1552,7 +1552,7 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    unless patient.drug_given_before(session_date).blank?
+    unless drug_given_before(patient,session_date).blank?
       art_adherance = Encounter.find(:first,
                                      :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                                      patient.id,EncounterType.find_by_name(art_encounters[5]).id,session_date],
@@ -1873,6 +1873,19 @@ EOF
     return false if refer_patient.blank?
     return true
   end
+
+
+  def drug_given_before(patient, date = Date.today)
+    encounter_type = EncounterType.find_by_name('TREATMENT')
+    Encounter.find(:first,
+      :joins => 'INNER JOIN orders ON orders.encounter_id = encounter.encounter_id
+               INNER JOIN drug_order ON orders.order_id = orders.order_id',
+      :conditions => ["quantity IS NOT NULL AND encounter_type = ? AND
+               encounter.patient_id = ? AND DATE(encounter_datetime) < ?",
+        encounter_type.id,patient.id,date.to_date],
+        :order => 'encounter_datetime DESC,date_created DESC').orders rescue []
+  end
+
   
 private
 
