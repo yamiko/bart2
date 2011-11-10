@@ -1567,7 +1567,7 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    if patient.prescribe_arv_this_visit(session_date)
+    if prescribe_arv_this_visit(patient, session_date)
       art_treatment = Encounter.find(:first,
                                      :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                                      patient.id,EncounterType.find_by_name(art_encounters[6]).id,session_date],
@@ -1861,6 +1861,18 @@ EOF
     return date.to_date rescue nil
   end
 
+  def prescribe_arv_this_visit(patient, date = Date.today)
+    encounter_type = EncounterType.find_by_name('ART VISIT')
+    yes_concept = ConceptName.find_by_name('YES').concept_id
+    refer_concept = ConceptName.find_by_name('PRESCRIBE ARVS THIS VISIT').concept_id
+    refer_patient = Encounter.find(:first,
+      :joins => 'INNER JOIN obs USING (encounter_id)',
+      :conditions => ["encounter_type = ? AND concept_id = ? AND person_id = ? AND value_coded = ? AND DATE(obs_datetime) = ?",
+        encounter_type.id,refer_concept,patient.id,yes_concept,date.to_date],
+      :order => 'encounter_datetime DESC,date_created DESC')
+    return false if refer_patient.blank?
+    return true
+  end
   
 private
 
