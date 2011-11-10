@@ -45,7 +45,7 @@
   </tr>
   <tr class="master_data">
    <td class='demo_data'><%= @patient.national_id_with_dashes rescue nil-%></td>
-   <td class='demo_data'><%= @patient.name rescue nil-%></td>
+   <td class='demo_data'><%= @patient.person.name rescue nil-%></td>
    <td class='demo_data'><%= @patient.person.birthdate_formatted rescue nil-%></td>
    <td class='demo_data'><%= @patient.person.age rescue nil-%></td>
    <td class='demo_data'><%= @patient.person.sex rescue nil-%></td>

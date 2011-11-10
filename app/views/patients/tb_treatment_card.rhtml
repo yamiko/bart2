@@ -71,7 +71,7 @@
             <table class="demographics">
               <tr>
                 <td class="demographics-header">Name: </td>
-                <td class="demographics"> <%= @patient.name rescue "Could not display name" %> </td>
+                <td class="demographics"> <%= @patient.person.name rescue "Could not display name" %> </td>
               </tr>
               <tr>
                 <td class="demographics-header">Address: </td>

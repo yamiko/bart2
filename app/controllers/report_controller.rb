@@ -254,7 +254,7 @@ class ReportController < ApplicationController
         
         last_visit = last_appointment_date.strftime('%Y-%m-%d') rescue ""
         outcome = outcome(patient.id, @date)
-        @report << {'arv_number'=>get_patient_identifier(patient, 'ARV Number'), 'name'=> patient.name,
+        @report << {'arv_number'=>get_patient_identifier(patient, 'ARV Number'), 'name'=> patient.person.name,
                    'birthdate'=> patient.person.birthdate, 'last_visit'=> last_visit,
                    'visit_by'=> visit_by, 'phone_number'=>phone_number, 'outcome'=>outcome, 'patient_id'=>patient.id}
 
@@ -282,7 +282,7 @@ class ReportController < ApplicationController
         arv_number     = get_patient_identifier(patient_data_row, 'ARV Number')
         last_visit = last_appointment_date(patient.id, params[:date]).strftime('%Y-%m-%d') rescue ""
         
-        @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> arv_number, 'name'=> patient.name,
+        @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> arv_number, 'name'=> patient.person.name,
                    'birthdate'=> patient.birthdate, 'national_id' => national_id, 'gender' => patient.person.sex,
                    'age'=> get_patient_attribute_value(patient, 'age'), 'phone_numbers'=>phone_numbers(patient), 'last_visit'=> last_visit,
                    'date_started'=>patient_data_row[:date_started]}
