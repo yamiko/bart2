@@ -100,9 +100,6 @@ class Patient < ActiveRecord::Base
         :order => 'encounter_datetime DESC,date_created DESC').orders rescue []
   end
 
-  
-
-
   def set_new_filing_number
     ActiveRecord::Base.transaction do
       global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10'

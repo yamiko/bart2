@@ -1980,7 +1980,12 @@ private
       return task
     end 
   end
-  
+
+  def arv_number(patient)
+    arv_number_id = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
+    return PatientIdentifier.identifier(patient.patient_id, arv_number_id).identifier rescue nil
+  end
+
   def need_art_enrollment(task,patient,location,session_date,user_selected_activities,reason_for_art)
     return unless patient_hiv_status(patient).match(/Positive/i)
 

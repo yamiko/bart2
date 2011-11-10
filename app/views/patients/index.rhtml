@@ -49,8 +49,8 @@
               <% if (@hiv_status rescue nil) != nil && (@hiv_status) != "" %>
                 <span value="<%= @hiv_status rescue "" %>">HIV Status</span>
               <% end %>
-              <% if (@patient.arv_number rescue nil) != nil && (@patient.arv_number) != " " %>
-                <span value="<%= @patient.arv_number rescue "" %>">ARV Number</span>
+              <% if (@arv_number rescue nil) != nil && (@arv_number) != " " %>
+                <span value="<%= @arv_number rescue "" %>">ARV Number</span>
               <% end %>
               <% if (@patient.eid_number rescue nil) != nil && (@patient.eid_number) != " " %>
                 <span value="<%= @patient.eid_number rescue "" %>">EID Number</span>
