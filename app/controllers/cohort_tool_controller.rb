@@ -476,7 +476,7 @@ class CohortToolController < ApplicationController
                         :arv_number   => (get_patient_identifier(visit.patient, 'ARV Number') || ""),
                         :name         => (visit.patient.name || ""),
                         :national_id  => (visit.patient.national_id || ""),
-                        :gender       => (visit.patient.gender || ""),
+                        :gender       => (visit.patient.person.sex || ""),
                         :age          => (visit.patient.person.age || ""),
                         :birthdate    => (visit.patient.person.birthdate.strftime("%d-%b-%Y") || ""),
                         :phone_number => (visit.patient.person.phone_numbers[:cell_phone_number] || ""),
@@ -734,7 +734,7 @@ class CohortToolController < ApplicationController
                                        'arv_number' => arv_num_data[:identifier],
                                        'name' => patient.name,
                                        'national_id' => national_id,
-                                       'gender' => patient.gender,
+                                       'gender' => patient.person.sex,
                                        'age' => get_patient_attribute_value(patient, "age"),
                                        'birthdate' => patient.birthdate,
                                        'date_created' => arv_num_data[:date_created].strftime("%Y-%m-%d %H:%M:%S")

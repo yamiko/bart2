@@ -1901,7 +1901,7 @@ EOF
     patient.address = person.addresses.first.city_village
     patient.national_id = get_patient_identifier(person.patient, 'National id')
     patient.name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
-    patient.sex = person.patient.gender
+    patient.sex = person.sex
     patient.age = person.age
     patient.dead = person.dead
     patient.birth_date = person.birthdate_formatted

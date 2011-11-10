@@ -8,7 +8,6 @@ class PatientsController < ApplicationController
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
     @alerts = alerts(@patient, session_date) rescue nil
-    # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|    
       @encounters = restriction.filter_encounters(@encounters)
@@ -1273,7 +1272,7 @@ class PatientsController < ApplicationController
     visits.address = patient_obj.person.addresses.first.city_village
     visits.national_id = patient_obj.national_id
     visits.name = patient_obj.person.names.first.given_name + ' ' + patient_obj.person.names.first.family_name rescue nil
-    visits.sex = patient_obj.gender
+    visits.sex = patient_obj.person.sex
     visits.age = patient_obj.person.age
     visits.occupation = patient_obj.person.get_attribute('Occupation')
     visits.landmark = patient_obj.person.addresses.first.address1

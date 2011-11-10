@@ -74,12 +74,6 @@ class Patient < ActiveRecord::Base
     PatientIdentifier.identifier(self.patient_id, arv_number_id).identifier rescue nil
   end
 
-
-
-  def gender
-    self.person.sex
-  end
-
 =begin
   #This method is not being called anywhere in the application
   def last_art_visit_before(date = Date.today)
