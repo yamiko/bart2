@@ -59,11 +59,6 @@ class Patient < ActiveRecord::Base
     identifiers.map{|i|i.identifier}[0] rescue nil
   end
 
-  def current_weight
-    obs = person.observations.recent(1).question("WEIGHT (KG)").all
-    obs.first.value_numeric rescue 0
-  end
-
 =begin
   #This method is not being called anywhere in the application
   def last_art_visit_before(date = Date.today)
@@ -149,12 +144,6 @@ class Patient < ActiveRecord::Base
       true
     end
   end
-
-  
-
-  
-
-
 
   def id_identifiers
     identifier_type = ["Legacy Pediatric id","National id","Legacy National id"]

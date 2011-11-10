@@ -100,7 +100,7 @@
     $('clearButton').style.display = 'none';
     $('keyboard').style.display = 'none';
     $('viewport').style.display = 'none';
-    $('helpText'+tstCurrentPage).innerHTML = "Select doses. Current patient weight:&nbsp;<%=@patient.current_weight%>";
+    $('helpText'+tstCurrentPage).innerHTML = "Select doses. Current patient weight:&nbsp;<%=@current_weight%>";
 
     if(continueExistingRegimen == 'YES') {
 		var reg_id = current_regimens_for_programs[patientProgram];
@@ -219,6 +219,7 @@
     }
 
 </script>
+
 <form id='regimen_form' action="/regimens/create" method='post'>
  
   <%= hidden_field_tag :patient_id, @patient.id %>
