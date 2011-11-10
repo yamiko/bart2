@@ -422,9 +422,9 @@ class PatientsController < ApplicationController
 
   def set_filing_number
     patient = Patient.find(params[:id])
-    patient.set_filing_number
+    set_patient_filing_number(patient)
 
-    archived_patient = patient.patient_to_be_archived
+    archived_patient = patient_to_be_archived(patient)
     message = patient_printing_message(patient,archived_patient,true)
     unless message.blank?
       print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/patients/show/#{patient.id}",message,true,patient.id)
@@ -437,7 +437,7 @@ class PatientsController < ApplicationController
     patient = Patient.find(params[:id])
     patient.set_new_filing_number
 
-    archived_patient = patient.patient_to_be_archived
+    archived_patient = patient_to_be_archived(patient)
     message = patient_printing_message(patient,archived_patient)
     unless message.blank?
       print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/people/confirm?found_person_id=#{patient.id}",message,true,patient.id)
