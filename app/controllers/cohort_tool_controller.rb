@@ -165,7 +165,7 @@ class CohortToolController < ApplicationController
           voided_records[encounter.id] = {
               "id"              => patient.patient_id,
               "arv_number"      => patient_arv_number,
-              "name"            => patient.name,
+              "name"            => patient.person.name,
               "national_id"     => patient.national_id,
               "encounter_name"  => encounter.name,
               "voided_date"     => encounter.date_voided,
@@ -206,7 +206,7 @@ class CohortToolController < ApplicationController
         voided_records[encounter.id]= {
             "id"              => patient.patient_id,
             "arv_number"      => patient_arv_number,
-            "name"            => patient.name,
+            "name"            => patient.person.name,
             "national_id"     => patient.national_id,
             "encounter_name"  => encounter.name,
             "voided_date"     => encounter.date_voided,
@@ -474,7 +474,7 @@ class CohortToolController < ApplicationController
       # get a patient of a given visit
       new_patient   = { :patient_id   => (visit.patient.patient_id || ""),
                         :arv_number   => (get_patient_identifier(visit.patient, 'ARV Number') || ""),
-                        :name         => (visit.patient.name || ""),
+                        :name         => (visit.patient.person.name || ""),
                         :national_id  => (visit.patient.national_id || ""),
                         :gender       => (visit.patient.person.sex || ""),
                         :age          => (visit.patient.person.age || ""),
@@ -732,7 +732,7 @@ class CohortToolController < ApplicationController
 
       out_of_range_arv_numbers_data <<{'person_id' => patient.id,
                                        'arv_number' => arv_num_data[:identifier],
-                                       'name' => patient.name,
+                                       'name' => patient.person.name,
                                        'national_id' => national_id,
                                        'gender' => patient.person.sex,
                                        'age' => get_patient_attribute_value(patient, "age"),
@@ -1057,7 +1057,7 @@ class CohortToolController < ApplicationController
 
           patients[patient.patient_id]={"id" =>patient.id,
                                         "arv_number" => arv_number,
-                                        "name" =>patient.name,
+                                        "name" =>person.name,
                                         "national_id" =>patient.national_id,
                                         "visit_date" =>rate.obs_datetime,
                                         "gender" =>person.gender,

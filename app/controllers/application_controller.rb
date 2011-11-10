@@ -1738,7 +1738,7 @@ class ApplicationController < ActionController::Base
 
   def patient_printing_message(new_patient , archived_patient , creating_new_filing_number_for_patient = false)
     arv_code = Location.current_arv_code
-    new_patient_name = new_patient.name
+    new_patient_name = new_patient.person.name
     new_filing_number = patient_printing_filing_number_label(new_patient.get_identifier('Filing Number'))
     old_archive_filing_number = patient_printing_filing_number_label(new_patient.old_filing_number('Archived filing number'))
     unless archived_patient.blank?
@@ -1759,7 +1759,7 @@ class ApplicationController < ActionController::Base
 
 <tr>
   <td style='text-align:left;'>Active → Dormant</td>
-  <td class = 'filing_instraction'>#{archived_patient.name}</td>
+  <td class = 'filing_instraction'>#{archived_patient.person.name}</td>
   <td class = 'old_label'>#{old_active_filing_number}</td>
   <td class='new_label'>#{new_archive_filing_number}</td>
 </tr>
@@ -1806,7 +1806,7 @@ EOF
 
 <tr>
   <td style='text-align:left;'>Active → Dormant</td>
-  <td class = 'filing_instraction'>#{archived_patient.name}</td>
+  <td class = 'filing_instraction'>#{archived_patient.person.name}</td>
   <td class = 'old_label'>#{old_active_filing_number}</td>
   <td class='new_label'>#{new_archive_filing_number}</td>
 </tr>

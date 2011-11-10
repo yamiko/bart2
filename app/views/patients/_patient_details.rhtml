@@ -24,7 +24,7 @@ when "pink"
       </td>
       <td colspan="6" style="border-top: 1px solid #000; border-left: 1px solid #000;
           border-right: 1px solid #000; font-style: italic;">
-        <%= @patient.name rescue "&nbsp;" %>&nbsp;
+        <%= @patient.person.name rescue "&nbsp;" %>&nbsp;
       </td>
     </tr>
     <tr>
@@ -208,7 +208,7 @@ when "pink"
         Patient Name
       </td>
       <td colspan="5" style="border-top: 1px solid #000; border-left: 1px solid #000; font-style: italic">
-        <%= @patient.name rescue "&nbsp;" %>
+        <%= @patient.person.name rescue "&nbsp;" %>
       </td>
     </tr>
     <tr>

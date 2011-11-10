@@ -64,16 +64,6 @@ class Patient < ActiveRecord::Base
     obs.first.value_numeric rescue 0
   end
 
-  def name
-    "#{self.person.name}"
-  end
-
-  
-  def arv_number
-    arv_number_id = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
-    PatientIdentifier.identifier(self.patient_id, arv_number_id).identifier rescue nil
-  end
-
 =begin
   #This method is not being called anywhere in the application
   def last_art_visit_before(date = Date.today)

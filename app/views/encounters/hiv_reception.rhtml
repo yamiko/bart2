@@ -69,8 +69,7 @@
     <%= touch_hidden_tag("GUARDIAN PRESENT", @patient.id, "Yes", {:id=>"guardian_present"}) %>
   <% end %>
   <% session[:guardian_added] = nil %>
-
-  <label for='patient_present'>Patient Present (<%=@patient.name%>)</label>
+  <label for='patient_present'>Patient Present (<%=@patient.person.name%>)</label>
     <%= select_tag "observations[][value_coded_or_text]", options_for_select([['Yes','YES'],['No','NO']]), 
       {:id => 'patient_present',
        :condition => "$('guardian_present').value == 'Yes'",
