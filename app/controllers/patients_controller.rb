@@ -14,7 +14,6 @@ class PatientsController < ApplicationController
       @prescriptions = restriction.filter_orders(@prescriptions)
       @programs = restriction.filter_programs(@programs)
     end
-    # render :template => 'dashboards/overview', :layout => 'dashboard'
 
     @date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
 
@@ -95,8 +94,7 @@ class PatientsController < ApplicationController
     end
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
     @arv_number = get_patient_identifier(@patient, 'ARV Number')
-    
-    # render :template => 'dashboards/treatment', :layout => 'dashboard'
+
     render :template => 'dashboards/dispension_tab', :layout => false
   end
 
@@ -113,7 +111,7 @@ class PatientsController < ApplicationController
     @restricted.each do |restriction|
       @historical = restriction.filter_orders(@historical)
     end
-    # render :template => 'dashboards/treatment', :layout => 'dashboard'
+
     render :template => 'dashboards/treatment_tab', :layout => false
   end
 
@@ -143,6 +141,7 @@ class PatientsController < ApplicationController
 		  @restricted.each do |restriction|
 		    @relationships = restriction.filter_relationships(@relationships)
 		  end
+        @patient_arv_number = get_patient_identifier(@patient, 'ARV Number')
     	render :template => 'dashboards/relationships', :layout => 'dashboard' 
   	end
   end
