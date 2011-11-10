@@ -254,7 +254,7 @@ class ReportController < ApplicationController
         
         last_visit = last_appointment_date.strftime('%Y-%m-%d') rescue ""
         outcome = outcome(patient.id, @date)
-        @report << {'arv_number'=> patient.arv_number, 'name'=> patient.name,
+        @report << {'arv_number'=> arv_number(patient), 'name'=> patient.name,
                    'birthdate'=> patient.person.birthdate, 'last_visit'=> last_visit,
                    'visit_by'=> visit_by, 'phone_number'=>phone_number, 'outcome'=>outcome, 'patient_id'=>patient.id}
 
@@ -279,7 +279,7 @@ class ReportController < ApplicationController
         
         patient        = Person.find(patient_data_row[:patient_id].to_i)
         national_id    = patient_data_row.national_id
-        arv_number     = patient_data_row.arv_number
+        arv_number     = arv_number(patient_data_row)
         last_visit = last_appointment_date(patient.id, params[:date]).strftime('%Y-%m-%d') rescue ""
         
         @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> arv_number, 'name'=> patient.name,
@@ -315,7 +315,7 @@ class ReportController < ApplicationController
         
         outcome = outcome(person.id, patient_data_row[:encounter_datetime])
         art_date = art_start_date(person.id)
-        @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> person.patient.arv_number, 'name'=> person.name,
+        @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> arv_number(person.patient), 'name'=> person.name,
                    'birthdate'=> person.birthdate, 'national_id' => person.patient.national_id , 'gender' => person.gender,
                    'age'=> person.age, 'phone_numbers'=>phone_numbers(person),
                    'art_start_date'=>art_start_date(person.id), "date_registered_at_clinic" => person.patient.date_created.strftime('%d-%b-%Y'),
