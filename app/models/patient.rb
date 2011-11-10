@@ -68,75 +68,13 @@ class Patient < ActiveRecord::Base
     "#{self.person.name}"
   end
 
-  def self.appointment_dates(start_date, end_date = nil)
-
-    end_date = start_date if end_date.nil?
-
-    appointment_date_concept_id = Concept.find_by_name("APPOINTMENT DATE").concept_id rescue nil
-
-    appointments = Patient.find(:all,
-      :joins      => 'INNER JOIN obs ON patient.patient_id = obs.person_id',
-      :conditions => ["DATE(obs.value_datetime) >= ? AND DATE(obs.value_datetime) <= ? AND obs.concept_id = ? AND obs.voided = 0", start_date.to_date, end_date.to_date, appointment_date_concept_id],
-      :group      => "obs.person_id")
-
-    appointments
-  end
-
+  
   def arv_number
     arv_number_id = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
     PatientIdentifier.identifier(self.patient_id, arv_number_id).identifier rescue nil
   end
 
-  def age_at_initiation(initiation_date = nil)
-    patient = Person.find(self.id)
-    return patient.age(initiation_date) unless initiation_date.nil?
-  end
 
-  def set_received_regimen(encounter,prescription)
-    dispense_finish = true ; dispensed_drugs_inventory_ids = []
-    
-    prescription.orders.each do | order |
-      next if not order.drug_order.drug.arv?
-      dispensed_drugs_inventory_ids << order.drug_order.drug.id
-      if (order.drug_order.amount_needed > 0)
-        dispense_finish = false
-      end
-    end
-
-    return unless dispense_finish
-    return if dispensed_drugs_inventory_ids.blank?
-
-    regimen_id = ActiveRecord::Base.connection.select_all <<EOF
-SELECT r.concept_id ,
-(SELECT COUNT(t3.regimen_id) FROM regimen_drug_order t3 
-WHERE t3.regimen_id = t.regimen_id GROUP BY t3.regimen_id) as c
-FROM regimen_drug_order t, regimen r  
-WHERE t.drug_inventory_id IN (#{dispensed_drugs_inventory_ids.join(',')})
-AND r.regimen_id = t.regimen_id
-GROUP BY r.concept_id
-HAVING c = #{dispensed_drugs_inventory_ids.length}
-EOF
-    
-    regimen_prescribed = regimen_id.first['concept_id'].to_i rescue ConceptName.find_by_name('UNKNOWN ANTIRETROVIRAL DRUG').concept_id
-    
-    if (Observation.find(:first,:conditions => ["person_id = ? AND encounter_id = ? AND concept_id = ?",
-            self.id,encounter.id,ConceptName.find_by_name('ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT').concept_id])).blank?
-      regimen_value_text = Concept.find(regimen_prescribed).shortname rescue nil
-      if regimen_value_text.blank?
-        regimen_value_text = ConceptName.find_by_concept_id(regimen_prescribed).name rescue nil
-      end
-      return if regimen_value_text.blank?
-      obs = Observation.new(
-        :concept_name => "ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT",
-        :person_id => self.id,
-        :encounter_id => encounter.id,
-        :value_text => regimen_value_text,
-        :value_coded => regimen_prescribed,
-        :obs_datetime => encounter.encounter_datetime)
-      obs.save
-      return obs.value_text 
-    end
-  end
 
   def gender
     self.person.sex
@@ -218,6 +156,7 @@ EOF
     (count_drug_count[1] / equivalent_daily_dose).to_i
   end
 
+<<<<<<< HEAD
   def art_start_date
     date = ActiveRecord::Base.connection.select_value <<EOF
 SELECT patient_start_date(#{self.id})
@@ -238,6 +177,14 @@ EOF
     Person.find(person_id).name rescue nil
   end
 
+=======
+
+  
+
+  
+
+  
+>>>>>>> 7cb73fde7c29f6d8ed1dfe89dad7f1be024cab4e
   def set_new_filing_number
     ActiveRecord::Base.transaction do
       global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10'
@@ -403,120 +350,6 @@ EOF
       LIMIT 1",self.id,identifier_type.id]).first.identifier rescue nil
   end
 
-  def self.printing_filing_number_label(number=nil)
-    return number[5..5] + " " + number[6..7] + " " + number[8..-1] unless number.nil?
-  end
-
-  def self.printing_message(new_patient , archived_patient , creating_new_filing_number_for_patient = false)
-    arv_code = Location.current_arv_code
-    new_patient_name = new_patient.name
-    new_filing_number = self.printing_filing_number_label(new_patient.get_identifier('Filing Number'))
-    old_archive_filing_number = self.printing_filing_number_label(new_patient.old_filing_number('Archived filing number'))
-    unless archived_patient.blank?
-      old_active_filing_number = self.printing_filing_number_label(archived_patient.old_filing_number)
-      new_archive_filing_number = self.printing_filing_number_label(archived_patient.get_identifier('Archived filing number'))
-    end
-
-    if new_patient and archived_patient and creating_new_filing_number_for_patient
-      table = <<EOF
-<div id='patients_info_div'>
-<table id = 'filing_info'>
-<tr>
-  <th class='filing_instraction'>Filing actions required</th>
-  <th class='filing_instraction'>Name</th>
-  <th style="text-align:left;">Old label</th>
-  <th style="text-align:left;">New label</th>
-</tr>
-
-<tr>
-  <td style='text-align:left;'>Active → Dormant</td>
-  <td class = 'filing_instraction'>#{archived_patient.name}</td>
-  <td class = 'old_label'>#{old_active_filing_number}</td>
-  <td class='new_label'>#{new_archive_filing_number}</td>
-</tr>
-
-<tr>
-  <td style='text-align:left;'>Add → Active</td>
-  <td class = 'filing_instraction'>#{new_patient_name}</td>
-  <td class = 'old_label'>#{old_archive_filing_number}</td>
-  <td class='new_label'>#{new_filing_number}</td>
-</tr>
-</table>
-</div>
-EOF
-    elsif new_patient and creating_new_filing_number_for_patient
-      table = <<EOF
-<div id='patients_info_div'>
-<table id = 'filing_info'>
-<tr>
-  <th class='filing_instraction'>Filing actions required</th>
-  <th class='filing_instraction'>Name</th>
-  <th>&nbsp;</th>
-  <th style="text-align:left;">New label</th>
-</tr>
-
-<tr>
-  <td style='text-align:left;'>Add → Active</td>
-  <td class = 'filing_instraction'>#{new_patient_name}</td>
-  <td class = 'filing_instraction'>&nbsp;</td>
-  <td class='new_label'>#{new_filing_number}</td>
-</tr>
-</table>
-</div>
-EOF
-    elsif new_patient and archived_patient and not creating_new_filing_number_for_patient
-      table = <<EOF
-<div id='patients_info_div'>
-<table id = 'filing_info'>
-<tr>
-  <th class='filing_instraction'>Filing actions required</th>
-  <th class='filing_instraction'>Name</th>
-  <th style="text-align:left;">Old label</th>
-  <th style="text-align:left;">New label</th>
-</tr>
-
-<tr>
-  <td style='text-align:left;'>Active → Dormant</td>
-  <td class = 'filing_instraction'>#{archived_patient.name}</td>
-  <td class = 'old_label'>#{old_active_filing_number}</td>
-  <td class='new_label'>#{new_archive_filing_number}</td>
-</tr>
-
-<tr>
-  <td style='text-align:left;'>Add → Active</td>
-  <td class = 'filing_instraction'>#{new_patient_name}</td>
-  <td class = 'old_label'>#{old_archive_filing_number}</td>
-  <td class='new_label'>#{new_filing_number}</td>
-</tr>
-</table>
-</div>
-EOF
-    elsif new_patient and not creating_new_filing_number_for_patient
-      table = <<EOF
-<div id='patients_info_div'>
-<table id = 'filing_info'>
-<tr>
-  <th class='filing_instraction'>Filing actions required</th>
-  <th class='filing_instraction'>Name</th>
-  <th>Old label</th>
-  <th style="text-align:left;">New label</th>
-</tr>
-
-<tr>
-  <td style='text-align:left;'>Add → Active</td>
-  <td class = 'filing_instraction'>#{new_patient_name}</td>
-  <td class = 'old_label'>#{old_archive_filing_number}</td>
-  <td class='new_label'>#{new_filing_number}</td>
-</tr>
-</table>
-</div>
-EOF
-    end
-
-
-    return table
-  end   
-
   def id_identifiers
     identifier_type = ["Legacy Pediatric id","National id","Legacy National id"]
     identifier_types = PatientIdentifierType.find(:all,
@@ -608,21 +441,6 @@ EOF
     pre_art_number_id = PatientIdentifierType.find_by_name('Pre ART Number (Old format)').patient_identifier_type_id
     PatientIdentifier.identifier(self.patient_id, pre_art_number_id).identifier rescue nil
   end
-  
-  def appointment_dates(start_date, end_date = nil)
-
-    end_date = start_date if end_date.nil?
-
-    appointment_date_concept_id = Concept.find_by_name("APPOINTMENT DATE").concept_id rescue nil
-
-    appointments = Observation.find(:all,
-      :conditions => ["DATE(obs.value_datetime) >= ? AND DATE(obs.value_datetime) <= ? AND " +
-          "obs.concept_id = ? AND obs.voided = 0 AND obs.person_id = ?", start_date.to_date,
-        end_date.to_date, appointment_date_concept_id, self.id])
-
-    appointments
-  end
-
   
 =begin # could not find where it is being used DFFI
   def is_first_visit?

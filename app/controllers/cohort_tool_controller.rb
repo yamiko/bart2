@@ -1061,7 +1061,7 @@ class CohortToolController < ApplicationController
                                         "national_id" =>patient.national_id,
                                         "visit_date" =>rate.obs_datetime,
                                         "gender" =>person.gender,
-                                        "age" =>patient.age_at_initiation(rate.start_date.to_date),
+                                        "age" =>patient_age_at_initiation(patient, rate.start_date.to_date),
                                         "birthdate" => person.birthdate,
                                         "pill_count" => pill_count.to_i.to_s,
                                         "adherence" => rate. adherence_rate_worse,
@@ -1070,7 +1070,7 @@ class CohortToolController < ApplicationController
                                         "drug" => drug.name}
    elsif  patients[patient.patient_id] then
 
-          patients[patient.patient_id]["age"].to_i < patient.age_at_initiation(rate.start_date.to_date).to_i ? patients[patient.patient_id]["age"] = patient.age_at_initiation(rate.start_date.to_date).to_s : ""
+          patients[patient.patient_id]["age"].to_i < patient_age_at_initiation(patient, rate.start_date.to_date).to_i ? patients[patient.patient_id]["age"] = patient.age_at_initiation(rate.start_date.to_date).to_s : ""
 
           patients[patient.patient_id]["drug"] = patients[patient.patient_id]["drug"].to_s + "<br>#{drug.name}"
 

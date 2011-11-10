@@ -1714,6 +1714,154 @@ class ApplicationController < ActionController::Base
     reasons.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue nil
  end
 
+ def patient_appointment_dates(patient, start_date, end_date = nil)
+
+    end_date = start_date if end_date.nil?
+
+    appointment_date_concept_id = Concept.find_by_name("APPOINTMENT DATE").concept_id rescue nil
+
+    appointments = Observation.find(:all,
+      :conditions => ["DATE(obs.value_datetime) >= ? AND DATE(obs.value_datetime) <= ? AND " +
+          "obs.concept_id = ? AND obs.voided = 0 AND obs.person_id = ?", start_date.to_date,
+        end_date.to_date, appointment_date_concept_id, patient.id])
+
+    appointments
+  end
+
+  def patient_printing_message(new_patient , archived_patient , creating_new_filing_number_for_patient = false)
+    arv_code = Location.current_arv_code
+    new_patient_name = new_patient.name
+    new_filing_number = patient_printing_filing_number_label(new_patient.get_identifier('Filing Number'))
+    old_archive_filing_number = patient_printing_filing_number_label(new_patient.old_filing_number('Archived filing number'))
+    unless archived_patient.blank?
+      old_active_filing_number = patient_printing_filing_number_label(archived_patient.old_filing_number)
+      new_archive_filing_number = patient_printing_filing_number_label(archived_patient.get_identifier('Archived filing number'))
+    end
+
+    if new_patient and archived_patient and creating_new_filing_number_for_patient
+      table = <<EOF
+<div id='patients_info_div'>
+<table id = 'filing_info'>
+<tr>
+  <th class='filing_instraction'>Filing actions required</th>
+  <th class='filing_instraction'>Name</th>
+  <th style="text-align:left;">Old label</th>
+  <th style="text-align:left;">New label</th>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Active → Dormant</td>
+  <td class = 'filing_instraction'>#{archived_patient.name}</td>
+  <td class = 'old_label'>#{old_active_filing_number}</td>
+  <td class='new_label'>#{new_archive_filing_number}</td>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Add → Active</td>
+  <td class = 'filing_instraction'>#{new_patient_name}</td>
+  <td class = 'old_label'>#{old_archive_filing_number}</td>
+  <td class='new_label'>#{new_filing_number}</td>
+</tr>
+</table>
+</div>
+EOF
+    elsif new_patient and creating_new_filing_number_for_patient
+      table = <<EOF
+<div id='patients_info_div'>
+<table id = 'filing_info'>
+<tr>
+  <th class='filing_instraction'>Filing actions required</th>
+  <th class='filing_instraction'>Name</th>
+  <th>&nbsp;</th>
+  <th style="text-align:left;">New label</th>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Add → Active</td>
+  <td class = 'filing_instraction'>#{new_patient_name}</td>
+  <td class = 'filing_instraction'>&nbsp;</td>
+  <td class='new_label'>#{new_filing_number}</td>
+</tr>
+</table>
+</div>
+EOF
+    elsif new_patient and archived_patient and not creating_new_filing_number_for_patient
+      table = <<EOF
+<div id='patients_info_div'>
+<table id = 'filing_info'>
+<tr>
+  <th class='filing_instraction'>Filing actions required</th>
+  <th class='filing_instraction'>Name</th>
+  <th style="text-align:left;">Old label</th>
+  <th style="text-align:left;">New label</th>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Active → Dormant</td>
+  <td class = 'filing_instraction'>#{archived_patient.name}</td>
+  <td class = 'old_label'>#{old_active_filing_number}</td>
+  <td class='new_label'>#{new_archive_filing_number}</td>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Add → Active</td>
+  <td class = 'filing_instraction'>#{new_patient_name}</td>
+  <td class = 'old_label'>#{old_archive_filing_number}</td>
+  <td class='new_label'>#{new_filing_number}</td>
+</tr>
+</table>
+</div>
+EOF
+    elsif new_patient and not creating_new_filing_number_for_patient
+      table = <<EOF
+<div id='patients_info_div'>
+<table id = 'filing_info'>
+<tr>
+  <th class='filing_instraction'>Filing actions required</th>
+  <th class='filing_instraction'>Name</th>
+  <th>Old label</th>
+  <th style="text-align:left;">New label</th>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Add → Active</td>
+  <td class = 'filing_instraction'>#{new_patient_name}</td>
+  <td class = 'old_label'>#{old_archive_filing_number}</td>
+  <td class='new_label'>#{new_filing_number}</td>
+</tr>
+</table>
+</div>
+EOF
+    end
+
+
+    return table
+  end
+
+  def patient_printing_filing_number_label(number=nil)
+    return number[5..5] + " " + number[6..7] + " " + number[8..-1] unless number.nil?
+  end
+
+  def patient_age_at_initiation(patient, initiation_date = nil)
+    #patient = Person.find(self.id)
+    return patient.person.age(initiation_date) unless initiation_date.nil?
+  end
+
+  def art_patient?(patient)
+    program_id = Program.find_by_name('HIV PROGRAM').id
+    enrolled = PatientProgram.find(:first,:conditions =>["program_id = ? AND patient_id = ?",program_id,patient.id]).blank?
+    return true unless enrolled
+    false
+  end
+
+  def patient_art_start_date(patient_id)
+    date = ActiveRecord::Base.connection.select_value <<EOF
+SELECT patient_start_date(#{patient_id})
+EOF
+    return date.to_date rescue nil
+  end
+
+  
 private
 
   def find_patient
