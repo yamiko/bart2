@@ -156,35 +156,6 @@ class Patient < ActiveRecord::Base
     (count_drug_count[1] / equivalent_daily_dose).to_i
   end
 
-<<<<<<< HEAD
-  def art_start_date
-    date = ActiveRecord::Base.connection.select_value <<EOF
-SELECT patient_start_date(#{self.id})
-EOF
-    return date.to_date rescue nil
-  end
-
-  def art_patient?
-    program_id = Program.find_by_name('HIV PROGRAM').id
-    enrolled = PatientProgram.find(:first,:conditions =>["program_id = ? AND patient_id = ?",program_id,self.id]).blank?
-    return true unless enrolled 
-    false
-  end
-
-  def art_guardian
-    person_id = Relationship.find(:first,:order => "date_created DESC",
-      :conditions =>["person_a = ?",self.person.id]).person_b rescue nil
-    Person.find(person_id).name rescue nil
-  end
-
-=======
-
-  
-
-  
-
-  
->>>>>>> 7cb73fde7c29f6d8ed1dfe89dad7f1be024cab4e
   def set_new_filing_number
     ActiveRecord::Base.transaction do
       global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10'

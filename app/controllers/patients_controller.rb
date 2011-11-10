@@ -26,6 +26,7 @@ class PatientsController < ApplicationController
         @task = main_next_task(Location.current_location,@patient,session_date)
         @hiv_status = patient_hiv_status(@patient)
         @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
+        @arv_number = arv_number(@patient)
 
         render :template => 'patients/index', :layout => false
      end
@@ -94,6 +95,7 @@ class PatientsController < ApplicationController
      end
     end
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
+    @arv_number = arv_number(@patient)
     
     # render :template => 'dashboards/treatment', :layout => 'dashboard'
     render :template => 'dashboards/dispension_tab', :layout => false
@@ -451,7 +453,7 @@ class PatientsController < ApplicationController
       csv_string = FasterCSV.generate do |csv|
         # header row
         csv << ["ARV number", "National ID"]
-        csv << [patient.arv_number, patient.national_id]
+        csv << [arv_number(patient), patient.national_id]
         csv << ["Name", "Age","Sex","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
         transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
         transfer_in.blank? == true ? transfer_in = 'NO' : transfer_in = 'YES'
@@ -520,6 +522,7 @@ class PatientsController < ApplicationController
     
     @hiv_status = patient_hiv_status(@patient)
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
+    @arv_number = arv_number(@patient)
 
     render :template => 'patients/index', :layout => false
   end
@@ -602,17 +605,21 @@ class PatientsController < ApplicationController
 
     @dispensed_order_id = params[:dispensed_order_id]
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
-    
+    @arv_number = arv_number(@patient)
+
     render :template => 'dashboards/treatment_dashboard', :layout => false
   end
 
   def guardians_dashboard
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
+    @arv_number = arv_number(@patient)
+
     render :template => 'dashboards/relationships_dashboard', :layout => false
   end
 
   def programs_dashboard
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
+    @arv_number = arv_number(@patient)
     render :template => 'dashboards/programs_dashboard', :layout => false
   end
 
@@ -1110,7 +1117,7 @@ class PatientsController < ApplicationController
       line = 30
       label3 = ZebraPrinter::StandardLabel.new
       label3.draw_text("STAGE DEFINING CONDITIONS",25,line,0,3,1,1,false)
-      label3.draw_text("#{patient.arv_number}",370,line,0,2,1,1,false)
+      label3.draw_text("#{arv_number(patient)}",370,line,0,2,1,1,false)
       label3.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",450,300,0,1,1,1,false)
       extra_lines.each{|condition|
         label3.draw_text(condition,25,line+=30,0,2,1,1,false)
@@ -1555,7 +1562,7 @@ class PatientsController < ApplicationController
     return if visit.blank? 
     visit_data = mastercard_visit_data(visit)
 
-    arv_number = patient.arv_number || patient.national_id
+    arv_number = arv_number(patient) || patient.national_id
     pill_count = visit.pills.collect{|c|c.join(",")}.join(' ') rescue nil
 
     label = ZebraPrinter::StandardLabel.new
