@@ -1893,6 +1893,29 @@ EOF
         :order => 'encounter_datetime DESC,date_created DESC').orders rescue []
   end
 
+  def get_patient(person)
+    patient = Mastercard.new()
+    patient.person_id = person.id
+    patient.patient_id = person.patient.id
+    patient.arv_number = get_patient_identifier(person.patient, 'ARV Number')
+    patient.address = person.addresses.first.city_village
+    patient.national_id = person.patient.national_id
+    patient.name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
+    patient.sex = person.patient.gender
+    patient.age = person.age
+    patient.dead = person.dead
+    patient.birth_date = person.birthdate_formatted
+    patient.home_district = person.addresses.first.address2
+    patient.traditional_authority = person.addresses.first.county_district
+    patient.current_residence = person.addresses.first.city_village
+    patient.mothers_surname = person.names.first.family_name2
+    patient.eid_number = person.patient.eid_number
+    patient.pre_art_number = person.patient.pre_art_number
+    patient.occupation = person.get_attribute('Occupation')
+    patient.guardian = art_guardian(patient_obj) rescue nil 
+    patient
+  end
+
 private
 
   def find_patient
@@ -1998,11 +2021,6 @@ private
       task.url = "/patients/show/#{patient.id}"
       return task
     end 
-  end
-
-  def arv_number(patient)
-    arv_number_id = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
-    return PatientIdentifier.identifier(patient.patient_id, arv_number_id).identifier rescue nil
   end
 
   def need_art_enrollment(task,patient,location,session_date,user_selected_activities,reason_for_art)

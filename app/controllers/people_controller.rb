@@ -61,9 +61,9 @@ class PeopleController < ApplicationController
  
   def search
     found_person = nil
-
     if params[:identifier]
       local_results = Person.search_by_identifier(params[:identifier])
+
       if local_results.length > 1
         @people = Person.search(params)
       elsif local_results.length == 1
@@ -79,7 +79,14 @@ class PeopleController < ApplicationController
         redirect_to :action => 'confirm', :found_person_id => found_person.id, :relation => params[:relation] and return
       end
     end
-    @people = Person.search(params)    
+
+    @people = Person.search(params)
+    @patients = []
+    @people.each do | person |
+        patient = get_patient(person)
+        @patients << patient
+    end
+    
   end
   
   def confirm
@@ -92,7 +99,7 @@ class PeopleController < ApplicationController
     @relation = params[:relation]
     @person = Person.find(@found_person_id) rescue nil
     @task = main_next_task(Location.current_location,@person.patient,session_date.to_date)
-    @arv_number = arv_number(@person.patient)
+    @arv_number = get_patient_identifier(@person, 'ARV Number')
     render :layout => 'menu'
   end
 
@@ -381,7 +388,7 @@ class PeopleController < ApplicationController
         'cd4_data' => cd4_data_and_date_hash,
         'last_given_drugs' => last_given_drugs,
         'art_clinic_outcome' => art_clinic_outcome,
-        'arv_number' => arv_number(patient)
+        'arv_number' => get_patient_identifier(patient, 'ARV Number')
       }
     end
 
@@ -434,7 +441,7 @@ class PeopleController < ApplicationController
         'cd4_data' => cd4_data_and_date_hash,
         'last_given_drugs' => last_given_drugs,
         'art_clinic_outcome' => art_clinic_outcome,
-        'arv_number' => arv_number(patient)
+        'arv_number' => get_patient_identifier(patient, 'ARV Number')
       }
     end
 

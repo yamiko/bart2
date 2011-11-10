@@ -26,7 +26,7 @@ class PatientsController < ApplicationController
         @task = main_next_task(Location.current_location,@patient,session_date)
         @hiv_status = patient_hiv_status(@patient)
         @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
-        @arv_number = arv_number(@patient)
+        @arv_number = get_patient_identifier(@patient, 'ARV Number')
 
         render :template => 'patients/index', :layout => false
      end
@@ -95,7 +95,7 @@ class PatientsController < ApplicationController
      end
     end
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
-    @arv_number = arv_number(@patient)
+    @arv_number = get_patient_identifier(@patient, 'ARV Number')
     
     # render :template => 'dashboards/treatment', :layout => 'dashboard'
     render :template => 'dashboards/dispension_tab', :layout => false
@@ -522,7 +522,7 @@ class PatientsController < ApplicationController
     
     @hiv_status = patient_hiv_status(@patient)
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
-    @arv_number = arv_number(@patient)
+    @arv_number = get_patient_identifier(@patient, 'ARV Number')
 
     render :template => 'patients/index', :layout => false
   end
@@ -605,21 +605,21 @@ class PatientsController < ApplicationController
 
     @dispensed_order_id = params[:dispensed_order_id]
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
-    @arv_number = arv_number(@patient)
+    @arv_number = get_patient_identifier(@patient, 'ARV Number')
 
     render :template => 'dashboards/treatment_dashboard', :layout => false
   end
 
   def guardians_dashboard
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
-    @arv_number = arv_number(@patient)
+    @arv_number = get_patient_identifier(@patient, 'ARV Number')
 
     render :template => 'dashboards/relationships_dashboard', :layout => false
   end
 
   def programs_dashboard
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
-    @arv_number = arv_number(@patient)
+    @arv_number = get_patient_identifier(@patient, 'ARV Number')
     render :template => 'dashboards/programs_dashboard', :layout => false
   end
 

@@ -480,4 +480,6 @@ class ReportController < ApplicationController
     appointments
   end
 
+
+  
 end
