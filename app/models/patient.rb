@@ -80,6 +80,8 @@ class Patient < ActiveRecord::Base
     self.person.sex
   end
 
+=begin
+  #This method is not being called anywhere in the application
   def last_art_visit_before(date = Date.today)
     art_encounters = ['ART_INITIAL','HIV RECEPTION','VITALS','HIV STAGING','ART VISIT','ART ADHERENCE','TREATMENT','DISPENSING']
     art_encounter_type_ids = EncounterType.find(:all,:conditions => ["name IN (?)",art_encounters]).map{|e|e.encounter_type_id}
@@ -88,7 +90,8 @@ class Patient < ActiveRecord::Base
         self.id,art_encounter_type_ids],
       :order => 'encounter_datetime DESC').encounter_datetime.to_date rescue nil
   end
- 
+=end
+
   def set_new_filing_number
     ActiveRecord::Base.transaction do
       global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10'
