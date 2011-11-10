@@ -17,38 +17,39 @@ pos = 1
           
     people[<%= pos %>]["Gender"] = "<%= person.sex %>";
 
-    people[<%= pos %>]["Status"] = "<%=h 'Died' if person.dead == 1 rescue '' -%>";
-
+    <% if person.dead == 1 %>
+        people[<%= pos %>]["Status"] = "<%=h 'Died' if person.dead == 1 rescue '' -%>";
+    <% end %>
+    
     people[<%= pos %>]["Birthdate"] = "<%= person.birth_date rescue "" %>";
 
     people[<%= pos %>]["Age"] = "<%= person.age rescue "" %>";
-
-
            
     people[<%= pos %>]["Home District"] = "<%=h person.home_district -%>";
 
-
-
     people[<%= pos %>]["Ancestral Traditional Authority(T/A)"] = "<%=h person.traditional_authority -%>";
-
-
 
     people[<%= pos %>]["Current Residence"] = "<%=h person.current_residence -%>";
 
-            
-    people[<%= pos %>]["Mother Surname"] = "<%=h person.mothers_surname -%>";
+    <% if !person.mothers_surname.blank? %>  
+        people[<%= pos %>]["Mother Surname"] = "<%=h person.mothers_surname -%>";
+    <% end %>
 
+    <% if !person.arv_number.blank? %> 
+        people[<%= pos %>]["ARV Number"] = "<%=h person.arv_number rescue "" -%>";
+    <% end %>
 
+    <% if !person.national_id.blank? %>     
+        people[<%= pos %>]["Patient National ID"] = "<%=h person.national_id rescue "" -%>";
+    <% end %>
     
-    people[<%= pos %>]["ARV Number"] = "<%=h person.arv_number rescue "" -%>";
+    <% if !person.eid_number.blank? %>    
+        people[<%= pos %>]["EID Number"] = "<%=h person.eid_number rescue "" -%>";
+    <% end %>
 
-    people[<%= pos %>]["Patient National ID"] = "<%=h person.national_id rescue "" -%>";
-
-    people[<%= pos %>]["EID Number"] = "<%=h person.eid_number rescue "" -%>";
-
-    people[<%= pos %>]["Pre-ART Number"] = "<%=h person.pre_art_number rescue "" -%>";
-
-
+    <% if !person.pre_art_number.blank? %>    
+        people[<%= pos %>]["Pre-ART Number"] = "<%=h person.pre_art_number rescue "" -%>";
+    <% end %>
   <%
 
   pos = pos + 1
