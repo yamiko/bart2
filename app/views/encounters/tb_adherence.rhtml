@@ -24,7 +24,7 @@
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
 <%session_date = session[:datetime] || Time.now() %>
-<% @patient.drug_given_before(session_date.to_date).prescriptions.each do |order| 
+<% @drug_given_before.prescriptions.each do |order| 
      next if order.drug_order.drug.arv?
 %>
     <%= touch_numeric_tag "AMOUNT OF DRUG BROUGHT TO CLINIC", @patient, nil,

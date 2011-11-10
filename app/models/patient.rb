@@ -88,18 +88,7 @@ class Patient < ActiveRecord::Base
         self.id,art_encounter_type_ids],
       :order => 'encounter_datetime DESC').encounter_datetime.to_date rescue nil
   end
-  
-  def drug_given_before(date = Date.today)
-    encounter_type = EncounterType.find_by_name('TREATMENT')
-    Encounter.find(:first,
-      :joins => 'INNER JOIN orders ON orders.encounter_id = encounter.encounter_id
-               INNER JOIN drug_order ON orders.order_id = orders.order_id', 
-      :conditions => ["quantity IS NOT NULL AND encounter_type = ? AND
-               encounter.patient_id = ? AND DATE(encounter_datetime) < ?",
-        encounter_type.id,self.id,date.to_date],
-        :order => 'encounter_datetime DESC,date_created DESC').orders rescue []
-  end
-
+ 
   def set_new_filing_number
     ActiveRecord::Base.transaction do
       global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10'
