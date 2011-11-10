@@ -33,25 +33,7 @@ class Patient < ActiveRecord::Base
   end
 =end
 
-  def national_id(force = true)
-    id = self.patient_identifiers.find_by_identifier_type(PatientIdentifierType.find_by_name("National id").id).identifier rescue nil
-    return id unless force
-    id ||= PatientIdentifierType.find_by_name("National id").next_identifier(:patient => self).identifier
-    id
-  end
-
-  def remote_national_id
-    id = self.patient_identifiers.find_by_identifier_type(PatientIdentifierType.find_by_name("National id").id).identifier rescue nil
-    return id unless id.blank?
-    PatientIdentifierType.find_by_name("National id").next_identifier(:patient => self).identifier
-  end
-
-  def national_id_with_dashes(force = true)
-    id = self.national_id(force)
-    id[0..4] + "-" + id[5..8] + "-" + id[9..-1] rescue id
-  end
-
-  def get_identifier(type = 'National id')
+	  def get_identifier(type = 'National id')
     identifier_type = PatientIdentifierType.find_by_name(type)
     return if identifier_type.blank?
     identifiers = self.patient_identifiers.find_all_by_identifier_type(identifier_type.id)

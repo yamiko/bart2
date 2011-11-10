@@ -286,6 +286,7 @@ class EncountersController < ApplicationController
 
 	def new	
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
+		@patient_bean = get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
 		    @current_height = get_patient_attribute_value(@patient, "current_height")
 		    @min_weight = get_patient_attribute_value(@patient, "min_weight")
@@ -435,7 +436,16 @@ class EncountersController < ApplicationController
 		@eptb_classification = nil
 		@tb_type = nil
 
-    	@people = Person.search(params) if params['encounter_type'].upcase rescue '' == "TB_SUSPECT_SOURCE_OF_REFERRAL"
+		@patients = nil
+		
+		if (params[:encounter_type].upcase rescue '') == "TB_SUSPECT_SOURCE_OF_REFERRAL"
+			people = Person.search(params)
+			@patients = []
+			people.each do | person |
+				patient = get_patient(person)
+				@patients << patient
+			end
+		end
 
 		if (params[:encounter_type].upcase rescue '') == 'TB_REGISTRATION'
 

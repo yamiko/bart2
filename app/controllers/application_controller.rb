@@ -1586,17 +1586,18 @@ class ApplicationController < ActionController::Base
 
 
   def patient_national_id_label(patient)
-    return unless patient.national_id
-    sex =  patient.person.gender.match(/F/i) ? "(F)" : "(M)"
+	patient_bean = get_patient(patient.person)
+    return unless patient_bean.national_id
+    sex =  patient_bean.sex.match(/F/i) ? "(F)" : "(M)"
     address = patient.person.address.strip[0..24].humanize rescue ""
     label = ZebraPrinter::StandardLabel.new
     label.font_size = 2
     label.font_horizontal_multiplier = 2
     label.font_vertical_multiplier = 2
     label.left_margin = 50
-    label.draw_barcode(50,180,0,1,5,15,120,false,"#{patient.national_id}")
-    label.draw_multi_text("#{patient.person.name.titleize}")
-    label.draw_multi_text("#{patient.national_id_with_dashes} #{patient.person.birthdate_formatted}#{sex}")
+    label.draw_barcode(50,180,0,1,5,15,120,false,"#{patient_bean.national_id}")
+    label.draw_multi_text("#{patient_bean.name.titleize}")
+    label.draw_multi_text("#{patient_bean.national_id_with_dashes} #{patient_bean.birth_date}#{sex}")
     label.draw_multi_text("#{address}")
     label.print(1)
   end
@@ -1899,7 +1900,8 @@ EOF
     patient.patient_id = person.patient.id
     patient.arv_number = get_patient_identifier(person.patient, 'ARV Number')
     patient.address = person.addresses.first.city_village
-    patient.national_id = get_patient_identifier(person.patient, 'National id')
+    patient.national_id = get_patient_identifier(person.patient, 'National id')    
+	patient.national_id_with_dashes = get_national_id_with_dashes(person.patient)
     patient.name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
     patient.sex = person.patient.gender
     patient.age = person.age
@@ -2115,6 +2117,24 @@ private
       task.url = "/patients/show/#{patient.id}"
       return task
     end if prescribe_drugs
+  end
+
+  def get_national_id(patient, force = true)
+    id = patient.patient_identifiers.find_by_identifier_type(PatientIdentifierType.find_by_name("National id").id).identifier rescue nil
+    return id unless force
+    id ||= PatientIdentifierType.find_by_name("National id").next_identifier(:patient => self).identifier
+    id
+  end
+
+  def get_remote_national_id(patient)
+    id = patient.patient_identifiers.find_by_identifier_type(PatientIdentifierType.find_by_name("National id").id).identifier rescue nil
+    return id unless id.blank?
+    PatientIdentifierType.find_by_name("National id").next_identifier(:patient => self).identifier
+  end
+
+  def get_national_id_with_dashes(patient, force = true)
+    id = get_national_id(patient, force)
+    id[0..4] + "-" + id[5..8] + "-" + id[9..-1] rescue id
   end
 
 end

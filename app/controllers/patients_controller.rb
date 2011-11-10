@@ -4,7 +4,10 @@ class PatientsController < ApplicationController
   def show
     session[:mastercard_ids] = []
     session_date = session[:datetime].to_date rescue Date.today
-    @encounters = @patient.encounters.find_by_date(session_date)
+
+	@patient_bean = get_patient(@patient.person)    
+
+	@encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
     @alerts = alerts(@patient, session_date) rescue nil
@@ -452,7 +455,7 @@ class PatientsController < ApplicationController
       csv_string = FasterCSV.generate do |csv|
         # header row
         csv << ["ARV number", "National ID"]
-        csv << [get_patient_identifier(patient, 'ARV Number'), patient.national_id]
+        csv << [get_patient_identifier(patient, 'ARV Number'), get_national_id(patient)]
         csv << ["Name", "Age","Sex","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
         transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
         transfer_in.blank? == true ? transfer_in = 'NO' : transfer_in = 'YES'
@@ -498,6 +501,7 @@ class PatientsController < ApplicationController
   end
   
   def demographics
+	@patient_bean = get_patient(@patient.person)
     render :layout => false
   end
    
@@ -586,6 +590,7 @@ class PatientsController < ApplicationController
   end
 
   def treatment_dashboard
+	@patient_bean = get_patient(@patient.person)
     @amount_needed = 0
     @amounts_required = 0
 
@@ -610,6 +615,7 @@ class PatientsController < ApplicationController
   end
 
   def guardians_dashboard
+	@patient_bean = get_patient(@patient.person)
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
     @arv_number = get_patient_identifier(@patient, 'ARV Number')
 
@@ -617,6 +623,7 @@ class PatientsController < ApplicationController
   end
 
   def programs_dashboard
+	@patient_bean = get_patient(@patient.person)
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
     @arv_number = get_patient_identifier(@patient, 'ARV Number')
     render :template => 'dashboards/programs_dashboard', :layout => false
@@ -927,7 +934,7 @@ class PatientsController < ApplicationController
       observation = Observation.find(test.to_i)
 
       accession_number = "#{observation.accession_number rescue nil}"
-
+		patient_national_id_with_dashes = get_national_id_with_dashes(patient)
         if accession_number != ""
           label = 'label' + i.to_s
           label = ZebraPrinter::Label.new(500,165)
@@ -936,7 +943,7 @@ class PatientsController < ApplicationController
           label.font_vertical_multiplier = 1
           label.left_margin = 300
           label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
-          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient.national_id_with_dashes}")
+          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
           label.draw_multi_text("#{observation.name rescue nil} - #{accession_number rescue nil}")
           label.draw_multi_text("#{observation.date_created.strftime("%d-%b-%Y %H:%M")}")
           labels << label
@@ -1201,7 +1208,7 @@ class PatientsController < ApplicationController
 
       while i <= lab_orders.size do
         accession_number = "#{lab_orders[i].accession_number rescue nil}"
-
+		patient_national_id_with_dashes = get_national_id_with_dashes(patient) 
         if accession_number != ""
           label = 'label' + i.to_s
           label = ZebraPrinter::Label.new(500,165)
@@ -1210,7 +1217,7 @@ class PatientsController < ApplicationController
           label.font_vertical_multiplier = 1
           label.left_margin = 300
           label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
-          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient.national_id_with_dashes}")
+          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
           label.draw_multi_text("#{lab_orders[i].name rescue nil} - #{accession_number rescue nil}")
           label.draw_multi_text("#{lab_orders[i].obs_datetime.strftime("%d-%b-%Y %H:%M")}")
           labels << label
