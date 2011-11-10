@@ -8,7 +8,6 @@ class PatientsController < ApplicationController
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
     @alerts = alerts(@patient, session_date) rescue nil
-    # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|    
       @encounters = restriction.filter_encounters(@encounters)
@@ -1274,7 +1273,7 @@ class PatientsController < ApplicationController
     visits.address = patient_obj.person.addresses.first.city_village
     visits.national_id = patient_obj.national_id
     visits.name = patient_obj.person.names.first.given_name + ' ' + patient_obj.person.names.first.family_name rescue nil
-    visits.sex = patient_obj.gender
+    visits.sex = patient_obj.person.sex
     visits.age = patient_obj.person.age
     visits.occupation = patient_obj.person.get_attribute('Occupation')
     visits.landmark = patient_obj.person.addresses.first.address1
@@ -1288,7 +1287,7 @@ class PatientsController < ApplicationController
     visits.hiv_test_location = patient_obj.person.observations.recent(1).question("Confirmatory HIV test location").all rescue nil
     visits.hiv_test_location = visits.hiv_test_location.to_s.split(':')[1].strip rescue nil
     visits.guardian = art_guardian(patient_obj) rescue nil
-    visits.reason_for_art_eligibility = patient_obj.reason_for_art_eligibility
+    visits.reason_for_art_eligibility = reason_for_art_eligibility(patient_obj)
     visits.transfer_in = patient_obj.transfer_in? rescue nil #pb: bug-2677 Made this to use the newly created patient model method 'transfer_in?'
     visits.transfer_in == false ? visits.transfer_in = 'NO' : visits.transfer_in = 'YES'
 

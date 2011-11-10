@@ -89,8 +89,7 @@
                 <td class="demographics-header"> Sex <br /></td>
                 <td class="demographics-header">
                   <div class="left" style="border: 1px solid;width:90px;height:31px;">
-
-                    <%if @patient.gender == 'Male'%>
+                    <%if @patient.person.sex == 'Male'%>
                       <span class="circle">M</span><span class="non-circle">F</span>
                     <%else%>
                       <span class="circle">F</span><span class="non-circle">M</span>
