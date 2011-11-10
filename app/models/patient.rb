@@ -33,25 +33,7 @@ class Patient < ActiveRecord::Base
   end
 =end
 
-  def national_id(force = true)
-    id = self.patient_identifiers.find_by_identifier_type(PatientIdentifierType.find_by_name("National id").id).identifier rescue nil
-    return id unless force
-    id ||= PatientIdentifierType.find_by_name("National id").next_identifier(:patient => self).identifier
-    id
-  end
-
-  def remote_national_id
-    id = self.patient_identifiers.find_by_identifier_type(PatientIdentifierType.find_by_name("National id").id).identifier rescue nil
-    return id unless id.blank?
-    PatientIdentifierType.find_by_name("National id").next_identifier(:patient => self).identifier
-  end
-
-  def national_id_with_dashes(force = true)
-    id = self.national_id(force)
-    id[0..4] + "-" + id[5..8] + "-" + id[9..-1] rescue id
-  end
-
-  def get_identifier(type = 'National id')
+	  def get_identifier(type = 'National id')
     identifier_type = PatientIdentifierType.find_by_name(type)
     return if identifier_type.blank?
     identifiers = self.patient_identifiers.find_all_by_identifier_type(identifier_type.id)
@@ -71,6 +53,7 @@ class Patient < ActiveRecord::Base
   end
 =end
 
+<<<<<<< HEAD
   def set_new_filing_number
     ActiveRecord::Base.transaction do
       global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10'
@@ -144,6 +127,14 @@ class Patient < ActiveRecord::Base
       true
     end
   end
+=======
+  
+  
+
+  
+
+
+>>>>>>> 72fb65858d9e08b71cf1a02944c7519df7b96735
 
   def id_identifiers
     identifier_type = ["Legacy Pediatric id","National id","Legacy National id"]

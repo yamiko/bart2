@@ -4,7 +4,10 @@ class PatientsController < ApplicationController
   def show
     session[:mastercard_ids] = []
     session_date = session[:datetime].to_date rescue Date.today
-    @encounters = @patient.encounters.find_by_date(session_date)
+
+	@patient_bean = get_patient(@patient.person)    
+
+	@encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
     @alerts = alerts(@patient, session_date) rescue nil
@@ -435,10 +438,10 @@ class PatientsController < ApplicationController
 
   def set_new_filing_number
     patient = Patient.find(params[:id])
-    patient.set_new_filing_number
+    set_new_patient_filing_number(patient)
 
     archived_patient = patient_to_be_archived(patient)
-    message = patient_printing_message(patient,archived_patient)
+    message = patient_printing_message(patient, archived_patient)
     unless message.blank?
       print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/people/confirm?found_person_id=#{patient.id}",message,true,patient.id)
     else
@@ -451,7 +454,7 @@ class PatientsController < ApplicationController
       csv_string = FasterCSV.generate do |csv|
         # header row
         csv << ["ARV number", "National ID"]
-        csv << [get_patient_identifier(patient, 'ARV Number'), patient.national_id]
+        csv << [get_patient_identifier(patient, 'ARV Number'), get_national_id(patient)]
         csv << ["Name", "Age","Sex","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
         transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
         transfer_in.blank? == true ? transfer_in = 'NO' : transfer_in = 'YES'
@@ -497,6 +500,7 @@ class PatientsController < ApplicationController
   end
   
   def demographics
+	@patient_bean = get_patient(@patient.person)
     render :layout => false
   end
    
@@ -585,6 +589,7 @@ class PatientsController < ApplicationController
   end
 
   def treatment_dashboard
+	@patient_bean = get_patient(@patient.person)
     @amount_needed = 0
     @amounts_required = 0
 
@@ -609,6 +614,7 @@ class PatientsController < ApplicationController
   end
 
   def guardians_dashboard
+	@patient_bean = get_patient(@patient.person)
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
     @arv_number = get_patient_identifier(@patient, 'ARV Number')
 
@@ -616,6 +622,7 @@ class PatientsController < ApplicationController
   end
 
   def programs_dashboard
+	@patient_bean = get_patient(@patient.person)
     @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
     @arv_number = get_patient_identifier(@patient, 'ARV Number')
     render :template => 'dashboards/programs_dashboard', :layout => false
@@ -926,7 +933,7 @@ class PatientsController < ApplicationController
       observation = Observation.find(test.to_i)
 
       accession_number = "#{observation.accession_number rescue nil}"
-
+		patient_national_id_with_dashes = get_national_id_with_dashes(patient)
         if accession_number != ""
           label = 'label' + i.to_s
           label = ZebraPrinter::Label.new(500,165)
@@ -935,7 +942,7 @@ class PatientsController < ApplicationController
           label.font_vertical_multiplier = 1
           label.left_margin = 300
           label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
-          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient.national_id_with_dashes}")
+          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
           label.draw_multi_text("#{observation.name rescue nil} - #{accession_number rescue nil}")
           label.draw_multi_text("#{observation.date_created.strftime("%d-%b-%Y %H:%M")}")
           labels << label
@@ -1200,7 +1207,7 @@ class PatientsController < ApplicationController
 
       while i <= lab_orders.size do
         accession_number = "#{lab_orders[i].accession_number rescue nil}"
-
+		patient_national_id_with_dashes = get_national_id_with_dashes(patient) 
         if accession_number != ""
           label = 'label' + i.to_s
           label = ZebraPrinter::Label.new(500,165)
@@ -1209,7 +1216,7 @@ class PatientsController < ApplicationController
           label.font_vertical_multiplier = 1
           label.left_margin = 300
           label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
-          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient.national_id_with_dashes}")
+          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
           label.draw_multi_text("#{lab_orders[i].name rescue nil} - #{accession_number rescue nil}")
           label.draw_multi_text("#{lab_orders[i].obs_datetime.strftime("%d-%b-%Y %H:%M")}")
           labels << label
@@ -1766,7 +1773,81 @@ class PatientsController < ApplicationController
     edit_page = attribute_name
   end
 
-  
+  def set_new_patient_filing_number(patient)
+    ActiveRecord::Base.transaction do
+      global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10'
+
+      filing_number_identifier_type = PatientIdentifierType.find_by_name("Filing number")
+      archive_identifier_type = PatientIdentifierType.find_by_name("Archived filing number")
+
+      next_filing_number = PatientIdentifier.next_filing_number('Filing number')
+      if (next_filing_number[5..-1].to_i >= global_property_value.to_i)
+        encounter_type_name = ['REGISTRATION','VITALS','ART_INITIAL','ART VISIT',
+          'TREATMENT','HIV RECEPTION','HIV STAGING','DISPENSING','APPOINTMENT']
+        encounter_type_ids = EncounterType.find(:all,:conditions => ["name IN (?)",encounter_type_name]).map{|n|n.id}
+
+        all_filing_numbers = PatientIdentifier.find(:all, :conditions =>["identifier_type = ?",
+            filing_number_identifier_type.id],:group=>"patient_id")
+        patient_ids = all_filing_numbers.collect{|i|i.patient_id}
+        patient_to_be_archived = Encounter.find_by_sql(["
+          SELECT patient_id, MAX(encounter_datetime) AS last_encounter_id
+          FROM encounter
+          WHERE patient_id IN (?)
+          AND encounter_type IN (?)
+          GROUP BY patient_id
+          ORDER BY last_encounter_id
+          LIMIT 1",patient_ids,encounter_type_ids]).first.patient rescue nil
+
+        if patient_to_be_archived.blank?
+          patient_to_be_archived = PatientIdentifier.find(:last,:conditions =>["identifier_type = ?",
+              filing_number_identifier_type.id],
+            :group=>"patient_id",:order => "identifier DESC").patient rescue nil
+        end
+      end
+
+      if patient.get_identifier('Archived filing number')
+        #voids the record- if patient has a dormant filing number
+        current_archive_filing_numbers = patient.patient_identifiers.collect{|identifier|
+          identifier if identifier.identifier_type == archive_identifier_type.id and identifier.voided
+        }.compact
+        current_archive_filing_numbers.each do | filing_number |
+          filing_number.voided = 1
+          filing_number.void_reason = "patient assign new active filing number"
+          filing_number.voided_by = User.current_user.id
+          filing_number.date_voided = Time.now()
+          filing_number.save
+        end
+      end
+
+      unless patient_to_be_archived.blank?
+        filing_number = PatientIdentifier.new()
+        filing_number.patient_id = patient.id
+        filing_number.identifier = patient_to_be_archived.get_identifier('Filing Number')
+        filing_number.identifier_type = filing_number_identifier_type.id
+        filing_number.save
+
+        current_active_filing_numbers = patient_to_be_archived.patient_identifiers.collect{|identifier|
+          identifier if identifier.identifier_type == filing_number_identifier_type.id and not identifier.voided
+        }.compact
+        current_active_filing_numbers.each do | filing_number |
+          filing_number.voided = 1
+          filing_number.void_reason = "Archived - filing number given to:#{self.id}"
+          filing_number.voided_by = User.current_user.id
+          filing_number.date_voided = Time.now()
+          filing_number.save
+        end
+      else
+        filing_number = PatientIdentifier.new()
+        filing_number.patient_id = patient.id
+        filing_number.identifier = next_filing_number
+        filing_number.identifier_type = filing_number_identifier_type.id
+        filing_number.save
+      end
+      true
+    end
+  end
+
+
   private
 
 end
