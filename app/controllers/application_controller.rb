@@ -1732,7 +1732,7 @@ class ApplicationController < ActionController::Base
     patient_identifier_type_id = PatientIdentifierType.find_by_name(identifier_type).patient_identifier_type_id
     patient_identifier = PatientIdentifier.find(:first, :select => "identifier",
                                                 :conditions  =>["patient_id = ? and identifier_type = ?", patient.id, patient_identifier_type_id],
-                                                :order => "date_created DESC" ) rescue nil
+                                                :order => "date_created DESC" ).identifier rescue nil
     return patient_identifier
   end
 
@@ -1899,7 +1899,7 @@ EOF
     patient.patient_id = person.patient.id
     patient.arv_number = get_patient_identifier(person.patient, 'ARV Number')
     patient.address = person.addresses.first.city_village
-    patient.national_id = person.patient.national_id
+    patient.national_id = get_patient_identifier(person.patient, 'National id')
     patient.name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
     patient.sex = person.patient.gender
     patient.age = person.age
@@ -1909,8 +1909,8 @@ EOF
     patient.traditional_authority = person.addresses.first.county_district
     patient.current_residence = person.addresses.first.city_village
     patient.mothers_surname = person.names.first.family_name2
-    patient.eid_number = person.patient.eid_number
-    patient.pre_art_number = person.patient.pre_art_number
+    patient.eid_number = get_patient_identifier(person.patient, 'EID Number')
+    patient.pre_art_number = get_patient_identifier(person.patient, 'Pre ART Number (Old format)')
     patient.occupation = person.get_attribute('Occupation')
     patient.guardian = art_guardian(patient_obj) rescue nil 
     patient
