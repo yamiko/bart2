@@ -150,96 +150,11 @@ class Patient < ActiveRecord::Base
     end
   end
 
-  def set_filing_number
-    next_filing_number = PatientIdentifier.next_filing_number # gets the new filing number! 
-    # checks if the the new filing number has passed the filing number limit...
-    # move dormant patient from active to dormant filing area ... if needed
-    Patient.next_filing_number_to_be_archived(self,next_filing_number) 
-  end 
+  
 
-  def self.next_filing_number_to_be_archived(current_patient , next_filing_number)
-    ActiveRecord::Base.transaction do
-      global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10000'
-      active_filing_number_identifier_type = PatientIdentifierType.find_by_name("Filing Number")
-      dormant_filing_number_identifier_type = PatientIdentifierType.find_by_name('Archived filing number')
+  
 
-      if (next_filing_number[5..-1].to_i >= global_property_value.to_i)
-        encounter_type_name = ['REGISTRATION','VITALS','ART_INITIAL','ART VISIT',
-          'TREATMENT','HIV RECEPTION','HIV STAGING','DISPENSING','APPOINTMENT']
-        encounter_type_ids = EncounterType.find(:all,:conditions => ["name IN (?)",encounter_type_name]).map{|n|n.id} 
-      
-        all_filing_numbers = PatientIdentifier.find(:all, :conditions =>["identifier_type = ?",
-            PatientIdentifierType.find_by_name("Filing Number").id],:group=>"patient_id")
-        patient_ids = all_filing_numbers.collect{|i|i.patient_id}
-        patient_to_be_archived = Encounter.find_by_sql(["
-          SELECT patient_id, MAX(encounter_datetime) AS last_encounter_id
-          FROM encounter 
-          WHERE patient_id IN (?)
-          AND encounter_type IN (?) 
-          GROUP BY patient_id
-          ORDER BY last_encounter_id
-          LIMIT 1",patient_ids,encounter_type_ids]).first.patient rescue nil
-        if patient_to_be_archived.blank?
-          patient_to_be_archived = PatientIdentifier.find(:last,:conditions =>["identifier_type = ?",
-              PatientIdentifierType.find_by_name("Filing Number").id],
-            :group=>"patient_id",:order => "identifier DESC").patient rescue nil
-        end
-      end
 
-      if patient_to_be_archived
-        filing_number = PatientIdentifier.new()
-        filing_number.patient_id = patient_to_be_archived.id
-        filing_number.identifier_type = dormant_filing_number_identifier_type.id
-        filing_number.identifier = PatientIdentifier.next_filing_number("Archived filing number")
-        filing_number.save
-       
-        #assigning "patient_to_be_archived" filing number to the new patient
-        filing_number= PatientIdentifier.new()
-        filing_number.patient_id = current_patient.id
-        filing_number.identifier_type = active_filing_number_identifier_type.id
-        filing_number.identifier = patient_to_be_archived.get_identifier('Filing Number')
-        filing_number.save
-
-        #void current filing number
-        current_filing_numbers =  PatientIdentifier.find(:all,:conditions=>["patient_id=? AND identifier_type = ?",
-            patient_to_be_archived.id,PatientIdentifierType.find_by_name("Filing Number").id])
-        current_filing_numbers.each do | filing_number |
-          filing_number.voided = 1
-          filing_number.voided_by = User.current_user.id
-          filing_number.void_reason = "Archived - filing number given to:#{current_patient.id}"
-          filing_number.date_voided = Time.now()
-          filing_number.save
-        end
-      else
-        filing_number = PatientIdentifier.new()
-        filing_number.patient_id = current_patient.id
-        filing_number.identifier_type = active_filing_number_identifier_type.id
-        filing_number.identifier = next_filing_number
-        filing_number.save
-      end
-    end
-
-    true
-  end
-
-  def patient_to_be_archived
-    active_identifier_type = PatientIdentifierType.find_by_name("Filing Number")
-    PatientIdentifier.find_by_sql(["
-      SELECT * FROM patient_identifier 
-      WHERE voided = 1 AND identifier_type = ? AND void_reason = ? ORDER BY date_created DESC",
-        active_identifier_type.id,"Archived - filing number given to:#{self.id}"]).first.patient rescue nil
-  end
-
-  def old_filing_number(type = 'Filing Number')
-    identifier_type = PatientIdentifierType.find_by_name(type)
-    PatientIdentifier.find_by_sql(["
-      SELECT * FROM patient_identifier 
-      WHERE patient_id = ?
-      AND identifier_type = ? 
-      AND voided = 1
-      ORDER BY date_created DESC
-      LIMIT 1",self.id,identifier_type.id]).first.identifier rescue nil
-  end
 
   def id_identifiers
     identifier_type = ["Legacy Pediatric id","National id","Legacy National id"]
@@ -250,72 +165,6 @@ class Patient < ActiveRecord::Base
     PatientIdentifier.find(:all,
       :conditions=>["patient_id=? AND identifier_type IN (?)",
         self.id,identifier_types]).collect{| i | i.identifier }
-  end
-
-  def self.edit_mastercard_attribute(attribute_name)
-    edit_page = attribute_name
-  end
-
-  def self.save_mastercard_attribute(params)
-    patient = Patient.find(params[:patient_id])
-    case params[:field]
-    when 'arv_number'
-      type = params['identifiers'][0][:identifier_type]
-      #patient = Patient.find(params[:patient_id])
-      patient_identifiers = PatientIdentifier.find(:all,
-        :conditions => ["voided = 0 AND identifier_type = ? AND patient_id = ?",type.to_i,patient.id])
-
-      patient_identifiers.map{|identifier|
-        identifier.voided = 1
-        identifier.void_reason = "given another number"
-        identifier.date_voided  = Time.now()
-        identifier.voided_by = User.current_user.id
-        identifier.save
-      }
-
-      identifier = params['identifiers'][0][:identifier].strip
-      if identifier.match(/(.*)[A-Z]/i).blank?
-        params['identifiers'][0][:identifier] = "#{PatientIdentifier.site_prefix}-ARV-#{identifier}"
-      end
-      patient.patient_identifiers.create(params[:identifiers])
-    when "name"
-      names_params =  {"given_name" => params[:given_name].to_s,"family_name" => params[:family_name].to_s}
-      patient.person.names.first.update_attributes(names_params) if names_params
-    when "age"
-      birthday_params = params[:person]
-
-      if !birthday_params.empty?
-        if birthday_params["birth_year"] == "Unknown"
-          patient.person.set_birthdate_by_age(birthday_params["age_estimate"])
-        else
-          patient.person.set_birthdate(birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
-        end
-        patient.person.birthdate_estimated = 1 if params["birthdate_estimated"] == 'true'
-        patient.person.save
-      end
-    when "sex"
-      gender ={"gender" => params[:gender].to_s}
-      patient.person.update_attributes(gender) if !gender.empty?
-    when "location"
-      location = params[:person][:addresses]
-      patient.person.addresses.first.update_attributes(location) if location
-    when "occupation"
-      attribute = params[:person][:attributes]
-      occupation_attribute = PersonAttributeType.find_by_name("Occupation")
-      exists_person_attribute = PersonAttribute.find(:first, :conditions => ["person_id = ? AND person_attribute_type_id = ?", patient.person.id, occupation_attribute.person_attribute_type_id]) rescue nil
-      if exists_person_attribute
-        exists_person_attribute.update_attributes({'value' => attribute[:occupation].to_s})
-      end
-    when "guardian"
-      names_params =  {"given_name" => params[:given_name].to_s,"family_name" => params[:family_name].to_s}
-      Person.find(params[:guardian_id].to_s).names.first.update_attributes(names_params) rescue '' if names_params
-    when "address"
-      address2 = params[:person][:addresses]
-      patient.person.addresses.first.update_attributes(address2) if address2
-    when "ta"
-      county_district = params[:person][:addresses]
-      patient.person.addresses.first.update_attributes(county_district) if county_district
-    end
   end
 
   def eid_number
