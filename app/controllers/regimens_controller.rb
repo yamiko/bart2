@@ -2,11 +2,12 @@ class RegimensController < ApplicationController
 
 	def new
 		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
+		@patient_bean = get_patient(@patient.person)
 		@programs = @patient.patient_programs.all
 		@hiv_programs = @patient.patient_programs.not_completed.in_programs('HIV PROGRAM')
 
-    @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
-    @current_weight = get_patient_attribute_value(@patient, "current_weight")
+		@reason_for_art_eligibility = reason_for_art_eligibility(@patient)
+		@current_weight = get_patient_attribute_value(@patient, "current_weight")
 		@tb_encounter = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                     :conditions=>["patient_id = ? AND encounter_type = ?", 
                     @patient.id, EncounterType.find_by_name("TB visit").id], 

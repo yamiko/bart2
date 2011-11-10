@@ -159,7 +159,7 @@ class CohortToolController < ApplicationController
       changed_to    = changed_to(new_encounter)
       changed_from  = changed_from(voided_observations)
 
-      patient_arv_number = patient.get_identifier("ARV NUMBER")
+      patient_arv_number = get_patient_identifier(patient, 'ARV NUMBER')
 
       if( voided_observations && !voided_observations.empty?)
           voided_records[encounter.id] = {
@@ -200,7 +200,7 @@ class CohortToolController < ApplicationController
       changed_from  += "Treatment: #{voided_orders(new_encounter).to_s.gsub!(":", " =>")}</br>"
       changed_to    += "Treatment: #{encounter.to_s.gsub!(":", " =>") }</br>"
 
-      patient_arv_number = patient.get_identifier("ARV NUMBER")
+      patient_arv_number = get_patient_identifier(patient, 'ARV NUMBER')
 
       if( orders && !orders.empty?)
         voided_records[encounter.id]= {

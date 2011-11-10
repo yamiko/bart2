@@ -388,7 +388,10 @@ class EncountersController < ApplicationController
 		@had_tb_treatment_before = ever_received_tb_treatment(@patient.id)
 		@any_previous_tb_programs = any_previous_tb_programs(@patient.id)
 
-		sputum_orders_without_submission(@patient.id).each{|order| @sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
+		sputum_orders_without_submission(@patient.id).each { | order | 
+			@sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text
+		}
+		
 		sputum_submissons_with_no_results(@patient.id).each{|order| @sputum_submission_waiting_results[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 		sputum_results_not_given(@patient.id).each{|order| @sputum_results_not_given[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 
@@ -437,7 +440,7 @@ class EncountersController < ApplicationController
 
 		@patients = nil
 		
-		if (params[:encounter_type].upcase rescue '') == "TB_SUSPECT_SOURCE_OF_REFERRAL"
+		if (params[:encounter_type].upcase rescue '') == "SOURCE_OF_REFERRAL"
 			people = Person.search(params)
 			@patients = []
 			people.each do | person |

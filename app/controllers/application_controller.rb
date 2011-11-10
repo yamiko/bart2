@@ -1615,7 +1615,7 @@ class ApplicationController < ActionController::Base
   end
 
   def sputum_orders_without_submission(patient_id)
-    recent_sputum_orders(patient_id).collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", patient_id, Concept.find_by_name("Sputum submission")]).map{|o| o.accession_number}.include?(order.accession_number)}.compact rescue []
+    recent_sputum_orders(patient_id).collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", patient_id, Concept.find_by_name("Sputum submission")]).map{|o| o.accession_number}.include?(order.accession_number)}.compact #rescue []
   end
 
   def recent_sputum_orders(patient_id)
@@ -1740,11 +1740,11 @@ class ApplicationController < ActionController::Base
   def patient_printing_message(new_patient , archived_patient , creating_new_filing_number_for_patient = false)
     arv_code = Location.current_arv_code
     new_patient_name = new_patient.person.name
-    new_filing_number = patient_printing_filing_number_label(new_patient.get_identifier('Filing Number'))
+    new_filing_number = patient_printing_filing_number_label(get_patient_identifier(new_patient, 'Filing Number'))
     old_archive_filing_number = patient_printing_filing_number_label(old_filing_number(new_patient, 'Archived filing number'))
     unless archived_patient.blank?
       old_active_filing_number = patient_printing_filing_number_label(old_filing_number(archived_patient))
-      new_archive_filing_number = patient_printing_filing_number_label(archived_patient.get_identifier('Archived filing number'))
+      new_archive_filing_number = patient_printing_filing_number_label(get_patient_identifier(archived_patient, 'Archived filing number'))
     end
 
     if new_patient and archived_patient and creating_new_filing_number_for_patient
@@ -1852,7 +1852,6 @@ EOF
   end
 
   def patient_age_at_initiation(patient, initiation_date = nil)
-    #patient = Person.find(self.id)
     return patient.person.age(initiation_date) unless initiation_date.nil?
   end
 
@@ -1903,7 +1902,7 @@ EOF
     patient.national_id = get_patient_identifier(person.patient, 'National id')    
 	patient.national_id_with_dashes = get_national_id_with_dashes(person.patient)
     patient.name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
-    patient.sex = person.sex
+    patient.sex = sex(person)
     patient.age = person.age
     patient.dead = person.dead
     patient.birth_date = person.birthdate_formatted
@@ -1913,6 +1912,8 @@ EOF
     patient.mothers_surname = person.names.first.family_name2
     patient.eid_number = get_patient_identifier(person.patient, 'EID Number')
     patient.pre_art_number = get_patient_identifier(person.patient, 'Pre ART Number (Old format)')
+    patient.archived_filing_number = get_patient_identifier(person.patient, 'Archived filing number')
+    patient.filing_number = get_patient_identifier(person.patient, 'Filing Number')
     patient.occupation = person.get_attribute('Occupation')
     patient.guardian = art_guardian(patient_obj) rescue nil 
     patient
@@ -1984,7 +1985,7 @@ EOF
         filing_number= PatientIdentifier.new()
         filing_number.patient_id = current_patient.id
         filing_number.identifier_type = active_filing_number_identifier_type.id
-        filing_number.identifier = patient_to_be_archived.get_identifier('Filing Number')
+        filing_number.identifier = get_patient_identifier(patient_to_be_archived, 'Filing Number')
         filing_number.save
 
         #void current filing number
@@ -2007,6 +2008,79 @@ EOF
     end
 
     true
+  end
+  
+def create_from_form(params)
+    address_params = params["addresses"]
+    names_params = params["names"]
+    patient_params = params["patient"]
+    params_to_process = params.reject{|key,value| key.match(/addresses|patient|names|relation|cell_phone_number|home_phone_number|office_phone_number|agrees_to_be_visited_for_TB_therapy|agrees_phone_text_for_TB_therapy/) }
+    birthday_params = params_to_process.reject{|key,value| key.match(/gender/) }
+    person_params = params_to_process.reject{|key,value| key.match(/birth_|age_estimate|occupation/) }
+
+
+    if person_params["gender"].to_s == "Female"
+       person_params["gender"] = 'F'
+    elsif person_params["gender"].to_s == "Male"
+       person_params["gender"] = 'M'
+    end
+
+    person = Person.create(person_params)
+
+    unless birthday_params.empty?
+      if birthday_params["birth_year"] == "Unknown"
+        person.set_birthdate_by_age(birthday_params["age_estimate"], person.session_datetime || Date.today)
+      else
+        person.set_birthdate(birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
+      end
+    end
+    person.save
+   
+    person.names.create(names_params)
+    person.addresses.create(address_params) unless address_params.empty? rescue nil
+
+    person.person_attributes.create(
+      :person_attribute_type_id => PersonAttributeType.find_by_name("Occupation").person_attribute_type_id,
+      :value => params["occupation"]) unless params["occupation"].blank? rescue nil
+ 
+    person.person_attributes.create(
+      :person_attribute_type_id => PersonAttributeType.find_by_name("Cell Phone Number").person_attribute_type_id,
+      :value => params["cell_phone_number"]) unless params["cell_phone_number"].blank? rescue nil
+ 
+    person.person_attributes.create(
+      :person_attribute_type_id => PersonAttributeType.find_by_name("Office Phone Number").person_attribute_type_id,
+      :value => params["office_phone_number"]) unless params["office_phone_number"].blank? rescue nil
+ 
+    person.person_attributes.create(
+      :person_attribute_type_id => PersonAttributeType.find_by_name("Home Phone Number").person_attribute_type_id,
+      :value => params["home_phone_number"]) unless params["home_phone_number"].blank? rescue nil
+
+# TODO handle the birthplace attribute
+
+    if (!patient_params.nil?)
+      patient = person.create_patient
+
+      patient_params["identifiers"].each{|identifier_type_name, identifier|
+        next if identifier.blank?
+        identifier_type = PatientIdentifierType.find_by_name(identifier_type_name) || PatientIdentifierType.find_by_name("Unknown id")
+        patient.patient_identifiers.create("identifier" => identifier, "identifier_type" => identifier_type.patient_identifier_type_id)
+      } if patient_params["identifiers"]
+
+      # This might actually be a national id, but currently we wouldn't know
+      #patient.patient_identifiers.create("identifier" => patient_params["identifier"], "identifier_type" => PatientIdentifierType.find_by_name("Unknown id")) unless params["identifier"].blank?
+    end
+
+    return person
+  end
+
+  def sex(person)
+    value = nil
+    if person.gender == "M"
+      value = "Male"
+    elsif person.gender == "F"
+      value = "Female"
+    end
+    value
   end
 
 private
@@ -2213,14 +2287,14 @@ private
   def get_national_id(patient, force = true)
     id = patient.patient_identifiers.find_by_identifier_type(PatientIdentifierType.find_by_name("National id").id).identifier rescue nil
     return id unless force
-    id ||= PatientIdentifierType.find_by_name("National id").next_identifier(:patient => self).identifier
+    id ||= PatientIdentifierType.find_by_name("National id").next_identifier(:patient => patient).identifier
     id
   end
 
   def get_remote_national_id(patient)
     id = patient.patient_identifiers.find_by_identifier_type(PatientIdentifierType.find_by_name("National id").id).identifier rescue nil
     return id unless id.blank?
-    PatientIdentifierType.find_by_name("National id").next_identifier(:patient => self).identifier
+    PatientIdentifierType.find_by_name("National id").next_identifier(:patient => patient).identifier
   end
 
   def get_national_id_with_dashes(patient, force = true)

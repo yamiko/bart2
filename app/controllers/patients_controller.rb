@@ -161,11 +161,11 @@ class PatientsController < ApplicationController
     @links << ["Visit Summary (Print)","/patients/dashboard_print_visit/#{patient.id}"]
     @links << ["National ID (Print)","/patients/dashboard_print_national_id/#{patient.id}"]
 
-    if use_filing_number and not patient.get_identifier('Filing Number').blank?
+    if use_filing_number and not get_patient_identifier(patient, 'Filing Number').blank?
       @links << ["Filing Number (Print)","/patients/print_filing_number/#{patient.id}"]
     end 
 
-    if use_filing_number and patient.get_identifier('Filing Number').blank?
+    if use_filing_number and get_patient_identifier(patient, 'Filing Number').blank?
       @links << ["Filing Number (Create)","/patients/set_filing_number/#{patient.id}"]
     end 
 
@@ -710,6 +710,7 @@ class PatientsController < ApplicationController
   end
 
   def tb_treatment_card # to look at later - To test that is
+  	@patient_bean = get_patient(@patient.person)
     render :layout => 'menu'
   end
 
@@ -1235,7 +1236,7 @@ class PatientsController < ApplicationController
   end
 
   def patient_filing_number_label(patient, num = 1)
-    file = patient.get_identifier('Filing Number')[0..9]
+    file = get_patient_identifier(patient, 'Filing Number')[0..9]
     file_type = file.strip[3..4]
     version_number=file.strip[2..2]
     number = file
@@ -1279,7 +1280,7 @@ class PatientsController < ApplicationController
     visits.address = patient_obj.person.addresses.first.city_village
     visits.national_id = patient_obj.national_id
     visits.name = patient_obj.person.names.first.given_name + ' ' + patient_obj.person.names.first.family_name rescue nil
-    visits.sex = patient_obj.person.sex
+    visits.sex = sex(patient_obj.person)
     visits.age = patient_obj.person.age
     visits.occupation = patient_obj.person.get_attribute('Occupation')
     visits.landmark = patient_obj.person.addresses.first.address1
@@ -1563,11 +1564,12 @@ class PatientsController < ApplicationController
   end  
 
   def mastercard_visit_label(patient,date = Date.today)
+  	patient_bean = get_patient(patient.person)
     visit = visits(patient,date)[date] rescue {}
     return if visit.blank? 
     visit_data = mastercard_visit_data(visit)
 
-    arv_number = get_patient_identifier(patient, 'ARV Number') || get_patient_identifier(patient, 'National id')
+    arv_number = patient_bean.arv_number || patient_bean.national_id
     pill_count = visit.pills.collect{|c|c.join(",")}.join(' ') rescue nil
 
     label = ZebraPrinter::StandardLabel.new
@@ -1575,7 +1577,7 @@ class PatientsController < ApplicationController
     label.draw_text("#{seen_by(patient,date)}",597,250,0,1,1,1,false)
     label.draw_text("#{date.strftime("%B %d %Y").upcase}",25,30,0,3,1,1,false)
     label.draw_text("#{arv_number}",565,30,0,3,1,1,true)
-    label.draw_text("#{patient.person.name}(#{patient.person.sex.first})",25,60,0,3,1,1,false)
+    label.draw_text("#{patient_bean.name}(#{patient_bean.sex})",25,60,0,3,1,1,false)
     label.draw_text("#{'(' + visit.visit_by + ')' unless visit.visit_by.blank?}",255,30,0,2,1,1,false)
     label.draw_text("#{visit.height.to_s + 'cm' if !visit.height.blank?}  #{visit.weight.to_s + 'kg' if !visit.weight.blank?}  #{'BMI:' + visit.bmi.to_s if !visit.bmi.blank?} #{'(PC:' + pill_count[0..24] + ')' unless pill_count.blank?}",25,95,0,2,1,1,false)
     label.draw_text("SE",25,130,0,3,1,1,false)
@@ -1805,7 +1807,7 @@ class PatientsController < ApplicationController
         end
       end
 
-      if patient.get_identifier('Archived filing number')
+      if get_patient_identifier(patient, 'Archived filing number')
         #voids the record- if patient has a dormant filing number
         current_archive_filing_numbers = patient.patient_identifiers.collect{|identifier|
           identifier if identifier.identifier_type == archive_identifier_type.id and identifier.voided
@@ -1822,7 +1824,7 @@ class PatientsController < ApplicationController
       unless patient_to_be_archived.blank?
         filing_number = PatientIdentifier.new()
         filing_number.patient_id = patient.id
-        filing_number.identifier = patient_to_be_archived.get_identifier('Filing Number')
+        filing_number.identifier = get_patient_identifier(patient_to_be_archived, 'Archived filing number')
         filing_number.identifier_type = filing_number_identifier_type.id
         filing_number.save
 

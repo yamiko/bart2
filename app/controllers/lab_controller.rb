@@ -2,7 +2,8 @@ class LabController < ApplicationController
   def results
     @results = []
     @patient = Patient.find(params[:id])
-    (Lab.results(@patient) || []).map do | short_name , test_name , range , value , test_date |
+    patient_ids = id_identifiers(@patient)
+    (Lab.results(@patient, patient_ids) || []).map do | short_name , test_name , range , value , test_date |
       @results << [short_name.gsub('_',' '),"/lab/view?test=#{short_name}&patient_id=#{@patient.id}"]
     end
     render :layout => 'menu'
@@ -11,7 +12,8 @@ class LabController < ApplicationController
   def view
     @patient = Patient.find(params[:patient_id])
     @test = params[:test]
-    @results = Lab.results_by_type(@patient,@test)
+    patient_ids = id_identifiers(@patient)
+    @results = Lab.results_by_type(@patient, @test, patient_ids)
     @table_th = build_table(@results) unless @results.blank?
     render :layout => 'menu'
   end
@@ -69,9 +71,22 @@ class LabController < ApplicationController
       @results << [ date , value ]
     end 
     @patient = Patient.find(params[:patient_id])
+    @patient_bean = get_patient(@patient.person)
     @type = params[:type]
     @test = params[:test]
     render :layout => 'menu'
   end
+  
+  def id_identifiers(patient)
+    identifier_type = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_types = PatientIdentifierType.find(:all,
+      :conditions=>["name IN (?)",identifier_type]
+    ).collect{| type |type.id }
+    
+    PatientIdentifier.find(:all,
+      :conditions=>["patient_id=? AND identifier_type IN (?)",
+        patient.id,identifier_types]).collect{| i | i.identifier }
+  end
+
 
 end

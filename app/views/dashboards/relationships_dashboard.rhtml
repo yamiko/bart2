@@ -40,19 +40,19 @@
                   <span value="<%= @arv_number rescue "" %>">ARV Number</span>
 
                <% end %>
-               <% if (@patient.filing_number rescue nil) != nil && (@patient.filing_number) != " " %>
+               <% if (@patient_bean.filing_number rescue nil) != nil && (@patient_bean.filing_number) != " " %>
 
-                <span value="<%= @patient.filing_number rescue "" %>">Filing Number</span>
+                <span value="<%= @patient_bean.filing_number rescue "" %>">Filing Number</span>
 
                <% end %>
                <% if (@patient_bean.eid_number rescue nil) != nil && (@patient_bean.eid_number) != " " %>
 
-                 <span value="<%= @patient.eid_number rescue "" %>">EID Number</span>
+                 <span value="<%= @patient_bean.eid_number rescue "" %>">EID Number</span>
 
                <% end %>
                <% if (@patient_bean.pre_art_number rescue nil) != nil && (@patient_bean.pre_art_number) != " " %>
 
-                <span value="<%= @patient.pre_art_number rescue "" %>">Pre-ART Number</span>
+                <span value="<%= @patient_bean.pre_art_number rescue "" %>">Pre-ART Number</span>
 
                <% end %>
                 </div>

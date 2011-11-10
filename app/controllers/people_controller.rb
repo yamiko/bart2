@@ -35,7 +35,7 @@ class PeopleController < ApplicationController
       Location.current_location = Location.find(get_global_property_value('current_health_center_id'))
     end rescue []
 
-    person = Person.create_from_form(person_params)
+    person = create_from_form(person_params)
     if person
       patient = Patient.new()
       patient.patient_id = person.id
@@ -72,7 +72,7 @@ class PeopleController < ApplicationController
         # TODO - figure out how to write a test for this
         # This is sloppy - creating something as the result of a GET
         found_person_data = find_remote_person_by_identifier(params[:identifier])
-        found_person =  Person.create_from_form(found_person_data['person']) unless found_person_data.nil?
+        found_person = create_from_form(found_person_data['person']) unless found_person_data.nil?
       end
       if found_person
         #redirect_to search_complete_url(found_person.id, params[:relation]) and return
@@ -187,14 +187,14 @@ class PeopleController < ApplicationController
     
     if create_from_remote
       person_from_remote = create_remote_person(params)
-      person = Person.create_from_form(person_from_remote["person"]) unless person_from_remote.blank?
+      person = create_from_form(person_from_remote["person"]) unless person_from_remote.blank?
       if !person.blank?
         success = true
         person.patient.remote_national_id
       end
     else
       success = true
-      person = Person.create_from_form(params[:person])
+      person = create_from_form(params[:person])
     end
 
     if params[:person][:patient] && success
@@ -449,7 +449,6 @@ class PeopleController < ApplicationController
     results["person"] = result_hash
     return results
   end
-
 
 private
   
