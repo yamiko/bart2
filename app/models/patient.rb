@@ -240,17 +240,6 @@ class Patient < ActiveRecord::Base
         active_identifier_type.id,"Archived - filing number given to:#{self.id}"]).first.patient rescue nil
   end
 
-  def old_filing_number(type = 'Filing Number')
-    identifier_type = PatientIdentifierType.find_by_name(type)
-    PatientIdentifier.find_by_sql(["
-      SELECT * FROM patient_identifier 
-      WHERE patient_id = ?
-      AND identifier_type = ? 
-      AND voided = 1
-      ORDER BY date_created DESC
-      LIMIT 1",self.id,identifier_type.id]).first.identifier rescue nil
-  end
-
   def id_identifiers
     identifier_type = ["Legacy Pediatric id","National id","Legacy National id"]
     identifier_types = PatientIdentifierType.find(:all,

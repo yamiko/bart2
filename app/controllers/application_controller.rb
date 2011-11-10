@@ -1740,9 +1740,9 @@ class ApplicationController < ActionController::Base
     arv_code = Location.current_arv_code
     new_patient_name = new_patient.name
     new_filing_number = patient_printing_filing_number_label(new_patient.get_identifier('Filing Number'))
-    old_archive_filing_number = patient_printing_filing_number_label(new_patient.old_filing_number('Archived filing number'))
+    old_archive_filing_number = patient_printing_filing_number_label(old_filing_number(new_patient, 'Archived filing number'))
     unless archived_patient.blank?
-      old_active_filing_number = patient_printing_filing_number_label(archived_patient.old_filing_number)
+      old_active_filing_number = patient_printing_filing_number_label(old_filing_number(archived_patient))
       new_archive_filing_number = patient_printing_filing_number_label(archived_patient.get_identifier('Archived filing number'))
     end
 
@@ -1914,6 +1914,17 @@ EOF
     patient.occupation = person.get_attribute('Occupation')
     patient.guardian = art_guardian(patient_obj) rescue nil 
     patient
+  end
+
+  def old_filing_number(patient, type = 'Filing Number')
+    identifier_type = PatientIdentifierType.find_by_name(type)
+    PatientIdentifier.find_by_sql(["
+      SELECT * FROM patient_identifier
+      WHERE patient_id = ?
+      AND identifier_type = ?
+      AND voided = 1
+      ORDER BY date_created DESC
+      LIMIT 1",patient.id,identifier_type.id]).first.identifier rescue nil
   end
 
 private
