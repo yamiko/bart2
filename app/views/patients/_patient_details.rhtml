@@ -24,7 +24,7 @@ when "pink"
       </td>
       <td colspan="6" style="border-top: 1px solid #000; border-left: 1px solid #000;
           border-right: 1px solid #000; font-style: italic;">
-        <%= @patient.name rescue "&nbsp;" %>&nbsp;
+        <%= @patient.person.name rescue "&nbsp;" %>&nbsp;
       </td>
     </tr>
     <tr>
@@ -33,7 +33,7 @@ when "pink"
       </td>
       <td style="border-top: 1px solid #000; border-left: 1px solid #000; font-weight: bold; width: 5%;" 
           align="center" colspan="2">
-        <%= (@patient.gender.upcase == "MALE" ? "M" : (@patient.gender.upcase == "FEMALE" ? "F" : "&nbsp;")) rescue "&nbsp;" %>
+        <%= (@patient.person.sex.upcase == "MALE" ? "M" : (@patient.person.sex.upcase == "FEMALE" ? "F" : "&nbsp;")) rescue "&nbsp;" %>
       </td>
       <td colspan="2" style="border-top: 1px solid #000; border-left: 1px solid #000; font-style: italic;">
         <sup>Birth Date</sup>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<%= @patient.person.birthdate.strftime("%d-%b-%Y") rescue "&nbsp;" %>
@@ -208,7 +208,7 @@ when "pink"
         Patient Name
       </td>
       <td colspan="5" style="border-top: 1px solid #000; border-left: 1px solid #000; font-style: italic">
-        <%= @patient.name rescue "&nbsp;" %>
+        <%= @patient.person.name rescue "&nbsp;" %>
       </td>
     </tr>
     <tr>
@@ -216,7 +216,7 @@ when "pink"
         Sex, Birth Date
       </td>
       <td style="border-top: 1px solid #000; border-left: 1px solid #000; font-weight: bold; width: 5%;" align="center" colspan="2">
-        <%= (@patient.gender.upcase == "MALE" ? "M" : (@patient.gender.upcase == "FEMALE" ? "F" : "&nbsp;")) rescue "&nbsp;" %>
+        <%= (@patient.person.sex.upcase == "MALE" ? "M" : (@patient.person.sex.upcase == "FEMALE" ? "F" : "&nbsp;")) rescue "&nbsp;" %>
       </td>
       <td colspan="3" style="border-top: 1px solid #000; border-left: 1px solid #000; font-style: italic">
         <sup>DOB</sup>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<%= @patient.person.birthdate.strftime("%d-%b-%Y") rescue "&nbsp;" %>

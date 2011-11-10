@@ -44,12 +44,21 @@
    <td><%= link_to "TA:", "/patients/mastercard_modify?field=ta&id=#{@patient.id}&source=opd" -%></td>
   </tr>
   <tr class="master_data">
+<<<<<<< HEAD
    <td class='demo_data'><%= @patient_bean.national_id_with_dashes rescue nil-%></td>
    <td class='demo_data'><%= @patient_bean.name rescue nil-%></td>
    <td class='demo_data'><%= @patient_bean.birth_date rescue nil-%></td>
    <td class='demo_data'><%= @patient_bean.age rescue nil-%></td>
    <td class='demo_data'><%= @patient_bean.sex rescue nil-%></td>
    <td class='demo_data' colspan="10"><%= @patient_bean.traditional_authority -%></td>
+=======
+   <td class='demo_data'><%= @patient.national_id_with_dashes rescue nil-%></td>
+   <td class='demo_data'><%= @patient.person.name rescue nil-%></td>
+   <td class='demo_data'><%= @patient.person.birthdate_formatted rescue nil-%></td>
+   <td class='demo_data'><%= @patient.person.age rescue nil-%></td>
+   <td class='demo_data'><%= @patient.person.sex rescue nil-%></td>
+   <td class='demo_data' colspan="10"><%= @patient.person.addresses.first.county_district -%></td>
+>>>>>>> f56c6bcfcc7c61b2f94e232427ce6c98257477e5
   </tr>
   <tr>
    <td><%= link_to "Location:", "/patients/mastercard_modify?field=location&id=#{@patient.id}&source=opd" -%></td>

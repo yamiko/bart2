@@ -399,7 +399,6 @@ class EncountersController < ApplicationController
     @patient_is_transfer_in = is_transfer_in(@patient)
     @patient_transfer_in_date = get_transfer_in_date(@patient)
     @patient_is_child_bearing_female = is_child_bearing_female(@patient)
-
     	@cell_number = @patient.person.person_attributes.find_by_person_attribute_type_id(PersonAttributeType.find_by_name("Cell Phone Number").id).value rescue ''
 
     	@tb_symptoms = []
@@ -1040,7 +1039,7 @@ class EncountersController < ApplicationController
   end
 
   def is_child_bearing_female(patient)
-    (patient.gender == "Female" && patient.person.age >= 9 && patient.person.age <= 45) ? true : false
+    (patient.person.sex == "Female" && patient.person.age >= 9 && patient.person.age <= 45) ? true : false
   end
 
   def given_arvs_before(patient)

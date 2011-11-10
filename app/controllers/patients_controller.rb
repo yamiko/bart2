@@ -11,7 +11,6 @@ class PatientsController < ApplicationController
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
     @alerts = alerts(@patient, session_date) rescue nil
-    # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
     @restricted.each do |restriction|    
       @encounters = restriction.filter_encounters(@encounters)
@@ -397,7 +396,7 @@ class PatientsController < ApplicationController
     if request.method == :get
       @patient_id = params[:id]
       @patient = Patient.find(params[:id])
-      @edit_page = Patient.edit_mastercard_attribute(params[:field].to_s)
+      @edit_page = edit_mastercard_attribute(params[:field].to_s)
 
       if @edit_page == "guardian"
         @guardian = {}
@@ -408,7 +407,7 @@ class PatientsController < ApplicationController
       end
     else
       @patient_id = params[:patient_id]
-      Patient.save_mastercard_attribute(params)
+      save_mastercard_attribute(params)
       if params[:source].to_s == "opd"
         redirect_to "/patients/opdcard/#{@patient_id}" and return
 
@@ -426,9 +425,9 @@ class PatientsController < ApplicationController
 
   def set_filing_number
     patient = Patient.find(params[:id])
-    patient.set_filing_number
+    set_patient_filing_number(patient)
 
-    archived_patient = patient.patient_to_be_archived
+    archived_patient = patient_to_be_archived(patient)
     message = patient_printing_message(patient,archived_patient,true)
     unless message.blank?
       print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/patients/show/#{patient.id}",message,true,patient.id)
@@ -441,7 +440,7 @@ class PatientsController < ApplicationController
     patient = Patient.find(params[:id])
     patient.set_new_filing_number
 
-    archived_patient = patient.patient_to_be_archived
+    archived_patient = patient_to_be_archived(patient)
     message = patient_printing_message(patient,archived_patient)
     unless message.blank?
       print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/people/confirm?found_person_id=#{patient.id}",message,true,patient.id)
@@ -459,7 +458,7 @@ class PatientsController < ApplicationController
         csv << ["Name", "Age","Sex","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
         transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
         transfer_in.blank? == true ? transfer_in = 'NO' : transfer_in = 'YES'
-        csv << [patient.name,patient.person.age, patient.person.sex,get_patient_attribute_value(patient, "initial_weight"),get_patient_attribute_value(patient, "initial_height"),get_patient_attribute_value(patient, "initial_bmi"),transfer_in]
+        csv << [patient.person.name,patient.person.age, patient.person.sex,get_patient_attribute_value(patient, "initial_weight"),get_patient_attribute_value(patient, "initial_height"),get_patient_attribute_value(patient, "initial_bmi"),transfer_in]
         csv << ["Location", "Land-mark","Occupation","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
 
 =begin
@@ -1280,7 +1279,7 @@ class PatientsController < ApplicationController
     visits.address = patient_obj.person.addresses.first.city_village
     visits.national_id = patient_obj.national_id
     visits.name = patient_obj.person.names.first.given_name + ' ' + patient_obj.person.names.first.family_name rescue nil
-    visits.sex = patient_obj.gender
+    visits.sex = patient_obj.person.sex
     visits.age = patient_obj.person.age
     visits.occupation = patient_obj.person.get_attribute('Occupation')
     visits.landmark = patient_obj.person.addresses.first.address1
@@ -1294,7 +1293,7 @@ class PatientsController < ApplicationController
     visits.hiv_test_location = patient_obj.person.observations.recent(1).question("Confirmatory HIV test location").all rescue nil
     visits.hiv_test_location = visits.hiv_test_location.to_s.split(':')[1].strip rescue nil
     visits.guardian = art_guardian(patient_obj) rescue nil
-    visits.reason_for_art_eligibility = patient_obj.reason_for_art_eligibility
+    visits.reason_for_art_eligibility = reason_for_art_eligibility(patient_obj)
     visits.transfer_in = patient_obj.transfer_in? rescue nil #pb: bug-2677 Made this to use the newly created patient model method 'transfer_in?'
     visits.transfer_in == false ? visits.transfer_in = 'NO' : visits.transfer_in = 'YES'
 
@@ -1576,7 +1575,7 @@ class PatientsController < ApplicationController
     label.draw_text("#{seen_by(patient,date)}",597,250,0,1,1,1,false)
     label.draw_text("#{date.strftime("%B %d %Y").upcase}",25,30,0,3,1,1,false)
     label.draw_text("#{arv_number}",565,30,0,3,1,1,true)
-    label.draw_text("#{patient.name}(#{patient.person.sex.first})",25,60,0,3,1,1,false)
+    label.draw_text("#{patient.person.name}(#{patient.person.sex.first})",25,60,0,3,1,1,false)
     label.draw_text("#{'(' + visit.visit_by + ')' unless visit.visit_by.blank?}",255,30,0,2,1,1,false)
     label.draw_text("#{visit.height.to_s + 'cm' if !visit.height.blank?}  #{visit.weight.to_s + 'kg' if !visit.weight.blank?}  #{'BMI:' + visit.bmi.to_s if !visit.bmi.blank?} #{'(PC:' + pill_count[0..24] + ')' unless pill_count.blank?}",25,95,0,2,1,1,false)
     label.draw_text("SE",25,130,0,3,1,1,false)
@@ -1707,6 +1706,73 @@ class PatientsController < ApplicationController
       :conditions =>["person_a = ?",patient.person.id]).person_b rescue nil
     Person.find(person_id).name rescue nil
   end
+
+  def save_mastercard_attribute(params)
+    patient = Patient.find(params[:patient_id])
+    case params[:field]
+    when 'arv_number'
+      type = params['identifiers'][0][:identifier_type]
+      #patient = Patient.find(params[:patient_id])
+      patient_identifiers = PatientIdentifier.find(:all,
+        :conditions => ["voided = 0 AND identifier_type = ? AND patient_id = ?",type.to_i,patient.id])
+
+      patient_identifiers.map{|identifier|
+        identifier.voided = 1
+        identifier.void_reason = "given another number"
+        identifier.date_voided  = Time.now()
+        identifier.voided_by = User.current_user.id
+        identifier.save
+      }
+
+      identifier = params['identifiers'][0][:identifier].strip
+      if identifier.match(/(.*)[A-Z]/i).blank?
+        params['identifiers'][0][:identifier] = "#{PatientIdentifier.site_prefix}-ARV-#{identifier}"
+      end
+      patient.patient_identifiers.create(params[:identifiers])
+    when "name"
+      names_params =  {"given_name" => params[:given_name].to_s,"family_name" => params[:family_name].to_s}
+      patient.person.names.first.update_attributes(names_params) if names_params
+    when "age"
+      birthday_params = params[:person]
+
+      if !birthday_params.empty?
+        if birthday_params["birth_year"] == "Unknown"
+          patient.person.set_birthdate_by_age(birthday_params["age_estimate"])
+        else
+          patient.person.set_birthdate(birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
+        end
+        patient.person.birthdate_estimated = 1 if params["birthdate_estimated"] == 'true'
+        patient.person.save
+      end
+    when "sex"
+      gender ={"gender" => params[:gender].to_s}
+      patient.person.update_attributes(gender) if !gender.empty?
+    when "location"
+      location = params[:person][:addresses]
+      patient.person.addresses.first.update_attributes(location) if location
+    when "occupation"
+      attribute = params[:person][:attributes]
+      occupation_attribute = PersonAttributeType.find_by_name("Occupation")
+      exists_person_attribute = PersonAttribute.find(:first, :conditions => ["person_id = ? AND person_attribute_type_id = ?", patient.person.id, occupation_attribute.person_attribute_type_id]) rescue nil
+      if exists_person_attribute
+        exists_person_attribute.update_attributes({'value' => attribute[:occupation].to_s})
+      end
+    when "guardian"
+      names_params =  {"given_name" => params[:given_name].to_s,"family_name" => params[:family_name].to_s}
+      Person.find(params[:guardian_id].to_s).names.first.update_attributes(names_params) rescue '' if names_params
+    when "address"
+      address2 = params[:person][:addresses]
+      patient.person.addresses.first.update_attributes(address2) if address2
+    when "ta"
+      county_district = params[:person][:addresses]
+      patient.person.addresses.first.update_attributes(county_district) if county_district
+    end
+  end
+
+  def edit_mastercard_attribute(attribute_name)
+    edit_page = attribute_name
+  end
+
   
   private
 
