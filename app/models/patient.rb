@@ -68,12 +68,6 @@ class Patient < ActiveRecord::Base
     "#{self.person.name}"
   end
 
-  
-  def arv_number
-    arv_number_id = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
-    PatientIdentifier.identifier(self.patient_id, arv_number_id).identifier rescue nil
-  end
-
   def age_at_initiation(initiation_date = nil)
     patient = Person.find(self.id)
     return patient.age(initiation_date) unless initiation_date.nil?
@@ -649,6 +643,12 @@ EOF
     pre_art_number_id = PatientIdentifierType.find_by_name('Pre ART Number (Old format)').patient_identifier_type_id
     PatientIdentifier.identifier(self.patient_id, pre_art_number_id).identifier rescue nil
   end
+  
+  def arv_number
+    arv_number_id = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
+    PatientIdentifier.identifier(self.patient_id, arv_number_id).identifier rescue nil
+  end
+  
   
 =begin # could not find where it is being used DFFI
   def is_first_visit?

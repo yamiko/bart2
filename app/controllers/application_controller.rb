@@ -1728,6 +1728,14 @@ class ApplicationController < ActionController::Base
     appointments
   end
 
+  def get_patient_identifier(patient, identifier_type)
+    patient_identifier_type_id = PatientIdentifierType.find_by_name(identifier_type).patient_identifier_type_id
+    patient_identifier = PatientIdentifier.find(:first, :select => "identifier",
+                                                :conditions  =>["patient_id = ? and identifier_type = ?", patient.id, patient_identifier_type_id],
+                                                :order => "date_created DESC" ) rescue nil
+    return patient_identifier
+  end
+
 private
 
   def find_patient

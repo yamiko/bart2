@@ -450,7 +450,7 @@ class PatientsController < ApplicationController
       csv_string = FasterCSV.generate do |csv|
         # header row
         csv << ["ARV number", "National ID"]
-        csv << [patient.arv_number, patient.national_id]
+        csv << [get_patient_identifier(patient, 'ARV Number'), patient.national_id]
         csv << ["Name", "Age","Sex","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
         transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
         transfer_in.blank? == true ? transfer_in = 'NO' : transfer_in = 'YES'
@@ -1107,7 +1107,7 @@ class PatientsController < ApplicationController
       line = 30
       label3 = ZebraPrinter::StandardLabel.new
       label3.draw_text("STAGE DEFINING CONDITIONS",25,line,0,3,1,1,false)
-      label3.draw_text("#{patient.arv_number}",370,line,0,2,1,1,false)
+      label3.draw_text("#{get_patient_identifier(patient, 'ARV Number')}",370,line,0,2,1,1,false)
       label3.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",450,300,0,1,1,1,false)
       extra_lines.each{|condition|
         label3.draw_text(condition,25,line+=30,0,2,1,1,false)
@@ -1260,7 +1260,7 @@ class PatientsController < ApplicationController
   def mastercard_demographics(patient_obj)
     visits = Mastercard.new()
     visits.patient_id = patient_obj.id
-    visits.arv_number = patient_obj.get_identifier('ARV Number')
+    visits.arv_number = get_patient_identifier(patient_obj, 'ARV Number')
     visits.address = patient_obj.person.addresses.first.city_village
     visits.national_id = patient_obj.national_id
     visits.name = patient_obj.person.names.first.given_name + ' ' + patient_obj.person.names.first.family_name rescue nil
@@ -1552,7 +1552,7 @@ class PatientsController < ApplicationController
     return if visit.blank? 
     visit_data = mastercard_visit_data(visit)
 
-    arv_number = patient.arv_number || patient.national_id
+    arv_number = get_patient_identifier(patient, 'ARV Number') || get_patient_identifier(patient, 'National id')
     pill_count = visit.pills.collect{|c|c.join(",")}.join(' ') rescue nil
 
     label = ZebraPrinter::StandardLabel.new
