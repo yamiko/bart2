@@ -1042,7 +1042,7 @@ class EncountersController < ApplicationController
   end
 
   def is_child_bearing_female(patient)
-    (patient.person.sex == "Female" && patient.person.age >= 9 && patient.person.age <= 45) ? true : false
+    (patient.person.gender == "F" && patient.person.age >= 9 && patient.person.age <= 45) ? true : false
   end
 
   def given_arvs_before(patient)
