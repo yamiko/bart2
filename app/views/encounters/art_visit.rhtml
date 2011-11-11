@@ -77,7 +77,6 @@
 
             <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
             {:id => "pregnant",
-            :optional => false,
             :helpText => "Is patient pregnant?" } %>
 
         <%else%>
@@ -88,7 +87,6 @@
 
             <%= touch_yes_no_unknown_tag "IS PATIENT BREAST FEEDING?", @patient, nil,
             {:id => "breast_feeding",
-            :optional => false,
             :helpText => "Is patient breast feeding?" } %>
 
         <%else%>
@@ -170,8 +168,7 @@
     <%= touch_hidden_tag "Prescribe ARVs this visit", @patient, "YES", :id => "prescribe_arvs" %>
   <%else%>
     <%= touch_yes_no_unknown_tag "Prescribe ARVs this visit", @patient, nil,
-      {:optional => false,
-       :id => "prescribe_arvs",
+      {:id => "prescribe_arvs",
        :helpText => "Prescribe drugs during this visit" } %>
   <%end%>
   <%
@@ -182,8 +179,7 @@
 
   <% if User.current_user.user_roles.map{|r|r.role}.include?('Nurse') and reception.match(/PATIENT PRESENT FOR CONSULTATION: YES/i) %>
     <%= touch_yes_no_unknown_tag "REFER TO ART CLINICIAN", @patient, nil,
-      {:optional => false,
-      :id => "refer_to_clinician",
+      {:id => "refer_to_clinician",
       :helpText => "Refer to clinician?" } %>
   <%else%>
     <%= touch_hidden_tag "REFER TO ART CLINICIAN", @patient, "NO", :id => "refer_to_clinician" %>
@@ -200,7 +196,8 @@
     if session_date %>
 
     <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
-<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', 
+  :ajaxURL => '/user/username?username=' %></p>
     <% else %>
       <%= hidden_field_tag "filter[provider]", nil %>
     <%end%>
