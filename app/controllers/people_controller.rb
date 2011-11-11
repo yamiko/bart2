@@ -62,10 +62,10 @@ class PeopleController < ApplicationController
   def search
     found_person = nil
     if params[:identifier]
-      local_results = Person.search_by_identifier(params[:identifier])
+      local_results = search_by_identifier(params[:identifier])
 
       if local_results.length > 1
-        @people = Person.search(params)
+        @people = person_search(params)
       elsif local_results.length == 1
         found_person = local_results.first
       else
@@ -80,7 +80,7 @@ class PeopleController < ApplicationController
       end
     end
 
-    @people = Person.search(params)
+    @people = person_search(params)
     @patients = []
     @people.each do | person |
         patient = get_patient(person)
@@ -345,7 +345,7 @@ class PeopleController < ApplicationController
 
   def art_info_for_remote(national_id)
 
-    patient = Person.search_by_identifier(national_id).first.patient rescue []
+    patient = search_by_identifier(national_id).first.patient rescue []
     return {} if patient.blank?
 
     results = {}
@@ -398,7 +398,7 @@ class PeopleController < ApplicationController
   end
 
   def art_info_for_remote(national_id)
-    patient = Person.search_by_identifier(national_id).first.patient rescue []
+    patient = search_by_identifier(national_id).first.patient rescue []
     return {} if patient.blank?
 
     results = {}

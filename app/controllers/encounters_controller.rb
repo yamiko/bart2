@@ -441,7 +441,7 @@ class EncountersController < ApplicationController
 		@patients = nil
 		
 		if (params[:encounter_type].upcase rescue '') == "SOURCE_OF_REFERRAL"
-			people = Person.search(params)
+			people = person_search(params)
 			@patients = []
 			people.each do | person |
 				patient = get_patient(person)

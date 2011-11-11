@@ -376,7 +376,7 @@ class ApplicationController < ActionController::Base
   
   def find_person_by_demographics(person_demographics)
     national_id = person_demographics["person"]["patient"]["identifiers"]["National id"] rescue nil
-    results = Person.search_by_identifier(national_id) unless national_id.nil?
+    results = search_by_identifier(national_id) unless national_id.nil?
     return results unless results.blank?
 
     gender = person_demographics["person"]["gender"] rescue nil
@@ -385,7 +385,7 @@ class ApplicationController < ActionController::Base
 
     search_params = {:gender => gender, :given_name => given_name, :family_name => family_name }
 
-    results = Person.search(search_params)
+    results = person_search(search_params)
   end
   
   def checks_if_labs_results_are_avalable_to_be_shown(patient , session_date , task)
@@ -2083,6 +2083,28 @@ def create_from_form(params)
       value = "Female"
     end
     value
+  end
+  
+  def person_search(params)
+    people = search_by_identifier(params[:identifier])
+
+    return people.first.id unless people.blank? || people.size > 1
+    people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patient], :conditions => [
+    "gender = ? AND \
+     (person_name.given_name LIKE ? OR person_name_code.given_name_code LIKE ?) AND \
+     (person_name.family_name LIKE ? OR person_name_code.family_name_code LIKE ?)",
+    params[:gender],
+    params[:given_name],
+    (params[:given_name] || '').soundex,
+    params[:family_name],
+    (params[:family_name] || '').soundex
+    ]) if people.blank?
+
+    return people
+  end
+  
+  def search_by_identifier(identifier)
+    PatientIdentifier.find_all_by_identifier(identifier).map{|id| id.patient.person} unless identifier.blank? rescue nil
   end
 
 private

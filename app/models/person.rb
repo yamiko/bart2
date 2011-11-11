@@ -93,28 +93,6 @@ class Person < ActiveRecord::Base
     self.birthdate_estimated = 1
   end
 
-  def self.search_by_identifier(identifier)
-    PatientIdentifier.find_all_by_identifier(identifier).map{|id| id.patient.person} unless identifier.blank? rescue nil
-  end
-
-  def self.search(params)
-    people = Person.search_by_identifier(params[:identifier])
-
-    return people.first.id unless people.blank? || people.size > 1
-    people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patient], :conditions => [
-    "gender = ? AND \
-     (person_name.given_name LIKE ? OR person_name_code.given_name_code LIKE ?) AND \
-     (person_name.family_name LIKE ? OR person_name_code.family_name_code LIKE ?)",
-    params[:gender],
-    params[:given_name],
-    (params[:given_name] || '').soundex,
-    params[:family_name],
-    (params[:family_name] || '').soundex
-    ]) if people.blank?
-
-    return people
-  end
-
   def get_attribute(attribute)
     PersonAttribute.find(:first,:conditions =>["voided = 0 AND person_attribute_type_id = ? AND person_id = ?",
         PersonAttributeType.find_by_name(attribute).id,self.id]).value rescue nil
