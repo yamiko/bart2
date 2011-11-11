@@ -475,7 +475,7 @@ class CohortToolController < ApplicationController
                         :arv_number   => (get_patient_identifier(visit.patient, 'ARV Number') || ""),
                         :name         => (visit.patient.person.name || ""),
                         :national_id  => (get_national_id(visit.patient) || ""),
-                        :gender       => (visit.patient.person.gender || ""),
+                        :gender       => (sex(visit.patient.person) || ""),
                         :age          => (visit.patient.person.age || ""),
                         :birthdate    => (visit.patient.person.birthdate.strftime("%d-%b-%Y") || ""),
                         :phone_number => (phone_numbers(visit.patient) || ""),
@@ -731,10 +731,10 @@ class CohortToolController < ApplicationController
 
       out_of_range_arv_numbers_data <<{'person_id' => patient.id,
                                        'arv_number' => arv_num_data[:identifier],
-                                       'name' => patient.person.name,
+                                       'name' => patient.name,
                                        'national_id' => national_id,
-                                       'gender' => patient.person.gender,
-                                       'age' => get_patient_attribute_value(patient, "age"),
+                                       'gender' => sex(patient),
+                                       'age' => get_patient_attribute_value(patient.patient, "age"),
                                        'birthdate' => patient.birthdate,
                                        'date_created' => arv_num_data[:date_created].strftime("%Y-%m-%d %H:%M:%S")
                                        }
