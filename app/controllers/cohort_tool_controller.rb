@@ -805,9 +805,9 @@ class CohortToolController < ApplicationController
     
     patients_data  = []
     patients.each do |patient_data_row|
-    person = Person.find(patient_data_row[:patient_id].to_i)
+      person = Person.find(patient_data_row[:patient_id].to_i)
       patients_data <<{ 'person_id' => person.id,
-                        'arv_number' => get_patient_identifier(patient, 'ARV Number'),
+                        'arv_number' => get_patient_identifier(person, 'ARV Number'),
                         'name' => person.name,
                         'national_id' => get_national_id(person.patient),
                         'gender' => person.gender,
@@ -884,7 +884,7 @@ class CohortToolController < ApplicationController
       person = Person.find(patient_data_row[:person_id].to_i)
 
       patients_data <<{ 'person_id' => person.id,
-                        'arv_number' => get_patient_identifier(patient, 'ARV Number'),
+                        'arv_number' => get_patient_identifier(person, 'ARV Number'),
                         'name' => person.name,
                         'national_id' => get_national_id(person.patient),
                         'gender' => person.gender,
