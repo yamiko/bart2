@@ -1114,7 +1114,7 @@ class ApplicationController < ActionController::Base
     task = Task.first rescue Task.new()
     if location.name.match(/Outpatient/i)
       opd_reception = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
-                        patient.id,session_date,EncounterType.find_by_name('OUTPATIENT RECEPTION').id])
+                        patient.id, session_date, EncounterType.find_by_name('OUTPATIENT RECEPTION').id])
       if opd_reception.blank?
         task.url = "/encounters/new/opd_reception?show&patient_id=#{patient.id}"
         task.encounter_type = 'OUTPATIENT RECEPTION'
@@ -1124,7 +1124,7 @@ class ApplicationController < ActionController::Base
       end
       return task
     end
-    
+
     if User.current_user.activities.include?('Manage Lab Orders') or User.current_user.activities.include?('Manage Lab Results') or
        User.current_user.activities.include?('Manage Sputum Submissions') or User.current_user.activities.include?('Manage TB Clinic Visits') or
        User.current_user.activities.include?('Manage TB Reception Visits') or User.current_user.activities.include?('Manage TB Registration Visits') or
@@ -1164,7 +1164,9 @@ class ApplicationController < ActionController::Base
     #11. Manage ART adherence - ART ADHERENCE
 
     encounters_sequentially = get_global_property_value('list.of.clinical.encounters.sequentially')
-    encounters = encounters_sequentially.property_value.split(',') rescue []
+
+    encounters = encounters_sequentially.split(',')
+
     user_selected_activities = User.current_user.activities.collect{|a| a.upcase }.join(',') rescue []
     if encounters.blank? or user_selected_activities.blank?
       task.url = "/patients/show/#{patient.id}"
