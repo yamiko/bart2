@@ -1,5 +1,5 @@
   <% phone_number_available = false 
-     @patient.person.phone_numbers.each do |type , number |
+     @phone_numbers.each do |type , number |
        if not number.blank? and not number.match(/[0-9]*/i)[0].blank?
         phone_number_available = true
         break
@@ -104,7 +104,7 @@
   <% end %>
   <% session[:guardian_added] = nil %>
 
-  <label for='patient_present'>Patient Present (<%=@patient.name%>)</label>
+  <label for='patient_present'>Patient Present (<%=@patient.person.name%>)</label>
     <%= select_tag "observations[][value_coded_or_text]", options_for_select([['Yes','YES'],['No','NO']]), 
       {:id => 'patient_present',
        :condition => "$('guardian_present').value == 'Yes'",

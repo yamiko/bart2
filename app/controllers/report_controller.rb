@@ -216,20 +216,21 @@ class ReportController < ApplicationController
     @report = []
     if (!params[:date].blank?) # retrieve appointment dates for a given day
       @date       = params[:date].to_date
-      @patients   = Patient.appointment_dates(@date)
+      @patients   = all_appointment_dates(@date)
     elsif (!params[:start_date].blank? && !params[:end_date].blank?) # retrieve appointment dates for a given date range
       @start_date = params[:start_date].to_date
       @end_date   = params[:end_date].to_date
-      @patients   = Patient.appointment_dates(@start_date, @end_date)
+      @patients   = all_appointment_dates(@start_date, @end_date)
     elsif (!params[:quarter].blank?) # retrieve appointment dates for a quarter
       date_range  = Report.generate_cohort_date_range(params[:quarter])
       @start_date  = date_range.first.to_date
       @end_date    = date_range.last.to_date
-      @patients   = Patient.appointment_dates(@start_date, @end_date)
+      @patients   = all_appointment_dates(@start_date, @end_date)
     end
 
     @patients.each do |patient|
-    
+    	patient_bean = get_patient(patient.person)
+    	
         last_appointment_date = last_appointment_date(patient.id, @date)
         drugs_given_to_patient = patient_present?(patient.id, last_appointment_date)
         drugs_given_to_guardian = guardian_present?(patient.id, last_appointment_date)
@@ -241,7 +242,7 @@ class ReportController < ApplicationController
 
         phone_number = nil
         
-        patient.person.phone_numbers.each do |type,number|
+        phone_numbers(patient.person).each do |type,number|
             case type
                 when "Cell phone number"
                     phone_number = number if number.match(/\d+/)
@@ -254,8 +255,8 @@ class ReportController < ApplicationController
         
         last_visit = last_appointment_date.strftime('%Y-%m-%d') rescue ""
         outcome = outcome(patient.id, @date)
-        @report << {'arv_number'=> patient.arv_number, 'name'=> patient.name,
-                   'birthdate'=> patient.person.birthdate, 'last_visit'=> last_visit,
+        @report << {'arv_number'=> patient_bean.arv_number, 'name'=> patient_bean.name,
+                   'birthdate'=> patient_bean.birth_date, 'last_visit'=> last_visit,
                    'visit_by'=> visit_by, 'phone_number'=>phone_number, 'outcome'=>outcome, 'patient_id'=>patient.id}
 
     end
@@ -266,7 +267,7 @@ class ReportController < ApplicationController
   def missed_appointments
 
     @report_url =  params[:report_url] 
-    @patients =  Patient.appointment_dates(params[:date])
+    @patients =  all_appointment_dates(params[:date])
     @report  = []
     
     @patients.each do |patient_data_row|
@@ -278,13 +279,12 @@ class ReportController < ApplicationController
                                                AND voided = 0").map{|e|e.encounter_id}.count > 0)    
         
         patient        = Person.find(patient_data_row[:patient_id].to_i)
-        national_id    = patient_data_row.national_id
-        arv_number     = patient_data_row.arv_number
+    	patient_bean   = get_patient(patient.person)
         last_visit = last_appointment_date(patient.id, params[:date]).strftime('%Y-%m-%d') rescue ""
         
-        @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> arv_number, 'name'=> patient.name,
-                   'birthdate'=> patient.birthdate, 'national_id' => national_id, 'gender' => patient.gender,
-                   'age'=> patient.age, 'phone_numbers'=>patient.phone_numbers, 'last_visit'=> last_visit,
+        @report << {'patient_id' => patient_data_row[:patient_id], 'arv_number' => patient_bean.arv_number, 'name' => patient_bean.name,
+                   'birthdate' => patient_bean.birth_date, 'national_id' => patient_bean.national_id, 'gender' => patient_bean.sex,
+                   'age'=> patient_bean.age, 'phone_numbers' => phone_numbers(patient), 'last_visit'=> last_visit,
                    'date_started'=>patient_data_row[:date_started]}
     end
     @report
@@ -311,13 +311,13 @@ class ReportController < ApplicationController
     patient_with_dispensations.each do |patient_data_row|
         person = Person.find(patient_data_row[:patient_id].to_i)
         
-        next if !person.patient.reason_for_art_eligibility.blank?
+        next if !reason_for_art_eligibility(Patient.find(patient_data_row[:patient_id].to_i)).blank?
         
         outcome = outcome(person.id, patient_data_row[:encounter_datetime])
         art_date = art_start_date(person.id)
-        @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> person.patient.arv_number, 'name'=> person.name,
-                   'birthdate'=> person.birthdate, 'national_id' => person.patient.national_id , 'gender' => person.gender,
-                   'age'=> person.age, 'phone_numbers'=>person.phone_numbers,
+        @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> get_patient_identifier(person, 'ARV Number'), 'name'=> person.name,
+                   'birthdate'=> person.birthdate, 'national_id' => get_national_id(patient) , 'gender' => person.gender,
+                   'age'=> person.age, 'phone_numbers'=>phone_numbers(person),
                    'art_start_date'=>art_start_date(person.id), "date_registered_at_clinic" => person.patient.date_created.strftime('%d-%b-%Y'),
                    'art_start_age' => age_at(art_date, person.birthdate), 'outcome' => outcome(person.id, end_date)}
     end
@@ -466,4 +466,20 @@ class ReportController < ApplicationController
       year  
   end
 
+  def all_appointment_dates(start_date, end_date = nil)
+
+    end_date = start_date if end_date.nil?
+
+    appointment_date_concept_id = Concept.find_by_name("APPOINTMENT DATE").concept_id rescue nil
+
+    appointments = Patient.find(:all,
+      :joins      => 'INNER JOIN obs ON patient.patient_id = obs.person_id',
+      :conditions => ["DATE(obs.value_datetime) >= ? AND DATE(obs.value_datetime) <= ? AND obs.concept_id = ? AND obs.voided = 0", start_date.to_date, end_date.to_date, appointment_date_concept_id],
+      :group      => "obs.person_id")
+
+    appointments
+  end
+
+
+  
 end

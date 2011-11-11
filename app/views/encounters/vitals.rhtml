@@ -49,7 +49,7 @@
      try{ 
       currentHeight = document.getElementById('height').value;
      }catch(e){
-      currentHeight = <%= @patient.current_height %>
+      currentHeight = <%= @current_height %>
      }
      currentWeight = document.getElementById('weight').value;
      medianWeightHeight = [<%= WeightHeightForAge.median_weight_height(@patient.person.age_in_months, @patient.person.gender).join(',') rescue nil -%>];
@@ -127,8 +127,6 @@
  }
  
   </script>
- 
- 
   <form action="/encounters/create/vitals">
     <%= hidden_field_tag "encounter[encounter_type_name]", "VITALS" %>
     <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
@@ -157,8 +155,8 @@
       <%= text_field_tag "observations[][value_numeric]", nil,
         {:id => "weight",
          :field_type => 'number',
-         :min => number_with_precision(@patient.min_weight, :precision => 1),
-         :max => number_with_precision(@patient.max_weight, :precision => 1),
+         :min => number_with_precision(@min_weight, :precision => 1),
+         :max => number_with_precision(@max_weight, :precision => 1),
          :absoluteMin => 0,
          :absoluteMax => 250,
          :units => 'kg',
@@ -169,8 +167,8 @@
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
       <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 
-    <% if @patient.person.age > 18 and not @patient.current_height == 0 %>
-      <%= hidden_field_tag "observations[][value_numeric]",@patient.current_height %>
+    <% if @patient.person.age > 18 and not @current_height == 0 %>
+      <%= hidden_field_tag "observations[][value_numeric]",@current_height %>
       <%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
       <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
@@ -179,8 +177,8 @@
       <%= text_field_tag "observations[][value_numeric]", nil,
         {:id => "height",
          :field_type => 'number',
-         :min => number_with_precision(@patient.min_height, :precision => 1),
-         :max => number_with_precision(@patient.max_height, :precision => 1),
+         :min => number_with_precision(@min_height, :precision => 1),
+         :max => number_with_precision(@max_height, :precision => 1),
          :absoluteMin => 10,
          :absoluteMax => 228,
          :units => 'cm',
@@ -198,8 +196,8 @@
         <%= text_field_tag "observations[][value_numeric]", nil,
           {:id => "systolic_blood_pressure",
            :field_type => 'number',
-           # :min => number_with_precision(@patient.min_height, :precision => 1),
-           # :max => number_with_precision(@patient.max_height, :precision => 1),
+           # :min => number_with_precision(@min_height, :precision => 1),
+           # :max => number_with_precision(@max_height, :precision => 1),
            :absoluteMin => 80,
            :absoluteMax => 180,
            # :units => 'cm',
@@ -214,8 +212,8 @@
         <%= text_field_tag "observations[][value_numeric]", nil,
           {:id => "diastolic_blood_pressure",
            :field_type => 'number',
-           # :min => number_with_precision(@patient.min_height, :precision => 1),
-           # :max => number_with_precision(@patient.max_height, :precision => 1),
+           # :min => number_with_precision(@min_height, :precision => 1),
+           # :max => number_with_precision(@max_height, :precision => 1),
            :absoluteMin => 50,
            :absoluteMax => 110,
            # :units => 'cm',

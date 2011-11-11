@@ -72,7 +72,7 @@
   function set_diagnosis_for_suggestions() {
     changeNextButtonText('Select Prescription');
     var diagnosis = $('diagnosis').value; 
-    $('infoBar'+tstCurrentPage).innerHTML = "Current Weight: <%= @patient.current_weight -%>KG; Current Height: <%= @patient.current_height -%>CM"
+    $('infoBar'+tstCurrentPage).innerHTML = "Current Weight: <%= @current_weight -%>KG; Current Height: <%= @current_height -%>CM"
     $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/prescriptions/suggested?patient_id=<%= @patient.patient_id %>&diagnosis=" + diagnosis + "&search_string=");
     
     var text = "Common prescriptions"
@@ -160,8 +160,7 @@
   <%= hidden_field_tag :patient_id, @patient.id %>
 
   <% @options = [['NO DIAGNOSIS', 'NO DIAGNOSIS']]
-     @diagnoses = @patient.current_diagnoses
-     @diagnoses.each do |diag| 
+     @patient_diagnoses.each do |diag|
        @options << [diag.answer_string, "#{diag.obs_id}"]
      end
   %>

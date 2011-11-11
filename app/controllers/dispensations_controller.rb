@@ -40,9 +40,9 @@ class DispensationsController < ApplicationController
      user_person_id = User.find_by_user_id(session[:user_id]).person_id
     end
 
-    @encounter = @patient.current_dispensation_encounter(session_date, user_person_id)
+    @encounter = current_dispensation_encounter(@patient, session_date, user_person_id)
 
-    @order = @patient.current_treatment_encounter(session_date, user_person_id).drug_orders.find(:first,:conditions => ['drug_order.drug_inventory_id = ?', 
+    @order = current_treatment_encounter( @patient, session_date, user_person_id).drug_orders.find(:first,:conditions => ['drug_order.drug_inventory_id = ?', 
              params[:drug_id]]).order rescue []
 
     # Do we have an order for the specified drug?
@@ -84,7 +84,7 @@ class DispensationsController < ApplicationController
         @order.drug_order.total_drug_supply(@patient, @encounter,session_date.to_date)
 
         #checks if the prescription is satisfied
-        complete = dispension_complete(@patient,@encounter,@patient.current_treatment_encounter(session_date, user_person_id))
+        complete = dispension_complete(@patient, @encounter, current_treatment_encounter(@patient, session_date, user_person_id))
         if complete
           unless params[:location]
             start_date , end_date = DrugOrder.prescription_dates(@patient,session_date.to_date)
@@ -131,6 +131,58 @@ class DispensationsController < ApplicationController
     render :text => "<li>" + amounts.join("</li><li>") + "</li>"
   end
 
+  def current_dispensation_encounter(patient, date = Time.now(), provider = user_person_id)
+    type = EncounterType.find_by_name("DISPENSING")
+    encounter = patient.encounters.find(:first,:conditions =>["DATE(encounter_datetime) = ? AND encounter_type = ?",date.to_date,type.id])
+    encounter ||= patient.encounters.create(:encounter_type => type.id,:encounter_datetime => date, :provider_id => provider)
+  end
+
+  def set_received_regimen(patient, encounter,prescription)
+    dispense_finish = true ; dispensed_drugs_inventory_ids = []
+
+    prescription.orders.each do | order |
+      next if not order.drug_order.drug.arv?
+      dispensed_drugs_inventory_ids << order.drug_order.drug.id
+      if (order.drug_order.amount_needed > 0)
+        dispense_finish = false
+      end
+    end
+
+    return unless dispense_finish
+    return if dispensed_drugs_inventory_ids.blank?
+
+    regimen_id = ActiveRecord::Base.connection.select_all <<EOF
+SELECT r.concept_id ,
+(SELECT COUNT(t3.regimen_id) FROM regimen_drug_order t3
+WHERE t3.regimen_id = t.regimen_id GROUP BY t3.regimen_id) as c
+FROM regimen_drug_order t, regimen r
+WHERE t.drug_inventory_id IN (#{dispensed_drugs_inventory_ids.join(',')})
+AND r.regimen_id = t.regimen_id
+GROUP BY r.concept_id
+HAVING c = #{dispensed_drugs_inventory_ids.length}
+EOF
+
+    regimen_prescribed = regimen_id.first['concept_id'].to_i rescue ConceptName.find_by_name('UNKNOWN ANTIRETROVIRAL DRUG').concept_id
+
+    if (Observation.find(:first,:conditions => ["person_id = ? AND encounter_id = ? AND concept_id = ?",
+            patient.id,encounter.id,ConceptName.find_by_name('ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT').concept_id])).blank?
+      regimen_value_text = Concept.find(regimen_prescribed).shortname rescue nil
+      if regimen_value_text.blank?
+        regimen_value_text = ConceptName.find_by_concept_id(regimen_prescribed).name rescue nil
+      end
+      return if regimen_value_text.blank?
+      obs = Observation.new(
+        :concept_name => "ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT",
+        :person_id => patient.id,
+        :encounter_id => encounter.id,
+        :value_text => regimen_value_text,
+        :value_coded => regimen_prescribed,
+        :obs_datetime => encounter.encounter_datetime)
+      obs.save
+      return obs.value_text
+    end
+  end
+
   private
 
   def dispension_complete(patient,encounter,prescription)
@@ -141,7 +193,7 @@ class DispensationsController < ApplicationController
     end
 
     if complete
-      dispension_completed = patient.set_received_regimen(encounter,prescription) 
+      dispension_completed = set_received_regimen(patient, encounter,prescription)
     end
     return DrugOrder.all_orders_complete(patient,encounter.encounter_datetime.to_date)
   end

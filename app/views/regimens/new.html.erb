@@ -51,7 +51,7 @@
   var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_id %>"
   var current_regimens_for_programs = <%= @current_regimens_for_programs.to_json -%>;
   var current_regimen_names_for_programs = <%= @current_regimen_names_for_programs.to_json -%>;
-  var reason_for_art = "<%= @patient.reason_for_art_eligibility %>";
+  var reason_for_art = "<%= @reason_for_art_eligibility %>";
   var prescribeTBDrugs = "<%= @prescribe_tb_drugs %>";
   var prescribeARTDrugs = "<%= @prescribe_art_drugs %>";
   var artVisit = "<%= @art_visit %>";
@@ -68,7 +68,7 @@
 
   function set_patient_program_for_suggestions(programId) {    
     //var program_id = encodeURIComponent($('patient_program').value); 
-    $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/regimens/suggested?patient_age=<%= @patient.person.age %>&id=" + programId + "&search_string=");
+    $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/regimens/suggested?patient_age=<%= @patient_bean.age %>&id=" + programId + "&search_string=");
     listSuggestions(tstCurrentPage); 
   }
 
@@ -100,7 +100,7 @@
     $('clearButton').style.display = 'none';
     $('keyboard').style.display = 'none';
     $('viewport').style.display = 'none';
-    $('helpText'+tstCurrentPage).innerHTML = "Select doses. Current patient weight:&nbsp;<%=@patient.current_weight%>";
+    $('helpText'+tstCurrentPage).innerHTML = "Select doses. Current patient weight:&nbsp;<%=@current_weight%>";
 
     if(continueExistingRegimen == 'YES') {
 		var reg_id = current_regimens_for_programs[patientProgram];
@@ -155,7 +155,7 @@
   }
 
   function hasReasonForART() {
-    if(reason_for_art.match(/UNKNOWN/i) || reason_for_art.length == 0) {
+    if(reason_for_art.match(/UNKNOWN/i) || reason_for_art.length == 0 || reason_for_art.match(/NONE/i) ) {
       return false;
 	}
 
@@ -194,7 +194,7 @@
         var innerHtml = '';
         var resultString = '';
         
-        <% if @patient.person.gender == 'F' && @patient.person.age > 14 %>
+        <% if @patient_bean.sex == 'F' && @patient_bean.age > 14 %>
             resultString = '<b>Pregnancy Status:</b><%=" #{@is_patient_pregnant_value}"%><br><br>'        
         <% end %>
         
@@ -219,6 +219,7 @@
     }
 
 </script>
+
 <form id='regimen_form' action="/regimens/create" method='post'>
  
   <%= hidden_field_tag :patient_id, @patient.id %>
@@ -379,7 +380,7 @@
          :helpText => "Prescribe CPT" } %>
   <% end %>
 
-  <% if @patient.gender == 'Female' && @patient.person.age >= 14 %>
+  <% if @patient_bean.sex == 'Female' && @patient_bean.age >= 14 %>
 		<%= touch_yes_no_tag "ISONIAZID", @patient, nil,
 		    {:optional => false,
 		     :id => 'ipt_given',
@@ -394,12 +395,13 @@
 	:helpText => 'Duration' } %> 
 
 
-  <% if @patient.person.age >= 14 %>
+  <% if @patient_bean.age >= 14 %>
 	
 	  <%= touch_numeric_tag "CONDOMS", @patient, nil,
 		{	:optional => false,
+			:max => '100',
 			:condition => 'hasARTVisit() == true;',
-			:helpText => "Number of condoms given" 
+			:helpText => 'Number of condoms given' 
 		} %>
 
  <% end %>

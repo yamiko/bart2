@@ -51,11 +51,11 @@
   }
 </style>
 
-<title>Cohort<%= Location.current_health_center.name + "  " + @quater %></title>
+<title>Cohort<%= Location.current_health_center.name + "  " + @quarter %></title>
 </head>
 
 <body>
-<h1><%= Location.current_health_center.name + "  " + @quater %></h1>
+<h1><%= Location.current_health_center.name + "  " + @quarter %></h1>
 <br />
 
 <div class='scrollTableContainer'>
@@ -64,7 +64,7 @@
 <tr>
   <th>&nbsp;</th>
   <th style = "text-align:left;">PATIENT'S REGISTRATION DETAILS</th>
-  <th>NEWLY REGISTRATED IN QUATER</th>
+  <th>NEWLY REGISTRATED IN quarter</th>
   <th>CUMULATED EVER REGISTRATED</th>
 </tr>
 </thead>
@@ -264,7 +264,7 @@
 
 <tr class = 'row_break'>
   <td>&nbsp;</td>
-  <td style="text-align:left;">Primary outcomes as of the end of the quater evaluated (only cumulative)</td>
+  <td style="text-align:left;">Primary outcomes as of the end of the quarter evaluated (only cumulative)</td>
   <td>&nbsp;</td>
   <td style="text-align:center;">Cumulative ever registrated</td>
 </tr>
@@ -354,7 +354,7 @@
 
 <tr class = 'row_break'>
   <td>&nbsp;</td>
-  <td style="text-align:left;">Secondary outcomes of those alive on ART as of last visit before end of quater</td>
+  <td style="text-align:left;">Secondary outcomes of those alive on ART as of last visit before end of quarter</td>
   <td>&nbsp;</td>
   <td>&nbsp;</td>
 </tr>
@@ -491,13 +491,13 @@
 
 <tr class = 'row_break'>
   <td>42</td>
-  <td style="text-align:left;border-width:1px 0px 0px 1px;">Patients with 0 - 6 doses missed at their last visit (before end of quater evaluated)</td>
+  <td style="text-align:left;border-width:1px 0px 0px 1px;">Patients with 0 - 6 doses missed at their last visit (before end of quarter evaluated)</td>
   <td style="border-width:1px 0px 0px 0px;">&nbsp;</td>
   <td style="border-width:1px 0px 0px 1px;"><%=@cohort['']%></td>
 </tr>
 <tr class = 'row_break'>
   <td>43</td>
-  <td style="text-align:left;border-width:1px 0px 1px 1px;">Patients with 7+ doses missed at their last visit (before end of quater evaluated)</td>
+  <td style="text-align:left;border-width:1px 0px 1px 1px;">Patients with 7+ doses missed at their last visit (before end of quarter evaluated)</td>
   <td style="border-width:1px 0px 1px 0px;">&nbsp;</td>
   <td style="border-width:1px"><%=@cohort['']%></td>
 </tr>

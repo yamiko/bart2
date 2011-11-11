@@ -10,6 +10,9 @@ class PrescriptionsController < ApplicationController
   
   def new
     @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
+    @patient_diagnoses = current_diagnoses(@patient.person.id)
+    @current_weight = get_patient_attribute_value(@patient, "current_weight")
+		@current_height = get_patient_attribute_value(@patient, "current_height")
   end
   
   def void 
@@ -36,7 +39,7 @@ class PrescriptionsController < ApplicationController
      user_person_id = User.find_by_user_id(session[:user_id]).person_id
     end
 
-    @encounter = @patient.current_treatment_encounter(session_date, user_person_id)
+    @encounter = current_treatment_encounter( @patient, session_date, user_person_id)
     @diagnosis = Observation.find(params[:diagnosis]) rescue nil
     @suggestions.each do |suggestion|
       unless (suggestion.blank? || suggestion == '0' || suggestion == 'New Prescription')
@@ -54,7 +57,7 @@ class PrescriptionsController < ApplicationController
         start_date = session_date
         auto_expire_date = session_date.to_date + params[:duration].to_i.days
         prn = params[:prn].to_i
-        if params[:type_of_prescription] == "variable"      
+        if params[:type_of_prescription] == "variable"
           DrugOrder.write_order(@encounter, @patient, @diagnosis, @drug, start_date, auto_expire_date, [params[:morning_dose], params[:afternoon_dose], params[:evening_dose], params[:night_dose]], 'VARIABLE', prn)
         else
           DrugOrder.write_order(@encounter, @patient, @diagnosis, @drug, start_date, auto_expire_date, params[:dose_strength], params[:frequency], prn)
@@ -73,7 +76,7 @@ class PrescriptionsController < ApplicationController
   def auto
     @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
     # Find the next diagnosis that doesn't have a corresponding order
-    @diagnoses = @patient.current_diagnoses
+    @diagnoses = current_diagnoses(@patient.person.id)
     @prescriptions = @patient.orders.current.prescriptions.all.map(&:obs_id).uniq
     @diagnoses = @diagnoses.reject {|diag| @prescriptions.include?(diag.obs_id) }
     if @diagnoses.empty?
@@ -179,5 +182,15 @@ class PrescriptionsController < ApplicationController
       :conditions => ["name LIKE ?", '%' + search_string + '%'])
     render :text => "<li>" + @drugs.map{|drug| drug.name }.join("</li><li>") + "</li>"
   end
-  
+
+  #data cleaning :- moved from patient.rb
+  def current_diagnoses(patient_id)
+    patient = Patient.find(patient_id)
+    patient.encounters.current.all(:include => [:observations]).map{|encounter|
+      encounter.observations.all(
+        :conditions => ["obs.concept_id = ? OR obs.concept_id = ?",
+          ConceptName.find_by_name("DIAGNOSIS").concept_id,
+          ConceptName.find_by_name("DIAGNOSIS, NON-CODED").concept_id])
+    }.flatten.compact
+  end
 end
