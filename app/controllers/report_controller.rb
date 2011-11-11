@@ -229,7 +229,8 @@ class ReportController < ApplicationController
     end
 
     @patients.each do |patient|
-    
+    	patient_bean = get_patient(patient.person)
+    	
         last_appointment_date = last_appointment_date(patient.id, @date)
         drugs_given_to_patient = patient_present?(patient.id, last_appointment_date)
         drugs_given_to_guardian = guardian_present?(patient.id, last_appointment_date)
@@ -254,8 +255,8 @@ class ReportController < ApplicationController
         
         last_visit = last_appointment_date.strftime('%Y-%m-%d') rescue ""
         outcome = outcome(patient.id, @date)
-        @report << {'arv_number'=>get_patient_identifier(patient, 'ARV Number'), 'name'=> patient.person.name,
-                   'birthdate'=> patient.person.birthdate, 'last_visit'=> last_visit,
+        @report << {'arv_number'=> patient_bean.arv_number, 'name'=> patient_bean.name,
+                   'birthdate'=> patient_bean.birth_date, 'last_visit'=> last_visit,
                    'visit_by'=> visit_by, 'phone_number'=>phone_number, 'outcome'=>outcome, 'patient_id'=>patient.id}
 
     end
@@ -278,13 +279,12 @@ class ReportController < ApplicationController
                                                AND voided = 0").map{|e|e.encounter_id}.count > 0)    
         
         patient        = Person.find(patient_data_row[:patient_id].to_i)
-        national_id    = get_national_id(patient_data_row)
-        arv_number     = get_patient_identifier(patient_data_row, 'ARV Number')
+    	patient_bean   = get_patient(patient.person)
         last_visit = last_appointment_date(patient.id, params[:date]).strftime('%Y-%m-%d') rescue ""
         
-        @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> arv_number, 'name'=> patient.person.name,
-                   'birthdate'=> patient.birthdate, 'national_id' => national_id, 'gender' => patient.person.sex,
-                   'age'=> get_patient_attribute_value(patient, 'age'), 'phone_numbers'=>phone_numbers(patient), 'last_visit'=> last_visit,
+        @report << {'patient_id' => patient_data_row[:patient_id], 'arv_number' => patient_bean.arv_number, 'name' => patient_bean.name,
+                   'birthdate' => patient_bean.birth_date, 'national_id' => patient_bean.national_id, 'gender' => patient_bean.sex,
+                   'age'=> patient_bean.age, 'phone_numbers' => phone_numbers(patient), 'last_visit'=> last_visit,
                    'date_started'=>patient_data_row[:date_started]}
     end
     @report
