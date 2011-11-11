@@ -22,7 +22,7 @@
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
-  <label for='patient_present'>Patient Present (<%=@patient.name%>)</label>
+  <label for='patient_present'>Patient Present (<%=@patient.person.name%>)</label>
     <%= select_tag "observations[][value_coded_or_text]", options_for_select([['Yes','YES'],['No','NO']]), 
       {:id => 'patient_present',
       :tt_onLoad => 'hide_new_relationship_button();'} %>

@@ -69,8 +69,7 @@
     <%= touch_hidden_tag("GUARDIAN PRESENT", @patient.id, "Yes", {:id=>"guardian_present"}) %>
   <% end %>
   <% session[:guardian_added] = nil %>
-
-  <label for='patient_present'>Patient Present (<%=@patient.name%>)</label>
+  <label for='patient_present'>Patient Present (<%=@patient.person.name%>)</label>
     <%= select_tag "observations[][value_coded_or_text]", options_for_select([['Yes','YES'],['No','NO']]), 
       {:id => 'patient_present',
        :condition => "$('guardian_present').value == 'Yes'",
@@ -79,9 +78,8 @@
     <%= hidden_field_tag("observations[][concept_name]", "PATIENT PRESENT") %>
     <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
     <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>  
-
-  <%if @patient.given_arvs_before? and @patient.get_identifier("ARV Number").blank?
-      show_arv_number = GlobalProperty.find_by_property('show_arv_number').property_value rescue 'true'
+  <%if @given_arvs_before and @patient_bean.arv_number.blank?
+      show_arv_number = get_global_property_value('show_arv_number') rescue 'true'
       unless show_arv_number == 'false'
   %>
         <%= render :partial => "/patients/arv_number" %>

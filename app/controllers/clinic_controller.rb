@@ -77,7 +77,7 @@ class ClinicController < ApplicationController
   end
 
   def overview_tab
-    simple_overview_property = GlobalProperty.find_by_property("simple_application_dashboard").property_value rescue nil
+    simple_overview_property = get_global_property_value("simple_application_dashboard") rescue nil
 
     simple_overview = false
     if simple_overview_property != nil
@@ -86,7 +86,7 @@ class ClinicController < ApplicationController
       end
     end
 
-    @types = GlobalProperty.find_by_property("statistics.show_encounter_types").property_value rescue EncounterType.all.map(&:name).join(",")
+    @types = get_global_property_value("statistics.show_encounter_types") rescue EncounterType.all.map(&:name).join(",")
     @types = @types.split(/,/)
 
     @me = Encounter.statistics(@types, :conditions => ['DATE(encounter_datetime) = DATE(NOW()) AND encounter.creator = ?', User.current_user.user_id])
@@ -159,7 +159,7 @@ class ClinicController < ApplicationController
     @reports =  [
                   ['/clinic/users_tab','User Accounts/Settings'],
                   ['/clinic/location_management_tab','Location Management'],
-                  ['/people/tranfer_patient_in','Transfer Patient IN']
+                  ['/people/tranfer_patient_in','Transfer Patient in']
                 ]
     if User.current_user.admin?
       @reports << ['/clinic/management_tab','Drug Management']

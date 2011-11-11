@@ -77,7 +77,6 @@
 
             <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
             {:id => "pregnant",
-            :optional => false,
             :helpText => "Is patient pregnant?" } %>
 
         <%else%>
@@ -88,7 +87,6 @@
 
             <%= touch_yes_no_unknown_tag "IS PATIENT BREAST FEEDING?", @patient, nil,
             {:id => "breast_feeding",
-            :optional => false,
             :helpText => "Is patient breast feeding?" } %>
 
         <%else%>
@@ -129,10 +127,10 @@
        :multiple => false,
        :helpText => "TB Status" } %>
     <% else %>
-        <%= touch_hidden_tag "TB STATUS" , @patient, ConceptName.find_by_name("#{@patient.tb_status}").name, {:id => "tb_status"} %>
+        <%= touch_hidden_tag "TB STATUS" , @patient, ConceptName.find_by_name("#{@patient_tb_status}").name, {:id => "tb_status"} %>
     <% end %>
 
-  <%if @patient.child_bearing_female?%>
+  <%if @patient_is_child_bearing_female%>
   <%#= touch_yes_no_unknown_tag "DEPO-PROVERA", @patient, nil,
       {:optional => false,
        :helpText => "Depo-provera injection given?" } %>
@@ -165,26 +163,12 @@
 <%end%>
 
   <%
-    session_date = session[:datetime].to_date rescue Date.today
-
-    allergic_to_sulphur = Observation.find(Observation.find(:first,                   
-                    :order => "obs_datetime DESC,date_created DESC",            
-                    :conditions => ["person_id = ? AND concept_id = ? 
-                    AND DATE(obs_datetime) = ?",@patient.id,
-                    ConceptName.find_by_name("Allergic to sulphur").concept_id,session_date])).to_s.strip.squish rescue ''
-
-    obs_ans = Observation.find(Observation.find(:first,                   
-                    :order => "obs_datetime DESC,date_created DESC",            
-                    :conditions => ["person_id = ? AND concept_id = ? AND DATE(obs_datetime) = ?",
-                    @patient.id,ConceptName.find_by_name("Prescribe drugs").concept_id,session_date])).to_s.strip.squish rescue '' 
-
-    if obs_ans.match(/Prescribe drugs: Yes/i)
+    if @obs_ans.match(/Prescribe drugs: Yes/i)
   %>
     <%= touch_hidden_tag "Prescribe ARVs this visit", @patient, "YES", :id => "prescribe_arvs" %>
   <%else%>
     <%= touch_yes_no_unknown_tag "Prescribe ARVs this visit", @patient, nil,
-      {:optional => false,
-       :id => "prescribe_arvs",
+      {:id => "prescribe_arvs",
        :helpText => "Prescribe drugs during this visit" } %>
   <%end%>
   <%
@@ -195,14 +179,13 @@
 
   <% if User.current_user.user_roles.map{|r|r.role}.include?('Nurse') and reception.match(/PATIENT PRESENT FOR CONSULTATION: YES/i) %>
     <%= touch_yes_no_unknown_tag "REFER TO ART CLINICIAN", @patient, nil,
-      {:optional => false,
-      :id => "refer_to_clinician",
+      {:id => "refer_to_clinician",
       :helpText => "Refer to clinician?" } %>
   <%else%>
     <%= touch_hidden_tag "REFER TO ART CLINICIAN", @patient, "NO", :id => "refer_to_clinician" %>
   <%end%>
 
-  <%if allergic_to_sulphur.match(/Allergic to sulphur:/i).blank? %>
+  <%if @allergic_to_sulphur.match(/Allergic to sulphur:/i).blank? %>
     <%= touch_yes_no_unknown_tag "Allergic to sulphur", @patient, nil,
 		  {	:id => "allergic_to_sulphur",
 			  :condition => "$('refer_to_clinician').value == 'NO'" ,
@@ -213,7 +196,8 @@
     if session_date %>
 
     <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
-<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', 
+  :ajaxURL => '/user/username?username=' %></p>
     <% else %>
       <%= hidden_field_tag "filter[provider]", nil %>
     <%end%>
