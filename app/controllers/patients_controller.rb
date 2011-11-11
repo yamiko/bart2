@@ -368,6 +368,11 @@ class PatientsController < ApplicationController
       @data_demo = mastercard_demographics(Patient.find(@patient_id))
       @visits = visits(Patient.find(@patient_id))
     end
+
+    @visits.keys.each do|day|
+		@age_in_months_for_days[day] = age_in_months(@patient.person, day.to_date)
+    end
+
     render :layout => false
   end
 
@@ -645,8 +650,18 @@ class PatientsController < ApplicationController
     @mastercard = mastercard_demographics(@patient)
     @patient_art_start_date = patient_art_start_date(@patient.id)
     @visits = visits(@patient)   # (@patient, (session[:datetime].to_date rescue Date.today))
+    
+    @age_in_months_for_days = {}
+    @visits.keys.each do|day|
+		@age_in_months_for_days[day] = age_in_months(@patient.person, day.to_date)
+    end
+    
     @patient_age_at_initiation = patient_age_at_initiation(@patient,
                                               patient_art_start_date(@patient.id))
+                                              
+    @patient_bean = get_patient(@patient.person)
+	@guardian_phone_number = get_attribute(Person.find(@patient.person.relationships.first.person_b), 'Cell phone number')
+	@patient_phone_number = get_attribute(@patient.person, 'Cell phone number')
     render :layout => false
   end
 
@@ -1004,9 +1019,9 @@ class PatientsController < ApplicationController
       end
     end rescue []
 
-    office_phone_number = patient.person.get_attribute('Office phone number')
-    home_phone_number = patient.person.get_attribute('Home phone number')
-    cell_phone_number = patient.person.get_attribute('Cell phone number')
+    office_phone_number = get_attribute(patient.person, 'Office phone number')
+    home_phone_number = get_attribute(patient.person, 'Home phone number')
+    cell_phone_number = get_attribute(patient.person, 'Cell phone number')
 
     phone_number = office_phone_number if not office_phone_number.downcase == "not available" and not office_phone_number.downcase == "unknown" rescue nil
     phone_number= home_phone_number if not home_phone_number.downcase == "not available" and not home_phone_number.downcase == "unknown" rescue nil
@@ -1020,7 +1035,7 @@ class PatientsController < ApplicationController
     label.draw_text("#{demographics.arv_number}",575,30,0,3,1,1,false)
     label.draw_text("PATIENT DETAILS",25,30,0,3,1,1,false)
     label.draw_text("Name:   #{demographics.name} (#{demographics.sex})",25,60,0,3,1,1,false)
-    label.draw_text("DOB:    #{patient.person.birthdate_formatted}",25,90,0,3,1,1,false)
+    label.draw_text("DOB:    #{birthdate_formatted(patient.person)}",25,90,0,3,1,1,false)
     label.draw_text("Phone: #{phone_number}",25,120,0,3,1,1,false)
     if demographics.address.length > 48
       label.draw_text("Addr:  #{demographics.address[0..47]}",25,150,0,3,1,1,false)
@@ -1274,15 +1289,16 @@ class PatientsController < ApplicationController
   end
 
   def mastercard_demographics(patient_obj)
+  	patient_bean = get_patient(patient_obj.person)
     visits = Mastercard.new()
     visits.patient_id = patient_obj.id
-    visits.arv_number = get_patient_identifier(patient_obj, 'ARV Number')
-    visits.address = patient_obj.person.addresses.first.city_village
-    visits.national_id = patient_obj.national_id
-    visits.name = patient_obj.person.names.first.given_name + ' ' + patient_obj.person.names.first.family_name rescue nil
-    visits.sex = sex(patient_obj.person)
-    visits.age = patient_obj.person.age
-    visits.occupation = patient_obj.person.get_attribute('Occupation')
+    visits.arv_number = patient_bean.arv_number
+    visits.address = patient_bean.address
+    visits.national_id = patient_bean.national_id
+    visits.name = patient_bean.name rescue nil
+    visits.sex = patient_bean.sex
+    visits.age = patient_bean.age
+    visits.occupation = get_attribute(patient_obj.person, 'Occupation')
     visits.landmark = patient_obj.person.addresses.first.address1
     visits.init_wt = get_patient_attribute_value(patient_obj, "initial_weight")
     visits.init_ht = get_patient_attribute_value(patient_obj, "initial_height")
@@ -1739,9 +1755,9 @@ class PatientsController < ApplicationController
 
       if !birthday_params.empty?
         if birthday_params["birth_year"] == "Unknown"
-          patient.person.set_birthdate_by_age(birthday_params["age_estimate"])
+          set_birthdate_by_age(patient.person, birthday_params["age_estimate"])
         else
-          patient.person.set_birthdate(birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
+          set_birthdate(patient.person, birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
         end
         patient.person.birthdate_estimated = 1 if params["birthdate_estimated"] == 'true'
         patient.person.save

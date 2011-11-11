@@ -348,15 +348,23 @@ class EncountersController < ApplicationController
 		@patient_has_closed_TB_program_at_current_location = PatientProgram.find(:all,:conditions =>
 			["voided = 0 AND patient_id = ? AND location_id = ? AND (program_id = ? OR program_id = ?)", @patient.id, Location.current_health_center.id, Program.find_by_name('TB PROGRAM').id, Program.find_by_name('MDR-TB PROGRAM').id]).last.closed? rescue true
 
-		@ipt_contacts = @patient.tb_contacts.collect{|person| person unless person.age > 6}.compact rescue []
+		if (params[:encounter_type].upcase rescue '') == 'IPT CONTACT PERSON'
+			@contacts_ipt = []
+						
+			@ipt_contacts_ = @patient.tb_contacts.collect{|person| person unless person.age > 6}.compact rescue []
+			@ipt_contacts.each do | person |
+				@contacts_ipt << get_patient(person)
+			end
+		end
+		
 		@select_options = select_options
 		@months_since_last_hiv_test = months_since_last_hiv_test(@patient.id)
 		@current_user_role = self.current_user_role
 		@tb_patient = is_tb_patient(@patient)
 		@art_patient = art_patient?(@patient)
-    @recent_lab_results = patient_recent_lab_results(@patient.id)
-    @number_of_days_to_add_to_next_appointment_date = number_of_days_to_add_to_next_appointment_date(@patient, session[:datetime] || Date.today)
-    @drug_given_before = drug_given_before(@patient, session[:datetime])
+		@recent_lab_results = patient_recent_lab_results(@patient.id)
+		@number_of_days_to_add_to_next_appointment_date = number_of_days_to_add_to_next_appointment_date(@patient, session[:datetime] || Date.today)
+		@drug_given_before = drug_given_before(@patient, session[:datetime])
 
 		use_regimen_short_names = get_global_property_value("use_regimen_short_names") rescue "false"
 		show_other_regimen = ("show_other_regimen") rescue 'false'

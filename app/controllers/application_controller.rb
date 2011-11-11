@@ -187,8 +187,8 @@ class ApplicationController < ActionController::Base
         "address1" => person_obj.addresses[0].address1,
         "address2" => person_obj.addresses[0].address2
       },
-    "attributes" => {"occupation" => person_obj.get_attribute('Occupation'),
-                     "cell_phone_number" => person_obj.get_attribute('Cell Phone Number')}}}
+    "attributes" => {"occupation" => get_attribute(person_obj, 'Occupation'),
+                     "cell_phone_number" => get_attribute(person_obj, 'Cell Phone Number')}}}
  
     if not person_obj.patient.patient_identifiers.blank? 
       demographics["person"]["patient"] = {"identifiers" => {}}
@@ -210,9 +210,9 @@ class ApplicationController < ActionController::Base
   def phone_numbers(person_obj)
     phone_numbers = {}
 
-    phone_numbers['Cell phone number'] = person_obj.get_attribute('Cell phone number') rescue nil
-    phone_numbers['Office phone number'] = person_obj.get_attribute('Office phone number') rescue nil
-    phone_numbers['Home phone number'] = person_obj.get_attribute('Home phone number') rescue nil
+    phone_numbers['Cell phone number'] = get_attribute(person_obj, 'Cell phone number') rescue nil
+    phone_numbers['Office phone number'] = get_attribute(person_obj, 'Office phone number') rescue nil
+    phone_numbers['Home phone number'] = get_attribute(person_obj, 'Home phone number') rescue nil
 
     phone_numbers
   end
@@ -1666,11 +1666,19 @@ class ApplicationController < ActionController::Base
  end
 
  def get_patient_attribute_value(patient, attribute_name)
+ 	
+   patient_bean = get_patient(patient.person)
+   if patient_bean.sex.upcase == 'MALE'
+   		sex = 'M'
+   elsif patient_bean.sex.upcase == 'FEMALE'
+   		sex = 'F'
+   end
+   
    case attribute_name.upcase
      when "AGE"
-       return patient.person.age
+       return patient_bean.age
      when "RESIDENCE"
-       return patient.person.addresses.first.city_village
+       return patient_bean.address
      when "CURRENT_HEIGHT"
       obs = patient.person.observations.recent(1).question("HEIGHT (CM)").all
       return obs.first.value_numeric rescue 0
@@ -1687,13 +1695,13 @@ class ApplicationController < ActionController::Base
       obs = patient.person.observations.old(1).question("BMI").all
       return obs.last.value_numeric rescue nil
      when "MIN_WEIGHT"
-      return WeightHeight.min_weight(patient.person.gender, patient.person.age_in_months).to_f
+      return WeightHeight.min_weight(sex, patient_bean.age_in_months).to_f
      when "MAX_WEIGHT"
-      return WeightHeight.max_weight(patient.person.gender, patient.person.age_in_months).to_f
+      return WeightHeight.max_weight(sex, patient_bean.age_in_months).to_f
      when "MIN_HEIGHT"
-      return WeightHeight.min_height(patient.person.gender, patient.person.age_in_months).to_f
+      return WeightHeight.min_height(sex, patient_bean.age_in_months).to_f
      when "MAX_HEIGHT"
-      return WeightHeight.max_height(patient.person.gender, patient.person.age_in_months).to_f
+      return WeightHeight.max_height(sex, patient_bean.age_in_months).to_f
    end
 
  end
@@ -1906,8 +1914,9 @@ EOF
     patient.name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
     patient.sex = sex(person)
     patient.age = person.age
+    patient.age_in_months = age_in_months(person)
     patient.dead = person.dead
-    patient.birth_date = person.birthdate_formatted
+    patient.birth_date = birthdate_formatted(person)
     patient.home_district = person.addresses.first.address2
     patient.traditional_authority = person.addresses.first.county_district
     patient.current_residence = person.addresses.first.city_village
@@ -1916,7 +1925,7 @@ EOF
     patient.pre_art_number = get_patient_identifier(person.patient, 'Pre ART Number (Old format)')
     patient.archived_filing_number = get_patient_identifier(person.patient, 'Archived filing number')
     patient.filing_number = get_patient_identifier(person.patient, 'Filing Number')
-    patient.occupation = person.get_attribute('Occupation')
+    patient.occupation = get_attribute(person, 'Occupation')
     patient.guardian = art_guardian(patient_obj) rescue nil 
     patient
   end
@@ -2031,9 +2040,9 @@ def create_from_form(params)
 
     unless birthday_params.empty?
       if birthday_params["birth_year"] == "Unknown"
-        person.set_birthdate_by_age(birthday_params["age_estimate"], person.session_datetime || Date.today)
+        set_birthdate_by_age(person, birthday_params["age_estimate"], person.session_datetime || Date.today)
       else
-        person.set_birthdate(birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
+        set_birthdate(person, birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
       end
     end
     person.save
@@ -2105,6 +2114,56 @@ def create_from_form(params)
   
   def search_by_identifier(identifier)
     PatientIdentifier.find_all_by_identifier(identifier).map{|id| id.patient.person} unless identifier.blank? rescue nil
+  end
+  
+  def set_birthdate_by_age(person, age, today = Date.today)
+    person.birthdate = Date.new(today.year - age.to_i, 7, 1)
+    person.birthdate_estimated = 1
+  end
+  
+  def set_birthdate(person, year = nil, month = nil, day = nil)   
+    raise "No year passed for estimated birthdate" if year.nil?
+
+    # Handle months by name or number (split this out to a date method)    
+    month_i = (month || 0).to_i
+    month_i = Date::MONTHNAMES.index(month) if month_i == 0 || month_i.blank?
+    month_i = Date::ABBR_MONTHNAMES.index(month) if month_i == 0 || month_i.blank?
+    
+    if month_i == 0 || month == "Unknown"
+      person.birthdate = Date.new(year.to_i,7,1)
+      person.birthdate_estimated = 1
+    elsif day.blank? || day == "Unknown" || day == 0
+      person.birthdate = Date.new(year.to_i,month_i,15)
+      person.birthdate_estimated = 1
+    else
+      person.birthdate = Date.new(year.to_i,month_i,day.to_i)
+      person.birthdate_estimated = 0
+    end
+  end
+  
+  def birthdate_formatted(person)
+    if person.birthdate_estimated==1
+      if person.birthdate.day == 1 and person.birthdate.month == 7
+        person.birthdate.strftime("??/???/%Y")
+      elsif person.birthdate.day == 15 
+        person.birthdate.strftime("??/%b/%Y")
+      elsif person.birthdate.day == 1 and person.birthdate.month == 1 
+        person.birthdate.strftime("??/???/%Y")
+      end
+    else
+      person.birthdate.strftime("%d/%b/%Y")
+    end
+  end
+  
+  def age_in_months(person, today = Date.today)
+    years = (today.year - person.birthdate.year)
+    months = (today.month - person.birthdate.month)
+    (years * 12) + months
+  end
+  
+  def get_attribute(person, attribute)
+    PersonAttribute.find(:first,:conditions =>["voided = 0 AND person_attribute_type_id = ? AND person_id = ?",
+        PersonAttributeType.find_by_name(attribute).id, person.id]).value rescue nil
   end
 
 private

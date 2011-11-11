@@ -24,8 +24,8 @@
 <script>
   <% firstPositiveHivTestType = Observation.question("FIRST POSITIVE HIV TEST TYPE").first(:conditions => {:person_id => @patient.person}, :include => :answer_concept_name).answer_concept_name.name rescue 'UNKNOWN' -%>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id -%>";
-  var age = <%= @patient.person.age -%>;
-  var ageInMonths = <%= @patient.person.age_in_months -%>;
+  var age = <%= @patient_bean.age -%>;
+  var ageInMonths = <%= @patient_bean.age_in_months -%>;
   var firstPositiveHivTestType = "<%= firstPositiveHivTestType -%>";  
   var cd4_count_numeric, cd4_count_estimate, cd4_count_modifier;
   var selected_stage_conditions = {};
@@ -253,7 +253,7 @@
 
   function showPresumed() {
     try {
-      age_in_months = parseInt("<%=@patient.person.age_in_months%>");
+      age_in_months = parseInt("<%=@patient_bean.age_in_months%>");
       if (age_in_months < 12)
         return true
     }catch(e) { return false}
@@ -363,8 +363,8 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
      :helpText => "Presumed severe HIV criteria (infants only)",
      :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
 
-  <% if @patient.person.age > 14 
-    if @patient.person.gender == 'F' %>
+  <% if @patient_bean.age > 14 
+    if @patient_bean.sex == 'Female' %>
 
         <% if @is_patient_pregnant_value.nil?%>
 

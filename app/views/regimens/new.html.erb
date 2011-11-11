@@ -194,7 +194,7 @@
         var innerHtml = '';
         var resultString = '';
         
-        <% if @patient_bean.sex == 'F' && @patient_bean.age > 14 %>
+        <% if @patient_bean.sex == 'Female' && @patient_bean.age > 14 %>
             resultString = '<b>Pregnancy Status:</b><%=" #{@is_patient_pregnant_value}"%><br><br>'        
         <% end %>
         
@@ -225,7 +225,7 @@
   <%= hidden_field_tag :patient_id, @patient.id %>
 
 	<!-- TB regimen -->
-    <% if (@family_planning_methods.length != 0) || ( @patient.person.gender == 'F' && @patient.person.age > 14 ) %>
+    <% if (@family_planning_methods.length != 0) || ( @patient_bean.sex == 'Female' && @patient_bean.age > 14 ) %>
             <%= text_field_tag :task_name, nil,
                 {   :tt_onLoad => "showResults();",
                     :optional => "true",

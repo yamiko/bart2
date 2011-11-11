@@ -4,7 +4,7 @@ class PeopleController < ApplicationController
   end
 
   def new
-    @occupations = Person.occupations
+    @occupations = occupations
   end
 
   def identifiers
@@ -448,6 +448,12 @@ class PeopleController < ApplicationController
 
     results["person"] = result_hash
     return results
+  end
+  
+  def occupations
+    ['','Driver','Housewife','Messenger','Business','Farmer','Salesperson','Teacher',
+     'Student','Security guard','Domestic worker', 'Police','Office worker',
+     'Preschool child','Mechanic','Prisoner','Craftsman','Healthcare Worker','Soldier'].sort.concat(["Other","Unknown"])
   end
 
 private

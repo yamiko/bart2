@@ -251,13 +251,14 @@ months = ["Jan", "Feb", "Mar", "Apr", "May"]; #, "Jun", "Jul", "Aug", "Sep", "No
     </tr>
 
     <% @visits.keys.each do|day| %>
+    	
       <tr>
         <td align="center" style="width: 35px;">
           <b><%= day.strftime("%d-%b-%Y") %></b>
         </td>
         <td style="width: 21px;">
-          <%= (@patient.person.age_in_months(day.to_date).to_s + " mnths" if @patient.person.age_in_months(day.to_date) < 24) ||
-          (@patient.person.age(day.to_date).to_s + " yrs" if @patient.person.age_in_months(day.to_date) >= 24) rescue "&nbsp;" %>&nbsp;
+          <%= (@age_in_months_for_days[day].to_s + " mnths" if @age_in_months_for_days[day] < 24) ||
+          (@age_in_months_for_days[day].to_s + " yrs" if @age_in_months_for_days[day] >= 24) rescue "&nbsp;" %>&nbsp;
         </td>
         <td style="width: 21px;">
           <%= @visits[day].height rescue "&nbsp;" %>&nbsp;
