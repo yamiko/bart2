@@ -458,7 +458,7 @@ class PatientsController < ApplicationController
         csv << ["Name", "Age","Sex","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
         transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
         transfer_in.blank? == true ? transfer_in = 'NO' : transfer_in = 'YES'
-        csv << [patient.person.name,patient.person.age, patient.person.sex,get_patient_attribute_value(patient, "initial_weight"),get_patient_attribute_value(patient, "initial_height"),get_patient_attribute_value(patient, "initial_bmi"),transfer_in]
+        csv << [patient.person.name,patient.person.age, sex(patient.person),get_patient_attribute_value(patient, "initial_weight"),get_patient_attribute_value(patient, "initial_height"),get_patient_attribute_value(patient, "initial_bmi"),transfer_in]
         csv << ["Location", "Land-mark","Occupation","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
 
 =begin
@@ -1278,7 +1278,7 @@ class PatientsController < ApplicationController
     visits.patient_id = patient_obj.id
     visits.arv_number = get_patient_identifier(patient_obj, 'ARV Number')
     visits.address = patient_obj.person.addresses.first.city_village
-    visits.national_id = patient_obj.national_id
+    visits.national_id = get_national_id(patient_obj)
     visits.name = patient_obj.person.names.first.given_name + ' ' + patient_obj.person.names.first.family_name rescue nil
     visits.sex = sex(patient_obj.person)
     visits.age = patient_obj.person.age
