@@ -463,7 +463,7 @@ class PatientsController < ApplicationController
         csv << ["Name", "Age","Sex","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
         transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
         transfer_in.blank? == true ? transfer_in = 'NO' : transfer_in = 'YES'
-        csv << [patient.person.name,patient.person.age, patient.person.sex,get_patient_attribute_value(patient, "initial_weight"),get_patient_attribute_value(patient, "initial_height"),get_patient_attribute_value(patient, "initial_bmi"),transfer_in]
+        csv << [patient.person.name,patient.person.age, sex(patient.person),get_patient_attribute_value(patient, "initial_weight"),get_patient_attribute_value(patient, "initial_height"),get_patient_attribute_value(patient, "initial_bmi"),transfer_in]
         csv << ["Location", "Land-mark","Occupation","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
 
 =begin
