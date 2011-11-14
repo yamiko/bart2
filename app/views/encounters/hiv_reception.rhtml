@@ -53,7 +53,7 @@
         <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
         <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
     <% else %>
-      <label for='guardian_present'>Guardian Present (<%=@patient.person.relationships.map{|r|Person.find(r.person_b).name}[0] rescue ''%>)</label>
+      <label for='guardian_present'>Guardian Present (<%=@patient_bean.guardian rescue ''%>)</label>
         <%= select_tag "observations[][value_text]", relationship_options(@patient),
           {:id => "guardian_present",
            :multiple => false,
@@ -69,7 +69,7 @@
     <%= touch_hidden_tag("GUARDIAN PRESENT", @patient.id, "Yes", {:id=>"guardian_present"}) %>
   <% end %>
   <% session[:guardian_added] = nil %>
-  <label for='patient_present'>Patient Present (<%=@patient.person.name%>)</label>
+  <label for='patient_present'>Patient Present (<%=@patient_bean.name%>)</label>
     <%= select_tag "observations[][value_coded_or_text]", options_for_select([['Yes','YES'],['No','NO']]), 
       {:id => 'patient_present',
        :condition => "$('guardian_present').value == 'Yes'",

@@ -810,13 +810,14 @@ class CohortToolController < ApplicationController
     patients_data  = []
     patients.each do |patient_data_row|
       person = Person.find(patient_data_row[:patient_id].to_i)
+      patient_bean = get_patient(person)
       patients_data <<{ 'person_id' => person.id,
-                        'arv_number' => get_patient_identifier(person, 'ARV Number'),
-                        'name' => person.name,
-                        'national_id' => get_national_id(person.patient),
-                        'gender' => person.gender,
-                        'age' => person.age,
-                        'birthdate' => person.birthdate,
+                        'arv_number' => patient_bean.arv_number,
+                        'name' => patient_bean.name,
+                        'national_id' => patient_bean.get_national_id,
+                        'gender' => patient_bean.sex,
+                        'age' => patient_bean.age,
+                        'birthdate' => patient_bean.birth_date,
                         'phone' => phone_numbers(person), 
                         'date_created' => patient_data_row[:date_started]
                        }
@@ -836,14 +837,14 @@ class CohortToolController < ApplicationController
         patients_data  = []
         patients.each do |patient_data_row|
           person = Person.find(patient_data_row[:person_id].to_i)
-
+		  patient_bean = get_patient(person)
           patients_data <<{ 'person_id' => person.id,
-                            'arv_number' => get_patient_identifier(person, 'ARV Number'),
-                            'name' => person.name,
-                            'national_id' => get_national_id(person.patient),
-                            'gender' => person.gender,
-                            'age' => person.age,
-                            'birthdate' => person.birthdate,
+                            'arv_number' => patient_bean.arv_number,
+                            'name' => patient_bean.name,
+                            'national_id' => patient_bean.national_id,
+                            'gender' => patient_bean.sex,
+                            'age' => patient_bean.age,
+                            'birthdate' => patient_bean.birth_date,
                             'phone' => phone_numbers(person),
                             'date_created' => patient_data_row[:obs_datetime]
                            }
@@ -886,15 +887,15 @@ class CohortToolController < ApplicationController
     patients_data  = []
     patients.each do |patient_data_row|
       person = Person.find(patient_data_row[:person_id].to_i)
-
+      patient_bean = get_patient(person)
       patients_data <<{ 'person_id' => person.id,
-                        'arv_number' => get_patient_identifier(person, 'ARV Number'),
-                        'name' => person.name,
-                        'national_id' => get_national_id(person.patient),
-                        'gender' => person.gender,
-                        'age' => person.age,
-                        'birthdate' => person.birthdate,
-                        'phone' => phone_numbers(person), 
+                        'arv_number' => patient_bean.arv_number,
+                        'name' => patient_bean.name,
+                        'national_id' => patient_bean.national_id,
+                        'gender' => patient_bean.sex,
+                        'age' => patient_bean.age,
+                        'birthdate' => patient_bean.birth_date,
+                        'phone' => phone_numbers(person),
                         'date_created' => patient_data_row[:date_started]
                        }
     end
@@ -941,14 +942,14 @@ class CohortToolController < ApplicationController
     patients_data  = []
     patients.each do |patient_data_row|
       person = Person.find(patient_data_row[:patient_id])
-
+	  patient_bean = get_patient(person)
       patients_data <<{ 'person_id' => person.id,
-                        'arv_number' => get_patient_identifier(patient_data_row, 'ARV Number'),
-                        'name' => person.name,
-                        'national_id' => get_national_id(person.patient),
-                        'gender' => person.gender,
-                        'age' => person.age,
-                        'birthdate' => person.birthdate,
+                        'arv_number' => patient_bean.arv_number,
+                        'name' => patient_bean.name,
+                        'national_id' => patient_bean.national_id,
+                        'gender' => patient_bean.sex,
+                        'age' => patient_bean.age,
+                        'birthdate' => patient_bean.birth_date,
                         'phone' => phone_numbers(person), 
                         'date_created' => patient_data_row[:date_started_ARV]
                        }
@@ -1051,21 +1052,21 @@ class CohortToolController < ApplicationController
     arv_number_id = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
     adherence_rates.each{|rate|
 
-      arv_number = PatientIdentifier.identifier(rate.patient_id, arv_number_id).identifier rescue ""
       patient    = Patient.find(rate.patient_id)
-      person     = Person.find(rate.patient_id)
+      person     = patient.person
+      patient_bean = get_patient(person)
       drug       = Drug.find(rate.drug_id)
       pill_count = Observation.find(:first, :conditions => "order_id = #{rate.order_id} AND encounter_id = #{rate.encounter_id} AND concept_id = #{brought_drug_concept_id} ").value_numeric rescue ""
       if !patients[patient.patient_id] then
 
           patients[patient.patient_id]={"id" =>patient.id,
-                                        "arv_number" => arv_number,
-                                        "name" =>person.name,
-                                        "national_id" => get_national_id(patient),
+                                        "arv_number" => patient_bean.arv_number,
+                                        "name" => patient_bean.name,
+                                        "national_id" => patient_bean.national_id,
                                         "visit_date" =>rate.obs_datetime,
-                                        "gender" =>person.gender,
+                                        "gender" =>patient_bean.sex,
                                         "age" =>patient_age_at_initiation(patient, rate.start_date.to_date),
-                                        "birthdate" => person.birthdate,
+                                        "birthdate" => patient_bean.birth_date,
                                         "pill_count" => pill_count.to_i.to_s,
                                         "adherence" => rate. adherence_rate_worse,
                                         "start_date" => rate.start_date.to_date,

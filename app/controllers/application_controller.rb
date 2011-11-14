@@ -1749,12 +1749,16 @@ class ApplicationController < ActionController::Base
 
   def patient_printing_message(new_patient , archived_patient , creating_new_filing_number_for_patient = false)
     arv_code = Location.current_arv_code
-    new_patient_name = new_patient.person.name
-    new_filing_number = patient_printing_filing_number_label(get_patient_identifier(new_patient, 'Filing Number'))
-    old_archive_filing_number = patient_printing_filing_number_label(old_filing_number(new_patient, 'Archived filing number'))
+    
+    new_patient_bean = get_patient(new_patient.person)
+    archived_patient_bean = get_patient(archived_patient.person)
+    
+    new_patient_name = new_patient_bean.name
+    new_filing_number = patient_printing_filing_number_label(new_patient_bean.filing_number)
+    old_archive_filing_number = patient_printing_filing_number_label(new_patient_bean.archived_filing_number)
     unless archived_patient.blank?
       old_active_filing_number = patient_printing_filing_number_label(old_filing_number(archived_patient))
-      new_archive_filing_number = patient_printing_filing_number_label(get_patient_identifier(archived_patient, 'Archived filing number'))
+      new_archive_filing_number = patient_printing_filing_number_label(archived_patient_bean.archived_filing_number)
     end
 
     if new_patient and archived_patient and creating_new_filing_number_for_patient
@@ -1770,7 +1774,7 @@ class ApplicationController < ActionController::Base
 
 <tr>
   <td style='text-align:left;'>Active → Dormant</td>
-  <td class = 'filing_instraction'>#{archived_patient.person.name}</td>
+  <td class = 'filing_instraction'>#{archived_patient_bean.name}</td>
   <td class = 'old_label'>#{old_active_filing_number}</td>
   <td class='new_label'>#{new_archive_filing_number}</td>
 </tr>
@@ -1817,7 +1821,7 @@ EOF
 
 <tr>
   <td style='text-align:left;'>Active → Dormant</td>
-  <td class = 'filing_instraction'>#{archived_patient.person.name}</td>
+  <td class = 'filing_instraction'>#{archived_patient_bean.name}</td>
   <td class = 'old_label'>#{old_active_filing_number}</td>
   <td class='new_label'>#{new_archive_filing_number}</td>
 </tr>
@@ -1929,6 +1933,10 @@ EOF
     patient.occupation = get_attribute(person, 'Occupation')
     patient.guardian = art_guardian(patient_obj) rescue nil 
     patient
+  end
+
+  def name(person)
+    "#{person.names.first.given_name} #{person.names.first.family_name}".titleize rescue nil
   end
 
   def old_filing_number(patient, type = 'Filing Number')

@@ -29,11 +29,6 @@ class Person < ActiveRecord::Base
     # We are going to rely on patient => encounter => obs to void those
   end
 
- 
-  def name
-    "#{self.names.first.given_name} #{self.names.first.family_name}".titleize rescue nil
-  end
-
   def age(today = Date.today)
     return nil if self.birthdate.nil?
 
