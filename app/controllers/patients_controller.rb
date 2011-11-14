@@ -737,7 +737,7 @@ class PatientsController < ApplicationController
     # adherence
     # drug auto-expiry
     # cd4 due
-
+	patient_bean = get_patient(patient.person)
     alerts = []
 
     type = EncounterType.find_by_name("APPOINTMENT")
@@ -777,7 +777,7 @@ class PatientsController < ApplicationController
     end rescue []
 
     # BMI alerts
-    if patient.person.age >= 15
+    if patient_bean.age >= 15
       bmi_alert = current_bmi_alert(get_patient_attribute_value(patient, "current_weight"), get_patient_attribute_value(patient, "current_height"))
       alerts << bmi_alert if bmi_alert
     end

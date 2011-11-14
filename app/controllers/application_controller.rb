@@ -1866,7 +1866,7 @@ EOF
   end
 
   def patient_age_at_initiation(patient, initiation_date = nil)
-    return patient.person.age(initiation_date) unless initiation_date.nil?
+    return age(patient.person, initiation_date) unless initiation_date.nil?
   end
 
   def art_patient?(patient)
@@ -1917,7 +1917,7 @@ EOF
 	patient.national_id_with_dashes = get_national_id_with_dashes(person.patient)
     patient.name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
     patient.sex = sex(person)
-    patient.age = person.age
+    patient.age = age(person)
     patient.age_in_months = age_in_months(person)
     patient.dead = person.dead
     patient.birth_date = birthdate_formatted(person)
@@ -1937,6 +1937,20 @@ EOF
 
   def name(person)
     "#{person.names.first.given_name} #{person.names.first.family_name}".titleize rescue nil
+  end
+  
+  def age(person, today = Date.today)
+    return nil if person.birthdate.nil?
+
+    # This code which better accounts for leap years
+    patient_age = (today.year - person.birthdate.year) + ((today.month - person.birthdate.month) + ((today.day - person.birthdate.day) < 0 ? -1 : 0) < 0 ? -1 : 0)
+
+    # If the birthdate was estimated this year, we round up the age, that way if
+    # it is March and the patient says they are 25, they stay 25 (not become 24)
+    birth_date=person.birthdate
+    estimate=person.birthdate_estimated==1
+    patient_age += (estimate && birth_date.month == 7 && birth_date.day == 1  && 
+      today.month < birth_date.month && person.date_created.year == today.year) ? 1 : 0
   end
 
   def old_filing_number(patient, type = 'Filing Number')

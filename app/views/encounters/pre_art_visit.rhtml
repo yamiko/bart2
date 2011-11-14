@@ -70,7 +70,7 @@
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
-  <% if @patient.person.gender == 'F' && @patient.person.age > 14 
+  <% if @patient_bean.sex == 'Female' && @patient_bean.age > 14 
       obs_date = session[:datetime].to_date rescue Date.today
       patient_pregnant = Observation.find(:first,:conditions =>["concept_id = ? AND person_id = ? AND DATE(obs_datetime) = ?",
                        ConceptName.find_by_name('IS PATIENT PREGNANT?').concept_id,
@@ -128,7 +128,7 @@
      :helpText => "What method?" } %>
   <%end%>
 
-  <%# if @patient.person.age >= 14 %>
+  <%# if @patient_bean.age >= 14 %>
     <%#= touch_numeric_tag "CONDOMS", @patient, nil,
       {:optional => false,
        :helpText => "Number of condoms given" } %>

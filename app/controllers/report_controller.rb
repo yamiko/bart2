@@ -146,7 +146,16 @@ class ReportController < ApplicationController
      }
    }
    
-
+   @patient_record = []
+   @patient.each do |patient|
+   patient_bean = get_patient(patient.person)
+   @patient_record << {
+   					   'age' => patient_bean.age, 
+   					   'sex' => patient_bean.sex,
+					   'value_coded' => patient.value_coded
+					  }
+   end
+   
   end
 
   def referral
@@ -315,9 +324,10 @@ class ReportController < ApplicationController
         
         outcome = outcome(person.id, patient_data_row[:encounter_datetime])
         art_date = art_start_date(person.id)
-        @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> get_patient_identifier(person, 'ARV Number'), 'name'=> person.name,
-                   'birthdate'=> person.birthdate, 'national_id' => get_national_id(person.patient) , 'gender' => person.gender,
-                   'age'=> person.age, 'phone_numbers'=>phone_numbers(person),
+        patient_bean = get_patient(person)
+        @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> patient_bean.arv_number, 'name'=> patient_bean.name,
+                   'birthdate'=> patient_bean.birth_date, 'national_id' => patient_bean.national_id , 'gender' => patient_bean.sex,
+                   'age'=> patient_bean.age, 'phone_numbers'=>phone_numbers(person),
                    'art_start_date'=>art_start_date(person.id), "date_registered_at_clinic" => person.patient.date_created.strftime('%d-%b-%Y'),
                    'art_start_age' => age_at(art_date, person.birthdate), 'start_reason' => reason_for_art_eligibility(person.patient), 'outcome' => outcome(person.id, end_date)}
     end
