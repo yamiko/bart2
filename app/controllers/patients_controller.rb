@@ -371,7 +371,7 @@ class PatientsController < ApplicationController
 
     @visits.keys.each do|day|
 		@age_in_months_for_days[day] = age_in_months(@patient.person, day.to_date)
-    end
+    end rescue nil
 
     render :layout => false
   end
