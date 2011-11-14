@@ -143,6 +143,7 @@ class CohortToolController < ApplicationController
 
     voided_encounters.map do |encounter|
       patient           = Patient.find(encounter.patient_id)
+      patient_bean = get_patient(patient.person)
 
       new_encounter  = other_encounters.reduce([])do |result, e|
         result << e if( e.encounter_datetime.strftime("%d-%m-%Y") == encounter.encounter_datetime.strftime("%d-%m-%Y")&&
@@ -159,13 +160,12 @@ class CohortToolController < ApplicationController
       changed_to    = changed_to(new_encounter)
       changed_from  = changed_from(voided_observations)
 
-      patient_arv_number = get_patient_identifier(patient, "ARV NUMBER")
       if( voided_observations && !voided_observations.empty?)
           voided_records[encounter.id] = {
               "id"              => patient.patient_id,
-              "arv_number"      => patient_arv_number,
-              "name"            => patient.person.name,
-              "national_id"     => get_national_id(patient),
+              "arv_number"      => patient_bean.arv_number,
+              "name"            => patient_bean.name,
+              "national_id"     => patient_bean.national_id,
               "encounter_name"  => encounter.name,
               "voided_date"     => encounter.date_voided,
               "reason"          => encounter.void_reason,
@@ -181,7 +181,8 @@ class CohortToolController < ApplicationController
     voided_treatments.each do |encounter|
 
       patient           = Patient.find(encounter.patient_id)
-
+      patient_bean = get_patient(patient.person)
+      
       orders            = encounter.orders
       changed_from      = ''
       changed_to        = ''
@@ -199,14 +200,13 @@ class CohortToolController < ApplicationController
       changed_from  += "Treatment: #{voided_orders(new_encounter).to_s.gsub!(":", " =>")}</br>"
       changed_to    += "Treatment: #{encounter.to_s.gsub!(":", " =>") }</br>"
 
-      patient_arv_number = get_patient_identifier(patient, 'ARV NUMBER')
 
       if( orders && !orders.empty?)
         voided_records[encounter.id]= {
             "id"              => patient.patient_id,
-            "arv_number"      => patient_arv_number,
-            "name"            => patient.person.name,
-            "national_id"     => get_national_id(patient),
+            "arv_number"      => patient_bean.arv_number,
+            "name"            => patient_bean.name,
+            "national_id"     => patient_bean.national_id,
             "encounter_name"  => encounter.name,
             "voided_date"     => encounter.date_voided,
             "reason"          => encounter.void_reason,
@@ -470,14 +470,16 @@ class CohortToolController < ApplicationController
 
       visit_date = visit.encounter_datetime.strftime("%d-%b-%Y")
 
+	  patient_bean = get_patient(visit.patient.person)
+	  
       # get a patient of a given visit
       new_patient   = { :patient_id   => (visit.patient.patient_id || ""),
-                        :arv_number   => (get_patient_identifier(visit.patient, 'ARV Number') || ""),
-                        :name         => (visit.patient.person.name || ""),
-                        :national_id  => (get_national_id(visit.patient) || ""),
-                        :gender       => (sex(visit.patient.person) || ""),
-                        :age          => (visit.patient.person.age || ""),
-                        :birthdate    => (visit.patient.person.birthdate.strftime("%d-%b-%Y") || ""),
+                        :arv_number   => (patient_bean.arv_number || ""),
+                        :name         => (patient_bean.name || ""),
+                        :national_id  => (patient_bean.national_id || ""),
+                        :gender       => (patient_bean.sex || ""),
+                        :age          => (patient_bean.age || ""),
+                        :birthdate    => (patient_bean.birth_date || ""),
                         :phone_number => (phone_numbers(visit.patient) || ""),
                         :start_date   => (visit.patient.encounters.last.encounter_datetime.strftime("%d-%b-%Y") || "")
       }
@@ -691,9 +693,10 @@ class CohortToolController < ApplicationController
 
     patients.each do |reason|
       patient = Patient.find(reason[:person_id])
+      patient_bean = get_patient(patient.person)
       patients_data << {'person_id' => patient.id,
-                        'arv_number' => get_patient_identifier(patient, 'ARV Number'),
-                        'national_id' => get_national_id(patient),
+                        'arv_number' => patient_bean.arv_number,
+                        'national_id' => patient_bean.national_id,
                         'date_created' => reason[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
                         'start_reason' => ConceptName.find(reason[:value_coded_name_id]).name
                        }
@@ -727,15 +730,15 @@ class CohortToolController < ApplicationController
     out_of_range_arv_numbers_data = []
     out_of_range_arv_numbers.each do |arv_num_data|
       patient     = Person.find(arv_num_data[:patient_id].to_i)
-      national_id = get_national_id(patient.patient)
+      patient_bean = get_patient(patient.person)
 
       out_of_range_arv_numbers_data <<{'person_id' => patient.id,
-                                       'arv_number' => arv_num_data[:identifier],
-                                       'name' => patient.name,
-                                       'national_id' => national_id,
-                                       'gender' => sex(patient),
-                                       'age' => get_patient_attribute_value(patient.patient, "age"),
-                                       'birthdate' => patient.birthdate,
+                                       'arv_number' => patient_bean.arv_number,
+                                       'name' => patient_bean.name,
+                                       'national_id' => patient_bean.national_id,
+                                       'gender' => patient_bean.sex,
+                                       'age' => patient_bean.age,
+                                       'birthdate' => patient_bean.birth_date,
                                        'date_created' => arv_num_data[:date_created].strftime("%Y-%m-%d %H:%M:%S")
                                        }
     end
@@ -753,11 +756,12 @@ class CohortToolController < ApplicationController
 
     missed_prescriptions_data.each do |dispensation|
         patient = Patient.find(dispensation[:person_id])
+        patient_bean = get_patient(patient.person)
         drug_name    = Drug.find(dispensation[:value_drug]).name
 
         dispensations_without_prescriptions << { 'person_id' => patient.id,
-                                              'arv_number' => get_patient_identifier(patient, 'ARV Number'),
-                                              'national_id' => get_national_id(patient),
+                                              'arv_number' => patient_bean.arv_number,
+                                              'national_id' => patient_bean.national_id,
                                               'date_created' => dispensation[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
                                               'drug_name' => drug_name
                                              }

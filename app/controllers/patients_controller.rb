@@ -456,14 +456,15 @@ class PatientsController < ApplicationController
 
   def export_to_csv
     ( Patient.find(:all,:limit => 10) || [] ).each do | patient |
+      patient_bean = get_patient(patient.person)
       csv_string = FasterCSV.generate do |csv|
         # header row
         csv << ["ARV number", "National ID"]
-        csv << [get_patient_identifier(patient, 'ARV Number'), get_national_id(patient)]
+        csv << [patient_bean.arv_number, patient_bean.national_id]
         csv << ["Name", "Age","Sex","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
         transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
         transfer_in.blank? == true ? transfer_in = 'NO' : transfer_in = 'YES'
-        csv << [patient.person.name,patient.person.age, sex(patient.person),get_patient_attribute_value(patient, "initial_weight"),get_patient_attribute_value(patient, "initial_height"),get_patient_attribute_value(patient, "initial_bmi"),transfer_in]
+        csv << [patient_bean.name, patient_bean.age, patient_bean.sex, get_patient_attribute_value(patient, "initial_weight"), get_patient_attribute_value(patient, "initial_height"), get_patient_attribute_value(patient, "initial_bmi"), transfer_in]
         csv << ["Location", "Land-mark","Occupation","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
 
 =begin
@@ -942,6 +943,7 @@ class PatientsController < ApplicationController
   end
 
   def recent_lab_orders_label(test_list, patient)
+  	patient_bean = get_patient(patient.person)
     lab_orders = test_list
     labels = []
     i = 0
@@ -958,7 +960,7 @@ class PatientsController < ApplicationController
           label.font_vertical_multiplier = 1
           label.left_margin = 300
           label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
-          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
+          label.draw_multi_text("#{patient_bean.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
           label.draw_multi_text("#{observation.name rescue nil} - #{accession_number rescue nil}")
           label.draw_multi_text("#{observation.date_created.strftime("%d-%b-%Y %H:%M")}")
           labels << label
@@ -996,6 +998,7 @@ class PatientsController < ApplicationController
   #moved from the patient model. Needs good testing
   def demographics_label(patient_id)
     patient = Patient.find(patient_id)
+    patient_bean = get_patient(patient.person)
     demographics = mastercard_demographics(patient)
     hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("HIV Staging").id,patient.id])
@@ -1150,11 +1153,12 @@ class PatientsController < ApplicationController
 
   def patient_transfer_out_label(patient_id)
     patient = Patient.find(patient_id)
+    patient_bean = get_patient(patient.person)
     demographics = mastercard_demographics(patient)
     demographics_str = []
     demographics_str << "Name: #{demographics.name}"
-    demographics_str << "DOB: #{patient.person.birthdate}"
-    demographics_str << "DOB-E: #{patient.person.birthdate_estimated}"
+    demographics_str << "DOB: #{patient_bean.birth_date}"
+    demographics_str << "DOB-E: #{patient_bean.birthdate_estimated}"
     demographics_str << "Sex: #{demographics.sex}"
     demographics_str << "Guardian name: #{demographics.guardian}"
     demographics_str << "ARV number: #{demographics.arv_number}"
@@ -1722,7 +1726,8 @@ class PatientsController < ApplicationController
   def art_guardian(patient)
     person_id = Relationship.find(:first,:order => "date_created DESC",
       :conditions =>["person_a = ?",patient.person.id]).person_b rescue nil
-    Person.find(person_id).name rescue nil
+    patient_bean = get_patient(Person.find(person_id))
+    patient_bean.name rescue nil
   end
 
   def save_mastercard_attribute(params)

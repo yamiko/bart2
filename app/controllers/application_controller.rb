@@ -1917,6 +1917,7 @@ EOF
     patient.age_in_months = age_in_months(person)
     patient.dead = person.dead
     patient.birth_date = birthdate_formatted(person)
+    patient.birthdate_estimated = person.birthdate_estimated
     patient.home_district = person.addresses.first.address2
     patient.traditional_authority = person.addresses.first.county_district
     patient.current_residence = person.addresses.first.city_village
