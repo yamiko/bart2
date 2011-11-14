@@ -54,11 +54,11 @@ class ApplicationController < ActionController::Base
   end
 
   def show_lab_results
-    GlobalProperty.find_by_property('show.lab.results').property_value == "yes" rescue false
+    get_global_property_value('show.lab.results') == "yes" rescue false
   end
 
   def use_filing_number
-    GlobalProperty.find_by_property('use.filing.number').property_value == "yes" rescue false
+    get_global_property_value('use.filing.number') == "yes" rescue false
   end    
 
  def generic_locations
@@ -75,20 +75,20 @@ class ApplicationController < ActionController::Base
   end
 
   def site_prefix
-    site_prefix = GlobalProperty.find_by_property("site_prefix").property_value rescue false
+    site_prefix = get_global_property_value("site_prefix") rescue false
     return site_prefix
   end
 
   def use_user_selected_activities
-    GlobalProperty.find_by_property('use.user.selected.activities').property_value == "yes" rescue false
+    get_global_property_value('use.user.selected.activities') == "yes" rescue false
   end
   
   def tb_dot_sites_tag
-    GlobalProperty.find_by_property('tb_dot_sites_tag').property_value rescue nil
+    get_global_property_value('tb_dot_sites_tag') rescue nil
   end
 
   def create_from_remote                                                        
-    GlobalProperty.find_by_property('create.from.remote').property_value == "yes" rescue false
+    get_global_property_value('create.from.remote') == "yes" rescue false
   end
 
   # Convert a list +Concept+s of +Regimen+s for the given +Patient+ <tt>age</tt>
@@ -187,8 +187,8 @@ class ApplicationController < ActionController::Base
         "address1" => person_obj.addresses[0].address1,
         "address2" => person_obj.addresses[0].address2
       },
-    "attributes" => {"occupation" => person_obj.get_attribute('Occupation'),
-                     "cell_phone_number" => person_obj.get_attribute('Cell Phone Number')}}}
+    "attributes" => {"occupation" => get_attribute(person_obj, 'Occupation'),
+                     "cell_phone_number" => get_attribute(person_obj, 'Cell Phone Number')}}}
  
     if not person_obj.patient.patient_identifiers.blank? 
       demographics["person"]["patient"] = {"identifiers" => {}}
@@ -210,9 +210,9 @@ class ApplicationController < ActionController::Base
   def phone_numbers(person_obj)
     phone_numbers = {}
 
-    phone_numbers['Cell phone number'] = person_obj.get_attribute('Cell phone number') rescue nil
-    phone_numbers['Office phone number'] = person_obj.get_attribute('Office phone number') rescue nil
-    phone_numbers['Home phone number'] = person_obj.get_attribute('Home phone number') rescue nil
+    phone_numbers['Cell phone number'] = get_attribute(person_obj, 'Cell phone number') rescue nil
+    phone_numbers['Office phone number'] = get_attribute(person_obj, 'Office phone number') rescue nil
+    phone_numbers['Home phone number'] = get_attribute(person_obj, 'Home phone number') rescue nil
 
     phone_numbers
   end
@@ -376,7 +376,7 @@ class ApplicationController < ActionController::Base
   
   def find_person_by_demographics(person_demographics)
     national_id = person_demographics["person"]["patient"]["identifiers"]["National id"] rescue nil
-    results = Person.search_by_identifier(national_id) unless national_id.nil?
+    results = search_by_identifier(national_id) unless national_id.nil?
     return results unless results.blank?
 
     gender = person_demographics["person"]["gender"] rescue nil
@@ -385,7 +385,7 @@ class ApplicationController < ActionController::Base
 
     search_params = {:gender => gender, :given_name => given_name, :family_name => family_name }
 
-    results = Person.search(search_params)
+    results = person_search(search_params)
   end
   
   def checks_if_labs_results_are_avalable_to_be_shown(patient , session_date , task)
@@ -478,7 +478,7 @@ class ApplicationController < ActionController::Base
 
       case type
         when 'SOURCE OF REFERRAL'
-          next if patient.tb_status.match(/treatment/i)
+          next if patient_tb_status(patient).match(/treatment/i)
 
           if ['Lighthouse','Martin Preuss Centre'].include?(Location.current_health_center.name)
             if not (location.current_location.name.match(/Chronic Cough/) or 
@@ -571,7 +571,7 @@ class ApplicationController < ActionController::Base
           end
         when 'VITALS' 
 
-          if not patient_hiv_status(patient).match(/Positive/i) and not patient.tb_status.match(/treatment/i)
+          if not patient_hiv_status(patient).match(/Positive/i) and not patient_tb_status(patient).match(/treatment/i)
             next
           end 
 
@@ -579,11 +579,11 @@ class ApplicationController < ActionController::Base
                                   :conditions =>["patient_id = ? AND encounter_type = ?",
                                   patient.id,EncounterType.find_by_name(type).id])
 
-          if not patient.tb_status.match(/treatment/i) and not tb_reception_attributes.include?('Any need to see a clinician: Yes') 
+          if not patient_tb_status(patient).match(/treatment/i) and not tb_reception_attributes.include?('Any need to see a clinician: Yes')
             next
           end if not patient_hiv_status(patient).match(/Positive/i)
 
-          if patient.tb_status.match(/treatment/i) and not patient_hiv_status(patient).match(/Positive/i)
+          if patient_tb_status(patient).match(/treatment/i) and not patient_hiv_status(patient).match(/Positive/i)
             next
           end if not first_vitals.blank?
 
@@ -614,7 +614,7 @@ class ApplicationController < ActionController::Base
             return task
           end
         when 'LAB ORDERS'
-          next if patient.tb_status.match(/treatment/i)
+          next if patient_tb_status(patient).match(/treatment/i)
 
           if ['Lighthouse','Martin Preuss Centre'].include?(Location.current_health_center.name)
             if not (location.current_location.name.match(/Chronic Cough/) or 
@@ -692,7 +692,7 @@ class ApplicationController < ActionController::Base
           end if (next_lab_encounter.blank?)
         when 'TB CLINIC VISIT'
 
-          next if patient.tb_status.match(/treatment/i)
+          next if patient_tb_status(patient).match(/treatment/i)
 
           obs_ans = Observation.find(Observation.find(:first, 
                     :order => "obs_datetime DESC,date_created DESC",
@@ -819,7 +819,7 @@ class ApplicationController < ActionController::Base
                                       patient.id,EncounterType.find_by_name(type).id])
 
           if hiv_staging.blank? and user_selected_activities.match(/Manage HIV staging visits/i) 
-            extended_staging_questions = GlobalProperty.find_by_property('use.extended.staging.questions')
+            extended_staging_questions = get_global_property_value('use.extended.staging.questions')
             extended_staging_questions = extended_staging_questions.property_value == 'yes' rescue false
             task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" if not extended_staging_questions 
             task.url = "/encounters/new/llh_hiv_staging?show&patient_id=#{patient.id}" if extended_staging_questions
@@ -833,7 +833,7 @@ class ApplicationController < ActionController::Base
           next_task = need_art_enrollment(task,patient,location,session_date,user_selected_activities,reason_for_art)
           return next_task if not next_task.blank? and user_selected_activities.match(/Manage HIV staging visits/i)
 
-          next unless patient.tb_status.match(/treatment/i)
+          next unless patient_tb_status(patient).match(/treatment/i)
           tb_registration = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
@@ -871,14 +871,14 @@ class ApplicationController < ActionController::Base
               task.encounter_type = "TB CLINIC VISIT"
               task.url = "/patients/show/#{patient.id}"
               return task
-            end if not patient.tb_status.match(/treatment/i) 
+            end if not patient_tb_status(patient).match(/treatment/i)
           end
 
           #checks if vitals have been taken already 
           vitals = checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
           return vitals unless vitals.blank?
 
-          if not patient.tb_status.match(/treatment/i)
+          if not patient_tb_status(patient).match(/treatment/i)
             next
           end if not tb_reception_attributes.include?('Reason for visit: Follow-up')
 
@@ -974,7 +974,7 @@ class ApplicationController < ActionController::Base
             return task
           end if not reason_for_art.upcase ==  'UNKNOWN'
         when 'TB ADHERENCE'
-          drugs_given_before = (not patient.drug_given_before(session_date).prescriptions.blank?) rescue false
+          drugs_given_before = (not drug_given_before(patient,session_date).prescriptions.blank?) rescue false
            
           tb_adherence = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
@@ -988,7 +988,7 @@ class ApplicationController < ActionController::Base
             return task
           end if drugs_given_before
         when 'ART ADHERENCE'
-          art_drugs_given_before = (not patient.drug_given_before(session_date).arv.prescriptions.blank?) rescue false
+          art_drugs_given_before = (not drug_given_before(patient,session_date).arv.prescriptions.blank?) rescue false
 
           art_adherence = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
@@ -1114,7 +1114,7 @@ class ApplicationController < ActionController::Base
     task = Task.first rescue Task.new()
     if location.name.match(/Outpatient/i)
       opd_reception = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
-                        patient.id,session_date,EncounterType.find_by_name('OUTPATIENT RECEPTION').id])
+                        patient.id, session_date, EncounterType.find_by_name('OUTPATIENT RECEPTION').id])
       if opd_reception.blank?
         task.url = "/encounters/new/opd_reception?show&patient_id=#{patient.id}"
         task.encounter_type = 'OUTPATIENT RECEPTION'
@@ -1124,7 +1124,7 @@ class ApplicationController < ActionController::Base
       end
       return task
     end
-    
+
     if User.current_user.activities.include?('Manage Lab Orders') or User.current_user.activities.include?('Manage Lab Results') or
        User.current_user.activities.include?('Manage Sputum Submissions') or User.current_user.activities.include?('Manage TB Clinic Visits') or
        User.current_user.activities.include?('Manage TB Reception Visits') or User.current_user.activities.include?('Manage TB Registration Visits') or
@@ -1163,8 +1163,10 @@ class ApplicationController < ActionController::Base
     #10. Manage appointments - APPOINTMENT
     #11. Manage ART adherence - ART ADHERENCE
 
-    encounters_sequentially = GlobalProperty.find_by_property('list.of.clinical.encounters.sequentially')
-    encounters = encounters_sequentially.property_value.split(',') rescue []
+    encounters_sequentially = get_global_property_value('list.of.clinical.encounters.sequentially')
+
+    encounters = encounters_sequentially.split(',')
+
     user_selected_activities = User.current_user.activities.collect{|a| a.upcase }.join(',') rescue []
     if encounters.blank? or user_selected_activities.blank?
       task.url = "/patients/show/#{patient.id}"
@@ -1208,7 +1210,7 @@ class ApplicationController < ActionController::Base
           end if reason_for_art.upcase ==  'UNKNOWN'
         when 'HIV STAGING'
           if encounter_available.blank? and user_selected_activities.match(/Manage HIV staging visits/i) 
-            extended_staging_questions = GlobalProperty.find_by_property('use.extended.staging.questions')
+            extended_staging_questions = get_global_property_value('use.extended.staging.questions')
             extended_staging_questions = extended_staging_questions.property_value == 'yes' rescue false
             task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" if not extended_staging_questions 
             task.url = "/encounters/new/llh_hiv_staging?show&patient_id=#{patient.id}" if extended_staging_questions
@@ -1297,7 +1299,7 @@ class ApplicationController < ActionController::Base
           elsif encounter_available.blank? and not user_selected_activities.match(/Manage ART adherence/i)
             task.url = "/patients/show/#{patient.id}"
             return task
-          end if not patient.drug_given_before(session_date).blank?
+          end if not drug_given_before(patient,session_date).blank?
       end
     end
     #task.encounter_type = 'Visit complete ...'
@@ -1407,15 +1409,15 @@ class ApplicationController < ActionController::Base
         skip = true unless enc.present?
       end
 
-      if task.encounter_type == 'ART ADHERENCE' and patient.drug_given_before(session_date).blank?
+      if task.encounter_type == 'ART ADHERENCE' and drug_given_before(patient,session_date).blank?
         skip = true
       end
       
-      if task.encounter_type == 'ART VISIT' and (patient.reason_for_art_eligibility.blank? or patient.reason_for_art_eligibility.match(/unknown/i))
+      if task.encounter_type == 'ART VISIT' and (reason_for_art_eligibility(patient).blank? or reason_for_art_eligibility(patient).match(/unknown/i))
         skip = true
       end
       
-      if task.encounter_type == 'HIV STAGING' and not (patient.reason_for_art_eligibility.blank? or patient.reason_for_art_eligibility.match(/unknown/i))
+      if task.encounter_type == 'HIV STAGING' and not (reason_for_art_eligibility(patient).blank? or reason_for_art_eligibility(patient).match(/unknown/i))
         skip = true
       end
       
@@ -1552,7 +1554,7 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    unless patient.drug_given_before(session_date).blank?
+    unless drug_given_before(patient,session_date).blank?
       art_adherance = Encounter.find(:first,
                                      :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                                      patient.id,EncounterType.find_by_name(art_encounters[5]).id,session_date],
@@ -1567,7 +1569,7 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    if patient.prescribe_arv_this_visit(session_date)
+    if prescribe_arv_this_visit(patient, session_date)
       art_treatment = Encounter.find(:first,
                                      :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                                      patient.id,EncounterType.find_by_name(art_encounters[6]).id,session_date],
@@ -1586,17 +1588,18 @@ class ApplicationController < ActionController::Base
 
 
   def patient_national_id_label(patient)
-    return unless patient.national_id
-    sex =  patient.person.gender.match(/F/i) ? "(F)" : "(M)"
+	patient_bean = get_patient(patient.person)
+    return unless patient_bean.national_id
+    sex =  patient_bean.sex.match(/F/i) ? "(F)" : "(M)"
     address = patient.person.address.strip[0..24].humanize rescue ""
     label = ZebraPrinter::StandardLabel.new
     label.font_size = 2
     label.font_horizontal_multiplier = 2
     label.font_vertical_multiplier = 2
     label.left_margin = 50
-    label.draw_barcode(50,180,0,1,5,15,120,false,"#{patient.national_id}")
-    label.draw_multi_text("#{patient.person.name.titleize}")
-    label.draw_multi_text("#{patient.national_id_with_dashes} #{patient.person.birthdate_formatted}#{sex}")
+    label.draw_barcode(50,180,0,1,5,15,120,false,"#{patient_bean.national_id}")
+    label.draw_multi_text("#{patient_bean.name.titleize}")
+    label.draw_multi_text("#{patient_bean.national_id_with_dashes} #{patient_bean.birth_date}#{sex}")
     label.draw_multi_text("#{address}")
     label.print(1)
   end
@@ -1614,7 +1617,7 @@ class ApplicationController < ActionController::Base
   end
 
   def sputum_orders_without_submission(patient_id)
-    recent_sputum_orders(patient_id).collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", patient_id, Concept.find_by_name("Sputum submission")]).map{|o| o.accession_number}.include?(order.accession_number)}.compact rescue []
+    recent_sputum_orders(patient_id).collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", patient_id, Concept.find_by_name("Sputum submission")]).map{|o| o.accession_number}.include?(order.accession_number)}.compact #rescue []
   end
 
   def recent_sputum_orders(patient_id)
@@ -1658,9 +1661,510 @@ class ApplicationController < ActionController::Base
 =end
 
  def patient_is_child?(patient)
-   return patient.age <= 14 unless patient.age.nil?
+   return get_patient_attribute_value(patient, "age") <= 14 unless get_patient_attribute_value(patient, "age").nil?
    return false
  end
+
+ def get_patient_attribute_value(patient, attribute_name)
+ 	
+   patient_bean = get_patient(patient.person)
+   if patient_bean.sex.upcase == 'MALE'
+   		sex = 'M'
+   elsif patient_bean.sex.upcase == 'FEMALE'
+   		sex = 'F'
+   end
+   
+   case attribute_name.upcase
+     when "AGE"
+       return patient_bean.age
+     when "RESIDENCE"
+       return patient_bean.address
+     when "CURRENT_HEIGHT"
+      obs = patient.person.observations.recent(1).question("HEIGHT (CM)").all
+      return obs.first.value_numeric rescue 0
+     when "CURRENT_WEIGHT"
+      obs = patient.person.observations.recent(1).question("WEIGHT (KG)").all
+      return obs.first.value_numeric rescue 0
+     when "INITIAL_WEIGHT"
+      obs = patient.person.observations.old(1).question("WEIGHT (KG)").all
+      return obs.last.value_numeric rescue 0
+     when "INITIAL_HEIGHT"
+      obs = patient.person.observations.old(1).question("HEIGHT (CM)").all
+      return obs.last.value_numeric rescue 0
+     when "INITIAL_BMI"
+      obs = patient.person.observations.old(1).question("BMI").all
+      return obs.last.value_numeric rescue nil
+     when "MIN_WEIGHT"
+      return WeightHeight.min_weight(sex, patient_bean.age_in_months).to_f
+     when "MAX_WEIGHT"
+      return WeightHeight.max_weight(sex, patient_bean.age_in_months).to_f
+     when "MIN_HEIGHT"
+      return WeightHeight.min_height(sex, patient_bean.age_in_months).to_f
+     when "MAX_HEIGHT"
+      return WeightHeight.max_height(sex, patient_bean.age_in_months).to_f
+   end
+
+ end
+
+ def patient_tb_status(patient)
+   Concept.find(Observation.find(:first,
+    :order => "obs_datetime DESC,date_created DESC",
+    :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL",
+                    patient.id,
+    ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
+ end
+ 
+  def get_global_property_value(global_property)
+    GlobalProperty.find(:first,
+                        :conditions => {:property => "#{global_property}"}
+                       ).property_value
+  end
+
+ def reason_for_art_eligibility(patient)
+    reasons = patient.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue nil
+    reasons.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue nil
+ end
+
+ def patient_appointment_dates(patient, start_date, end_date = nil)
+
+    end_date = start_date if end_date.nil?
+
+    appointment_date_concept_id = Concept.find_by_name("APPOINTMENT DATE").concept_id rescue nil
+
+    appointments = Observation.find(:all,
+      :conditions => ["DATE(obs.value_datetime) >= ? AND DATE(obs.value_datetime) <= ? AND " +
+          "obs.concept_id = ? AND obs.voided = 0 AND obs.person_id = ?", start_date.to_date,
+        end_date.to_date, appointment_date_concept_id, patient.id])
+
+    appointments
+  end
+
+  def get_patient_identifier(patient, identifier_type)
+    patient_identifier_type_id = PatientIdentifierType.find_by_name(identifier_type).patient_identifier_type_id
+    patient_identifier = PatientIdentifier.find(:first, :select => "identifier",
+                                                :conditions  =>["patient_id = ? and identifier_type = ?", patient.id, patient_identifier_type_id],
+                                                :order => "date_created DESC" ).identifier rescue nil
+    return patient_identifier
+  end
+
+  def patient_printing_message(new_patient , archived_patient , creating_new_filing_number_for_patient = false)
+    arv_code = Location.current_arv_code
+    new_patient_name = new_patient.person.name
+    new_filing_number = patient_printing_filing_number_label(get_patient_identifier(new_patient, 'Filing Number'))
+    old_archive_filing_number = patient_printing_filing_number_label(old_filing_number(new_patient, 'Archived filing number'))
+    unless archived_patient.blank?
+      old_active_filing_number = patient_printing_filing_number_label(old_filing_number(archived_patient))
+      new_archive_filing_number = patient_printing_filing_number_label(get_patient_identifier(archived_patient, 'Archived filing number'))
+    end
+
+    if new_patient and archived_patient and creating_new_filing_number_for_patient
+      table = <<EOF
+<div id='patients_info_div'>
+<table id = 'filing_info'>
+<tr>
+  <th class='filing_instraction'>Filing actions required</th>
+  <th class='filing_instraction'>Name</th>
+  <th style="text-align:left;">Old label</th>
+  <th style="text-align:left;">New label</th>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Active → Dormant</td>
+  <td class = 'filing_instraction'>#{archived_patient.person.name}</td>
+  <td class = 'old_label'>#{old_active_filing_number}</td>
+  <td class='new_label'>#{new_archive_filing_number}</td>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Add → Active</td>
+  <td class = 'filing_instraction'>#{new_patient_name}</td>
+  <td class = 'old_label'>#{old_archive_filing_number}</td>
+  <td class='new_label'>#{new_filing_number}</td>
+</tr>
+</table>
+</div>
+EOF
+    elsif new_patient and creating_new_filing_number_for_patient
+      table = <<EOF
+<div id='patients_info_div'>
+<table id = 'filing_info'>
+<tr>
+  <th class='filing_instraction'>Filing actions required</th>
+  <th class='filing_instraction'>Name</th>
+  <th>&nbsp;</th>
+  <th style="text-align:left;">New label</th>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Add → Active</td>
+  <td class = 'filing_instraction'>#{new_patient_name}</td>
+  <td class = 'filing_instraction'>&nbsp;</td>
+  <td class='new_label'>#{new_filing_number}</td>
+</tr>
+</table>
+</div>
+EOF
+    elsif new_patient and archived_patient and not creating_new_filing_number_for_patient
+      table = <<EOF
+<div id='patients_info_div'>
+<table id = 'filing_info'>
+<tr>
+  <th class='filing_instraction'>Filing actions required</th>
+  <th class='filing_instraction'>Name</th>
+  <th style="text-align:left;">Old label</th>
+  <th style="text-align:left;">New label</th>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Active → Dormant</td>
+  <td class = 'filing_instraction'>#{archived_patient.person.name}</td>
+  <td class = 'old_label'>#{old_active_filing_number}</td>
+  <td class='new_label'>#{new_archive_filing_number}</td>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Add → Active</td>
+  <td class = 'filing_instraction'>#{new_patient_name}</td>
+  <td class = 'old_label'>#{old_archive_filing_number}</td>
+  <td class='new_label'>#{new_filing_number}</td>
+</tr>
+</table>
+</div>
+EOF
+    elsif new_patient and not creating_new_filing_number_for_patient
+      table = <<EOF
+<div id='patients_info_div'>
+<table id = 'filing_info'>
+<tr>
+  <th class='filing_instraction'>Filing actions required</th>
+  <th class='filing_instraction'>Name</th>
+  <th>Old label</th>
+  <th style="text-align:left;">New label</th>
+</tr>
+
+<tr>
+  <td style='text-align:left;'>Add → Active</td>
+  <td class = 'filing_instraction'>#{new_patient_name}</td>
+  <td class = 'old_label'>#{old_archive_filing_number}</td>
+  <td class='new_label'>#{new_filing_number}</td>
+</tr>
+</table>
+</div>
+EOF
+    end
+
+
+    return table
+  end
+
+  def patient_printing_filing_number_label(number=nil)
+    return number[5..5] + " " + number[6..7] + " " + number[8..-1] unless number.nil?
+  end
+
+  def patient_age_at_initiation(patient, initiation_date = nil)
+    return patient.person.age(initiation_date) unless initiation_date.nil?
+  end
+
+  def art_patient?(patient)
+    program_id = Program.find_by_name('HIV PROGRAM').id
+    enrolled = PatientProgram.find(:first,:conditions =>["program_id = ? AND patient_id = ?",program_id,patient.id]).blank?
+    return true unless enrolled
+    false
+  end
+
+  def patient_art_start_date(patient_id)
+    date = ActiveRecord::Base.connection.select_value <<EOF
+SELECT patient_start_date(#{patient_id})
+EOF
+    return date.to_date rescue nil
+  end
+
+  def prescribe_arv_this_visit(patient, date = Date.today)
+    encounter_type = EncounterType.find_by_name('ART VISIT')
+    yes_concept = ConceptName.find_by_name('YES').concept_id
+    refer_concept = ConceptName.find_by_name('PRESCRIBE ARVS THIS VISIT').concept_id
+    refer_patient = Encounter.find(:first,
+      :joins => 'INNER JOIN obs USING (encounter_id)',
+      :conditions => ["encounter_type = ? AND concept_id = ? AND person_id = ? AND value_coded = ? AND DATE(obs_datetime) = ?",
+        encounter_type.id,refer_concept,patient.id,yes_concept,date.to_date],
+      :order => 'encounter_datetime DESC,date_created DESC')
+    return false if refer_patient.blank?
+    return true
+  end
+
+  def drug_given_before(patient, date = Date.today)
+    encounter_type = EncounterType.find_by_name('TREATMENT')
+    Encounter.find(:first,
+      :joins => 'INNER JOIN orders ON orders.encounter_id = encounter.encounter_id
+               INNER JOIN drug_order ON orders.order_id = orders.order_id',
+      :conditions => ["quantity IS NOT NULL AND encounter_type = ? AND
+               encounter.patient_id = ? AND DATE(encounter_datetime) < ?",
+        encounter_type.id,patient.id,date.to_date],
+        :order => 'encounter_datetime DESC,date_created DESC').orders rescue []
+  end
+
+  def get_patient(person)
+    patient = Mastercard.new()
+    patient.person_id = person.id
+    patient.patient_id = person.patient.id
+    patient.arv_number = get_patient_identifier(person.patient, 'ARV Number')
+    patient.address = person.addresses.first.city_village
+    patient.national_id = get_patient_identifier(person.patient, 'National id')    
+	patient.national_id_with_dashes = get_national_id_with_dashes(person.patient)
+    patient.name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
+    patient.sex = sex(person)
+    patient.age = person.age
+    patient.age_in_months = age_in_months(person)
+    patient.dead = person.dead
+    patient.birth_date = birthdate_formatted(person)
+    patient.home_district = person.addresses.first.address2
+    patient.traditional_authority = person.addresses.first.county_district
+    patient.current_residence = person.addresses.first.city_village
+    patient.mothers_surname = person.names.first.family_name2
+    patient.eid_number = get_patient_identifier(person.patient, 'EID Number')
+    patient.pre_art_number = get_patient_identifier(person.patient, 'Pre ART Number (Old format)')
+    patient.archived_filing_number = get_patient_identifier(person.patient, 'Archived filing number')
+    patient.filing_number = get_patient_identifier(person.patient, 'Filing Number')
+    patient.occupation = get_attribute(person, 'Occupation')
+    patient.guardian = art_guardian(patient_obj) rescue nil 
+    patient
+  end
+
+  def old_filing_number(patient, type = 'Filing Number')
+    identifier_type = PatientIdentifierType.find_by_name(type)
+    PatientIdentifier.find_by_sql(["
+      SELECT * FROM patient_identifier
+      WHERE patient_id = ?
+      AND identifier_type = ?
+      AND voided = 1
+      ORDER BY date_created DESC
+      LIMIT 1",patient.id,identifier_type.id]).first.identifier rescue nil
+  end
+
+  def patient_to_be_archived(patient)
+    active_identifier_type = PatientIdentifierType.find_by_name("Filing Number")
+    PatientIdentifier.find_by_sql(["
+      SELECT * FROM patient_identifier
+      WHERE voided = 1 AND identifier_type = ? AND void_reason = ? ORDER BY date_created DESC",
+        active_identifier_type.id,"Archived - filing number given to:#{patient.id}"]).first.patient rescue nil
+  end
+
+  def set_patient_filing_number(patient) #changed from set_filing_number after being moved from patient model
+    next_filing_number = PatientIdentifier.next_filing_number # gets the new filing number!
+    # checks if the the new filing number has passed the filing number limit...
+    # move dormant patient from active to dormant filing area ... if needed
+    next_filing_number_to_be_archived(patient, next_filing_number)
+  end
+
+  def next_filing_number_to_be_archived(current_patient , next_filing_number)
+    ActiveRecord::Base.transaction do
+      global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10000'
+      active_filing_number_identifier_type = PatientIdentifierType.find_by_name("Filing Number")
+      dormant_filing_number_identifier_type = PatientIdentifierType.find_by_name('Archived filing number')
+
+      if (next_filing_number[5..-1].to_i >= global_property_value.to_i)
+        encounter_type_name = ['REGISTRATION','VITALS','ART_INITIAL','ART VISIT',
+          'TREATMENT','HIV RECEPTION','HIV STAGING','DISPENSING','APPOINTMENT']
+        encounter_type_ids = EncounterType.find(:all,:conditions => ["name IN (?)",encounter_type_name]).map{|n|n.id}
+
+        all_filing_numbers = PatientIdentifier.find(:all, :conditions =>["identifier_type = ?",
+            PatientIdentifierType.find_by_name("Filing Number").id],:group=>"patient_id")
+        patient_ids = all_filing_numbers.collect{|i|i.patient_id}
+        patient_to_be_archived = Encounter.find_by_sql(["
+          SELECT patient_id, MAX(encounter_datetime) AS last_encounter_id
+          FROM encounter
+          WHERE patient_id IN (?)
+          AND encounter_type IN (?)
+          GROUP BY patient_id
+          ORDER BY last_encounter_id
+          LIMIT 1",patient_ids,encounter_type_ids]).first.patient rescue nil
+        if patient_to_be_archived.blank?
+          patient_to_be_archived = PatientIdentifier.find(:last,:conditions =>["identifier_type = ?",
+              PatientIdentifierType.find_by_name("Filing Number").id],
+            :group=>"patient_id",:order => "identifier DESC").patient rescue nil
+        end
+      end
+
+      if patient_to_be_archived
+        filing_number = PatientIdentifier.new()
+        filing_number.patient_id = patient_to_be_archived.id
+        filing_number.identifier_type = dormant_filing_number_identifier_type.id
+        filing_number.identifier = PatientIdentifier.next_filing_number("Archived filing number")
+        filing_number.save
+
+        #assigning "patient_to_be_archived" filing number to the new patient
+        filing_number= PatientIdentifier.new()
+        filing_number.patient_id = current_patient.id
+        filing_number.identifier_type = active_filing_number_identifier_type.id
+        filing_number.identifier = get_patient_identifier(patient_to_be_archived, 'Filing Number')
+        filing_number.save
+
+        #void current filing number
+        current_filing_numbers =  PatientIdentifier.find(:all,:conditions=>["patient_id=? AND identifier_type = ?",
+            patient_to_be_archived.id,PatientIdentifierType.find_by_name("Filing Number").id])
+        current_filing_numbers.each do | filing_number |
+          filing_number.voided = 1
+          filing_number.voided_by = User.current_user.id
+          filing_number.void_reason = "Archived - filing number given to:#{current_patient.id}"
+          filing_number.date_voided = Time.now()
+          filing_number.save
+        end
+      else
+        filing_number = PatientIdentifier.new()
+        filing_number.patient_id = current_patient.id
+        filing_number.identifier_type = active_filing_number_identifier_type.id
+        filing_number.identifier = next_filing_number
+        filing_number.save
+      end
+    end
+
+    true
+  end
+  
+def create_from_form(params)
+    address_params = params["addresses"]
+    names_params = params["names"]
+    patient_params = params["patient"]
+    params_to_process = params.reject{|key,value| key.match(/addresses|patient|names|relation|cell_phone_number|home_phone_number|office_phone_number|agrees_to_be_visited_for_TB_therapy|agrees_phone_text_for_TB_therapy/) }
+    birthday_params = params_to_process.reject{|key,value| key.match(/gender/) }
+    person_params = params_to_process.reject{|key,value| key.match(/birth_|age_estimate|occupation/) }
+
+
+    if person_params["gender"].to_s == "Female"
+       person_params["gender"] = 'F'
+    elsif person_params["gender"].to_s == "Male"
+       person_params["gender"] = 'M'
+    end
+
+    person = Person.create(person_params)
+
+    unless birthday_params.empty?
+      if birthday_params["birth_year"] == "Unknown"
+        set_birthdate_by_age(person, birthday_params["age_estimate"], person.session_datetime || Date.today)
+      else
+        set_birthdate(person, birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
+      end
+    end
+    person.save
+   
+    person.names.create(names_params)
+    person.addresses.create(address_params) unless address_params.empty? rescue nil
+
+    person.person_attributes.create(
+      :person_attribute_type_id => PersonAttributeType.find_by_name("Occupation").person_attribute_type_id,
+      :value => params["occupation"]) unless params["occupation"].blank? rescue nil
+ 
+    person.person_attributes.create(
+      :person_attribute_type_id => PersonAttributeType.find_by_name("Cell Phone Number").person_attribute_type_id,
+      :value => params["cell_phone_number"]) unless params["cell_phone_number"].blank? rescue nil
+ 
+    person.person_attributes.create(
+      :person_attribute_type_id => PersonAttributeType.find_by_name("Office Phone Number").person_attribute_type_id,
+      :value => params["office_phone_number"]) unless params["office_phone_number"].blank? rescue nil
+ 
+    person.person_attributes.create(
+      :person_attribute_type_id => PersonAttributeType.find_by_name("Home Phone Number").person_attribute_type_id,
+      :value => params["home_phone_number"]) unless params["home_phone_number"].blank? rescue nil
+
+# TODO handle the birthplace attribute
+
+    if (!patient_params.nil?)
+      patient = person.create_patient
+
+      patient_params["identifiers"].each{|identifier_type_name, identifier|
+        next if identifier.blank?
+        identifier_type = PatientIdentifierType.find_by_name(identifier_type_name) || PatientIdentifierType.find_by_name("Unknown id")
+        patient.patient_identifiers.create("identifier" => identifier, "identifier_type" => identifier_type.patient_identifier_type_id)
+      } if patient_params["identifiers"]
+
+      # This might actually be a national id, but currently we wouldn't know
+      #patient.patient_identifiers.create("identifier" => patient_params["identifier"], "identifier_type" => PatientIdentifierType.find_by_name("Unknown id")) unless params["identifier"].blank?
+    end
+
+    return person
+  end
+
+  def sex(person)
+    value = nil
+    if person.gender == "M"
+      value = "Male"
+    elsif person.gender == "F"
+      value = "Female"
+    end
+    value
+  end
+  
+  def person_search(params)
+    people = search_by_identifier(params[:identifier])
+
+    return people.first.id unless people.blank? || people.size > 1
+    people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patient], :conditions => [
+    "gender = ? AND \
+     (person_name.given_name LIKE ? OR person_name_code.given_name_code LIKE ?) AND \
+     (person_name.family_name LIKE ? OR person_name_code.family_name_code LIKE ?)",
+    params[:gender],
+    params[:given_name],
+    (params[:given_name] || '').soundex,
+    params[:family_name],
+    (params[:family_name] || '').soundex
+    ]) if people.blank?
+
+    return people
+  end
+  
+  def search_by_identifier(identifier)
+    PatientIdentifier.find_all_by_identifier(identifier).map{|id| id.patient.person} unless identifier.blank? rescue nil
+  end
+  
+  def set_birthdate_by_age(person, age, today = Date.today)
+    person.birthdate = Date.new(today.year - age.to_i, 7, 1)
+    person.birthdate_estimated = 1
+  end
+  
+  def set_birthdate(person, year = nil, month = nil, day = nil)   
+    raise "No year passed for estimated birthdate" if year.nil?
+
+    # Handle months by name or number (split this out to a date method)    
+    month_i = (month || 0).to_i
+    month_i = Date::MONTHNAMES.index(month) if month_i == 0 || month_i.blank?
+    month_i = Date::ABBR_MONTHNAMES.index(month) if month_i == 0 || month_i.blank?
+    
+    if month_i == 0 || month == "Unknown"
+      person.birthdate = Date.new(year.to_i,7,1)
+      person.birthdate_estimated = 1
+    elsif day.blank? || day == "Unknown" || day == 0
+      person.birthdate = Date.new(year.to_i,month_i,15)
+      person.birthdate_estimated = 1
+    else
+      person.birthdate = Date.new(year.to_i,month_i,day.to_i)
+      person.birthdate_estimated = 0
+    end
+  end
+  
+  def birthdate_formatted(person)
+    if person.birthdate_estimated==1
+      if person.birthdate.day == 1 and person.birthdate.month == 7
+        person.birthdate.strftime("??/???/%Y")
+      elsif person.birthdate.day == 15 
+        person.birthdate.strftime("??/%b/%Y")
+      elsif person.birthdate.day == 1 and person.birthdate.month == 1 
+        person.birthdate.strftime("??/???/%Y")
+      end
+    else
+      person.birthdate.strftime("%d/%b/%Y")
+    end
+  end
+  
+  def age_in_months(person, today = Date.today)
+    years = (today.year - person.birthdate.year)
+    months = (today.month - person.birthdate.month)
+    (years * 12) + months
+  end
+  
+  def get_attribute(person, attribute)
+    PersonAttribute.find(:first,:conditions =>["voided = 0 AND person_attribute_type_id = ? AND person_id = ?",
+        PersonAttributeType.find_by_name(attribute).id, person.id]).value rescue nil
+  end
 
 private
 
@@ -1752,7 +2256,7 @@ private
       return task
     end
 
-    return if patient.tb_status.match(/treatment/i) and not patient_hiv_status(patient).match(/Positive/i)
+    return if patient_tb_status(patient).match(/treatment/i) and not patient_hiv_status(patient).match(/Positive/i)
 
     vitals = Encounter.find(:first,:order => "encounter_datetime DESC",
                             :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
@@ -1768,7 +2272,7 @@ private
       return task
     end 
   end
-  
+
   def need_art_enrollment(task,patient,location,session_date,user_selected_activities,reason_for_art)
     return unless patient_hiv_status(patient).match(/Positive/i)
 
@@ -1800,7 +2304,7 @@ private
                                  patient.id,EncounterType.find_by_name('HIV STAGING').id])
 
     if hiv_staging.blank? and user_selected_activities.match(/Manage HIV staging visits/i)
-      extended_staging_questions = GlobalProperty.find_by_property('use.extended.staging.questions')
+      extended_staging_questions = get_global_property_value('use.extended.staging.questions')
       extended_staging_questions = extended_staging_questions.property_value == 'yes' rescue false
       task.encounter_type = 'HIV STAGING'
       task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" if not extended_staging_questions
@@ -1861,6 +2365,24 @@ private
       task.url = "/patients/show/#{patient.id}"
       return task
     end if prescribe_drugs
+  end
+
+  def get_national_id(patient, force = true)
+    id = patient.patient_identifiers.find_by_identifier_type(PatientIdentifierType.find_by_name("National id").id).identifier rescue nil
+    return id unless force
+    id ||= PatientIdentifierType.find_by_name("National id").next_identifier(:patient => patient).identifier
+    id
+  end
+
+  def get_remote_national_id(patient)
+    id = patient.patient_identifiers.find_by_identifier_type(PatientIdentifierType.find_by_name("National id").id).identifier rescue nil
+    return id unless id.blank?
+    PatientIdentifierType.find_by_name("National id").next_identifier(:patient => patient).identifier
+  end
+
+  def get_national_id_with_dashes(patient, force = true)
+    id = get_national_id(patient, force)
+    id[0..4] + "-" + id[5..8] + "-" + id[9..-1] rescue id
   end
 
 end

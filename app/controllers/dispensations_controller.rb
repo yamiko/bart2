@@ -137,6 +137,52 @@ class DispensationsController < ApplicationController
     encounter ||= patient.encounters.create(:encounter_type => type.id,:encounter_datetime => date, :provider_id => provider)
   end
 
+  def set_received_regimen(patient, encounter,prescription)
+    dispense_finish = true ; dispensed_drugs_inventory_ids = []
+
+    prescription.orders.each do | order |
+      next if not order.drug_order.drug.arv?
+      dispensed_drugs_inventory_ids << order.drug_order.drug.id
+      if (order.drug_order.amount_needed > 0)
+        dispense_finish = false
+      end
+    end
+
+    return unless dispense_finish
+    return if dispensed_drugs_inventory_ids.blank?
+
+    regimen_id = ActiveRecord::Base.connection.select_all <<EOF
+SELECT r.concept_id ,
+(SELECT COUNT(t3.regimen_id) FROM regimen_drug_order t3
+WHERE t3.regimen_id = t.regimen_id GROUP BY t3.regimen_id) as c
+FROM regimen_drug_order t, regimen r
+WHERE t.drug_inventory_id IN (#{dispensed_drugs_inventory_ids.join(',')})
+AND r.regimen_id = t.regimen_id
+GROUP BY r.concept_id
+HAVING c = #{dispensed_drugs_inventory_ids.length}
+EOF
+
+    regimen_prescribed = regimen_id.first['concept_id'].to_i rescue ConceptName.find_by_name('UNKNOWN ANTIRETROVIRAL DRUG').concept_id
+
+    if (Observation.find(:first,:conditions => ["person_id = ? AND encounter_id = ? AND concept_id = ?",
+            patient.id,encounter.id,ConceptName.find_by_name('ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT').concept_id])).blank?
+      regimen_value_text = Concept.find(regimen_prescribed).shortname rescue nil
+      if regimen_value_text.blank?
+        regimen_value_text = ConceptName.find_by_concept_id(regimen_prescribed).name rescue nil
+      end
+      return if regimen_value_text.blank?
+      obs = Observation.new(
+        :concept_name => "ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT",
+        :person_id => patient.id,
+        :encounter_id => encounter.id,
+        :value_text => regimen_value_text,
+        :value_coded => regimen_prescribed,
+        :obs_datetime => encounter.encounter_datetime)
+      obs.save
+      return obs.value_text
+    end
+  end
+
   private
 
   def dispension_complete(patient,encounter,prescription)
@@ -147,7 +193,7 @@ class DispensationsController < ApplicationController
     end
 
     if complete
-      dispension_completed = patient.set_received_regimen(encounter,prescription) 
+      dispension_completed = set_received_regimen(patient, encounter,prescription)
     end
     return DrugOrder.all_orders_complete(patient,encounter.encounter_datetime.to_date)
   end

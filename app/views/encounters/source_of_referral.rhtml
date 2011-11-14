@@ -8,63 +8,50 @@
 
 <%
 pos = 1
-@people.each do |person|
-  patient = person.patient rescue []
-  next if patient.blank? -%>
+@patients.each do |person|
+	next if person.blank? -%>
 
-    people.push({});
+		people.push({});
 
-    people[<%= pos %>]["Name"] = "<%= person.name %>";
-          
-    people[<%= pos %>]["Gender"] = "<%= person.sex %>";
+		people[<%= pos %>]["Name"] = "<%= person.name %>";
+			  
+		people[<%= pos %>]["Gender"] = "<%= person.sex %>";
 
-    people[<%= pos %>]["Status"] = "<%=h 'Died' if person.dead == 1 rescue '' -%>";
+		<% if person.dead == 1 %>
+			people[<%= pos %>]["Status"] = "<%=h 'Died' if person.dead == 1 rescue '' -%>";
+		<% end %>
 
-  <% unless person.birthdate.blank? %>
+		people[<%= pos %>]["Birthdate"] = "<%= person.birth_date rescue "" %>";
 
-      people[<%= pos %>]["Birthdate"] = "<%= person.birthdate_formatted rescue "" %>";
+		people[<%= pos %>]["Age"] = "<%= person.age rescue "" %>";
+			   
+		people[<%= pos %>]["Home District"] = "<%=h person.home_district -%>";
 
-      people[<%= pos %>]["Age"] = "<%= person.age rescue "" %>";
+		people[<%= pos %>]["Ancestral Traditional Authority(T/A)"] = "<%=h person.traditional_authority -%>";
 
-  <% end %>
+		people[<%= pos %>]["Current Residence"] = "<%=h person.current_residence -%>";
 
-  <% if person.addresses.first && person.addresses.first.address2.present? %>
-            
-      people[<%= pos %>]["Home District"] = "<%=h person.addresses.first.address2 -%>";
+		<% if !person.mothers_surname.blank? %>  
+			people[<%= pos %>]["Mother Surname"] = "<%=h person.mothers_surname -%>";
+		<% end %>
 
-  <% end %>
+		<% if !person.arv_number.blank? %> 
+			people[<%= pos %>]["ARV Number"] = "<%=h person.arv_number rescue "" -%>";
+		<% end %>
 
-  <% if person.addresses.first && person.addresses.first.county_district.present? %>
+		<% if !person.national_id.blank? %>     
+			people[<%= pos %>]["Patient National ID"] = "<%=h person.national_id rescue "" -%>";
+		<% end %>
 
-      people[<%= pos %>]["Ancestral Traditional Authority(T/A)"] = "<%=h person.addresses.first.county_district -%>";
+		<% if !person.eid_number.blank? %>    
+			people[<%= pos %>]["EID Number"] = "<%=h person.eid_number rescue "" -%>";
+		<% end %>
 
-  <% end %>
+		<% if !person.pre_art_number.blank? %>    
+			people[<%= pos %>]["Pre-ART Number"] = "<%=h person.pre_art_number rescue "" -%>";
+		<% end %>
 
-  <% if person.addresses.first && person.addresses.first.city_village.present? %>
-
-      people[<%= pos %>]["Current Residence"] = "<%=h person.addresses.first.city_village -%>";
-
-  <% end %>
-
-  <% if person.names.first && person.names.first.family_name2.present? %>
-            
-      people[<%= pos %>]["Mother Surname"] = "<%=h person.names.first.family_name2 -%>";
-
-  <% end %>
-
-  <% unless person.patient.blank? %>
-    
-      people[<%= pos %>]["ARV Number"] = "<%=h person.patient.arv_number rescue "" -%>";
-
-      people[<%= pos %>]["Patient National ID"] = "<%=h person.patient.national_id rescue "" -%>";
-
-      people[<%= pos %>]["EID Number"] = "<%=h person.patient.eid_number rescue "" -%>";
-
-      people[<%= pos %>]["Pre-ART Number"] = "<%=h person.patient.pre_art_number rescue "" -%>";
-
-  <% end %>
-
-  <%
+	<%
 
   pos = pos + 1
 end -%>
@@ -137,7 +124,15 @@ end -%>
       <%= select_tag :gender, options_for_select({"" => "", "Male" => "M", "Female" => "F"}), 
         {:helpText => "Gender of index patient", 
          :condition => '$("referred_by").value == "Index Patient"'} %>
+      
+      <% session_date = session[:datetime].to_date rescue nil                       
+    if session_date %>
 
+    <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
+  <%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+    <% else %>
+      <%= hidden_field_tag "filter[provider]", nil %>
+    <%end%>
     </form>
 
 
@@ -157,14 +152,13 @@ end -%>
         <% else %>
           <option value="0" onmousedown="changeNextButtonText('New index person')">Create a new person with the name <%=h params[:given_name] -%> <%=h params[:family_name] -%></option>
         <% end %>
-        <% @people.each do |person|
-          patient = person.patient rescue []
-          next if patient.blank? -%>
-          <option value="<%= person.id %>" onmousedown="changeNextButtonText('Select index person')">
+        <% @patients.each do |person|
+          next if person.blank? -%>
+          <option value="<%= patient.person_id %>" onmousedown="changeNextButtonText('Select index person')">
             <%=h person.name -%> (<%= person.gender %>)
-            <% unless person.birthdate.blank? %> <%=h person.birthdate.strftime("%d-%b-%Y") -%><% end %>,
-            <% unless person.addresses.first.blank? %> <%=h person.addresses.first.city_village -%> <% end %>,
-            <% unless person.relationships.first.blank? %> Guardian: <%=h person.relationships.first.relation.name -%> <% end %>
+            <% unless person.birth_date.blank? %> <%=h person.birth_date -%><% end %>,
+            <% unless person.current_residence.blank? %> <%=h person.current_residence -%> <% end %>,
+            <% unless person.guardian.blank? %> Guardian: <%=h person.guardian -%> <% end %>
           </option>
         <% end -%>
       </select>

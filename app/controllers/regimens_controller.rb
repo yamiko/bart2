@@ -2,9 +2,12 @@ class RegimensController < ApplicationController
 
 	def new
 		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
+		@patient_bean = get_patient(@patient.person)
 		@programs = @patient.patient_programs.all
 		@hiv_programs = @patient.patient_programs.not_completed.in_programs('HIV PROGRAM')
-    	
+
+		@reason_for_art_eligibility = reason_for_art_eligibility(@patient)
+		@current_weight = get_patient_attribute_value(@patient, "current_weight")
 		@tb_encounter = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                     :conditions=>["patient_id = ? AND encounter_type = ?", 
                     @patient.id, EncounterType.find_by_name("TB visit").id], 
@@ -328,7 +331,7 @@ class RegimensController < ApplicationController
 		@options = []
 		render :layout => false and return unless patient_program
 
-		regimen_concepts = patient_program.regimens(patient_program.patient.current_weight).uniq
+		regimen_concepts = patient_program.regimens(get_patient_attribute_value(patient_program.patient, "current_weight")).uniq
 		@options = regimen_options(regimen_concepts, params[:patient_age].to_i)
 		#raise @options.to_yaml
 		render :layout => false
@@ -336,7 +339,7 @@ class RegimensController < ApplicationController
 
 	def dosing
 		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
-		@criteria = Regimen.criteria(@patient.current_weight).all(:conditions => {:concept_id => params[:id]}, :include => :regimen_drug_orders)
+		@criteria = Regimen.criteria(get_patient_attribute_value(@patient, "current_weight")).all(:conditions => {:concept_id => params[:id]}, :include => :regimen_drug_orders)
 		@options = @criteria.map do |r| 
 			[r.regimen_id, r.regimen_drug_orders.map(&:to_s).join('; ')]
 		end
@@ -345,7 +348,7 @@ class RegimensController < ApplicationController
 
 	def formulations
 		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
-		@criteria = Regimen.criteria(@patient.current_weight).all(:conditions => {:concept_id => params[:id]}, :include => :regimen_drug_orders)
+		@criteria = Regimen.criteria(get_patient_attribute_value(@patient, "current_weight")).all(:conditions => {:concept_id => params[:id]}, :include => :regimen_drug_orders)
 		@options = @criteria.map do | r | 
 			r.regimen_drug_orders.map do | order |
 				[order.drug.name , order.dose, order.frequency , order.units , r.id ]

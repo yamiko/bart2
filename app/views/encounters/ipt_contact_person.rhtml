@@ -43,10 +43,10 @@ function changeNextButton(text){
 
     <label for="ipt_contact">Select the IPT contact from the following</label>
     <select name="ipt_contact" id="ipt_contact">
-      <% @ipt_contacts.each do |contact| -%>
-        <option value="<%= contact.id %>" onmousedown= "$('ipt_contact_value_coded_or_text').value = $('ipt_contact').value">
+      <% @contacts_ipt.each do |contact| -%>
+        <option value="<%= contact.person_id %>" onmousedown= "$('ipt_contact_value_coded_or_text').value = $('ipt_contact').value">
           <%=h contact.name -%>,
-          <% unless contact.birthdate.blank? %>Birthdate: <%=h contact.birthdate_formatted -%><% end %>
+          <% unless contact.birth_date.blank? %>Birthdate: <%=h contact.birth_date -%><% end %>
          </option>
       <% end -%>
     

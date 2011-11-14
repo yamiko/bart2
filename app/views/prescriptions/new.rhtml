@@ -12,8 +12,8 @@
   }
 
   #tt_page_frequency .options {
-    font-size:1em;
-    height:24em;
+    /* font-size:1em;*/
+    height:20em;
   }
 
   .tt_page_prescribe_treatment_for_which_diagnosis #keyboard,
@@ -24,11 +24,11 @@
   }
 
   #tt_page_generic_drug #viewport {
-    height:350px;
+    height:307px;
   }
 
   #tt_page_formulation #viewport {
-    height:350px;
+    height:280px;
   }
 
   .tt_controls_duration_days #char {
@@ -72,7 +72,7 @@
   function set_diagnosis_for_suggestions() {
     changeNextButtonText('Select Prescription');
     var diagnosis = $('diagnosis').value; 
-    $('infoBar'+tstCurrentPage).innerHTML = "Current Weight: <%= @patient.current_weight -%>KG; Current Height: <%= @patient.current_height -%>CM"
+    $('infoBar'+tstCurrentPage).innerHTML = "Current Weight: <%= @current_weight -%>KG; Current Height: <%= @current_height -%>CM"
     $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/prescriptions/suggested?patient_id=<%= @patient.patient_id %>&diagnosis=" + diagnosis + "&search_string=");
     
     var text = "Common prescriptions"

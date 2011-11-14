@@ -72,11 +72,11 @@
             <table class="demographics">
               <tr>
                 <td class="demographics-header">Name: </td>
-                <td class="demographics"> <%= @patient.name rescue "Could not display name" %> </td>
+                <td class="demographics"> <%= @patient_bean.name rescue "Could not display name" %> </td>
               </tr>
               <tr>
                 <td class="demographics-header">Address: </td>
-                <td class="demographics"><%= @patient.person.addresses.first.city_village %> </td>
+                <td class="demographics"><%= @patient_bean.address %> </td>
               </tr>
               <tr>
                 <td class="demographics-header">Name of guardian </td>
@@ -90,8 +90,7 @@
                 <td class="demographics-header"> Sex <br /></td>
                 <td class="demographics-header">
                   <div class="left" style="border: 1px solid;width:90px;height:31px;">
-
-                    <%if @patient.gender == 'Male'%>
+                    <%if @patient_bean.sex == 'Male'%>
                       <span class="circle">M</span><span class="non-circle">F</span>
                     <%else%>
                       <span class="circle">F</span><span class="non-circle">M</span>
@@ -104,7 +103,7 @@
                     Age:
                   </div>
                   <div class="left" style="border: 1px solid;width:90px;">
-                    <%= @patient.age%>
+                    <%= @patient_bean.age%>
                   </div>
                 </td>
               </tr>

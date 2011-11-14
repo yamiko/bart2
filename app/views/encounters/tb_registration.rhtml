@@ -111,7 +111,7 @@ function tb_number(){
     style.value = "position: absolute; z-index: 100; left: 47px; font-size: 44px;"
     prefix.setAttributeNode(style)
     inputElement.setAttribute("style","text-align:right;width:924px;")
-    prefix.innerHTML = "<%=GlobalProperty.find_by_property("site_prefix").property_value rescue nil %>-TB"
+    prefix.innerHTML = "<%= get_global_property_value("site_prefix") rescue nil %>-TB"
     inputElement.parentNode.insertBefore(prefix, inputElement)
     style.value+= 'left:35px;'
     prefix.setAttributeNode(style)

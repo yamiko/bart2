@@ -1,4 +1,7 @@
 <style>
+	.helpTextClass {	width: 400px; 
+						height: 200px; }
+
   .tt_controls_clinical_notes_optional #space { display:inline; }
 
   .tt_controls_cd4_count .buttonLine {
@@ -21,8 +24,8 @@
 <script>
   <% firstPositiveHivTestType = Observation.question("FIRST POSITIVE HIV TEST TYPE").first(:conditions => {:person_id => @patient.person}, :include => :answer_concept_name).answer_concept_name.name rescue 'UNKNOWN' -%>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id -%>";
-  var age = <%= @patient.person.age -%>;
-  var ageInMonths = <%= @patient.person.age_in_months -%>;
+  var age = <%= @patient_bean.age -%>;
+  var ageInMonths = <%= @patient_bean.age_in_months -%>;
   var firstPositiveHivTestType = "<%= firstPositiveHivTestType -%>";  
   var cd4_count_numeric, cd4_count_estimate, cd4_count_modifier;
   var selected_stage_conditions = {};
@@ -104,7 +107,7 @@
           severe_weight_loss = true;
         }else if (selected_stage_conditions_ext[i] == 'Chronic diarrhoea more than 1 month') {
           conditions_found++;
-        }else if (selected_stage_conditions_ext[i] == 'Prolonged fever intermittent or contstant more than one month') {
+        }else if (selected_stage_conditions_ext[i] == 'Prolonged fever intermittent or constant more than one month') {
           conditions_found++;
         }
       }
@@ -150,7 +153,7 @@
   }
   
   function updateReasonForArtEligibility() {
-    var reasonForArtEligibility = "UNKNOWN";    
+    var reasonForArtEligibility = "NONE";    
     // Lymphocyte thresholds for ages 0-15
     var lymphocyteThresholds = [4000, 4000, 4000, 3000, 3000, 2500, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000];
 
@@ -163,10 +166,10 @@
       if(whoStage >= 3) {
         reasonForArtEligibility = whoStageConcept(whoStage, "ADULT");  
       } else if($('cd4_count_less_than_350').value == "YES") {
-        reasonForArtEligibility = "CD4 COUNT LESS THAN 350";
+        reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 350";
       } else {
         if ($('pregnant') && $('pregnant').value == "YES" && $('cd4_count_less_than_350').value == "YES") {
-          reasonForArtEligibility = "CD4 COUNT LESS THAN 350";
+          reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 350";
         } else if (whoStage == 2 && lymphocyteCount < 1200) {
           reasonForArtEligibility = "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2";              
         } else if ($('pregnant') && $('pregnant').value == "YES") {
@@ -209,9 +212,9 @@
         } else if (ageInMonths >= 12 && ageInMonths < 24) {
           reasonForArtEligibility = "HIV infected";
         } else if (cd4_count_numeric <= 750 && (ageInMonths >= 24 && ageInMonths < 56) && (whoStage) <= 2) {
-          reasonForArtEligibility = "CD4 COUNT LESS THAN 750";
+          reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 750";
         } else if ($('cd4_count_less_than_350') && $('cd4_count_less_than_350').value == "YES" && (whoStage) <= 2) {
-          reasonForArtEligibility = "CD4 COUNT LESS THAN 350";
+          reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 350";
         } else if (lymphocyteCount && (lymphocyteCount < lymphocyteThresholds[age])) {
           reasonForArtEligibility = "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2";              
         } else if ($('pregnant') && $('pregnant').value == "YES") {
@@ -250,7 +253,7 @@
 
   function showPresumed() {
     try {
-      age_in_months = parseInt("<%=@patient.person.age_in_months%>");
+      age_in_months = parseInt("<%=@patient_bean.age_in_months%>");
       if (age_in_months < 12)
         return true
     }catch(e) { return false}
@@ -258,7 +261,7 @@
   }
 
   function transferInPatient() {
-    transfer_in = "<%= @patient.transfer_in? == true %>"
+    transfer_in = "<%=  @patient_is_transfer_in == true %>"
     if (transfer_in == 'true')
       return true
 
@@ -360,8 +363,8 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
      :helpText => "Presumed severe HIV criteria (infants only)",
      :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
 
-  <% if @patient.person.age > 14 
-    if @patient.person.gender == 'F' %>
+  <% if @patient_bean.age > 14 
+    if @patient_bean.sex == 'Female' %>
 
         <% if @is_patient_pregnant_value.nil?%>
 
@@ -448,7 +451,8 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
                 :tt_onLoad => "$('nextButton').style.display = 'none';",
                 :tt_requireNextClick => false,
                 :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
-                :helpText => staging_condition.humanize.gsub('stage i','stage I').gsub('stage Ii','stage II').gsub('stage IIi','stage III').gsub('hiv','HIV').gsub('eptb','EPTB').gsub('tb','TB').gsub('Iv','IV') } %>
+                :helpText => staging_condition } %>
+
              <% end
            else %>
             <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
@@ -457,7 +461,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
                 :tt_onLoad => "$('nextButton').style.display = 'none';",
                 :tt_requireNextClick => false,
                 :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
-                :helpText => staging_condition.humanize.gsub('stage i','stage I').gsub('stage Ii','stage II').gsub('stage IIi','stage III').gsub('hiv','HIV').gsub('eptb','EPTB').gsub('tb','TB').gsub('Iv','IV') } %>
+                :helpText => staging_condition } %>
            <%end %>
       <% else
           unless retro_conditions.include?(staging_condition)%>
@@ -469,7 +473,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
                       :tt_onLoad => "$('nextButton').style.display = 'none';",
                       :tt_requireNextClick => false,
                       :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
-                      :helpText => staging_condition.humanize.gsub('stage i','stage I').gsub('stage Ii','stage II').gsub('stage IIi','stage III').gsub('hiv','HIV').gsub('eptb','EPTB').gsub('tb','TB').gsub('Iv','IV') } %>
+                      :helpText => staging_condition } %>
                   <% end
               else %>
                 <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
@@ -478,7 +482,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
                       :tt_onLoad => "$('nextButton').style.display = 'none';",
                       :tt_requireNextClick => false,
                       :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
-                      :helpText => staging_condition.humanize.gsub('stage i','stage I').gsub('stage Ii','stage II').gsub('stage IIi','stage III').gsub('hiv','HIV').gsub('eptb','EPTB').gsub('tb','TB').gsub('Iv','IV') } %>
+                      :helpText => staging_condition } %>
              <%  end
            end
          end %>
@@ -499,7 +503,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
           :tt_onLoad => "$('nextButton').style.display = 'none';",
           :tt_requireNextClick => false,
           :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
-          :helpText => staging_condition.humanize.gsub('stage i','stage I').gsub('stage Ii','stage II').gsub('stage IIi','stage III').gsub('hiv','HIV').gsub('eptb','EPTB').gsub('tb','TB').gsub('Iv','IV') } %>
+          :helpText => staging_condition } %>
       <%end%>
 
     <label for='new_cd4_count_available'>CD4 count available?</label>
@@ -622,7 +626,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
           :tt_onLoad => "$('nextButton').style.display = 'none';",
           :tt_requireNextClick => false,
           :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
-          :helpText => staging_condition.humanize.gsub('stage i','stage I').gsub('stage Ii','stage II').gsub('stage IIi','stage III').gsub('hiv','HIV').gsub('eptb','EPTB').gsub('tb','TB').gsub('Iv','IV') } %>
+          :helpText => staging_condition } %>
       <%end%>
 
     <label for='new_cd4_count_available'>New CD4 count available?</label>

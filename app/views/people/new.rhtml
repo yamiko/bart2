@@ -225,7 +225,7 @@
       }
   %>
 
-  <% ask_multiple_phone_numbers = GlobalProperty.find_by_property("ask.multiple.phone.numbers").property_value rescue 'false'
+  <% ask_multiple_phone_numbers = get_global_property_value("ask.multiple.phone.numbers") rescue 'false'
      if ask_multiple_phone_numbers == 'true' 
   %>
   <%= text_field_tag "person[office_phone_number]",  params[:office_phone_number], 
