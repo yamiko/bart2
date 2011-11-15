@@ -1,4 +1,5 @@
 class PeopleController < ApplicationController
+    
   def index
     redirect_to "/clinic"
   end

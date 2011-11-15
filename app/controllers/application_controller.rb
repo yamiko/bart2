@@ -1,5 +1,8 @@
 class ApplicationController < ActionController::Base
   include AuthenticatedSystem
+	Mastercard
+    PatientIdentifierType
+    WeightHeight
 
   require "fastercsv"
 

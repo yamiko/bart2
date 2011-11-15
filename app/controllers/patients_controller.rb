@@ -380,7 +380,7 @@ class PatientsController < ApplicationController
     @patient_id = params[:patient_id] 
     @date = params[:date].to_date
     @patient = Patient.find(@patient_id)
-    @patient_bean = get_patient(@patient.person)
+    @patient_bean = PatientService.get_patient(@patient.person)
     @patient_gaurdians = @patient.person.relationships.map{|r| name(Person.find(r.person_b)) }.join(' : ')
     @visits = visits(@patient,@date)
     render :layout => "menu"
@@ -458,7 +458,7 @@ class PatientsController < ApplicationController
 
   def export_to_csv
     ( Patient.find(:all,:limit => 10) || [] ).each do | patient |
-      patient_bean = get_patient(patient.person)
+      patient_bean = PatientService.get_patient(patient.person)
       csv_string = FasterCSV.generate do |csv|
         # header row
         csv << ["ARV number", "National ID"]
@@ -737,7 +737,7 @@ class PatientsController < ApplicationController
     # adherence
     # drug auto-expiry
     # cd4 due
-	patient_bean = get_patient(patient.person)
+	patient_bean = PatientService.get_patient(patient.person)
     alerts = []
 
     type = EncounterType.find_by_name("APPOINTMENT")
@@ -777,7 +777,7 @@ class PatientsController < ApplicationController
     end rescue []
 
     # BMI alerts
-    if patient.person.age >= 15
+    if patient_bean.age >= 15
       bmi_alert = current_bmi_alert(PatientService.get_patient_attribute_value(patient, "current_weight"), PatientService.get_patient_attribute_value(patient, "current_height"))
       alerts << bmi_alert if bmi_alert
     end
@@ -945,7 +945,7 @@ class PatientsController < ApplicationController
   end
 
   def recent_lab_orders_label(test_list, patient)
-  	patient_bean = get_patient(patient.person)
+  	patient_bean = PatientService.get_patient(patient.person)
     lab_orders = test_list
     labels = []
     i = 0
@@ -1000,7 +1000,7 @@ class PatientsController < ApplicationController
   #moved from the patient model. Needs good testing
   def demographics_label(patient_id)
     patient = Patient.find(patient_id)
-    patient_bean = get_patient(patient.person)
+    patient_bean = PatientService.get_patient(patient.person)
     demographics = mastercard_demographics(patient)
     hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("HIV Staging").id,patient.id])
@@ -1155,7 +1155,7 @@ class PatientsController < ApplicationController
 
   def patient_transfer_out_label(patient_id)
     patient = Patient.find(patient_id)
-    patient_bean = get_patient(patient.person)
+    patient_bean = PatientService.get_patient(patient.person)
     demographics = mastercard_demographics(patient)
     demographics_str = []
     demographics_str << "Name: #{demographics.name}"
@@ -1728,7 +1728,7 @@ class PatientsController < ApplicationController
   def art_guardian(patient)
     person_id = Relationship.find(:first,:order => "date_created DESC",
       :conditions =>["person_a = ?",patient.person.id]).person_b rescue nil
-    patient_bean = get_patient(Person.find(person_id))
+    patient_bean = PatientService.get_patient(Person.find(person_id))
     patient_bean.name rescue nil
   end
 

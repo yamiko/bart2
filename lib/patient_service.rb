@@ -1,4 +1,5 @@
 module PatientService
+	require 'bean'
 
   def self.remote_demographics(person_obj)
     demo = self.demographics(person_obj)
@@ -1785,7 +1786,7 @@ EOF
   end
 
   def self.get_patient(person)
-    patient = Mastercard.new()
+    patient = PatientBean.new('')
     patient.person_id = person.id
     patient.patient_id = person.patient.id
     patient.arv_number = self.get_patient_identifier(person.patient, 'ARV Number')

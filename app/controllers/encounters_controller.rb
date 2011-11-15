@@ -1,5 +1,4 @@
 class EncountersController < ApplicationController
-
   def create(params=params, session=session)
     #params.to_yaml
     if params['encounter']['encounter_type_name'] == 'TB_INITIAL'
@@ -350,7 +349,7 @@ class EncountersController < ApplicationController
 		if (params[:encounter_type].upcase rescue '') == 'IPT CONTACT PERSON'
 			@contacts_ipt = []
 						
-			@ipt_contacts_ = @patient.tb_contacts.collect{|person| person unless get_patient(person).age > 6}.compact rescue []
+			@ipt_contacts_ = @patient.tb_contacts.collect{|person| person unless PatientService.get_patient(person).age > 6}.compact rescue []
 			@ipt_contacts.each do | person |
 				@contacts_ipt << PatientService.get_patient(person)
 			end
@@ -378,7 +377,7 @@ class EncountersController < ApplicationController
 
 		@hiv_status = patient_hiv_status(@patient)
 		@hiv_test_date = PatientService.hiv_test_date(@patient.id)
-raise @hiv_test_date.to_s
+#raise @hiv_test_date.to_s
 		@lab_activities = lab_activities
 		# @tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
 		@tb_patient_category = [["New","NEW"], ["Relapse","RELAPSE"], ["Retreatment after default","RETREATMENT AFTER DEFAULT"], ["Fail","FAIL"], ["Other","OTHER"]]
