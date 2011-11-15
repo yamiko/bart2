@@ -160,10 +160,6 @@ class CohortToolController < ApplicationController
       changed_to    = changed_to(new_encounter)
       changed_from  = changed_from(voided_observations)
 
-<<<<<<< HEAD
-      patient_arv_number = PatientService.get_patient_identifier(patient, "ARV NUMBER")
-=======
->>>>>>> 43579d9c645ed173262a3db6979376a171362b61
       if( voided_observations && !voided_observations.empty?)
           voided_records[encounter.id] = {
               "id"              => patient.patient_id,
@@ -203,11 +199,6 @@ class CohortToolController < ApplicationController
       next if new_encounter.nil?
       changed_from  += "Treatment: #{voided_orders(new_encounter).to_s.gsub!(":", " =>")}</br>"
       changed_to    += "Treatment: #{encounter.to_s.gsub!(":", " =>") }</br>"
-
-<<<<<<< HEAD
-      patient_arv_number = PatientService.get_patient_identifier(patient, 'ARV NUMBER')
-=======
->>>>>>> 43579d9c645ed173262a3db6979376a171362b61
 
       if( orders && !orders.empty?)
         voided_records[encounter.id]= {
@@ -482,21 +473,12 @@ class CohortToolController < ApplicationController
 	  
       # get a patient of a given visit
       new_patient   = { :patient_id   => (visit.patient.patient_id || ""),
-<<<<<<< HEAD
-                        :arv_number   => (PatientService.get_patient_identifier(visit.patient, 'ARV Number') || ""),
-                        :name         => (visit.patient.person.name || ""),
-                        :national_id  => (get_national_id(visit.patient) || ""),
-                        :gender       => (sex(visit.patient.person) || ""),
-                        :age          => (visit.patient.person.age || ""),
-                        :birthdate    => (visit.patient.person.birthdate.strftime("%d-%b-%Y") || ""),
-=======
                         :arv_number   => (patient_bean.arv_number || ""),
                         :name         => (patient_bean.name || ""),
                         :national_id  => (patient_bean.national_id || ""),
                         :gender       => (patient_bean.sex || ""),
                         :age          => (patient_bean.age || ""),
                         :birthdate    => (patient_bean.birth_date || ""),
->>>>>>> 43579d9c645ed173262a3db6979376a171362b61
                         :phone_number => (phone_numbers(visit.patient) || ""),
                         :start_date   => (visit.patient.encounters.last.encounter_datetime.strftime("%d-%b-%Y") || "")
       }
@@ -712,13 +694,8 @@ class CohortToolController < ApplicationController
       patient = Patient.find(reason[:person_id])
       patient_bean = get_patient(patient.person)
       patients_data << {'person_id' => patient.id,
-<<<<<<< HEAD
-                        'arv_number' => PatientService.get_patient_identifier(patient, 'ARV Number'),
-                        'national_id' => get_national_id(patient),
-=======
                         'arv_number' => patient_bean.arv_number,
                         'national_id' => patient_bean.national_id,
->>>>>>> 43579d9c645ed173262a3db6979376a171362b61
                         'date_created' => reason[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
                         'start_reason' => ConceptName.find(reason[:value_coded_name_id]).name
                        }
@@ -755,21 +732,12 @@ class CohortToolController < ApplicationController
       patient_bean = get_patient(patient.person)
 
       out_of_range_arv_numbers_data <<{'person_id' => patient.id,
-<<<<<<< HEAD
-                                       'arv_number' => arv_num_data[:identifier],
-                                       'name' => patient.name,
-                                       'national_id' => national_id,
-                                       'gender' => sex(patient),
-                                       'age' => PatientService.get_patient_attribute_value(patient.patient, "age"),
-                                       'birthdate' => patient.birthdate,
-=======
                                        'arv_number' => patient_bean.arv_number,
                                        'name' => patient_bean.name,
                                        'national_id' => patient_bean.national_id,
                                        'gender' => patient_bean.sex,
                                        'age' => patient_bean.age,
                                        'birthdate' => patient_bean.birth_date,
->>>>>>> 43579d9c645ed173262a3db6979376a171362b61
                                        'date_created' => arv_num_data[:date_created].strftime("%Y-%m-%d %H:%M:%S")
                                        }
     end
@@ -791,13 +759,8 @@ class CohortToolController < ApplicationController
         drug_name    = Drug.find(dispensation[:value_drug]).name
 
         dispensations_without_prescriptions << { 'person_id' => patient.id,
-<<<<<<< HEAD
-                                              'arv_number' => PatientService.get_patient_identifier(patient, 'ARV Number'),
-                                              'national_id' => get_national_id(patient),
-=======
                                               'arv_number' => patient_bean.arv_number,
                                               'national_id' => patient_bean.national_id,
->>>>>>> 43579d9c645ed173262a3db6979376a171362b61
                                               'date_created' => dispensation[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
                                               'drug_name' => drug_name
                                              }
@@ -848,21 +811,12 @@ class CohortToolController < ApplicationController
       person = Person.find(patient_data_row[:patient_id].to_i)
       patient_bean = get_patient(person)
       patients_data <<{ 'person_id' => person.id,
-<<<<<<< HEAD
-                        'arv_number' => PatientService.get_patient_identifier(person, 'ARV Number'),
-                        'name' => person.name,
-                        'national_id' => get_national_id(person.patient),
-                        'gender' => person.gender,
-                        'age' => person.age,
-                        'birthdate' => person.birthdate,
-=======
                         'arv_number' => patient_bean.arv_number,
                         'name' => patient_bean.name,
                         'national_id' => patient_bean.get_national_id,
                         'gender' => patient_bean.sex,
                         'age' => patient_bean.age,
                         'birthdate' => patient_bean.birth_date,
->>>>>>> 43579d9c645ed173262a3db6979376a171362b61
                         'phone' => phone_numbers(person), 
                         'date_created' => patient_data_row[:date_started]
                        }
@@ -884,21 +838,12 @@ class CohortToolController < ApplicationController
           person = Person.find(patient_data_row[:person_id].to_i)
 		  patient_bean = get_patient(person)
           patients_data <<{ 'person_id' => person.id,
-<<<<<<< HEAD
-                            'arv_number' => PatientService.get_patient_identifier(person, 'ARV Number'),
-                            'name' => person.name,
-                            'national_id' => get_national_id(person.patient),
-                            'gender' => person.gender,
-                            'age' => person.age,
-                            'birthdate' => person.birthdate,
-=======
                             'arv_number' => patient_bean.arv_number,
                             'name' => patient_bean.name,
                             'national_id' => patient_bean.national_id,
                             'gender' => patient_bean.sex,
                             'age' => patient_bean.age,
                             'birthdate' => patient_bean.birth_date,
->>>>>>> 43579d9c645ed173262a3db6979376a171362b61
                             'phone' => phone_numbers(person),
                             'date_created' => patient_data_row[:obs_datetime]
                            }
@@ -943,15 +888,6 @@ class CohortToolController < ApplicationController
       person = Person.find(patient_data_row[:person_id].to_i)
       patient_bean = get_patient(person)
       patients_data <<{ 'person_id' => person.id,
-<<<<<<< HEAD
-                        'arv_number' => PatientService.get_patient_identifier(person, 'ARV Number'),
-                        'name' => person.name,
-                        'national_id' => get_national_id(person.patient),
-                        'gender' => person.gender,
-                        'age' => person.age,
-                        'birthdate' => person.birthdate,
-                        'phone' => phone_numbers(person), 
-=======
                         'arv_number' => patient_bean.arv_number,
                         'name' => patient_bean.name,
                         'national_id' => patient_bean.national_id,
@@ -959,7 +895,6 @@ class CohortToolController < ApplicationController
                         'age' => patient_bean.age,
                         'birthdate' => patient_bean.birth_date,
                         'phone' => phone_numbers(person),
->>>>>>> 43579d9c645ed173262a3db6979376a171362b61
                         'date_created' => patient_data_row[:date_started]
                        }
     end
@@ -1008,21 +943,12 @@ class CohortToolController < ApplicationController
       person = Person.find(patient_data_row[:patient_id])
 	  patient_bean = get_patient(person)
       patients_data <<{ 'person_id' => person.id,
-<<<<<<< HEAD
-                        'arv_number' => PatientService.get_patient_identifier(patient_data_row, 'ARV Number'),
-                        'name' => person.name,
-                        'national_id' => get_national_id(person.patient),
-                        'gender' => person.gender,
-                        'age' => person.age,
-                        'birthdate' => person.birthdate,
-=======
                         'arv_number' => patient_bean.arv_number,
                         'name' => patient_bean.name,
                         'national_id' => patient_bean.national_id,
                         'gender' => patient_bean.sex,
                         'age' => patient_bean.age,
                         'birthdate' => patient_bean.birth_date,
->>>>>>> 43579d9c645ed173262a3db6979376a171362b61
                         'phone' => phone_numbers(person), 
                         'date_created' => patient_data_row[:date_started_ARV]
                        }
@@ -1137,15 +1063,9 @@ class CohortToolController < ApplicationController
                                         "name" => patient_bean.name,
                                         "national_id" => patient_bean.national_id,
                                         "visit_date" =>rate.obs_datetime,
-<<<<<<< HEAD
-                                        "gender" =>person.gender,
-                                        "age" =>PatientService.patient_age_at_initiation(patient, rate.start_date.to_date),
-                                        "birthdate" => person.birthdate,
-=======
                                         "gender" =>patient_bean.sex,
                                         "age" =>patient_age_at_initiation(patient, rate.start_date.to_date),
                                         "birthdate" => patient_bean.birth_date,
->>>>>>> 43579d9c645ed173262a3db6979376a171362b61
                                         "pill_count" => pill_count.to_i.to_s,
                                         "adherence" => rate. adherence_rate_worse,
                                         "start_date" => rate.start_date.to_date,
