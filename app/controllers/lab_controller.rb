@@ -3,6 +3,7 @@ class LabController < ApplicationController
     @results = []
     @patient = Patient.find(params[:id])
     patient_ids = id_identifiers(@patient)
+    @patient_bean = get_patient(@patient.person)
     (Lab.results(@patient, patient_ids) || []).map do | short_name , test_name , range , value , test_date |
       @results << [short_name.gsub('_',' '),"/lab/view?test=#{short_name}&patient_id=#{@patient.id}"]
     end
@@ -11,6 +12,7 @@ class LabController < ApplicationController
 
   def view
     @patient = Patient.find(params[:patient_id])
+    @patient_bean = get_patient(@patient.person)
     @test = params[:test]
     patient_ids = id_identifiers(@patient)
     @results = Lab.results_by_type(@patient, @test, patient_ids)
@@ -71,7 +73,7 @@ class LabController < ApplicationController
       @results << [ date , value ]
     end 
     @patient = Patient.find(params[:patient_id])
-    @patient_bean = get_patient(@patient.person)
+    @patient_bean = PatientService.get_patient(@patient.person)
     @type = params[:type]
     @test = params[:test]
     render :layout => 'menu'

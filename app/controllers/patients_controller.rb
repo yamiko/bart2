@@ -5,7 +5,7 @@ class PatientsController < ApplicationController
     session[:mastercard_ids] = []
     session_date = session[:datetime].to_date rescue Date.today
 
-	@patient_bean = get_patient(@patient.person)    
+	@patient_bean = PatientService.get_patient(@patient.person)    
 
 	@encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
@@ -25,9 +25,9 @@ class PatientsController < ApplicationController
         render :template => 'dashboards/opdtreatment_dashboard', :layout => false
      else
         @task = main_next_task(Location.current_location,@patient,session_date)
-        @hiv_status = patient_hiv_status(@patient)
-        @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
-        @arv_number = get_patient_identifier(@patient, 'ARV Number')
+        @hiv_status = PatientService.patient_hiv_status(@patient)
+        @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
+        @arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
 
         render :template => 'patients/index', :layout => false
      end
@@ -95,8 +95,8 @@ class PatientsController < ApplicationController
        @transfer_out_site = obs.to_s if obs.to_s.include?('Transfer out to')
      end
     end
-    @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
-    @arv_number = get_patient_identifier(@patient, 'ARV Number')
+    @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
+    @arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
 
     render :template => 'dashboards/dispension_tab', :layout => false
   end
@@ -144,7 +144,7 @@ class PatientsController < ApplicationController
 		  @restricted.each do |restriction|
 		    @relationships = restriction.filter_relationships(@relationships)
 		  end
-        @patient_arv_number = get_patient_identifier(@patient, 'ARV Number')
+        @patient_arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
     	render :template => 'dashboards/relationships', :layout => 'dashboard' 
   	end
   end
@@ -161,11 +161,11 @@ class PatientsController < ApplicationController
     @links << ["Visit Summary (Print)","/patients/dashboard_print_visit/#{patient.id}"]
     @links << ["National ID (Print)","/patients/dashboard_print_national_id/#{patient.id}"]
 
-    if use_filing_number and not get_patient_identifier(patient, 'Filing Number').blank?
+    if use_filing_number and not PatientService.get_patient_identifier(patient, 'Filing Number').blank?
       @links << ["Filing Number (Print)","/patients/print_filing_number/#{patient.id}"]
     end 
 
-    if use_filing_number and get_patient_identifier(patient, 'Filing Number').blank?
+    if use_filing_number and PatientService.get_patient_identifier(patient, 'Filing Number').blank?
       @links << ["Filing Number (Create)","/patients/set_filing_number/#{patient.id}"]
     end 
 
@@ -357,21 +357,21 @@ class PatientsController < ApplicationController
       @patient_id = session[:mastercard_ids][session[:mastercard_counter]]
       @data_demo = mastercard_demographics(Patient.find(@patient_id))
       @visits = visits(Patient.find(@patient_id))
-      @patient_art_start_date = patient_art_start_date(@patient_id)
+      @patient_art_start_date = PatientService.patient_art_start_date(@patient_id)
       # elsif session[:mastercard_ids].length.to_i != 0
       #  @patient_id = params[:patient_id]
       #  @data_demo = mastercard_demographics(Patient.find(@patient_id))
       #  @visits = visits(Patient.find(@patient_id))
     else
       @patient_id = params[:patient_id]
-      @patient_art_start_date = patient_art_start_date(@patient_id)
+      @patient_art_start_date = PatientService.patient_art_start_date(@patient_id)
       @data_demo = mastercard_demographics(Patient.find(@patient_id))
       @visits = visits(Patient.find(@patient_id))
     end
 
     @visits.keys.each do|day|
 		@age_in_months_for_days[day] = age_in_months(@patient.person, day.to_date)
-    end
+    end rescue nil
 
     render :layout => false
   end
@@ -380,6 +380,8 @@ class PatientsController < ApplicationController
     @patient_id = params[:patient_id] 
     @date = params[:date].to_date
     @patient = Patient.find(@patient_id)
+    @patient_bean = get_patient(@patient.person)
+    @patient_gaurdians = @patient.person.relationships.map{|r| name(Person.find(r.person_b)) }.join(' : ')
     @visits = visits(@patient,@date)
     render :layout => "menu"
   end
@@ -430,10 +432,10 @@ class PatientsController < ApplicationController
 
   def set_filing_number
     patient = Patient.find(params[:id])
-    set_patient_filing_number(patient)
+    PatientService.set_patient_filing_number(patient)
 
-    archived_patient = patient_to_be_archived(patient)
-    message = patient_printing_message(patient,archived_patient,true)
+    archived_patient = PatientService.patient_to_be_archived(patient)
+    message = PatientService.patient_printing_message(patient,archived_patient,true)
     unless message.blank?
       print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/patients/show/#{patient.id}",message,true,patient.id)
     else
@@ -445,8 +447,8 @@ class PatientsController < ApplicationController
     patient = Patient.find(params[:id])
     set_new_patient_filing_number(patient)
 
-    archived_patient = patient_to_be_archived(patient)
-    message = patient_printing_message(patient, archived_patient)
+    archived_patient = PatientService.patient_to_be_archived(patient)
+    message = PatientService.patient_printing_message(patient, archived_patient)
     unless message.blank?
       print_and_redirect("/patients/filing_number_label/#{patient.id}" , "/people/confirm?found_person_id=#{patient.id}",message,true,patient.id)
     else
@@ -456,14 +458,15 @@ class PatientsController < ApplicationController
 
   def export_to_csv
     ( Patient.find(:all,:limit => 10) || [] ).each do | patient |
+      patient_bean = get_patient(patient.person)
       csv_string = FasterCSV.generate do |csv|
         # header row
         csv << ["ARV number", "National ID"]
-        csv << [get_patient_identifier(patient, 'ARV Number'), get_national_id(patient)]
+        csv << [PatientService.get_patient_identifier(patient, 'ARV Number'), get_national_id(patient)]
         csv << ["Name", "Age","Sex","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
         transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
         transfer_in.blank? == true ? transfer_in = 'NO' : transfer_in = 'YES'
-        csv << [patient.person.name,patient.person.age, sex(patient.person),get_patient_attribute_value(patient, "initial_weight"),get_patient_attribute_value(patient, "initial_height"),get_patient_attribute_value(patient, "initial_bmi"),transfer_in]
+        csv << [patient.person.name,patient.person.age, sex(patient.person),PatientService.get_patient_attribute_value(patient, "initial_weight"),PatientService.get_patient_attribute_value(patient, "initial_height"),PatientService.get_patient_attribute_value(patient, "initial_bmi"),transfer_in]
         csv << ["Location", "Land-mark","Occupation","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
 
 =begin
@@ -505,7 +508,7 @@ class PatientsController < ApplicationController
   end
   
   def demographics
-	@patient_bean = get_patient(@patient.person)
+	@patient_bean = PatientService.get_patient(@patient.person)
     render :layout => false
   end
    
@@ -527,9 +530,9 @@ class PatientsController < ApplicationController
     @date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
     @task = main_next_task(Location.current_location,@patient,session_date)
     
-    @hiv_status = patient_hiv_status(@patient)
-    @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
-    @arv_number = get_patient_identifier(@patient, 'ARV Number')
+    @hiv_status = PatientService.patient_hiv_status(@patient)
+    @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
+    @arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
 
     render :template => 'patients/index', :layout => false
   end
@@ -594,7 +597,7 @@ class PatientsController < ApplicationController
   end
 
   def treatment_dashboard
-	@patient_bean = get_patient(@patient.person)
+	@patient_bean = PatientService.get_patient(@patient.person)
     @amount_needed = 0
     @amounts_required = 0
 
@@ -612,24 +615,24 @@ class PatientsController < ApplicationController
     }
 
     @dispensed_order_id = params[:dispensed_order_id]
-    @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
-    @arv_number = get_patient_identifier(@patient, 'ARV Number')
+    @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
+    @arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
 
     render :template => 'dashboards/treatment_dashboard', :layout => false
   end
 
   def guardians_dashboard
-	@patient_bean = get_patient(@patient.person)
-    @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
-    @arv_number = get_patient_identifier(@patient, 'ARV Number')
+	@patient_bean = PatientService.get_patient(@patient.person)
+    @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
+    @arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
 
     render :template => 'dashboards/relationships_dashboard', :layout => false
   end
 
   def programs_dashboard
-	@patient_bean = get_patient(@patient.person)
-    @reason_for_art_eligibility = reason_for_art_eligibility(@patient)
-    @arv_number = get_patient_identifier(@patient, 'ARV Number')
+	@patient_bean = PatientService.get_patient(@patient.person)
+    @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
+    @arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
     render :template => 'dashboards/programs_dashboard', :layout => false
   end
 
@@ -648,7 +651,7 @@ class PatientsController < ApplicationController
     end
 
     @mastercard = mastercard_demographics(@patient)
-    @patient_art_start_date = patient_art_start_date(@patient.id)
+    @patient_art_start_date = PatientService.patient_art_start_date(@patient.id)
     @visits = visits(@patient)   # (@patient, (session[:datetime].to_date rescue Date.today))
     
     @age_in_months_for_days = {}
@@ -656,10 +659,10 @@ class PatientsController < ApplicationController
 		@age_in_months_for_days[day] = age_in_months(@patient.person, day.to_date)
     end
     
-    @patient_age_at_initiation = patient_age_at_initiation(@patient,
-                                              patient_art_start_date(@patient.id))
+    @patient_age_at_initiation = PatientService.patient_age_at_initiation(@patient,
+                                              PatientService.patient_art_start_date(@patient.id))
                                               
-    @patient_bean = get_patient(@patient.person)
+    @patient_bean = PatientService.get_patient(@patient.person)
 	@guardian_phone_number = get_attribute(Person.find(@patient.person.relationships.first.person_b), 'Cell phone number')
 	@patient_phone_number = get_attribute(@patient.person, 'Cell phone number')
     render :layout => false
@@ -725,7 +728,7 @@ class PatientsController < ApplicationController
   end
 
   def tb_treatment_card # to look at later - To test that is
-  	@patient_bean = get_patient(@patient.person)
+  	@patient_bean = PatientService.get_patient(@patient.person)
     render :layout => 'menu'
   end
 
@@ -734,7 +737,7 @@ class PatientsController < ApplicationController
     # adherence
     # drug auto-expiry
     # cd4 due
-
+	patient_bean = get_patient(patient.person)
     alerts = []
 
     type = EncounterType.find_by_name("APPOINTMENT")
@@ -775,7 +778,7 @@ class PatientsController < ApplicationController
 
     # BMI alerts
     if patient.person.age >= 15
-      bmi_alert = current_bmi_alert(get_patient_attribute_value(patient, "current_weight"), get_patient_attribute_value(patient, "current_height"))
+      bmi_alert = current_bmi_alert(PatientService.get_patient_attribute_value(patient, "current_weight"), PatientService.get_patient_attribute_value(patient, "current_height"))
       alerts << bmi_alert if bmi_alert
     end
     
@@ -784,14 +787,14 @@ class PatientsController < ApplicationController
 
     patient_hiv_program = PatientProgram.find(:all,:conditions =>["voided = 0 AND patient_id = ? AND program_id = ? AND location_id = ?", patient.id , program_id, location_id])
 
-    hiv_status = patient_hiv_status(patient)
-    alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.strip}" == 'Negative' && months_since_last_hiv_test(patient.id) > 3)
+    hiv_status = PatientService.patient_hiv_status(patient)
+    alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.strip}" == 'Negative' && PatientService.months_since_last_hiv_test(patient.id) > 3)
     alerts << "Patient not on ART" if (("#{hiv_status.strip}" == 'Positive') && !patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) ||
                                                           ((patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) && (ProgramWorkflowState.find_state(patient_hiv_program.last.patient_states.last.state).concept.fullname != "On antiretrovirals"))
     alerts << "HIV Status : #{hiv_status}" if "#{hiv_status.strip}" == 'Unknown'
-    alerts << "Lab: Expecting submission of sputum" unless sputum_orders_without_submission(patient.id).empty?
-    alerts << "Lab: Waiting for sputum results" if recent_sputum_results(patient.id).empty? && !recent_sputum_submissions(patient.id).empty?
-    alerts << "Lab: Results not given to patient" if !recent_sputum_results(patient.id).empty? && given_sputum_results(patient.id).to_s != "Yes"
+    alerts << "Lab: Expecting submission of sputum" unless PatientService.sputum_orders_without_submission(patient.id).empty?
+    alerts << "Lab: Waiting for sputum results" if PatientService.recent_sputum_results(patient.id).empty? && !PatientService.recent_sputum_submissions(patient.id).empty?
+    alerts << "Lab: Results not given to patient" if !PatientService.recent_sputum_results(patient.id).empty? && given_sputum_results(patient.id).to_s != "Yes"
     alerts << "Patient go for CD4 count testing" if cd4_count_datetime(patient) == true
     alerts << "Lab: Patient must order sputum test" if patient_need_sputum_test?(patient.id)
     alerts << "Refer to ART wing" if show_alert_refer_to_ART_wing(patient)
@@ -842,7 +845,7 @@ class PatientsController < ApplicationController
             end
         end
 
-        if refer_to_x_ray.upcase == 'NO' && does_tb_status_obs_exist.to_s == false.to_s && patient_hiv_status(patient).upcase == 'POSITIVE'
+        if refer_to_x_ray.upcase == 'NO' && does_tb_status_obs_exist.to_s == false.to_s && PatientService.patient_hiv_status(patient).upcase == 'POSITIVE'
            show_alert = true
         end rescue nil
         show_alert
@@ -942,6 +945,7 @@ class PatientsController < ApplicationController
   end
 
   def recent_lab_orders_label(test_list, patient)
+  	patient_bean = get_patient(patient.person)
     lab_orders = test_list
     labels = []
     i = 0
@@ -958,7 +962,7 @@ class PatientsController < ApplicationController
           label.font_vertical_multiplier = 1
           label.left_margin = 300
           label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
-          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
+          label.draw_multi_text("#{patient_bean.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
           label.draw_multi_text("#{observation.name rescue nil} - #{accession_number rescue nil}")
           label.draw_multi_text("#{observation.date_created.strftime("%d-%b-%Y %H:%M")}")
           labels << label
@@ -996,6 +1000,7 @@ class PatientsController < ApplicationController
   #moved from the patient model. Needs good testing
   def demographics_label(patient_id)
     patient = Patient.find(patient_id)
+    patient_bean = get_patient(patient.person)
     demographics = mastercard_demographics(patient)
     hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("HIV Staging").id,patient.id])
@@ -1027,8 +1032,8 @@ class PatientsController < ApplicationController
     phone_number= home_phone_number if not home_phone_number.downcase == "not available" and not home_phone_number.downcase == "unknown" rescue nil
     phone_number = cell_phone_number if not cell_phone_number.downcase == "not available" and not cell_phone_number.downcase == "unknown" rescue nil
 
-    initial_height = get_patient_attribute_value(patient, "initial_height")
-    initial_weight = get_patient_attribute_value(patient, "initial_weight")
+    initial_height = PatientService.get_patient_attribute_value(patient, "initial_height")
+    initial_weight = PatientService.get_patient_attribute_value(patient, "initial_weight")
 
     label = ZebraPrinter::StandardLabel.new
     label.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",450,300,0,1,1,1,false)
@@ -1118,7 +1123,7 @@ class PatientsController < ApplicationController
 
     label2.draw_text("HEIGHT: #{initial_height}",570,70,0,2,1,1,false)
     label2.draw_text("WEIGHT: #{initial_weight}",570,110,0,2,1,1,false)
-    label2.draw_text("Init Age: #{patient_age_at_initiation(patient, demographics.date_of_first_line_regimen) rescue nil}",570,150,0,2,1,1,false)
+    label2.draw_text("Init Age: #{PatientService.patient_age_at_initiation(patient, demographics.date_of_first_line_regimen) rescue nil}",570,150,0,2,1,1,false)
 
     line = 190
     extra_lines = []
@@ -1138,7 +1143,7 @@ class PatientsController < ApplicationController
       line = 30
       label3 = ZebraPrinter::StandardLabel.new
       label3.draw_text("STAGE DEFINING CONDITIONS",25,line,0,3,1,1,false)
-      label3.draw_text("#{get_patient_identifier(patient, 'ARV Number')}",370,line,0,2,1,1,false)
+      label3.draw_text("#{PatientService.get_patient_identifier(patient, 'ARV Number')}",370,line,0,2,1,1,false)
       label3.draw_text("Printed on: #{Date.today.strftime('%A, %d-%b-%Y')}",450,300,0,1,1,1,false)
       extra_lines.each{|condition|
         label3.draw_text(condition,25,line+=30,0,2,1,1,false)
@@ -1150,11 +1155,12 @@ class PatientsController < ApplicationController
 
   def patient_transfer_out_label(patient_id)
     patient = Patient.find(patient_id)
+    patient_bean = get_patient(patient.person)
     demographics = mastercard_demographics(patient)
     demographics_str = []
     demographics_str << "Name: #{demographics.name}"
-    demographics_str << "DOB: #{patient.person.birthdate}"
-    demographics_str << "DOB-E: #{patient.person.birthdate_estimated}"
+    demographics_str << "DOB: #{patient_bean.birth_date}"
+    demographics_str << "DOB-E: #{patient_bean.birthdate_estimated}"
     demographics_str << "Sex: #{demographics.sex}"
     demographics_str << "Guardian name: #{demographics.guardian}"
     demographics_str << "ARV number: #{demographics.arv_number}"
@@ -1251,7 +1257,7 @@ class PatientsController < ApplicationController
   end
 
   def patient_filing_number_label(patient, num = 1)
-    file = get_patient_identifier(patient, 'Filing Number')[0..9]
+    file = PatientService.get_patient_identifier(patient, 'Filing Number')[0..9]
     file_type = file.strip[3..4]
     version_number=file.strip[2..2]
     number = file
@@ -1289,7 +1295,7 @@ class PatientsController < ApplicationController
   end
 
   def mastercard_demographics(patient_obj)
-  	patient_bean = get_patient(patient_obj.person)
+  	patient_bean = PatientService.get_patient(patient_obj.person)
     visits = Mastercard.new()
     visits.patient_id = patient_obj.id
     visits.arv_number = patient_bean.arv_number
@@ -1300,9 +1306,9 @@ class PatientsController < ApplicationController
     visits.age = patient_bean.age
     visits.occupation = get_attribute(patient_obj.person, 'Occupation')
     visits.landmark = patient_obj.person.addresses.first.address1
-    visits.init_wt = get_patient_attribute_value(patient_obj, "initial_weight")
-    visits.init_ht = get_patient_attribute_value(patient_obj, "initial_height")
-    visits.bmi = get_patient_attribute_value(patient_obj, "initial_bmi")
+    visits.init_wt = PatientService.get_patient_attribute_value(patient_obj, "initial_weight")
+    visits.init_ht = PatientService.get_patient_attribute_value(patient_obj, "initial_height")
+    visits.bmi = PatientService.get_patient_attribute_value(patient_obj, "initial_bmi")
     visits.agrees_to_followup = patient_obj.person.observations.recent(1).question("Agrees to followup").all rescue nil
     visits.agrees_to_followup = visits.agrees_to_followup.to_s.split(':')[1].strip rescue nil
     visits.hiv_test_date = patient_obj.person.observations.recent(1).question("Confirmatory HIV test date").all rescue nil
@@ -1310,7 +1316,7 @@ class PatientsController < ApplicationController
     visits.hiv_test_location = patient_obj.person.observations.recent(1).question("Confirmatory HIV test location").all rescue nil
     visits.hiv_test_location = visits.hiv_test_location.to_s.split(':')[1].strip rescue nil
     visits.guardian = art_guardian(patient_obj) rescue nil
-    visits.reason_for_art_eligibility = reason_for_art_eligibility(patient_obj)
+    visits.reason_for_art_eligibility = PatientService.reason_for_art_eligibility(patient_obj)
     visits.transfer_in = patient_obj.transfer_in? rescue nil #pb: bug-2677 Made this to use the newly created patient model method 'transfer_in?'
     visits.transfer_in == false ? visits.transfer_in = 'NO' : visits.transfer_in = 'YES'
 
@@ -1580,7 +1586,7 @@ class PatientsController < ApplicationController
   end  
 
   def mastercard_visit_label(patient,date = Date.today)
-  	patient_bean = get_patient(patient.person)
+  	patient_bean = PatientService.get_patient(patient.person)
     visit = visits(patient,date)[date] rescue {}
     return if visit.blank? 
     visit_data = mastercard_visit_data(visit)
@@ -1722,7 +1728,8 @@ class PatientsController < ApplicationController
   def art_guardian(patient)
     person_id = Relationship.find(:first,:order => "date_created DESC",
       :conditions =>["person_a = ?",patient.person.id]).person_b rescue nil
-    Person.find(person_id).name rescue nil
+    patient_bean = get_patient(Person.find(person_id))
+    patient_bean.name rescue nil
   end
 
   def save_mastercard_attribute(params)
@@ -1823,7 +1830,7 @@ class PatientsController < ApplicationController
         end
       end
 
-      if get_patient_identifier(patient, 'Archived filing number')
+      if PatientService.get_patient_identifier(patient, 'Archived filing number')
         #voids the record- if patient has a dormant filing number
         current_archive_filing_numbers = patient.patient_identifiers.collect{|identifier|
           identifier if identifier.identifier_type == archive_identifier_type.id and identifier.voided
@@ -1840,7 +1847,7 @@ class PatientsController < ApplicationController
       unless patient_to_be_archived.blank?
         filing_number = PatientIdentifier.new()
         filing_number.patient_id = patient.id
-        filing_number.identifier = get_patient_identifier(patient_to_be_archived, 'Archived filing number')
+        filing_number.identifier = PatientService.get_patient_identifier(patient_to_be_archived, 'Archived filing number')
         filing_number.identifier_type = filing_number_identifier_type.id
         filing_number.save
 

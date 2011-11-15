@@ -83,7 +83,7 @@ class PeopleController < ApplicationController
     @people = person_search(params)
     @patients = []
     @people.each do | person |
-        patient = get_patient(person)
+        patient = PatientService.get_patient(person)
         @patients << patient
     end
     
@@ -100,7 +100,7 @@ class PeopleController < ApplicationController
     @person = Person.find(@found_person_id) rescue nil
     @task = main_next_task(Location.current_location,@person.patient,session_date.to_date)
     @arv_number = get_patient_identifier(@person, 'ARV Number')
-	@patient_bean = get_patient(@person)
+	@patient_bean = PatientService.get_patient(@person)
     render :layout => 'menu'
   end
 
@@ -212,9 +212,9 @@ class PeopleController < ApplicationController
        end
 
         if use_filing_number and not tb_session
-          set_patient_filing_number(person.patient) 
-          archived_patient = patient_to_be_archived(person.patient)
-          message = patient_printing_message(person.patient,archived_patient,creating_new_patient = true)
+          PatientService.set_patient_filing_number(person.patient) 
+          archived_patient = PatientService.patient_to_be_archived(person.patient)
+          message = PatientService.patient_printing_message(person.patient,archived_patient,creating_new_patient = true)
           unless message.blank?
             print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}" , next_task(person.patient),message,true,person.id) 
           else
@@ -351,7 +351,7 @@ class PeopleController < ApplicationController
     results = {}
     result_hash = {}
 
-    if art_patient?(patient)
+    if PatientService.art_patient?(patient)
       clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",'ART ADHERENCE','DISPENSING','ART_INITIAL']
       clinic_encounter_ids = EncounterType.find(:all,:conditions => ["name IN (?)",clinic_encounters]).collect{| e | e.id }
       first_encounter_date = patient.encounters.find(:first,
@@ -363,7 +363,7 @@ class PeopleController < ApplicationController
         :conditions => ['encounter_type IN (?)',clinic_encounter_ids]).encounter_datetime.strftime("%d-%b-%Y") rescue 'Uknown'
 
 
-      art_start_date = patient_art_start_date(patient.id).strftime("%d-%b-%Y") rescue 'Uknown'
+      art_start_date = PatientService.patient_art_start_date(patient.id).strftime("%d-%b-%Y") rescue 'Uknown'
       last_given_drugs = patient.person.observations.recent(1).question("ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT").last rescue nil
       last_given_drugs = last_given_drugs.value_text rescue 'Uknown'
 
@@ -404,7 +404,7 @@ class PeopleController < ApplicationController
     results = {}
     result_hash = {}
     
-    if patient.art_patient?
+    if PatientService.art_patient?(patient)
       clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",'ART ADHERENCE','DISPENSING','ART_INITIAL']
       clinic_encounter_ids = EncounterType.find(:all,:conditions => ["name IN (?)",clinic_encounters]).collect{| e | e.id }
       first_encounter_date = patient.encounters.find(:first, 

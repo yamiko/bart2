@@ -42,7 +42,7 @@ class DispensationsController < ApplicationController
 
     @encounter = current_dispensation_encounter(@patient, session_date, user_person_id)
 
-    @order = current_treatment_encounter( @patient, session_date, user_person_id).drug_orders.find(:first,:conditions => ['drug_order.drug_inventory_id = ?', 
+    @order = PatientService.current_treatment_encounter( @patient, session_date, user_person_id).drug_orders.find(:first,:conditions => ['drug_order.drug_inventory_id = ?', 
              params[:drug_id]]).order rescue []
 
     # Do we have an order for the specified drug?
@@ -71,20 +71,20 @@ class DispensationsController < ApplicationController
       :obs_datetime => session[:datetime] || Time.now())
     if obs.save
       @patient.patient_programs.find_last_by_program_id(Program.find_by_name("HIV PROGRAM")).transition(
-               :state => "On antiretrovirals",:start_date => session[:datetime] || Time.now()) if @drug.arv? rescue nil
+               :state => "On antiretrovirals",:start_date => session[:datetime] || Time.now()) if MedicationService.arv(@drug) rescue nil
 
     @tb_programs = @patient.patient_programs.in_uncompleted_programs(['TB PROGRAM', 'MDR-TB PROGRAM'])
 
       if !@tb_programs.blank?
         @patient.patient_programs.find_last_by_program_id(Program.find_by_name("TB PROGRAM")).transition(
-               :state => "Currently in treatment",:start_date => session[:datetime] || Time.now()) if   @drug.tb_medication? rescue nil
+               :state => "Currently in treatment",:start_date => session[:datetime] || Time.now()) if   MedicationService.tb_medication(@drug)
       end
 
       unless @order.blank?
         @order.drug_order.total_drug_supply(@patient, @encounter,session_date.to_date)
 
         #checks if the prescription is satisfied
-        complete = dispension_complete(@patient, @encounter, current_treatment_encounter(@patient, session_date, user_person_id))
+        complete = dispension_complete(@patient, @encounter, PatientService.current_treatment_encounter(@patient, session_date, user_person_id))
         if complete
           unless params[:location]
             start_date , end_date = DrugOrder.prescription_dates(@patient,session_date.to_date)
@@ -141,7 +141,7 @@ class DispensationsController < ApplicationController
     dispense_finish = true ; dispensed_drugs_inventory_ids = []
 
     prescription.orders.each do | order |
-      next if not order.drug_order.drug.arv?
+      next if not MedicationService.arv(order.drug_order.drug)
       dispensed_drugs_inventory_ids << order.drug_order.drug.id
       if (order.drug_order.amount_needed > 0)
         dispense_finish = false
