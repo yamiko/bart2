@@ -134,7 +134,7 @@
 
     <% @prescriptions.each do | order | %>
         row = document.getElementById("<%=order.id%>")
-        <% if order.drug_order.drug.tb_medication? %>
+        <% if MedicationService.tb_medication(order.drug_order.drug) %>
             row.style.background = 'lightBlue';
         <%else%>
             row.style.background = '';

@@ -286,13 +286,13 @@ class EncountersController < ApplicationController
 
 	def new	
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
-		@patient_bean = get_patient(@patient.person)
+		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
-		    @current_height = get_patient_attribute_value(@patient, "current_height")
-		    @min_weight = get_patient_attribute_value(@patient, "min_weight")
-        @max_weight = get_patient_attribute_value(@patient, "max_weight")
-        @min_height = get_patient_attribute_value(@patient, "min_height")
-        @max_height = get_patient_attribute_value(@patient, "max_height")
+		    @current_height = PatientService.get_patient_attribute_value(@patient, "current_height")
+		    @min_weight = PatientService.get_patient_attribute_value(@patient, "min_weight")
+        @max_weight = PatientService.get_patient_attribute_value(@patient, "max_weight")
+        @min_height = PatientService.get_patient_attribute_value(@patient, "min_height")
+        @max_height = PatientService.get_patient_attribute_value(@patient, "max_height")
         @given_arvs_before = given_arvs_before(@patient)
         @current_encounters = @patient.encounters.find_by_date(session_date)   
         @previous_tb_visit = previous_tb_visit(@patient.id)
@@ -337,9 +337,8 @@ class EncountersController < ApplicationController
 			EncounterType.find_by_name("TB VISIT").id,@patient.id]).observations.map{|o|
 				o.answer_string if o.to_s.include?("Transfer out to")} rescue nil
 
-		@recent_sputum_results = recent_sputum_results(@patient.id) rescue nil
-    @recent_sputum_submissions = recent_sputum_submissions(@patient_id) rescue nil
-
+		@recent_sputum_results = PatientService.recent_sputum_results(@patient.id) rescue nil
+    @recent_sputum_submissions = PatientService.recent_sputum_submissions(@patient_id) rescue nil
 		@continue_treatment_at_site = []
 		Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ? AND DATE(encounter_datetime) = ?",
 		EncounterType.find_by_name("TB CLINIC VISIT").id,
@@ -353,18 +352,18 @@ class EncountersController < ApplicationController
 						
 			@ipt_contacts_ = @patient.tb_contacts.collect{|person| person unless person.age > 6}.compact rescue []
 			@ipt_contacts.each do | person |
-				@contacts_ipt << get_patient(person)
+				@contacts_ipt << PatientService.get_patient(person)
 			end
 		end
 		
 		@select_options = select_options
-		@months_since_last_hiv_test = months_since_last_hiv_test(@patient.id)
+		@months_since_last_hiv_test = PatientService.months_since_last_hiv_test(@patient.id)
 		@current_user_role = self.current_user_role
 		@tb_patient = is_tb_patient(@patient)
-		@art_patient = art_patient?(@patient)
+		@art_patient = PatientService.art_patient?(@patient)
 		@recent_lab_results = patient_recent_lab_results(@patient.id)
 		@number_of_days_to_add_to_next_appointment_date = number_of_days_to_add_to_next_appointment_date(@patient, session[:datetime] || Date.today)
-		@drug_given_before = drug_given_before(@patient, session[:datetime])
+		@drug_given_before = PatientService.drug_given_before(@patient, session[:datetime])
 
 		use_regimen_short_names = get_global_property_value("use_regimen_short_names") rescue "false"
 		show_other_regimen = ("show_other_regimen") rescue 'false'
@@ -378,8 +377,8 @@ class EncountersController < ApplicationController
 		@answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 
 		@hiv_status = patient_hiv_status(@patient)
-		@hiv_test_date = hiv_test_date(@patient.id)
-
+		@hiv_test_date = PatientService.hiv_test_date(@patient.id)
+raise @hiv_test_date.to_s
 		@lab_activities = lab_activities
 		# @tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
 		@tb_patient_category = [["New","NEW"], ["Relapse","RELAPSE"], ["Retreatment after default","RETREATMENT AFTER DEFAULT"], ["Fail","FAIL"], ["Other","OTHER"]]
@@ -396,7 +395,7 @@ class EncountersController < ApplicationController
 		@had_tb_treatment_before = ever_received_tb_treatment(@patient.id)
 		@any_previous_tb_programs = any_previous_tb_programs(@patient.id)
 
-		sputum_orders_without_submission(@patient.id).each { | order | 
+		PatientService.sputum_orders_without_submission(@patient.id).each { | order | 
 			@sputum_orders[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text
 		}
 		
@@ -405,7 +404,7 @@ class EncountersController < ApplicationController
 
 		@tb_status = recent_lab_results(@patient.id, session_date)
     # use @patient_tb_status  for the tb_status moved from the patient model
-    @patient_tb_status = patient_tb_status(@patient)
+    @patient_tb_status = PatientService.patient_tb_status(@patient)
 
     @patient_is_transfer_in = is_transfer_in(@patient)
     @patient_transfer_in_date = get_transfer_in_date(@patient)
@@ -452,7 +451,7 @@ class EncountersController < ApplicationController
 			people = person_search(params)
 			@patients = []
 			people.each do | person |
-				patient = get_patient(person)
+				patient = PatientService.get_patient(person)
 				@patients << patient
 			end
 		end
@@ -597,8 +596,8 @@ class EncountersController < ApplicationController
 
 		regimen_types.collect{|regimen_type|
 			Concept.find_by_name(regimen_type).concept_members.flatten.collect{|member|
-				next if member.concept.fullname.include?("Triomune Baby") and !patient_is_child?(options[:patient])
-				next if member.concept.fullname.include?("Triomune Junior") and !patient_is_child?(options[:patient])
+				next if member.concept.fullname.include?("Triomune Baby") and !PatientService.patient_is_child?(options[:patient])
+				next if member.concept.fullname.include?("Triomune Junior") and !PatientService.patient_is_child?(options[:patient])
 				if options[:use_short_names]
 					include_fixed = member.concept.fullname.match("(fixed)")
 					answer_array << [member.concept.shortname, member.concept_id] unless include_fixed
@@ -1017,7 +1016,7 @@ class EncountersController < ApplicationController
   end
 
   def sputum_results_not_given(patient_id)
-    recent_sputum_results(patient_id).collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", patient_id, Concept.find_by_name("Lab test result").concept_id]).map{|o| o.accession_number}.include?(order.accession_number)}.compact
+    PatientService.recent_sputum_results(patient_id).collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", patient_id, Concept.find_by_name("Lab test result").concept_id]).map{|o| o.accession_number}.include?(order.accession_number)}.compact
   end
 
   def is_tb_patient(patient)
@@ -1033,7 +1032,7 @@ class EncountersController < ApplicationController
       end
       next if drug_order == nil
       next unless drug_order_quantity > 0
-      return true if drug_order.drug.tb_medication?
+      return true if MedicationService.tb_medication(drug_order.drug)
     }
     false
   end
@@ -1059,7 +1058,7 @@ class EncountersController < ApplicationController
       next if drug_order == nil
       next if drug_order.quantity == nil
       next unless drug_order.quantity > 0
-      return true if drug_order.drug.arv?
+      return true if MedicationService.arv(drug_order.drug)
     }
     false
   end

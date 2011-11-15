@@ -159,7 +159,7 @@ class CohortToolController < ApplicationController
       changed_to    = changed_to(new_encounter)
       changed_from  = changed_from(voided_observations)
 
-      patient_arv_number = get_patient_identifier(patient, "ARV NUMBER")
+      patient_arv_number = PatientService.get_patient_identifier(patient, "ARV NUMBER")
       if( voided_observations && !voided_observations.empty?)
           voided_records[encounter.id] = {
               "id"              => patient.patient_id,
@@ -199,7 +199,7 @@ class CohortToolController < ApplicationController
       changed_from  += "Treatment: #{voided_orders(new_encounter).to_s.gsub!(":", " =>")}</br>"
       changed_to    += "Treatment: #{encounter.to_s.gsub!(":", " =>") }</br>"
 
-      patient_arv_number = get_patient_identifier(patient, 'ARV NUMBER')
+      patient_arv_number = PatientService.get_patient_identifier(patient, 'ARV NUMBER')
 
       if( orders && !orders.empty?)
         voided_records[encounter.id]= {
@@ -472,7 +472,7 @@ class CohortToolController < ApplicationController
 
       # get a patient of a given visit
       new_patient   = { :patient_id   => (visit.patient.patient_id || ""),
-                        :arv_number   => (get_patient_identifier(visit.patient, 'ARV Number') || ""),
+                        :arv_number   => (PatientService.get_patient_identifier(visit.patient, 'ARV Number') || ""),
                         :name         => (visit.patient.person.name || ""),
                         :national_id  => (get_national_id(visit.patient) || ""),
                         :gender       => (sex(visit.patient.person) || ""),
@@ -692,7 +692,7 @@ class CohortToolController < ApplicationController
     patients.each do |reason|
       patient = Patient.find(reason[:person_id])
       patients_data << {'person_id' => patient.id,
-                        'arv_number' => get_patient_identifier(patient, 'ARV Number'),
+                        'arv_number' => PatientService.get_patient_identifier(patient, 'ARV Number'),
                         'national_id' => get_national_id(patient),
                         'date_created' => reason[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
                         'start_reason' => ConceptName.find(reason[:value_coded_name_id]).name
@@ -734,7 +734,7 @@ class CohortToolController < ApplicationController
                                        'name' => patient.name,
                                        'national_id' => national_id,
                                        'gender' => sex(patient),
-                                       'age' => get_patient_attribute_value(patient.patient, "age"),
+                                       'age' => PatientService.get_patient_attribute_value(patient.patient, "age"),
                                        'birthdate' => patient.birthdate,
                                        'date_created' => arv_num_data[:date_created].strftime("%Y-%m-%d %H:%M:%S")
                                        }
@@ -756,7 +756,7 @@ class CohortToolController < ApplicationController
         drug_name    = Drug.find(dispensation[:value_drug]).name
 
         dispensations_without_prescriptions << { 'person_id' => patient.id,
-                                              'arv_number' => get_patient_identifier(patient, 'ARV Number'),
+                                              'arv_number' => PatientService.get_patient_identifier(patient, 'ARV Number'),
                                               'national_id' => get_national_id(patient),
                                               'date_created' => dispensation[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
                                               'drug_name' => drug_name
@@ -782,7 +782,7 @@ class CohortToolController < ApplicationController
         drug_name    = Drug.find(drug_id).name
 
         prescriptions_without_dispensations << {'person_id' => patient.id,
-                                                'arv_number' => get_patient_identifier(patient, 'ARV Number'),
+                                                'arv_number' => PatientService.get_patient_identifier(patient, 'ARV Number'),
                                                 'national_id' => get_national_id(patient),
                                                 'date_created' => prescription[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
                                                 'drug_name' => drug_name
@@ -807,7 +807,7 @@ class CohortToolController < ApplicationController
     patients.each do |patient_data_row|
       person = Person.find(patient_data_row[:patient_id].to_i)
       patients_data <<{ 'person_id' => person.id,
-                        'arv_number' => get_patient_identifier(person, 'ARV Number'),
+                        'arv_number' => PatientService.get_patient_identifier(person, 'ARV Number'),
                         'name' => person.name,
                         'national_id' => get_national_id(person.patient),
                         'gender' => person.gender,
@@ -834,7 +834,7 @@ class CohortToolController < ApplicationController
           person = Person.find(patient_data_row[:person_id].to_i)
 
           patients_data <<{ 'person_id' => person.id,
-                            'arv_number' => get_patient_identifier(person, 'ARV Number'),
+                            'arv_number' => PatientService.get_patient_identifier(person, 'ARV Number'),
                             'name' => person.name,
                             'national_id' => get_national_id(person.patient),
                             'gender' => person.gender,
@@ -884,7 +884,7 @@ class CohortToolController < ApplicationController
       person = Person.find(patient_data_row[:person_id].to_i)
 
       patients_data <<{ 'person_id' => person.id,
-                        'arv_number' => get_patient_identifier(person, 'ARV Number'),
+                        'arv_number' => PatientService.get_patient_identifier(person, 'ARV Number'),
                         'name' => person.name,
                         'national_id' => get_national_id(person.patient),
                         'gender' => person.gender,
@@ -899,7 +899,7 @@ class CohortToolController < ApplicationController
   
   def report_with_drug_start_dates_less_than_program_enrollment_dates(start_date, end_date)
 
-    arv_drugs_concepts      = Drug.arv_drugs.inject([]) {|result, drug| result << drug.concept_id}
+    arv_drugs_concepts      = MedicationService.arv_drugs.inject([]) {|result, drug| result << drug.concept_id}
     on_arv_concept_id       = ConceptName.find_by_name('ON ANTIRETROVIRALS').concept_id
     hvi_program_id          = Program.find_by_name('HIV PROGRAM').program_id
     national_identifier_id  = PatientIdentifierType.find_by_name('National id').patient_identifier_type_id
@@ -939,7 +939,7 @@ class CohortToolController < ApplicationController
       person = Person.find(patient_data_row[:patient_id])
 
       patients_data <<{ 'person_id' => person.id,
-                        'arv_number' => get_patient_identifier(patient_data_row, 'ARV Number'),
+                        'arv_number' => PatientService.get_patient_identifier(patient_data_row, 'ARV Number'),
                         'name' => person.name,
                         'national_id' => get_national_id(person.patient),
                         'gender' => person.gender,
@@ -1060,7 +1060,7 @@ class CohortToolController < ApplicationController
                                         "national_id" => get_national_id(patient),
                                         "visit_date" =>rate.obs_datetime,
                                         "gender" =>person.gender,
-                                        "age" =>patient_age_at_initiation(patient, rate.start_date.to_date),
+                                        "age" =>PatientService.patient_age_at_initiation(patient, rate.start_date.to_date),
                                         "birthdate" => person.birthdate,
                                         "pill_count" => pill_count.to_i.to_s,
                                         "adherence" => rate. adherence_rate_worse,
@@ -1069,7 +1069,7 @@ class CohortToolController < ApplicationController
                                         "drug" => drug.name}
    elsif  patients[patient.patient_id] then
 
-          patients[patient.patient_id]["age"].to_i < patient_age_at_initiation(patient, rate.start_date.to_date).to_i ? patients[patient.patient_id]["age"] = patient.age_at_initiation(rate.start_date.to_date).to_s : ""
+          patients[patient.patient_id]["age"].to_i < PatientService.patient_age_at_initiation(patient, rate.start_date.to_date).to_i ? patients[patient.patient_id]["age"] = patient.age_at_initiation(rate.start_date.to_date).to_s : ""
 
           patients[patient.patient_id]["drug"] = patients[patient.patient_id]["drug"].to_s + "<br>#{drug.name}"
 

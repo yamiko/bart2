@@ -25,7 +25,7 @@
 
 <%session_date = session[:datetime] || Time.now() %>
 <% @drug_given_before.prescriptions.each do |order| 
-     next if order.drug_order.drug.arv?
+     next if MedicationService.arv(order.drug_order.drug)
 %>
     <%= touch_numeric_tag "AMOUNT OF DRUG BROUGHT TO CLINIC", @patient, nil,
       {:id        => "amount_brought_#{order.order_id}",

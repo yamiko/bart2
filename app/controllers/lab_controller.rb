@@ -71,7 +71,7 @@ class LabController < ApplicationController
       @results << [ date , value ]
     end 
     @patient = Patient.find(params[:patient_id])
-    @patient_bean = get_patient(@patient.person)
+    @patient_bean = PatientService.get_patient(@patient.person)
     @type = params[:type]
     @test = params[:test]
     render :layout => 'menu'
