@@ -36,6 +36,7 @@
 
   .left, .right, .middle {
     display: table-cell;
+    
   }
   td.reg-details{
     border: 1px solid;
@@ -47,7 +48,7 @@
     width: 100px;
   }
 </style>
-
+<div style="overflow-y:scroll;height: 670px;">
 <table>
   <tr>
     <td>
@@ -106,10 +107,39 @@
                   </div>
                 </td>
               </tr>
+              <tr>
+                <td class="demographics-header"> Disease class & patient <br /></td>
+                <td class="demographics-header">
+                  <div class="left" style="border: 1px solid;width:90px;height:31px;">
+                    <span class="circle">P</span><span class="non-circle">EP</span>
+                  </div>
+                  <div class="left" style="width:20px;">
+                    &nbsp;
+                  </div>
+                  <div class="left" style="border: 1px solid;width:193px;">
+                    <span class="circle">New</span><span class="non-circle">Relap</span><span class="non-circle">RAD</span><span class="non-circle">Fail</span><span class="non-circle">Oth</span>
+                  </div>
+                  <div class="left" style="width:20px;">
+                    &nbsp;
+                  </div>
+                  <div class="left" style="width:40px;">
+                  </div>
+                  <div class="left" style="border: 1px solid;width:90px;">
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="demographics-header"> Patient Category <br /></td>
+                <td class="demographics-header">
+                  <span> P = Pulmonary TB EP = Extra-pulmonary TB </span> <br />
+                  <span>NEW = New case Relap = Relapse RAD=Retreatment after default Fail=Treatment failure Oth=Other previously treated</span>
+                </td>
+              </tr>
+
             </table>
           </td>
         </tr>
-
       </table>
     </td>
     <td>
@@ -187,3 +217,76 @@
     </td>
   </tr>
 </table>
+<hr />
+
+
+<table>
+  <tr>
+    <td>
+      <table>
+        <tr>
+          <td>
+            1. INITIAL INTENSIVE PHASE
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Regimen and daily dosage of tablets / grams of S
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Regimen 1  Regimen 2 TB Meningitis
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span style="border: 1px solid;width:30px;display: block">
+              &nbsp;
+            </span>
+            <span>RHZE</span>
+            <span style="border: 1px solid;width:30px;display: block">
+              &nbsp;
+            </span>
+            <span>RHZE</span>
+            <div style="border: 1px solid;width:30px;display: block">
+              &nbsp;
+            </div>
+            RHZ
+            
+          </td>
+        </tr>
+        
+      </table>
+    </td>
+    <td>
+      <table style="border: 1px solid;border-spacing: 0">
+        <tr>
+          <td rowspan="2" style="border:1px solid">
+            Time
+          </td>
+          <td colspan="4">
+            Sputum Results
+          </td>
+          <td rowspan="2" style="border:1px solid">
+            Weight(kg)
+          </td>
+          <td colspan="3">
+            Documented HIV Test History
+          </td>
+        </tr>
+        <tr>
+          <td style="border-right: 1px solid">Test</td>
+          <td style="border-right: 1px solid">Date</td>
+          <td style="border-right: 1px solid">Serial No </td>
+          <td >Result</td>
+          <td>&nbsp;</td>
+          <td style="border-right: 1px solid">Recent Negative</td>
+          <td style="border-right: 1px solid">Past positive</td>
+          <td>&nbsp;</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</div>
