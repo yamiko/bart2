@@ -403,14 +403,8 @@ raise @hiv_test_date.to_s
 		sputum_results_not_given(@patient.id).each{|order| @sputum_results_not_given[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 
 		@tb_status = recent_lab_results(@patient.id, session_date)
-<<<<<<< HEAD
     # use @patient_tb_status  for the tb_status moved from the patient model
     @patient_tb_status = PatientService.patient_tb_status(@patient)
-=======
-		# use @patient_tb_status  for the tb_status moved from the patient model
-		@patient_tb_status = patient_tb_status(@patient)
->>>>>>> 43579d9c645ed173262a3db6979376a171362b61
-
 		@patient_is_transfer_in = is_transfer_in(@patient)
 		@patient_transfer_in_date = get_transfer_in_date(@patient)
 		@patient_is_child_bearing_female = is_child_bearing_female(@patient)
