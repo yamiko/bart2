@@ -462,19 +462,11 @@ class PatientsController < ApplicationController
       csv_string = FasterCSV.generate do |csv|
         # header row
         csv << ["ARV number", "National ID"]
-<<<<<<< HEAD
         csv << [PatientService.get_patient_identifier(patient, 'ARV Number'), get_national_id(patient)]
         csv << ["Name", "Age","Sex","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
         transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
         transfer_in.blank? == true ? transfer_in = 'NO' : transfer_in = 'YES'
         csv << [patient.person.name,patient.person.age, sex(patient.person),PatientService.get_patient_attribute_value(patient, "initial_weight"),PatientService.get_patient_attribute_value(patient, "initial_height"),PatientService.get_patient_attribute_value(patient, "initial_bmi"),transfer_in]
-=======
-        csv << [patient_bean.arv_number, patient_bean.national_id]
-        csv << ["Name", "Age","Sex","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
-        transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
-        transfer_in.blank? == true ? transfer_in = 'NO' : transfer_in = 'YES'
-        csv << [patient_bean.name, patient_bean.age, patient_bean.sex, get_patient_attribute_value(patient, "initial_weight"), get_patient_attribute_value(patient, "initial_height"), get_patient_attribute_value(patient, "initial_bmi"), transfer_in]
->>>>>>> 43579d9c645ed173262a3db6979376a171362b61
         csv << ["Location", "Land-mark","Occupation","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
 
 =begin
@@ -785,13 +777,8 @@ class PatientsController < ApplicationController
     end rescue []
 
     # BMI alerts
-<<<<<<< HEAD
     if patient.person.age >= 15
       bmi_alert = current_bmi_alert(PatientService.get_patient_attribute_value(patient, "current_weight"), PatientService.get_patient_attribute_value(patient, "current_height"))
-=======
-    if patient_bean.age >= 15
-      bmi_alert = current_bmi_alert(get_patient_attribute_value(patient, "current_weight"), get_patient_attribute_value(patient, "current_height"))
->>>>>>> 43579d9c645ed173262a3db6979376a171362b61
       alerts << bmi_alert if bmi_alert
     end
     
