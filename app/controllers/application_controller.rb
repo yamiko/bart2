@@ -1749,12 +1749,16 @@ class ApplicationController < ActionController::Base
 
   def patient_printing_message(new_patient , archived_patient , creating_new_filing_number_for_patient = false)
     arv_code = Location.current_arv_code
-    new_patient_name = new_patient.person.name
-    new_filing_number = patient_printing_filing_number_label(get_patient_identifier(new_patient, 'Filing Number'))
-    old_archive_filing_number = patient_printing_filing_number_label(old_filing_number(new_patient, 'Archived filing number'))
+    
+    new_patient_bean = get_patient(new_patient.person)
+    archived_patient_bean = get_patient(archived_patient.person)
+    
+    new_patient_name = new_patient_bean.name
+    new_filing_number = patient_printing_filing_number_label(new_patient_bean.filing_number)
+    old_archive_filing_number = patient_printing_filing_number_label(new_patient_bean.archived_filing_number)
     unless archived_patient.blank?
       old_active_filing_number = patient_printing_filing_number_label(old_filing_number(archived_patient))
-      new_archive_filing_number = patient_printing_filing_number_label(get_patient_identifier(archived_patient, 'Archived filing number'))
+      new_archive_filing_number = patient_printing_filing_number_label(archived_patient_bean.archived_filing_number)
     end
 
     if new_patient and archived_patient and creating_new_filing_number_for_patient
@@ -1770,7 +1774,7 @@ class ApplicationController < ActionController::Base
 
 <tr>
   <td style='text-align:left;'>Active → Dormant</td>
-  <td class = 'filing_instraction'>#{archived_patient.person.name}</td>
+  <td class = 'filing_instraction'>#{archived_patient_bean.name}</td>
   <td class = 'old_label'>#{old_active_filing_number}</td>
   <td class='new_label'>#{new_archive_filing_number}</td>
 </tr>
@@ -1817,7 +1821,7 @@ EOF
 
 <tr>
   <td style='text-align:left;'>Active → Dormant</td>
-  <td class = 'filing_instraction'>#{archived_patient.person.name}</td>
+  <td class = 'filing_instraction'>#{archived_patient_bean.name}</td>
   <td class = 'old_label'>#{old_active_filing_number}</td>
   <td class='new_label'>#{new_archive_filing_number}</td>
 </tr>
@@ -1862,7 +1866,7 @@ EOF
   end
 
   def patient_age_at_initiation(patient, initiation_date = nil)
-    return patient.person.age(initiation_date) unless initiation_date.nil?
+    return age(patient.person, initiation_date) unless initiation_date.nil?
   end
 
   def art_patient?(patient)
@@ -1913,10 +1917,11 @@ EOF
 	patient.national_id_with_dashes = get_national_id_with_dashes(person.patient)
     patient.name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
     patient.sex = sex(person)
-    patient.age = person.age
+    patient.age = age(person)
     patient.age_in_months = age_in_months(person)
     patient.dead = person.dead
     patient.birth_date = birthdate_formatted(person)
+    patient.birthdate_estimated = person.birthdate_estimated
     patient.home_district = person.addresses.first.address2
     patient.traditional_authority = person.addresses.first.county_district
     patient.current_residence = person.addresses.first.city_village
@@ -1928,6 +1933,24 @@ EOF
     patient.occupation = get_attribute(person, 'Occupation')
     patient.guardian = art_guardian(patient_obj) rescue nil 
     patient
+  end
+
+  def name(person)
+    "#{person.names.first.given_name} #{person.names.first.family_name}".titleize rescue nil
+  end
+  
+  def age(person, today = Date.today)
+    return nil if person.birthdate.nil?
+
+    # This code which better accounts for leap years
+    patient_age = (today.year - person.birthdate.year) + ((today.month - person.birthdate.month) + ((today.day - person.birthdate.day) < 0 ? -1 : 0) < 0 ? -1 : 0)
+
+    # If the birthdate was estimated this year, we round up the age, that way if
+    # it is March and the patient says they are 25, they stay 25 (not become 24)
+    birth_date=person.birthdate
+    estimate=person.birthdate_estimated==1
+    patient_age += (estimate && birth_date.month == 7 && birth_date.day == 1  && 
+      today.month < birth_date.month && person.date_created.year == today.year) ? 1 : 0
   end
 
   def old_filing_number(patient, type = 'Filing Number')

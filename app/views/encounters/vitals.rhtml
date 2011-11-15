@@ -55,7 +55,7 @@
      medianWeightHeight = [<%= WeightHeightForAge.median_weight_height(@patient_bean.age_in_months, @patient.person.gender).join(',') rescue nil -%>];
      currentWeightPercentile = (currentWeight/(medianWeightHeight[0])*100).toFixed(0);
      currentHeightPercentile = (currentHeight/(medianWeightHeight[1])*100).toFixed(0);     
-     if (('<%= @patient.person.age %>') > 14) {
+     if (('<%= @patient_bean.age %>') > 14) {
        showBMI();
      } else {
        showWeightHeightForAge();
@@ -167,7 +167,7 @@
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
       <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 
-    <% if @patient.person.age > 18 and not @current_height == 0 %>
+    <% if @patient_bean.age > 18 and not @current_height == 0 %>
       <%= hidden_field_tag "observations[][value_numeric]",@current_height %>
       <%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
@@ -226,7 +226,7 @@
 
       <% end %>
 
-      <% if @patient.person.age > 14 %>
+      <% if @patient_bean.age > 14 %>
 
         <%= hidden_field_tag("observations[][value_numeric]", nil, {:id => 'bmi'}) %>
         <%= hidden_field_tag("observations[][concept_name]", "BODY MASS INDEX, MEASURED") %>

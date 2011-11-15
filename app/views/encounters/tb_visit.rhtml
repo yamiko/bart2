@@ -71,7 +71,7 @@
                 :tt_pageStyleClass => "NoControls",
                 :helpText => '' } %>
     <% end %>
-  <% if @patient.person.gender == 'F' && @patient.person.age > 13 %>
+  <% if @patient_bean.sex == 'Female' && @patient_bean.age > 13 %>
     
           <% if @is_patient_pregnant_value.nil? %>
 
@@ -84,9 +84,9 @@
           <%end%>
   <% end %>
 
-	<%  if @patient.person.age > 13 %>
+	<%  if @patient_bean.age > 13 %>
 
-		<% if @patient.person.gender == "M" %>
+		<% if @patient_bean.sex == 'Male' %>
 		
             <%= touch_yes_no_unknown_tag "CURRENTLY USING FAMILY PLANNING METHOD", @patient, nil,
 	            {	:id => "on_fpm",

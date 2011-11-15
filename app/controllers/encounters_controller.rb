@@ -350,7 +350,7 @@ class EncountersController < ApplicationController
 		if (params[:encounter_type].upcase rescue '') == 'IPT CONTACT PERSON'
 			@contacts_ipt = []
 						
-			@ipt_contacts_ = @patient.tb_contacts.collect{|person| person unless person.age > 6}.compact rescue []
+			@ipt_contacts_ = @patient.tb_contacts.collect{|person| person unless get_patient(person).age > 6}.compact rescue []
 			@ipt_contacts.each do | person |
 				@contacts_ipt << PatientService.get_patient(person)
 			end
@@ -373,7 +373,7 @@ class EncountersController < ApplicationController
 			:show_other_regimen => show_other_regimen      == "true")
 
 		hiv_program = Program.find_by_name('HIV Program')
-		@answer_array = regimen_options(hiv_program.regimens, @patient.person.age)
+		@answer_array = regimen_options(hiv_program.regimens, @patient_bean.age)
 		@answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 
 		@hiv_status = patient_hiv_status(@patient)
@@ -403,21 +403,26 @@ raise @hiv_test_date.to_s
 		sputum_results_not_given(@patient.id).each{|order| @sputum_results_not_given[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 
 		@tb_status = recent_lab_results(@patient.id, session_date)
+<<<<<<< HEAD
     # use @patient_tb_status  for the tb_status moved from the patient model
     @patient_tb_status = PatientService.patient_tb_status(@patient)
+=======
+		# use @patient_tb_status  for the tb_status moved from the patient model
+		@patient_tb_status = patient_tb_status(@patient)
+>>>>>>> 43579d9c645ed173262a3db6979376a171362b61
 
-    @patient_is_transfer_in = is_transfer_in(@patient)
-    @patient_transfer_in_date = get_transfer_in_date(@patient)
-    @patient_is_child_bearing_female = is_child_bearing_female(@patient)
+		@patient_is_transfer_in = is_transfer_in(@patient)
+		@patient_transfer_in_date = get_transfer_in_date(@patient)
+		@patient_is_child_bearing_female = is_child_bearing_female(@patient)
     	@cell_number = @patient.person.person_attributes.find_by_person_attribute_type_id(PersonAttributeType.find_by_name("Cell Phone Number").id).value rescue ''
 
     	@tb_symptoms = []
 
 		if (params[:encounter_type].upcase rescue '') == 'TB_INITIAL'
 			tb_program = Program.find_by_name('TB Program')
-			@tb_regimen_array = regimen_options(tb_program.regimens, @patient.person.age)
+			@tb_regimen_array = regimen_options(tb_program.regimens, @patient_bean.age)
 			tb_program = Program.find_by_name('MDR-TB Program')
-			@tb_regimen_array += regimen_options(tb_program.regimens, @patient.person.age)
+			@tb_regimen_array += regimen_options(tb_program.regimens, @patient_bean.age)
 			@tb_regimen_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 		end
 
@@ -1049,7 +1054,8 @@ raise @hiv_test_date.to_s
   end
 
   def is_child_bearing_female(patient)
-    (patient.person.gender == "F" && patient.person.age >= 9 && patient.person.age <= 45) ? true : false
+  	patient_bean = get_patient(patient.person)
+    (patient_bean.sex == 'Female' && patient_bean.age >= 9 && patient_bean.age <= 45) ? true : false
   end
 
   def given_arvs_before(patient)

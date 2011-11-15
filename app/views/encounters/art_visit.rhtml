@@ -71,7 +71,7 @@
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
-  <% if @patient.person.gender == 'F' && @patient.person.age > 14 %>
+  <% if @patient_bean.sex == 'Female' && @patient_bean.age > 14 %>
   
         <% if @is_patient_pregnant_value.nil?%>
 
