@@ -269,7 +269,7 @@ class EncountersController < ApplicationController
       if params['encounter']['encounter_type_name'].to_s.upcase == "APPOINTMENT" && !params[:report_url].match(/report/).nil?
          redirect_to  params[:report_url].to_s and return
       end
-      redirect_to next_task(@patient)
+      redirect_to PatientService.next_task(@patient)
      end
     else
       if params[:voided]
@@ -504,7 +504,7 @@ class EncountersController < ApplicationController
 
 		redirect_to "/" and return unless @patient
 
-		redirect_to next_task(@patient) and return unless params[:encounter_type]
+		redirect_to PatientService.next_task(@patient) and return unless params[:encounter_type]
 
 		redirect_to :action => :create, 'encounter[encounter_type_name]' => params[:encounter_type].upcase, 'encounter[patient_id]' => @patient.id and return if ['registration'].include?(params[:encounter_type])
 

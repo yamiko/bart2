@@ -254,7 +254,7 @@ module PatientService
   
   def self.find_person_by_demographics(person_demographics)
     national_id = person_demographics["person"]["patient"]["identifiers"]["National id"] rescue nil
-    results = self.search_by_identifier(national_id) unless national_id.nil?
+    results = search_by_identifier(national_id) unless national_id.nil?
     return results unless results.blank?
 
     gender = person_demographics["person"]["gender"] rescue nil
@@ -263,7 +263,7 @@ module PatientService
 
     search_params = {:gender => gender, :given_name => given_name, :family_name => family_name }
 
-    results = self.person_search(search_params)
+    results = person_search(search_params)
   end
   
   def self.checks_if_labs_results_are_avalable_to_be_shown(patient , session_date , task)
@@ -356,7 +356,7 @@ module PatientService
 
       case type
         when 'SOURCE OF REFERRAL'
-          next if self.patient_tb_status(patient).match(/treatment/i)
+          next if patient_tb_status(patient).match(/treatment/i)
 
           if ['Lighthouse','Martin Preuss Centre'].include?(Location.current_health_center.name)
             if not (location.current_location.name.match(/Chronic Cough/) or 
@@ -379,10 +379,10 @@ module PatientService
             return task
           end 
         when 'UPDATE HIV STATUS'
-          next_task = self.checks_if_labs_results_are_avalable_to_be_shown(patient , session_date , task)
+          next_task = checks_if_labs_results_are_avalable_to_be_shown(patient , session_date , task)
           return next_task unless next_task.blank?
 
-          next if self.patient_hiv_status(patient).match(/Positive/i)
+          next if patient_hiv_status(patient).match(/Positive/i)
           if not patient.patient_programs.blank?
             next if patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') 
           end
@@ -449,7 +449,7 @@ module PatientService
           end
         when 'VITALS' 
 
-          if not self.patient_hiv_status(patient).match(/Positive/i) and not self.patient_tb_status(patient).match(/treatment/i)
+          if not patient_hiv_status(patient).match(/Positive/i) and not patient_tb_status(patient).match(/treatment/i)
             next
           end 
 
@@ -457,11 +457,11 @@ module PatientService
                                   :conditions =>["patient_id = ? AND encounter_type = ?",
                                   patient.id,EncounterType.find_by_name(type).id])
 
-          if not self.patient_tb_status(patient).match(/treatment/i) and not tb_reception_attributes.include?('Any need to see a clinician: Yes')
+          if not patient_tb_status(patient).match(/treatment/i) and not tb_reception_attributes.include?('Any need to see a clinician: Yes')
             next
-          end if not self.patient_hiv_status(patient).match(/Positive/i)
+          end if not patient_hiv_status(patient).match(/Positive/i)
 
-          if self.patient_tb_status(patient).match(/treatment/i) and not self.patient_hiv_status(patient).match(/Positive/i)
+          if patient_tb_status(patient).match(/treatment/i) and not patient_hiv_status(patient).match(/Positive/i)
             next
           end if not first_vitals.blank?
 
@@ -492,7 +492,7 @@ module PatientService
             return task
           end
         when 'LAB ORDERS'
-          next if self.patient_tb_status(patient).match(/treatment/i)
+          next if patient_tb_status(patient).match(/treatment/i)
 
           if ['Lighthouse','Martin Preuss Centre'].include?(Location.current_health_center.name)
             if not (location.current_location.name.match(/Chronic Cough/) or 
@@ -505,7 +505,7 @@ module PatientService
                                       :conditions =>["DATE(encounter_datetime) <= ? AND patient_id = ? AND encounter_type = ?",
                                       session_date.to_date ,patient.id,EncounterType.find_by_name(type).id])
 
-          next_lab_encounter =  self.next_lab_encounter(patient , lab_order , session_date)
+          next_lab_encounter =  next_lab_encounter(patient , lab_order , session_date)
 
           if (lab_order.encounter_datetime.to_date == session_date.to_date)
             task.encounter_type = 'NONE'
@@ -525,7 +525,7 @@ module PatientService
                                       :conditions =>["DATE(encounter_datetime) <= ? AND patient_id = ? AND encounter_type = ?",
                                       session_date.to_date ,patient.id,EncounterType.find_by_name(type).id])
 
-          next_lab_encounter =  self.next_lab_encounter(patient , previous_sputum_sub , session_date)
+          next_lab_encounter =  next_lab_encounter(patient , previous_sputum_sub , session_date)
 
           if (previous_sputum_sub.encounter_datetime.to_date == session_date.to_date)
             task.encounter_type = 'NONE'
@@ -555,7 +555,7 @@ module PatientService
                                       :conditions =>["DATE(encounter_datetime) <= ? AND patient_id = ? AND encounter_type = ?",
                                       session_date.to_date ,patient.id,EncounterType.find_by_name(type).id])
 
-          next_lab_encounter =  self.next_lab_encounter(patient , lab_result , session_date)
+          next_lab_encounter =  next_lab_encounter(patient , lab_result , session_date)
 
           if not next_lab_encounter.blank?
             next
@@ -570,7 +570,7 @@ module PatientService
           end if (next_lab_encounter.blank?)
         when 'TB CLINIC VISIT'
 
-          next if self.patient_tb_status(patient).match(/treatment/i)
+          next if patient_tb_status(patient).match(/treatment/i)
 
           obs_ans = Observation.find(Observation.find(:first, 
                     :order => "obs_datetime DESC,date_created DESC",
@@ -658,7 +658,7 @@ module PatientService
             return task
           end 
         when 'ART_INITIAL'
-          next unless self.patient_hiv_status(patient).match(/Positive/i)
+          next unless patient_hiv_status(patient).match(/Positive/i)
         
           enrolled_in_hiv_program = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?",patient.id, 
             ConceptName.find_by_name("Patient enrolled in IMB HIV program").concept_id]).value_coded).concept_names.map{|c|c.name}[0].upcase rescue nil
@@ -681,7 +681,7 @@ module PatientService
           end
         when 'HIV STAGING'
           #checks if vitals have been taken already 
-          vitals = self.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
+          vitals = checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
           return vitals unless vitals.blank?
 
           enrolled_in_hiv_program = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?",patient.id, 
@@ -691,13 +691,13 @@ module PatientService
           next if patient.patient_programs.blank?
           next if not patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') 
 
-          next unless self.patient_hiv_status(patient).match(/Positive/i)
+          next unless patient_hiv_status(patient).match(/Positive/i)
           hiv_staging = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
 
           if hiv_staging.blank? and user_selected_activities.match(/Manage HIV staging visits/i) 
-            extended_staging_questions = self.get_global_property_value('use.extended.staging.questions')
+            extended_staging_questions = get_global_property_value('use.extended.staging.questions')
             extended_staging_questions = extended_staging_questions.property_value == 'yes' rescue false
             task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" if not extended_staging_questions 
             task.url = "/encounters/new/llh_hiv_staging?show&patient_id=#{patient.id}" if extended_staging_questions
@@ -708,10 +708,10 @@ module PatientService
           end if (reason_for_art.upcase ==  'UNKNOWN' or reason_for_art.blank?)
         when 'TB REGISTRATION'
           #checks if patient needs to be stage before continuing
-          next_task = self.need_art_enrollment(task,patient,location,session_date,user_selected_activities,reason_for_art)
+          next_task = need_art_enrollment(task,patient,location,session_date,user_selected_activities,reason_for_art)
           return next_task if not next_task.blank? and user_selected_activities.match(/Manage HIV staging visits/i)
 
-          next unless self.patient_tb_status(patient).match(/treatment/i)
+          next unless patient_tb_status(patient).match(/treatment/i)
           tb_registration = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
@@ -720,7 +720,7 @@ module PatientService
           #enrolled_in_tb_program = patient.patient_programs.collect{|p|p.program.name}.include?('TB PROGRAM') rescue false
 
           #checks if vitals have been taken already 
-          vitals = self.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
+          vitals = checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
           return vitals unless vitals.blank?
 
     
@@ -732,12 +732,12 @@ module PatientService
             return task
           end
         when 'TB VISIT'
-          if self.patient_is_child?(patient) or self.patient_hiv_status(patient).match(/Positive/i)
+          if patient_is_child?(patient) or patient_hiv_status(patient).match(/Positive/i)
             clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
             #checks if vitals have been taken already 
-            vitals = self.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
+            vitals = checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
             return vitals unless vitals.blank?
 
 
@@ -749,14 +749,14 @@ module PatientService
               task.encounter_type = "TB CLINIC VISIT"
               task.url = "/patients/show/#{patient.id}"
               return task
-            end if not self.patient_tb_status(patient).match(/treatment/i)
+            end if not patient_tb_status(patient).match(/treatment/i)
           end
 
           #checks if vitals have been taken already 
-          vitals = self.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
+          vitals = checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
           return vitals unless vitals.blank?
 
-          if not self.patient_tb_status(patient).match(/treatment/i)
+          if not patient_tb_status(patient).match(/treatment/i)
             next
           end if not tb_reception_attributes.include?('Reason for visit: Follow-up')
 
@@ -852,7 +852,7 @@ module PatientService
             return task
           end if not reason_for_art.upcase ==  'UNKNOWN'
         when 'TB ADHERENCE'
-          drugs_given_before = (not self.drug_given_before(patient,session_date).prescriptions.blank?) rescue false
+          drugs_given_before = (not drug_given_before(patient,session_date).prescriptions.blank?) rescue false
            
           tb_adherence = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
@@ -866,7 +866,7 @@ module PatientService
             return task
           end if drugs_given_before
         when 'ART ADHERENCE'
-          art_drugs_given_before = (not self.drug_given_before(patient,session_date).arv.prescriptions.blank?) rescue false
+          art_drugs_given_before = (not drug_given_before(patient,session_date).arv.prescriptions.blank?) rescue false
 
           art_adherence = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
@@ -1007,7 +1007,7 @@ module PatientService
        User.current_user.activities.include?('Manage Sputum Submissions') or User.current_user.activities.include?('Manage TB Clinic Visits') or
        User.current_user.activities.include?('Manage TB Reception Visits') or User.current_user.activities.include?('Manage TB Registration Visits') or
        User.current_user.activities.include?('Manage HIV Status Visits') 
-         return self.tb_next_form(location , patient , session_date)
+         return tb_next_form(location , patient , session_date)
     end
     
     if User.current_user.activities.blank?
@@ -1021,7 +1021,7 @@ module PatientService
               patient.id,session_date.to_date]).map{|e|e.name.upcase}
     
     if current_day_encounters.include?("TB RECEPTION")
-      return self.tb_next_form(location , patient , session_date)
+      return tb_next_form(location , patient , session_date)
     end
 
     #we get the sequence of clinic questions(encounters) form the GlobalProperty table
@@ -1041,7 +1041,7 @@ module PatientService
     #10. Manage appointments - APPOINTMENT
     #11. Manage ART adherence - ART ADHERENCE
 
-    encounters_sequentially = self.get_global_property_value('list.of.clinical.encounters.sequentially')
+    encounters_sequentially = get_global_property_value('list.of.clinical.encounters.sequentially')
 
     encounters = encounters_sequentially.split(',')
 
@@ -1088,7 +1088,7 @@ module PatientService
           end if reason_for_art.upcase ==  'UNKNOWN'
         when 'HIV STAGING'
           if encounter_available.blank? and user_selected_activities.match(/Manage HIV staging visits/i) 
-            extended_staging_questions = self.get_global_property_value('use.extended.staging.questions')
+            extended_staging_questions = get_global_property_value('use.extended.staging.questions')
             extended_staging_questions = extended_staging_questions.property_value == 'yes' rescue false
             task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" if not extended_staging_questions 
             task.url = "/encounters/new/llh_hiv_staging?show&patient_id=#{patient.id}" if extended_staging_questions
@@ -1177,7 +1177,7 @@ module PatientService
           elsif encounter_available.blank? and not user_selected_activities.match(/Manage ART adherence/i)
             task.url = "/patients/show/#{patient.id}"
             return task
-          end if not self.drug_given_before(patient,session_date).blank?
+          end if not drug_given_before(patient,session_date).blank?
       end
     end
     #task.encounter_type = 'Visit complete ...'
@@ -1186,10 +1186,21 @@ module PatientService
     return task
   end
 
+  def self.next_task(patient)
+    session_date = session[:datetime].to_date rescue Date.today
+    task = main_next_task(Location.current_location, patient,session_date)
+    begin
+      return task.url if task.present? && task.url.present?
+      return "/patients/show/#{patient.id}" 
+    rescue
+      return "/patients/show/#{patient.id}" 
+    end
+  end
+
   # Try to find the next task for the patient at the given location
   def self.main_next_task(location, patient, session_date = Date.today)
     if GlobalProperty.use_user_selected_activities
-      return self.next_form(location , patient , session_date)
+      return next_form(location , patient , session_date)
     end
     all_tasks = Task.all(:order => 'sort_weight ASC')
     todays_encounters = patient.encounters.find_by_date(session_date)
@@ -1287,15 +1298,15 @@ module PatientService
         skip = true unless enc.present?
       end
 
-      if task.encounter_type == 'ART ADHERENCE' and self.drug_given_before(patient,session_date).blank?
+      if task.encounter_type == 'ART ADHERENCE' and drug_given_before(patient,session_date).blank?
         skip = true
       end
       
-      if task.encounter_type == 'ART VISIT' and (self.reason_for_art_eligibility(patient).blank? or self.reason_for_art_eligibility(patient).match(/unknown/i))
+      if task.encounter_type == 'ART VISIT' and (reason_for_art_eligibility(patient).blank? or reason_for_art_eligibility(patient).match(/unknown/i))
         skip = true
       end
       
-      if task.encounter_type == 'HIV STAGING' and not (self.reason_for_art_eligibility(patient).blank? or self.reason_for_art_eligibility(patient).match(/unknown/i))
+      if task.encounter_type == 'HIV STAGING' and not (reason_for_art_eligibility(patient).blank? or reason_for_art_eligibility(patient).match(/unknown/i))
         skip = true
       end
       
@@ -1306,7 +1317,7 @@ module PatientService
       next if skip
 
       if location.name.match(/HIV|ART/i) and not location.name.match(/Outpatient/i)
-       task = self.validate_task(patient,task,location,session_date.to_date)
+       task = validate_task(patient,task,location,session_date.to_date)
       end
 
       # Nothing failed, this is the next task, lets replace any macros

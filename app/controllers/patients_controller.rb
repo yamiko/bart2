@@ -23,7 +23,7 @@ class PatientsController < ApplicationController
      if @location.downcase == "outpatient" || params[:source]== 'opd'
         render :template => 'dashboards/opdtreatment_dashboard', :layout => false
      else
-        @task = main_next_task(Location.current_location,@patient,session_date)
+        @task = PatientService.main_next_task(Location.current_location,@patient,session_date)
         @hiv_status = PatientService.patient_hiv_status(@patient)
         @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
         @arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
@@ -136,7 +136,7 @@ class PatientsController < ApplicationController
     	redirect_to :'clinic'
     	return
     else
-      next_form_to = next_task(@patient)
+      next_form_to = PatientService.next_task(@patient)
       redirect_to next_form_to and return if next_form.match(/Reception/i)
 		  @relationships = @patient.relationships rescue []
 		  @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
@@ -209,7 +209,7 @@ class PatientsController < ApplicationController
   end
   
   def print_registration
-    print_and_redirect("/patients/national_id_label/?patient_id=#{@patient.id}", next_task(@patient))  
+    print_and_redirect("/patients/national_id_label/?patient_id=#{@patient.id}", PatientService.next_task(@patient))  
   end
   
   def dashboard_print_national_id
@@ -226,7 +226,7 @@ class PatientsController < ApplicationController
   end
   
   def print_visit
-    print_and_redirect("/patients/visit_label/?patient_id=#{@patient.id}", next_task(@patient))  
+    print_and_redirect("/patients/visit_label/?patient_id=#{@patient.id}", PatientService.next_task(@patient))  
   end
 
   def print_mastercard_record
@@ -256,7 +256,7 @@ class PatientsController < ApplicationController
   end
 
   def print_lab_orders
-    print_and_redirect("/patients/lab_orders_label/?patient_id=#{@patient.id}", next_task(@patient))
+    print_and_redirect("/patients/lab_orders_label/?patient_id=#{@patient.id}", PatientService.next_task(@patient))
   end
 
   def lab_orders_label
@@ -527,7 +527,7 @@ class PatientsController < ApplicationController
     end
 
     @date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
-    @task = main_next_task(Location.current_location,@patient,session_date)
+    @task = PatientService.main_next_task(Location.current_location,@patient,session_date)
     
     @hiv_status = PatientService.patient_hiv_status(@patient)
     @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)

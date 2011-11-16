@@ -1,13 +1,15 @@
 class ApplicationController < ActionController::Base
   include AuthenticatedSystem
-
-  Mastercard
-  PatientIdentifierType
-  WeightHeight
-  CohortTool
-  Encounter
-  EncounterType
-  Person
+	  Mastercard
+    PatientIdentifierType
+    WeightHeight
+    CohortTool
+    Encounter
+    EncounterType
+    Location
+    Task
+    GlobalProperty
+    Person
 
   require "fastercsv"
 
@@ -32,17 +34,6 @@ class ApplicationController < ActionController::Base
     logger.info @backtrace
     render :file => "#{RAILS_ROOT}/app/views/errors/error.rhtml", :layout=> false, :status => 404
   end if RAILS_ENV == 'production'
-
-  def next_task(patient)
-    session_date = session[:datetime].to_date rescue Date.today
-    task = main_next_task(Location.current_location, patient,session_date)
-    begin
-      return task.url if task.present? && task.url.present?
-      return "/patients/show/#{patient.id}" 
-    rescue
-      return "/patients/show/#{patient.id}" 
-    end
-  end
 
   def print_and_redirect(print_url, redirect_url, message = "Printing, please wait...", show_next_button = false, patient_id = nil)
     @print_url = print_url
@@ -1328,7 +1319,6 @@ class ApplicationController < ActionController::Base
 
     task
   end
-
 
   def patient_national_id_label(patient)
 	patient_bean = PatientService.get_patient(patient.person)
