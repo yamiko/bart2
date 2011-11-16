@@ -149,8 +149,6 @@ class ApplicationController < ActionController::Base
       end if not (give_lab_results.encounter_datetime.to_date == session_date.to_date)
     end
 
-  end
-
 private
 
   def find_patient

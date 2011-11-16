@@ -1475,7 +1475,6 @@ module PatientService
     task
   end
 
-
   def self.patient_national_id_label(patient)
 	  patient_bean = get_patient(patient.person)
     return unless patient_bean.national_id
@@ -1746,7 +1745,6 @@ EOF
 EOF
     end
 
-
     return table
   end
 
@@ -1772,7 +1770,7 @@ EOF
     return date.to_date rescue nil
   end
 
-  def prescribe_arv_this_visit(patient, date = Date.today)
+  def self.prescribe_arv_this_visit(patient, date = Date.today)
     encounter_type = EncounterType.find_by_name('ART VISIT')
     yes_concept = ConceptName.find_by_name('YES').concept_id
     refer_concept = ConceptName.find_by_name('PRESCRIBE ARVS THIS VISIT').concept_id
@@ -2211,7 +2209,7 @@ EOF
                                  patient.id,EncounterType.find_by_name('HIV STAGING').id])
 
     if hiv_staging.blank? and user_selected_activities.match(/Manage HIV staging visits/i)
-      extended_staging_questions = self.get_global_property_value('use.extended.staging.questions')
+      extended_staging_questions = get_global_property_value('use.extended.staging.questions')
       extended_staging_questions = extended_staging_questions.property_value == 'yes' rescue false
       task.encounter_type = 'HIV STAGING'
       task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" if not extended_staging_questions
