@@ -364,7 +364,7 @@ class EncountersController < ApplicationController
 		@number_of_days_to_add_to_next_appointment_date = number_of_days_to_add_to_next_appointment_date(@patient, session[:datetime] || Date.today)
 		@drug_given_before = PatientService.drug_given_before(@patient, session[:datetime])
 
-		use_regimen_short_names = get_global_property_value("use_regimen_short_names") rescue "false"
+		use_regimen_short_names = PatientService.get_global_property_value("use_regimen_short_names") rescue "false"
 		show_other_regimen = ("show_other_regimen") rescue 'false'
 
 		@answer_array = arv_regimen_answers(:patient => @patient,
@@ -375,7 +375,7 @@ class EncountersController < ApplicationController
 		@answer_array = regimen_options(hiv_program.regimens, @patient_bean.age)
 		@answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 
-		@hiv_status = patient_hiv_status(@patient)
+		@hiv_status = PatientService.patient_hiv_status(@patient)
 		@hiv_test_date = PatientService.hiv_test_date(@patient.id)
 #raise @hiv_test_date.to_s
 		@lab_activities = lab_activities
@@ -509,7 +509,7 @@ class EncountersController < ApplicationController
 		redirect_to :action => :create, 'encounter[encounter_type_name]' => params[:encounter_type].upcase, 'encounter[patient_id]' => @patient.id and return if ['registration'].include?(params[:encounter_type])
 
 
-		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (get_global_property_value('use.extended.staging.questions') == "yes" rescue false)
+		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (PatientService.get_global_property_value('use.extended.staging.questions') == "yes" rescue false)
 			render :template => 'encounters/llh_hiv_staging'
 		else
 			render :action => params[:encounter_type] if params[:encounter_type]

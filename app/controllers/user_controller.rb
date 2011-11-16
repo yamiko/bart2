@@ -18,7 +18,7 @@ class UserController < ApplicationController
         session[:location_id] = location.id if location
         Location.current_location = location if location
 
-        show_activites_property = get_global_property_value("show_activities_after_login") rescue "false"
+        show_activites_property = PatientService.get_global_property_value("show_activities_after_login") rescue "false"
         if show_activites_property == "true"
           redirect_to(:action => "activities") 
         else                   
@@ -32,7 +32,7 @@ class UserController < ApplicationController
 
   # List roles containing the string given in params[:value]
   def role
-    valid_roles = get_global_property_value("valid_roles") rescue nil
+    valid_roles = PatientService.get_global_property_value("valid_roles") rescue nil
     role_conditions = ["role LIKE (?)", "%#{params[:value]}%"]
     role_conditions = ["role LIKE (?) AND role IN (?)",
                        "%#{params[:value]}%",
@@ -288,7 +288,7 @@ class UserController < ApplicationController
     #raise @privileges.to_yaml
 
     @activities = User.current_user.activities.reject{|activity| 
-      get_global_property_value("disable_tasks").split(",").include?(activity)
+      PatientService.get_global_property_value("disable_tasks").split(",").include?(activity)
     } rescue User.current_user.activities
    
     #raise @privileges.to_yaml
@@ -354,7 +354,7 @@ class UserController < ApplicationController
   end
   
   def generate_encounter_privilege_map
-      encounter_privilege_map = get_global_property_value("encounter_privilege_map").to_s rescue ''
+      encounter_privilege_map = PatientService.get_global_property_value("encounter_privilege_map").to_s rescue ''
       encounter_privilege_map = encounter_privilege_map.split(",")
       encounter_privilege_hash = {}
       encounter_privilege_map.each do |encounter_privilege|
@@ -364,7 +364,7 @@ class UserController < ApplicationController
   end
   
   def generate_privilege_encounter_map
-      encounter_privilege_map = get_global_property_value("encounter_privilege_map").to_s rescue ''
+      encounter_privilege_map = PatientService.get_global_property_value("encounter_privilege_map").to_s rescue ''
       encounter_privilege_map = encounter_privilege_map.split(",")
       encounter_privilege_hash = {}
       encounter_privilege_map.each do |encounter_privilege|

@@ -6,7 +6,7 @@ class EncounterTypesController < ApplicationController
 
         privileges = role_privileges.each.map{ |role_privilege_pair| role_privilege_pair["privilege"].humanize }
 
-        @encounter_privilege_map = get_global_property_value("encounter_privilege_map").to_s rescue ''
+        @encounter_privilege_map = PatientService.get_global_property_value("encounter_privilege_map").to_s rescue ''
 
         @encounter_privilege_map = @encounter_privilege_map.split(",")
 

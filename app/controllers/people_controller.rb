@@ -33,7 +33,7 @@ class PeopleController < ApplicationController
     end rescue []
 
     if Location.current_location.blank?
-      Location.current_location = Location.find(get_global_property_value('current_health_center_id'))
+      Location.current_location = Location.find(PatientService.get_global_property_value('current_health_center_id'))
     end rescue []
 
     person = PatientService.create_from_form(person_params)
@@ -41,7 +41,7 @@ class PeopleController < ApplicationController
       patient = Patient.new()
       patient.patient_id = person.id
       patient.save
-      patient_national_id_label(patient)
+      PatientService.patient_national_id_label(patient)
     end
     render :text => PatientService.remote_demographics(person).to_json
   end
@@ -199,7 +199,7 @@ class PeopleController < ApplicationController
     end
 
     if params[:person][:patient] && success
-      patient_national_id_label(person.patient)
+      PatientService.patient_national_id_label(person.patient)
       unless (params[:relation].blank?)
         redirect_to search_complete_url(person.id, params[:relation]) and return
       else
@@ -390,7 +390,7 @@ class PeopleController < ApplicationController
         'cd4_data' => cd4_data_and_date_hash,
         'last_given_drugs' => last_given_drugs,
         'art_clinic_outcome' => art_clinic_outcome,
-        'arv_number' => get_patient_identifier(patient, 'ARV Number')
+        'arv_number' => PatientService.get_patient_identifier(patient, 'ARV Number')
       }
     end
 
@@ -443,7 +443,7 @@ class PeopleController < ApplicationController
         'cd4_data' => cd4_data_and_date_hash,
         'last_given_drugs' => last_given_drugs,
         'art_clinic_outcome' => art_clinic_outcome,
-        'arv_number' => get_patient_identifier(patient, 'ARV Number')
+        'arv_number' => PatientService.get_patient_identifier(patient, 'ARV Number')
       }
     end
 
