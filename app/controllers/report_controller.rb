@@ -148,7 +148,7 @@ class ReportController < ApplicationController
    
    @patient_record = []
    @patient.each do |patient|
-   patient_bean = get_patient(patient.person)
+   patient_bean = PatientService.get_patient(patient.person)
    @patient_record << {
    					   'age' => patient_bean.age, 
    					   'sex' => patient_bean.sex,
