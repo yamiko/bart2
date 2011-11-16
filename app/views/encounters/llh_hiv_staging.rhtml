@@ -590,7 +590,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
        :tt_onUnLoad => "updateCD4Count();"} %>
 
     <%= touch_hidden_tag "CD4 COUNT LESS THAN 250", @patient, "", :id => "cd4_count_less_than_250" %>
-    <%= touch_hidden_tag "CD4 COUNT LESS THAN 350", @patient, "", :id => "cd4_count_less_than_350" %>
+    <%= touch_hidden_tag "CD4 COUNT LESS THAN OR EQUAL TO 350", @patient, "", :id => "cd4_count_less_than_350" %>
 
     <label for='new_lymphocyte_count_available'>New Lymphocyte count available?</label>
       <%= select_tag "new_lymphocyte_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_lymphocyte_count_available', :tt_pageStyleClass => 'NoKeyboard' %>
@@ -710,7 +710,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
        :tt_onUnLoad => "updateCD4Count();"} %>
 
     <%= touch_hidden_tag "CD4 COUNT LESS THAN 250", @patient, "", :id => "cd4_count_less_than_250" %>
-    <%= touch_hidden_tag "CD4 COUNT LESS THAN 350", @patient, "", :id => "cd4_count_less_than_350" %>
+    <%= touch_hidden_tag "CD4 COUNT LESS THAN OR EQUAL TO 350", @patient, "", :id => "cd4_count_less_than_350" %>
 
     <label for='new_cd4_percent_available'>New CD4 percent available?</label>
       <%= select_tag "new_cd4_percent_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_percent_available', :tt_pageStyleClass => 'NoKeyboard' %>
