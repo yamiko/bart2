@@ -72,8 +72,7 @@ class PeopleController < ApplicationController
       else
         # TODO - figure out how to write a test for this
         # This is sloppy - creating something as the result of a GET
-        found_person_data = find_remote_person_by_identifier(params[:identifier])
-        raise PatientService.create_from_form(found_person_data['person']).to_yaml
+        found_person_data = PatientService.find_remote_person_by_identifier(params[:identifier])
         found_person = PatientService.create_from_form(found_person_data['person']) unless found_person_data.nil?
       end
       if found_person
