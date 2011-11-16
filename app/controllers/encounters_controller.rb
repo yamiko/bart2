@@ -301,9 +301,9 @@ class EncountersController < ApplicationController
         @transfer_in_TB_registration_number = get_todays_observation_answer_for_encounter(@patient.id, "TB_INITIAL", "TB registration number")
         @referred_to_htc = nil
         @family_planning_methods = []
-        
+
         if 'tb_reception'.upcase == (params[:encounter_type].upcase rescue '')
-            @phone_numbers = phone_numbers(Person.find(params[:patient_id]))
+            @phone_numbers = PatientService.phone_numbers(Person.find(params[:patient_id]))
         end
         
         if 'ART_VISIT' == (params[:encounter_type].upcase rescue '')

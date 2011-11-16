@@ -1,8 +1,12 @@
 class ApplicationController < ActionController::Base
   include AuthenticatedSystem
-	Mastercard
-	PatientIdentifierType
-	WeightHeight
+
+  Mastercard
+  PatientIdentifierType
+  WeightHeight
+  CohortTool
+  Encounter
+  EncounterType
 
   require "fastercsv"
 
@@ -309,7 +313,7 @@ class ApplicationController < ActionController::Base
     end   
     person
   end
-  
+ 
   def find_remote_person(known_demographics)
 
     servers = GlobalProperty.find(:first, :conditions => {:property => "remote_servers.parent"}).property_value.split(/,/) rescue nil
