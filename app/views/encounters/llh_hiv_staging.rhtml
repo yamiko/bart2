@@ -43,7 +43,11 @@
     top: 60px; 
   }
 
-  #tt_page_new_lymphocyte_count_available? .inputFrameClass {                                                            
+  #tt_page_new_lymphocyte_count_available .inputFrameClass {                                                            
+    top: 60px; 
+  }
+
+  .tt_controls_new_lymphocyte_count_available .inputFrameClass {                                                            
     top: 60px; 
   }
 
@@ -55,11 +59,7 @@
     top: 60px; 
   }
 
-  #tt_page_lymphocyte_count_count .inputFrameClass {                                                            
-    top: 60px; 
-  }
-
-  #tt_page_new_lymphocyte_count .inputFrameClass {                                                            
+  #tt_page_lymphocyte_count .inputFrameClass {                                                            
     top: 60px; 
   }
 
@@ -593,7 +593,10 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
     <%= touch_hidden_tag "CD4 COUNT LESS THAN 350", @patient, "", :id => "cd4_count_less_than_350" %>
 
     <label for='new_lymphocyte_count_available'>New Lymphocyte count available?</label>
-      <%= select_tag "new_lymphocyte_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_lymphocyte_count_available', :tt_pageStyleClass => 'NoKeyboard' %>
+    <%= select_tag "new_lymphocyte_count_available", options_for_select([['Yes','YES'],['No','NO']]), 
+        :id => 'new_lymphocyte_count_available', 
+        :tt_onLoad => "setTimeout('cssText();',1);",
+        :tt_pageStyleClass => 'NoKeyboard' %>
 
     <%= touch_location_tag "LYMPHOCYTE COUNT LOCATION", @patient, nil,
       {:id => "lymphocyte_count_location",
