@@ -76,8 +76,11 @@ class PeopleController < ApplicationController
         found_person = PatientService.create_from_form(found_person_data['person']) unless found_person_data.nil?
       end
       if found_person
-        #redirect_to search_complete_url(found_person.id, params[:relation]) and return
-        redirect_to :action => 'confirm', :found_person_id => found_person.id, :relation => params[:relation] and return
+        if params[:relation]
+          redirect_to search_complete_url(found_person.id, params[:relation]) and return
+        else
+          redirect_to :action => 'confirm', :found_person_id => found_person.id, :relation => params[:relation] and return
+        end
       end
     end
 
@@ -92,7 +95,6 @@ class PeopleController < ApplicationController
   
   def confirm
     session_date = session[:datetime] || Date.today
-    
     if request.post?
       redirect_to search_complete_url(params[:found_person_id], params[:relation]) and return
     end
@@ -101,7 +103,7 @@ class PeopleController < ApplicationController
     @person = Person.find(@found_person_id) rescue nil
     @task = PatientService.main_next_task(Location.current_location,@person.patient,session_date.to_date)
     @arv_number = PatientService.get_patient_identifier(@person, 'ARV Number')
-	@patient_bean = PatientService.get_patient(@person)
+	  @patient_bean = PatientService.get_patient(@person)
     render :layout => 'menu'
   end
 

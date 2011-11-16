@@ -2,6 +2,7 @@ class ApplicationController < ActionController::Base
   include AuthenticatedSystem
 	  Mastercard
     PatientIdentifierType
+    PatientIdentifier
     WeightHeight
     CohortTool
     Encounter
@@ -13,6 +14,7 @@ class ApplicationController < ActionController::Base
     GlobalProperty
     Person
     Regimen
+    Relationship
 
   require "fastercsv"
 
@@ -61,8 +63,8 @@ class ApplicationController < ActionController::Base
 
   def use_filing_number
     PatientService.get_global_property_value('use.filing.number') == "yes" rescue false
-  end    
-
+  end 
+ 
  def generic_locations
   field_name = "name"
 
