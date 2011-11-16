@@ -11,7 +11,7 @@ class CohortToolController < ApplicationController
       @arv_number_end   = params[:arv_number_end]
     end
 
-  start_date  = initial_encounter.encounter_datetime rescue Date.today
+  start_date  = PatientService.initial_encounter.encounter_datetime rescue Date.today
 
   end_date    = Date.today
 
@@ -479,7 +479,7 @@ class CohortToolController < ApplicationController
                         :gender       => (patient_bean.sex || ""),
                         :age          => (patient_bean.age || ""),
                         :birthdate    => (patient_bean.birth_date || ""),
-                        :phone_number => (phone_numbers(visit.patient) || ""),
+                        :phone_number => (PatientService.phone_numbers(visit.patient) || ""),
                         :start_date   => (visit.patient.encounters.last.encounter_datetime.strftime("%d-%b-%Y") || "")
       }
 
@@ -817,7 +817,7 @@ class CohortToolController < ApplicationController
                         'gender' => patient_bean.sex,
                         'age' => patient_bean.age,
                         'birthdate' => patient_bean.birth_date,
-                        'phone' => phone_numbers(person), 
+                        'phone' => PatientService.phone_numbers(person), 
                         'date_created' => patient_data_row[:date_started]
                        }
     end
@@ -844,7 +844,7 @@ class CohortToolController < ApplicationController
                             'gender' => patient_bean.sex,
                             'age' => patient_bean.age,
                             'birthdate' => patient_bean.birth_date,
-                            'phone' => phone_numbers(person),
+                            'phone' => PatientService.phone_numbers(person),
                             'date_created' => patient_data_row[:obs_datetime]
                            }
         end
@@ -894,7 +894,7 @@ class CohortToolController < ApplicationController
                         'gender' => patient_bean.sex,
                         'age' => patient_bean.age,
                         'birthdate' => patient_bean.birth_date,
-                        'phone' => phone_numbers(person),
+                        'phone' => PatientService.phone_numbers(person),
                         'date_created' => patient_data_row[:date_started]
                        }
     end
@@ -949,7 +949,7 @@ class CohortToolController < ApplicationController
                         'gender' => patient_bean.sex,
                         'age' => patient_bean.age,
                         'birthdate' => patient_bean.birth_date,
-                        'phone' => phone_numbers(person), 
+                        'phone' => PatientService.phone_numbers(person), 
                         'date_created' => patient_data_row[:date_started_ARV]
                        }
     end

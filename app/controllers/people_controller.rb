@@ -43,13 +43,13 @@ class PeopleController < ApplicationController
       patient.save
       patient_national_id_label(patient)
     end
-    render :text => remote_demographics(person).to_json
+    render :text => PatientService.remote_demographics(person).to_json
   end
 
   def demographics
     # Search by the demographics that were passed in and then return demographics
     people = find_person_by_demographics(params)
-    result = people.empty? ? {} : demographics(people.first)
+    result = people.empty? ? {} : PatientService.demographics(people.first)
     render :text => result.to_json
   end
   
@@ -73,7 +73,8 @@ class PeopleController < ApplicationController
         # TODO - figure out how to write a test for this
         # This is sloppy - creating something as the result of a GET
         found_person_data = find_remote_person_by_identifier(params[:identifier])
-        found_person = create_from_form(found_person_data['person']) unless found_person_data.nil?
+        raise PatientService.create_from_form(found_person_data['person']).to_yaml
+        found_person = PatientService.create_from_form(found_person_data['person']) unless found_person_data.nil?
       end
       if found_person
         #redirect_to search_complete_url(found_person.id, params[:relation]) and return
@@ -185,9 +186,8 @@ class PeopleController < ApplicationController
     #if GlobalProperty.find_by_property('create.from.remote') and property_value == 'yes'
     #then we create person from remote machine
 
-    
     if create_from_remote
-      person_from_remote = create_remote_person(params)
+      person_from_remote = PatientService.create_remote_person(params)
       person = create_from_form(person_from_remote["person"]) unless person_from_remote.blank?
       if !person.blank?
         success = true
@@ -217,7 +217,7 @@ class PeopleController < ApplicationController
           archived_patient = PatientService.patient_to_be_archived(person.patient)
           message = PatientService.patient_printing_message(person.patient,archived_patient,creating_new_patient = true)
           unless message.blank?
-            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}" , next_task(person.patient),message,true,person.id) 
+            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}" , next_task(person.patient),message,true,person.id)
           else
             print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}", next_task(person.patient)) 
           end

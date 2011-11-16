@@ -5,9 +5,8 @@ class PatientsController < ApplicationController
     session[:mastercard_ids] = []
     session_date = session[:datetime].to_date rescue Date.today
 
-	@patient_bean = PatientService.get_patient(@patient.person)    
-
-	@encounters = @patient.encounters.find_by_date(session_date)
+	  @patient_bean = PatientService.get_patient(@patient.person)
+	  @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
     @alerts = alerts(@patient, session_date) rescue nil

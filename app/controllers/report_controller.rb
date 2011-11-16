@@ -251,7 +251,7 @@ class ReportController < ApplicationController
 
         phone_number = nil
         
-        phone_numbers(patient.person).each do |type,number|
+        PatientService.phone_numbers(patient.person).each do |type,number|
             case type
                 when "Cell phone number"
                     phone_number = number if number.match(/\d+/)
@@ -293,7 +293,7 @@ class ReportController < ApplicationController
         
         @report << {'patient_id' => patient_data_row[:patient_id], 'arv_number' => patient_bean.arv_number, 'name' => patient_bean.name,
                    'birthdate' => patient_bean.birth_date, 'national_id' => patient_bean.national_id, 'gender' => patient_bean.sex,
-                   'age'=> patient_bean.age, 'phone_numbers' => phone_numbers(patient), 'last_visit'=> last_visit,
+                   'age'=> patient_bean.age, 'phone_numbers' => PatientService.phone_numbers(patient), 'last_visit'=> last_visit,
                    'date_started'=>patient_data_row[:date_started]}
     end
     @report
@@ -326,7 +326,7 @@ class ReportController < ApplicationController
         art_date = art_start_date(person.id)
         @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> PatientService.get_patient_identifier(person, 'ARV Number'), 'name'=> person.name,
                    'birthdate'=> person.birthdate, 'national_id' => get_national_id(person.patient) , 'gender' => person.gender,
-                   'age'=> person.age, 'phone_numbers'=>phone_numbers(person),
+                   'age'=> person.age, 'phone_numbers'=> PatientService.phone_numbers(person),
                    'art_start_date'=>art_start_date(person.id), "date_registered_at_clinic" => person.patient.date_created.strftime('%d-%b-%Y'),
                    'art_start_age' => age_at(art_date, person.birthdate), 'start_reason' => PatientService.reason_for_art_eligibility(person.patient), 'outcome' => outcome(person.id, end_date)}
     end

@@ -2,7 +2,7 @@ module PatientService
 	require 'bean'
 
   def self.remote_demographics(person_obj)
-    demo = self.demographics(person_obj)
+    demo = demographics(person_obj)
 
     demographics = {
                    "person" =>
@@ -65,8 +65,8 @@ module PatientService
         "address1" => person_obj.addresses[0].address1,
         "address2" => person_obj.addresses[0].address2
       },
-    "attributes" => {"occupation" => self.aget_attribute(person_obj, 'Occupation'),
-                     "cell_phone_number" => self.aget_attribute(person_obj, 'Cell Phone Number')}}}
+    "attributes" => {"occupation" => aget_attribute(person_obj, 'Occupation'),
+                     "cell_phone_number" => aget_attribute(person_obj, 'Cell Phone Number')}}}
  
     if not person_obj.patient.patient_identifiers.blank? 
       demographics["person"]["patient"] = {"identifiers" => {}}
@@ -88,9 +88,9 @@ module PatientService
   def self.phone_numbers(person_obj)
     phone_numbers = {}
 
-    phone_numbers['Cell phone number'] = self.aget_attribute(person_obj, 'Cell phone number') rescue nil
-    phone_numbers['Office phone number'] = self.aget_attribute(person_obj, 'Office phone number') rescue nil
-    phone_numbers['Home phone number'] = self.aget_attribute(person_obj, 'Home phone number') rescue nil
+    phone_numbers['Cell phone number'] = aget_attribute(person_obj, 'Cell phone number') rescue nil
+    phone_numbers['Office phone number'] = aget_attribute(person_obj, 'Office phone number') rescue nil
+    phone_numbers['Home phone number'] = aget_attribute(person_obj, 'Home phone number') rescue nil
 
     phone_numbers
   end
@@ -249,7 +249,7 @@ module PatientService
   
   def self.find_remote_person_by_identifier(identifier)
     known_demographics = {:person => {:patient => { :identifiers => {"National id" => identifier }}}}
-    self.find_remote_person(known_demographics)
+    find_remote_person(known_demographics)
   end
   
   def self.find_person_by_demographics(person_demographics)
@@ -1466,7 +1466,7 @@ module PatientService
 
 
   def self.patient_national_id_label(patient)
-	patient_bean = self.get_patient(patient.person)
+	  patient_bean = get_patient(patient.person)
     return unless patient_bean.national_id
     sex =  patient_bean.sex.match(/F/i) ? "(F)" : "(M)"
     address = patient.person.address.strip[0..24].humanize rescue ""
@@ -1545,7 +1545,7 @@ module PatientService
 
  def self.get_patient_attribute_value(patient, attribute_name)
  	
-   patient_bean = self.get_patient(patient.person)
+   patient_bean = get_patient(patient.person)
    if patient_bean.sex.upcase == 'MALE'
    		sex = 'M'
    elsif patient_bean.sex.upcase == 'FEMALE'
@@ -1789,26 +1789,26 @@ EOF
     patient = PatientBean.new('')
     patient.person_id = person.id
     patient.patient_id = person.patient.id
-    patient.arv_number = self.get_patient_identifier(person.patient, 'ARV Number')
+    patient.arv_number = get_patient_identifier(person.patient, 'ARV Number')
     patient.address = person.addresses.first.city_village
-    patient.national_id = self.get_patient_identifier(person.patient, 'National id')    
-	patient.national_id_with_dashes = self.get_national_id_with_dashes(person.patient)
+    patient.national_id = get_patient_identifier(person.patient, 'National id')    
+	  patient.national_id_with_dashes = get_national_id_with_dashes(person.patient)
     patient.name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
-    patient.sex = self.sex(person)
-    patient.age = self.age(person)
-    patient.age_in_months = self.age_in_months(person)
+    patient.sex = sex(person)
+    patient.age = age(person)
+    patient.age_in_months = age_in_months(person)
     patient.dead = person.dead
-    patient.birth_date = self.birthdate_formatted(person)
+    patient.birth_date = birthdate_formatted(person)
     patient.birthdate_estimated = person.birthdate_estimated
     patient.home_district = person.addresses.first.address2
     patient.traditional_authority = person.addresses.first.county_district
     patient.current_residence = person.addresses.first.city_village
     patient.mothers_surname = person.names.first.family_name2
-    patient.eid_number = self.get_patient_identifier(person.patient, 'EID Number')
-    patient.pre_art_number = self.get_patient_identifier(person.patient, 'Pre ART Number (Old format)')
-    patient.archived_filing_number = self.get_patient_identifier(person.patient, 'Archived filing number')
-    patient.filing_number = self.get_patient_identifier(person.patient, 'Filing Number')
-    patient.occupation = self.aget_attribute(person, 'Occupation')
+    patient.eid_number = get_patient_identifier(person.patient, 'EID Number')
+    patient.pre_art_number = get_patient_identifier(person.patient, 'Pre ART Number (Old format)')
+    patient.archived_filing_number = get_patient_identifier(person.patient, 'Archived filing number')
+    patient.filing_number = get_patient_identifier(person.patient, 'Filing Number')
+    patient.occupation = aget_attribute(person, 'Occupation')
     patient.guardian = art_guardian(patient_obj) rescue nil 
     patient
   end
