@@ -1808,7 +1808,7 @@ EOF
     patient.pre_art_number = get_patient_identifier(person.patient, 'Pre ART Number (Old format)')
     patient.archived_filing_number = get_patient_identifier(person.patient, 'Archived filing number')
     patient.filing_number = get_patient_identifier(person.patient, 'Filing Number')
-    patient.occupation = aget_attribute(person, 'Occupation')
+    patient.occupation = get_attribute(person, 'Occupation')
     patient.guardian = art_guardian(patient_obj) rescue nil 
     patient
   end
