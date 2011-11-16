@@ -148,6 +148,7 @@ class ApplicationController < ActionController::Base
         return task
       end if not (give_lab_results.encounter_datetime.to_date == session_date.to_date)
     end
+  end
 
 private
 
