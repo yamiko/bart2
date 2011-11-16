@@ -48,7 +48,7 @@ class PeopleController < ApplicationController
 
   def demographics
     # Search by the demographics that were passed in and then return demographics
-    people = find_person_by_demographics(params)
+    people = PatientService.find_person_by_demographics(params)
     result = people.empty? ? {} : PatientService.demographics(people.first)
     render :text => result.to_json
   end
@@ -99,8 +99,8 @@ class PeopleController < ApplicationController
     @found_person_id = params[:found_person_id] 
     @relation = params[:relation]
     @person = Person.find(@found_person_id) rescue nil
-    @task = main_next_task(Location.current_location,@person.patient,session_date.to_date)
-    @arv_number = get_patient_identifier(@person, 'ARV Number')
+    @task = PatientService.main_next_task(Location.current_location,@person.patient,session_date.to_date)
+    @arv_number = PatientService.get_patient_identifier(@person, 'ARV Number')
 	@patient_bean = PatientService.get_patient(@person)
     render :layout => 'menu'
   end
@@ -216,12 +216,12 @@ class PeopleController < ApplicationController
           archived_patient = PatientService.patient_to_be_archived(person.patient)
           message = PatientService.patient_printing_message(person.patient,archived_patient,creating_new_patient = true)
           unless message.blank?
-            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}" , next_task(person.patient),message,true,person.id)
+            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}" , PatientService.next_task(person.patient),message,true,person.id)
           else
-            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}", next_task(person.patient)) 
+            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}", PatientService.next_task(person.patient)) 
           end
         else
-          print_and_redirect("/patients/national_id_label?patient_id=#{person.id}", next_task(person.patient))
+          print_and_redirect("/patients/national_id_label?patient_id=#{person.id}", PatientService.next_task(person.patient))
         end
       end
     else
@@ -240,7 +240,7 @@ class PeopleController < ApplicationController
         session[:datetime] = date_of_encounter #if date_of_encounter.to_date != Date.today
       end
       unless params[:id].blank?
-        redirect_to next_task(Patient.find(params[:id])) 
+        redirect_to PatientService.next_task(Patient.find(params[:id])) 
       else
         redirect_to :action => "index"
       end
