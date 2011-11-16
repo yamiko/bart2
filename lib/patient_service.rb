@@ -1818,8 +1818,15 @@ EOF
     patient.archived_filing_number = get_patient_identifier(person.patient, 'Archived filing number')
     patient.filing_number = get_patient_identifier(person.patient, 'Filing Number')
     patient.occupation = get_attribute(person, 'Occupation')
-    patient.guardian = art_guardian(patient_obj) rescue nil 
+    patient.guardian = art_guardian(person.patient) rescue nil 
     patient
+  end
+  
+  def self.art_guardian(patient)
+    person_id = Relationship.find(:first,:order => "date_created DESC",
+      :conditions =>["person_a = ?",patient.person.id]).person_b rescue nil
+    guardian_name = name(Person.find(person_id))
+    guardian_name rescue nil
   end
 
   def self.name(person)
@@ -2037,7 +2044,7 @@ EOF
   end
   
   def self.person_search(params)
-    people = self.search_by_identifier(params[:identifier])
+    people = search_by_identifier(params[:identifier])
 
     return people.first.id unless people.blank? || people.size > 1
     people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patient], :conditions => [
