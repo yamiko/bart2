@@ -65,8 +65,8 @@ module PatientService
         "address1" => person_obj.addresses[0].address1,
         "address2" => person_obj.addresses[0].address2
       },
-    "attributes" => {"occupation" => aget_attribute(person_obj, 'Occupation'),
-                     "cell_phone_number" => aget_attribute(person_obj, 'Cell Phone Number')}}}
+    "attributes" => {"occupation" => self.get_attribute(person_obj, 'Occupation'),
+                     "cell_phone_number" => self.get_attribute(person_obj, 'Cell Phone Number')}}}
  
     if not person_obj.patient.patient_identifiers.blank? 
       demographics["person"]["patient"] = {"identifiers" => {}}
@@ -88,9 +88,9 @@ module PatientService
   def self.phone_numbers(person_obj)
     phone_numbers = {}
 
-    phone_numbers['Cell phone number'] = aget_attribute(person_obj, 'Cell phone number') rescue nil
-    phone_numbers['Office phone number'] = aget_attribute(person_obj, 'Office phone number') rescue nil
-    phone_numbers['Home phone number'] = aget_attribute(person_obj, 'Home phone number') rescue nil
+    phone_numbers['Cell phone number'] = self.get_attribute(person_obj, 'Cell phone number') rescue nil
+    phone_numbers['Office phone number'] = self.get_attribute(person_obj, 'Office phone number') rescue nil
+    phone_numbers['Home phone number'] = self.get_attribute(person_obj, 'Home phone number') rescue nil
 
     phone_numbers
   end
@@ -1819,7 +1819,7 @@ EOF
     patient.pre_art_number = get_patient_identifier(person.patient, 'Pre ART Number (Old format)')
     patient.archived_filing_number = get_patient_identifier(person.patient, 'Archived filing number')
     patient.filing_number = get_patient_identifier(person.patient, 'Filing Number')
-    patient.occupation = aget_attribute(person, 'Occupation')
+    patient.occupation = get_attribute(person, 'Occupation')
     patient.guardian = art_guardian(patient_obj) rescue nil 
     patient
   end
@@ -2073,7 +2073,7 @@ EOF
     (years * 12) + months
   end
   
-  def self.aget_attribute(person, attribute)
+  def self.get_attribute(person, attribute)
     PersonAttribute.find(:first,:conditions =>["voided = 0 AND person_attribute_type_id = ? AND person_id = ?",
         PersonAttributeType.find_by_name(attribute).id, person.id]).value rescue nil
   end

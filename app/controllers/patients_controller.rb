@@ -369,7 +369,7 @@ class PatientsController < ApplicationController
     end
 
     @visits.keys.each do|day|
-		@age_in_months_for_days[day] = age_in_months(@patient.person, day.to_date)
+		@age_in_months_for_days[day] = PatientService.age_in_months(@patient.person, day.to_date)
     end rescue nil
 
     render :layout => false
@@ -461,11 +461,11 @@ class PatientsController < ApplicationController
       csv_string = FasterCSV.generate do |csv|
         # header row
         csv << ["ARV number", "National ID"]
-        csv << [PatientService.get_patient_identifier(patient, 'ARV Number'), get_national_id(patient)]
+        csv << [PatientService.get_patient_identifier(patient, 'ARV Number'), PatientService.get_national_id(patient)]
         csv << ["Name", "Age","Sex","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
         transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
         transfer_in.blank? == true ? transfer_in = 'NO' : transfer_in = 'YES'
-        csv << [patient.person.name,patient.person.age, sex(patient.person),PatientService.get_patient_attribute_value(patient, "initial_weight"),PatientService.get_patient_attribute_value(patient, "initial_height"),PatientService.get_patient_attribute_value(patient, "initial_bmi"),transfer_in]
+        csv << [patient.person.name,patient.person.age, PatientService.sex(patient.person),PatientService.get_patient_attribute_value(patient, "initial_weight"),PatientService.get_patient_attribute_value(patient, "initial_height"),PatientService.get_patient_attribute_value(patient, "initial_bmi"),transfer_in]
         csv << ["Location", "Land-mark","Occupation","Init Wt(Kg)","Init Ht(cm)","BMI","Transfer-in"]
 
 =begin
@@ -655,15 +655,15 @@ class PatientsController < ApplicationController
     
     @age_in_months_for_days = {}
     @visits.keys.each do|day|
-		@age_in_months_for_days[day] = age_in_months(@patient.person, day.to_date)
+		@age_in_months_for_days[day] = PatientService.age_in_months(@patient.person, day.to_date)
     end
     
     @patient_age_at_initiation = PatientService.patient_age_at_initiation(@patient,
                                               PatientService.patient_art_start_date(@patient.id))
                                               
     @patient_bean = PatientService.get_patient(@patient.person)
-	@guardian_phone_number = get_attribute(Person.find(@patient.person.relationships.first.person_b), 'Cell phone number')
-	@patient_phone_number = get_attribute(@patient.person, 'Cell phone number')
+	@guardian_phone_number = PatientService.get_attribute(Person.find(@patient.person.relationships.first.person_b), 'Cell phone number')
+	@patient_phone_number = PatientService.get_attribute(@patient.person, 'Cell phone number')
     render :layout => false
   end
 
@@ -952,7 +952,7 @@ class PatientsController < ApplicationController
       observation = Observation.find(test.to_i)
 
       accession_number = "#{observation.accession_number rescue nil}"
-		patient_national_id_with_dashes = get_national_id_with_dashes(patient)
+		patient_national_id_with_dashes = PatientService.get_national_id_with_dashes(patient)
         if accession_number != ""
           label = 'label' + i.to_s
           label = ZebraPrinter::Label.new(500,165)
@@ -1023,9 +1023,9 @@ class PatientsController < ApplicationController
       end
     end rescue []
 
-    office_phone_number = get_attribute(patient.person, 'Office phone number')
-    home_phone_number = get_attribute(patient.person, 'Home phone number')
-    cell_phone_number = get_attribute(patient.person, 'Cell phone number')
+    office_phone_number = PatientService.get_attribute(patient.person, 'Office phone number')
+    home_phone_number = PatientService.get_attribute(patient.person, 'Home phone number')
+    cell_phone_number = PatientService.get_attribute(patient.person, 'Cell phone number')
 
     phone_number = office_phone_number if not office_phone_number.downcase == "not available" and not office_phone_number.downcase == "unknown" rescue nil
     phone_number= home_phone_number if not home_phone_number.downcase == "not available" and not home_phone_number.downcase == "unknown" rescue nil
@@ -1039,7 +1039,7 @@ class PatientsController < ApplicationController
     label.draw_text("#{demographics.arv_number}",575,30,0,3,1,1,false)
     label.draw_text("PATIENT DETAILS",25,30,0,3,1,1,false)
     label.draw_text("Name:   #{demographics.name} (#{demographics.sex})",25,60,0,3,1,1,false)
-    label.draw_text("DOB:    #{birthdate_formatted(patient.person)}",25,90,0,3,1,1,false)
+    label.draw_text("DOB:    #{PatientService.birthdate_formatted(patient.person)}",25,90,0,3,1,1,false)
     label.draw_text("Phone: #{phone_number}",25,120,0,3,1,1,false)
     if demographics.address.length > 48
       label.draw_text("Addr:  #{demographics.address[0..47]}",25,150,0,3,1,1,false)
@@ -1228,7 +1228,7 @@ class PatientsController < ApplicationController
 
       while i <= lab_orders.size do
         accession_number = "#{lab_orders[i].accession_number rescue nil}"
-		patient_national_id_with_dashes = get_national_id_with_dashes(patient) 
+		patient_national_id_with_dashes = PatientService.get_national_id_with_dashes(patient) 
         if accession_number != ""
           label = 'label' + i.to_s
           label = ZebraPrinter::Label.new(500,165)
@@ -1303,7 +1303,7 @@ class PatientsController < ApplicationController
     visits.name = patient_bean.name rescue nil
     visits.sex = patient_bean.sex
     visits.age = patient_bean.age
-    visits.occupation = get_attribute(patient_obj.person, 'Occupation')
+    visits.occupation = PatientService.get_attribute(patient_obj.person, 'Occupation')
     visits.landmark = patient_obj.person.addresses.first.address1
     visits.init_wt = PatientService.get_patient_attribute_value(patient_obj, "initial_weight")
     visits.init_ht = PatientService.get_patient_attribute_value(patient_obj, "initial_height")
@@ -1761,9 +1761,9 @@ class PatientsController < ApplicationController
 
       if !birthday_params.empty?
         if birthday_params["birth_year"] == "Unknown"
-          set_birthdate_by_age(patient.person, birthday_params["age_estimate"])
+          PatientService.set_birthdate_by_age(patient.person, birthday_params["age_estimate"])
         else
-          set_birthdate(patient.person, birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
+          PatientService.set_birthdate(patient.person, birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
         end
         patient.person.birthdate_estimated = 1 if params["birthdate_estimated"] == 'true'
         patient.person.save

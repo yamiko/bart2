@@ -36,7 +36,7 @@ class PeopleController < ApplicationController
       Location.current_location = Location.find(get_global_property_value('current_health_center_id'))
     end rescue []
 
-    person = create_from_form(person_params)
+    person = PatientService.create_from_form(person_params)
     if person
       patient = Patient.new()
       patient.patient_id = person.id
@@ -63,10 +63,10 @@ class PeopleController < ApplicationController
   def search
     found_person = nil
     if params[:identifier]
-      local_results = search_by_identifier(params[:identifier])
+      local_results = PatientService.search_by_identifier(params[:identifier])
 
       if local_results.length > 1
-        @people = person_search(params)
+        @people = PatientService.person_search(params)
       elsif local_results.length == 1
         found_person = local_results.first
       else
@@ -81,7 +81,7 @@ class PeopleController < ApplicationController
       end
     end
 
-    @people = person_search(params)
+    @people = PatientService.person_search(params)
     @patients = []
     @people.each do | person |
         patient = PatientService.get_patient(person)
@@ -186,15 +186,16 @@ class PeopleController < ApplicationController
     #then we create person from remote machine
 
     if create_from_remote
-      person_from_remote = PatientService.create_remote_person(params)
-      person = create_from_form(person_from_remote["person"]) unless person_from_remote.blank?
+      person_from_remote = create_remote_person(params)
+      person = PatientService.create_from_form(person_from_remote["person"]) unless person_from_remote.blank?
+
       if !person.blank?
         success = true
         person.patient.remote_national_id
       end
     else
       success = true
-      person = create_from_form(params[:person])
+      person = PatientService.create_from_form(params[:person])
     end
 
     if params[:person][:patient] && success
@@ -345,7 +346,7 @@ class PeopleController < ApplicationController
 
   def art_info_for_remote(national_id)
 
-    patient = search_by_identifier(national_id).first.patient rescue []
+    patient = PatientService.search_by_identifier(national_id).first.patient rescue []
     return {} if patient.blank?
 
     results = {}
@@ -398,7 +399,7 @@ class PeopleController < ApplicationController
   end
 
   def art_info_for_remote(national_id)
-    patient = search_by_identifier(national_id).first.patient rescue []
+    patient = PatientService.search_by_identifier(national_id).first.patient rescue []
     return {} if patient.blank?
 
     results = {}

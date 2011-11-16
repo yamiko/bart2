@@ -786,7 +786,7 @@ class CohortToolController < ApplicationController
 
         prescriptions_without_dispensations << {'person_id' => patient.id,
                                                 'arv_number' => PatientService.get_patient_identifier(patient, 'ARV Number'),
-                                                'national_id' => get_national_id(patient),
+                                                'national_id' => PatientService.get_national_id(patient),
                                                 'date_created' => prescription[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
                                                 'drug_name' => drug_name
                                                 }
