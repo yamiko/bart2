@@ -375,7 +375,7 @@ class EncountersController < ApplicationController
 		@answer_array = regimen_options(hiv_program.regimens, @patient_bean.age)
 		@answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 
-		@hiv_status = patient_hiv_status(@patient)
+		@hiv_status = PatientService.patient_hiv_status(@patient)
 		@hiv_test_date = PatientService.hiv_test_date(@patient.id)
 #raise @hiv_test_date.to_s
 		@lab_activities = lab_activities

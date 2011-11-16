@@ -122,17 +122,6 @@ class ApplicationController < ActionController::Base
 
   end
 
-  #moved to patient_service but left this because it's referenced in other methods
-  def patient_hiv_status(patient)
-    status = Concept.find(Observation.find(:first,
-    :order => "obs_datetime DESC,date_created DESC",
-    :conditions => ["value_coded IS NOT NULL AND person_id = ? AND concept_id = ?", patient.id,
-    ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
-    if status.upcase == 'UNKNOWN'
-      return patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') ? 'Positive' : status
-    end
-    return status
-  end
 =begin
   def get_patients_identifier(patient, identifier_type, force = false)
     id = patient.patient_identifiers.find_by_identifier_type(PatientIdentifierType.find_by_name(identifier_type).id).identifier rescue nil
@@ -141,52 +130,6 @@ class ApplicationController < ActionController::Base
     id
   end
 =end
-
- def patient_is_child?(patient)
-   return get_patient_attribute_value(patient, "age") <= 14 unless get_patient_attribute_value(patient, "age").nil?
-   return false
- end
-
- def get_patient_attribute_value(patient, attribute_name)
- 	
-   patient_bean = PatientService.get_patient(patient.person)
-   if patient_bean.sex.upcase == 'MALE'
-   		sex = 'M'
-   elsif patient_bean.sex.upcase == 'FEMALE'
-   		sex = 'F'
-   end
-   
-   case attribute_name.upcase
-     when "AGE"
-       return patient_bean.age
-     when "RESIDENCE"
-       return patient_bean.address
-     when "CURRENT_HEIGHT"
-      obs = patient.person.observations.recent(1).question("HEIGHT (CM)").all
-      return obs.first.value_numeric rescue 0
-     when "CURRENT_WEIGHT"
-      obs = patient.person.observations.recent(1).question("WEIGHT (KG)").all
-      return obs.first.value_numeric rescue 0
-     when "INITIAL_WEIGHT"
-      obs = patient.person.observations.old(1).question("WEIGHT (KG)").all
-      return obs.last.value_numeric rescue 0
-     when "INITIAL_HEIGHT"
-      obs = patient.person.observations.old(1).question("HEIGHT (CM)").all
-      return obs.last.value_numeric rescue 0
-     when "INITIAL_BMI"
-      obs = patient.person.observations.old(1).question("BMI").all
-      return obs.last.value_numeric rescue nil
-     when "MIN_WEIGHT"
-      return WeightHeight.min_weight(sex, patient_bean.age_in_months).to_f
-     when "MAX_WEIGHT"
-      return WeightHeight.max_weight(sex, patient_bean.age_in_months).to_f
-     when "MIN_HEIGHT"
-      return WeightHeight.min_height(sex, patient_bean.age_in_months).to_f
-     when "MAX_HEIGHT"
-      return WeightHeight.max_height(sex, patient_bean.age_in_months).to_f
-   end
-
- end
 
  def patient_tb_status(patient)
    Concept.find(Observation.find(:first,
