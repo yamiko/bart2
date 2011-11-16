@@ -1628,15 +1628,15 @@ module PatientService
   def self.patient_printing_message(new_patient , archived_patient , creating_new_filing_number_for_patient = false)
     arv_code = Location.current_arv_code
     
-    new_patient_bean = self.get_patient(new_patient.person)
-    archived_patient_bean = self.get_patient(archived_patient.person)
+    new_patient_bean = get_patient(new_patient.person)
+    archived_patient_bean = get_patient(archived_patient.person) rescue nil
     
     new_patient_name = new_patient_bean.name
-    new_filing_number = self.patient_printing_filing_number_label(new_patient_bean.filing_number)
-    old_archive_filing_number = self.patient_printing_filing_number_label(new_patient_bean.archived_filing_number)
+    new_filing_number = patient_printing_filing_number_label(new_patient_bean.filing_number)
+    old_archive_filing_number = patient_printing_filing_number_label(new_patient_bean.archived_filing_number)
     unless archived_patient.blank?
-      old_active_filing_number = self.patient_printing_filing_number_label(self.old_filing_number(archived_patient))
-      new_archive_filing_number = self.patient_printing_filing_number_label(archived_patient_bean.archived_filing_number)
+      old_active_filing_number = patient_printing_filing_number_label(old_filing_number(archived_patient))
+      new_archive_filing_number = patient_printing_filing_number_label(archived_patient_bean.archived_filing_number)
     end
 
     if new_patient and archived_patient and creating_new_filing_number_for_patient
