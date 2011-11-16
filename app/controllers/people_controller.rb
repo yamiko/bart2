@@ -390,7 +390,7 @@ class PeopleController < ApplicationController
         'cd4_data' => cd4_data_and_date_hash,
         'last_given_drugs' => last_given_drugs,
         'art_clinic_outcome' => art_clinic_outcome,
-        'arv_number' => get_patient_identifier(patient, 'ARV Number')
+        'arv_number' => PatientService.get_patient_identifier(patient, 'ARV Number')
       }
     end
 
@@ -443,7 +443,7 @@ class PeopleController < ApplicationController
         'cd4_data' => cd4_data_and_date_hash,
         'last_given_drugs' => last_given_drugs,
         'art_clinic_outcome' => art_clinic_outcome,
-        'arv_number' => get_patient_identifier(patient, 'ARV Number')
+        'arv_number' => PatientService.get_patient_identifier(patient, 'ARV Number')
       }
     end
 

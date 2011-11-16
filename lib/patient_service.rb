@@ -2210,7 +2210,7 @@ EOF
                                  patient.id,EncounterType.find_by_name('HIV STAGING').id])
 
     if hiv_staging.blank? and user_selected_activities.match(/Manage HIV staging visits/i)
-      extended_staging_questions = self.get_global_property_value('use.extended.staging.questions')
+      extended_staging_questions = get_global_property_value('use.extended.staging.questions')
       extended_staging_questions = extended_staging_questions.property_value == 'yes' rescue false
       task.encounter_type = 'HIV STAGING'
       task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" if not extended_staging_questions

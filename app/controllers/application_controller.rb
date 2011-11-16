@@ -131,45 +131,10 @@ class ApplicationController < ActionController::Base
   end
 =end
 
- def patient_tb_status(patient)
-   Concept.find(Observation.find(:first,
-    :order => "obs_datetime DESC,date_created DESC",
-    :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL",
-                    patient.id,
-    ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
- end
- 
   def get_global_property_value(global_property)
     GlobalProperty.find(:first,
                         :conditions => {:property => "#{global_property}"}
                        ).property_value
-  end
-
- def reason_for_art_eligibility(patient)
-    reasons = patient.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue nil
-    reasons.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue nil
- end
-
- def patient_appointment_dates(patient, start_date, end_date = nil)
-
-    end_date = start_date if end_date.nil?
-
-    appointment_date_concept_id = Concept.find_by_name("APPOINTMENT DATE").concept_id rescue nil
-
-    appointments = Observation.find(:all,
-      :conditions => ["DATE(obs.value_datetime) >= ? AND DATE(obs.value_datetime) <= ? AND " +
-          "obs.concept_id = ? AND obs.voided = 0 AND obs.person_id = ?", start_date.to_date,
-        end_date.to_date, appointment_date_concept_id, patient.id])
-
-    appointments
-  end
-
-  def get_patient_identifier(patient, identifier_type)
-    patient_identifier_type_id = PatientIdentifierType.find_by_name(identifier_type).patient_identifier_type_id
-    patient_identifier = PatientIdentifier.find(:first, :select => "identifier",
-                                                :conditions  =>["patient_id = ? and identifier_type = ?", patient.id, patient_identifier_type_id],
-                                                :order => "date_created DESC" ).identifier rescue nil
-    return patient_identifier
   end
 
 private
