@@ -1745,7 +1745,6 @@ EOF
 EOF
     end
 
-
     return table
   end
 
@@ -1771,7 +1770,7 @@ EOF
     return date.to_date rescue nil
   end
 
-  def prescribe_arv_this_visit(patient, date = Date.today)
+  def self.prescribe_arv_this_visit(patient, date = Date.today)
     encounter_type = EncounterType.find_by_name('ART VISIT')
     yes_concept = ConceptName.find_by_name('YES').concept_id
     refer_concept = ConceptName.find_by_name('PRESCRIBE ARVS THIS VISIT').concept_id

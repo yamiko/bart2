@@ -1064,7 +1064,7 @@ class CohortToolController < ApplicationController
                                         "national_id" => patient_bean.national_id,
                                         "visit_date" =>rate.obs_datetime,
                                         "gender" =>patient_bean.sex,
-                                        "age" =>patient_age_at_initiation(patient, rate.start_date.to_date),
+                                        "age" => PatientService.patient_age_at_initiation(patient, rate.start_date.to_date),
                                         "birthdate" => patient_bean.birth_date,
                                         "pill_count" => pill_count.to_i.to_s,
                                         "adherence" => rate. adherence_rate_worse,
