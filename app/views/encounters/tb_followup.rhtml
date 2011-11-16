@@ -62,6 +62,7 @@ Check applicability of code below
   <% if @patient_bean.sex == "Female" %>
   <%= touch_yes_no_unknown_tag "CURRENTLY USING FAMILY PLANNING METHOD", @patient, nil,
     {:id => "on_fpm",
+     :condition => "$('pregnant').value == 'No'",
      :helpText => "Currently using family planning method" } %>
   <% end %>
 

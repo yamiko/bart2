@@ -109,7 +109,8 @@
                 <% if @currently_using_family_planning_methods.nil? %>
                     <%= touch_yes_no_unknown_tag "CURRENTLY USING FAMILY PLANNING METHOD", @patient, nil,
                       {:id => "on_fpm",
-                        :helpText => "Currently using family planning method" } %>
+                       :condition => "$('pregnant').value == 'No'",
+                       :helpText => "Currently using family planning method" } %>
 
                     <%= touch_select_tag "FAMILY PLANNING METHOD", @patient, options_for_select(@select_options['family_planning_methods']),
                     {:id => "fpm_used",
