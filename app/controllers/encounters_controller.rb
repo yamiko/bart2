@@ -1047,7 +1047,7 @@ class EncountersController < ApplicationController
   end
 
   def is_child_bearing_female(patient)
-  	patient_bean = get_patient(patient.person)
+  	patient_bean = PatientService.get_patient(patient.person)
     (patient_bean.sex == 'Female' && patient_bean.age >= 9 && patient_bean.age <= 45) ? true : false
   end
 

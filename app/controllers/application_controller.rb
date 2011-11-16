@@ -149,7 +149,7 @@ class ApplicationController < ActionController::Base
 
  def get_patient_attribute_value(patient, attribute_name)
  	
-   patient_bean = get_patient(patient.person)
+   patient_bean = PatientService.get_patient(patient.person)
    if patient_bean.sex.upcase == 'MALE'
    		sex = 'M'
    elsif patient_bean.sex.upcase == 'FEMALE'
@@ -227,76 +227,6 @@ class ApplicationController < ActionController::Base
                                                 :conditions  =>["patient_id = ? and identifier_type = ?", patient.id, patient_identifier_type_id],
                                                 :order => "date_created DESC" ).identifier rescue nil
     return patient_identifier
-  end
-
-  def prescribe_arv_this_visit(patient, date = Date.today)
-    encounter_type = EncounterType.find_by_name('ART VISIT')
-    yes_concept = ConceptName.find_by_name('YES').concept_id
-    refer_concept = ConceptName.find_by_name('PRESCRIBE ARVS THIS VISIT').concept_id
-    refer_patient = Encounter.find(:first,
-      :joins => 'INNER JOIN obs USING (encounter_id)',
-      :conditions => ["encounter_type = ? AND concept_id = ? AND person_id = ? AND value_coded = ? AND DATE(obs_datetime) = ?",
-        encounter_type.id,refer_concept,patient.id,yes_concept,date.to_date],
-      :order => 'encounter_datetime DESC,date_created DESC')
-    return false if refer_patient.blank?
-    return true
-  end
-
-  def drug_given_before(patient, date = Date.today)
-    encounter_type = EncounterType.find_by_name('TREATMENT')
-    Encounter.find(:first,
-      :joins => 'INNER JOIN orders ON orders.encounter_id = encounter.encounter_id
-               INNER JOIN drug_order ON orders.order_id = orders.order_id',
-      :conditions => ["quantity IS NOT NULL AND encounter_type = ? AND
-               encounter.patient_id = ? AND DATE(encounter_datetime) < ?",
-        encounter_type.id,patient.id,date.to_date],
-        :order => 'encounter_datetime DESC,date_created DESC').orders rescue []
-  end
-
-  def get_patient(person)
-    patient = Mastercard.new()
-    patient.person_id = person.id
-    patient.patient_id = person.patient.id
-    patient.arv_number = get_patient_identifier(person.patient, 'ARV Number')
-    patient.address = person.addresses.first.city_village
-    patient.national_id = get_patient_identifier(person.patient, 'National id')    
-		patient.national_id_with_dashes = PatientService.get_national_id_with_dashes(person.patient)
-    patient.name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
-    patient.sex = PatientService.sex(person)
-    patient.age = age(person)
-    patient.age_in_months = PatientService.age_in_months(person)
-    patient.dead = person.dead
-    patient.birth_date = PatientService.birthdate_formatted(person)
-    patient.birthdate_estimated = person.birthdate_estimated
-    patient.home_district = person.addresses.first.address2
-    patient.traditional_authority = person.addresses.first.county_district
-    patient.current_residence = person.addresses.first.city_village
-    patient.mothers_surname = person.names.first.family_name2
-    patient.eid_number = get_patient_identifier(person.patient, 'EID Number')
-    patient.pre_art_number = get_patient_identifier(person.patient, 'Pre ART Number (Old format)')
-    patient.archived_filing_number = get_patient_identifier(person.patient, 'Archived filing number')
-    patient.filing_number = get_patient_identifier(person.patient, 'Filing Number')
-    patient.occupation = PatientService.get_attribute(person, 'Occupation')
-    patient.guardian = art_guardian(patient_obj) rescue nil 
-    patient
-  end
-
-  def name(person)
-    "#{person.names.first.given_name} #{person.names.first.family_name}".titleize rescue nil
-  end
-  
-  def age(person, today = Date.today)
-    return nil if person.birthdate.nil?
-
-    # This code which better accounts for leap years
-    patient_age = (today.year - person.birthdate.year) + ((today.month - person.birthdate.month) + ((today.day - person.birthdate.day) < 0 ? -1 : 0) < 0 ? -1 : 0)
-
-    # If the birthdate was estimated this year, we round up the age, that way if
-    # it is March and the patient says they are 25, they stay 25 (not become 24)
-    birth_date=person.birthdate
-    estimate=person.birthdate_estimated==1
-    patient_age += (estimate && birth_date.month == 7 && birth_date.day == 1  && 
-      today.month < birth_date.month && person.date_created.year == today.year) ? 1 : 0
   end
 
 private
