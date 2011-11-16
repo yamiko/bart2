@@ -122,23 +122,6 @@ class ApplicationController < ActionController::Base
 
   end
 
-  def patient_national_id_label(patient)
-	patient_bean = get_patient(patient.person)
-    return unless patient_bean.national_id
-    sex =  patient_bean.sex.match(/F/i) ? "(F)" : "(M)"
-    address = patient.person.address.strip[0..24].humanize rescue ""
-    label = ZebraPrinter::StandardLabel.new
-    label.font_size = 2
-    label.font_horizontal_multiplier = 2
-    label.font_vertical_multiplier = 2
-    label.left_margin = 50
-    label.draw_barcode(50,180,0,1,5,15,120,false,"#{patient_bean.national_id}")
-    label.draw_multi_text("#{patient_bean.name.titleize}")
-    label.draw_multi_text("#{patient_bean.national_id_with_dashes} #{patient_bean.birth_date}#{sex}")
-    label.draw_multi_text("#{address}")
-    label.print(1)
-  end
-
   #moved to patient_service but left this because it's referenced in other methods
   def patient_hiv_status(patient)
     status = Concept.find(Observation.find(:first,

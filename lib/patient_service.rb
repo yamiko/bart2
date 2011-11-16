@@ -1475,7 +1475,6 @@ module PatientService
     task
   end
 
-
   def self.patient_national_id_label(patient)
 	  patient_bean = get_patient(patient.person)
     return unless patient_bean.national_id

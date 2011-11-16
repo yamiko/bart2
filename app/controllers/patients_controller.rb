@@ -251,7 +251,7 @@ class PatientsController < ApplicationController
   end
   
   def national_id_label
-    print_string = patient_national_id_label(@patient) rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a national id label for that patient")
+    print_string = PatientService.patient_national_id_label(@patient) rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a national id label for that patient")
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", :disposition => "inline")
   end
 
@@ -272,7 +272,7 @@ class PatientsController < ApplicationController
  
   def filing_number_and_national_id
     patient = Patient.find(params[:patient_id])
-    label_commands = patient_national_id_label(patient) + patient_filing_number_label(patient)
+    label_commands = PatientService.patient_national_id_label(patient) + patient_filing_number_label(patient)
 
     send_data(label_commands,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbl", :disposition => "inline")
   end

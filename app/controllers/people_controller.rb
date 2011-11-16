@@ -41,7 +41,7 @@ class PeopleController < ApplicationController
       patient = Patient.new()
       patient.patient_id = person.id
       patient.save
-      patient_national_id_label(patient)
+      PatientService.patient_national_id_label(patient)
     end
     render :text => PatientService.remote_demographics(person).to_json
   end
@@ -199,7 +199,7 @@ class PeopleController < ApplicationController
     end
 
     if params[:person][:patient] && success
-      patient_national_id_label(person.patient)
+      PatientService.patient_national_id_label(person.patient)
       unless (params[:relation].blank?)
         redirect_to search_complete_url(person.id, params[:relation]) and return
       else
