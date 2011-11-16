@@ -1840,6 +1840,38 @@ EOF
       today.month < birth_date.month && person.date_created.year == today.year) ? 1 : 0
   end
 
+  # Convert a list +Concept+s of +Regimen+s for the given +Patient+ <tt>age</tt>
+  # into select options. See also +EncountersController#arv_regimen_answers+
+  def self.regimen_options(regimen_concepts, age)
+    options = regimen_concepts.map{ |r|
+      [r.concept_id,
+
+        (r.concept_names.typed("SHORT").first ||
+        r.concept_names.typed("FULLY_SPECIFIED").first).name]
+    }
+	
+    suffixed_options = options.collect{ |opt|
+      opt_reg = Regimen.find(:all,
+                             :select => 'regimen_index',
+							 :order => 'regimen_index',
+                             :conditions => ['concept_id = ?', opt[0]]
+                            ).uniq.first
+      if age >= 15
+        suffix = "A"
+      else
+        suffix = "P"
+      end
+
+      #[opt[0], "#{opt_reg.regimen_index}#{suffix} - #{opt[1]}"]
+		if opt_reg.regimen_index > -1
+      		["#{opt_reg.regimen_index}#{suffix} - #{opt[1]}", opt[0], opt_reg.regimen_index.to_i]
+		else
+      		["#{opt[1]}", opt[0], opt_reg.regimen_index.to_i]
+		end
+    }.sort_by{|opt| opt[2]}
+
+  end
+
   def self.old_filing_number(patient, type = 'Filing Number')
     identifier_type = PatientIdentifierType.find_by_name(type)
     PatientIdentifier.find_by_sql(["

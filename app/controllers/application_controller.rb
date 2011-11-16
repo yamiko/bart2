@@ -7,9 +7,12 @@ class ApplicationController < ActionController::Base
     Encounter
     EncounterType
     Location
+    DrugOrder
+    User
     Task
     GlobalProperty
     Person
+    Regimen
 
   require "fastercsv"
 
@@ -88,66 +91,6 @@ class ApplicationController < ActionController::Base
 
   def create_from_remote                                                        
     PatientService.get_global_property_value('create.from.remote') == "yes" rescue false
-  end
-
-  # Convert a list +Concept+s of +Regimen+s for the given +Patient+ <tt>age</tt>
-  # into select options. See also +EncountersController#arv_regimen_answers+
-  def regimen_options(regimen_concepts, age)
-    options = regimen_concepts.map{ |r|
-      [r.concept_id,
-
-        (r.concept_names.typed("SHORT").first ||
-        r.concept_names.typed("FULLY_SPECIFIED").first).name]
-    }
-	
-    suffixed_options = options.collect{ |opt|
-      opt_reg = Regimen.find(:all,
-                             :select => 'regimen_index',
-							 :order => 'regimen_index',
-                             :conditions => ['concept_id = ?', opt[0]]
-                            ).uniq.first
-      if age >= 15
-        suffix = "A"
-      else
-        suffix = "P"
-      end
-
-      #[opt[0], "#{opt_reg.regimen_index}#{suffix} - #{opt[1]}"]
-		if opt_reg.regimen_index > -1
-      		["#{opt_reg.regimen_index}#{suffix} - #{opt[1]}", opt[0], opt_reg.regimen_index.to_i]
-		else
-      		["#{opt[1]}", opt[0], opt_reg.regimen_index.to_i]
-		end
-    }.sort_by{|opt| opt[2]}
-
-  end
-  
-  def checks_if_labs_results_are_avalable_to_be_shown(patient , session_date , task)
-    lab_result = Encounter.find(:first,:order => "encounter_datetime DESC",
-                                :conditions =>["DATE(encounter_datetime) <= ? 
-                                AND patient_id = ? AND encounter_type = ?",
-                                session_date.to_date ,patient.id,
-                                EncounterType.find_by_name('LAB RESULTS').id])
-
-    give_lab_results = Encounter.find(:first,:order => "encounter_datetime DESC",
-                                :conditions =>["DATE(encounter_datetime) >= ? 
-                                AND patient_id = ? AND encounter_type = ?",
-                                lab_result.encounter_datetime.to_date , patient.id,
-                                EncounterType.find_by_name('GIVE LAB RESULTS').id]) rescue nil
-
-    if not lab_result.blank? and give_lab_results.blank?
-      task.encounter_type = 'GIVE LAB RESULTS'
-      task.url = "/encounters/new/give_lab_results?patient_id=#{patient.id}"
-      return task
-    end
-
-    if not give_lab_results.blank?
-      if not give_lab_results.observations.collect{|obs|obs.to_s.squish}.include?('Laboratory results given to patient: Yes')
-        task.encounter_type = 'GIVE LAB RESULTS'
-        task.url = "/encounters/new/give_lab_results?patient_id=#{patient.id}"
-        return task
-      end if not (give_lab_results.encounter_datetime.to_date == session_date.to_date)
-    end
   end
 
 private

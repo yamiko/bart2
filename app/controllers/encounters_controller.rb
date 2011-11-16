@@ -372,7 +372,7 @@ class EncountersController < ApplicationController
 			:show_other_regimen => show_other_regimen      == "true")
 
 		hiv_program = Program.find_by_name('HIV Program')
-		@answer_array = regimen_options(hiv_program.regimens, @patient_bean.age)
+		@answer_array = PatientService.regimen_options(hiv_program.regimens, @patient_bean.age)
 		@answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 
 		@hiv_status = PatientService.patient_hiv_status(@patient)
@@ -413,9 +413,9 @@ class EncountersController < ApplicationController
 
 		if (params[:encounter_type].upcase rescue '') == 'TB_INITIAL'
 			tb_program = Program.find_by_name('TB Program')
-			@tb_regimen_array = regimen_options(tb_program.regimens, @patient_bean.age)
+			@tb_regimen_array = PatientService.regimen_options(tb_program.regimens, @patient_bean.age)
 			tb_program = Program.find_by_name('MDR-TB Program')
-			@tb_regimen_array += regimen_options(tb_program.regimens, @patient_bean.age)
+			@tb_regimen_array += PatientService.regimen_options(tb_program.regimens, @patient_bean.age)
 			@tb_regimen_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 		end
 
