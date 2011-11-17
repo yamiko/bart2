@@ -1453,11 +1453,11 @@ class PatientsController < ApplicationController
     patient_visits = {}
     yes = ConceptName.find_by_name("YES")
     if encounter_date.blank?
-      observations = Observation.find(:all,:conditions =>["voided = 0 AND person_id = ?",patient_obj.patient_id],:order =>"obs_datetime")
+      observations = Observation.find(:all,:conditions =>["voided = 0 AND person_id = ?",patient_obj.patient_id],:order =>"obs_datetime").map{|obs| obs if !obs.concept.nil?}
     else
       observations = Observation.find(:all,
         :conditions =>["voided = 0 AND person_id = ? AND Date(obs_datetime) = ?",
-        patient_obj.patient_id,encounter_date.to_date],:order =>"obs_datetime")
+        patient_obj.patient_id,encounter_date.to_date],:order =>"obs_datetime").map{|obs| obs if !obs.concept.nil?}
     end
 
     clinic_encounters = ["APPOINTMENT", "HEIGHT","WEIGHT","REGIMEN","TB STATUS","SYMPTOMS",
@@ -1472,7 +1472,7 @@ class PatientsController < ApplicationController
          patient_visits[visit_date] = Mastercard.new() if patient_visits[visit_date].blank?
          case field
           when 'APPOINTMENT'
-            concept_name = obs.concept.fullname rescue nil
+            concept_name = obs.concept.fullname
             next unless concept_name.upcase == 'APPOINTMENT DATE' 
             patient_visits[visit_date].appointment_date = obs.value_datetime
           when 'HEIGHT'
