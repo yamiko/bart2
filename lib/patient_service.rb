@@ -1813,10 +1813,10 @@ EOF
     patient.traditional_authority = person.addresses.first.county_district
     patient.current_residence = person.addresses.first.city_village
     patient.mothers_surname = person.names.first.family_name2
-    patient.eid_number = get_patient_identifier(person.patient, 'EID Number')
-    patient.pre_art_number = get_patient_identifier(person.patient, 'Pre ART Number (Old format)')
-    patient.archived_filing_number = get_patient_identifier(person.patient, 'Archived filing number')
-    patient.filing_number = get_patient_identifier(person.patient, 'Filing Number')
+    patient.eid_number = get_patient_identifier(person.patient, 'EID Number') rescue nil
+    patient.pre_art_number = get_patient_identifier(person.patient, 'Pre ART Number (Old format)') rescue nil
+    patient.archived_filing_number = get_patient_identifier(person.patient, 'Archived filing number')  rescue nil
+    patient.filing_number = get_patient_identifier(person.patient, 'Filing Number')  rescue nil
     patient.occupation = get_attribute(person, 'Occupation')
     patient.guardian = art_guardian(person.patient) rescue nil 
     patient
