@@ -63,6 +63,30 @@
     }
     $("tt_currentUnorderedListOptions").innerHTML = symptoms;
   }
+
+  function checkPregnancyAndAge() {
+    var patientAge = "<%= @patient_bean.age.to_i %>";
+    var pregnancyStatus = $('pregnant').value;
+
+    if ((patientAge >= 55) && pregnancyStatus == "YES") {
+       return 'true';
+    } else {
+      return 'false';
+    }
+  }
+
+  function checkBreastfeedingAndAge() {
+    var patientAge = "<%= @patient_bean.age.to_i %>";
+    var breastfeedingStatus = $('breast_feeding').value;
+
+    if ((patientAge >= 55) && breastfeedingStatus == "YES") {
+       return 'true';
+    } else {
+      return 'false';
+    }
+  }
+  
+  
 </script>
 
 <form action="/encounters/create" method='post'>
@@ -77,7 +101,9 @@
 
             <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
             {:id => "pregnant",
-            :helpText => "Is patient pregnant?" } %>
+             :validationCode => "checkPregnancyAndAge() == 'false'",
+             :validationMessage => "Patient (#{@patient_bean.name}) is #{@patient_bean.age} years old. Is she pregnant?",
+             :helpText => "Is patient pregnant?" } %>
 
         <%else%>
             <%= touch_hidden_tag "IS PATIENT PREGNANT?" , @patient, @is_patient_pregnant_value.strip , :id => "pregnant" %>
@@ -87,7 +113,9 @@
 
             <%= touch_yes_no_unknown_tag "IS PATIENT BREAST FEEDING?", @patient, nil,
             {:id => "breast_feeding",
-            :helpText => "Is patient breast feeding?" } %>
+             :validationCode => "checkBreastfeedingAndAge() == 'false'",
+             :validationMessage => "Patient (#{@patient_bean.name}) is #{@patient_bean.age} years old. Is she breastfeeding?",
+             :helpText => "Is patient breast feeding?" } %>
 
         <%else%>
             <%= touch_hidden_tag "IS PATIENT BREAST FEEDING?" , @patient, @is_patient_breast_feeding_value , :id => "breast_feeding" %>

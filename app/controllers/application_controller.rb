@@ -3,6 +3,8 @@ class ApplicationController < ActionController::Base
 	  Mastercard
     PatientIdentifierType
     PatientIdentifier
+    PersonAttribute
+    PersonAttributeType
     WeightHeight
     CohortTool
     Encounter
@@ -15,6 +17,8 @@ class ApplicationController < ActionController::Base
     Person
     Regimen
     Relationship
+    ConceptName
+    Concept
 
   require "fastercsv"
 
