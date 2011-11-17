@@ -380,7 +380,7 @@ class PatientsController < ApplicationController
     @date = params[:date].to_date
     @patient = Patient.find(@patient_id)
     @patient_bean = PatientService.get_patient(@patient.person)
-    @patient_gaurdians = @patient.person.relationships.map{|r| name(Person.find(r.person_b)) }.join(' : ')
+    @patient_gaurdians = @patient.person.relationships.map{|r| PatientService.name(Person.find(r.person_b)) }.join(' : ')
     @visits = visits(@patient,@date)
     render :layout => "menu"
   end

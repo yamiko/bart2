@@ -3,6 +3,8 @@ class ApplicationController < ActionController::Base
 	  Mastercard
     PatientIdentifierType
     PatientIdentifier
+    PersonAttribute
+    PersonAttributeType
     WeightHeight
     CohortTool
     Encounter
