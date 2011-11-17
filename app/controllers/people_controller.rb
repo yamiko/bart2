@@ -83,7 +83,7 @@ class PeopleController < ApplicationController
         end
       end
     end
-
+    @relation = params[:relation]
     @people = PatientService.person_search(params)
     @patients = []
     @people.each do | person |
