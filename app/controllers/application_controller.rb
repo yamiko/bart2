@@ -17,6 +17,8 @@ class ApplicationController < ActionController::Base
     Person
     Regimen
     Relationship
+    ConceptName
+    Concept
 
   require "fastercsv"
 
