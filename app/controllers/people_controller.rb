@@ -188,7 +188,7 @@ class PeopleController < ApplicationController
     #then we create person from remote machine
 
     if create_from_remote
-      person_from_remote = create_remote_person(params)
+      person_from_remote = PatientService.create_remote_person(params)
       person = PatientService.create_from_form(person_from_remote["person"]) unless person_from_remote.blank?
 
       if !person.blank?
