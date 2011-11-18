@@ -1488,7 +1488,7 @@ module PatientService
     label.draw_barcode(50,180,0,1,5,15,120,false,"#{patient_bean.national_id}")
     label.draw_multi_text("#{patient_bean.name.titleize}")
     label.draw_multi_text("#{patient_bean.national_id_with_dashes} #{patient_bean.birth_date}#{sex}")
-    label.draw_multi_text("#{address}")
+    label.draw_multi_text("#{patient_bean.address}")
     label.print(1)
   end
 
@@ -1554,7 +1554,7 @@ module PatientService
  end
 
  def self.get_patient_attribute_value(patient, attribute_name)
- 	
+
    patient_bean = get_patient(patient.person)
    if patient_bean.sex.upcase == 'MALE'
    		sex = 'M'
@@ -1628,7 +1628,7 @@ module PatientService
   end
 
   def self.get_patient_identifier(patient, identifier_type)
-    patient_identifier_type_id = PatientIdentifierType.find_by_name(identifier_type).patient_identifier_type_id
+    patient_identifier_type_id = PatientIdentifierType.find_by_name(identifier_type).patient_identifier_type_id rescue nil
     patient_identifier = PatientIdentifier.find(:first, :select => "identifier",
                                                 :conditions  =>["patient_id = ? and identifier_type = ?", patient.id, patient_identifier_type_id],
                                                 :order => "date_created DESC" ).identifier rescue nil
@@ -1761,6 +1761,17 @@ EOF
     enrolled = PatientProgram.find(:first,:conditions =>["program_id = ? AND patient_id = ?",program_id,patient.id]).blank?
     return true unless enrolled
     false
+  end
+
+  #data cleaning :- moved from patient.rb
+  def self.current_diagnoses(patient_id)
+    patient = Patient.find(patient_id)
+    patient.encounters.current.all(:include => [:observations]).map{|encounter|
+      encounter.observations.all(
+        :conditions => ["obs.concept_id = ? OR obs.concept_id = ?",
+          ConceptName.find_by_name("DIAGNOSIS").concept_id,
+          ConceptName.find_by_name("DIAGNOSIS, NON-CODED").concept_id])
+    }.flatten.compact
   end
 
   def self.patient_art_start_date(patient_id)
@@ -2033,6 +2044,23 @@ EOF
 		return person
 	end
 
+   # Get the any BMI-related alert for this patient
+  def self.current_bmi_alert(patient_weight, patient_height)
+    weight = patient_weight
+    height = patient_height
+    alert = nil
+    unless weight == 0 || height == 0
+      current_bmi = (weight/(height*height)*10000).round(1);
+      if current_bmi <= 18.5 && current_bmi > 17.0
+        alert = 'Low BMI: Eligible for counseling'
+      elsif current_bmi <= 17.0
+        alert = 'Low BMI: Eligible for therapeutic feeding'
+      end
+    end
+
+    alert
+  end
+
   def self.sex(person)
     value = nil
     if person.gender == "M"
@@ -2069,7 +2097,7 @@ EOF
     person.birthdate = Date.new(today.year - age.to_i, 7, 1)
     person.birthdate_estimated = 1
   end
-  
+
   def self.set_birthdate(person, year = nil, month = nil, day = nil)   
     raise "No year passed for estimated birthdate" if year.nil?
 
