@@ -287,8 +287,15 @@ class EncountersController < ApplicationController
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
-		    @current_height = PatientService.get_patient_attribute_value(@patient, "current_height")
-		    @min_weight = PatientService.get_patient_attribute_value(@patient, "min_weight")
+
+		if session[:datetime]
+			@retrospective = true 
+		else
+			@retrospective = false
+		end
+
+		@current_height = PatientService.get_patient_attribute_value(@patient, "current_height")
+		@min_weight = PatientService.get_patient_attribute_value(@patient, "min_weight")
         @max_weight = PatientService.get_patient_attribute_value(@patient, "max_weight")
         @min_height = PatientService.get_patient_attribute_value(@patient, "min_height")
         @max_height = PatientService.get_patient_attribute_value(@patient, "max_height")
@@ -337,7 +344,7 @@ class EncountersController < ApplicationController
 				o.answer_string if o.to_s.include?("Transfer out to")} rescue nil
 
 		@recent_sputum_results = PatientService.recent_sputum_results(@patient.id) rescue nil
-    @recent_sputum_submissions = PatientService.recent_sputum_submissions(@patient_id) rescue nil
+    	@recent_sputum_submissions = PatientService.recent_sputum_submissions(@patient_id) rescue nil
 		@continue_treatment_at_site = []
 		Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ? AND DATE(encounter_datetime) = ?",
 		EncounterType.find_by_name("TB CLINIC VISIT").id,
@@ -402,8 +409,8 @@ class EncountersController < ApplicationController
 		sputum_results_not_given(@patient.id).each{|order| @sputum_results_not_given[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 
 		@tb_status = recent_lab_results(@patient.id, session_date)
-    # use @patient_tb_status  for the tb_status moved from the patient model
-    @patient_tb_status = PatientService.patient_tb_status(@patient)
+    	# use @patient_tb_status  for the tb_status moved from the patient model
+    	@patient_tb_status = PatientService.patient_tb_status(@patient)
 		@patient_is_transfer_in = is_transfer_in(@patient)
 		@patient_transfer_in_date = get_transfer_in_date(@patient)
 		@patient_is_child_bearing_female = is_child_bearing_female(@patient)

@@ -430,10 +430,6 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
-  <% @retrospective = 'false'
-     @retrospective = 'true' if session[:datetime]
-  %>
-
   <%= touch_select_tag "PRESUMED SEVERE HIV CRITERIA PRESENT", @patient, concept_set_options('PRESUMED SEVERE HIV CRITERIA IN INFANTS'),
     {:id => "presumed_severe_hiv_conditions",
      :multiple => true,
@@ -453,7 +449,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
             :optional => false,
             :validationCode => "checkPregnancyAndAge() == 'false'",
             :validationMessage => "Patient (#{@patient_bean.name}) is #{@patient_bean.age} years old. Is she pregnant?",
-            :tt_onLoad => "$('nextButton').style.display = 'none';",
+            :tt_onLoad => "$('nextButton').style.display = 'none';setTimeout('cssText();',1);",
             :tt_requireNextClick => false,
             :helpText => "Is patient pregnant?" } %>
 
@@ -468,7 +464,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
             :optional => false,
             :validationCode => "checkBreastfeedingAndAge() == 'false'",
             :validationMessage => "Patient (#{@patient_bean.name}) is #{@patient_bean.age} years old. Is she breastfeeding?",
-            :tt_onLoad => "$('nextButton').style.display = 'none';",
+            :tt_onLoad => "$('nextButton').style.display = 'none';setTimeout('cssText();',1);",
             :tt_requireNextClick => false,
             :helpText => "Is patient breast feeding?" } %>
 
@@ -526,7 +522,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
           extended_staging << staging_condition and next
         end
       %>
-      <%  if @retrospective == 'true'%>
+      <%  if @retrospective == true %>
         <% if @tb_status == true && @hiv_status != 'Negative'
              unless tb_hiv_exclusions.include?(staging_condition)%>
               <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
@@ -619,7 +615,10 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
     <%= touch_hidden_tag "CD4 COUNT LESS THAN OR EQUAL TO 350", @patient, "", :id => "cd4_count_less_than_350" %>
 
     <label for='new_lymphocyte_count_available'>New Lymphocyte count available?</label>
-      <%= select_tag "new_lymphocyte_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_lymphocyte_count_available', :tt_pageStyleClass => 'NoKeyboard' %>
+      <%= select_tag "new_lymphocyte_count_available", options_for_select([['Yes','YES'],['No','NO']]), 
+		:id => 'new_lymphocyte_count_available', 
+	    :tt_onLoad => "setTimeout('cssText();',1);",
+		:tt_pageStyleClass => 'NoKeyboard' %>
 
     <%= touch_location_tag "LYMPHOCYTE COUNT LOCATION", @patient, nil,
       {:id => "lymphocyte_count_location",
@@ -651,6 +650,15 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
       staging_conditions << 'WHO STAGE III PEDS'
       staging_conditions << 'WHO STAGE IV ADULT AND PEDS'
       staging_conditions << 'WHO STAGE IV PEDS' 
+
+      retro_conditions = ["Unspecified stage I condition",
+                          "Unspecified stage II condition",
+                          "Unspecified stage III condition",
+                          "Unspecified stage IV condition"]
+
+      tb_hiv_exclusions = ['Pulmonary tuberculosis',
+                           'Pulmonary tuberculosis within the last 2 years']
+ 
     %>
     <script>
       count = 0
@@ -687,18 +695,59 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
           extended_staging << staging_condition and next
         end
       %>
-      <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
-        {:id => "staging_condition_#{count+=1}" ,
-        :optional => false,
-        :tt_onLoad => "$('nextButton').style.display = 'none';",
-        :tt_requireNextClick => false,
-        :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
-        :helpText => staging_condition.humanize.gsub('stage i','stage I').gsub('stage Ii','stage II').gsub('stage IIi','stage III').gsub('hiv','HIV').gsub('eptb','EPTB').gsub('tb','TB').gsub('Iv','IV') } %>
+
+
+      <%  if @retrospective == true %>
+        <% if @tb_status == true && @hiv_status != 'Negative'
+             unless tb_hiv_exclusions.include?(staging_condition)%>
+              <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
+                {:id => "staging_condition_#{count+=1}" ,
+                :optional => false,
+                :tt_onLoad => "$('nextButton').style.display = 'none';setTimeout('cssText();',1);",
+                :tt_requireNextClick => false,
+                :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
+                :helpText => staging_condition } %>
+
+             <% end
+           else %>
+            <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
+                {:id => "staging_condition_#{count+=1}" ,
+                :optional => false,
+                :tt_onLoad => "$('nextButton').style.display = 'none';setTimeout('cssText();',1);",
+                :tt_requireNextClick => false,
+                :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
+                :helpText => staging_condition } %>
+           <%end %>
+      <% else
+          unless retro_conditions.include?(staging_condition)%>
+            <% if @tb_status == true && @hiv_status != 'Negative'
+                  unless tb_hiv_exclusions.include?(staging_condition)%>
+                    <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
+                      {:id => "staging_condition_#{count+=1}" ,
+                      :optional => false,
+                      :tt_onLoad => "$('nextButton').style.display = 'none';setTimeout('cssText();',1);",
+                      :tt_requireNextClick => false,
+                      :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
+                      :helpText => staging_condition } %>
+                  <% end
+              else %>
+                <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
+                      {:id => "staging_condition_#{count+=1}" ,
+                      :optional => false,
+                      :tt_onLoad => "$('nextButton').style.display = 'none';setTimeout('cssText();',1);",
+                      :tt_requireNextClick => false,
+                      :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
+                      :helpText => staging_condition } %>
+             <%  end
+           end
+         end %>
+
       <%end%>
+
 
       <%= touch_yes_no_tag "Perform extended staging" , @patient, nil,
         {:id => "perform_extended_staging" ,
-		:tt_onLoad => "$('nextButton').style.display = 'inline';",	
+		:tt_onLoad => "$('nextButton').style.display = 'inline';setTimeout('cssText();',1);",	
         :optional => false,
         :helpText => 'Perform extended staging' } %>
 
@@ -714,7 +763,10 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
       <%end%>
 
     <label for='new_cd4_count_available'>New CD4 count available?</label>
-      <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_count_available', :tt_pageStyleClass => 'NoKeyboard' %>
+      <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), 
+			:id => 'new_cd4_count_available', 
+		    :tt_onLoad => "setTimeout('cssText();',1);",
+			:tt_pageStyleClass => 'NoKeyboard' %>
 
     <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,
       {:id => "cd4_count_location",
@@ -739,7 +791,10 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
     <%= touch_hidden_tag "CD4 COUNT LESS THAN OR EQUAL TO 350", @patient, "", :id => "cd4_count_less_than_350" %>
 
     <label for='new_cd4_percent_available'>New CD4 percent available?</label>
-      <%= select_tag "new_cd4_percent_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_cd4_percent_available', :tt_pageStyleClass => 'NoKeyboard' %>
+      <%= select_tag "new_cd4_percent_available", options_for_select([['Yes','YES'],['No','NO']]), 
+			:id => 'new_cd4_percent_available', 
+		    :tt_onLoad => "setTimeout('cssText();',1);",
+			:tt_pageStyleClass => 'NoKeyboard' %>
 
     <%= touch_location_tag "CD4 PERCENT LOCATION", @patient, nil,
       {:id => "cd4_percent_location",
@@ -761,7 +816,10 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
     <%= touch_hidden_tag "CD4 PERCENT LESS THAN 25", @patient, "", :id => "cd4_percent_less_than_25" %>
 
     <label for='new_lymphocyte_count_available'>New Lymphocyte count available?</label>
-      <%= select_tag "new_lymphocyte_count_available", options_for_select([['Yes','YES'],['No','NO']]), :id => 'new_lymphocyte_count_available', :tt_pageStyleClass => 'NoKeyboard' %>
+      <%= select_tag "new_lymphocyte_count_available", options_for_select([['Yes','YES'],['No','NO']]), 
+		:id => 'new_lymphocyte_count_available', 
+	    :tt_onLoad => "setTimeout('cssText();',1);",
+		:tt_pageStyleClass => 'NoKeyboard' %>
 
     <%= touch_location_tag "LYMPHOCYTE COUNT LOCATION", @patient, nil,
       {:id => "lymphocyte_count_location",
