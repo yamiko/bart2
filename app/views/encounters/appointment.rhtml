@@ -1,7 +1,11 @@
 <style>
-   body {
+ body {
     -moz-user-select:none;
    }
+
+ table {
+   -moz-user-select:none;
+ }
 
   .touchscreenTextInput, 
   .tt_controls_time_until_next_appointment #keyboard, 
@@ -12,35 +16,26 @@
   .tt_controls_next_appointment_date #keyboard{
     top:80px;
   }
-
-  #information {
-    display: none;
-    border: 5px;
-    border-style: solid;
-    border-width: 1px;
-    font-size: 2em;
-    left: 575px;
-    padding: 10px;
-    position: absolute;
-    text-align: center;
-    top: 85px;
-    width: 350px;
-    height: 160px;
-    z-index: 20;
-    -moz-user-select:none;
-  }
 </style>
 
+<%= stylesheet_link_tag "calender" %>
 <%= javascript_include_tag "dateformat" %>
 <%= javascript_include_tag "prototype"%>
+<%= javascript_include_tag "calender"%>
 
 <script>
-  var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_id %>";
+
+
+var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_id %>";
   var number_of_days_to_add = <%= @number_of_days_to_add_to_next_appointment_date %>;
   var clinic_days = "<%= get_global_property_value('clinic.days') rescue 'Monday,Tuesday,Wednesday,Thursday,Friday' %>";
   var peads_clinic_days = "<%= get_global_property_value('peads.clinic.days') rescue '' %>";
   var patient_age = <%= @patient_bean.age %>;
   var booked_dates = null
+
+  var setDate = null;
+  var setNextAppointmentDate = null;
+  var sessionDate = new Date("<%=session[:datetime].to_date rescue Date.today %>");
 
   <% 
     
@@ -124,6 +119,9 @@
   }
 
   function dateCreate(date_str){
+    if(!date_str)
+      return
+
     intyear = 0 ; intmonth = 0 ; intday = 0;
     intyear = parseInt(date_str.substring(0,4))
     intmonth = (parseInt(date_str.substring(5,7)) - 1)
@@ -140,23 +138,11 @@
   
   function calculate_dates(start_date,end_date) {
     if (start_date == '' && end_date == ''){
-      /*
-      ds.date.setDate(ds.date.getDate() + (7 * parseInt($('time_until_next_visit').value)));
-      $('dateselector_year').value = ds.date.getFullYear();
-      $('dateselector_month').value = DateUtil.months[ds.date.getMonth()];
-      $('dateselector_day').value = ds.date.getDate(); 
-      $('next_appointment_date').value = ds.date
-      ds.init();
-      $('touchscreenInput1').value = ds.date.getFullYear() + '-' + DateUtil.months[ds.date.getMonth()] + '-' + ds.date.getDate()
-      */
       visit_date = dateCreate('<%=session[:datetime].to_date rescue Date.today %>')
       auto_expire_date = new Date(visit_date.getFullYear(),visit_date.getMonth(),visit_date.getDate() + (7 * parseInt($('time_until_next_visit').value)));
       week = (parseInt((auto_expire_date - visit_date) / (7 * 24 * 60 * 60 * 1000))) 
       visit_date.setDate(visit_date.getDate() + (7 * week));
-      visit_date = handleAppointments(visit_date)
-      $('dateselector_year').value = visit_date.getFullYear();
-      $('dateselector_month').value = DateUtil.months[visit_date.getMonth()];
-      $('dateselector_day').value = visit_date.getDate(); 
+      setDate = handleAppointments(visit_date);
     }else{
       visit_date = dateCreate(start_date)
       auto_expire_date = dateCreate(end_date)
@@ -165,34 +151,9 @@
 
       visit_date = assignCloseToExpireDate(visit_date,auto_expire_date); //make sure the next appoint date is close to
       visit_date = handleAppointments(visit_date) //make sure that the date does not fall on a holiday/non-clinic day
-      $('dateselector_year').value = visit_date.getFullYear();
-      $('dateselector_month').value = DateUtil.months[visit_date.getMonth()];
-      $('dateselector_day').value = visit_date.getDate(); 
+      setDate = handleAppointments(visit_date);
+      $('backButton').style.cssText = "display: none;";
     }
-
-    $('dateselector_nextYear').setAttribute('onmousedown','ds.incrementYear();showDate()')
-    $('dateselector_nextMonth').setAttribute('onmousedown','ds.incrementMonth();showDate()')
-    $('dateselector_nextDay').setAttribute('onmousedown','ds.incrementDay();showDate()')
-
-    $('dateselector_preYear').setAttribute('onmousedown','ds.decrementYear();showDate()')
-    $('dateselector_preMonth').setAttribute('onmousedown','ds.decrementMonth();showDate()')
-    $('dateselector_preDay').setAttribute('onmousedown','ds.decrementDay();showDate()')
-
-    $('touchscreenInput1').value = visit_date.getFullYear() + '-' + DateUtil.months[visit_date.getMonth()] + '-' + visit_date.getDate()
-    showDate();
-  }
-
-  function showRecordedAppointments(setdate) {
-    msgBox = $('information')
-    msgBox.style.display = 'block';
-    new Ajax.Request("/patients/number_of_booked_patients?date=" + setdate ,{method:'get',onSuccess: function(transport){
-      count = JSON.parse(transport.responseText) || "";
-      if (count) {
-        msgBox.innerHTML = "Total number of booked patients on this day:<br />" + count ;
-      }else{
-        msgBox.innerHTML = "Total number of booked patients on this day:<br />" + 0 ;
-      }
-    }});
   }
   
   function assignCloseToExpireDate(set_date,auto_expire_date) {
@@ -207,9 +168,10 @@
   }
 
   function showDate() {
-    year = $('dateselector_year').value
-    month = $('dateselector_month').value 
-    day = $('dateselector_day').value 
+    new_date = dateCreate(previous_selected) 
+    year = new_date.getFullYear();
+    month = new_date.getMonth(); 
+    day = new_date.getDate();
     if (day.toString().length == 1)
       day = '0' + day.toString()
 
@@ -222,7 +184,6 @@
    if (month.length == 1)
     month = '0' + month
     
-   new_date = dateCreate(year + '-' + month + '-' + day) 
    $('helpText1').innerHTML = 'Next Appointment Date ' + dateFormat(new_date,"dddd, mmmm dS, yyyy");
    showRecordedAppointments(dateFormat(new_date,"dddd, mmmm dS, yyyy"));
   }
@@ -258,73 +219,122 @@
   function hideInfo() {
     $('information').style.display = 'none';
   }
+
+
+
+ function cssText() {
+   document.getElementById('clearButton').style.display = "none";                           
+   document.getElementById('information').style.display = "inline";                           
+   document.getElementById('backButton').setAttribute("onmousedown","gotoPage(0, null, true);resetAttributes();");                           
+   setAttributes();
+ }
+
+ function resetAttributes() {
+   document.getElementById('clearButton').style.display = "inline";                           
+   document.getElementById('information').style.display = "none";                           
+   document.getElementById('nextButton').innerHTML = "<span>Next</span>";                           
+   next = document.getElementById('next');               
+   previous = document.getElementById('previous');
+   buttons_div = document.getElementById('buttons');
+   buttons_div.removeChild(next);
+   buttons_div.removeChild(previous);
+   finishButton = $("nextButton");
+   finishButton.setAttribute("onmousedown","gotoNextPage();")
+ }
+
+ function moveToSetMonth() {                                                   
+    setDate = dateFormat(setDate,"mm/dd/yyyy"); //"<%= Date.today.strftime('%m/%d/%Y') %>";          
+    setNextAppointmentDate = dateFormat(setDate,"yyyy-mm-dd"); //"<%= Date.today.strftime('%m/%d/%Y') %>";          
+                                                                                
+    if ((new Date(setDate).getMonth()) == 0 &&  (new Date(setDate).getFullYear() ==  new Date().getFullYear())) {
+      addDate(setNextAppointmentDate);                                          
+      return                                                                    
+    }                                                                           
+                                                                                
+    appointment_month = currSetMonth(new Date(setDate).getMonth());             
+                                                                                
+    while (current_table_caption != appointment_month) {                        
+      nextMonth();                                                              
+    }                                                                           
+    document.getElementById("app_date").innerHTML = new Date(setDate).getFullYear();
+    addDate(setNextAppointmentDate);                                            
+  }
+
+  function currSetMonth(month_num) {                                            
+    var month=new Array(12);                                                    
+    month[0]="January";                                                         
+    month[1]="February";                                                        
+    month[2]="March";                                                           
+    month[3]="April";                                                           
+    month[4]="May";                                                             
+    month[5]="June";                                                            
+    month[6]="July";                                                            
+    month[7]="August";                                                          
+    month[8]="September";                                                       
+    month[9]="October";                                                         
+    month[10]="November";                                                       
+    month[11]="December";                                                       
+                                                                                
+    return month[month_num];                                                    
+  }
+
+  function finishButtonAttributes() {
+    finishButton = $("nextButton");
+    finishButton.setAttribute("onmousedown","submitDate();")
+  }
+
+  function submitDate() {
+    if ($("appointment_date").value.length == 0) {
+      showMessage("Appointment date not selected<br />selected a date and continue");
+      return
+    }
+
+    gotoNextPage();
+  }
+
 </script>
 
-<% if @location_transferred_to.empty? %>
-  <form id='appointment' action="/encounters/create" method='post'>
-
-    <%= hidden_field_tag "old_appointment", @old_appointment %>  
-    <%= hidden_field_tag "report_url", @report_url %>
-    <%= hidden_field_tag "encounter[encounter_type_name]", "APPOINTMENT" %>
-    <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
-    <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
-    <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
-
-    <label for='time_until_next_visit'>Time Until Next Appointment</label>
-    <%= select_tag("time_until_next_visit",
-              options_for_select([["2 weeks", 2],
-                                   ["1 month", 4],
-                                   ["2 months", 8],
-                                   ["4 months", 16],
-                                   ["5 months", 20],
-                                   ["6 months", 24]]),
-             {:helpText => 'Time Until Next Appointment',
+<% if @location_transferred_to.empty? %>                                        
+ <form id='appointment' action="/encounters/create" method='post'> 
+ <%= hidden_field_tag "old_appointment", @old_appointment %>                 
+    <%= hidden_field_tag "report_url", @report_url %>                           
+    <%= hidden_field_tag "encounter[encounter_type_name]", "APPOINTMENT" %>     
+    <%= hidden_field_tag "encounter[patient_id]", @patient.id rescue 24 %>                
+    <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>     
+    <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>         
+                                                                                
+    <label for='time_until_next_visit'>Time Until Next Appointment</label>      
+    <%= select_tag("time_until_next_visit",                                     
+              options_for_select([["2 weeks", 2],                               
+                                   ["1 month", 4],                              
+                                   ["2 months", 8],                             
+                                   ["4 months", 16],                            
+                                   ["5 months", 20],                            
+                                   ["6 months", 24]]),                          
+             {:helpText => 'Time Until Next Appointment',                       
              :tt_onLoad => "calculateGivenRange('#{params[:start_date]}','#{params[:end_date]}')"}) %>
 
-    <%
-    absolute_min = params[:start_date].to_date.year rescue Date.today.year
-    absolute_max = params[:end_date].to_date.year + 1 rescue Date.today.year + 1%>
-    <label for='next_appointment_date'>Next Appointment Date</label>
-    <%= hidden_field_tag("observations[][concept_name]", "RETURN VISIT DATE") %>
-    <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-    <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-    <%= text_field_tag("observations[][value_datetime]", (Time.now + 1.month).year,
-          {:helpText => 'Next Appointment Date',
-           :field_type => 'date',
-           :absoluteMin => absolute_min,
-           :absoluteMax => absolute_max,
-           :tt_pageStyleClass => "Date DatesOnly",
-           :tt_onLoad => "calculate_dates('#{params[:start_date]}','#{params[:end_date]}');",
-           :tt_onUnLoad => "hideInfo();",
-           :id => 'next_appointment_date'}) %>
+<label for='next_appointment_date'>Next Appointment Date</label>            
+<%= hidden_field_tag("observations[][concept_name]", "RETURN VISIT DATE") %>
+<%= hidden_field_tag("observations[][patient_id]", @patient.id) %>          
+<%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+<%= text_field_tag "observations[][value_datetime]", (Time.now + 1.month).year, 
+    { :tt_onLoad => "calculate_dates('#{params[:start_date]}','#{params[:end_date]}');chart();cssText();moveToSetMonth();finishButtonAttributes();",
+      :tt_pageStyleClass => "NoControls",
+      :id => "appointment_date" ,
+      :helpText =>"Next appointment date:",                                                 
+    } %>
 
-    <% session_date = session[:datetime].to_date rescue nil                       
-    if session_date %>
+<% session_date = session[:datetime].to_date rescue nil                     
+if session_date %>                                                          
+  <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
+  <%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+<% else %>                                                                  
+  <%= hidden_field_tag "filter[provider]", nil %>                           
+<%end%>
+</form>
 
-    <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
-<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
-    <% else %>
-      <%= hidden_field_tag "filter[provider]", nil %>
-    <%end%>
-    <%= submit_tag "Finish" %>
-  </form>
-
-  <div id = 'information'>
-  Total number of booked patients on this day:<br /> 0
-  </div>
-<% else %>
-  <div class="inputPage NoKeyboard" id="page" style="display: block;">
-    <div id="trigger"></div>
-    <div id="infoBar" class="infoBarClass"></div>
-    <label id="helpText" class="helpTextClass" for="">This patient has
-    transferred out to <%= "#{@location_transferred_to}" %></label>
-  </div>
-  <div id="buttons" class="buttonsDiv" style="top:456;">
-    <div id="tt_extraButtons"></div>
-    <button onmousedown="window.location=tt_show_destination;" id="finishButton"
-      class="button navButton green"><span>Finish</span></button>
-  </div>
-  <script>
-		setTimeout("window.location=tt_cancel_destination;", 5000);
-  </script>
-<% end %>
+<div id = "information">
+ <span id ='app_date'><%=Date.today.year%></span>&nbsp;Total number of booked patients on this day:&nbsp;0
+</div>
+<%end%>
