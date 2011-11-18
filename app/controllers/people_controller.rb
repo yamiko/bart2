@@ -33,7 +33,7 @@ class PeopleController < ApplicationController
     end rescue []
 
     if Location.current_location.blank?
-      Location.current_location = Location.find(get_global_property_value('current_health_center_id'))
+      Location.current_location = Location.find(PatientService.get_global_property_value('current_health_center_id'))
     end rescue []
 
     person = PatientService.create_from_form(person_params)
@@ -41,7 +41,7 @@ class PeopleController < ApplicationController
       patient = Patient.new()
       patient.patient_id = person.id
       patient.save
-      patient_national_id_label(patient)
+      PatientService.patient_national_id_label(patient)
     end
     render :text => PatientService.remote_demographics(person).to_json
   end
@@ -76,11 +76,14 @@ class PeopleController < ApplicationController
         found_person = PatientService.create_from_form(found_person_data['person']) unless found_person_data.nil?
       end
       if found_person
-        #redirect_to search_complete_url(found_person.id, params[:relation]) and return
-        redirect_to :action => 'confirm', :found_person_id => found_person.id, :relation => params[:relation] and return
+        if params[:relation]
+          redirect_to search_complete_url(found_person.id, params[:relation]) and return
+        else
+          redirect_to :action => 'confirm', :found_person_id => found_person.id, :relation => params[:relation] and return
+        end
       end
     end
-
+    @relation = params[:relation]
     @people = PatientService.person_search(params)
     @patients = []
     @people.each do | person |
@@ -92,7 +95,6 @@ class PeopleController < ApplicationController
   
   def confirm
     session_date = session[:datetime] || Date.today
-    
     if request.post?
       redirect_to search_complete_url(params[:found_person_id], params[:relation]) and return
     end
@@ -101,7 +103,7 @@ class PeopleController < ApplicationController
     @person = Person.find(@found_person_id) rescue nil
     @task = PatientService.main_next_task(Location.current_location,@person.patient,session_date.to_date)
     @arv_number = PatientService.get_patient_identifier(@person, 'ARV Number')
-	@patient_bean = PatientService.get_patient(@person)
+	  @patient_bean = PatientService.get_patient(@person)
     render :layout => 'menu'
   end
 
@@ -186,7 +188,7 @@ class PeopleController < ApplicationController
     #then we create person from remote machine
 
     if create_from_remote
-      person_from_remote = create_remote_person(params)
+      person_from_remote = PatientService.create_remote_person(params)
       person = PatientService.create_from_form(person_from_remote["person"]) unless person_from_remote.blank?
 
       if !person.blank?
@@ -199,7 +201,7 @@ class PeopleController < ApplicationController
     end
 
     if params[:person][:patient] && success
-      patient_national_id_label(person.patient)
+      PatientService.patient_national_id_label(person.patient)
       unless (params[:relation].blank?)
         redirect_to search_complete_url(person.id, params[:relation]) and return
       else
@@ -390,7 +392,7 @@ class PeopleController < ApplicationController
         'cd4_data' => cd4_data_and_date_hash,
         'last_given_drugs' => last_given_drugs,
         'art_clinic_outcome' => art_clinic_outcome,
-        'arv_number' => get_patient_identifier(patient, 'ARV Number')
+        'arv_number' => PatientService.get_patient_identifier(patient, 'ARV Number')
       }
     end
 
@@ -443,7 +445,7 @@ class PeopleController < ApplicationController
         'cd4_data' => cd4_data_and_date_hash,
         'last_given_drugs' => last_given_drugs,
         'art_clinic_outcome' => art_clinic_outcome,
-        'arv_number' => get_patient_identifier(patient, 'ARV Number')
+        'arv_number' => PatientService.get_patient_identifier(patient, 'ARV Number')
       }
     end
 

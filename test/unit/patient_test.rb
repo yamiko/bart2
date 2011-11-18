@@ -38,12 +38,12 @@ class PatientTest < ActiveSupport::TestCase
     end
 
     should "return the national identifier" do
-      assert_equal patient(:evan).national_id, "P1701210013"
+      assert_equal PatientService.get_national_id(patient(:evan)), "P1701210013"
     end
 
     should "create a new national identifier if none exists" do
       PatientIdentifier.find(:first).void
-      assert_not_nil patient(:evan).national_id
+      assert_not_nil PatientService.get_national_id(patient(:evan))
     end
 
     should "not create a new national identifier if it is not forced"  do
@@ -55,12 +55,12 @@ class PatientTest < ActiveSupport::TestCase
       PatientIdentifier.find(:first).void
       t = PatientIdentifierType.find_by_name("National id")
       patient(:evan).patient_identifiers.create(:identifier =>  "P123456789012", :identifier_type => t.id)
-      assert_equal patient(:evan).national_id_with_dashes, "P1234-5678-9012"
+      assert_equal PatientService.get_national_id_with_dashes(patient(:evan)), "P1234-5678-9012"
     end
 
     should "print the national id label" do
       patient = patient(:evan)
-      assert_equal patient.national_id_label, <<EOF
+      assert_equal PatientService.patient_national_id_label(patient), <<EOF
 
 N
 q801
@@ -76,22 +76,22 @@ EOF
     
     should "get the min weight for this patient based on their gender and age" do
       patient = patient(:evan)
-      assert_equal patient.min_weight, 34.0    
+      assert_equal PatientService.get_patient_attribute_value(patient, "min_weight"), 34.0
     end
     
     should "get the max weight for this patient based on their gender and age" do
       patient = patient(:evan)
-      assert_equal patient.max_weight, 82.0   
+      assert_equal PatientService.get_patient_attribute_value(patient, "max_weight"), 82.0   
     end  
 
     should "get the min height for this patient based on their gender and age" do
       patient = patient(:evan)
-      assert_equal patient.min_height, 151.0
+      assert_equal PatientService.get_patient_attribute_value(patient, "min_height"), 151.0
     end
     
     should "get the max height for this patient based on their gender and age" do
       patient = patient(:evan)
-      assert_equal patient.max_height, 183.0
+      assert_equal PatientService.get_patient_attribute_value(patient, "max_height"), 183.0
     end  
 
     context "current diagnoses" do
@@ -112,7 +112,7 @@ EOF
       end
     
       should "include coded and non-coded diagnoses" do
-        assert_equal [@diagnosis, @diagnosis_non_coded], @evan.current_diagnoses
+        assert_equal [@diagnosis, @diagnosis_non_coded], PatientService.current_diagnoses(@evan)
       end
       
       should "not include non-diagnosis observations" do
@@ -120,23 +120,27 @@ EOF
           :encounter_id => @encounter.id, 
           :concept_id => concept(:concept_02218).concept_id,
           :value_numeric => 100)
-        assert_equal [@diagnosis, @diagnosis_non_coded], @evan.current_diagnoses
+        assert_equal [@diagnosis, @diagnosis_non_coded], PatientService.current_diagnoses(@evan)
       end
                   
       should "not include voided diagnoses in the list of current diagnoses" do
         @diagnosis.void
-        assert_equal [@diagnosis_non_coded], @evan.current_diagnoses
+        assert_equal [@diagnosis_non_coded], PatientService.current_diagnoses(@evan)
       end
 
       should "not include diagnoses belonging to voided encounters in the list of current diagnoses" do
         @encounter.void
-        assert_equal [], @evan.current_diagnoses
+        assert_equal [], PatientService.current_diagnoses(@evan)
       end
 
       should "get current BMI alert" do
-        assert_equal 60.0, @evan.current_weight
-        assert_equal 191.0, @evan.current_height
-        assert_equal 'Low BMI: Eligible for therapeutic feeding', @evan.current_bmi_alert
+        current_weight = PatientService.get_patient_attribute_value(@evan, "current_weight")
+        current_height = PatientService.get_patient_attribute_value(@evan, "current_height")
+        
+        assert_equal 60.0, current_weight
+        assert_equal 191.0,  current_height
+        
+        assert_equal 'Low BMI: Eligible for therapeutic feeding', PatientService.current_bmi_alert(current_weight, current_height)
 
         weight_obs = @evan.person.observations.find_last(
             :conditions => ['voided = 0 AND concept_id = ?',
@@ -144,7 +148,7 @@ EOF
 
         weight_obs.value_numeric = 90.0
         weight_obs.save
-        assert_nil @evan.current_bmi_alert
+        assert_nil PatientService.current_bmi_alert(current_weight, current_height)
       end
 
     end

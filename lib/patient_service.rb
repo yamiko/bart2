@@ -84,7 +84,20 @@ module PatientService
     encounter ||= patient.encounters.create(:encounter_type => type.id,:encounter_datetime => date, :provider_id => provider)
 
   end
-  
+
+  def self.count_by_type_for_date(date)
+    # This query can be very time consuming, because of this we will not consider
+    # that some of the encounters on the specific date may have been voided
+    ActiveRecord::Base.connection.select_all("SELECT count(*) as number, encounter_type FROM encounter GROUP BY encounter_type")
+    todays_encounters = Encounter.find(:all, :include => "type", :conditions => ["DATE(encounter_datetime) = ?",date])
+    encounters_by_type = Hash.new(0)
+    todays_encounters.each{|encounter|
+      next if encounter.type.nil?
+      encounters_by_type[encounter.type.name] += 1
+    }
+    encounters_by_type
+  end
+
   def self.phone_numbers(person_obj)
     phone_numbers = {}
 
@@ -1475,7 +1488,6 @@ module PatientService
     task
   end
 
-
   def self.patient_national_id_label(patient)
 	  patient_bean = get_patient(patient.person)
     return unless patient_bean.national_id
@@ -1489,7 +1501,7 @@ module PatientService
     label.draw_barcode(50,180,0,1,5,15,120,false,"#{patient_bean.national_id}")
     label.draw_multi_text("#{patient_bean.name.titleize}")
     label.draw_multi_text("#{patient_bean.national_id_with_dashes} #{patient_bean.birth_date}#{sex}")
-    label.draw_multi_text("#{address}")
+    label.draw_multi_text("#{patient_bean.address}")
     label.print(1)
   end
 
@@ -1555,7 +1567,7 @@ module PatientService
  end
 
  def self.get_patient_attribute_value(patient, attribute_name)
- 	
+
    patient_bean = get_patient(patient.person)
    if patient_bean.sex.upcase == 'MALE'
    		sex = 'M'
@@ -1629,7 +1641,7 @@ module PatientService
   end
 
   def self.get_patient_identifier(patient, identifier_type)
-    patient_identifier_type_id = PatientIdentifierType.find_by_name(identifier_type).patient_identifier_type_id
+    patient_identifier_type_id = PatientIdentifierType.find_by_name(identifier_type).patient_identifier_type_id rescue nil
     patient_identifier = PatientIdentifier.find(:first, :select => "identifier",
                                                 :conditions  =>["patient_id = ? and identifier_type = ?", patient.id, patient_identifier_type_id],
                                                 :order => "date_created DESC" ).identifier rescue nil
@@ -1746,7 +1758,6 @@ EOF
 EOF
     end
 
-
     return table
   end
 
@@ -1765,6 +1776,17 @@ EOF
     false
   end
 
+  #data cleaning :- moved from patient.rb
+  def self.current_diagnoses(patient_id)
+    patient = Patient.find(patient_id)
+    patient.encounters.current.all(:include => [:observations]).map{|encounter|
+      encounter.observations.all(
+        :conditions => ["obs.concept_id = ? OR obs.concept_id = ?",
+          ConceptName.find_by_name("DIAGNOSIS").concept_id,
+          ConceptName.find_by_name("DIAGNOSIS, NON-CODED").concept_id])
+    }.flatten.compact
+  end
+
   def self.patient_art_start_date(patient_id)
     date = ActiveRecord::Base.connection.select_value <<EOF
 SELECT patient_start_date(#{patient_id})
@@ -1772,7 +1794,7 @@ EOF
     return date.to_date rescue nil
   end
 
-  def prescribe_arv_this_visit(patient, date = Date.today)
+  def self.prescribe_arv_this_visit(patient, date = Date.today)
     encounter_type = EncounterType.find_by_name('ART VISIT')
     yes_concept = ConceptName.find_by_name('YES').concept_id
     refer_concept = ConceptName.find_by_name('PRESCRIBE ARVS THIS VISIT').concept_id
@@ -1815,13 +1837,20 @@ EOF
     patient.traditional_authority = person.addresses.first.county_district
     patient.current_residence = person.addresses.first.city_village
     patient.mothers_surname = person.names.first.family_name2
-    patient.eid_number = get_patient_identifier(person.patient, 'EID Number')
-    patient.pre_art_number = get_patient_identifier(person.patient, 'Pre ART Number (Old format)')
-    patient.archived_filing_number = get_patient_identifier(person.patient, 'Archived filing number')
+    patient.eid_number = get_patient_identifier(person.patient, 'EID Number') rescue nil
+    patient.pre_art_number = get_patient_identifier(person.patient, 'Pre ART Number (Old format)') rescue nil
+    patient.archived_filing_number = get_patient_identifier(person.patient, 'Archived filing number')rescue nil
     patient.filing_number = get_patient_identifier(person.patient, 'Filing Number')
     patient.occupation = get_attribute(person, 'Occupation')
-    patient.guardian = art_guardian(patient_obj) rescue nil 
+    patient.guardian = art_guardian(person.patient) rescue nil 
     patient
+  end
+  
+  def self.art_guardian(patient)
+    person_id = Relationship.find(:first,:order => "date_created DESC",
+      :conditions =>["person_a = ?",patient.person.id]).person_b rescue nil
+    guardian_name = name(Person.find(person_id))
+    guardian_name rescue nil
   end
 
   def self.name(person)
@@ -1840,6 +1869,38 @@ EOF
     estimate=person.birthdate_estimated==1
     patient_age += (estimate && birth_date.month == 7 && birth_date.day == 1  && 
       today.month < birth_date.month && person.date_created.year == today.year) ? 1 : 0
+  end
+
+  # Convert a list +Concept+s of +Regimen+s for the given +Patient+ <tt>age</tt>
+  # into select options. See also +EncountersController#arv_regimen_answers+
+  def self.regimen_options(regimen_concepts, age)
+    options = regimen_concepts.map{ |r|
+      [r.concept_id,
+
+        (r.concept_names.typed("SHORT").first ||
+        r.concept_names.typed("FULLY_SPECIFIED").first).name]
+    }
+	
+    suffixed_options = options.collect{ |opt|
+      opt_reg = Regimen.find(:all,
+                             :select => 'regimen_index',
+							 :order => 'regimen_index',
+                             :conditions => ['concept_id = ?', opt[0]]
+                            ).uniq.first
+      if age >= 15
+        suffix = "A"
+      else
+        suffix = "P"
+      end
+
+      #[opt[0], "#{opt_reg.regimen_index}#{suffix} - #{opt[1]}"]
+		if opt_reg.regimen_index > -1
+      		["#{opt_reg.regimen_index}#{suffix} - #{opt[1]}", opt[0], opt_reg.regimen_index.to_i]
+		else
+      		["#{opt[1]}", opt[0], opt_reg.regimen_index.to_i]
+		end
+    }.sort_by{|opt| opt[2]}
+
   end
 
   def self.old_filing_number(patient, type = 'Filing Number')
@@ -1996,6 +2057,23 @@ EOF
 		return person
 	end
 
+   # Get the any BMI-related alert for this patient
+  def self.current_bmi_alert(patient_weight, patient_height)
+    weight = patient_weight
+    height = patient_height
+    alert = nil
+    unless weight == 0 || height == 0
+      current_bmi = (weight/(height*height)*10000).round(1);
+      if current_bmi <= 18.5 && current_bmi > 17.0
+        alert = 'Low BMI: Eligible for counseling'
+      elsif current_bmi <= 17.0
+        alert = 'Low BMI: Eligible for therapeutic feeding'
+      end
+    end
+
+    alert
+  end
+
   def self.sex(person)
     value = nil
     if person.gender == "M"
@@ -2007,7 +2085,7 @@ EOF
   end
   
   def self.person_search(params)
-    people = self.search_by_identifier(params[:identifier])
+    people = search_by_identifier(params[:identifier])
 
     return people.first.id unless people.blank? || people.size > 1
     people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patient], :conditions => [
@@ -2032,7 +2110,7 @@ EOF
     person.birthdate = Date.new(today.year - age.to_i, 7, 1)
     person.birthdate_estimated = 1
   end
-  
+
   def self.set_birthdate(person, year = nil, month = nil, day = nil)   
     raise "No year passed for estimated birthdate" if year.nil?
 
@@ -2211,7 +2289,7 @@ EOF
                                  patient.id,EncounterType.find_by_name('HIV STAGING').id])
 
     if hiv_staging.blank? and user_selected_activities.match(/Manage HIV staging visits/i)
-      extended_staging_questions = self.get_global_property_value('use.extended.staging.questions')
+      extended_staging_questions = get_global_property_value('use.extended.staging.questions')
       extended_staging_questions = extended_staging_questions.property_value == 'yes' rescue false
       task.encounter_type = 'HIV STAGING'
       task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" if not extended_staging_questions

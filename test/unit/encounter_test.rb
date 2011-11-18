@@ -12,7 +12,7 @@ class EncounterTest < ActiveSupport::TestCase
     should "assign the encounter date time and provider when saved" do 
       now = Time.now
       encounter = Encounter.make
-      assert_equal encounter.provider_id, User.current_user.user_id
+      assert_equal encounter.provider_id, User.current_user.person_id
       assert_equal encounter.encounter_datetime.to_date, now.to_date    
     end
       
@@ -37,9 +37,9 @@ class EncounterTest < ActiveSupport::TestCase
       Encounter.make(:encounter_type => EncounterType.find_by_name('vitals').id)
       Encounter.make(:encounter_type => EncounterType.find_by_name('adultinitial').id)
       Encounter.make(:encounter_type => EncounterType.find_by_name('pedsreturn').id)
-      assert_equal Encounter.count_by_type_for_date(Date.today),
+      assert_equal PatientService.count_by_type_for_date(Date.today),
                    {"VITALS" => 2, "ADULTINITIAL" => 1, "PEDSRETURN" => 1}
     end  
-    
+
   end
 end

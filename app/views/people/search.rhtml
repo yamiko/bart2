@@ -102,13 +102,20 @@ end -%>
       <%= submit_tag "Find person" %>
     <% end -%>
   <% end -%>
-
   <% unless (params[:gender].blank? || params[:given_name].blank? || params[:family_name].blank?) && (params[:identifier].blank?) %>
     <% form_tag "select", :method => :get do %>
       <% if @people.blank? %>
-        <label for="person">No patients were found:</label>
+        <% if @relation.blank? %>
+          <label for="person">No patients were found:</label>
+        <% else %>
+          <label for="person">No guardians were found:</label>
+        <% end %>
       <% else -%>
-        <label for="person">Select the patient from the following</label>
+        <% if @relation.blank? %>
+          <label for="person">Select the patient from the following</label>
+        <% else %>
+          <label for="person">Select the guardian from the following</label>
+        <% end %>
       <% end -%>
       <select name="person" id="person" dualView="true" dualViewOptions="people">
         <% if params[:identifier] %>

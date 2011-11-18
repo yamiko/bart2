@@ -287,8 +287,15 @@ class EncountersController < ApplicationController
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
-		    @current_height = PatientService.get_patient_attribute_value(@patient, "current_height")
-		    @min_weight = PatientService.get_patient_attribute_value(@patient, "min_weight")
+
+		if session[:datetime]
+			@retrospective = true 
+		else
+			@retrospective = false
+		end
+
+		@current_height = PatientService.get_patient_attribute_value(@patient, "current_height")
+		@min_weight = PatientService.get_patient_attribute_value(@patient, "min_weight")
         @max_weight = PatientService.get_patient_attribute_value(@patient, "max_weight")
         @min_height = PatientService.get_patient_attribute_value(@patient, "min_height")
         @max_height = PatientService.get_patient_attribute_value(@patient, "max_height")
@@ -337,7 +344,7 @@ class EncountersController < ApplicationController
 				o.answer_string if o.to_s.include?("Transfer out to")} rescue nil
 
 		@recent_sputum_results = PatientService.recent_sputum_results(@patient.id) rescue nil
-    @recent_sputum_submissions = PatientService.recent_sputum_submissions(@patient_id) rescue nil
+    	@recent_sputum_submissions = PatientService.recent_sputum_submissions(@patient_id) rescue nil
 		@continue_treatment_at_site = []
 		Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ? AND DATE(encounter_datetime) = ?",
 		EncounterType.find_by_name("TB CLINIC VISIT").id,
@@ -364,7 +371,7 @@ class EncountersController < ApplicationController
 		@number_of_days_to_add_to_next_appointment_date = number_of_days_to_add_to_next_appointment_date(@patient, session[:datetime] || Date.today)
 		@drug_given_before = PatientService.drug_given_before(@patient, session[:datetime])
 
-		use_regimen_short_names = get_global_property_value("use_regimen_short_names") rescue "false"
+		use_regimen_short_names = PatientService.get_global_property_value("use_regimen_short_names") rescue "false"
 		show_other_regimen = ("show_other_regimen") rescue 'false'
 
 		@answer_array = arv_regimen_answers(:patient => @patient,
@@ -372,10 +379,10 @@ class EncountersController < ApplicationController
 			:show_other_regimen => show_other_regimen      == "true")
 
 		hiv_program = Program.find_by_name('HIV Program')
-		@answer_array = regimen_options(hiv_program.regimens, @patient_bean.age)
+		@answer_array = PatientService.regimen_options(hiv_program.regimens, @patient_bean.age)
 		@answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 
-		@hiv_status = patient_hiv_status(@patient)
+		@hiv_status = PatientService.patient_hiv_status(@patient)
 		@hiv_test_date = PatientService.hiv_test_date(@patient.id)
 #raise @hiv_test_date.to_s
 		@lab_activities = lab_activities
@@ -402,8 +409,8 @@ class EncountersController < ApplicationController
 		sputum_results_not_given(@patient.id).each{|order| @sputum_results_not_given[order.accession_number] = Concept.find(order.value_coded).fullname rescue order.value_text}
 
 		@tb_status = recent_lab_results(@patient.id, session_date)
-    # use @patient_tb_status  for the tb_status moved from the patient model
-    @patient_tb_status = PatientService.patient_tb_status(@patient)
+    	# use @patient_tb_status  for the tb_status moved from the patient model
+    	@patient_tb_status = PatientService.patient_tb_status(@patient)
 		@patient_is_transfer_in = is_transfer_in(@patient)
 		@patient_transfer_in_date = get_transfer_in_date(@patient)
 		@patient_is_child_bearing_female = is_child_bearing_female(@patient)
@@ -413,9 +420,9 @@ class EncountersController < ApplicationController
 
 		if (params[:encounter_type].upcase rescue '') == 'TB_INITIAL'
 			tb_program = Program.find_by_name('TB Program')
-			@tb_regimen_array = regimen_options(tb_program.regimens, @patient_bean.age)
+			@tb_regimen_array = PatientService.regimen_options(tb_program.regimens, @patient_bean.age)
 			tb_program = Program.find_by_name('MDR-TB Program')
-			@tb_regimen_array += regimen_options(tb_program.regimens, @patient_bean.age)
+			@tb_regimen_array += PatientService.regimen_options(tb_program.regimens, @patient_bean.age)
 			@tb_regimen_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 		end
 
@@ -509,7 +516,7 @@ class EncountersController < ApplicationController
 		redirect_to :action => :create, 'encounter[encounter_type_name]' => params[:encounter_type].upcase, 'encounter[patient_id]' => @patient.id and return if ['registration'].include?(params[:encounter_type])
 
 
-		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (get_global_property_value('use.extended.staging.questions') == "yes" rescue false)
+		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (PatientService.get_global_property_value('use.extended.staging.questions') == "yes" rescue false)
 			render :template => 'encounters/llh_hiv_staging'
 		else
 			render :action => params[:encounter_type] if params[:encounter_type]
@@ -1047,7 +1054,7 @@ class EncountersController < ApplicationController
   end
 
   def is_child_bearing_female(patient)
-  	patient_bean = get_patient(patient.person)
+  	patient_bean = PatientService.get_patient(patient.person)
     (patient_bean.sex == 'Female' && patient_bean.age >= 9 && patient_bean.age <= 45) ? true : false
   end
 

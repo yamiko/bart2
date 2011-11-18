@@ -143,7 +143,7 @@ class CohortToolController < ApplicationController
 
     voided_encounters.map do |encounter|
       patient           = Patient.find(encounter.patient_id)
-      patient_bean = get_patient(patient.person)
+      patient_bean = PatientService.get_patient(patient.person)
 
       new_encounter  = other_encounters.reduce([])do |result, e|
         result << e if( e.encounter_datetime.strftime("%d-%m-%Y") == encounter.encounter_datetime.strftime("%d-%m-%Y")&&
@@ -181,7 +181,7 @@ class CohortToolController < ApplicationController
     voided_treatments.each do |encounter|
 
       patient           = Patient.find(encounter.patient_id)
-      patient_bean = get_patient(patient.person)
+      patient_bean = PatientService.get_patient(patient.person)
       
       orders            = encounter.orders
       changed_from      = ''
@@ -469,7 +469,7 @@ class CohortToolController < ApplicationController
 
       visit_date = visit.encounter_datetime.strftime("%d-%b-%Y")
 
-	  patient_bean = get_patient(visit.patient.person)
+	  patient_bean = PatientService.get_patient(visit.patient.person)
 	  
       # get a patient of a given visit
       new_patient   = { :patient_id   => (visit.patient.patient_id || ""),
@@ -692,7 +692,7 @@ class CohortToolController < ApplicationController
 
     patients.each do |reason|
       patient = Patient.find(reason[:person_id])
-      patient_bean = get_patient(patient.person)
+      patient_bean = PatientService.get_patient(patient.person)
       patients_data << {'person_id' => patient.id,
                         'arv_number' => patient_bean.arv_number,
                         'national_id' => patient_bean.national_id,
@@ -729,7 +729,7 @@ class CohortToolController < ApplicationController
     out_of_range_arv_numbers_data = []
     out_of_range_arv_numbers.each do |arv_num_data|
       patient     = Person.find(arv_num_data[:patient_id].to_i)
-      patient_bean = get_patient(patient.person)
+      patient_bean = PatientService.get_patient(patient.person)
 
       out_of_range_arv_numbers_data <<{'person_id' => patient.id,
                                        'arv_number' => patient_bean.arv_number,
@@ -755,7 +755,7 @@ class CohortToolController < ApplicationController
 
     missed_prescriptions_data.each do |dispensation|
         patient = Patient.find(dispensation[:person_id])
-        patient_bean = get_patient(patient.person)
+        patient_bean = PatientService.get_patient(patient.person)
         drug_name    = Drug.find(dispensation[:value_drug]).name
 
         dispensations_without_prescriptions << { 'person_id' => patient.id,
@@ -809,7 +809,7 @@ class CohortToolController < ApplicationController
     patients_data  = []
     patients.each do |patient_data_row|
       person = Person.find(patient_data_row[:patient_id].to_i)
-      patient_bean = get_patient(person)
+      patient_bean = PatientService.get_patient(person)
       patients_data <<{ 'person_id' => person.id,
                         'arv_number' => patient_bean.arv_number,
                         'name' => patient_bean.name,
@@ -836,7 +836,7 @@ class CohortToolController < ApplicationController
         patients_data  = []
         patients.each do |patient_data_row|
           person = Person.find(patient_data_row[:person_id].to_i)
-		  patient_bean = get_patient(person)
+		  patient_bean = PatientService.get_patient(person)
           patients_data <<{ 'person_id' => person.id,
                             'arv_number' => patient_bean.arv_number,
                             'name' => patient_bean.name,
@@ -886,7 +886,7 @@ class CohortToolController < ApplicationController
     patients_data  = []
     patients.each do |patient_data_row|
       person = Person.find(patient_data_row[:person_id].to_i)
-      patient_bean = get_patient(person)
+      patient_bean = PatientService.get_patient(person)
       patients_data <<{ 'person_id' => person.id,
                         'arv_number' => patient_bean.arv_number,
                         'name' => patient_bean.name,
@@ -941,7 +941,7 @@ class CohortToolController < ApplicationController
     patients_data  = []
     patients.each do |patient_data_row|
       person = Person.find(patient_data_row[:patient_id])
-	  patient_bean = get_patient(person)
+	  patient_bean = PatientService.get_patient(person)
       patients_data <<{ 'person_id' => person.id,
                         'arv_number' => patient_bean.arv_number,
                         'name' => patient_bean.name,
@@ -1053,7 +1053,7 @@ class CohortToolController < ApplicationController
 
       patient    = Patient.find(rate.patient_id)
       person     = patient.person
-      patient_bean = get_patient(person)
+      patient_bean = PatientService.get_patient(person)
       drug       = Drug.find(rate.drug_id)
       pill_count = Observation.find(:first, :conditions => "order_id = #{rate.order_id} AND encounter_id = #{rate.encounter_id} AND concept_id = #{brought_drug_concept_id} ").value_numeric rescue ""
       if !patients[patient.patient_id] then
@@ -1064,7 +1064,7 @@ class CohortToolController < ApplicationController
                                         "national_id" => patient_bean.national_id,
                                         "visit_date" =>rate.obs_datetime,
                                         "gender" =>patient_bean.sex,
-                                        "age" =>patient_age_at_initiation(patient, rate.start_date.to_date),
+                                        "age" => PatientService.patient_age_at_initiation(patient, rate.start_date.to_date),
                                         "birthdate" => patient_bean.birth_date,
                                         "pill_count" => pill_count.to_i.to_s,
                                         "adherence" => rate. adherence_rate_worse,
