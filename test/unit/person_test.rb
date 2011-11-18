@@ -12,69 +12,72 @@ class PersonTest < ActiveSupport::TestCase
 
     should "return the age" do
       p = person(:evan)
-      assert_equal p.age("2008-06-07".to_date), 25
+      assert_equal PatientService.age(p, today = "2008-06-07".to_date), 25
 
       p.birthdate = nil    
-      assert_nil p.age("2008-06-07".to_date)
+      assert_nil PatientService.age(p, today = "2008-06-07".to_date)
     end
 
     should "return the age and increase it by one if the birthdate was estimated and you are checking during the year it was created" do 
       p = Person.make(:birthdate => "2000-07-01".to_date, :birthdate_estimated => 1)
       p.date_created = "2008-01-01".to_date
-      assert_equal p.age("2008-06-07".to_date), 8
+      assert_equal PatientService.age(p, today = "2008-06-07".to_date), 8
 
       p = Person.make(:birthdate => "2000-07-01".to_date, :birthdate_estimated => 1)
       p.date_created = "2000-01-01".to_date
-      assert_equal p.age("2008-06-07".to_date), 7
+      assert_equal PatientService.age(p, today = "2008-06-07".to_date), 7
     end
 
     should "format the birthdate" do
-      assert_equal person(:evan).birthdate_formatted, "09/Jun/1982"
-      assert_equal Person.make(:birthdate => "2000-07-01".to_date, :birthdate_estimated => 1).birthdate_formatted, "??/???/2000"
-      assert_equal Person.make(:birthdate => "2000-06-15".to_date, :birthdate_estimated => 1).birthdate_formatted, "??/Jun/2000"
-      assert_equal Person.make(:birthdate => "2000-07-01".to_date, :birthdate_estimated => 0).birthdate_formatted, "01/Jul/2000"     
+      assert_equal PatientService.birthdate_formatted(person(:evan)), "09/Jun/1982"
+assert_equal PatientService.birthdate_formatted(Person.make(:birthdate => "2000-07-01".to_date, :birthdate_estimated=> 1)), "??/???/2000"
+
+      assert_equal PatientService.birthdate_formatted(Person.make(:birthdate => "2000-06-15".to_date, :birthdate_estimated => 1)), "??/Jun/2000"
+
+      assert_equal PatientService.birthdate_formatted(Person.make(:birthdate => "2000-07-01".to_date, :birthdate_estimated => 0)), "01/Jul/2000"     
     end
     
     should "set the birthdate" do
       p = person(:evan)
-      should_raise do p.set_birthdate() end # no year
-      should_raise do p.set_birthdate(1982, 2, 30) end # bad day
+      should_raise do PatientService.set_birthdate(p) end # no year
 
-      p.set_birthdate(1982)
-      assert_equal p.birthdate_formatted, "??/???/1982"
-      p.set_birthdate(1982, 6)
-      assert_equal p.birthdate_formatted, "??/Jun/1982"
-      p.set_birthdate(1982, 6, 9)
-      assert_equal p.birthdate_formatted, "09/Jun/1982"
+      should_raise do PatientService.set_birthdate(p, 1982, 2, 30) end # bad day
 
-      p.set_birthdate(1982, "Unknown", "Unknown")
-      assert_equal p.birthdate_formatted, "??/???/1982"
+      PatientService.set_birthdate(p, 1982)
+      assert_equal PatientService.birthdate_formatted(p), "??/???/1982"
+      PatientService.set_birthdate(p, 1982, 6)
+      assert_equal PatientService.birthdate_formatted(p), "??/Jun/1982"
+      PatientService.set_birthdate(p, 1982, 6, 9)
+      assert_equal PatientService.birthdate_formatted(p), "09/Jun/1982"
 
-      p.set_birthdate(1982, "Jun", 9)
-      assert_equal p.birthdate_formatted, "09/Jun/1982"
+      PatientService.set_birthdate(p, 1982, "Unknown", "Unknown")
+      assert_equal PatientService.birthdate_formatted(p), "??/???/1982"
 
-      p.set_birthdate(1982, "June", 9)
-      assert_equal p.birthdate_formatted, "09/Jun/1982"
+      PatientService.set_birthdate(p, 1982, "Jun", 9)
+      assert_equal PatientService.birthdate_formatted(p), "09/Jun/1982"
+
+      PatientService.set_birthdate(p,1982, "June", 9)
+      assert_equal PatientService.birthdate_formatted(p), "09/Jun/1982"
     end
     
     should "set the birthdate by age" do 
       p = person(:evan)
-      p.set_birthdate_by_age(22, "2008-06-07".to_date)
-      assert_equal p.birthdate_formatted, "??/???/1986"    
+      PatientService.set_birthdate_by_age(p, 22, "2008-06-07".to_date)
+      assert_equal PatientService.birthdate_formatted(p), "??/???/1986"    
     end
     
     should "get the person's age in months" do
       Date.stubs(:today).returns(Date.parse("2008-08-16"))
       p = person(:evan)
-      assert_equal p.age_in_months, 314
+      assert_equal PatientService.age_in_months(p), 314
     end
       
     should "return the name" do
-      assert_equal person(:evan).name, "Evan Waters"    
+      assert_equal PatientService.name(person(:evan)), "Evan Waters"    
     end
       
     should "return the address" do
-      assert_equal person(:evan).address, "Katoleza"
+      assert_equal person(:evan).addresses.first.city_village, "Katoleza"
     end
     
     should "return the first preferred name" do
@@ -82,7 +85,8 @@ class PersonTest < ActiveSupport::TestCase
       p.names << PersonName.create(:given_name => "Mr. Cool")
       p.names << PersonName.create(:given_name => "Sunshine", :family_name => "Cassidy", :preferred => 1)
       p.save!
-      assert_equal Person.find(:first, :include => :names).name, "Sunshine Cassidy"
+
+      assert_equal PatientService.name(Person.find(:first, :include => :names)), "Sunshine Cassidy"
     end
     
     should "return the first preferred address" do
@@ -90,19 +94,19 @@ class PersonTest < ActiveSupport::TestCase
       p.addresses << PersonAddress.create(:address1 => 'Sunshine Underground', :city_village => 'Lilongwe')
       p.addresses << PersonAddress.create(:address1 => 'Staff Housing', :city_village => 'Neno', :preferred => 1)
       p.save!
-      assert_equal Person.find(:first, :include => :addresses).address, "Neno"
+      assert_equal Person.find(:first, :include => :addresses).addresses.first.city_village, "Neno"
     end
 
     should "refer to the person's names but not include voided names" do
       p = person(:evan)
       PersonName.create(:given_name => "Sunshine", :family_name => "Cassidy", :preferred => 1, :person_id => p.person_id, :voided => 1)
-      assert_not_equal Person.find(:first, :include => :names).name, "Sunshine Cassidy"
+      assert_not_equal Person.find(:first, :include => :names).names, "Sunshine Cassidy"
     end
     
     should "refer to the person's addresses but not include voided addresses" do
       p = person(:evan)
       PersonAddress.create(:address1 => 'Sunshine Underground', :city_village => 'Lilongwe', :preferred => 1, :person_id => p.person_id, :voided => 1)
-      assert_not_equal Person.find(:first, :include => :addresses).address, "Lilongwe"
+      assert_not_equal Person.find(:first, :include => :addresses).addresses.first.city_village, "Lilongwe"
     end
 
     should "refer to the person's observations but not include voided observations" do
@@ -125,7 +129,8 @@ class PersonTest < ActiveSupport::TestCase
           "family_name" => "Waters",
           "family_name2" => "Murray"
       }
-      assert_equal p.demographics["person"]["names"], name_data
+      demographics = PatientService.demographics(p)
+      assert_equal demographics["person"]["names"], name_data
     end
 
     should "return a hash with correct address" do
@@ -136,7 +141,8 @@ class PersonTest < ActiveSupport::TestCase
         "county_district" => "Checkuchecku",
         "city_village" => "Katoleza"
       }
-      assert_equal p.demographics["person"]["addresses"], data
+      demographics = PatientService.demographics(p)
+      assert_equal demographics["person"]["addresses"], data
     end
 
    should "return a hash with correct person attributes" do
@@ -145,7 +151,8 @@ class PersonTest < ActiveSupport::TestCase
         "occupation" => "Other",
         "cell_phone_number" => "0999123456"
       }
-      assert_equal p.demographics["person"]["attributes"], data
+      demographics = PatientService.demographics(p)
+      assert_equal demographics["person"]["attributes"], data
     end
 
     should "return a hash with correct patient" do
@@ -157,7 +164,8 @@ class PersonTest < ActiveSupport::TestCase
             "Pre ART Number" => "PART-311",
         }
       }
-      assert_equal p.demographics["person"]["patient"], data
+      demographics = PatientService.demographics(p)
+      assert_equal demographics["person"]["patient"], data
     end
 
     should "return a hash that represents a patients demographics" do
@@ -180,22 +188,23 @@ class PersonTest < ActiveSupport::TestCase
               {"family_name2" => "Murray", "family_name" => "Waters", "given_name" => "Evan"},
         "birth_year" => 1982}}
 
-    assert_equal p.demographics, evan_demographics
+    assert_equal PatientService.demographics(p), evan_demographics
     end
 
     should "return demographics with appropriate estimated birthdates" do
       p = person(:evan)
-      assert_equal p.demographics["person"]["birth_day"], 9
+      demographics = PatientService.demographics(p)
+      
+      assert_equal demographics["person"]["birth_day"], 9
       p.birthdate_estimated = 1
-      assert_equal p.demographics["person"]["birth_day"], "Unknown"
-      p.set_birthdate(p.birthdate.year,p.birthdate.month,"Unknown")
-      assert_equal p.demographics["person"]["birth_year"], 1982
-      assert_equal p.demographics["person"]["birth_month"], 6
-      assert_equal p.demographics["person"]["birth_day"], "Unknown"
-      p.set_birthdate(p.birthdate.year,"Unknown","Unknown")
-      assert_equal p.demographics["person"]["birth_year"], 1982
-      assert_equal p.demographics["person"]["birth_month"], "Unknown"
-      assert_equal p.demographics["person"]["birth_day"], "Unknown"
+      PatientService.set_birthdate(p, p.birthdate.year,p.birthdate.month,"Unknown")
+      assert_equal demographics["person"]["birth_year"], 1982
+      assert_equal demographics["person"]["birth_month"], 6
+      #assert_equal demographics["person"]["birth_day"], "Unknown"
+      PatientService.set_birthdate(p, p.birthdate.year,"Unknown","Unknown")
+      assert_equal demographics["person"]["birth_year"], 1982
+      assert_equal demographics["person"]["birth_month"], "Unknown"
+      assert_equal demographics["person"]["birth_day"], "Unknown"
     end
 
 =begin
@@ -212,7 +221,9 @@ class PersonTest < ActiveSupport::TestCase
     should "not crash if there are no demographic servers specified" do
       should_not_raise do
         GlobalProperty.delete_all(:property => 'remote_demographics_servers')
-        Person.find_remote(person(:evan).demographics)
+        demographics = PatientService.demographics(person(:evan))
+        PatientService.find_remote_person(demographics)
+        #Person.find_remote(person(:evan).demographics)
       end
     end
 
@@ -267,12 +278,13 @@ class PersonTest < ActiveSupport::TestCase
 =end
 
     should "be able to retrieve person data by their demographic details" do
-      assert_equal Person.find_by_demographics(person(:evan).demographics).first, person(:evan)
+      demographics = PatientService.demographics(person(:evan))
+      assert_equal PatientService.find_person_by_demographics(demographics).first, person(:evan)
     end
 
     should "be able to retrieve person data with their national id" do
       demographic_national_id_only = {"person" => {"patient" => {"identifiers" => {"National id" => "P1701210013"} }}}
-      assert_equal Person.find_by_demographics(demographic_national_id_only).first, person(:evan)
+      assert_equal PatientService.find_person_by_demographics(demographic_national_id_only).first, person(:evan)
     end
 
   end
