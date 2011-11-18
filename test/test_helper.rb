@@ -91,7 +91,8 @@ class ActiveSupport::TestCase
   def prescribe(patient, obs, drug, dose = 1, frequency = "ONCE A DAY", prn = 0, start_date = nil, end_date = nil)
     start_date ||= Time.now
     end_date ||= Time.now + 3.days
-    encounter = patient.current_treatment_encounter
+    
+    encounter = PatientService.current_treatment_encounter(patient, Date.today, User.current_user.person_id)
     DrugOrder.write_order(encounter, patient, obs, drug, start_date, end_date, dose, frequency, prn = 0)
   end
   
