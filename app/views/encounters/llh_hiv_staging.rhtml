@@ -430,10 +430,6 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
-  <% @retrospective = 'false'
-     @retrospective = 'true' if session[:datetime]
-  %>
-
   <%= touch_select_tag "PRESUMED SEVERE HIV CRITERIA PRESENT", @patient, concept_set_options('PRESUMED SEVERE HIV CRITERIA IN INFANTS'),
     {:id => "presumed_severe_hiv_conditions",
      :multiple => true,
@@ -526,7 +522,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
           extended_staging << staging_condition and next
         end
       %>
-      <%  if @retrospective == 'true'%>
+      <%  if @retrospective == true %>
         <% if @tb_status == true && @hiv_status != 'Negative'
              unless tb_hiv_exclusions.include?(staging_condition)%>
               <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
@@ -659,6 +655,10 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
                           "Unspecified stage II condition",
                           "Unspecified stage III condition",
                           "Unspecified stage IV condition"]
+
+      tb_hiv_exclusions = ['Pulmonary tuberculosis',
+                           'Pulmonary tuberculosis within the last 2 years']
+ 
     %>
     <script>
       count = 0
@@ -695,14 +695,55 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
           extended_staging << staging_condition and next
         end
       %>
-      <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
-        {:id => "staging_condition_#{count+=1}" ,
-        :optional => false,
-        :tt_onLoad => "$('nextButton').style.display = 'none';setTimeout('cssText();',1);",
-        :tt_requireNextClick => false,
-        :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
-        :helpText => staging_condition.humanize.gsub('stage i','stage I').gsub('stage Ii','stage II').gsub('stage IIi','stage III').gsub('hiv','HIV').gsub('eptb','EPTB').gsub('tb','TB').gsub('Iv','IV') } %>
+
+
+      <%  if @retrospective == true %>
+        <% if @tb_status == true && @hiv_status != 'Negative'
+             unless tb_hiv_exclusions.include?(staging_condition)%>
+              <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
+                {:id => "staging_condition_#{count+=1}" ,
+                :optional => false,
+                :tt_onLoad => "$('nextButton').style.display = 'none';setTimeout('cssText();',1);",
+                :tt_requireNextClick => false,
+                :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
+                :helpText => staging_condition } %>
+
+             <% end
+           else %>
+            <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
+                {:id => "staging_condition_#{count+=1}" ,
+                :optional => false,
+                :tt_onLoad => "$('nextButton').style.display = 'none';setTimeout('cssText();',1);",
+                :tt_requireNextClick => false,
+                :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
+                :helpText => staging_condition } %>
+           <%end %>
+      <% else
+          unless retro_conditions.include?(staging_condition)%>
+            <% if @tb_status == true && @hiv_status != 'Negative'
+                  unless tb_hiv_exclusions.include?(staging_condition)%>
+                    <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
+                      {:id => "staging_condition_#{count+=1}" ,
+                      :optional => false,
+                      :tt_onLoad => "$('nextButton').style.display = 'none';setTimeout('cssText();',1);",
+                      :tt_requireNextClick => false,
+                      :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
+                      :helpText => staging_condition } %>
+                  <% end
+              else %>
+                <%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
+                      {:id => "staging_condition_#{count+=1}" ,
+                      :optional => false,
+                      :tt_onLoad => "$('nextButton').style.display = 'none';setTimeout('cssText();',1);",
+                      :tt_requireNextClick => false,
+                      :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition}');",
+                      :helpText => staging_condition } %>
+             <%  end
+           end
+         end %>
+
       <%end%>
+
 
       <%= touch_yes_no_tag "Perform extended staging" , @patient, nil,
         {:id => "perform_extended_staging" ,
