@@ -84,7 +84,20 @@ module PatientService
     encounter ||= patient.encounters.create(:encounter_type => type.id,:encounter_datetime => date, :provider_id => provider)
 
   end
-  
+
+  def self.count_by_type_for_date(date)
+    # This query can be very time consuming, because of this we will not consider
+    # that some of the encounters on the specific date may have been voided
+    ActiveRecord::Base.connection.select_all("SELECT count(*) as number, encounter_type FROM encounter GROUP BY encounter_type")
+    todays_encounters = Encounter.find(:all, :include => "type", :conditions => ["DATE(encounter_datetime) = ?",date])
+    encounters_by_type = Hash.new(0)
+    todays_encounters.each{|encounter|
+      next if encounter.type.nil?
+      encounters_by_type[encounter.type.name] += 1
+    }
+    encounters_by_type
+  end
+
   def self.phone_numbers(person_obj)
     phone_numbers = {}
 
@@ -2142,8 +2155,13 @@ EOF
     PersonAttribute.find(:first,:conditions =>["voided = 0 AND person_attribute_type_id = ? AND person_id = ?",
         PersonAttributeType.find_by_name(attribute).id, person.id]).value rescue nil
   end
-  
-  
+
+  def self.is_transfer_in(patient)
+    patient_transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
+    return false if patient_transfer_in.blank?
+    return true
+  end
+
   def self.next_lab_encounter(patient , encounter = nil , session_date = Date.today)
     if encounter.blank?
       type = EncounterType.find_by_name('LAB ORDERS').id

@@ -17,15 +17,15 @@ class WeightHeightForAgeTest < ActiveSupport::TestCase
       @person.gender = 'F'
 
       assert_equal [56.6929206848145, 163.506042480469],
-        WeightHeightForAge.median_weight_height(@person.age_in_months,
+        WeightHeightForAge.median_weight_height(PatientService.age_in_months(@person),
                                                 @person.gender
                                                )
 
       @person.birthdate = 121.months.ago
       @person.gender = 'M'
-      assert_equal 121, @person.age_in_months
+      assert_equal 121, PatientService.age_in_months(@person)
       assert_equal [31.7425994873047, 137.97639465332],
-        WeightHeightForAge.median_weight_height(@person.age_in_months,
+        WeightHeightForAge.median_weight_height(PatientService.age_in_months(@person),
                                                 @person.gender
                                                )
     end
@@ -34,7 +34,7 @@ class WeightHeightForAgeTest < ActiveSupport::TestCase
       @person.birthdate = 124.months.ago.to_date
       @person.gender = 'M'
       assert_equal 139.377105712891,
-        WeightHeightForAge.median_weight_height(@person.age_in_months,
+        WeightHeightForAge.median_weight_height(PatientService.age_in_months(@person),
                                                 @person.gender
                                                ).last
     end
@@ -43,7 +43,7 @@ class WeightHeightForAgeTest < ActiveSupport::TestCase
       @person.birthdate = 2.months.ago.to_date
       @person.gender = 'F'
       assert_equal 4.70863008499146,
-        WeightHeightForAge.median_weight_height(@person.age_in_months,
+        WeightHeightForAge.median_weight_height(PatientService.age_in_months(@person),
                                                 @person.gender
                                                ).first
     end

@@ -1146,4 +1146,8 @@ class EncountersController < ApplicationController
     (count_drug_count[1] / equivalent_daily_dose).to_i
   end
 
+  def new_appointment                                                   
+    #render :layout => "menu"                                                    
+  end
+
 end

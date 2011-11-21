@@ -30,9 +30,9 @@
 	<%= hidden_field_tag "encounter[patient_id]", @patient.id %>
 	<%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
 	<%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
+  	<%session_date = session[:datetime] || Time.now() %>
 
-	<%session_date = session[:datetime] || Time.now() %>
-	<% @drug_given_before.arv.prescriptions.each do |order| %>
+	<% PatientService.drug_given_before(@patient, session_date.to_date).arv.prescriptions.each do |order| %>
 		<%= touch_numeric_tag "AMOUNT OF DRUG BROUGHT TO CLINIC", @patient, nil,
 			{	:id        => "amount_brought_#{order.order_id}",
 				:units     => "#{order.drug_order.units}",
@@ -110,5 +110,3 @@
       <%= hidden_field_tag "filter[provider]", nil %>
     <%end%>
 </form>
-
-
