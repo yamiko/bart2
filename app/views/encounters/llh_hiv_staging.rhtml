@@ -439,7 +439,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
 			:helpText => "Presumed severe HIV criteria (infants only)",
 			:tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
 
-		if @patient_bean.sex == 'Female' %>
+		 <% if @patient_bean.sex == 'Female' %>
 
 			<% if @is_patient_pregnant_value.nil?%>
 				<%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
