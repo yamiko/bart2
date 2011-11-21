@@ -541,7 +541,10 @@ class EncountersController < ApplicationController
 					['Tuberculosis (PTB or EPTB) within the last 2 years', 'Tuberculosis (PTB or EPTB) within the last 2 years']]
 				@who_stage_iii = @who_stage_iii - tb_hiv_exclusions
 			end
+  			
+			@confirmatory_hiv_test_type = Observation.question("CONFIRMATORY HIV TEST TYPE").first(:conditions => {:person_id => @patient.person}, :include => :answer_concept_name).answer_concept_name.name rescue 'UNKNOWN'
 
+			#raise concept_set('PRESUMED SEVERE HIV CRITERIA IN INFANTS').to_yaml
 		end
 
 		redirect_to "/" and return unless @patient
