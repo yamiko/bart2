@@ -509,13 +509,47 @@ class EncountersController < ApplicationController
 			end
         end
 
+		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING'
+			if @patient_bean.age > 14 
+				@who_stage_i = concept_set('WHO STAGE I ADULT AND PEDS') + concept_set('WHO STAGE I ADULT')
+				@who_stage_ii = concept_set('WHO STAGE II ADULT AND PEDS') + concept_set('WHO STAGE II ADULT')
+				@who_stage_iii = concept_set('WHO STAGE III ADULT AND PEDS') + concept_set('WHO STAGE III ADULT')
+				@who_stage_iv = concept_set('WHO STAGE IV ADULT AND PEDS') + concept_set('WHO STAGE IV ADULT')
+
+				if PatientService.get_global_property_value('use.extended.staging.questions') == "yes"
+					@not_explicitly_asked = concept_set('WHO Stage defining conditions not explicitly asked adult')
+				end
+			else
+				@who_stage_i = concept_set('WHO STAGE I ADULT AND PEDS') + concept_set('WHO STAGE I PEDS')
+				@who_stage_ii = concept_set('WHO STAGE II ADULT AND PEDS') + concept_set('WHO STAGE II PEDS')
+				@who_stage_iii = concept_set('WHO STAGE III ADULT AND PEDS') + concept_set('WHO STAGE III PEDS')
+				@who_stage_iv = concept_set('WHO STAGE IV ADULT AND PEDS') + concept_set('WHO STAGE IV PEDS')
+				if PatientService.get_global_property_value('use.extended.staging.questions') == "yes"
+					@not_explicitly_asked = concept_set('WHO Stage defining conditions not explicitly asked peds')
+				end
+			end
+
+			if !@retrospective
+				@who_stage_i = @who_stage_i - concept_set('Unspecified Staging Conditions')
+				@who_stage_ii = @who_stage_ii - concept_set('Unspecified Staging Conditions')
+				@who_stage_iii = @who_stage_iii - concept_set('Unspecified Staging Conditions')
+				@who_stage_iv = @who_stage_iv - concept_set('Unspecified Staging Conditions') - concept_set('Calculated WHO HIV staging conditions')
+			end
+			
+			if @tb_status == true && @hiv_status != 'Negative'
+		    	tb_hiv_exclusions = [['Pulmonary tuberculosis (current)', 'Pulmonary tuberculosis (current)'], 
+					['Tuberculosis (PTB or EPTB) within the last 2 years', 'Tuberculosis (PTB or EPTB) within the last 2 years']]
+				@who_stage_iii = @who_stage_iii - tb_hiv_exclusions
+			end
+
+		end
+
 		redirect_to "/" and return unless @patient
 
 		redirect_to PatientService.next_task(@patient) and return unless params[:encounter_type]
 
 		redirect_to :action => :create, 'encounter[encounter_type_name]' => params[:encounter_type].upcase, 'encounter[patient_id]' => @patient.id and return if ['registration'].include?(params[:encounter_type])
-
-
+		
 		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (PatientService.get_global_property_value('use.extended.staging.questions') == "yes" rescue false)
 			render :template => 'encounters/llh_hiv_staging'
 		else

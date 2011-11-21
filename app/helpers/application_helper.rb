@@ -177,7 +177,7 @@ module ApplicationHelper
     options_for_select(options - exclude_options)
   end
   
-   def concept_set(concept_name)
+  def concept_set(concept_name)
     concept_id = ConceptName.find(:first,:joins =>"INNER JOIN concept USING (concept_id)",
                                   :conditions =>["voided = 0 AND concept.retired = 0 AND name = ?",concept_name]).concept_id
     set = ConceptSet.find_all_by_concept_set(concept_id, :order => 'sort_weight')

@@ -99,6 +99,30 @@ class ApplicationController < ActionController::Base
     PatientService.get_global_property_value('create.from.remote') == "yes" rescue false
   end
 
+  def concept_set(concept_name)
+    concept_id = ConceptName.find(:first,:joins =>"INNER JOIN concept USING (concept_id)",
+                                  :conditions =>["voided = 0 AND concept.retired = 0 AND name = ?",concept_name]).concept_id
+    set = ConceptSet.find_all_by_concept_set(concept_id, :order => 'sort_weight')
+    options = set.map{|item|next if item.concept.blank? ; [item.concept.fullname, item.concept.fullname] }
+
+	return options
+  end
+
+  def concept_set_diff(concept_name, exclude_concept_name)
+    concept_id = ConceptName.find(:first,:joins =>"INNER JOIN concept USING (concept_id)",
+                                  :conditions =>["voided = 0 AND concept.retired = 0 AND name = ?",concept_name]).concept_id
+    set = ConceptSet.find_all_by_concept_set(concept_id, :order => 'sort_weight')
+    options = set.map{|item|next if item.concept.blank? ; [item.concept.fullname, item.concept.fullname] }
+
+    exclude_concept_id = ConceptName.find(:first,:joins =>"INNER JOIN concept USING (concept_id)",
+                                  :conditions =>["voided = 0 AND concept.retired = 0 AND name = ?", exclude_concept_name]).concept_id
+    exclude_set = ConceptSet.find_all_by_concept_set(exclude_concept_id, :order => 'sort_weight')
+    exclude_options = exclude_set.map{|item|next if item.concept.blank? ; [item.concept.fullname, item.concept.fullname] }
+
+    final_options = (options - exclude_options)
+	return final_options
+  end
+
 private
 
   def find_patient
