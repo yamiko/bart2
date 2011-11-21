@@ -249,7 +249,7 @@
     <%= hidden_field_tag(:tb_patient_program, @tb_programs.first.patient_program_id) %>
   <%end%>
 
-<%= select_tag :tb_continue_existing_regimen, options_for_select([['',''],['YES','YES'],['NO','NO']], ''), {
+<%= select_tag :tb_continue_existing_regimen, options_for_select([['',''],['Yes','YES'],['No','NO']], ''), {
     :textCase => "upper", 
     :allowFreeText => 'false',
     :condition => 'current_regimens_for_programs[$("tb_patient_program").value] != null && $("prescribe_tb_drugs").value == "YES"',
