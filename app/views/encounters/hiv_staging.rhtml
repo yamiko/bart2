@@ -192,17 +192,18 @@
 
 			if (firstPositiveHivTestType == "HIV RAPID TEST") {
 				if (
-				presumedSevereHivConditions.indexOf("PNEUMOCYSTIS PNEUMONIA") > -1 ||
-				presumedSevereHivConditions.indexOf("CANDIDIASIS, ESOPHAGEAL") > -1 ||
-				presumedSevereHivConditions.indexOf("CRYPTOCOCCAL MENINGITIS") > -1 ||
-				presumedSevereHivConditions.indexOf("SEVERE UNEXPLAINED WASTING OR MALNUTRITION NOT RESPONDING TO TREATMENT") > -1 ||
-				presumedSevereHivConditions.indexOf("TOXOPLASMOSIS OF THE BRAIN (FROM AGE 1 MONTH)") > -1)
-				presumedSevereHiv = true;
-			else if (
-				((presumedSevereHivConditions.indexOf("ORAL THRUSH") > -1) && (presumedSevereHivConditions.indexOf("SEPSIS, SEVERE") > -1)) ||
-				((presumedSevereHivConditions.indexOf("ORAL THRUSH") > -1) && (presumedSevereHivConditions.indexOf("PNEUMONIA, SEVERE") > -1)) ||
-				((presumedSevereHivConditions.indexOf("PNEUMONIA, SEVERE") > -1) && (presumedSevereHivConditions.indexOf("SEPSIS, SEVERE") > -1)))
-				presumedSevereHiv = true;
+					presumedSevereHivConditions.indexOf("PNEUMOCYSTIS PNEUMONIA") > -1 ||
+					presumedSevereHivConditions.indexOf("CANDIDIASIS, ESOPHAGEAL") > -1 ||
+					presumedSevereHivConditions.indexOf("CRYPTOCOCCAL MENINGITIS") > -1 ||
+					presumedSevereHivConditions.indexOf("SEVERE UNEXPLAINED WASTING OR MALNUTRITION NOT RESPONDING TO TREATMENT") > -1 ||
+					presumedSevereHivConditions.indexOf("TOXOPLASMOSIS OF THE BRAIN (FROM AGE 1 MONTH)") > -1) {
+					presumedSevereHiv = true;
+				} else if (
+					((presumedSevereHivConditions.indexOf("ORAL THRUSH") > -1) && (presumedSevereHivConditions.indexOf("SEPSIS, SEVERE") > -1)) ||
+					((presumedSevereHivConditions.indexOf("ORAL THRUSH") > -1) && (presumedSevereHivConditions.indexOf("PNEUMONIA, SEVERE") > -1)) ||
+					((presumedSevereHivConditions.indexOf("PNEUMONIA, SEVERE") > -1) && (presumedSevereHivConditions.indexOf("SEPSIS, SEVERE") > -1))) {
+					presumedSevereHiv = true;
+				}
 			}
 
 			try {
