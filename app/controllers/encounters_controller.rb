@@ -554,7 +554,7 @@ class EncountersController < ApplicationController
 		redirect_to :action => :create, 'encounter[encounter_type_name]' => params[:encounter_type].upcase, 'encounter[patient_id]' => @patient.id and return if ['registration'].include?(params[:encounter_type])
 		
 		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (PatientService.get_global_property_value('use.extended.staging.questions') == "yes" rescue false)
-			render :template => 'encounters/llh_hiv_staging'
+			render :template => 'encounters/extended_hiv_staging'
 		else
 			render :action => params[:encounter_type] if params[:encounter_type]
 		end
