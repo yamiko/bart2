@@ -2155,8 +2155,13 @@ EOF
     PersonAttribute.find(:first,:conditions =>["voided = 0 AND person_attribute_type_id = ? AND person_id = ?",
         PersonAttributeType.find_by_name(attribute).id, person.id]).value rescue nil
   end
-  
-  
+
+  def self.is_transfer_in(patient)
+    patient_transfer_in = patient.person.observations.recent(1).question("HAS TRANSFER LETTER").all rescue nil
+    return false if patient_transfer_in.blank?
+    return true
+  end
+
   def self.next_lab_encounter(patient , encounter = nil , session_date = Date.today)
     if encounter.blank?
       type = EncounterType.find_by_name('LAB ORDERS').id
