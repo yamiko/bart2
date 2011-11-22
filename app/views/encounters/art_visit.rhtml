@@ -147,6 +147,13 @@
       <% end %>
   <% end %>
 
+	<%= touch_select_tag "Routine Tuberculosis Screening", @patient, concept_set_options('Routine Tuberculosis Screening'),
+		{	:id => 'routuine_tb_screening',
+			:optional => true,
+			:multiple => true,
+			:helpText => "TB associated symptoms" } %>
+
+
   <%  if @tb_programs_state.nil? %>
   
     <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
