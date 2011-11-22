@@ -106,14 +106,19 @@
 			for (i = 0 ; i < selected_stage_three_conditions.length ; i++) {
 				if (selected_stage_three_conditions[i] == 'Severe weight loss >10% and/or BMI <18.5kg/m^2, unexplained') {
 					severe_weight_loss = true;
-				} else if (selected_stage_three_conditions[i] == 'Chronic diarrhoea more than 1 month') {
+				} else if (selected_stage_three_conditions[i] == 'Diarrhoea, chronic (>1 month) unexplained') {
 					conditions_found++;
-				} else if (selected_stage_three_conditions[i] == 'Prolonged fever intermittent or contstant more than one month') {
+				} else if (selected_stage_three_conditions[i] == 'Fever, persistent unexplained, intermittent or constant, >1 month') {
 					conditions_found++;
 				}
 			}
 
 			if (conditions_found > 0 && severe_weight_loss) {
+				<%	if !@retrospective %>
+					selected_stage_conditions[4] = 'HIV wasting syndrome (severe weight loss + persistent fever or severe weight loss + chronic diarrhoea)';
+					$('calculated_who_stage_4').value = selected_stage_conditions[4]; 	
+				<%	end	%>
+
 				return  "WHO STAGE " + numeral(4) + " " + adultOrPeds;
 			}
 		}
@@ -142,16 +147,11 @@
 		whoStage = 1;
 		for (var i=1; i<=4; i++) {
 			try {
-				if ( $("stage_"+i+"_conditions").value != '') whoStage = i;
-			} catch(e) {}
-			
-			try {
-				if ( $("stage_"+i+"_conditions_adults") && $("stage_"+i+"_conditions_adults").value != '') whoStage = i;
-			}catch(e) {}
+				if ( $("stage_" + i + "_conditions").value != '') whoStage = i;
+			} catch(e) {
 
-			try {
-				if ( $("stage_"+i+"_conditions_peds") && $("stage_"+i+"_conditions_peds").value != '') whoStage = i;
-			}catch (e) {}
+			}
+			
 		}
 
 		var adultOrPeds = (age > 14) ? "ADULT" : "PEDS";
@@ -265,6 +265,7 @@
   }
 
 	function summary() {
+
 		updateWhoStage(); 
 		updateReasonForArtEligibility();  
 		var conditions = selectedConditions();
@@ -545,6 +546,7 @@
 		<%= touch_text_area_tag("CLINICAL NOTES CONSTRUCT", @patient, nil,
 			{	:optional => true,:helpText => "Clinical notes (optional)"}, time=DateTime.now()) %>
 
+		<%= touch_hidden_tag "WHO STAGES CRITERIA PRESENT", @patient, "", :id => "calculated_who_stage_4" %>
 		<%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
 		<%= touch_hidden_tag "REASON FOR ART ELIGIBILITY", @patient, "", :id => "reason_for_art_eligibility" %>
 

@@ -1,3 +1,4 @@
+<%  count = 0 %>
 <style>
 	.helpTextClass {	width: 400px; 
 						height: 200px; }
@@ -79,7 +80,6 @@
 
 <script>
  
-
   function cssText() {
     element = document.getElementsByClassName("inputFrameClass")[0];
     element.style.cssText = 'height:280px !important';
@@ -168,15 +168,21 @@
       for (i = 0 ; i < selected_stage_conditions_ext.length ; i++) {
         if (selected_stage_conditions_ext[i] == 'Severe weight loss >10% and/or BMI <18.5kg/m^2, unexplained') {
           severe_weight_loss = true;
-        }else if (selected_stage_conditions_ext[i] == 'Chronic diarrhoea more than 1 month') {
+        }else if (selected_stage_conditions_ext[i] == 'Diarrhoea, chronic (>1 month) unexplained') {
           conditions_found++;
-        }else if (selected_stage_conditions_ext[i] == 'Prolonged fever intermittent or constant more than one month') {
+        }else if (selected_stage_conditions_ext[i] == 'Fever, persistent unexplained, intermittent or constant, >1 month') {
           conditions_found++;
         }
       }
-      if (conditions_found > 0 && severe_weight_loss)
-        return  "WHO STAGE " + numeral(4) + " " + adultOrPeds;
-    }
+
+		if (conditions_found > 0 && severe_weight_loss)
+			<%	if !@retrospective %>
+				selected_stage_conditions[<%= count + 1 %>] = 'HIV wasting syndrome (severe weight loss + persistent fever or severe weight loss + chronic diarrhoea)';
+				$('calculated_who_stage_4').value = selected_stage_conditions[<%= count + 1 %>]; 	
+			<%	end	%>
+
+			return  "WHO STAGE " + numeral(4) + " " + adultOrPeds;
+		}
 
     return "WHO STAGE " + numeral(stage) + " " + adultOrPeds;  
   }
@@ -502,7 +508,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
 				whoStageConditions["4"] = [<%= "'" + @who_stage_iv.collect{|c|c[0]}.join("', '") + "'" %>]
 			</script>
 
-			<% count = 0
+			<%
 
 				extended_staging = []
 
@@ -513,7 +519,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
 					if @not_explicitly_asked.collect{|c|c[0]}.include?(staging_condition[0])
 						extended_staging << staging_condition[0] and next
 					end	%>
-			<%= touch_yes_no_unknown_tag staging_condition , @patient, nil,
+			<%= touch_yes_no_unknown_tag staging_condition[0] , @patient, nil,
 				{	:id => "staging_condition_#{count+=1}" ,
 					:optional => false,
 					:tt_onLoad => "$('nextButton').style.display = 'none';setTimeout('cssText();',1);",
@@ -625,8 +631,9 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
   <%= touch_text_area_tag("CLINICAL NOTES CONSTRUCT", @patient, nil,
     {:optional => true,:helpText => "Clinical notes (optional)"}, time=DateTime.now()) %>
 
-  <%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
-  <%= touch_hidden_tag "REASON FOR ART ELIGIBILITY", @patient, "", :id => "reason_for_art_eligibility" %>
+		<%= touch_hidden_tag "WHO STAGES CRITERIA PRESENT", @patient, "", :id => "calculated_who_stage_4" %>
+		<%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
+		<%= touch_hidden_tag "REASON FOR ART ELIGIBILITY", @patient, "", :id => "reason_for_art_eligibility" %>
   
   <label for='summary'>Summary</label>
   <%= text_field_tag :summary, nil, { :tt_onLoad => "summary();", :optional => "true", :tt_pageStyleClass => "NoControls" } %>
