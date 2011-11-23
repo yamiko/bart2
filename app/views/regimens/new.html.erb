@@ -380,13 +380,13 @@
          :helpText => "Prescribe CPT" } %>
   <% end %>
 
-  <% if @patient_bean.sex == 'Female' && @patient_bean.age >= 14 %>
+  <% if @patient_bean.age >= 2 %>
 		<%= touch_yes_no_tag "ISONIAZID", @patient, nil,
 		    {:optional => false,
 		     :id => 'ipt_given',
-			:condition => 'prescribeAntiretroviralDrugs()',
+			:condition => "prescribeAntiretroviralDrugs() && $('prescribe_arvs').value != 'YES'",
 		     :helpText => "Prescribe IPT" } %>
-	<%else%>
+  <%else%>
 		<%= touch_hidden_tag "ISONIAZID", @patient, "", :id => "ipt_given" %>
   <%end%>
 
