@@ -136,16 +136,15 @@
   <td>&nbsp;</td>
 </tr>
 
-
 <tr class = 'row_break'>
   <td>13</td>
-  <td style="text-align:left;border-width:1px 0px 0px 1px">Infants (0 - 17 months at ART initiation)</td>
+  <td style="text-align:left;border-width:1px 0px 0px 1px">Children below 24 months at ART initiation</td>
   <td style="border-width:1px 0px 0px 1px"><%=@cohort['Newly registrated infants']%></td>
   <td style="border-width:1px 0px 0px 1px"><%=@cohort['Total registrated infants']%></td>
 </tr>
 <tr class = 'row_break'>
   <td>14</td>
-  <td style="text-align:left;border-width:0px 0px 0px 1px">Children (18 months - 14 years at initiation)</td>
+  <td style="text-align:left;border-width:0px 0px 0px 1px">Children 24 months - 14yrs at ART initiation</td>
   <td style="border-width:1px 0px 0px 1px"><%=@cohort['Newly registrated children']%></td>
   <td style="border-width:1px 0px 0px 1px"><%=@cohort['Total registrated children']%></td>
 </tr>
@@ -219,7 +218,7 @@
 </tr>
 <tr class = 'row_break'>
   <td>24</td>
-  <td style="text-align:left;border-width:0px 0px 0px 1px">HIV infected</td>
+  <td style="text-align:left;border-width:0px 0px 0px 1px">Children 12 - 23 months</td>
   <td style="border-width:1px 0px 0px 1px"><%=@cohort['HIV infected']%></td>
   <td style="border-width:1px 0px 0px 1px"><%=@cohort['Total HIV infected']%></td>
 </tr>
@@ -239,13 +238,13 @@
 
 <tr class = 'row_break'>
   <td>26</td>
-  <td style="text-align:left;border-width:1px 0px 0px 1px">No TB</td>
+  <td style="text-align:left;border-width:1px 0px 0px 1px">Never TB or TB over 2yrs ago</td>
   <td style="border-width:1px 0px 0px 1px"><%=@cohort['No TB']%></td>
   <td style="border-width:1px 0px 0px 1px"><%=@cohort['Total No TB']%></td>
 </tr>
 <tr class = 'row_break'>
   <td>27</td>
-  <td style="text-align:left;border-width:0px 0px 0px 1px">TB within the past 2 years</td>
+  <td style="text-align:left;border-width:0px 0px 0px 1px">TB within the LAST 2 yrs</td>
   <td style="border-width:1px 0px 0px 1px"><%=@cohort['TB within the last 2 years']%></td>
   <td style="border-width:1px 0px 0px 1px"><%=@cohort['Total TB within the last 2 years']%></td>
 </tr>
@@ -311,7 +310,6 @@
   <td style="border-width:1px 0px 1px 1px"><%=@cohort['Died after the end of the 3rd month after ART initiation']%></td>
   <td style="border-width:1px 0px 1px 1px"><%=@cohort['Total Died after the end of the 3rd month after ART initiation']%></td>
 </tr>
-
 
 <tr class = 'row_break'>
   <td>35</td>
@@ -412,18 +410,18 @@
 <tr class = 'row_break'>
   <td>&nbsp;</td>
   <td style="text-align:left;border-width:1px 0px 1px 1px;">TDF + 3TC + EFV</td>
-  <td style="border-width:0px 0px 1px 1px;">A5<br />P5</td>
+  <td style="border-width:0px 0px 1px 1px;">A5<br /><!--P5--></td>
   <td style="border-width:1px 0px 0px 1px">
     <%=@cohort['Regimens']['A5'] || '0'%><br />
-    <%=@cohort['Regimens']['P5'] || '0'%>
+    <%#=@cohort['Regimens']['P5'] || '0'%>
 </tr>
 <tr class = 'row_break'>
   <td>&nbsp;</td>
   <td style="text-align:left;border-width:0px 0px 0px 1px;">TDF + 3TC + NVP</td>
-  <td style="border-width:0px 0px 1px 1px;">A6<br />P6</td>
+  <td style="border-width:0px 0px 1px 1px;">A6<br /><!--P6--></td>
   <td style="border-width:1px 0px 1px 1px">
     <%=@cohort['Regimens']['A6'] || '0'%><br />
-    <%=@cohort['Regimens']['P6'] || '0'%>
+    <%#=@cohort['Regimens']['P6'] || '0'%>
   </td>
 </tr>
 
@@ -432,29 +430,29 @@
 <tr class = 'row_break'>
   <td>&nbsp;</td>
   <td style="text-align:left;border-width:1px 0px 0px 1px;">TDF + 3TC + LPV/r</td>
-  <td style="border-width:0px 0px 1px 1px;">A7<br />P7</td>
+  <td style="border-width:0px 0px 1px 1px;">A7<br /><!--P7--></td>
   <td style="border-width:0px 0px 1px 1px">
     <%=@cohort['Regimens']['A7'] || '0'%><br />
-    <%=@cohort['Regimens']['P7'] || '0'%>
+    <%#=@cohort['Regimens']['P7'] || '0'%>
   </td>
 </tr>
 
 <tr class = 'row_break'>
   <td>&nbsp;</td>
   <td style="text-align:left;border-width:1px 0px 0px 1px;">AZT + 3TC + LPV/r</td>
-  <td style="border-width:0px 0px 1px 1px;">A8<br />P8</td>
+  <td style="border-width:0px 0px 1px 1px;">A8<br /><!--P8--></td>
   <td style="border-width:0px 0px 1px 1px">
     <%=@cohort['Regimens']['A8'] || '0'%><br />
-    <%=@cohort['Regimens']['P8'] || '0'%>
+    <%#=@cohort['Regimens']['P8'] || '0'%>
   </td>
 </tr>
 
 <tr class = 'row_break'>
   <td>&nbsp;</td>
   <td style="text-align:left;border-width:1px 0px 0px 1px;">ABC + 3TC + LPV/r</td>
-  <td style="border-width:0px 0px 1px 1px;">A9<br />P9</td>
+  <td style="border-width:0px 0px 1px 1px;"><!--A9--><br />P9</td>
   <td style="border-width:0px 0px 1px 1px">
-    <%=@cohort['Regimens']['A9'] || '0'%><br />
+    <%#=@cohort['Regimens']['A9'] || '0'%><br />
     <%=@cohort['Regimens']['P9'] || '0'%>
   </td>
 </tr>
