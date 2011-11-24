@@ -4,7 +4,6 @@ class PatientsController < ApplicationController
   def show
     session[:mastercard_ids] = []
     session_date = session[:datetime].to_date rescue Date.today
-
 	  @patient_bean = PatientService.get_patient(@patient.person)
 	  @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
@@ -662,7 +661,7 @@ class PatientsController < ApplicationController
                                               PatientService.patient_art_start_date(@patient.id))
                                               
     @patient_bean = PatientService.get_patient(@patient.person)
-	@guardian_phone_number = PatientService.get_attribute(Person.find(@patient.person.relationships.first.person_b), 'Cell phone number')
+	@guardian_phone_number = PatientService.get_attribute(Person.find(@patient.person.relationships.first.person_b), 'Cell phone number') rescue nil
 	@patient_phone_number = PatientService.get_attribute(@patient.person, 'Cell phone number')
     render :layout => false
   end
@@ -996,6 +995,7 @@ class PatientsController < ApplicationController
 
     alert
   end
+
   #moved from the patient model. Needs good testing
   def demographics_label(patient_id)
     patient = Patient.find(patient_id)
@@ -1348,7 +1348,6 @@ class PatientsController < ApplicationController
       first_treatment_encounters << encounter unless encounter.blank?
     end
 
-
     visits.first_line_drugs = []
     visits.alt_first_line_drugs = []
     visits.second_line_drugs = []
@@ -1578,7 +1577,6 @@ class PatientsController < ApplicationController
         patient_visits[encounter_date].date_of_outcome = state.start_date rescue nil
       end
     end
-
 
     patient_visits
   end  
