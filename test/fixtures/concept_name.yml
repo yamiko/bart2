@@ -63882,7 +63882,7 @@ concept_name_00058:
   concept_id: 56
   date_created: 2004-01-01 00:00:00 +02:00
 concept_name_08768: 
-  name: Total Numbet of tablets remaining
+  name: AMOUNT OF DRUG BROUGHT TO CLINIC
   voided: 0
   uuid: e1291c04-df1a-11de-a277-0026181bb84d
   creator: 1

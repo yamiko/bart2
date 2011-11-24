@@ -45,10 +45,17 @@ class EncountersControllerTest < ActionController::TestCase
                          {:patient_id => patient(:evan).patient_id,
                           :concept_name => "BODY MASS INDEX,MEASURED",
                           :person_id => person(:evan).person_id,:obs_datetime => Date.today,
-                          :encounter_id => 204, :value_numeric => "20.6"}]}
+                          :encounter_id => 204, :value_numeric => "20.6"}],
+                          :filter => {:provider_id => "" }}
         assert_response :redirect
       end
     end            
   end
-
+  
+  should "get a child bearing age female patient" do
+    logged_in_as :mikmck, :registration do
+        get :new, {:patient_id => patient(:evan).patient_id}
+        assert_response :redirect
+    end
+  end  
 end
