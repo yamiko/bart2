@@ -1337,8 +1337,7 @@ module PatientService
       task.url = task.url.gsub(/\{patient\}/, "#{patient.patient_id}")
       task.url = task.url.gsub(/\{person\}/, "#{patient.person.person_id rescue nil}")
       task.url = task.url.gsub(/\{location\}/, "#{location.location_id}")
-
-      logger.debug "next_task: #{task.id} - #{task.description}"
+      Rails.logger.debug "next_task: #{task.id} - #{task.description}"
       
       return task
     end
