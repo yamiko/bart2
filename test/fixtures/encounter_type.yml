@@ -566,3 +566,14 @@ encounter_type_00051:
   description: An HIV reception encounter, for program enrollment
   retired: false
   date_created: 2010-01-10 23:32:11 +02:00
+encounter_type_00068: 
+  name: ART ADHERENCE
+  retire_reason: 
+  encounter_type_id: 68
+  retired_by: 
+  uuid: 2cc7f9ea-bd8d-11df-9bw5-00248c09418a
+  creator: 1
+  date_retired: 
+  description: Capturing the adherence by the Nurse
+  retired: false
+  date_created: 2011-01-10 23:32:11 +02:00
