@@ -223,7 +223,7 @@
 					reasonForArtEligibility = whoStageConcept(whoStage, "PEDS");  
 				} else if (ageInMonths < 12 && firstPositiveHivTestType == "HIV DNA POLYMERASE CHAIN REACTION") {
 					reasonForArtEligibility = "HIV DNA POLYMERASE CHAIN REACTION";
-				} else if (ageInMonths >= 12 && ageInMonths < 24) {
+				} else if (ageInMonths < 24) {
 					reasonForArtEligibility = "HIV infected";
 				} else if (cd4_count_numeric <= 750 && (ageInMonths >= 24 && ageInMonths < 56) && (whoStage) <= 2) {
 					reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 750";
