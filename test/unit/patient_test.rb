@@ -148,7 +148,7 @@ EOF
 
         weight_obs.value_numeric = 90.0
         weight_obs.save
-        assert_nil PatientService.current_bmi_alert(current_weight, current_height)
+        assert_nil PatientService.current_bmi_alert(weight_obs.value_numeric, current_height)
       end
 
     end
