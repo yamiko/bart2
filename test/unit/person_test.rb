@@ -1,6 +1,10 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
 class PersonTest < ActiveSupport::TestCase
+  #Some methods have been removed from person model to patient_service module
+  #as part od code cleaning. patient_service is in lib folder.
+  #Hence the 'PatientService.' in front of those methods throughout this unit test.
+
   context "Person" do
     fixtures :person, :person_name, :person_name_code,
              :person_address, :obs, :patient, :person_attribute,
@@ -193,18 +197,21 @@ assert_equal PatientService.birthdate_formatted(Person.make(:birthdate => "2000-
 
     should "return demographics with appropriate estimated birthdates" do
       p = person(:evan)
-      demographics = PatientService.demographics(p)
-      
-      assert_equal demographics["person"]["birth_day"], 9
+
+      assert_equal PatientService.demographics(p)["person"]["birth_day"], 9
+
       p.birthdate_estimated = 1
-      PatientService.set_birthdate(p, p.birthdate.year,p.birthdate.month,"Unknown")
-      assert_equal demographics["person"]["birth_year"], 1982
-      assert_equal demographics["person"]["birth_month"], 6
-      #assert_equal demographics["person"]["birth_day"], "Unknown"
-      PatientService.set_birthdate(p, p.birthdate.year,"Unknown","Unknown")
-      assert_equal demographics["person"]["birth_year"], 1982
-      assert_equal demographics["person"]["birth_month"], "Unknown"
-      assert_equal demographics["person"]["birth_day"], "Unknown"
+      assert_equal PatientService.demographics(p)["person"]["birth_day"], "Unknown"
+
+      PatientService.set_birthdate(p,p.birthdate.year,p.birthdate.month,"Unknown")
+      assert_equal PatientService.demographics(p)["person"]["birth_year"], 1982
+      assert_equal PatientService.demographics(p)["person"]["birth_month"], 6
+      assert_equal PatientService.demographics(p)["person"]["birth_day"], "Unknown"
+
+      PatientService.set_birthdate(p,p.birthdate.year,"Unknown","Unknown")
+      assert_equal PatientService.demographics(p)["person"]["birth_year"], 1982
+      assert_equal PatientService.demographics(p)["person"]["birth_month"], "Unknown"
+      assert_equal PatientService.demographics(p)["person"]["birth_day"], "Unknown"
     end
 
 =begin
