@@ -49,7 +49,7 @@ class UserController < ApplicationController
 
   @users_with_provider_role = []
   users.each do |user|
-    @users_with_provider_role << user if UserRole.find_by_user_id(user.user_id).role == "Provider"
+    @users_with_provider_role << user if UserRole.find_by_user_id(user.user_id).role == "Provider" rescue nil
   end
 
   users = @users_with_provider_role.map{| u | "<li value='#{u.username}'>#{u.username}</li>" } 
@@ -302,7 +302,7 @@ class UserController < ApplicationController
     end
     
    #.gsub('Hiv','HIV') .gsub('Tb','TB').gsub('Art','ART').gsub('hiv','HIV')
-   # .gsub('Hiv','HIV').gsub('Tb','TB').gsub('Art','ART').gsub('hiv','HIV')
+   #.gsub('Hiv','HIV').gsub('Tb','TB').gsub('Art','ART').gsub('hiv','HIV')
     
     @encounter_types = EncounterType.find(:all).map{|enc|enc.name.gsub(/.*\//,"").gsub(/\..*/,"").humanize}
     @available_encounter_types = Dir.glob(RAILS_ROOT+"/app/views/encounters/*.rhtml").map{|file|file.gsub(/.*\//,"").gsub(/\..*/,"").humanize}
