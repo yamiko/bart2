@@ -56,8 +56,7 @@ class UserControllerTest < ActionController::TestCase
 
     should "edit user names" do
       logged_in_as :mikmck, :registration do
-        post :username, {"person_name"=>{"family_name"=>"banda","given_name"=>"john"},
-                   "user"=>{"username"=>"jbanda", "user_id"=>50}}
+        post :username, {"user"=>{"username"=>"mikmck", "user_id"=>1}}
         assert_response :success
       end
     end
