@@ -108,7 +108,8 @@ class EncountersController < ApplicationController
       Location.current_location = Location.find(params[:location])
     end
     
-    if params['encounter']['encounter_type_name'].to_s.upcase == "APPOINTMENT" && !params[:report_url].match(/report/).nil?
+    if params['encounter']['encounter_type_name'].to_s.upcase == "APPOINTMENT" &&
+      !params[:report_url].to_s.match(/report/).nil?
         concept_id = ConceptName.find_by_name("RETURN VISIT DATE").concept_id
         encounter_id_s = Observation.find_by_sql("SELECT encounter_id
                        FROM obs
