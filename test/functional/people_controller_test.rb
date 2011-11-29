@@ -3,7 +3,8 @@ require File.dirname(__FILE__) + '/../test_helper'
 class PeopleControllerTest < ActionController::TestCase
   fixtures :person, :person_name, :person_name_code, :person_address,
            :person_attribute_type, :patient, :patient_identifier,
-           :patient_identifier_type, :concept_name
+           :patient_identifier_type, :concept_name, :traditional_authority,
+           :district, :region
 
   def setup  
     @controller = PeopleController.new
@@ -104,7 +105,7 @@ class PeopleControllerTest < ActionController::TestCase
     should "lookup people that are not patients and return them in the search results" do
       logged_in_as :mikmck, :registration do      
         p = patient(:evan).destroy
-        get :search, {:gender => 'M', :given_name => 'evan', :family_name => 'waters'}
+        get :search, {:gender => 'M', :given_name => 'Evan', :family_name => 'Waters'}
         assert_response :success
         assert_contains assigns(:people), person(:evan)
       end  
@@ -153,6 +154,7 @@ class PeopleControllerTest < ActionController::TestCase
     should "look up people for display on the default page" do
       logged_in_as :mikmck, :registration do      
         get :index
+        assert_response :redirect
       end  
     end
     
@@ -200,7 +202,28 @@ class PeopleControllerTest < ActionController::TestCase
         assert_response :redirect
       end  
     end
+
+   should "gets all the districts in the central region" do
+      logged_in_as :mikmck, :registration do      
+        get :district, {:filter_value => 'Central Region'}
+        assert_response :success
+      end  
+    end
+
+   should "gets the patients village" do
+      logged_in_as :mikmck, :registration do      
+        get :village, {:filter_value => 'Chimutu'}
+        assert_response :success
+      end  
+    end
     
+    should "gets all the traditional authorities in that district" do
+      logged_in_as :mikmck, :registration do      
+        get :traditional_authority, {:filter_value => 'Lilongwe'}
+        assert_response :success
+      end  
+    end
+
     should "not create a patient unless specifically requested" do
       logged_in_as :mikmck, :registration do      
         options = {
