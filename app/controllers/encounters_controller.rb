@@ -108,7 +108,8 @@ class EncountersController < ApplicationController
       Location.current_location = Location.find(params[:location])
     end
     
-    if params['encounter']['encounter_type_name'].to_s.upcase == "APPOINTMENT" && !params[:report_url].match(/report/).nil?
+    if params['encounter']['encounter_type_name'].to_s.upcase == "APPOINTMENT" &&
+      !params[:report_url].to_s.match(/report/).nil?
         concept_id = ConceptName.find_by_name("RETURN VISIT DATE").concept_id
         encounter_id_s = Observation.find_by_sql("SELECT encounter_id
                        FROM obs
@@ -127,13 +128,14 @@ class EncountersController < ApplicationController
       encounter.encounter_datetime = params['encounter']['encounter_datetime']
     end
 
-    if !params[:filter][:provider].blank?
-     user_person_id = User.find_by_username(params[:filter][:provider]).person_id
-     encounter.provider_id = user_person_id
+    if params[:filter] and !params[:filter][:provider].blank?
+      user_person_id = User.find_by_username(params[:filter][:provider]).person_id
+    elsif params[:location] # Migration
+      user_person_id = encounter[:provider_id]
     else
-     user_person_id = User.find_by_user_id(encounter[:provider_id]).person_id
-     encounter.provider_id = user_person_id
+      user_person_id = User.find_by_user_id(encounter[:provider_id]).person_id
     end
+    encounter.provider_id = user_person_id
 
     encounter.save    
 

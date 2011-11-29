@@ -33,10 +33,12 @@ class PrescriptionsController < ApplicationController
     # set current location via params if given
     Location.current_location = Location.find(params[:location]) if params[:location]
     
-    if !params[:filter][:provider].blank?
-     user_person_id = User.find_by_username(params[:filter][:provider]).person_id
+    if params[:filter] and !params[:filter][:provider].blank?
+      user_person_id = User.find_by_username(params[:filter][:provider]).person_id
+    elsif params[:location] # migration
+      user_person_id = params[:provider_id]
     else
-     user_person_id = User.find_by_user_id(session[:user_id]).person_id
+      user_person_id = User.find_by_user_id(session[:user_id]).person_id
     end
 
     @encounter = PatientService.current_treatment_encounter( @patient, session_date, user_person_id)

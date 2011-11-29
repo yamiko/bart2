@@ -14,3 +14,7 @@ adults:
   role: Adults
   description:  OPD user group for adults entries
   uuid: 1ff85fd2-268f-102d-a2b3-16da04859145
+provider:
+  role: Provider
+  description:  Health care provider
+  uuid: 1ff8rfd2-268f-102d-a2b3-16da04859145

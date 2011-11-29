@@ -87,7 +87,7 @@ class PeopleController < ApplicationController
     @people = PatientService.person_search(params)
     @patients = []
     @people.each do | person |
-        patient = PatientService.get_patient(person)
+        patient = PatientService.get_patient(person) rescue nil
         @patients << patient
     end
     
@@ -186,7 +186,6 @@ class PeopleController < ApplicationController
     #for now BART2 will use BART1 for patient/person creation until we upgrade BART1 to 2
     #if GlobalProperty.find_by_property('create.from.remote') and property_value == 'yes'
     #then we create person from remote machine
-
     if create_from_remote
       person_from_remote = PatientService.create_remote_person(params)
       person = PatientService.create_from_form(person_from_remote["person"]) unless person_from_remote.blank?
@@ -331,6 +330,7 @@ class PeopleController < ApplicationController
     render :text => landmarks.join('') and return
   end
 
+=begin
   #This method was taken out of encounter model. It is been used in
   #people/index (view) which seems not to be used at present.
   def count_by_type_for_date(date)
@@ -345,6 +345,7 @@ class PeopleController < ApplicationController
     }
     encounters_by_type
   end
+=end
 
   def art_info_for_remote(national_id)
 
