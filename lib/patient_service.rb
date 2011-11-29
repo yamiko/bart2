@@ -1212,7 +1212,9 @@ module PatientService
 
   # Try to find the next task for the patient at the given location
   def self.main_next_task(location, patient, session_date = Date.today)
-    if GlobalProperty.use_user_selected_activities
+
+
+    if (get_global_property_value('use.user.selected.activities').to_s rescue nil) == "true"
       return next_form(location , patient , session_date)
     end
     all_tasks = Task.all(:order => 'sort_weight ASC')
@@ -1615,9 +1617,16 @@ module PatientService
  end
  
  def self.get_global_property_value(global_property)
-    GlobalProperty.find(:first,
+
+    property_value = Settings[global_property] 
+	
+	if property_value.nil?
+		property_value = GlobalProperty.find(:first,
                         :conditions => {:property => "#{global_property}"}
-                       ).property_value
+                       ).property_value rescue nil
+	end
+
+	return property_value
  end
 
  def self.reason_for_art_eligibility(patient)
@@ -1930,7 +1939,7 @@ EOF
 
   def self.next_filing_number_to_be_archived(current_patient , next_filing_number)
     ActiveRecord::Base.transaction do
-      global_property_value = GlobalProperty.find_by_property("filing.number.limit").property_value rescue '10000'
+      global_property_value = get_global_property_value("filing.number.limit").to_s rescue '10000'
       active_filing_number_identifier_type = PatientIdentifierType.find_by_name("Filing Number")
       dormant_filing_number_identifier_type = PatientIdentifierType.find_by_name('Archived filing number')
 

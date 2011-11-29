@@ -19,7 +19,7 @@ class ApplicationController < ActionController::Base
     Relationship
     ConceptName
     Concept
-
+	Settings
   require "fastercsv"
 
   helper :all
@@ -62,11 +62,11 @@ class ApplicationController < ActionController::Base
   end
 
   def show_lab_results
-    PatientService.get_global_property_value('show.lab.results') == "yes" rescue false
+    PatientService.get_global_property_value('show.lab.results').to_s == "yes" rescue false
   end
 
   def use_filing_number
-    PatientService.get_global_property_value('use.filing.number') == "yes" rescue false
+    PatientService.get_global_property_value('use.filing.number').to_s == "yes" rescue false
   end 
  
  def generic_locations
@@ -87,16 +87,16 @@ class ApplicationController < ActionController::Base
     return site_prefix
   end
 
-  def use_user_selected_activities
-    PatientService.get_global_property_value('use.user.selected.activities') == "yes" rescue false
-  end
+	def use_user_selected_activities
+		PatientService.get_global_property_value('use.user.selected.activities').to_s == "true" rescue false
+	end
   
   def tb_dot_sites_tag
     PatientService.get_global_property_value('tb_dot_sites_tag') rescue nil
   end
 
   def create_from_remote                                                        
-    PatientService.get_global_property_value('create.from.remote') == "yes" rescue false
+    PatientService.get_global_property_value('create.from.remote').to_s == "yes" rescue false
   end
 
   def concept_set(concept_name)
