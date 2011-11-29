@@ -62,11 +62,11 @@ class ApplicationController < ActionController::Base
   end
 
   def show_lab_results
-    PatientService.get_global_property_value('show.lab.results').to_s == "yes" rescue false
+    PatientService.get_global_property_value('show.lab.results').to_s == "true" rescue false
   end
 
   def use_filing_number
-    PatientService.get_global_property_value('use.filing.number').to_s == "yes" rescue false
+    PatientService.get_global_property_value('use.filing.number').to_s == "true" rescue false
   end 
  
  def generic_locations
@@ -96,7 +96,7 @@ class ApplicationController < ActionController::Base
   end
 
   def create_from_remote                                                        
-    PatientService.get_global_property_value('create.from.remote').to_s == "yes" rescue false
+    PatientService.get_global_property_value('create.from.remote').to_s == "true" rescue false
   end
 
   def concept_set(concept_name)
