@@ -33,7 +33,7 @@ class PeopleController < ApplicationController
     end rescue []
 
     if Location.current_location.blank?
-      Location.current_location = Location.find(PatientService.get_global_property_value('current_health_center_id'))
+      Location.current_location = Location.find(CoreService.get_global_property_value('current_health_center_id'))
     end rescue []
 
     person = PatientService.create_from_form(person_params)
@@ -101,7 +101,7 @@ class PeopleController < ApplicationController
     @found_person_id = params[:found_person_id] 
     @relation = params[:relation]
     @person = Person.find(@found_person_id) rescue nil
-    @task = PatientService.main_next_task(Location.current_location, @person.patient, session_date.to_date)
+    @task = main_next_task(Location.current_location, @person.patient, session_date.to_date)
     @arv_number = PatientService.get_patient_identifier(@person, 'ARV Number')
 	  @patient_bean = PatientService.get_patient(@person)
     render :layout => 'menu'
@@ -218,12 +218,12 @@ class PeopleController < ApplicationController
           archived_patient = PatientService.patient_to_be_archived(person.patient)
           message = PatientService.patient_printing_message(person.patient,archived_patient,creating_new_patient = true)
           unless message.blank?
-            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}" , PatientService.next_task(person.patient),message,true,person.id)
+            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}" , next_task(person.patient),message,true,person.id)
           else
-            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}", PatientService.next_task(person.patient)) 
+            print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}", next_task(person.patient)) 
           end
         else
-          print_and_redirect("/patients/national_id_label?patient_id=#{person.id}", PatientService.next_task(person.patient))
+          print_and_redirect("/patients/national_id_label?patient_id=#{person.id}", next_task(person.patient))
         end
       end
     else
@@ -242,7 +242,7 @@ class PeopleController < ApplicationController
         session[:datetime] = date_of_encounter #if date_of_encounter.to_date != Date.today
       end
       unless params[:id].blank?
-        redirect_to PatientService.next_task(Patient.find(params[:id])) 
+        redirect_to next_task(Patient.find(params[:id])) 
       else
         redirect_to :action => "index"
       end

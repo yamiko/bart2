@@ -272,7 +272,7 @@ class EncountersController < ApplicationController
       if params['encounter']['encounter_type_name'].to_s.upcase == "APPOINTMENT" && !params[:report_url].match(/report/).nil?
          redirect_to  params[:report_url].to_s and return
       end
-      redirect_to PatientService.next_task(@patient)
+      redirect_to next_task(@patient)
      end
     else
       if params[:voided]
@@ -374,7 +374,7 @@ class EncountersController < ApplicationController
 		@number_of_days_to_add_to_next_appointment_date = number_of_days_to_add_to_next_appointment_date(@patient, session[:datetime] || Date.today)
 		@drug_given_before = PatientService.drug_given_before(@patient, session[:datetime])
 
-		use_regimen_short_names = PatientService.get_global_property_value("use_regimen_short_names") rescue "false"
+		use_regimen_short_names = CoreService.get_global_property_value("use_regimen_short_names") rescue "false"
 		show_other_regimen = ("show_other_regimen") rescue 'false'
 
 		@answer_array = arv_regimen_answers(:patient => @patient,
@@ -382,7 +382,7 @@ class EncountersController < ApplicationController
 			:show_other_regimen => show_other_regimen      == "true")
 
 		hiv_program = Program.find_by_name('HIV Program')
-		@answer_array = PatientService.regimen_options(hiv_program.regimens, @patient_bean.age)
+		@answer_array = MedicationService.regimen_options(hiv_program.regimens, @patient_bean.age)
 		@answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 
 		@hiv_status = PatientService.patient_hiv_status(@patient)
@@ -423,9 +423,9 @@ class EncountersController < ApplicationController
 
 		if (params[:encounter_type].upcase rescue '') == 'TB_INITIAL'
 			tb_program = Program.find_by_name('TB Program')
-			@tb_regimen_array = PatientService.regimen_options(tb_program.regimens, @patient_bean.age)
+			@tb_regimen_array = MedicationService.regimen_options(tb_program.regimens, @patient_bean.age)
 			tb_program = Program.find_by_name('MDR-TB Program')
-			@tb_regimen_array += PatientService.regimen_options(tb_program.regimens, @patient_bean.age)
+			@tb_regimen_array += MedicationService.regimen_options(tb_program.regimens, @patient_bean.age)
 			@tb_regimen_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 		end
 
@@ -519,7 +519,7 @@ class EncountersController < ApplicationController
 				@who_stage_iii = concept_set('WHO STAGE III ADULT AND PEDS') + concept_set('WHO STAGE III ADULT')
 				@who_stage_iv = concept_set('WHO STAGE IV ADULT AND PEDS') + concept_set('WHO STAGE IV ADULT')
 
-				if PatientService.get_global_property_value('use.extended.staging.questions') == "yes"
+				if CoreService.get_global_property_value('use.extended.staging.questions').to_s == "true"
 					@not_explicitly_asked = concept_set('WHO Stage defining conditions not explicitly asked adult')
 				end
 			else
@@ -527,7 +527,7 @@ class EncountersController < ApplicationController
 				@who_stage_ii = concept_set('WHO STAGE II ADULT AND PEDS') + concept_set('WHO STAGE II PEDS')
 				@who_stage_iii = concept_set('WHO STAGE III ADULT AND PEDS') + concept_set('WHO STAGE III PEDS')
 				@who_stage_iv = concept_set('WHO STAGE IV ADULT AND PEDS') + concept_set('WHO STAGE IV PEDS')
-				if PatientService.get_global_property_value('use.extended.staging.questions') == "yes"
+				if CoreService.get_global_property_value('use.extended.staging.questions').to_s == "true"
 					@not_explicitly_asked = concept_set('WHO Stage defining conditions not explicitly asked peds')
 				end
 			end
@@ -547,18 +547,18 @@ class EncountersController < ApplicationController
   			
 			@confirmatory_hiv_test_type = Observation.question("CONFIRMATORY HIV TEST TYPE").first(:conditions => {:person_id => @patient.person}, :include => :answer_concept_name).answer_concept_name.name rescue 'UNKNOWN'
 			#raise concept_set('WHO Stage defining conditions not explicitly asked adult').to_yaml
-			#raise PatientService.get_global_property_value('use.extended.staging.questions').to_s
+			#raise CoreService.get_global_property_value('use.extended.staging.questions').to_s
 			#raise @not_explicitly_asked.to_yaml
 			#raise concept_set('PRESUMED SEVERE HIV CRITERIA IN INFANTS').to_yaml
 		end
 
 		redirect_to "/" and return unless @patient
 
-		redirect_to PatientService.next_task(@patient) and return unless params[:encounter_type]
+		redirect_to next_task(@patient) and return unless params[:encounter_type]
 
 		redirect_to :action => :create, 'encounter[encounter_type_name]' => params[:encounter_type].upcase, 'encounter[patient_id]' => @patient.id and return if ['registration'].include?(params[:encounter_type])
 		
-		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (PatientService.get_global_property_value('use.extended.staging.questions') == "yes" rescue false)
+		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (CoreService.get_global_property_value('use.extended.staging.questions').to_s == "true" rescue false)
 			render :template => 'encounters/extended_hiv_staging'
 		else
 			render :action => params[:encounter_type] if params[:encounter_type]

@@ -21,11 +21,11 @@ module ApplicationHelper
   end
   
   def show_intro_text
-    get_global_property_value("show_intro_text") == "yes" rescue false
+    get_global_property_value("show_intro_text").to_s == "true" rescue false
   end
   
   def ask_home_village
-    get_global_property_value("demographics.home_village") == "yes" rescue false
+    get_global_property_value("demographics.home_village").to_s == "true" rescue false
   end
 
   def site_prefix
@@ -34,58 +34,61 @@ module ApplicationHelper
   end
 
   def ask_mothers_surname
-    get_global_property_value("demographics.mothers_surname") == "yes" rescue false
+    get_global_property_value("demographics.mothers_surname").to_s == "true" rescue false
   end
   
   def ask_middle_name
-    get_global_property_value("demographics.middle_name") == "yes" rescue false
+    get_global_property_value("demographics.middle_name").to_s == "true" rescue false
   end
 
   def ask_visit_home_for_TB_therapy
-    get_global_property_value("demographics.visit_home_for_treatment") == "yes" rescue false
+    get_global_property_value("demographics.visit_home_for_treatment").to_s == "true" rescue false
   end
   
   def ask_sms_for_TB_therapy
-    get_global_property_value("demographics.sms_for_TB_therapy") == "yes" rescue false
+    get_global_property_value("demographics.sms_for_TB_therapy").to_s == "true" rescue false
   end
 
   def ask_ground_phone
-    get_global_property_value("demographics.ground_phone") == "yes" rescue false
+    get_global_property_value("demographics.ground_phone").to_s == "true" rescue false
   end
 
   def ask_blood_pressure
-    get_global_property_value("vitals.blood_pressure") == "yes" rescue false
+    get_global_property_value("vitals.blood_pressure").to_s == "true" rescue false
   end
 
   def ask_temperature
-    get_global_property_value("vitals.temperature") == "yes" rescue false
+    get_global_property_value("vitals.temperature").to_s == "true" rescue false
   end  
 
   def ask_standard_art_side_effects
-    get_global_property_value("art_visit.standard_art_side_effects") == "yes" rescue false
+    get_global_property_value("art_visit.standard_art_side_effects").to_s == "true" rescue false
   end  
 
   def show_lab_results
-    get_global_property_value('show.lab.results') == "yes" rescue false
+    get_global_property_value('show.lab.results').to_s == "true" rescue false
   end
   
   def use_filing_number
-    get_global_property_value('use.filing.number') == "yes" rescue false
+    get_global_property_value('use.filing.number').to_s == "true" rescue false
   end
 
   def use_user_selected_activities
-    get_global_property_value('use.user.selected.activities') == "yes" rescue false
+    get_global_property_value('use.user.selected.activities').to_s == "true" rescue false
   end
 
   def use_extended_staging_questions
-    get_global_property_value('use.extended.staging.questions') == "yes" rescue false
+    get_global_property_value('use.extended.staging.questions').to_s == "true" rescue false
   end
 
-  def get_global_property_value(global_property)
-    GlobalProperty.find(:first,
-                        :conditions => {:property => "#{global_property}"}
-                       ).property_value
-  end
+	def get_global_property_value(global_property)
+		property_value = Settings[global_property] 
+		if property_value.nil?
+			property_value = GlobalProperty.find(:first, :conditions => {:property => "#{global_property}"}
+													).property_value rescue nil
+		end
+		return property_value
+	end
 
   def month_name_options
     i=0
