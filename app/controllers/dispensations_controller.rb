@@ -70,16 +70,16 @@ class DispensationsController < ApplicationController
       :encounter_id => @encounter.id,
       :value_drug => @drug_value,
       :value_numeric => params[:quantity],
-      :obs_datetime => session[:datetime] || Time.now())
+      :obs_datetime => session_date || Time.now())
     if obs.save
       @patient.patient_programs.find_last_by_program_id(Program.find_by_name("HIV PROGRAM")).transition(
-               :state => "On antiretrovirals",:start_date => session[:datetime] || Time.now()) if MedicationService.arv(@drug) rescue nil
+               :state => "On antiretrovirals",:start_date => session_date || Time.now()) if MedicationService.arv(@drug) rescue nil
 
     @tb_programs = @patient.patient_programs.in_uncompleted_programs(['TB PROGRAM', 'MDR-TB PROGRAM'])
 
       if !@tb_programs.blank?
         @patient.patient_programs.find_last_by_program_id(Program.find_by_name("TB PROGRAM")).transition(
-               :state => "Currently in treatment",:start_date => session[:datetime] || Time.now()) if   MedicationService.tb_medication(@drug)
+               :state => "Currently in treatment",:start_date => session_date || Time.now()) if   MedicationService.tb_medication(@drug)
       end
 
       unless @order.blank?
