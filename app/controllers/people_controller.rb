@@ -101,7 +101,7 @@ class PeopleController < ApplicationController
     @found_person_id = params[:found_person_id] 
     @relation = params[:relation]
     @person = Person.find(@found_person_id) rescue nil
-    @task = PatientService.main_next_task(Location.current_location,@person.patient,session_date.to_date)
+    @task = PatientService.main_next_task(Location.current_location, @person.patient, session_date.to_date)
     @arv_number = PatientService.get_patient_identifier(@person, 'ARV Number')
 	  @patient_bean = PatientService.get_patient(@person)
     render :layout => 'menu'
