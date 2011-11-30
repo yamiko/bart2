@@ -107489,3 +107489,15 @@ concept_name_010977:
   locale: en
   concept_id: 8008
   date_created: 2007-11-02 11:32:03 +02:00
+concept_name_09709:
+  name: What was the patients adherence for this drug order
+  voided: 0
+  uuid: 85921594-178a-11e1-9603-544249e32ba2
+  creator: "1"
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "9709"
+  locale: en
+  concept_id: "6987"
+  date_created: 2010-03-11 23:24:15 +02:00

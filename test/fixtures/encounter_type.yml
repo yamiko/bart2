@@ -577,3 +577,14 @@ encounter_type_00068:
   description: Capturing the adherence by the Nurse
   retired: false
   date_created: 2011-01-10 23:32:11 +02:00
+encounter_type_00057:  
+  name: LAB ORDERS
+  retire_reason: 
+  retired_by: 
+  encounter_type_id: 57
+  uuid: 867cc382-178a-11e1-9603-544249e32ba2
+  creator: 1
+  date_retired: 
+  description: Lab Test order
+  retired: "0"
+  date_created: 2010-08-23 09:50:40

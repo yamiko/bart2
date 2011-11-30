@@ -175,3 +175,35 @@ patient_identifier_type_00010:
   format_description: ""
   retired: false
   date_created: 2008-09-18 03:17:43 +02:00
+patient_identifier_type_00011: 
+  name: Filing number
+  required: false
+  validator: ""
+  format: ""
+  retire_reason: 
+  check_digit: false
+  retired_by: 
+  uuid: 9a54sd12-bd81-11df-9b35-00248c09418a
+  creator: 15878
+  date_retired: 
+  description: Number attached to a patient's file at a clinic
+  patient_identifier_type_id: 11
+  format_description: ""
+  retired: false
+  date_created: 2011-09-18 03:17:43 +02:00
+patient_identifier_type_00012: 
+  name: Archived filing number
+  required: false
+  validator: ""
+  format: ""
+  retire_reason: 
+  check_digit: false
+  retired_by: 
+  uuid: 9a54sd12-bd81-11df-9b35-00248c094e34
+  creator: 15878
+  date_retired: 
+  description: Number attached to a patient's file at a clinic
+  patient_identifier_type_id: 12
+  format_description: ""
+  retired: false
+  date_created: 2011-10-18 03:17:43 +02:00
