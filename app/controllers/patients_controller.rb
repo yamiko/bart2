@@ -26,7 +26,6 @@ class PatientsController < ApplicationController
         @hiv_status = PatientService.patient_hiv_status(@patient)
         @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
         @arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
-
         render :template => 'patients/index', :layout => false
      end
   end
@@ -101,6 +100,7 @@ class PatientsController < ApplicationController
 
   def history_treatment
     #@prescriptions = @patient.orders.current.prescriptions.all
+    @patient = Patient.find(params[:patient_id])
     type = EncounterType.find_by_name('TREATMENT')
     session_date = session[:datetime].to_date rescue Date.today
     @prescriptions = Order.find(:all,
@@ -136,13 +136,14 @@ class PatientsController < ApplicationController
     	return
     else
       next_form_to = PatientService.next_task(@patient)
-      redirect_to next_form_to and return if next_form.match(/Reception/i)
+      redirect_to next_form_to and return if next_form_to.match(/Reception/i)
 		  @relationships = @patient.relationships rescue []
 		  @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
 		  @restricted.each do |restriction|
 		    @relationships = restriction.filter_relationships(@relationships)
 		  end
         @patient_arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
+        @patient_bean = PatientService.get_patient(@patient.person)
     	render :template => 'dashboards/relationships', :layout => 'dashboard' 
   	end
   end
@@ -308,7 +309,7 @@ class PatientsController < ApplicationController
     @arv_start_number = params[:arv_start_number]
     @arv_end_number = params[:arv_end_number]
     @show_mastercard_counter = false
-    
+
     if params[:patient_id].blank?
 
       @patient_id = session[:mastercard_ids][session[:mastercard_counter]]
@@ -430,7 +431,7 @@ class PatientsController < ApplicationController
 
   def set_filing_number
     patient = Patient.find(params[:id])
-    PatientService.set_patient_filing_number(patient)
+   PatientService.set_patient_filing_number(patient)
 
     archived_patient = PatientService.patient_to_be_archived(patient)
     message = PatientService.patient_printing_message(patient,archived_patient,true)
@@ -506,7 +507,7 @@ class PatientsController < ApplicationController
   end
   
   def demographics
-	@patient_bean = PatientService.get_patient(@patient.person)
+	  @patient_bean = PatientService.get_patient(@patient.person)
     render :layout => false
   end
    
@@ -595,7 +596,7 @@ class PatientsController < ApplicationController
   end
 
   def treatment_dashboard
-	@patient_bean = PatientService.get_patient(@patient.person)
+	  @patient_bean = PatientService.get_patient(@patient.person)
     @amount_needed = 0
     @amounts_required = 0
 
@@ -620,7 +621,7 @@ class PatientsController < ApplicationController
   end
 
   def guardians_dashboard
-	@patient_bean = PatientService.get_patient(@patient.person)
+	  @patient_bean = PatientService.get_patient(@patient.person)
     @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
     @arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
 
@@ -628,7 +629,7 @@ class PatientsController < ApplicationController
   end
 
   def programs_dashboard
-	@patient_bean = PatientService.get_patient(@patient.person)
+	  @patient_bean = PatientService.get_patient(@patient.person)
     @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
     @arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
     render :template => 'dashboards/programs_dashboard', :layout => false
