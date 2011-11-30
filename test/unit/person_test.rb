@@ -165,7 +165,8 @@ assert_equal PatientService.birthdate_formatted(Person.make(:birthdate => "2000-
         "identifiers" => {
             "National id" => "P1701210013",
             "ARV Number" => "ARV-311",
-            "Pre ART Number" => "PART-311",
+            #"Pre ART Number" => "PART-311",
+            "Filing number"=>"FN3300001"
         }
       }
       demographics = PatientService.demographics(p)
@@ -183,8 +184,9 @@ assert_equal PatientService.birthdate_formatted(Person.make(:birthdate => "2000-
         "birth_month" => 6,
         "attributes" => {"occupation" => "Other", "cell_phone_number" => "0999123456"},
         "patient" => {"identifiers" => {"National id" => "P1701210013",
-                                      "Pre ART Number" => "PART-311",
-                                      "ARV Number" => "ARV-311"}},
+                                      #"Pre ART Number" => "PART-311",
+                                      "ARV Number" => "ARV-311",
+                                      "Filing number"=>"FN3300001"}},
         "gender" => "M",
         "birth_day" => 9,
         "date_changed" => "Sat Jan 01 00:00:00 +0200 2000",
