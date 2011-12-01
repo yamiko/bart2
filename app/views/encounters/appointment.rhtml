@@ -28,7 +28,7 @@
 
 var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_id %>";
   var number_of_days_to_add = <%= @number_of_days_to_add_to_next_appointment_date %>;
-  var clinic_days = "<%= get_global_property_value('clinic.days') rescue 'Monday,Tuesday,Wednesday,Thursday,Friday' %>";
+  var clinic_days = "<%= get_global_property_value('clinic.days') || 'Monday,Tuesday,Wednesday,Thursday,Friday' %>";
   var peads_clinic_days = "<%= get_global_property_value('peads.clinic.days') rescue '' %>";
   var patient_age = <%= @patient_bean.age %>;
   var booked_dates = null
@@ -37,7 +37,7 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
   var setNextAppointmentDate = null;
   var sessionDate = new Date("<%=session[:datetime].to_date rescue Date.today %>");
 
-  <% 
+  <%
     
     limit = 0 ; booked_dates = ''
 
@@ -68,7 +68,7 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
     clinic_days = peads_clinic_days.split(',');
 
   <%
-    clinic_holidays = get_global_property_value('clinic.holidays') rescue '1900-12-25,1900-03-03' 
+    clinic_holidays = get_global_property_value('clinic.holidays') || '1900-12-25,1900-03-03'
     clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',')
   %>
 
@@ -79,6 +79,7 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
   var holidays = []
 
   for(var i = 0 ; i < set_holidays.length ; i++){
+  	alert(clinic_holidays);
     holidays.push(dateCreate(set_holidays[i]));
   }
  
