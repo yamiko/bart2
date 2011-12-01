@@ -527,8 +527,7 @@ class ApplicationController < ActionController::Base
           if hiv_staging.blank? and user_selected_activities.match(/Manage HIV staging visits/i) 
             extended_staging_questions = CoreService.get_global_property_value('use.extended.staging.questions')
             extended_staging_questions = extended_staging_questions.to_s == 'true' rescue false
-            task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" if not extended_staging_questions 
-            task.url = "/encounters/new/extended_hiv_staging?show&patient_id=#{patient.id}" if extended_staging_questions
+            task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}"
             return task
           elsif hiv_staging.blank? and not user_selected_activities.match(/Manage HIV staging visits/i)
             task.url = "/patients/show/#{patient.id}"
@@ -918,8 +917,7 @@ class ApplicationController < ActionController::Base
           if encounter_available.blank? and user_selected_activities.match(/Manage HIV staging visits/i) 
             extended_staging_questions = CoreService.get_global_property_value('use.extended.staging.questions')
             extended_staging_questions = extended_staging_questions.to_s == 'true' rescue false
-            task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" if not extended_staging_questions 
-            task.url = "/encounters/new/extended_hiv_staging?show&patient_id=#{patient.id}" if extended_staging_questions
+            task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}" 
             return task
           elsif encounter_available.blank? and not user_selected_activities.match(/Manage HIV staging visits/i)
             task.url = "/patients/show/#{patient.id}"
