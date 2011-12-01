@@ -23,9 +23,9 @@ class EncounterTypesController < ApplicationController
         end
         roles_for_the_user = roles_for_the_user.uniq
 
-        if GlobalProperty.use_user_selected_activities
+        #if GlobalProperty.use_user_selected_activities
         #redirect_to "/user/activities?patient_id=#{params[:patient_id]}"
-        end
+        #end
         
         # TODO add clever sorting
         @encounter_types = EncounterType.find(:all).map{|enc|enc.name.gsub(/.*\//,"").gsub(/\..*/,"").humanize}
