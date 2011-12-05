@@ -985,7 +985,7 @@ class ApplicationController < ActionController::Base
 
           if not show_treatment
             if not encounter_art_visit.blank? and user_selected_activities.match(/Manage ART visits/i)
-              task.url = "/encounters/new/art_visit?show&patient_id=#{patient.id}"
+              task.url = "/patients/show/#{patient.id}"
               return task
             elsif not encounter_art_visit.blank? and not user_selected_activities.match(/Manage ART visits/i)
               task.url = "/patients/show/#{patient.id}"
