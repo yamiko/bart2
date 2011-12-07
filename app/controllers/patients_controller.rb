@@ -746,8 +746,8 @@ class PatientsController < ApplicationController
                :joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
                :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?",
                ConceptName.find_by_name('Appointment date').concept_id,
-               type.id,patient.id]).to_s rescue nil
-    alerts << ('Next ' + next_appt) unless next_appt.blank?
+               type.id,patient.id]).value_datetime.strftime("%a %d %B %Y") rescue nil
+    alerts << ('Next appointment: ' + next_appt) unless next_appt.blank?
 
     encounter_dates = Encounter.find_by_sql("SELECT * FROM encounter WHERE patient_id = #{patient.id} AND encounter_type IN (" +
         ("SELECT encounter_type_id FROM encounter_type WHERE name IN ('VITALS', 'TREATMENT', " +
