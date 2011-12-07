@@ -281,6 +281,21 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
 
   function finishButtonAttributes() {
     finishButton = $("nextButton");
+    <% session_date = session[:datetime].to_date rescue nil                         
+    if session_date %>
+      finishButton.innerHTML = "<span>Next</span>";
+    <%else%>
+      finishButton.innerHTML = "<span>Finish</span>";
+      finishButton.setAttribute("onmousedown","submitDate();")
+    <%end%>
+  }
+
+  function changefinishButton() {
+    finishButton = $("nextButton");
+    $("information").style.display="none";
+    $("previous").style.display="none";
+    $("next").style.display="none";
+    finishButton.innerHTML = "<span>Finish</span>";
     finishButton.setAttribute("onmousedown","submitDate();")
   }
 
@@ -329,7 +344,10 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
 <% session_date = session[:datetime].to_date rescue nil                     
 if session_date %>                                                          
   <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
-  <%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+  <%= text_field "filter" , 'provider', 
+      :helpText => 'Staff who provided the information (Provider)', 
+      :tt_onLoad => "changefinishButton();",
+      :ajaxURL => '/user/username?username=' %></p>
 <% else %>                                                                  
   <%= hidden_field_tag "filter[provider]", nil %>                           
 <%end%>
