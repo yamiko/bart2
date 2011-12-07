@@ -56,10 +56,6 @@
 	  
 		<%= touch_select_tag("EVER RECEIVED ART", @patient, options_for_select([['Yes','YES'],['No','NO']]), {:id => 'ever_received_art'}) %>
 
-		<%= touch_yes_no_tag "Ever registered at ART clinic", @patient, nil,
-			{	:id => "ever_registered_at_ART_clinic",
-			 	:helpText => "Ever registered at an ART clinic?"} %>
-
 		<%= touch_date_tag "DATE ART LAST TAKEN", @patient, nil,
 			{	:id => "date_art_last_taken",
 			 	:absoluteMax => Date.today,
@@ -80,6 +76,10 @@
 			{	:id => "last_art_drugs_taken",
 			 	:condition => '$("ever_received_art").value == "YES"',
 			 	:helpText => "Last ARV drugs taken" } %>
+
+		<%= touch_yes_no_tag "Ever registered at ART clinic", @patient, nil,
+			{	:id => "ever_registered_at_ART_clinic",
+			 	:helpText => "Ever registered at an ART clinic?"} %>
 
 		<%= touch_yes_no_tag "HAS TRANSFER LETTER", @patient, nil,
 			{	:id => "has_transfer_letter",
