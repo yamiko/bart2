@@ -291,7 +291,7 @@
        if duration.match(/week/i)
         days = (((duration.to_i)*7))
        elsif duration.match(/month/i)
-        days = (((duration.to_i)* 30))
+        days = (((duration.to_i)* 28))
        end
        optionsString += "<option value = '" + days.to_s + "'>" + duration + "</option>"
      end
@@ -325,7 +325,7 @@
 
 		<%= select_tag :tb_continuation_duration, optionsString, 
 			{	:condition => '$("prescribe_continuation_tb_drugs").value == "YES"',	
-				:helpText => 'Duration' } %> 
+				:helpText => 'Duration of TB drugs' } %> 
 		
 	<% end %>
 
@@ -400,7 +400,7 @@
 
   <%= select_tag :duration, optionsString, { 
 	:condition => '$("prescribe_arvs").value == "YES" || $("cpt_given").value == "YES" || $("ipt_given").value == "YES"',	
-	:helpText => 'Duration' } %> 
+	:helpText => 'Duration of ART drugs' } %> 
 
 
   <% if @patient_bean.age >= 14 %>

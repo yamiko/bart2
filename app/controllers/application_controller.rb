@@ -745,7 +745,7 @@ class ApplicationController < ActionController::Base
 
           prescribe_drugs = false
 
-          prescribe_drugs = encounter_art_visit.observations.map{|obs| obs.to_s.squish.strip.upcase }.include? 'Prescribe ARVs this visit: Yes'.upcase rescue false
+          prescribe_drugs = encounter_art_visit.observations.map{|obs| obs.to_s.squish.strip.upcase }.include? 'Prescribe drugs: Yes'.upcase rescue false
 
           if not prescribe_drugs
             encounter_pre_art_visit = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
@@ -966,7 +966,7 @@ class ApplicationController < ActionController::Base
                                    patient.id,EncounterType.find_by_name('ART VISIT').id,session_date],
                                    :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
 
-          prescribe_arvs = encounter_art_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Prescribe ARVs this visit:  Yes'.upcase
+          prescribe_arvs = encounter_art_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Prescribe drugs:  Yes'.upcase
           not_refer_to_clinician = encounter_art_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Refer to ART clinician:  No'.upcase
 
           if prescribe_arvs and not_refer_to_clinician 
