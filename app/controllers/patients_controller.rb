@@ -401,6 +401,7 @@ class PatientsController < ApplicationController
   end
 
   def mastercard_modify
+    @occupations = PatientService.occupations
     if request.method == :get
       @patient_id = params[:id]
       @patient = Patient.find(params[:id])
