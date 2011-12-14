@@ -38,16 +38,16 @@
   }
 
   function checkSputumDate(){
-    <% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
+    <% session_date = session[:datetime].to_date rescue Date.today %>
 
-    var sessionDate = "<%="#{@session_date.to_date.year},#{@session_date.to_date.month},#{@session_date.to_date.day}"%>";
+    var sessionDate = "<%="#{session_date.to_date.year},#{session_date.to_date.month},#{session_date.to_date.day}"%>";
 
     var todayDate = new Date(sessionDate);
 
     var dateCheck = "";
 
-    <% @sputum_date = "#{@recent_sputum_submissions.map{|obs_datetime| obs_datetime.obs_datetime}.uniq} rescue #{Date.today}" %>
-    var sputumDate = "<%="#{@sputum_date.to_date.year},#{@sputum_date.to_date.month},#{@sputum_date.to_date.day}"%>";
+    <% sputum_date = "#{@recent_sputum_submissions.map{|obs_datetime| obs_datetime.obs_datetime}.uniq}" %>
+    var sputumDate = "<%= "#{sputum_date.to_date.year},#{sputum_date.to_date.month},#{sputum_date.to_date.day}" %>";
     var sputum = new Date(sputumDate);
 
     var sputumDate = new Date($('sputum_microscopy_year').value, $('sputum_microscopy_month').value - 1, $('sputum_microscopy_day').value);
