@@ -419,7 +419,7 @@ class Cohort
                               WHERE p.voided = 0 AND s.voided = 0 
                               AND (patient_start_date(patient_id) >= '#{@@first_registration_date}' AND patient_start_date(patient_id) <= '#{@end_date}')
                               AND p.program_id = #{@@program_id} ORDER BY patient_state_id DESC , start_date DESC) K
-                              GROUP BY K.patient_program_id HAVING (name = 'ON ANTIRETROVIRALS' OR name = 'ON TREATMENT')
+                              GROUP BY K.patient_id HAVING (name = 'ON ANTIRETROVIRALS' OR name = 'ON TREATMENT')
                               ORDER BY K.patient_state_id DESC , K.start_date DESC").length#map{| state | states << [state.patient_id , state.name] }
   end
 
@@ -471,12 +471,12 @@ class Cohort
     tb_status_concept_id = ConceptName.find_by_name('TB STATUS').concept_id
     art_visit_encounter_id = EncounterType.find_by_name('ART VISIT').id
 
-    PatientState.find_by_sql("SELECT * FROM (
-                          SELECT e.patient_id,n.name name,obs_datetime,e.encounter_datetime
+    status = PatientState.find_by_sql("SELECT * FROM (
+                          SELECT e.patient_id,n.name tbstatus,obs_datetime,e.encounter_datetime,s.state
                           FROM patient_state s
                           INNER JOIN patient_program p ON p.patient_program_id = s.patient_program_id   
                           INNER JOIN encounter e ON e.patient_id = p.patient_id
-                          INNER JOIN obs ON obs.encounter_id = obs.encounter_id 
+                          INNER JOIN obs ON obs.encounter_id = e.encounter_id
                           INNER JOIN concept_name n ON obs.value_coded = n.concept_id
                           WHERE p.voided = 0 AND s.voided = 0
                           AND obs.obs_datetime = e.encounter_datetime
@@ -486,14 +486,14 @@ class Cohort
                           AND p.program_id = #{@@program_id}
                           ORDER BY e.encounter_datetime DESC, patient_state_id DESC , start_date DESC) K
                           GROUP BY K.patient_id
-                          ORDER BY K.encounter_datetime DESC , K.obs_datetime DESC").map.compact{| state | status << state.name }
+                          ORDER BY K.encounter_datetime DESC , K.obs_datetime DESC").map(&:tbstatus)
 
     ( status || [] ).each do | state |
       if state == 'TB NOT SUSPECTED' or state == 'noSusp' or state == 'noSup' or state == 'TB not suspected' or state == 'TB NOT suspected' or state == 'Nosup'
         tb_status_hash['TB STATUS']['Not Suspected'] += 1
       elsif state == 'TB SUSPECTED' or state == 'susp' or state == 'sup' or state == 'TB suspected' or state == 'Tb suspected'
         tb_status_hash['TB STATUS']['Suspected'] += 1
-      elsif state == 'RX' or state == 'CONFIRMED TB ON TREATMENT' or state == 'Rx' or state == 'ONFIRMED TB ON TREATMENT' or state == 'Onfirmed TB on treatment' or state == 'Confirmed TB on treatment' or state == 'Norx'
+      elsif state == 'RX' or state == 'CONFIRMED TB ON TREATMENT' or state == 'Rx' or state == 'CONFIRMED TB ON TREATMENT' or state == 'Confirmed TB on treatment' or state == 'Confirmed TB on treatment' or state == 'Norx'
         tb_status_hash['TB STATUS']['On Treatment'] += 1
       elsif state == 'noRX' or state == 'CONFIRMED TB NOT ON TREATMENT' or state =='Confirmed TB not on treatment' or state == 'Confirmed TB NOT on treatment'
         tb_status_hash['TB STATUS']['Not on treatment'] += 1
