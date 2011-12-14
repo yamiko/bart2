@@ -369,7 +369,8 @@ class EncountersController < ApplicationController
 				o.answer_string if o.to_s.include?("Transfer out to")} rescue nil
 
 		@recent_sputum_results = PatientService.recent_sputum_results(@patient.id) rescue nil
-    	@recent_sputum_submissions = PatientService.recent_sputum_submissions(@patient_id) rescue nil
+    	@recent_sputum_submissions = PatientService.recent_sputum_submissions(@patient.id) 	
+		#raise @recent_sputum_submissions.to_yaml
 		@continue_treatment_at_site = []
 		Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ? AND DATE(encounter_datetime) = ?",
 		EncounterType.find_by_name("TB CLINIC VISIT").id,
