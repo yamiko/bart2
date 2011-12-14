@@ -486,7 +486,7 @@ class Cohort
                           AND p.program_id = #{@@program_id}
                           ORDER BY e.encounter_datetime DESC, patient_state_id DESC , start_date DESC) K
                           GROUP BY K.patient_id
-                          ORDER BY K.encounter_datetime DESC , K.obs_datetime DESC").map{| state | status << state.name }
+                          ORDER BY K.encounter_datetime DESC , K.obs_datetime DESC").map.compact{| state | status << state.name }
 
     ( status || [] ).each do | state |
       if state == 'TB NOT SUSPECTED' or state == 'noSusp' or state == 'noSup' or state == 'TB not suspected' or state == 'TB NOT suspected' or state == 'Nosup'
