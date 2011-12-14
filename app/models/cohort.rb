@@ -460,7 +460,9 @@ class Cohort
                                 INNER JOIN patient_state s ON p.patient_program_id = s.patient_program_id
                                 INNER JOIN concept_name n ON n.concept_id = obs.value_coded
                                 WHERE patient_start_date(patient_id) >='#{start_date}' AND patient_start_date(patient_id) <= '#{end_date}' 
-                                AND obs.concept_id = #{reason_concept_id} AND p.program_id = #{@@program_id}
+                                AND obs.concept_id = #{reason_concept_id}
+                                AND p.program_id = #{@@program_id}
+                                AND n.name != ''
                                 GROUP BY patient_id").map{ | value | value.name }
     
   end
