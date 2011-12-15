@@ -595,6 +595,42 @@ class EncountersController < ApplicationController
 		return @role
 	end
 
+
+	def extract_regions
+		
+		ta = Region.all.collect { | element |
+			 [element.region_id.to_s  + ',' + element.name]
+		}
+		render :text => "'" + ta.join("' ; '") + "'"
+	end
+
+	def extract_districts
+		
+		ta = District.all.collect { | element |
+			 [element.district_id.to_s  + ',' + element.name + ',' + element.region_id.to_s + ',' + element.region.name]
+		}
+		render :text => "'" + ta.join("' ; '") + "'"
+	end
+
+	def extract_tas
+		
+		ta = TraditionalAuthority.all.collect { | element |
+			 [element.traditional_authority_id.to_s  + "," + element.name + "," + element.district_id.to_s + "," + element.district.name]
+		}
+		my_text = ta.join(" <br> ")
+		render :text => my_text.to_s
+	end
+
+	def extract_villages
+		
+		ta = Village.all.collect { | element |
+			 [element.village_id.to_s  + ',' + element.name + ',' + element.traditional_authority_id.to_s + ',' + element.traditional_authority.name + ',' + element.traditional_authority.district_id.to_s + ',' + element.traditional_authority.district.name]
+		}
+
+		my_text = ta.join(" <br> ")
+		render :text => my_text.to_s
+	end
+
 	def diagnoses
 		search_string = (params[:search_string] || '').upcase
 		filter_list = params[:filter_list].split(/, */) rescue []
