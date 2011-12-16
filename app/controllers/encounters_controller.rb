@@ -986,7 +986,7 @@ class EncountersController < ApplicationController
         ["New", "New patient"],
         ["Failure", "Failed - TB"],
         ["Relapse", "Relapse MDR-TB patient"],
-        ["Retreatment after default", "Treatment after default MDR-TB patient"],
+        ["Treatment after default", "Treatment after default MDR-TB patient"],
         ["Other", "Other"]
       ],
       'duration_of_current_cough' => [
@@ -1019,6 +1019,18 @@ class EncountersController < ApplicationController
         ['',''],
         ['Pulmonary tuberculosis (PTB)', 'Pulmonary tuberculosis'],
         ['Extrapulmonary tuberculosis (EPTB)', 'Extrapulmonary tuberculosis (EPTB)']
+      ],
+      'source_of_referral' => [
+        ['',''],
+        ['Walk in', 'Walk in'],
+        ['Healthy Facility', 'Healthy Facility'],
+        ['Index Patient', 'Index Patient'],
+        ['HTC', 'HTC'],
+        ['ART', 'ART'],
+        ['PMTCT', 'PMTCT'],
+        ['Private practitioner', 'Private practitioner'],
+        ['Sputum collection point', 'Sputum collection point'],
+        ['Other','Other']
       ]
     }
   end
@@ -1173,7 +1185,8 @@ class EncountersController < ApplicationController
 
    def number_of_days_to_add_to_next_appointment_date(patient, date = Date.today)
     #because a dispension/pill count can have several drugs,we pick the drug with the lowest pill count
-    #and we also make sure the drugs in the pill count/Adherence encounter are the same as the one in Dispension encounter
+    #and we also make sure the drugs in the pill count/Adherence encounter are
+    #the same as the one in Dispension encounter
 
     concept_id = ConceptName.find_by_name('AMOUNT OF DRUG BROUGHT TO CLINIC').concept_id
     encounter_type = EncounterType.find_by_name('ART ADHERENCE')
@@ -1203,7 +1216,8 @@ class EncountersController < ApplicationController
       count_drug_count = [adh.order.drug_order.drug_inventory_id,adh.value_numeric] if count_drug_count.blank?
     end
 
-    #from the drug dispensed on that day,we pick the drug "plus it's daily dose" that match the drug with the lowest pill count
+    #from the drug dispensed on that day,we pick the drug "plus it's daily dose"
+    #that match the drug with the lowest pill count
     equivalent_daily_dose = 1
     (drug_dispensed).each do | dispensed_drug |
       drug_order = dispensed_drug.order.drug_order
