@@ -1025,7 +1025,7 @@ class EncountersController < ApplicationController
         ['Walk in', 'Walk in'],
         ['Healthy Facility', 'Healthy Facility'],
         ['Index Patient', 'Index Patient'],
-        ['HTC', 'HTC'],
+        ['HTC', 'HTC clinic'],
         ['ART', 'ART'],
         ['PMTCT', 'PMTCT'],
         ['Private practitioner', 'Private practitioner'],
