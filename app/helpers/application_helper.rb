@@ -243,4 +243,11 @@ module ApplicationHelper
 			end
 		end
 	end
+
+  def preferred_user_keyboard
+    UserProperty.find(:first,
+      :conditions =>["property = ? AND user_id = ?",'preferred.keyboard', 
+      User.current_user.id]).property_value rescue 'abc'
+  end
+
 end
