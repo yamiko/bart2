@@ -373,4 +373,24 @@ class UserController < ApplicationController
       encounter_privilege_hash
   end
 
+  def properties
+    if request.post?
+      property = UserProperty.find(:first,                                                   
+            :conditions =>["property = ? AND user_id = ?",'preferred.keyboard',       
+            User.current_user.id])
+      if property.blank?
+        property = UserProperty.new()
+        property.user_id = User.current_user.id
+        property.property = 'preferred.keyboard'
+        property.property_value = 'abc' if params[:property_value] == 'No'
+        property.property_value = 'qwerty' if params[:property_value] == 'Yes'
+        property.save
+      else
+        property.property_value = 'abc' if params[:property_value] == 'No'
+        property.property_value = 'qwerty' if params[:property_value] == 'Yes'
+        property.save
+      end
+      redirect_to '/clinic' and return
+    end
+  end
 end
