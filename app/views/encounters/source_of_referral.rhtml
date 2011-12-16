@@ -102,7 +102,7 @@ end -%>
 
 
       <%#= touch_select_tag "Referred by", @patient, concept_set_options('Source of referral'),%>
-      <%= touch_select_tag "Referred by", @patient, options_for_select(["Walk in", "Health Facility", "Index Patient"]),
+      <%= touch_select_tag "Referred by", @patient, options_for_select(@select_options['source_of_referral']),
         {:id => "referred_by",
         :tt_pageStyleClass => "NoKeyboard",
         :helpText => "Referred by"} %>
@@ -125,16 +125,17 @@ end -%>
         {:helpText => "Gender of index patient", 
          :condition => '$("referred_by").value == "Index Patient"'} %>
       
-      <% session_date = session[:datetime].to_date rescue nil                       
-    if session_date %>
+    <% session_date = session[:datetime].to_date rescue nil
+      if session_date %>
 
     <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
-  <%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+    <%= text_field "filter" , 'provider',
+         :helpText => 'Staff who provided the information (Provider)',
+         :ajaxURL => '/user/username?username=' %></p>
     <% else %>
       <%= hidden_field_tag "filter[provider]", nil %>
     <%end%>
     </form>
-
 
     <% end -%>
 
@@ -174,4 +175,3 @@ end -%>
     <% end -%>
   <% end -%>
 </body>
-
