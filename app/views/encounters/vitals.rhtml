@@ -154,6 +154,7 @@
     <label for='weight'>Weight (Kg)</label>
       <%= text_field_tag "observations[][value_numeric]", nil,
         {:id => "weight",
+		:tt_onLoad => "$('clearButton').style.display = 'inline';",
          :field_type => 'number',
          :min => number_with_precision(@min_weight, :precision => 1),
          :max => number_with_precision(@max_weight, :precision => 1),
@@ -177,6 +178,7 @@
       <%= text_field_tag "observations[][value_numeric]", nil,
         {:id => "height",
          :field_type => 'number',
+		:tt_onLoad => "$('clearButton').style.display = 'inline';",
          :min => number_with_precision(@min_height, :precision => 1),
          :max => number_with_precision(@max_height, :precision => 1),
          :absoluteMin => 10,
@@ -215,7 +217,8 @@
            # :min => number_with_precision(@min_height, :precision => 1),
            # :max => number_with_precision(@max_height, :precision => 1),
            :absoluteMin => 50,
-           :absoluteMax => 110,
+			:tt_onLoad => "$('clearButton').style.display = 'inline';",
+          :absoluteMax => 110,
            # :units => 'cm',
            :validationRule => "^([0-9]+)|Unknown$",
            :validationMessage => "You must enter numbers only (for example 157)",
@@ -253,7 +256,12 @@
       <% end %>
     
     <label for='showSummary'>Summary </label>
-    <%= text_field_tag :showSummary, nil, { :tt_onLoad => "growthIndicators()", :optional => "true", :tt_pageStyleClass => "NoControls" } %>
+    <%= text_field_tag :showSummary, nil, 
+		{ 
+			:tt_onLoad => "$('clearButton').style.display = 'none';growthIndicators()", 
+			:tt_onUnLoad => "$('clearButton').style.display = 'inline';", 
+			:optional => "true", 
+			:tt_pageStyleClass => "NoControls" } %>
     <% session_date = session[:datetime].to_date rescue nil                       
     if session_date %>
 
