@@ -551,7 +551,7 @@
 			   :helpText => "CD4 Count Date",
 			   :max => "#{session[:datetime].to_date rescue Date.today}"} %>
 
-			<%= touch_numeric_tag "CD4 COUNT", @patient, nil,
+			<%= touch_cd4_count_numeric_tag "CD4 COUNT", @patient, nil,
 			  {:id => "cd4_count",
 			   :condition => '$("new_cd4_count_available").value == "YES"',
 			   :helpText => "CD4 Count",
