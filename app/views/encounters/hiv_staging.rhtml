@@ -12,6 +12,22 @@
 	.tt_controls_lymphocyte_count #char {
 		display: none;
 	}
+
+  .tt_controls_cd4_count #qwerty{ display: none; }
+
+  .tt_controls_cd4_count #equals{ display: inline; }
+
+  .tt_controls_cd4_count #lessthan, .tt_controls_cd4_count #greaterthan {
+    position: absolute;
+    right: 65%;
+  }
+
+  .tt_controls_cd4_count #greaterthan {
+    position: absolute;
+    right: 65%;
+    top: 5px;
+  }
+
 </style>
 
 <script>
@@ -24,15 +40,60 @@
 	var selected_stage_conditions = {};
 	var retrospective_entry = <%= @retrospective %>
 
+  function resetPad() {
+    curr_page = tstCurrentPage - 1 
+    buttons = document.getElementsByClassName("keyboardButton");
+    for(i = 0; i < buttons.length ; i++) {
+        buttons[i].disabled = false;
+    }
+    $("clearButton").setAttribute("onmousedown","clearInput();");
+    $("backButton").setAttribute("onmousedown",";gotoPage(" + curr_page + ", null, true);");
+    $("nextButton").setAttribute("onmousedown","gotoNextPage();");
+  }
+
+  function resetKeyPad() {
+    buttons = document.getElementsByClassName("keyboardButton");
+    for(i = 0; i < buttons.length ; i++) {
+      if (buttons[i].id == "equals" || buttons[i].id == "greaterthan" || buttons[i].id == "lessthan") {
+        buttons[i].disabled = true;
+      }else{
+        buttons[i].disabled = false;
+      }
+    }
+  }
+
+  function updateCD4CountKeyPad() {
+    curr_page = tstCurrentPage - 1
+    buttons = document.getElementsByClassName("keyboardButton");
+    $("clearButton").setAttribute("onmousedown","clearInput();updateCD4CountKeyPad();");
+    $("backButton").setAttribute("onmousedown",";gotoPage(" + curr_page + ", null, true);resetPad();");
+    $("nextButton").setAttribute("onmousedown","gotoNextPage();resetPad();");
+
+    for(i = 0; i < buttons.length ; i++) {
+      if (buttons[i].id == "equals" || buttons[i].id == "greaterthan" || buttons[i].id == "lessthan") {
+        buttons[i].disabled = false;
+        if( buttons[i].id == "equals"){
+          buttons[i].setAttribute("onmousedown","press('=');resetKeyPad();");
+        }else if( buttons[i].id == "lessthan") {
+          buttons[i].setAttribute("onmousedown","press('<');resetKeyPad();");
+        }else if( buttons[i].id == "greaterthan") {
+          buttons[i].setAttribute("onmousedown","press('>');resetKeyPad();");
+        }
+      }else{
+        buttons[i].disabled = true;
+      }
+    }
+  }
+
 	function updateCD4Count() {
 		var cd4_available = $('new_cd4_count_available').value == 'YES';
 		var cd4_count = cd4_available ? $('cd4_count').value : null;
-
+    
 		try { cd4_count_numeric = parseInt(cd4_count); } catch(e) { cd4_count_numeric = null; }
 
 		if (cd4_count_numeric == null || ''+cd4_count_numeric == 'NaN') {
 			try {
-				var matches = cd4_count.match(/^(\<|\>)([0-9\.]+)$/);
+        var matches = cd4_count.match(/^(>|<|=)([0-9\.]+)$/);
 				cd4_count_modifier = matches[1]; 
 				cd4_count_estimate = parseInt(matches[2]);
 				cd4_count_numeric = cd4_count_estimate;
@@ -492,6 +553,7 @@
 			   :helpText => "CD4 Count",
 			   :max => 1000 ,
 			   :min => 1 ,
+			   :tt_onLoad => "updateCD4CountKeyPad();",
 			   :tt_onUnLoad => "updateCD4Count();"} %>
 
 			<%= touch_hidden_tag "CD4 COUNT LESS THAN OR EQUAL TO 250", @patient, "", :id => "cd4_count_less_than_250" %>
