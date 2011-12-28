@@ -41,7 +41,7 @@ module TouchscreenHelper
     options = {
       :field_type => 'number',
       :validationRule => "^(>|<|=)([0-9\.]+)$|Unknown$",
-      :validationMessage => "You must enter numbers only (for example 90)",
+      :validationMessage => "You must enter a modifier plus numbers only (for example =90)",
       :tt_pageStyleClass => "Numeric NumbersOnly"
     }.merge(options)                 
     limits = concept_name.concept.concept_numeric.options rescue {}
