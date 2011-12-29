@@ -1,5 +1,5 @@
 module MedicationService
-
+	include CoreService
 	def self.arv(drug)
 		arv_drugs.map(&:concept_id).include?(drug.concept_id)
 	end
@@ -34,8 +34,13 @@ module MedicationService
   # into select options. See also +EncountersController#arv_regimen_answers+
 	def self.regimen_options(regimen_concepts, age)
 		options = regimen_concepts.map { |r|
-			[r.concept_id, (r.concept_names.typed("SHORT").first ||
-				r.concept_names.typed("FULLY_SPECIFIED").first).name]
+			if (CoreService.get_global_property_value('use_regimen_short_names').to_s == "true" rescue false)
+				[r.concept_id, (r.concept_names.typed("SHORT").first ||
+					r.concept_names.typed("FULLY_SPECIFIED").first).name]
+			else
+				[r.concept_id, (r.concept_names.typed("FULLY_SPECIFIED").first ||
+					r.concept_names.typed("SHORT").first).name]
+			end
 		}
 	
 		suffixed_options = options.collect { |opt|
