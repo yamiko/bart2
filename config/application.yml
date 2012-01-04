@@ -5,6 +5,7 @@ production:
 development:
  create_from_remote: no
  use.user.selected.activities: yes
+ filing.number.prefix: FN101,FN102
 
 test: &TEST
  create_from_remote: no
