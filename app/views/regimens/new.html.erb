@@ -15,7 +15,7 @@
 
   .prescription_container th {
     text-align: left;
-    font-size: 20px;
+    font-size: 25px;
     background-color: lightgrey;
   }
 
@@ -35,6 +35,14 @@
     display: none;
   }
 
+  .tt_controls_select_art_regimen .qwertyKeyboard {
+    display: none;
+  }
+
+  .tt_controls_select_tb_regimen .qwertyKeyboard {
+    display: none;
+  }
+  
   .tt_controls_select_tb_regimen .abcKeyboard {
     display: none;
   }
@@ -50,7 +58,10 @@
  #tt_page_select_art_regimen #viewport {                                                            
     height: 470px; 
   }
-    
+   
+ .tt_controls_number_of_condoms_given #qwerty {                                                            
+    display: none; 
+  }
 </style>
 
 <%= javascript_include_tag "prototype"%>
@@ -291,7 +302,7 @@
        if duration.match(/week/i)
         days = (((duration.to_i)*7))
        elsif duration.match(/month/i)
-        days = (((duration.to_i)* 30))
+        days = (((duration.to_i)* 28))
        end
        optionsString += "<option value = '" + days.to_s + "'>" + duration + "</option>"
      end
@@ -325,7 +336,7 @@
 
 		<%= select_tag :tb_continuation_duration, optionsString, 
 			{	:condition => '$("prescribe_continuation_tb_drugs").value == "YES"',	
-				:helpText => 'Duration' } %> 
+				:helpText => 'Duration of TB drugs' } %> 
 		
 	<% end %>
 
@@ -400,7 +411,7 @@
 
   <%= select_tag :duration, optionsString, { 
 	:condition => '$("prescribe_arvs").value == "YES" || $("cpt_given").value == "YES" || $("ipt_given").value == "YES"',	
-	:helpText => 'Duration' } %> 
+	:helpText => 'Duration of ART drugs' } %> 
 
 
   <% if @patient_bean.age >= 14 %>

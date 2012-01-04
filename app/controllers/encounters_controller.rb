@@ -127,13 +127,14 @@ class EncountersController < ApplicationController
       encounter.encounter_datetime = params['encounter']['encounter_datetime']
     end
 
-    if !params[:filter][:provider].blank?
-     user_person_id = User.find_by_username(params[:filter][:provider]).person_id
-     encounter.provider_id = user_person_id
+    if params[:filter] and !params[:filter][:provider].blank?
+      user_person_id = User.find_by_username(params[:filter][:provider]).person_id
+    elsif params[:location] # Migration
+      user_person_id = encounter[:provider_id]
     else
-     user_person_id = User.find_by_user_id(encounter[:provider_id]).person_id
-     encounter.provider_id = user_person_id
+      user_person_id = User.find_by_user_id(encounter[:provider_id]).person_id
     end
+    encounter.provider_id = user_person_id
 
     encounter.save    
 
@@ -368,7 +369,9 @@ class EncountersController < ApplicationController
 				o.answer_string if o.to_s.include?("Transfer out to")} rescue nil
 
 		@recent_sputum_results = PatientService.recent_sputum_results(@patient.id) rescue nil
-    	@recent_sputum_submissions = PatientService.recent_sputum_submissions(@patient_id) rescue nil
+
+    	@recent_sputum_submissions = PatientService.recent_sputum_submissions(@patient.id) 	
+
 		@continue_treatment_at_site = []
 		Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ? AND DATE(encounter_datetime) = ?",
 		EncounterType.find_by_name("TB CLINIC VISIT").id,
@@ -590,6 +593,42 @@ class EncountersController < ApplicationController
 	def current_user_role
 		@role = User.current_user.user_roles.map{|r|r.role}
 		return @role
+	end
+
+
+	def extract_regions
+		
+		ta = Region.all.collect { | element |
+			 [element.region_id.to_s  + ',' + element.name]
+		}
+		render :text => "'" + ta.join("' ; '") + "'"
+	end
+
+	def extract_districts
+		
+		ta = District.all.collect { | element |
+			 [element.district_id.to_s  + ',' + element.name + ',' + element.region_id.to_s + ',' + element.region.name]
+		}
+		render :text => "'" + ta.join("' ; '") + "'"
+	end
+
+	def extract_tas
+		
+		ta = TraditionalAuthority.all.collect { | element |
+			 [element.traditional_authority_id.to_s  + "," + element.name + "," + element.district_id.to_s + "," + element.district.name]
+		}
+		my_text = ta.join(" <br> ")
+		render :text => my_text.to_s
+	end
+
+	def extract_villages
+		
+		ta = Village.all.collect { | element |
+			 [element.village_id.to_s  + ',' + element.name + ',' + element.traditional_authority_id.to_s + ',' + element.traditional_authority.name + ',' + element.traditional_authority.district_id.to_s + ',' + element.traditional_authority.district.name]
+		}
+
+		my_text = ta.join(" <br> ")
+		render :text => my_text.to_s
 	end
 
 	def diagnoses
@@ -947,7 +986,7 @@ class EncountersController < ApplicationController
         ["New", "New patient"],
         ["Failure", "Failed - TB"],
         ["Relapse", "Relapse MDR-TB patient"],
-        ["Retreatment after default", "Treatment after default MDR-TB patient"],
+        ["Treatment after default", "Treatment after default MDR-TB patient"],
         ["Other", "Other"]
       ],
       'duration_of_current_cough' => [
@@ -980,6 +1019,18 @@ class EncountersController < ApplicationController
         ['',''],
         ['Pulmonary tuberculosis (PTB)', 'Pulmonary tuberculosis'],
         ['Extrapulmonary tuberculosis (EPTB)', 'Extrapulmonary tuberculosis (EPTB)']
+      ],
+      'source_of_referral' => [
+        ['',''],
+        ['Walk in', 'Walk in'],
+        ['Healthy Facility', 'Healthy Facility'],
+        ['Index Patient', 'Index Patient'],
+        ['HTC', 'HTC clinic'],
+        ['ART', 'ART'],
+        ['PMTCT', 'PMTCT'],
+        ['Private practitioner', 'Private practitioner'],
+        ['Sputum collection point', 'Sputum collection point'],
+        ['Other','Other']
       ]
     }
   end
@@ -1134,7 +1185,8 @@ class EncountersController < ApplicationController
 
    def number_of_days_to_add_to_next_appointment_date(patient, date = Date.today)
     #because a dispension/pill count can have several drugs,we pick the drug with the lowest pill count
-    #and we also make sure the drugs in the pill count/Adherence encounter are the same as the one in Dispension encounter
+    #and we also make sure the drugs in the pill count/Adherence encounter are
+    #the same as the one in Dispension encounter
 
     concept_id = ConceptName.find_by_name('AMOUNT OF DRUG BROUGHT TO CLINIC').concept_id
     encounter_type = EncounterType.find_by_name('ART ADHERENCE')
@@ -1164,7 +1216,8 @@ class EncountersController < ApplicationController
       count_drug_count = [adh.order.drug_order.drug_inventory_id,adh.value_numeric] if count_drug_count.blank?
     end
 
-    #from the drug dispensed on that day,we pick the drug "plus it's daily dose" that match the drug with the lowest pill count
+    #from the drug dispensed on that day,we pick the drug "plus it's daily dose"
+    #that match the drug with the lowest pill count
     equivalent_daily_dose = 1
     (drug_dispensed).each do | dispensed_drug |
       drug_order = dispensed_drug.order.drug_order

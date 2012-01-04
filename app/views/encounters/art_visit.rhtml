@@ -197,10 +197,10 @@
   <%
     if @obs_ans.match(/Prescribe drugs: Yes/i)
   %>
-    <%= touch_hidden_tag "Prescribe ARVs this visit", @patient, "YES", :id => "prescribe_arvs" %>
+    <%= touch_hidden_tag "Prescribe drugs", @patient, "YES", :id => "prescribe_drugs" %>
   <%else%>
-    <%= touch_yes_no_unknown_tag "Prescribe ARVs this visit", @patient, nil,
-      {:id => "prescribe_arvs",
+    <%= touch_yes_no_unknown_tag "Prescribe drugs", @patient, nil,
+      {:id => "prescribe_drugs",
        :helpText => "Prescribe drugs during this visit" } %>
   <%end%>
   <%

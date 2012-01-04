@@ -184,7 +184,7 @@ class ApplicationController < ActionController::Base
 
       case type
         when 'SOURCE OF REFERRAL'
-          next if patient_tb_status(patient).match(/treatment/i)
+          next if PatientService.patient_tb_status(patient).match(/treatment/i)
 
           if ['Lighthouse','Martin Preuss Centre'].include?(Location.current_health_center.name)
             if not (location.current_location.name.match(/Chronic Cough/) or 
@@ -207,10 +207,10 @@ class ApplicationController < ActionController::Base
             return task
           end 
         when 'UPDATE HIV STATUS'
-          next_task = checks_if_labs_results_are_avalable_to_be_shown(patient , session_date , task)
+          next_task = PatientService.checks_if_labs_results_are_avalable_to_be_shown(patient , session_date , task)
           return next_task unless next_task.blank?
 
-          next if patient_hiv_status(patient).match(/Positive/i)
+          next if PatientService.patient_hiv_status(patient).match(/Positive/i)
           if not patient.patient_programs.blank?
             next if patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') 
           end
@@ -277,7 +277,7 @@ class ApplicationController < ActionController::Base
           end
         when 'VITALS' 
 
-          if not patient_hiv_status(patient).match(/Positive/i) and not patient_tb_status(patient).match(/treatment/i)
+          if not PatientService.patient_hiv_status(patient).match(/Positive/i) and not PatientService.patient_tb_status(patient).match(/treatment/i)
             next
           end 
 
@@ -285,11 +285,11 @@ class ApplicationController < ActionController::Base
                                   :conditions =>["patient_id = ? AND encounter_type = ?",
                                   patient.id,EncounterType.find_by_name(type).id])
 
-          if not patient_tb_status(patient).match(/treatment/i) and not tb_reception_attributes.include?('Any need to see a clinician: Yes')
+          if not PatientService.patient_tb_status(patient).match(/treatment/i) and not tb_reception_attributes.include?('Any need to see a clinician: Yes')
             next
-          end if not patient_hiv_status(patient).match(/Positive/i)
+          end if not PatientService.patient_hiv_status(patient).match(/Positive/i)
 
-          if patient_tb_status(patient).match(/treatment/i) and not patient_hiv_status(patient).match(/Positive/i)
+          if PatientService.patient_tb_status(patient).match(/treatment/i) and not PatientService.patient_hiv_status(patient).match(/Positive/i)
             next
           end if not first_vitals.blank?
 
@@ -320,7 +320,7 @@ class ApplicationController < ActionController::Base
             return task
           end
         when 'LAB ORDERS'
-          next if patient_tb_status(patient).match(/treatment/i)
+          next if PatientService.patient_tb_status(patient).match(/treatment/i)
 
           if ['Lighthouse','Martin Preuss Centre'].include?(Location.current_health_center.name)
             if not (location.current_location.name.match(/Chronic Cough/) or 
@@ -333,7 +333,7 @@ class ApplicationController < ActionController::Base
                                       :conditions =>["DATE(encounter_datetime) <= ? AND patient_id = ? AND encounter_type = ?",
                                       session_date.to_date ,patient.id,EncounterType.find_by_name(type).id])
 
-          next_lab_encounter =  next_lab_encounter(patient , lab_order , session_date)
+          next_lab_encounter =  PatientService.next_lab_encounter(patient , lab_order , session_date)
 
           if (lab_order.encounter_datetime.to_date == session_date.to_date)
             task.encounter_type = 'NONE'
@@ -353,7 +353,7 @@ class ApplicationController < ActionController::Base
                                       :conditions =>["DATE(encounter_datetime) <= ? AND patient_id = ? AND encounter_type = ?",
                                       session_date.to_date ,patient.id,EncounterType.find_by_name(type).id])
 
-          next_lab_encounter =  next_lab_encounter(patient , previous_sputum_sub , session_date)
+          next_lab_encounter =  PatientService.next_lab_encounter(patient , previous_sputum_sub , session_date)
 
           if (previous_sputum_sub.encounter_datetime.to_date == session_date.to_date)
             task.encounter_type = 'NONE'
@@ -383,7 +383,7 @@ class ApplicationController < ActionController::Base
                                       :conditions =>["DATE(encounter_datetime) <= ? AND patient_id = ? AND encounter_type = ?",
                                       session_date.to_date ,patient.id,EncounterType.find_by_name(type).id])
 
-          next_lab_encounter =  next_lab_encounter(patient , lab_result , session_date)
+          next_lab_encounter =  PatientService.next_lab_encounter(patient , lab_result , session_date)
 
           if not next_lab_encounter.blank?
             next
@@ -398,7 +398,7 @@ class ApplicationController < ActionController::Base
           end if (next_lab_encounter.blank?)
         when 'TB CLINIC VISIT'
 
-          next if patient_tb_status(patient).match(/treatment/i)
+          next if PatientService.patient_tb_status(patient).match(/treatment/i)
 
           obs_ans = Observation.find(Observation.find(:first, 
                     :order => "obs_datetime DESC,date_created DESC",
@@ -486,7 +486,7 @@ class ApplicationController < ActionController::Base
             return task
           end 
         when 'ART_INITIAL'
-          next unless patient_hiv_status(patient).match(/Positive/i)
+          next unless PatientService.patient_hiv_status(patient).match(/Positive/i)
         
           enrolled_in_hiv_program = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?",patient.id, 
             ConceptName.find_by_name("Patient enrolled in IMB HIV program").concept_id]).value_coded).concept_names.map{|c|c.name}[0].upcase rescue nil
@@ -509,7 +509,7 @@ class ApplicationController < ActionController::Base
           end
         when 'HIV STAGING'
           #checks if vitals have been taken already 
-          vitals = checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
+          vitals = PatientService.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
           return vitals unless vitals.blank?
 
           enrolled_in_hiv_program = Concept.find(Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?",patient.id, 
@@ -519,7 +519,7 @@ class ApplicationController < ActionController::Base
           next if patient.patient_programs.blank?
           next if not patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') 
 
-          next unless patient_hiv_status(patient).match(/Positive/i)
+          next unless PatientService.patient_hiv_status(patient).match(/Positive/i)
           hiv_staging = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
@@ -533,10 +533,10 @@ class ApplicationController < ActionController::Base
           end if (reason_for_art.upcase ==  'UNKNOWN' or reason_for_art.blank?)
         when 'TB REGISTRATION'
           #checks if patient needs to be stage before continuing
-          next_task = need_art_enrollment(task,patient,location,session_date,user_selected_activities,reason_for_art)
+          next_task = PatientService.need_art_enrollment(task,patient,location,session_date,user_selected_activities,reason_for_art)
           return next_task if not next_task.blank? and user_selected_activities.match(/Manage HIV staging visits/i)
 
-          next unless patient_tb_status(patient).match(/treatment/i)
+          next unless PatientService.patient_tb_status(patient).match(/treatment/i)
           tb_registration = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
@@ -545,7 +545,7 @@ class ApplicationController < ActionController::Base
           #enrolled_in_tb_program = patient.patient_programs.collect{|p|p.program.name}.include?('TB PROGRAM') rescue false
 
           #checks if vitals have been taken already 
-          vitals = checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
+          vitals = PatientService.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
           return vitals unless vitals.blank?
 
     
@@ -557,12 +557,12 @@ class ApplicationController < ActionController::Base
             return task
           end
         when 'TB VISIT'
-          if patient_is_child?(patient) or patient_hiv_status(patient).match(/Positive/i)
+          if PatientService.patient_is_child?(patient) or PatientService.patient_hiv_status(patient).match(/Positive/i)
             clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name('TB CLINIC VISIT').id])
             #checks if vitals have been taken already 
-            vitals = checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
+            vitals = PatientService.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
             return vitals unless vitals.blank?
 
 
@@ -574,14 +574,14 @@ class ApplicationController < ActionController::Base
               task.encounter_type = "TB CLINIC VISIT"
               task.url = "/patients/show/#{patient.id}"
               return task
-            end if not patient_tb_status(patient).match(/treatment/i)
+            end if not PatientService.patient_tb_status(patient).match(/treatment/i)
           end
 
           #checks if vitals have been taken already 
-          vitals = checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
+          vitals = PatientService.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
           return vitals unless vitals.blank?
 
-          if not patient_tb_status(patient).match(/treatment/i)
+          if not PatientService.patient_tb_status(patient).match(/treatment/i)
             next
           end if not tb_reception_attributes.include?('Reason for visit: Follow-up')
 
@@ -745,7 +745,7 @@ class ApplicationController < ActionController::Base
 
           prescribe_drugs = false
 
-          prescribe_drugs = encounter_art_visit.observations.map{|obs| obs.to_s.squish.strip.upcase }.include? 'Prescribe ARVs this visit: Yes'.upcase rescue false
+          prescribe_drugs = encounter_art_visit.observations.map{|obs| obs.to_s.squish.strip.upcase }.include? 'Prescribe drugs: Yes'.upcase rescue false
 
           if not prescribe_drugs
             encounter_pre_art_visit = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
@@ -966,7 +966,7 @@ class ApplicationController < ActionController::Base
                                    patient.id,EncounterType.find_by_name('ART VISIT').id,session_date],
                                    :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
 
-          prescribe_arvs = encounter_art_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Prescribe ARVs this visit:  Yes'.upcase
+          prescribe_arvs = encounter_art_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Prescribe drugs:  Yes'.upcase
           not_refer_to_clinician = encounter_art_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Refer to ART clinician:  No'.upcase
 
           if prescribe_arvs and not_refer_to_clinician 

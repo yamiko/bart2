@@ -133,7 +133,7 @@ class PropertiesController < ApplicationController
     if request.post?
       global_property = GlobalProperty.find_by_property(params[:property]) || GlobalProperty.new()
       global_property.property = params[:property]
-      global_property.property_value = params[:property_value]
+      global_property.property_value = (params[:property_value].downcase == "yes").to_s
       global_property.save
       redirect_to '/clinic'
     end

@@ -65,13 +65,13 @@
   <th>&nbsp;</th>
   <th style = "text-align:left;">Patient's registration details</th>
   <th>Newly registered in quarter</th>
-  <th>Cumulated ever registered</th>
+  <th>Cumulative ever registered</th>
 </tr>
 </thead>
 <tbody>
 <tr>
   <td style ="border-width:0px">6</td>
-  <td style="text-align:left;">Total registrated</td>
+  <td style="text-align:left;">Total registered</td>
   <td><%= @cohort['Newly total registrated'] %></td>
   <td><%= @cohort['Total registrated'] %></td>
 </tr>
@@ -373,8 +373,8 @@
 
 <tr class = 'row_break'>
   <td>&nbsp;</td>
-  <td style="text-align:left;border-width:1px 0px 0px 1px">D4T + 3TC + NVP</font></td>
-  <td style="border-width:1px 0px 0px 1px">A1<br />P1</td>
+  <td style="text-align:left;border-width:1px 0px 0px 1px">D4T/3TC/NVP</font></td>
+  <td style="border-width:1px 0px 0px 1px">1A<br />1P</td>
   <td style="border-width:1px 0px 0px 1px">
     <%=@cohort['Regimens']['A1'] || '0'%><br />
     <%=@cohort['Regimens']['P1'] || '0'%><br />
@@ -382,8 +382,8 @@
 </tr>
 <tr class = 'row_break'>
   <td>&nbsp;</td>
-  <td style="text-align:left;border-width:1px 0px 1px 1px;">AZT + 3TC + NVP</td>
-  <td style="border-width:1px 0px 0px 1px;">A2<br />P2</td>
+  <td style="text-align:left;border-width:1px 0px 1px 1px;">AZT/3TC/NVP</td>
+  <td style="border-width:1px 0px 0px 1px;">2A<br />2P</td>
   <td style="border-width:1px 0px 0px 1px">
     <%=@cohort['Regimens']['A2'] || '0'%><br />
     <%=@cohort['Regimens']['P2'] || '0'%>
@@ -391,8 +391,8 @@
 </tr>
 <tr class = 'row_break'>
   <td>&nbsp;</td>
-  <td style="border-width:0px 0px 1px 1px;text-align:left;">D4T + 3TC + EFV</td>
-  <td style="border-width:1px 0px 0px 1px;">A3<br />P3</td>
+  <td style="border-width:0px 0px 1px 1px;text-align:left;">D4T/3TC/EFV</td>
+  <td style="border-width:1px 0px 0px 1px;">3A<br />3P</td>
   <td style="border-width:1px 0px 0px 1px">
     <%=@cohort['Regimens']['A3'] || '0'%><br />
     <%=@cohort['Regimens']['P3'] || '0'%>
@@ -400,8 +400,8 @@
 </tr>
 <tr class = 'row_break'>
   <td>&nbsp;</td>
-  <td style="border-width:0px 0px 0px 1px;text-align:left;">AZT + 3TC + EFV</td>
-  <td style="border-width:1px 0px 1px 1px;">A4<br />P4</td>
+  <td style="border-width:0px 0px 0px 1px;text-align:left;">AZT/3TC+EFV</td>
+  <td style="border-width:1px 0px 1px 1px;">4A<br />4P</td>
   <td style="border-width:1px 0px 0px 1px">
     <%=@cohort['Regimens']['A4'] || '0'%><br />
     <%=@cohort['Regimens']['P4'] || '0'%>
@@ -409,16 +409,16 @@
 </tr>
 <tr class = 'row_break'>
   <td>&nbsp;</td>
-  <td style="text-align:left;border-width:1px 0px 1px 1px;">TDF + 3TC + EFV</td>
-  <td style="border-width:0px 0px 1px 1px;">A5<br /><!--P5--></td>
+  <td style="text-align:left;border-width:1px 0px 1px 1px;">TDF/3TC/EFV</td>
+  <td style="border-width:0px 0px 1px 1px;">5A<br /><!--P5--></td>
   <td style="border-width:1px 0px 0px 1px">
     <%=@cohort['Regimens']['A5'] || '0'%><br />
     <%#=@cohort['Regimens']['P5'] || '0'%>
 </tr>
 <tr class = 'row_break'>
   <td>&nbsp;</td>
-  <td style="text-align:left;border-width:0px 0px 0px 1px;">TDF + 3TC + NVP</td>
-  <td style="border-width:0px 0px 1px 1px;">A6<br /><!--P6--></td>
+  <td style="text-align:left;border-width:0px 0px 0px 1px;">TDF/3TC+NVP</td>
+  <td style="border-width:0px 0px 1px 1px;">6A<br /><!--P6--></td>
   <td style="border-width:1px 0px 1px 1px">
     <%=@cohort['Regimens']['A6'] || '0'%><br />
     <%#=@cohort['Regimens']['P6'] || '0'%>
@@ -429,8 +429,8 @@
 
 <tr class = 'row_break'>
   <td>&nbsp;</td>
-  <td style="text-align:left;border-width:1px 0px 0px 1px;">TDF + 3TC + LPV/r</td>
-  <td style="border-width:0px 0px 1px 1px;">A7<br /><!--P7--></td>
+  <td style="text-align:left;border-width:1px 0px 0px 1px;">TDF/3TC+LPV/r</td>
+  <td style="border-width:0px 0px 1px 1px;">7A<br /><!--P7--></td>
   <td style="border-width:0px 0px 1px 1px">
     <%=@cohort['Regimens']['A7'] || '0'%><br />
     <%#=@cohort['Regimens']['P7'] || '0'%>
@@ -439,8 +439,8 @@
 
 <tr class = 'row_break'>
   <td>&nbsp;</td>
-  <td style="text-align:left;border-width:1px 0px 0px 1px;">AZT + 3TC + LPV/r</td>
-  <td style="border-width:0px 0px 1px 1px;">A8<br /><!--P8--></td>
+  <td style="text-align:left;border-width:1px 0px 0px 1px;">AZT/3TC+LPV/R</td>
+  <td style="border-width:0px 0px 1px 1px;">8A<br /><!--P8--></td>
   <td style="border-width:0px 0px 1px 1px">
     <%=@cohort['Regimens']['A8'] || '0'%><br />
     <%#=@cohort['Regimens']['P8'] || '0'%>
@@ -449,8 +449,8 @@
 
 <tr class = 'row_break'>
   <td>&nbsp;</td>
-  <td style="text-align:left;border-width:1px 0px 0px 1px;">ABC + 3TC + LPV/r</td>
-  <td style="border-width:0px 0px 1px 1px;"><!--A9--><br />P9</td>
+  <td style="text-align:left;border-width:1px 0px 0px 1px;">ABC/3TC+LPV/r</td>
+  <td style="border-width:0px 0px 1px 1px;"><!--A9--><br />9P</td>
   <td style="border-width:0px 0px 1px 1px">
     <%#=@cohort['Regimens']['A9'] || '0'%><br />
     <%=@cohort['Regimens']['P9'] || '0'%>

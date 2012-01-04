@@ -1,5 +1,5 @@
 module MedicationService
-
+	include CoreService
 	def self.arv(drug)
 		arv_drugs.map(&:concept_id).include?(drug.concept_id)
 	end
@@ -19,13 +19,28 @@ module MedicationService
 		tb_medication_drug_concepts = ConceptSet.all(:conditions => ['concept_set = ?', tb_medication_concept])
 		tb_medication_drug_concepts
 	end
+	
+	def self.diabetes_medication(drug)
+		diabetes_drugs.map(&:concept_id).include?(drug.concept_id)
+	end	
+	
+	def self.diabetes_drugs
+		diabetes_medication_concept       = ConceptName.find_by_name("DIABETES MEDICATION").concept_id
+		diabetes_medication_drug_concepts = ConceptSet.all(:conditions => ['concept_set = ?', diabetes_medication_concept])
+		diabetes_medication_drug_concepts
+	end
 
   # Convert a list +Concept+s of +Regimen+s for the given +Patient+ <tt>age</tt>
   # into select options. See also +EncountersController#arv_regimen_answers+
 	def self.regimen_options(regimen_concepts, age)
 		options = regimen_concepts.map { |r|
-			[r.concept_id, (r.concept_names.typed("SHORT").first ||
-				r.concept_names.typed("FULLY_SPECIFIED").first).name]
+			if (CoreService.get_global_property_value('use_regimen_short_names').to_s == "true" rescue false)
+				[r.concept_id, (r.concept_names.typed("SHORT").first ||
+					r.concept_names.typed("FULLY_SPECIFIED").first).name]
+			else
+				[r.concept_id, (r.concept_names.typed("FULLY_SPECIFIED").first ||
+					r.concept_names.typed("SHORT").first).name]
+			end
 		}
 	
 		suffixed_options = options.collect { |opt|
@@ -47,5 +62,17 @@ module MedicationService
 			end
 		}.sort_by{|opt| opt[2]}
 	end
+	
+  def self.current_orders(patient)
+    encounter = current_treatment_encounter(patient)
+    orders = encounter.orders.active
+    orders
+  end
+  
+  def self.current_treatment_encounter(patient)
+    type = EncounterType.find_by_name("TREATMENT")
+    encounter = patient.encounters.current.find_by_encounter_type(type.id)
+    encounter ||= patient.encounters.create(:encounter_type => type.id)
+  end
 
 end
