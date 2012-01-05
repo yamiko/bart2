@@ -182,6 +182,25 @@ class PeopleController < ApplicationController
 	end
  
   def create
+=begin
+    person = PatientService.create_patient_from_dde(params)
+    unless person.blank?
+      if use_filing_number and not tb_session
+        PatientService.set_patient_filing_number(person.patient) 
+        archived_patient = PatientService.patient_to_be_archived(person.patient)
+        message = PatientService.patient_printing_message(person.patient,archived_patient,creating_new_patient = true)
+        unless message.blank?
+          print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}" , next_task(person.patient),message,true,person.id)
+        else
+          print_and_redirect("/patients/filing_number_and_national_id?patient_id=#{person.id}", next_task(person.patient)) 
+        end
+      else
+        print_and_redirect("/patients/national_id_label?patient_id=#{person.id}", next_task(person.patient))
+      end
+      return
+    end
+=end    
+
     success = false
     Person.session_datetime = session[:datetime].to_date rescue Date.today
 
