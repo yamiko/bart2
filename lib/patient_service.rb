@@ -25,6 +25,7 @@ module PatientService
 		unless birthday_params.empty?
 		  if birthday_params["birth_year"] == "Unknown"
 			  birthdate = Date.new(today.year - birthday_params["age_estimate"].to_i, 7, 1) 
+        birthdate_estimated = 1
 		  else
 			  year = birthday_params["birth_year"]
         month = birthday_params["birth_month"]
@@ -36,12 +37,17 @@ module PatientService
                                                                                     
         if month_i == 0 || month == "Unknown"                                       
           birthdate = Date.new(year.to_i,7,1)                                
+          birthdate_estimated = 1
         elsif day.blank? || day == "Unknown" || day == 0                            
           birthdate = Date.new(year.to_i,month_i,15)                         
+          birthdate_estimated = 1
         else                                                                        
           birthdate = Date.new(year.to_i,month_i,day.to_i)                   
+          birthdate_estimated = 0
         end
 		  end
+    else
+      birthdate_estimated = 0
 		end
 
     passed_params = {"person"=> 
@@ -60,9 +66,10 @@ module PatientService
         {"diabetes_number"=>""}}, 
         "gender"=> person_params["gender"], 
         "birthdate"=> birthdate, 
+        "birthdate_estimated"=> birthdate_estimated , 
         "names"=>{"family_name"=> names_params["family_name"], 
         "given_name"=> names_params["given_name"]
-      }}}}
+    }}}}
 
 
     uri = "http://admin:admin@localhost:3001/people.json/"                          
@@ -957,6 +964,14 @@ EOF
     ]) if people.blank?
 
     return people
+  end
+
+  def self.person_search_from_dde(params)
+    search_string = "given_name=#{params[:given_name]}"
+    search_string += "&family_name=#{params[:family_name]}"
+    search_string += "&gender=#{params[:gender]}"
+    uri = "http://admin:admin@localhost:3001/people/find.json?#{search_string}"                          
+    JSON.parse(RestClient.get(uri)) rescue []
   end
   
   def self.search_by_identifier(identifier)
