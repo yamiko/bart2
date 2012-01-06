@@ -100,12 +100,12 @@
 		<%  if @cell_number.to_i != 0 %>
 			<%= touch_yes_no_unknown_tag "SEND SMS", @patient, nil,
 				{	:id => "send_sms",
-					:helpText => 'Can we send you an SMS for ART follow-up?'} %>
+					:helpText => 'Can we send you an SMS for HIV care follow-up?'} %>
 		<% end %>
 
 		<%= touch_yes_no_tag "FOLLOW UP AGREEMENT", @patient, nil,
 			{	:id => "agrees_to_followup",
-				:helpText => "Can we follow-up with you for ART?" } %>
+				:helpText => "Can we follow-up with you for HIV care?" } %>
 
 		<%= touch_select_tag "CONFIRMATORY HIV TEST TYPE", @patient, options_for_select([['HIV Rapid Test','HIV RAPID TEST'],['HIV PCR','HIV DNA polymerase chain reaction'],['Unknown','UNKNOWN']]),
 			{	:id => "type_of_confirmatory_hiv_test",
