@@ -95,6 +95,21 @@ class PeopleController < ApplicationController
 
 	end
   
+  def search_from_dde
+		found_person = PatientService.person_search_from_dde(params)
+    if found_person
+      if params[:relation]
+        redirect_to search_complete_url(found_person.id, params[:relation]) and return
+      else
+        redirect_to :action => 'confirm', 
+          :found_person_id => found_person.id, 
+          :relation => params[:relation] and return
+      end
+    else
+      redirect_to :action => 'search' and return 
+    end
+  end
+   
 	def confirm
 		session_date = session[:datetime] || Date.today
 		if request.post?
@@ -182,6 +197,14 @@ class PeopleController < ApplicationController
 	end
  
   def create
+   
+    tb_session = false
+    if User.current_user.activities.include?('Manage Lab Orders') or User.current_user.activities.include?('Manage Lab Results') or
+     User.current_user.activities.include?('Manage Sputum Submissions') or User.current_user.activities.include?('Manage TB Clinic Visits') or
+      User.current_user.activities.include?('Manage TB Reception Visits') or User.current_user.activities.include?('Manage TB Registration Visits') or
+       User.current_user.activities.include?('Manage HIV Status Visits')
+      tb_session = true
+    end
 =begin
     person = PatientService.create_patient_from_dde(params)
     unless person.blank?
@@ -199,8 +222,7 @@ class PeopleController < ApplicationController
       end
       return
     end
-=end    
-
+=end
     success = false
     Person.session_datetime = session[:datetime].to_date rescue Date.today
 
@@ -226,13 +248,6 @@ class PeopleController < ApplicationController
         redirect_to search_complete_url(person.id, params[:relation]) and return
       else
 
-       tb_session = false
-       if User.current_user.activities.include?('Manage Lab Orders') or User.current_user.activities.include?('Manage Lab Results') or
-        User.current_user.activities.include?('Manage Sputum Submissions') or User.current_user.activities.include?('Manage TB Clinic Visits') or
-         User.current_user.activities.include?('Manage TB Reception Visits') or User.current_user.activities.include?('Manage TB Registration Visits') or
-          User.current_user.activities.include?('Manage HIV Status Visits')
-         tb_session = true
-       end
 
         if use_filing_number and not tb_session
           PatientService.set_patient_filing_number(person.patient) 
