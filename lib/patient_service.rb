@@ -24,7 +24,7 @@ module PatientService
     
 		unless birthday_params.empty?
 		  if birthday_params["birth_year"] == "Unknown"
-			  birthdate = Date.new(today.year - birthday_params["age_estimate"].to_i, 7, 1) 
+			  birthdate = Date.new(Date.today.year - birthday_params["age_estimate"].to_i, 7, 1) 
         birthdate_estimated = 1
 		  else
 			  year = birthday_params["birth_year"]
