@@ -207,3 +207,19 @@ patient_identifier_type_00012:
   format_description: ""
   retired: false
   date_created: 2011-10-18 03:17:43 +02:00
+patient_identifier_type_00014:
+  validator: ""
+  required: "0"
+  name: Diabetes Number
+  retire_reason: 
+  format: ""
+  retired_by: 
+  check_digit: "0"
+  uuid: 3be4bf56-37a5-11e1-bd8f-544249e32ba2
+  creator: "1"
+  date_retired: 
+  description: Unique identifier given to Diabetic patients
+  patient_identifier_type_id: "14"
+  retired: "0"
+  format_description: ""
+  date_created: 2009-12-01 09:17:25
