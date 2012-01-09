@@ -2,7 +2,7 @@ module PatientService
 	include CoreService
 	require 'bean'
 	require 'json'
-  require 'rest_client'                                                           
+	#require 'rest_client'                                                           
 
   def self.create_patient_from_dde(params)
 	  address_params = params["person"]["addresses"]

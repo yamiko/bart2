@@ -72,8 +72,9 @@
 			 	:condition => '$("taken_art_in_last_two_months").value == "YES" && $("date_art_last_taken").value.toUpperCase() == "UNKNOWN"',
 			 	:helpText => "Taken ART in the last two weeks?" } %>
 
-		<%= touch_select_tag "LAST ART DRUGS TAKEN", @patient, options_for_select(@answer_array),
+		<%= touch_select_tag "LAST ART DRUGS TAKEN", @patient, options_for_select(@arv_drugs),
 			{	:id => "last_art_drugs_taken",
+				:multiple => true,
 			 	:condition => '$("ever_received_art").value == "YES"',
 			 	:helpText => "Last ARV drugs taken" } %>
 
