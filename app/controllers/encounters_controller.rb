@@ -576,6 +576,26 @@ class EncountersController < ApplicationController
 			#raise concept_set('PRESUMED SEVERE HIV CRITERIA IN INFANTS').to_yaml
 		end
 
+		@arv_drugs = nil
+		if (params[:encounter_type].upcase rescue '') == 'ART_INITIAL'
+			other = []
+
+			@arv_drugs = MedicationService.arv_drugs.collect { | drug | 
+						if (CoreService.get_global_property_value('use_regimen_short_names').to_s == "true" rescue false)					
+							other << [drug.concept.shortname, drug.concept.shortname] if (drug.concept.shortname.upcase.include?('OTHER') || drug.concept.shortname.upcase.include?('UNKNOWN'))
+							[drug.concept.shortname, drug.concept.shortname] 
+						else
+							other << [drug.concept.fullname, drug.concept.fullname] if (drug.concept.fullname.upcase.include?('OTHER') || drug.concept.fullname.upcase.include?('UKNOWN'))
+							[drug.concept.fullname, drug.concept.fullname]
+						end
+					}
+			@arv_drugs = @arv_drugs - other
+			@arv_drugs = @arv_drugs.sort {|a,b| a.to_s.downcase <=> b.to_s.downcase}
+			@arv_drugs = @arv_drugs + other
+
+			#raise @arv_drugs.to_yaml
+			#raise drugs.to_yaml
+		end
 		redirect_to "/" and return unless @patient
 
 		redirect_to next_task(@patient) and return unless params[:encounter_type]
