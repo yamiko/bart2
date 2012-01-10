@@ -314,7 +314,7 @@ class PeopleController < ApplicationController
     traditional_authorities = traditional_authorities.map do |t_a|
       "<li value='#{t_a.name}'>#{t_a.name}</li>"
     end
-    render :text => traditional_authorities.join('') and return
+    render :text => traditional_authorities.join('') + "<li value='Other'>Other</li>" and return
   end
 
     # Regions containing the string given in params[:value]
@@ -337,7 +337,7 @@ class PeopleController < ApplicationController
     districts = districts.map do |d|
       "<li value='#{d.name}'>#{d.name}</li>"
     end
-    render :text => districts.join('') and return
+    render :text => districts.join('') + "<li value='Other'>Other</li>" and return
   end
 
   def tb_initialization_district
@@ -345,7 +345,7 @@ class PeopleController < ApplicationController
     districts = districts.map do |d|
       "<li value='#{d.name}'>#{d.name}</li>"
     end
-    render :text => districts.join('') and return
+    render :text => districts.join('') + "<li value='Other'>Other</li>" and return
   end
 
     # Villages containing the string given in params[:value]
@@ -357,7 +357,7 @@ class PeopleController < ApplicationController
     villages = villages.map do |v|
       "<li value='#{v.name}'>#{v.name}</li>"
     end
-    render :text => villages.join('') and return
+    render :text => villages.join('') + "<li value='Other'>Other</li>" and return
   end
   
   # Landmark containing the string given in params[:value]
@@ -366,7 +366,7 @@ class PeopleController < ApplicationController
     landmarks = landmarks.map do |v|
       "<li value='#{v.address1}'>#{v.address1}</li>"
     end
-    render :text => landmarks.join('') and return
+    render :text => landmarks.join('') + "<li value='Other'>Other</li>" and return
   end
 
 =begin
