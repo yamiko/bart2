@@ -395,7 +395,7 @@ class RegimensController < ApplicationController
 		end
 	end
 	
-def transfer_out_patient(params)
+  def transfer_out_patient(params)
     
     patient_program = PatientProgram.find(params[:patient_program_id])
     
