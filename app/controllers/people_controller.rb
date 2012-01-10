@@ -208,8 +208,8 @@ class PeopleController < ApplicationController
       tb_session = true
     end
     
-    person = PatientService.create_patient_from_dde(params)
-    
+    person = PatientService.create_patient_from_dde(params) if create_from_dde_server
+
     unless person.blank?
       if use_filing_number and not tb_session
         PatientService.set_patient_filing_number(person.patient) 
