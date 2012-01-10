@@ -187,10 +187,12 @@ class PeopleController < ApplicationController
 
 	# This method is just to allow the select box to submit, we could probably do this better
 	def select
-		if params[:person] != '0' && Person.find(params[:person]).dead == 1
+    
+    if params[:person][:id] != '0' && Person.find(params[:person][:id]).dead == 1
+      
 			redirect_to :controller => :patients, :action => :show, :id => params[:person]
 		else
-			redirect_to search_complete_url(params[:person], params[:relation]) and return unless params[:person].blank? || params[:person] == '0'
+			redirect_to search_complete_url(params[:person][:id], params[:relation]) and return unless params[:person][:id].blank? || params[:person][:id] == '0'
 
 			redirect_to :action => :new, :gender => params[:gender], :given_name => params[:given_name], :family_name => params[:family_name], :family_name2 => params[:family_name2], :address2 => params[:address2], :identifier => params[:identifier], :relation => params[:relation]
 		end
@@ -205,8 +207,9 @@ class PeopleController < ApplicationController
        User.current_user.activities.include?('Manage HIV Status Visits')
       tb_session = true
     end
-=begin
+    
     person = PatientService.create_patient_from_dde(params)
+    
     unless person.blank?
       if use_filing_number and not tb_session
         PatientService.set_patient_filing_number(person.patient) 
@@ -222,7 +225,7 @@ class PeopleController < ApplicationController
       end
       return
     end
-=end
+
     success = false
     Person.session_datetime = session[:datetime].to_date rescue Date.today
 
@@ -525,6 +528,24 @@ class PeopleController < ApplicationController
       @field = params[:field]
       @field_value = @person.send(@field)
     end
+  end
+  
+  def dde_search
+    # result = '[{"person":{"created_at":"2012-01-06T10:08:37Z","data":{"addresses":{"state_province":"Balaka","address2":"Hospital","city_village":"New Lines Houses","county_district":"Kalembo"},"birthdate":"1989-11-02","attributes":{"occupation":"Police","cell_phone_number":"0999925666"},"birthdate_estimated":"0","patient":{"identifiers":{"diabetes_number":""}},"gender":"M","names":{"family_name":"Banda","given_name":"Laz"}},"birthdate":"1989-11-02","creator_site_id":"1","birthdate_estimated":false,"updated_at":"2012-01-06T10:08:37Z","creator_id":"1","gender":"M","id":1,"family_name":"Banda","given_name":"Laz","remote_version_number":null,"version_number":"0","national_id":null}}]'
+    
+    @dde_server = GlobalProperty.find_by_property("dde_server_ip").property_value rescue ""
+    
+    @dde_server_username = GlobalProperty.find_by_property("dde_server_username").property_value rescue ""
+    
+    @dde_server_password = GlobalProperty.find_by_property("dde_server_password").property_value rescue ""
+    
+    url = "http://#{@dde_server_username}:#{@dde_server_password}@#{@dde_server}" + 
+      "/people/find.json?given_name=#{params[:given_name]}" + 
+      "&family_name=#{params[:family_name]}&gender=#{params[:gender]}"
+    
+    result = RestClient.get(url)
+    
+    render :text => result, :layout => false
   end
   
 private
