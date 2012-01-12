@@ -2,7 +2,7 @@ module PatientService
 	include CoreService
 	require 'bean'
 	require 'json'
-	#require 'rest_client'                                                           
+	require 'rest_client'                                                           
 
   def self.create_patient_from_dde(params)
 	  address_params = params["person"]["addresses"]
@@ -917,7 +917,7 @@ EOF
 
 		if (!patient_params.nil?)
 		  patient = person.create_patient
-
+      
 		  patient_params["identifiers"].each{|identifier_type_name, identifier|
         next if identifier.blank?
         identifier_type = PatientIdentifierType.find_by_name(identifier_type_name) || PatientIdentifierType.find_by_name("Unknown id")
@@ -988,7 +988,7 @@ EOF
     people = PatientIdentifier.find_all_by_identifier(identifier).map{|id| 
       id.patient.person
     } unless identifier.blank? rescue nil
-    return people unless people.blank?
+    #return people unless people.blank?
     create_from_dde_server = CoreService.get_global_property_value('create.from.dde.server').to_s == "true" rescue false
     if create_from_dde_server 
       dde_server = GlobalProperty.find_by_property("dde_server_ip").property_value rescue ""
@@ -1016,21 +1016,20 @@ EOF
        "city_village"=>p["person"]["data"]["addresses"]["city_village"],
        "county_district"=>""},
        "gender"=> gender ,
-       "patient"=>"",
+       "patient"=>{"identifiers"=>{"National id" => p["person"]["value"]}},
        "birth_day"=>birthdate_day,
        "home_phone_number"=>p["person"]["data"]["attributes"]["home_phone_number"],
        "names"=>{"family_name"=>"Mwale",
        "given_name"=>p["person"]["given_name"],
        "middle_name"=>""},
-       "birth_year"=>birthdate_year,
-       "identifiers"=>{"National id" => p["person"]["value"]}},
+       "birth_year"=>birthdate_year},
        "filter_district"=>"Chitipa",
        "filter"=>{"region"=>"Northern Region",
        "t_a"=>""},
        "relation"=>""
       }
 
-      return self.create_from_form(passed["person"])
+      return [self.create_from_form(passed["person"])]
     end
     return people
   end
