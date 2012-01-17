@@ -3,30 +3,9 @@
 <script language="javascript" type="text/javascript" src="/javascripts/jquery.flot.js"></script>
 <script src="/javascripts/touchscreenYesNo.js" type="text/javascript"></script>
 <script type="text/javascript">
-  function select(node) {
-    $('#observations').empty().load('/encounters/observations/' + node.attr('encounter'))
-    $('#encounters li.data').removeClass("active");
-    node.addClass("active");
-  }
-
-  function voiding(node) {
-    confirmYesNo("Void this item?", function() {
-      hideConfirmation();
-      $.post('/encounters/void/' + node.parent().attr('encounter'), {}, function(data, status) {
-        if (status == 'success') {
-          document.getElementById('observations').innerHTML = '';
-          node.parent().remove();
-        }
-      })
-    }, function() { hideConfirmation(); });
-  }
 
   jQuery(document).ready(function($) {
-    $('#encounters li.data').click(function() { select($(this)); });
-    $('#encounters li.data div.void').click(function() { voiding($(this)); return false; });
     $('#charts').empty().load('/patients/graph/<%= @patient.id -%>?data=weight_tab');
-    recent = $('#encounters li.data:first');
-    if (recent) select(recent);
   })
 </script>
 <style>
@@ -57,11 +36,6 @@
                 <div class="program">There are no current programs for this patient</div>
               </li>
             <% end %>
-            <%# for prog in @programs do %>
-                <!--li class="data <%= cycle('even', 'odd') %>" program="<%#= prog.id %>">
-                  <div class="patient_state"><%#=h prog.patient_states.last.to_s.humanize + " (#{prog.program.name})"%></div>
-                </li-->
-              <%# end %>
             </ul>
           </div>
 
@@ -71,6 +45,8 @@
         <div style="display: table-cell; width: 50%; padding: 10px; border: 1px solid #eee; -moz-border-radius: 15px;">
 
           <div id="charts" >
+            <!-- h2>Weight Graph</h2 -->
+
           </div>
 
         </div>
