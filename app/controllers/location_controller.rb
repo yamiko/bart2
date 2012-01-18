@@ -91,7 +91,6 @@ class LocationController < ApplicationController
 
     def print
       location_name = params[:location_name][:clinic_name].to_s
-      location = get_location_label(Location.find_by_name(location_name))
       print_location_and_redirect("/location/location_label?location_name=#{location_name}", "/clinic")
     end
 
