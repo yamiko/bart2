@@ -166,7 +166,7 @@ end -%>
             remote_people[pos]["person"]["data"]["attributes"]["cell_phone_number"]);
             break;
           case "national_id":
-            createControlAndAssignValue("national_id", "person[patient][identifiers][National_id]", 
+            createControlAndAssignValue("national_id", "person[patient][identifiers][National id]", 
             remote_people[pos]["person"]["value"]);
             break;
         }
@@ -288,7 +288,7 @@ end -%>
       
       people[pos]["Ancestral Traditional Authority(T/A)"] = remote_people[i]["person"]["data"]["addresses"]["county_district"];
       
-      people[pos]["Current Residence"] = remote_people[i]["person"]["data"]["addresses"]["current_village"];
+      people[pos]["Current Residence"] = remote_people[i]["person"]["data"]["addresses"]["city_village"];
       
       people[pos]["Patient National ID"] = remote_people[i]["person"]["value"];
       
