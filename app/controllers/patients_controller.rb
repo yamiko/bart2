@@ -1821,7 +1821,7 @@ class PatientsController < ApplicationController
           AND encounter_type IN (?)
           GROUP BY patient_id
           ORDER BY last_encounter_id
-          LIMIT 1",patient_ids,encounter_type_ids]).first.patient rescue nil
+          LIMIT 1",patient_ids, encounter_type_ids]).first.patient rescue nil
 
         if patient_to_be_archived.blank?
           patient_to_be_archived = PatientIdentifier.find(:last,:conditions =>["identifier_type = ?",
@@ -1847,7 +1847,7 @@ class PatientsController < ApplicationController
       unless patient_to_be_archived.blank?
         filing_number = PatientIdentifier.new()
         filing_number.patient_id = patient.id
-        filing_number.identifier = PatientService.get_patient_identifier(patient_to_be_archived, 'Archived filing number')
+        filing_number.identifier = PatientService.get_patient_identifier(patient_to_be_archived, 'Filing number')
         filing_number.identifier_type = filing_number_identifier_type.id
         filing_number.save
 
