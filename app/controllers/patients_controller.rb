@@ -1132,7 +1132,7 @@ class PatientsController < ApplicationController
     extra_lines = []
     label2.draw_text("STAGE DEFINING CONDITIONS",450,190,0,3,1,1,false)
     (hiv_staging.observations).each{|obs|
-      name = obs.to_s.split(':')[0].strip rescue nil
+      name = obs.to_s.split(':')[0].strip.upcase rescue nil
       condition = obs.to_s.split(':')[1].strip.humanize rescue nil
       next unless name == 'WHO STAGES CRITERIA PRESENT'
       line+=25
@@ -1275,9 +1275,9 @@ class PatientsController < ApplicationController
   end
 
   def patient_visit_label(patient, date = Date.today)
-    result = Location.current_location.name.match(/outpatient/i).nil?
+    result = Location.find(session[:location_id]).name.match(/outpatient/i)
 
-    if result == false
+    unless result
       return mastercard_visit_label(patient,date)
     else
       label = ZebraPrinter::StandardLabel.new
@@ -1686,13 +1686,13 @@ class PatientsController < ApplicationController
     end
 
     count = 1
-    visit.s_eff.split(",").each{|side_eff|
+    (visit.s_eff.split("<br/>").compact.reject(&:blank?) || []).each do |side_eff|
       data["side_eff#{count}"] = "25",side_eff[0..5]
       count+=1
-    } if visit.s_eff
+    end if visit.s_eff
 
     count = 1
-    (visit.gave).each do | drug, pills |
+    (visit.gave || []).each do | drug, pills |
       string = "#{drug} (#{pills})"
       if string.length > 26
         line = string[0..25]
@@ -1821,7 +1821,7 @@ class PatientsController < ApplicationController
           AND encounter_type IN (?)
           GROUP BY patient_id
           ORDER BY last_encounter_id
-          LIMIT 1",patient_ids,encounter_type_ids]).first.patient rescue nil
+          LIMIT 1",patient_ids, encounter_type_ids]).first.patient rescue nil
 
         if patient_to_be_archived.blank?
           patient_to_be_archived = PatientIdentifier.find(:last,:conditions =>["identifier_type = ?",
@@ -1847,7 +1847,7 @@ class PatientsController < ApplicationController
       unless patient_to_be_archived.blank?
         filing_number = PatientIdentifier.new()
         filing_number.patient_id = patient.id
-        filing_number.identifier = PatientService.get_patient_identifier(patient_to_be_archived, 'Archived filing number')
+        filing_number.identifier = PatientService.get_patient_identifier(patient_to_be_archived, 'Filing number')
         filing_number.identifier_type = filing_number_identifier_type.id
         filing_number.save
 
