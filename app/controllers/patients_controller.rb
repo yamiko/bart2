@@ -1275,9 +1275,9 @@ class PatientsController < ApplicationController
   end
 
   def patient_visit_label(patient, date = Date.today)
-    result = Location.current_location.name.match(/outpatient/i).nil?
+    result = Location.find(session[:location_id]).name.match(/outpatient/i)
 
-    if result == false
+    unless result
       return mastercard_visit_label(patient,date)
     else
       label = ZebraPrinter::StandardLabel.new
