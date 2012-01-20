@@ -238,9 +238,12 @@ class Cohort
     cohort_report['Kaposis Sarcoma'] = self.kaposis_sarcoma
     cohort_report['Total Kaposis Sarcoma'] = self.kaposis_sarcoma(@@first_registration_date,@end_date)
 
+    cohort_report['No TB'] = (cohort_report['Newly total registrated'] - (cohort_report['Current episode of TB'] + cohort_report['TB within the last 2 years']))
+    cohort_report['Total No TB'] = (cohort_report['Total registrated'] - (cohort_report['Total Current episode of TB'] + cohort_report['Total TB within the last 2 years']))
+=begin
     cohort_report['No TB'] = (cohort_report['Newly total registrated'] - (cohort_report['Kaposis Sarcoma'] + cohort_report['Current episode of TB'] + cohort_report['TB within the last 2 years']))
     cohort_report['Total No TB'] = (cohort_report['Total registrated'] - (cohort_report['Total Kaposis Sarcoma'] + cohort_report['Total Current episode of TB'] + cohort_report['Total TB within the last 2 years']))
-
+=end
     cohort_report['Total alive and on ART'] = self.total_alive_and_on_art
     cohort_report['Died total'] = self.total_number_of_dead_patients
 
