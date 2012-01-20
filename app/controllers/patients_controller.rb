@@ -1132,7 +1132,7 @@ class PatientsController < ApplicationController
     extra_lines = []
     label2.draw_text("STAGE DEFINING CONDITIONS",450,190,0,3,1,1,false)
     (hiv_staging.observations).each{|obs|
-      name = obs.to_s.split(':')[0].strip rescue nil
+      name = obs.to_s.split(':')[0].strip.upcase rescue nil
       condition = obs.to_s.split(':')[1].strip.humanize rescue nil
       next unless name == 'WHO STAGES CRITERIA PRESENT'
       line+=25
@@ -1686,7 +1686,7 @@ class PatientsController < ApplicationController
     end
 
     count = 1
-    (visit.s_eff.split("<br/>") || []).each do |side_eff|
+    (visit.s_eff.split("<br/>").compact.reject(&:blank?) || []).each do |side_eff|
       data["side_eff#{count}"] = "25",side_eff[0..5]
       count+=1
     end if visit.s_eff
