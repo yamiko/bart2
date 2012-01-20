@@ -1686,13 +1686,13 @@ class PatientsController < ApplicationController
     end
 
     count = 1
-    visit.s_eff.split(",").each{|side_eff|
+    (visit.s_eff.split("<br/>") || []).each do |side_eff|
       data["side_eff#{count}"] = "25",side_eff[0..5]
       count+=1
-    } if visit.s_eff
+    end if visit.s_eff
 
     count = 1
-    (visit.gave).each do | drug, pills |
+    (visit.gave || []).each do | drug, pills |
       string = "#{drug} (#{pills})"
       if string.length > 26
         line = string[0..25]
