@@ -236,6 +236,8 @@ end -%>
     //"http://admin:admin@192.168.6.183:3001/people/find.json?given_name=Laz&family_name=Banda&gender=M";  //
     
     var response = new Ajax.Request(url,{method:'get',onSuccess: function(transport){
+        __$("helpText" + tstCurrentPage).innerHTML = (text.length > 0 ? 
+          "Select the patient from the following" : "No patients were found")
         text = transport.responseText;
         loadPatient(text);
         hideProgress();
