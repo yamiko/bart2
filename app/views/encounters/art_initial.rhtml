@@ -8,6 +8,40 @@
 	.tt_controls_date_art_last_taken table {  position: absolute; top: -360px; }
 
 	.tt_controls_last_arv_drugs_taken .keyboard { display:none; }
+
+
+
+
+  .tt_controls_cd4_count #qwerty , .tt_controls_cd4_percent #qwerty { 
+    display: none; 
+   }                              
+                                                                                
+  .tt_controls_cd4_count #equals, .tt_controls_cd4_percent #equals { 
+    display: inline; 
+  }                            
+                                                                                
+  .tt_controls_cd4_count #lessthan, .tt_controls_cd4_count #greaterthan {       
+    position: absolute;                                                         
+    right: 65%;                                                                 
+  }                                                                             
+                                                           
+  .tt_controls_cd4_percent #lessthan, .tt_controls_cd4_percent #greaterthan {       
+    position: absolute;                                                         
+    right: 65%;                                                                 
+  }                                                                             
+                     
+  .tt_controls_cd4_count #greaterthan , .tt_controls_cd4_percent #greaterthan{                                         
+    position: absolute;                                                         
+    right: 65%;                                                                 
+    top: 5px;                                                                   
+  }                                                                             
+                                                                                
+  .tt_controls_cd4_count #lessthan , .tt_controls_cd4_percent #lessthan {                                            
+    top: 145px;                                                                 
+  }
+
+  .tt_controls_cd4_count #lessthan, .tt_controls_cd4_count #greaterthan { display:block; float:right }
+  .tt_controls_cd4_percent #lessthan, .tt_controls_cd4_percent #greaterthan { display:block; float:right }
 </style>
 
 <script>
@@ -25,6 +59,145 @@
     }
     return dateCheck; 
   }
+
+  function showConditions() {
+    if ($("ever_registered_at_ART_clinic").value == "NO") {
+      return false;
+    }else if($('has_transfer_letter').value == "YES") {
+      return true;
+    }else {return false;}
+  }
+
+  function updateCD4CountKeyPad() {                                             
+    curr_page = tstCurrentPage - 1                                              
+    buttons = document.getElementsByClassName("keyboardButton");                
+    $("clearButton").setAttribute("onmousedown","clearInput();updateCD4CountKeyPad();");
+    $("backButton").setAttribute("onmousedown",";gotoPage(" + curr_page + ", null, true);resetPad();");
+    $("nextButton").setAttribute("onmousedown","gotoNextPage();resetPad();");   
+                                                                                
+    for(i = 0; i < buttons.length ; i++) {                                      
+      if (buttons[i].id == "equals" || buttons[i].id == "greaterthan" || buttons[i].id == "lessthan") {
+        buttons[i].disabled = false;                                            
+        if( buttons[i].id == "equals"){                                         
+          buttons[i].setAttribute("onmousedown","press('=');resetKeyPad();");   
+        }else if( buttons[i].id == "lessthan") {                                
+          buttons[i].setAttribute("onmousedown","press('<');resetKeyPad();");   
+        }else if( buttons[i].id == "greaterthan") {                             
+          buttons[i].setAttribute("onmousedown","press('>');resetKeyPad();");   
+        }                                                                       
+      }else{                                                                    
+        buttons[i].disabled = true;                                             
+      }                                                                         
+    }                                                                           
+  }
+
+
+   function updateCD4Count() {                                                   
+    var cd4_available = $('new_cd4_count_available').value == 'YES';            
+    var cd4_count = cd4_available ? $('cd4_count').value : null;                
+                                                                                
+    try { cd4_count_numeric = parseInt(cd4_count); } catch(e) { cd4_count_numeric = null; }
+                                                                                
+    if (cd4_count_numeric == null || ''+cd4_count_numeric == 'NaN') {           
+      try {                                                                     
+        var matches = cd4_count.match(/^(>|<|=)([0-9\.]+)$/);                   
+        cd4_count_modifier = matches[1];                                        
+        cd4_count_estimate = parseInt(matches[2]);                              
+        cd4_count_numeric = cd4_count_estimate;                                 
+        if (cd4_count_modifier == '<') cd4_count_numeric -= 1;                  
+        if (cd4_count_modifier == '>') cd4_count_numeric += 1;                  
+      } catch(e) {                                                              
+        cd4_count_modifier = null;                                              
+        cd4_count_estimate = null;                                              
+        cd4_count_numeric = null;                                               
+      }                                                                         
+    }                                                                           
+                                                                                    
+    if (cd4_count_numeric == null || '' + cd4_count_numeric == 'NaN') {         
+      $('cd4_count_less_than_250').value = "UNKNOWN";                           
+      $('cd4_count_less_than_350').value = "UNKNOWN";                           
+    } else {                                                                    
+      $('cd4_count_less_than_250').value = (cd4_count_numeric <= 250) ? "YES" : "NO";
+      $('cd4_count_less_than_350').value = (cd4_count_numeric <= 350) ? "YES" : "NO";
+    }                                                                        
+  }                                                                             
+   
+  function updateCD4Percent() {                                                 
+    var cd4_percent_available = $('new_cd4_percent_available').value == 'YES';  
+    var cd4_percent = cd4_percent_available ? $('cd4_percent').value : null;    
+    var cd4_percent_numeric, cd4_percent_estimate, cd4_percent_modifier;        
+                                                                                
+    try { cd4_percent_numeric = parseInt(cd4_percent); } catch(e) { cd4_percent_numeric = null; }
+                                                                                
+    if (cd4_percent_numeric == null || ''+cd4_percent_numeric == 'NaN') {       
+      try {                                                                     
+        var matches = cd4_percent.match(/^(>|<|=)([0-9\.]+)$/);                   
+        cd4_percent_modifier = matches[1];                                      
+        cd4_percent_estimate = parseInt(matches[2]);                            
+        cd4_percent_numeric = cd4_percent_estimate;                             
+        if (cd4_percent_modifier == '<') cd4_percent_numeric -= 1;              
+        if (cd4_percent_modifier == '>') cd4_percent_numeric += 1;              
+      } catch(e) {                                                              
+        cd4_percent_modifier = null;                                            
+        cd4_percent_estimate = null;                                            
+        cd4_percent_numeric = null;                                             
+      }                                                                         
+    }                                                                           
+                                                                                
+    if (cd4_percent_numeric == null || ''+cd4_percent_numeric == 'NaN') {       
+      $('cd4_percent_less_than_25').value = "UNKNOWN";                          
+    } else {                                                                    
+      $('cd4_percent_less_than_25').value = (cd4_percent_numeric < 25) ? "YES" : "NO";
+    }                                                                           
+  }
+
+
+
+  function resetPad() {                                                         
+    curr_page = tstCurrentPage - 1                                              
+    buttons = document.getElementsByClassName("keyboardButton");                
+    for(i = 0; i < buttons.length ; i++) {                                      
+        buttons[i].disabled = false;                                            
+    }                                                                           
+    $("clearButton").setAttribute("onmousedown","clearInput();");               
+    $("backButton").setAttribute("onmousedown",";gotoPage(" + curr_page + ", null, true);");
+    $("nextButton").setAttribute("onmousedown","gotoNextPage();");              
+  }                                                                             
+                                                                                
+  function resetKeyPad() {                                                      
+    buttons = document.getElementsByClassName("keyboardButton");                
+    for(i = 0; i < buttons.length ; i++) {                                      
+      if (buttons[i].id == "equals" || buttons[i].id == "greaterthan" || buttons[i].id == "lessthan") {
+        buttons[i].disabled = true;                                             
+      }else{                                                                    
+        buttons[i].disabled = false;                                            
+      }                                                                         
+    }                                                                           
+  }  
+
+  function updateCD4CountKeyPad() {                                             
+    curr_page = tstCurrentPage - 1                                              
+    buttons = document.getElementsByClassName("keyboardButton");                
+    $("clearButton").setAttribute("onmousedown","clearInput();updateCD4CountKeyPad();");
+    $("backButton").setAttribute("onmousedown",";gotoPage(" + curr_page + ", null, true);resetPad();");
+    $("nextButton").setAttribute("onmousedown","gotoNextPage();resetPad();");   
+                                                                                
+    for(i = 0; i < buttons.length ; i++) {                                      
+      if (buttons[i].id == "equals" || buttons[i].id == "greaterthan" || buttons[i].id == "lessthan") {
+        buttons[i].disabled = false;                                            
+        if( buttons[i].id == "equals"){                                         
+          buttons[i].setAttribute("onmousedown","press('=');resetKeyPad();");   
+        }else if( buttons[i].id == "lessthan") {                                
+          buttons[i].setAttribute("onmousedown","press('<');resetKeyPad();");   
+        }else if( buttons[i].id == "greaterthan") {                             
+          buttons[i].setAttribute("onmousedown","press('>');resetKeyPad();");   
+        }                                                                       
+      }else{                                                                    
+        buttons[i].disabled = true;                                             
+      }                                                                         
+    }                                                                           
+  }  
+   
 </script>
 <%#= raise @patient.person.birthdate.day.to_s %>
 <% if @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM') %>
@@ -97,6 +270,120 @@
 			{	:id => "previous_art_number",
 				:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
 				:helpText => "ART number at previous location" } %>
+
+
+    <% "..............................................................." %>
+
+
+
+      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, options_for_select(@who_stage_i),
+          {:id => "stage_1_conditions",                                         
+           :multiple => true,                                                   
+           :condition => 'showConditions()',                            
+           :optional => true,                                                   
+           :helpText => "Stage 1 Conditions",                                   
+           :tt_pageStyleClass => "NoKeyboard NoInput small" } %>                
+                                                                                
+      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient,  options_for_select(@who_stage_ii),
+        {:id => "stage_2_conditions",                                         
+         :multiple => true,                                                   
+         :optional => true,                                                   
+         :condition => 'showConditions()',                            
+         :helpText => "Stage 2 Conditions",                                   
+         :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>               
+                                                                                
+                                                                                
+      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient,  options_for_select(@who_stage_iii),
+        {:id => "stage_3_conditions",                                         
+         :multiple => true,                                                   
+         :optional => true,                                                   
+         :condition => 'showConditions()',                            
+         :helpText => "Stage 3 Conditions",                                   
+         :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>               
+                                                                                
+                                                                                
+      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient,  options_for_select(@who_stage_iv),
+        {:id => "stage_4_conditions",                                         
+         :multiple => true,                                                   
+         :optional => true,                                                   
+         :condition => 'showConditions()',                            
+         :helpText => "Stage 4 Conditions",                                   
+         :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
+
+      <%
+          @reasons = ["WHO stage I adult","WHO stage II adult",
+                      "WHO stage III adult","WHO stage IV adult",
+                      "WHO stage I peds","WHO stage II peds",
+                      "WHO stage III peds","WHO stage IV peds",
+                      "PRESUMED SEVERE HIV","HIV DNA POLYMERASE CHAIN REACTION",
+                      "HIV infected","CD4 COUNT LESS THAN OR EQUAL TO 750",
+                      "CD4 COUNT LESS THAN OR EQUAL TO 350",
+                      "CD4 COUNT LESS THAN OR EQUAL TO 250",
+                      "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2"]
+          if not @patient.person.gender == "F"
+            @reasons << "PATIENT PREGNANT"
+            @reasons << "BREASTFEEDING"
+          end
+        art_reasons = ''
+        @reasons.map do |reason|
+          art_reasons += "<option value=#{reason}>#{reason}</option>"
+        end
+      %>
+      <%= touch_select_tag "REASON FOR ART ELIGIBILITY", @patient, art_reasons , 
+          :id => 'reason_for_art_eligibility', 
+          :condition => 'showConditions()',                            
+          :helpText => "Reason for ART eligibility",
+          :tt_pageStyleClass => 'NoKeyboard' %>
+
+
+    <% "..............................................................." %>
+      <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), 
+          :id => 'new_cd4_count_available', 
+          :condition => 'showConditions()',                            
+          :helpText => "Initial CD4 Count available",
+          :tt_pageStyleClass => 'NoKeyboard' %>
+
+    <% "..............................................................." %>
+      <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,               
+        {:id => "cd4_count_location",                                           
+         :condition => '$("new_cd4_count_available").value == "YES" && showConditions()',              
+         :helpText => "CD4 Count Location"} %>                                  
+                                                                                
+      <%= touch_date_tag "CD4 COUNT DATETIME", @patient, nil,                   
+        {:id => "cd4_count_date",                                               
+         :condition => '$("new_cd4_count_available").value == "YES" && showConditions()',              
+         :helpText => "CD4 Count Date",                                         
+         :max => "#{session[:datetime].to_date rescue Date.today}"} %>          
+                                                                                
+      <%= touch_cd4_count_numeric_tag "CD4 COUNT", @patient, nil,               
+        {:id => "cd4_count",                                                    
+         :condition => '$("new_cd4_count_available").value == "YES" && showConditions()',              
+         :helpText => "CD4 Count",                                              
+         :max => 1000 ,                                                         
+         :min => 1 ,                                                            
+         :tt_onLoad => "updateCD4CountKeyPad();",                               
+         :tt_onUnLoad => "updateCD4Count();"} %>
+
+         <%= touch_hidden_tag "CD4 COUNT LESS THAN OR EQUAL TO 250", @patient, "", :id => "cd4_count_less_than_250" %>
+         <%= touch_hidden_tag "CD4 COUNT LESS THAN OR EQUAL TO 350", @patient, "", :id => "cd4_count_less_than_350" %>
+
+      <%= select_tag "new_cd4_percent_available", options_for_select([['Yes','YES'],['No','NO']]), 
+          :id => 'new_cd4_percent_available', 
+          :condition => 'showConditions() == true',                            
+          :helpText => "Initial CD4 percent available",
+          :tt_pageStyleClass => 'NoKeyboard' %>
+
+      <%= touch_cd4_count_numeric_tag "CD4 PERCENT", @patient, nil,               
+          {:id => "cd4_percent",                                                
+           :condition => '$("new_cd4_percent_available").value == "YES" && showConditions()',              
+           :helpText => "CD4 Percent",                                          
+           :tt_onLoad => "updateCD4CountKeyPad();",                               
+           :tt_onUnLoad => 'updateCD4Percent()'} %>                             
+                                                                                
+      <%= touch_hidden_tag "CD4 PERCENT LESS THAN 25", @patient, "", :id => "cd4_percent_less_than_25" %>
+
+    <% "..............................................................." %>
+
 
 		<%  if @cell_number.to_i != 0 %>
 			<%= touch_yes_no_unknown_tag "SEND SMS", @patient, nil,
