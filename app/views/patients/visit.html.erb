@@ -114,7 +114,14 @@ Guardian(s):&nbsp;<%= @patient_gaurdians rescue 'NONE' %>
     </tr>
     <tr>
       <th>Symptoms</th>
-      <td><%=visit.s_eff%></td>
+      <td>                                                                      
+      <% side_effects = nil                                                     
+      (visit.s_eff.split("<br/>").compact.reject(&:blank?) || []).each do | side_effect |
+        side_effects += "<br/>#{side_effect}" unless side_effects.blank?        
+        side_effects = "#{side_effect}" if side_effects.blank?                  
+      end if visit.s_eff%>                                                       
+      <%= side_effects || '&nbsp;'%>                                            
+      </td>
     </tr>
     <tr>
       <th>Pill count</th>

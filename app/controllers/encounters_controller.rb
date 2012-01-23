@@ -395,7 +395,9 @@ class EncountersController < ApplicationController
 		@tb_patient = is_tb_patient(@patient)
 		@art_patient = PatientService.art_patient?(@patient)
 		@recent_lab_results = patient_recent_lab_results(@patient.id)
-		@number_of_days_to_add_to_next_appointment_date = number_of_days_to_add_to_next_appointment_date(@patient, session[:datetime] || Date.today)
+		if (params[:encounter_type].upcase rescue '') == 'APPOINTMENT'
+			@number_of_days_to_add_to_next_appointment_date = number_of_days_to_add_to_next_appointment_date(@patient, session[:datetime] || Date.today)
+		end
 		@drug_given_before = PatientService.drug_given_before(@patient, session[:datetime])
 
 		use_regimen_short_names = CoreService.get_global_property_value("use_regimen_short_names") rescue "false"

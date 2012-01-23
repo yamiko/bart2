@@ -118,8 +118,8 @@ INSERT INTO openmrs_b2.person_name (person_id, middle_name, given_name, family_n
 SELECT person_id, username, username, username,  1, NULL, creator, retired, retired_by, retire_reason, date_retired, date_created, (SELECT UUID()) AS uuid FROM openmrs_b2.users;
 
 /* Update patient programs */
-INSERT INTO openmrs_b2.patient_program (patient_program_id, patient_id, program_id, date_enrolled, date_completed, creator, voided, voided_by, void_reason, date_voided, date_created, uuid)
-SELECT patient_program_id, patient_id, program_id, date_enrolled, date_completed, creator, voided, voided_by, void_reason, date_voided, date_created, (SELECT UUID()) AS uuid FROM openmrs_bart1.patient_program WHERE patient_id IN (SELECT patient_id FROM openmrs_bart1.patient);
+INSERT INTO openmrs_b2.patient_program (patient_program_id, patient_id, program_id, date_enrolled, date_completed, creator, voided, voided_by, void_reason, date_voided, date_created, uuid, location_id)
+SELECT patient_program_id, patient_id, program_id, date_enrolled, date_completed, creator, voided, voided_by, void_reason, date_voided, date_created, (SELECT UUID()) AS uuid, (SELECT property_value FROM openmrs_bart1.global_property WHERE property = "current_health_center_id") AS location_id FROM openmrs_bart1.patient_program WHERE patient_id IN (SELECT patient_id FROM openmrs_bart1.patient);
 
 UPDATE openmrs_b2.patient_program program SET program.date_enrolled = IFNULL((SELECT dates.start_date FROM openmrs_bart1.patient_start_dates dates WHERE program.patient_id = dates.patient_id), program.date_created);
 
