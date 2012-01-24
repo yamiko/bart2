@@ -303,8 +303,11 @@ class EncountersController < ApplicationController
 		else
 			@retrospective = false
 		end
+    @current_height = PatientService.get_patient_attribute_value(@patient, "current_height")
+    #added current weight to use on HIV staging for infants
+    @current_weight = PatientService.get_patient_attribute_value(@patient,
+                                                            "current_weight")
 
-		@current_height = PatientService.get_patient_attribute_value(@patient, "current_height")
 		@min_weight = PatientService.get_patient_attribute_value(@patient, "min_weight")
         @max_weight = PatientService.get_patient_attribute_value(@patient, "max_weight")
         @min_height = PatientService.get_patient_attribute_value(@patient, "min_height")
