@@ -307,7 +307,7 @@
        if duration.match(/week/i)
         days = (((duration.to_i)*7))
        elsif duration.match(/month/i)
-        days = (((duration.to_i)* 30))
+        days = (((duration.to_i)* 28))
        end
        optionsString += "<option value = '" + days.to_s + "'>" + duration + "</option>"
      end
