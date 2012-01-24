@@ -657,7 +657,18 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
 					next if staging_condition.blank?
 					if @not_explicitly_asked.collect{|c|c[0]}.include?(staging_condition[0])
 						extended_staging << staging_condition[0] and next
-					end	%>
+					end
+					
+					if @moderate_wasting.include?(staging_condition[0]) || @severe_wasting.include?(staging_condition[0])
+						count = count + 1 %>
+						<script>
+								selected_stage_conditions[<%= "#{count}" %>] = '<%= "#{staging_condition[0]}" %>';
+						</script>
+						<% next
+					end
+					%>
+					
+
       
                       <%opts = {	:id => "staging_condition_#{count+=1}" ,
                           :optional => false,

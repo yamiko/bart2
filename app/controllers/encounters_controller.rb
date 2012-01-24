@@ -630,10 +630,12 @@ class EncountersController < ApplicationController
 
 			if current_weight_percentile >= 70 && current_weight_percentile <= 79
 				@moderate_wasting = ["Moderate unexplained wasting/malnutrition not responding to treatment (weight-for-height/ -age 70-79% or muac 11-12 cm)"]
-				@who_stage_iii = @who_stage_iii.flatten.uniq           
+				@who_stage_iii = @who_stage_iii.flatten.uniq if CoreService.get_global_property_value('use.extended.staging.questions').to_s != "true"       
+				@severe_wasting = []
 			elsif current_weight_percentile < 70
 				@severe_wasting = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC less than 11cm or oedema)"]
-				@who_stage_iv = @who_stage_iv.flatten.uniq          
+				@who_stage_iv = @who_stage_iv.flatten.uniq if CoreService.get_global_property_value('use.extended.staging.questions').to_s != "true"
+				@moderate_wasting = []
 			end
         else
 			@moderate_wasting = []
