@@ -162,7 +162,7 @@ class EncountersController < ApplicationController
         params[:observations] = observations 
         create_obs(encounter , params)
       end
-      params[:observations] = initial_observations 
+      params[:observations] = initial_observations if has_tranfer_letter  
     end
 
     if params['encounter']['encounter_type_name'].upcase == 'HIV STAGING'
