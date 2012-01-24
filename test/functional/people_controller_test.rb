@@ -49,6 +49,13 @@ class PeopleControllerTest < ActionController::TestCase
         assert_redirected_to("/")
       end
     end
+    
+    should "confirm the patient search" do
+      logged_in_as :mikmck, :registration do
+        get :confirm, {:found_person_id => person(:evan)}
+        assert_response :success
+      end
+    end
 
     should "lookup people by national id that has no associated record and return them in the search results" do
       GlobalProperty.delete_all(:property => 'remote_demographics_servers')
