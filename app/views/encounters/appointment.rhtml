@@ -137,12 +137,21 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
     return new Date(intyear,intmonth,intday)
   }
   
+  function addDays(passedDate , weeks) {
+    var passed = passedDate;
+    for (i = 0; i < (weeks*7); i++) {
+      passed = new Date(passed.getFullYear(),passed.getMonth(),passed.getDate() + 1);
+    }
+    return passed;
+  }
+
   function calculate_dates(start_date,end_date) {
     if (start_date == '' && end_date == ''){
       visit_date = dateCreate('<%=session[:datetime].to_date rescue Date.today %>')
-      auto_expire_date = new Date(visit_date.getFullYear(),visit_date.getMonth(),visit_date.getDate() + (7 * parseInt($('time_until_next_visit').value)));
+      auto_expire_date = addDays(visit_date,parseInt($('time_until_next_visit').value));
       week = (parseInt((auto_expire_date - visit_date) / (7 * 24 * 60 * 60 * 1000))) 
       visit_date.setDate(visit_date.getDate() + (7 * week));
+      visit_date = assignCloseToExpireDate(visit_date,auto_expire_date); //make sure the next appoint date is close to
       setDate = handleAppointments(visit_date);
     }else{
       visit_date = dateCreate(start_date)
@@ -162,8 +171,8 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
       while (set_date < auto_expire_date) {
         set_date = new Date(set_date.getFullYear(),set_date.getMonth(),set_date.getDate() + 1)
       }
-      //Give the patient a 2 day buffer
-      set_date = new Date(set_date.getFullYear(),set_date.getMonth(),set_date.getDate() - 2)
+      /*/Give the patient a 2 day buffer
+      set_date = new Date(set_date.getFullYear(),set_date.getMonth(),set_date.getDate() - 2)*/
     }
     return set_date
   }
