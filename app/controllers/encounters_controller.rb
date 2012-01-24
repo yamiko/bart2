@@ -366,7 +366,7 @@ class EncountersController < ApplicationController
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
 		
-		@drug_orders = PatientService.drug_given_before(@patient, session_date.to_date).arv.prescriptions
+		@drug_orders = PatientService.drug_given_before(@patient, session_date.to_date).arv.prescriptions rescue []
 
 		if session[:datetime]
 			@retrospective = true 
