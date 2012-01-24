@@ -225,28 +225,18 @@ end -%>
       buttondiv.innerHTML+= "<button class='button navButton' id='newSearch' onmousedown='newSearch();'><span>New search</span></button>"
 <%end%>  
   }
-  
-  
-  // This heavily depends on the "prototype.js" which has to be linked
+   
   function search_remote(){
-    showProgress();
     var url = "/people/dde_search?given_name=<%= params[:given_name] %>" + 
       "&family_name=<%= params[:family_name] %>&gender=<%= params[:gender] %>";  
     
-    //"http://admin:admin@192.168.6.183:3001/people/find.json?given_name=Laz&family_name=Banda&gender=M";  //
+    ajaxGeneralRequest(url, "loadPatient()");
     
-    var response = new Ajax.Request(url,{method:'get',onSuccess: function(transport){
-        __$("helpText" + tstCurrentPage).innerHTML = (text.length > 0 ? 
-          "Select the patient from the following" : "No patients were found")
-        text = transport.responseText;
-        loadPatient(text);
-        hideProgress();
-      }});    
   }
   
-  function loadPatient(response){
+  function loadPatient(){
     __$("summary").innerHTML = "";
-    remote_people = JSON.parse(response);
+    remote_people = JSON.parse(ajaxGeneralRequestResult);
     
     people = [{}];
     
