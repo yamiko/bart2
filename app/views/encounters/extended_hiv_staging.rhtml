@@ -52,6 +52,10 @@
     top: 60px; 
   }
 
+  #tt_page_cd4_or_lymphocyte_count_location .inputFrameClass {                                                            
+    top: 60px; 
+  }
+
   #tt_page_lymphocyte_count_location .inputFrameClass {                                                            
     top: 60px; 
   }
@@ -524,25 +528,22 @@
   .tt_controls_cd4_percent #lessthan, .tt_controls_cd4_percent #greaterthan { display:block; float:right }
 </style>
 
-<% 
-reason_for_art = @patient.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue []
-art_reasons = reason_for_art.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue ''
-if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
-  <div class="inputPage NoKeyboard" id="page" style="display: block;">
-    <div id="trigger"></div>
-    <div id="infoBar" class="infoBarClass"></div>
-    <label id="helpText" class="helpTextClass" for="">
-      This patient has already been staged.<br/>
-      <%='&nbsp;'*3%>Reason for ART:&nbsp;<%= art_reasons %>
-    </label>
-  </div>
-  <div id="buttons" class="buttonsDiv" style="top:456;">
-    <div id="tt_extraButtons"></div>
-    <button onmousedown="window.location=tt_cancel_destination;" id="cancelButton" class="button navButton red"><span>Cancel</span></button>
-  </div>
-  <script>
-    setTimeout("window.location=tt_cancel_destination;", 5000);
-  </script>
+<% if !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.squish != '' %>
+	<div class="inputPage NoKeyboard" id="page" style="display: block;">
+		<div id="trigger"></div>
+		<div id="infoBar" class="infoBarClass"></div>
+		<label id="helpText" class="helpTextClass" for="">
+		  This patient has already been staged.<br/>
+		  <%='&nbsp;'*3%>Reason for ART:&nbsp;<%= @reason_for_art_eligibility %>
+		</label>
+	</div>
+	<div id="buttons" class="buttonsDiv" style="top:456;">
+		<div id="tt_extraButtons"></div>
+		<button onmousedown="window.location=tt_cancel_destination;" id="cancelButton" class="button navButton red"><span>Cancel</span></button>
+	</div>
+	<script>
+		setTimeout("window.location=tt_cancel_destination;", 5000);
+	</script>
 <% else %>
 
 	<form id='appointment' action="/encounters/create" method='post'>
@@ -723,7 +724,7 @@ if not reason_for_art.blank? and not art_reasons.upcase == 'UNKNOWN'%>
 			<%= touch_location_tag "CD4 PERCENT LOCATION", @patient, nil,
 				{	:id => "cd4_percent_location",
 					:condition => '$("new_cd4_percent_available").value == "YES" || $("new_lymphocyte_count_available").value == "YES" || ($("new_cd4_count_available").value == "YES" && transferInPatient() == false)',
-					:helpText => "CD4/Lymphocyte count location"} %>		
+					:helpText => "CD4 or Lymphocyte count location"} %>		
 		<% end %>
   
   <%= touch_text_area_tag("CLINICAL NOTES CONSTRUCT", @patient, nil,

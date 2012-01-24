@@ -27,6 +27,9 @@ class PatientsController < ApplicationController
         @task = main_next_task(Location.current_location,@patient,session_date)
         @hiv_status = PatientService.patient_hiv_status(@patient)
         @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
+		if  !@reason_for_art_eligibility != nil && @reason_for_art_eligibility.upcase == 'NONE'
+			@reason_for_art_eligibility = nil				
+		end
         @arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
         render :template => 'patients/index', :layout => false
      end

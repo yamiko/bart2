@@ -667,7 +667,7 @@ class ApplicationController < ActionController::Base
             task.encounter_type = 'Pre ART visit'
             task.url = "/patients/show/#{patient.id}"
             return task
-          end if reason_for_art.upcase ==  'UNKNOWN' or reason_for_art.blank?
+          end if !reason_for_art.nil? && reason_for_art.upcase ==  'UNKNOWN' or reason_for_art.blank?
 
           art_visit = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
@@ -880,7 +880,10 @@ class ApplicationController < ActionController::Base
       return task
     end
     art_reason = patient.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue nil
-    reason_for_art = art_reason.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue ''
+    reason_for_art = PatientService.reason_for_art_eligibility(patient)
+	if !reason_for_art.nil? && reason_for_art.upcase == 'NONE'
+		reason_for_art = nil				
+	end
     
     encounters.each do | type |
       encounter_available = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
@@ -906,15 +909,7 @@ class ApplicationController < ActionController::Base
           elsif encounter_available.blank? and not user_selected_activities.match(/Manage ART visits/i)
             task.url = "/patients/show/#{patient.id}"
             return task
-          end if not reason_for_art.upcase ==  'UNKNOWN'
-        when 'PART_FOLLOWUP'
-          if encounter_available.blank? and user_selected_activities.match(/Manage pre ART visits/i)
-            task.url = "/encounters/new/pre_art_visit?show&patient_id=#{patient.id}"
-            return task
-          elsif encounter_available.blank? and not user_selected_activities.match(/Manage pre ART visits/i)
-            task.url = "/patients/show/#{patient.id}"
-            return task
-          end if reason_for_art.upcase ==  'UNKNOWN'
+          end  
         when 'HIV STAGING'
           if encounter_available.blank? and user_selected_activities.match(/Manage HIV staging visits/i) 
             task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}"
@@ -922,7 +917,7 @@ class ApplicationController < ActionController::Base
           elsif encounter_available.blank? and not user_selected_activities.match(/Manage HIV staging visits/i)
             task.url = "/patients/show/#{patient.id}"
             return task
-          end if (reason_for_art.upcase ==  'UNKNOWN' or reason_for_art.blank?)
+          end if reason_for_art.nil? or reason_for_art.blank?
         when 'HIV RECEPTION'
           encounter_art_initial = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
                                          patient.id,EncounterType.find_by_name('ART_INITIAL').id],
@@ -994,7 +989,7 @@ class ApplicationController < ActionController::Base
             elsif not encounter_art_visit.blank? and not user_selected_activities.match(/Manage ART visits/i)
               task.url = "/patients/show/#{patient.id}"
               return task
-            end if not reason_for_art.upcase ==  'UNKNOWN'
+            end 
           end
         when 'ART ADHERENCE'
           if encounter_available.blank? and user_selected_activities.match(/Manage ART adherence/i)
