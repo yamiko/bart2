@@ -409,7 +409,7 @@ class PatientsController < ApplicationController
 
       if @edit_page == "guardian"
         @guardian = {}
-        @patient.person.relationships.map{|r| @guardian[Person.find(r.person_b).name] = Person.find(r.person_b).id.to_s;'' }
+        @patient.person.relationships.map{|r| @guardian[art_guardian(@patient)] = Person.find(r.person_b).id.to_s;'' }
         if  @guardian == {}
           redirect_to :controller => "relationships" , :action => "search",:patient_id => @patient_id
         end
