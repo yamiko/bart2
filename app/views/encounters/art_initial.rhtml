@@ -42,6 +42,11 @@
 
   .tt_controls_cd4_count #lessthan, .tt_controls_cd4_count #greaterthan { display:block; float:right }
   .tt_controls_cd4_percent #lessthan, .tt_controls_cd4_percent #greaterthan { display:block; float:right }
+
+  .tt_controls_initial_weight_kg #qwerty , .tt_controls_initial_height_cm #qwerty { 
+    display: none; 
+   }                              
+                                                                                
 </style>
 
 <script>
@@ -321,7 +326,7 @@
     <%= touch_date_tag "Date antiretrovirals started", @patient, nil,
 			{	:id => "date_started_art",
 			 	:absoluteMax => Date.today,
-				:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
+				:condition => '$("ever_registered_at_ART_clinic").value == "YES" && showConditions()',
 			 	:helpText => "Date started ART"} %>
 
 
@@ -379,6 +384,7 @@
         :helpText => "Reason for ART eligibility",
         :id => 'reason_for_art', 
         :allowFreeText => false,                                                  
+        :condition => 'showConditions()',                            
         :tt_onLoad => "calculateWHOstage();",                    
         :tt_onUnLoad => "calculateReasonForStarting();",                    
         :helpText => "Reason for ART eligibility",
@@ -395,6 +401,43 @@
           :condition => 'showConditions()',                            
           :helpText => "Initial CD4 Count available",
           :tt_pageStyleClass => 'NoKeyboard' %>
+
+
+      <%= text_field_tag "observations[][value_numeric]", nil,                  
+        {:id => "height",                                                       
+         :field_type => 'number',                                               
+         :condition => 'showConditions()',                            
+         :min => number_with_precision(0, :precision => 1),           
+         :max => number_with_precision(183, :precision => 1),           
+         :absoluteMin => 10,                                                    
+         :absoluteMax => 228,                                                   
+         :helpText => "Initial Height (CM)",
+         :units => 'cm',                                                        
+         :validationRule => "^([0-9]+)|Unknown$",                               
+         :validationMessage => "You must enter numbers only (for example 157)", 
+         :tt_pageStyleClass => "Numeric NumbersOnly"} %>                        
+      <%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>    
+      <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
+      <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %> 
+
+      
+      <%= text_field_tag "observations[][value_numeric]", nil,                  
+        {:id => "weight",                                                       
+         :field_type => 'number',                                               
+         :min => number_with_precision(0, :precision => 1),           
+         :max => number_with_precision(80, :precision => 1),           
+         :condition => 'showConditions()',                            
+         :helpText => "Initial Weight (Kg)",
+         :absoluteMin => 0,                                                     
+         :absoluteMax => 250,                                                   
+         :units => 'kg',                                                        
+         :validationRule => "([0-9]+\\.[0-9])|Unknown$",                        
+         :validationMessage => "You must enter a decimal between 0 and 9 (for example: 54<b>.6</b>)",
+         :tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal"} %>             
+      <%= hidden_field_tag("observations[][concept_name]", "WEIGHT (KG)") %>    
+      <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
+      <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+
 
     <% "..............................................................." %>
       <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,               
