@@ -365,15 +365,13 @@ class EncountersController < ApplicationController
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
-		
-		@drug_orders = PatientService.drug_given_before(@patient, session_date.to_date).arv.prescriptions rescue []
 
 		if session[:datetime]
 			@retrospective = true 
 		else
 			@retrospective = false
 		end
-
+    @current_height = PatientService.get_patient_attribute_value(@patient, "current_height")
 
 		@min_weight = PatientService.get_patient_attribute_value(@patient, "min_weight")
         @max_weight = PatientService.get_patient_attribute_value(@patient, "max_weight")
@@ -614,7 +612,6 @@ class EncountersController < ApplicationController
 			end
 
 		  if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING'
-        @current_height = PatientService.get_patient_attribute_value(@patient, "current_height")
         #added current weight to use on HIV staging for infants
         @current_weight = PatientService.get_patient_attribute_value(@patient,
                                                               "current_weight")

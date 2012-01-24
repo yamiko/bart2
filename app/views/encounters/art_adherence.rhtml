@@ -1,5 +1,18 @@
 <%= javascript_include_tag "dateformat" %>
 <style>
+	#adherence_summary{    
+    border-style:solid;
+    position: absolute;
+    top: 75px;
+    left: 150px;
+    background-color: white;
+    display: none;
+    font-size: 25;
+    z-index: 100;
+    width: 400px;
+    height:230px;
+    -moz-user-select:none;
+  }
 	.summary div {
 	padding-left:25px;
 	font-size:30px;
@@ -19,7 +32,9 @@
     font-size:25px;
   }
 
-  #tt_page_summary .options{height:600px;}
+  #tt_page_summary .inputFrameClass {                                                            
+    top: 60px; 
+  }  
 
 #qwerty {
   display: none;
@@ -100,62 +115,61 @@
 	<% end rescue [] %>
 
   <label for='summary'>Adherence Report</label>
-    <%= text_field_tag :summary, nil, { 
-        :tt_onLoad => "adherenceReport()",
-        :optional => "true", 
-        :tt_pageStyleClass => "NoControls" 
-    } %>
+    <%= text_field_tag :summary, nil,
+      { :tt_onLoad => "adherenceReport();",
+        :optional => "true",
+        :tt_pageStyleClass => "NoControls" } %>
 
 	<script>
+		
 		function adherenceReport(){
 		  var i = 0;
       var amount_remaining = 0;
 		  var summary = new Array;
 
-     var summary = "<div class='summary'>";
-		 
-		 for (var i=0; i <  drug_names.length; i++){
-		    var amount_brought = "";
-		    var amount_other = "";
-		    var adherence = 100;
-		    
-		    amount_brought = amount_brought_ids[i];
-		    amount_other = amount_other_ids[i];
-		    adherence= adherence_ids[i];
-		    
-		    if (parseFloat($(amount_brought).value) > 0) amount_remaining += parseFloat($(amount_brought).value);
-			  if (parseFloat($(amount_other).value) > 0) amount_remaining += parseFloat($(amount_other).value);
-		    
-		    var days_overdue_for_visit = since(auto_expire_date[i]);
-		    
-		    var last_visit_date = dateCreate(order_start_date[i]);
-			  var days_since_last_visit = since(last_visit_date);
-			  var expected_amount_remaining = drug_order_quantity[i] - Math.round(days_since_last_visit * equivalent_daily_dose[i]);
-			  var doses_missed = amount_remaining - expected_amount_remaining;
-			  var drug_name = drug_names[i];
-		    
-		    var warning = ($(adherence).value < 95) ? 'warning' : '';
-		    
-		    summary += "<div><span class='title'></span><span class='title'>"+drug_name+"</span></div>"
-			  summary += "<div><span >Last visit date:&nbsp;</span><span class='value'>"+dateFormat(last_visit_date,"dddd, mmmm dS, yyyy")+"</span></div>"
-			  if (doses_missed >= 0) summary += "<div><span class='value'>Doses missed:&nbsp;</span><span class='value'>"+doses_missed+"</span></div>"
-			  if (doses_missed < 0) summary += "<div><span>Doses unaccounted for:&nbsp;</span><span class='value'>"+(-doses_missed)+"</span></div>"
-			  if (expected_amount_remaining > 0) summary += "<div><span >Expected tablets remaining:&nbsp;</span><span class='value'>"+expected_amount_remaining+"</span></div>"
-			  if (expected_amount_remaining < 0 && days_overdue_for_visit > 0) summary += "<div><span>Days overdue for visit:&nbsp;</span><span class='value'>"+days_overdue_for_visit+"</span></div>"
-			  summary += "<div><span>Actual tablets remaining:&nbsp;</span><span class='value'>"+amount_remaining+"</span></div>"
-			
-			  summary += "<div class='value'><span>Percentage of doses taken:&nbsp;</span><span class='value'>"+ $(adherence).value +"%</span></div>"
-			  if ($(adherence).value < 95 || $(adherence).value > 105) summary += "<div class='" + warning + "'><span style='color:red' class='recommendation'>Patient needs counseling</span></div><br /><br />"
-			  
-		  }
-      summary += "</div>"
-    //getAdherence(adherence_ids[i], order_start_date[i], order_auto_expire_date[i], equivalent_daily_dose[i], drug_order_quantity[i]);
-    $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + summary + '</div>' ;    
-    $("clearButton").style.display = 'none';
+       var summary = "<div class='summary' style='height:670px'>";
+		   
+		   for (var i=0; i <  drug_names.length; i++){
+		      var amount_brought = "";
+		      var amount_other = "";
+		      var adherence = 100;
+		      
+		      amount_brought = amount_brought_ids[i];
+		      amount_other = amount_other_ids[i];
+		      adherence= adherence_ids[i];
+		      
+		      if (parseFloat($(amount_brought).value) > 0) amount_remaining += parseFloat($(amount_brought).value);
+			    if (parseFloat($(amount_other).value) > 0) amount_remaining += parseFloat($(amount_other).value);
+		      
+		      var days_overdue_for_visit = since(auto_expire_date[i]);
+		      
+		      var last_visit_date = dateCreate(order_start_date[i]);
+			    var days_since_last_visit = since(last_visit_date);
+			    var expected_amount_remaining = drug_order_quantity[i] - Math.round(days_since_last_visit * equivalent_daily_dose[i]);
+			    var doses_missed = amount_remaining - expected_amount_remaining;
+			    var number_missed = amount_remaining - expected_amount_remaining;
+			    var drug_name = drug_names[i];
+		      
+		      var warning = ($(adherence).value < 95) ? 'warning' : '';
 
+		      summary += "<div><span class='title'></span><span class='title'>"+drug_name+"</span></div>"
+			    summary += "<div><span >Last visit date:&nbsp;</span><span class='value'>"+dateFormat(last_visit_date,"dddd, mmmm dS, yyyy")+"</span></div>"
+			    if (doses_missed >= 0) summary += "<div><span class='value'>Doses missed:&nbsp;</span><span class='value'>"+doses_missed+"</span></div>"
+			    if (doses_missed < 0) summary += "<div><span>Doses unaccounted for:&nbsp;</span><span class='value'>"+(-doses_missed)+"</span></div>"
+			    if (expected_amount_remaining > 0) summary += "<div><span >Expected tablets remaining:&nbsp;</span><span class='value'>"+expected_amount_remaining+"</span></div>"
+			    if (expected_amount_remaining < 0 && days_overdue_for_visit > 0) summary += "<div><span>Days overdue for visit:&nbsp;</span><span class='value'>"+days_overdue_for_visit+"</span></div>"
+			    summary += "<div><span>Actual tablets remaining:&nbsp;</span><span class='value'>"+amount_remaining+"</span></div>"
+			
+			    summary += "<div class='value'><span>Percentage of doses taken:&nbsp;</span><span class='value'>"+ $(adherence).value +"%</span></div>"
+			    if ($(adherence).value < 95 || $(adherence).value > 105) summary += "<div class='" + warning + "'><span style='color:red' class='recommendation'>Patient needs counseling</span></div><br /><br />"
+			    
+		    }
+        summary += "</div>"
+
+      $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + summary + '</div>' ;    
+      $("clearButton").style.display = 'none';
 		}
-		
-		
+
 		function since(date) {
 			var today = dateCreate('<%=session_date.to_date%>');
 			return (today - date) / (1000 * 60 * 60 * 24);
