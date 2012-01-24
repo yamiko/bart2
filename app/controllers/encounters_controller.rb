@@ -628,10 +628,11 @@ class EncountersController < ApplicationController
           weight_for_height_percentile = (@current_weight/(median_weight_height)*100)
 
           if weight_for_height_percentile < 70
-           @severe_wasting = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC less than 11cm or oedema)"]
+						@severe_wasting = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC less than 11cm or oedema)"]
+						@who_stage_iv = @who_stage_iv.flatten.uniq          
           end
         else
-           @severe_wasting = []
+					@severe_wasting = []
         end
 			end
 			
@@ -646,7 +647,7 @@ class EncountersController < ApplicationController
 			#raise CoreService.get_global_property_value('use.extended.staging.questions').to_s
 			#raise @not_explicitly_asked.to_yaml
 			#raise concept_set('PRESUMED SEVERE HIV CRITERIA IN INFANTS').to_yaml
-      @who_stage_iv = @who_stage_iv.flatten.uniq
+      #@who_stage_iv = @who_stage_iv.flatten.uniq
       
 		end
 
