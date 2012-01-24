@@ -446,7 +446,10 @@
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
       <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 
-      <%= touch_hidden_tag "BODY MASS INDEX, MEASURED", @patient, "", :id => "bmi" %>
+      <%= hidden_field_tag("observations[][value_numeric]", nil, {:id => 'bmi'}) %>
+      <%= hidden_field_tag("observations[][concept_name]", "BODY MASS INDEX, MEASURED") %>
+      <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>      
+      <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 
     <% "..............................................................." %>
       <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,               
