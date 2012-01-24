@@ -246,6 +246,13 @@
     }else{
       $("reason_for_art_eligibility").value = reason_for_art;
     }
+  }
+  
+  function calculateBMI() {
+    var currentWeight = $("weight").value;
+    var currentHeight = $("height").value;
+    currentBmi = (currentWeight/(currentHeight*currentHeight)*10000).toFixed(1);
+    $('bmi').value = currentBmi;
   } 
 </script>
 <%#= raise @patient.person.birthdate.day.to_s %>
@@ -433,11 +440,13 @@
          :units => 'kg',                                                        
          :validationRule => "([0-9]+\\.[0-9])|Unknown$",                        
          :validationMessage => "You must enter a decimal between 0 and 9 (for example: 54<b>.6</b>)",
+         :tt_onUnLoad => "calculateBMI();",
          :tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal"} %>             
       <%= hidden_field_tag("observations[][concept_name]", "WEIGHT (KG)") %>    
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
       <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 
+      <%= touch_hidden_tag "BODY MASS INDEX, MEASURED", @patient, "", :id => "bmi" %>
 
     <% "..............................................................." %>
       <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,               

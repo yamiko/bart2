@@ -83,6 +83,16 @@ class EncountersController < ApplicationController
           observations << observation
         elsif observation['concept_name'].upcase == 'WHO STAGE'
           observations << observation
+        elsif observation['concept_name'].upcase == 'BODY MASS INDEX, MEASURED'
+          bmi = nil
+          (params["observations"]).each do |ob|
+            if ob["concept_name"] == "BODY MASS INDEX, MEASURED" 
+              bmi = ob["value_numeric"]
+              break
+            end
+          end
+          next if bmi.blank? 
+          vitals_observations << observation
         elsif observation['concept_name'].upcase == 'WEIGHT (KG)'
           weight = 0
           (params["observations"]).each do |ob|
