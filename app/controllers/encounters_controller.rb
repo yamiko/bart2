@@ -71,16 +71,25 @@ class EncountersController < ApplicationController
           observations << observation
         elsif observation['concept_name'].upcase == 'REASON FOR ART ELIGIBILITY'
           observations << observation
+        elsif observation['concept_name'].upcase == 'WHO STAGE'
+          observations << observation
         else
           initial_observations << observation
         end
       end
-      
+
+      date_started_art = nil
+      (initial_observations || []).each do |ob|
+        if ob['concept_name'].upcase == 'DATE ANTIRETROVIRALS STARTED'
+          date_started_art = ob["value_datetime"].to_date rescue nil
+        end
+      end
+
       unless observations.blank? and observations.length > 0
         encounter = Encounter.new()
         encounter.encounter_type = EncounterType.find_by_name("HIV STAGING").id
         encounter.patient_id = params['encounter']['patient_id']
-        encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
+        encounter.encounter_datetime = date_started_art 
         if encounter.encounter_datetime.blank?                                                                        
           encounter.encounter_datetime = params['encounter']['encounter_datetime']  
         end 
@@ -118,7 +127,7 @@ class EncountersController < ApplicationController
 
     if params['encounter']['encounter_type_name'].upcase == 'ART ADHERENCE'
       observations = []
-      (params[:observations] || []).ach do |observation|
+      (params[:observations] || []).each do |observation|
         if observation['concept_name'].upcase == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'
           observation['value_numeric'] = observation['value_text'] rescue nil
           observation['value_text'] =  ""

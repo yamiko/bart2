@@ -46,6 +46,7 @@
 
 <script>
 	var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
+  var patient_age = null;
 
   function checkBirthDate(){
     var dateCheck = "";
@@ -197,7 +198,50 @@
       }                                                                         
     }                                                                           
   }  
-   
+
+  function calculateWHOstage() {
+    stage = "I";
+    if ($("stage_4_conditions").value.length > 0) {
+      stage = "IV";
+    }else if ($("stage_3_conditions").value.length > 0) {
+      stage = "III";
+    }else if ($("stage_2_conditions").value.length > 0) {
+      stage = "II";
+    }
+    var startDate = new Date($("date_started_art").value);
+    var patientBirthdate = new Date("<%=@patient.person.birthdate %>");
+    var dateCreated = new Date("<%=@patient.person.date_created %>");
+    var patientBirthdateEstimated = "<%=@patient.person.birthdate_estimated %>";
+    patient_age = age(patientBirthdate , patientBirthdateEstimated , dateCreated, startDate);
+
+    if (patient_age <= 14) {
+      $("who_stage").value = "WHO stage " + stage + " peds";
+    }else{
+      $("who_stage").value = "WHO stage " + stage + " adult";
+    }
+  } 
+  
+  function age(birthdate,birthdate_estimated,date_created,today) {
+    patient_age = (today.getFullYear() - birthdate.getFullYear()) + ((today.getFullYear() - (birthdate.getMonth() + 1)) + ((today.getDate() - birthdate.getDate()) < 0 ? -1 : 0) < 0 ? - 1 : 0)
+    birth_date= birthdate                                                   
+    estimate = birthdate_estimated                                           
+    if (birth_date.month == 7 && birth_date.day == 1 && estimate == 1 && Time.now.month < birth_date.month && date_created.getFullYear() == (new Date().getFullYear())) {
+      return patient_age + 1                                                   
+    }else{
+      return patient_age
+    }
+  } 
+
+  function calculateReasonForStarting() {
+    var reason_for_art = $("reason_for_art").value;
+    var adultOrPeds = (patient_age > 14) ? "ADULT" : "PEDS";
+
+    if (reason_for_art.match(/WHO stage/i)) {
+      $("reason_for_art_eligibility").value = reason_for_art + " " + adultOrPeds;
+    }else{
+      $("reason_for_art_eligibility").value = reason_for_art;
+    }
+  } 
 </script>
 <%#= raise @patient.person.birthdate.day.to_s %>
 <% if @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM') %>
@@ -273,7 +317,12 @@
 
 
     <% "..............................................................." %>
-
+		
+    <%= touch_date_tag "Date antiretrovirals started", @patient, nil,
+			{	:id => "date_started_art",
+			 	:absoluteMax => Date.today,
+				:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
+			 	:helpText => "Date started ART"} %>
 
 
       <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, options_for_select(@who_stage_i),
@@ -311,30 +360,34 @@
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
 
       <%
-          @reasons = ["WHO stage I adult","WHO stage II adult",
-                      "WHO stage III adult","WHO stage IV adult",
-                      "WHO stage I peds","WHO stage II peds",
-                      "WHO stage III peds","WHO stage IV peds",
+          @reasons = ["WHO stage I","WHO stage II","WHO stage III","WHO stage IV",
                       "PRESUMED SEVERE HIV","HIV DNA POLYMERASE CHAIN REACTION",
                       "HIV infected","CD4 COUNT LESS THAN OR EQUAL TO 750",
-                      "CD4 COUNT LESS THAN OR EQUAL TO 350",
-                      "CD4 COUNT LESS THAN OR EQUAL TO 250",
+                      "CD4 COUNT LESS THAN OR EQUAL TO 350","CD4 COUNT LESS THAN OR EQUAL TO 250",
                       "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2"]
           if not @patient.person.gender == "F"
             @reasons << "PATIENT PREGNANT"
             @reasons << "BREASTFEEDING"
           end
-        art_reasons = ''
+        art_reasons = []
         @reasons.map do |reason|
-          art_reasons += "<option value=#{reason}>#{reason}</option>"
+          art_reasons << [reason,reason]
         end
       %>
-      <%= touch_select_tag "REASON FOR ART ELIGIBILITY", @patient, art_reasons , 
-          :id => 'reason_for_art_eligibility', 
-          :condition => 'showConditions()',                            
-          :helpText => "Reason for ART eligibility",
-          :tt_pageStyleClass => 'NoKeyboard' %>
 
+      <%= select_tag("reason_for_art", options_for_select(art_reasons,[]),
+        :helpText => "Reason for ART eligibility",
+        :id => 'reason_for_art', 
+        :allowFreeText => false,                                                  
+        :tt_onLoad => "calculateWHOstage();",                    
+        :tt_onUnLoad => "calculateReasonForStarting();",                    
+        :helpText => "Reason for ART eligibility",
+        :tt_pageStyleClass => 'NoKeyboard') %>
+
+
+
+     <%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
+     <%= touch_hidden_tag "REASON FOR ART ELIGIBILITY", @patient, "", :id => "reason_for_art_eligibility" %>
 
     <% "..............................................................." %>
       <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), 
