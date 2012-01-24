@@ -225,28 +225,18 @@ end -%>
       buttondiv.innerHTML+= "<button class='button navButton' id='newSearch' onmousedown='newSearch();'><span>New search</span></button>"
 <%end%>  
   }
-  
-  
-  // This heavily depends on the "prototype.js" which has to be linked
+   
   function search_remote(){
-    showProgress();
     var url = "/people/dde_search?given_name=<%= params[:given_name] %>" + 
       "&family_name=<%= params[:family_name] %>&gender=<%= params[:gender] %>";  
     
-    //"http://admin:admin@192.168.6.183:3001/people/find.json?given_name=Laz&family_name=Banda&gender=M";  //
+    ajaxGeneralRequest(url, "loadPatient()");
     
-    var response = new Ajax.Request(url,{method:'get',onSuccess: function(transport){
-        __$("helpText" + tstCurrentPage).innerHTML = (text.length > 0 ? 
-          "Select the patient from the following" : "No patients were found")
-        text = transport.responseText;
-        loadPatient(text);
-        hideProgress();
-      }});    
   }
   
-  function loadPatient(response){
+  function loadPatient(){
     __$("summary").innerHTML = "";
-    remote_people = JSON.parse(response);
+    remote_people = JSON.parse(ajaxGeneralRequestResult);
     
     people = [{}];
     
@@ -357,16 +347,28 @@ end -%>
       <% end -%>
       <select name="person[id]" id="person" dualView="true" dualViewOptions="people" tt_onLoad="makeRemoteButton()">
         <!--option onmousedown="search_remote()">Search from remote server for person with name <%=h params[:given_name] -%> <%=h params[:family_name] -%></option-->
-        
-	      <% if params[:identifier] %>
-	        <option value="0" onmousedown="changeNextButtonText('New Patient')">Create a new person with the identifier <%=h params[:identifier] -%></option>
-	      <% else %>
-	        <option value="0" onmousedown="changeNextButtonText('New Patient')">Create a new person with the name <%=h params[:given_name] -%> <%=h params[:family_name] -%></option>
-	      <% end %>
+
+			<% if @relation.blank? %>
+					<% if params[:identifier] %>
+						<option value="0" onmousedown="changeNextButtonText('New Patient')">Create a new person with the identifier <%=h params[:identifier] -%></option>
+					<% else %>
+						<option value="0" onmousedown="changeNextButtonText('New Patient')">Create a new person with the name <%=h params[:given_name] -%> <%=h params[:family_name] -%></option>
+					<% end %>
+			 <% else %>
+					<% if params[:identifier] %>
+						<option value="0" onmousedown="changeNextButtonText('New Guardian')">Create a new person with the identifier <%=h params[:identifier] -%></option>
+					<% else %>
+						<option value="0" onmousedown="changeNextButtonText('New Guardian')">Create a new person with the name <%=h params[:given_name] -%> <%=h params[:family_name] -%></option>
+					<% end %>
+			 <% end %>
         
         <% @patients.each do | patient |
           next if patient.blank? -%>
-          <option value="<%= patient.person_id %>" onmousedown="changeNextButtonText('Select Patient')">
+				<% if @relation.blank? %>
+					<option value="<%= patient.person_id %>" onmousedown="changeNextButtonText('Select Patient')">
+				<% else %>
+					<option value="<%= patient.person_id %>" onmousedown="changeNextButtonText('Select Guardian')">
+				<% end %>
             <%=h patient.name -%> (<%= patient.sex %>)
             <% unless patient.birth_date.blank? %> <%=h patient.birth_date -%><% end %>,
             <% unless patient.current_residence.blank? %> <%=h patient.current_residence -%> <% end %>,
