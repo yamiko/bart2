@@ -621,19 +621,25 @@ class EncountersController < ApplicationController
           @who_stage_iii = @who_stage_iii - concept_set('Unspecified Staging Conditions')
           @who_stage_iv = @who_stage_iv - concept_set('Unspecified Staging Conditions') - concept_set('Calculated WHO HIV staging conditions')
         end
+        
         if @patient_bean.age < 15
-          current_height_rounded = (@current_height % @current_height.to_f.floor < 0.5? 0 : 0.5) + @current_height.to_f.floor
-          weight_for_heights = WeightForHeight.patient_weight_for_height_values       
-          median_weight_height = weight_for_heights[current_height_rounded.to_f]
-          weight_for_height_percentile = (@current_weight/(median_weight_height)*100)
+			current_height_rounded = (@current_height % @current_height.to_f.floor < 0.5? 0 : 0.5) + @current_height.to_f.floor
 
-          if weight_for_height_percentile < 70
-						@severe_wasting = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC less than 11cm or oedema)"]
-						@who_stage_iv = @who_stage_iv.flatten.uniq          
-          end
+			median_weight_height = WeightHeightForAge.median_weight_height(@patient_bean.age_in_months, @patient.person.gender) rescue []
+			current_weight_percentile = (@current_weight/(median_weight_height[0])*100)
+
+			if current_weight_percentile >= 70 && current_weight_percentile <= 79
+				@moderate_wasting = ["Moderate unexplained wasting/malnutrition not responding to treatment (weight-for-height/ -age 70-79% or muac 11-12 cm)"]
+				@who_stage_iii = @who_stage_iii.flatten.uniq           
+			elsif current_weight_percentile < 70
+				@severe_wasting = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC less than 11cm or oedema)"]
+				@who_stage_iv = @who_stage_iv.flatten.uniq          
+			end
         else
-					@severe_wasting = []
+			@moderate_wasting = []
+			@severe_wasting = []
         end
+        
 			end
 			
 			if @tb_status == true && @hiv_status != 'Negative'
