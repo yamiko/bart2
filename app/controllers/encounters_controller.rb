@@ -11,6 +11,15 @@ class EncountersController < ApplicationController
     end
 
     if params['encounter']['encounter_type_name'] == 'ART_INITIAL'
+
+      has_tranfer_letter = false
+      (params["observations"]).each do |ob|
+        if ob["concept_name"] == "HAS TRANSFER LETTER" 
+          has_tranfer_letter = (ob["value_coded_or_text"].upcase == "YES")
+          break
+        end
+      end
+      
       if params[:observations][0]['concept_name'].upcase == 'EVER RECEIVED ART' and params[:observations][0]['value_coded_or_text'].upcase == 'NO'
         observations = []
         (params[:observations] || []).each do |observation|
@@ -49,6 +58,7 @@ class EncountersController < ApplicationController
       params[:observations] = observations unless observations.blank?
 
       observations = []
+      vitals_observations = []
       initial_observations = []
       (params[:observations] || []).each do |observation|
         if observation['concept_name'].upcase == 'WHO STAGES CRITERIA PRESENT'
@@ -73,10 +83,40 @@ class EncountersController < ApplicationController
           observations << observation
         elsif observation['concept_name'].upcase == 'WHO STAGE'
           observations << observation
+        elsif observation['concept_name'].upcase == 'BODY MASS INDEX, MEASURED'
+          bmi = nil
+          (params["observations"]).each do |ob|
+            if ob["concept_name"] == "BODY MASS INDEX, MEASURED" 
+              bmi = ob["value_numeric"]
+              break
+            end
+          end
+          next if bmi.blank? 
+          vitals_observations << observation
+        elsif observation['concept_name'].upcase == 'WEIGHT (KG)'
+          weight = 0
+          (params["observations"]).each do |ob|
+            if ob["concept_name"] == "WEIGHT (KG)" 
+              weight = ob["value_numeric"].to_f rescue 0
+              break
+            end
+          end
+          next if weight.blank? or weight < 1
+          vitals_observations << observation
+        elsif observation['concept_name'].upcase == 'HEIGHT (CM)'
+          height = 0
+          (params["observations"]).each do |ob|
+            if ob["concept_name"] == "HEIGHT (CM)" 
+              height = ob["value_numeric"].to_i rescue 0
+              break
+            end
+          end
+          next if height.blank? or height < 1
+          vitals_observations << observation
         else
           initial_observations << observation
         end
-      end
+      end if has_tranfer_letter
 
       date_started_art = nil
       (initial_observations || []).each do |ob|
@@ -85,7 +125,26 @@ class EncountersController < ApplicationController
         end
       end
 
-      unless observations.blank? and observations.length > 0
+      unless vitals_observations.blank?
+        encounter = Encounter.new()
+        encounter.encounter_type = EncounterType.find_by_name("VITALS").id
+        encounter.patient_id = params['encounter']['patient_id']
+        encounter.encounter_datetime = date_started_art 
+        if encounter.encounter_datetime.blank?                                                                        
+          encounter.encounter_datetime = params['encounter']['encounter_datetime']  
+        end 
+        if params[:filter] and !params[:filter][:provider].blank?
+          user_person_id = User.find_by_username(params[:filter][:provider]).person_id
+        else
+          user_person_id = User.find_by_user_id(params['encounter']['provider_id']).person_id
+        end
+        encounter.provider_id = user_person_id
+        encounter.save   
+        params[:observations] = vitals_observations
+        create_obs(encounter , params)
+      end
+
+      unless observations.blank? 
         encounter = Encounter.new()
         encounter.encounter_type = EncounterType.find_by_name("HIV STAGING").id
         encounter.patient_id = params['encounter']['patient_id']
@@ -306,6 +365,8 @@ class EncountersController < ApplicationController
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
+		
+		@drug_orders = PatientService.drug_given_before(@patient, session_date.to_date).arv.prescriptions
 
 		if session[:datetime]
 			@retrospective = true 
