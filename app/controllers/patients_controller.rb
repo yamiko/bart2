@@ -1470,6 +1470,7 @@ class PatientsController < ApplicationController
          encounter_name = obs.encounter.name rescue []
          next if encounter_name.blank?
          next if encounter_name.match(/REGISTRATION/i)
+         next if encounter_name.match(/HIV STAGING/i)
          visit_date = obs.obs_datetime.to_date
          patient_visits[visit_date] = Mastercard.new() if patient_visits[visit_date].blank?
          case field

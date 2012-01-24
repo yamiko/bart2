@@ -75,7 +75,7 @@ class PatientsControllerTest < ActionController::TestCase
         end
       end
 
-      should "relationships" do
+      should "gets the patient's relationships" do
         logged_in_as :mikmck, :registration do
           #TODO rewrite the test
           get :relationships, {:patient_id => patient(:evan).patient_id}
@@ -83,9 +83,8 @@ class PatientsControllerTest < ActionController::TestCase
         end
       end    
     
-     should "guardians" do
+     should "gets the patient's guardians" do
         logged_in_as :mikmck, :registration do
-          #TODO rewrite the test
           get :guardians, {:patient_id => patient(:evan).patient_id}
           assert_response :success
         end
@@ -93,7 +92,6 @@ class PatientsControllerTest < ActionController::TestCase
 
     should "get the patient graph" do
       logged_in_as :mikmck, :registration do
-       #TODO rewrite the test
        patient = patient(:evan)
        c_weight = PatientService.get_patient_attribute_value(patient, "current_weight")
        get :graph, {:patient_id => patient.patient_id, :data => "weight",
@@ -102,84 +100,74 @@ class PatientsControllerTest < ActionController::TestCase
       end
     end
 
-    should "mastercard" do
+    should "get the patient mastercard" do
       logged_in_as :mikmck, :registration do
-       #TODO rewrite the test
        patient = patient(:evan)
        get :mastercard_printable, {:patient_id => patient.patient_id}
        assert_response :success
       end
     end
 
-    should "print mastercard" do
+    should "prints the patient mastercard" do
       logged_in_as :mikmck, :registration do
-       #TODO rewrite the test
        patient = patient(:evan)
        get :print_mastercard, {:patient_id => patient.patient_id}
        assert_redirected_to("patients/mastercard?patient_id=#{patient(:evan).patient_id}")
       end
     end    
 
-   should "demographics" do
+   should "get patient demographics" do
       logged_in_as :mikmck, :registration do
-       #TODO rewrite the test
        patient = patient(:evan)
        get :demographics, {:patient_id => patient.patient_id}
        assert_response :success
       end
     end
 
-    should "overview" do
+    should "get the overview tab" do
         logged_in_as :mikmck, :registration do
-          #TODO rewrite the test
           get :overview, {:patient_id => patient(:evan).patient_id}
           assert_response :success
         end
     end
       
-    should "visit_history" do
+    should "get the visit_history tab" do
         logged_in_as :mikmck, :registration do
-          #TODO rewrite the test
           get :visit_history, {:patient_id => patient(:evan).patient_id}
           assert_response :success
         end
     end
 
-    should "past_visits_summary" do
+    should "get the past_visits_summary" do
         logged_in_as :mikmck, :registration do
-          #TODO rewrite the test
           get :past_visits_summary, {:patient_id => patient(:evan).patient_id}
           assert_response :success
         end
     end
 
-    should "treatment_dashboard" do
+    should "get the treatment_dashboard" do
         logged_in_as :mikmck, :registration do
-          #TODO rewrite the test
           get :treatment_dashboard, {:patient_id => patient(:evan).patient_id}
           assert_response :success
         end
     end
 
-    should "guardians_dashboard" do
+    should "get the guardians_dashboard" do
         logged_in_as :mikmck, :registration do
-          #TODO rewrite the test
           get :guardians_dashboard, {:patient_id => patient(:evan).patient_id}
           assert_response :success
         end
     end
 
-   should "programs_dashboard" do
+   should "get the programs_dashboard" do
         logged_in_as :mikmck, :registration do
-          #TODO rewrite the test
           get :programs_dashboard, {:patient_id => patient(:evan).patient_id}
           assert_response :success
         end
     end
 
-    should "recent_lab_orders" do
+    should "get recent_lab_orders" do
         logged_in_as :mikmck, :registration do
-          #TODO rewrite the test
           get :recent_lab_orders, {:patient_id => patient(:evan).patient_id}
           assert_response :success
         end
