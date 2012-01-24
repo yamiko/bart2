@@ -300,7 +300,7 @@
 					reasonForArtEligibility = "PATIENT PREGNANT";              
 				} else if ($('breast_feeding') && $('breast_feeding').value == "YES") {
 					reasonForArtEligibility = "BREASTFEEDING";              
-				} else if (showConditions() == "Severe wasting"){
+				} else if (growthIndicators()() == "Severe wasting"){
                     reasonForArtEligibility = whoStageConcept(4, "PEDS");
                 }
 			} catch (e) {}
@@ -449,10 +449,9 @@
   }
 
   function preSelectSevereWasting(){
-    if (showConditions() == "Severe wasting") {
-      conditions = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age &lt;70% or MUAC less than 11cm or oedema)"]
-      if (conditions.length > 0) {
-          optionsList = conditions.split(',')
+    if (growthIndicators() == "Severe wasting") {
+      optionsList = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC less than 11cm or oedema)"]
+      if (optionsList.length > 0) {
           options = document.getElementsByTagName('li');
           for (x = 0 ; x < optionsList.length ; x++) {
             for (i = 0 ; i < options.length ; i++) {
@@ -578,11 +577,10 @@
 				   :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
 
 
-			  <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient,  options_for_select(@who_stage_iv),
+			  <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient,  options_for_select(@who_stage_iv, @severe_wasting),
 				  {:id => "stage_4_conditions",
 				   :multiple => true,
-				   :optional => true,
-                   :tt_onLoad => 'preSelectSevereWasting()',
+				   :optional => true,                  
 				   :tt_onUnLoad => 'setSelectedStageConditions(4);',
 				   :condition => 'showConditions() == true',
 				   :helpText => "Stage 4 Conditions",
