@@ -357,16 +357,28 @@ end -%>
       <% end -%>
       <select name="person[id]" id="person" dualView="true" dualViewOptions="people" tt_onLoad="makeRemoteButton()">
         <!--option onmousedown="search_remote()">Search from remote server for person with name <%=h params[:given_name] -%> <%=h params[:family_name] -%></option-->
-        
-	      <% if params[:identifier] %>
-	        <option value="0" onmousedown="changeNextButtonText('New Patient')">Create a new person with the identifier <%=h params[:identifier] -%></option>
-	      <% else %>
-	        <option value="0" onmousedown="changeNextButtonText('New Patient')">Create a new person with the name <%=h params[:given_name] -%> <%=h params[:family_name] -%></option>
-	      <% end %>
+
+			<% if @relation.blank? %>
+					<% if params[:identifier] %>
+						<option value="0" onmousedown="changeNextButtonText('New Patient')">Create a new person with the identifier <%=h params[:identifier] -%></option>
+					<% else %>
+						<option value="0" onmousedown="changeNextButtonText('New Patient')">Create a new person with the name <%=h params[:given_name] -%> <%=h params[:family_name] -%></option>
+					<% end %>
+			 <% else %>
+					<% if params[:identifier] %>
+						<option value="0" onmousedown="changeNextButtonText('New Guardian')">Create a new person with the identifier <%=h params[:identifier] -%></option>
+					<% else %>
+						<option value="0" onmousedown="changeNextButtonText('New Guardian')">Create a new person with the name <%=h params[:given_name] -%> <%=h params[:family_name] -%></option>
+					<% end %>
+			 <% end %>
         
         <% @patients.each do | patient |
           next if patient.blank? -%>
-          <option value="<%= patient.person_id %>" onmousedown="changeNextButtonText('Select Patient')">
+				<% if @relation.blank? %>
+					<option value="<%= patient.person_id %>" onmousedown="changeNextButtonText('Select Patient')">
+				<% else %>
+					<option value="<%= patient.person_id %>" onmousedown="changeNextButtonText('Select Guardian')">
+				<% end %>
             <%=h patient.name -%> (<%= patient.sex %>)
             <% unless patient.birth_date.blank? %> <%=h patient.birth_date -%><% end %>,
             <% unless patient.current_residence.blank? %> <%=h patient.current_residence -%> <% end %>,
