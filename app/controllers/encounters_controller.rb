@@ -118,7 +118,7 @@ class EncountersController < ApplicationController
 
     if params['encounter']['encounter_type_name'].upcase == 'ART ADHERENCE'
       observations = []
-      (params[:observations] || []).ach do |observation|
+      (params[:observations] || []).each do |observation|
         if observation['concept_name'].upcase == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'
           observation['value_numeric'] = observation['value_text'] rescue nil
           observation['value_text'] =  ""
