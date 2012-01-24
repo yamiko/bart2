@@ -300,7 +300,9 @@
 					reasonForArtEligibility = "PATIENT PREGNANT";              
 				} else if ($('breast_feeding') && $('breast_feeding').value == "YES") {
 					reasonForArtEligibility = "BREASTFEEDING";              
-				}
+				} else if (showConditions() == "Severe wasting"){
+                    reasonForArtEligibility = whoStageConcept(4, "PEDS");
+                }
 			} catch (e) {}
 		}
   
@@ -403,6 +405,7 @@
 	function showConditions() {
 		try {
 			cond = selected_stage_conditions[1].split(';');
+
 		}catch(e) { 
 			cond = [] 
 		}
@@ -414,6 +417,53 @@
 		}
 		return true;
 	}
+
+    function growthIndicators(){
+      weightForHeightValue = ""
+      currentHeight = <%= @current_height %>
+      currentWeight = <%= @current_weight %>
+      medianWeightHeight = [<%= WeightHeightForAge.median_weight_height(@patient_bean.age_in_months, @patient.person.gender).join(',') rescue nil -%>];
+      currentWeightPercentile = (currentWeight/(medianWeightHeight[0])*100).toFixed(0);
+      currentHeightPercentile = (currentHeight/(medianWeightHeight[1])*100).toFixed(0);
+      if (('<%= @patient_bean.age %>') < 15){
+         weightForHeightValue = showWeightForHeight();
+      }
+      return weightForHeightValue;
+   }
+
+   function showWeightForHeight() {
+    currentHeight = <%= @current_height %>
+    var currentHeightRounded = (currentHeight % Math.floor(currentHeight) < 0.5 ? 0 : 0.5) + Math.floor(currentHeight);
+    var weightForHeights = <%= WeightForHeight.patient_weight_for_height_values.to_json -%>;
+    var medianWeightHeight = weightForHeights[currentHeightRounded.toFixed(1)];
+    var weightForHeightPercentile = (currentWeight/(medianWeightHeight)*100).toFixed(0);
+
+
+    if (weightForHeightPercentile >= 80) {
+      return "Normal";
+    } else if ((weightForHeightPercentile >= 70) && (weightForHeightPercentile <= 79)) {
+      return "Moderate wasting";
+    } else {
+      return "Severe wasting";
+    }
+  }
+
+  function preSelectSevereWasting(){
+    if (showConditions() == "Severe wasting") {
+      conditions = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age &lt;70% or MUAC less than 11cm or oedema)"]
+      if (conditions.length > 0) {
+          optionsList = conditions.split(',')
+          options = document.getElementsByTagName('li');
+          for (x = 0 ; x < optionsList.length ; x++) {
+            for (i = 0 ; i < options.length ; i++) {
+              if (options[i].getAttribute('tstvalue') == optionsList[x]) {
+                updateTouchscreenInputForSelect(options[i]);
+              }
+            }
+          }
+        }
+    }
+  }
 
 </script>  
 <style type="text/css">
@@ -532,6 +582,7 @@
 				  {:id => "stage_4_conditions",
 				   :multiple => true,
 				   :optional => true,
+                   :tt_onLoad => 'preSelectSevereWasting()',
 				   :tt_onUnLoad => 'setSelectedStageConditions(4);',
 				   :condition => 'showConditions() == true',
 				   :helpText => "Stage 4 Conditions",
