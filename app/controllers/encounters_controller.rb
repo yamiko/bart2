@@ -312,10 +312,7 @@ class EncountersController < ApplicationController
 		else
 			@retrospective = false
 		end
-    @current_height = PatientService.get_patient_attribute_value(@patient, "current_height")
-    #added current weight to use on HIV staging for infants
-    @current_weight = PatientService.get_patient_attribute_value(@patient,
-                                                            "current_weight")
+
 
 		@min_weight = PatientService.get_patient_attribute_value(@patient, "min_weight")
         @max_weight = PatientService.get_patient_attribute_value(@patient, "max_weight")
@@ -555,12 +552,28 @@ class EncountersController < ApplicationController
 				end
 			end
 
-		  if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' 
+		  if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING'
+        @current_height = PatientService.get_patient_attribute_value(@patient, "current_height")
+        #added current weight to use on HIV staging for infants
+        @current_weight = PatientService.get_patient_attribute_value(@patient,
+                                                              "current_weight")
         if !@retrospective
           @who_stage_i = @who_stage_i - concept_set('Unspecified Staging Conditions')
           @who_stage_ii = @who_stage_ii - concept_set('Unspecified Staging Conditions')
           @who_stage_iii = @who_stage_iii - concept_set('Unspecified Staging Conditions')
           @who_stage_iv = @who_stage_iv - concept_set('Unspecified Staging Conditions') - concept_set('Calculated WHO HIV staging conditions')
+        end
+        if @patient_bean.age < 15
+          current_height_rounded = (@current_height % @current_height.to_f.floor < 0.5? 0 : 0.5) + @current_height.to_f.floor
+          weight_for_heights = WeightForHeight.patient_weight_for_height_values       
+          median_weight_height = weight_for_heights[current_height_rounded.to_f]
+          weight_for_height_percentile = (@current_weight/(median_weight_height)*100)
+
+          if weight_for_height_percentile < 70
+           @severe_wasting = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC less than 11cm or oedema)"]
+          end
+        else
+           @severe_wasting = []
         end
 			end
 			
@@ -575,6 +588,8 @@ class EncountersController < ApplicationController
 			#raise CoreService.get_global_property_value('use.extended.staging.questions').to_s
 			#raise @not_explicitly_asked.to_yaml
 			#raise concept_set('PRESUMED SEVERE HIV CRITERIA IN INFANTS').to_yaml
+      @who_stage_iv = @who_stage_iv.flatten.uniq
+      
 		end
 
 		@arv_drugs = nil
