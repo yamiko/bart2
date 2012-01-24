@@ -29,7 +29,7 @@
 	}
 </script>
 
-<form action="/encounters/create" method='post'>
+<form id='art_adherence' action="/encounters/create" method='post'>
 	<%= hidden_field_tag "encounter[encounter_type_name]", "ART ADHERENCE" %>
 	<%= hidden_field_tag "encounter[patient_id]", @patient.id %>
 	<%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
@@ -42,21 +42,29 @@
 				:units     => "#{order.drug_order.units}",
 				:order_id  => "#{order.order_id}",
 				:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} brought to clinic"} %>
+
 		<%= touch_numeric_tag "AMOUNT OF DRUG REMAINING AT HOME", @patient, nil,
 			{	:id        => "amount_other_#{order.order_id}",
 				:units     => "#{order.drug_order.units}",
 				:order_id  => "#{order.order_id}",
-				:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} left at home" } %>
-		<%= touch_text_field_tag "WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER", @patient, nil,
+				:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} left at home",
+				:tt_onUnLoad   => "getAdherence(#{order.id}, '#{order.start_date.strftime('%Y-%m-%d')}', '#{order.auto_expire_date.strftime('%Y-%m-%d')}', #{order.drug_order.equivalent_daily_dose || 0}, #{order.drug_order.quantity || 0})" } %>
+
+		<%= touch_hidden_tag "WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER", @patient, nil,
 			{	:id          => "adherence_#{order.order_id}",
 				:helpText    => "Adherence summary for #{order.drug_order.drug.name}",
-				:tt_onLoad   => "adherence(#{order.id}, '#{order.start_date.strftime('%Y-%m-%d')}', '#{order.auto_expire_date.strftime('%Y-%m-%d')}', #{order.drug_order.equivalent_daily_dose || 0}, #{order.drug_order.quantity || 0})",
+				:tt_onLoad   => "getAdherence(#{order.id}, '#{order.start_date.strftime('%Y-%m-%d')}', '#{order.auto_expire_date.strftime('%Y-%m-%d')}', #{order.drug_order.equivalent_daily_dose || 0}, #{order.drug_order.quantity || 0})",
 				:optional    => "true",
 				:order_id    => "#{order.order_id}",
 				:tt_pageStyleClass => "NoControls"} %>
+
 	<% end rescue [] %>
-	
+
 	<script>
+		var amount_brought_ids = [];
+    var amount_other_ids = [];
+    var adherence_ids = [];
+		
 		function since(date) {
 			var today = dateCreate('<%=session_date.to_date%>');
 			return (today - date) / (1000 * 60 * 60 * 24);
@@ -68,6 +76,7 @@
 		}
 
 		function adherence(order_id, start_date, auto_expire_date, equivalent_daily_dose, quantity) {
+			var adherence_summary = [];
 			var amount_remaining = 0
 			if (parseFloat($('amount_brought_'+order_id).value) > 0) amount_remaining += parseFloat($('amount_brought_'+order_id).value);
 			if (parseFloat($('amount_other_'+order_id).value) > 0) amount_remaining += parseFloat($('amount_other_'+order_id).value);
@@ -98,11 +107,40 @@
 			summary += "<div class='" + warning + "'><span class='title'>Percentage of doses taken:&nbsp;</span><span class='value'>"+ adherence +"%</span></div>"
 			if (adherence < 95 || adherence > 105) summary += "<div class='" + warning + "'><span class='recommendation'>Patient needs counseling</span></div>"
 			summary += "</div>"
+		
 			$('page'+tstCurrentPage).innerHTML = $('page'+tstCurrentPage).innerHTML + summary;
 
 			// Set the value
 			$('touchscreenInput'+tstCurrentPage).value = ""+adherence;
+
 		}
+
+		function showSummary(summary){
+		  alert(summary);
+		  var display = "<div><span class='title' style='font-size:25px;padding-top:7px;'>" + summary + "</span></div>";
+    $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + display + '</div>' ;    
+    $("clearButton").style.display = 'none';
+		}
+
+    function getAdherence(order_id, start_date, auto_expire_date, equivalent_daily_dose, quantity){
+      var amount_remaining = 0
+			
+			if (parseFloat($('amount_brought_'+order_id).value) > 0) amount_remaining += parseFloat($('amount_brought_'+order_id).value);
+			if (parseFloat($('amount_other_'+order_id).value) > 0) amount_remaining += parseFloat($('amount_other_'+order_id).value);
+
+			var last_visit_date = dateCreate(start_date);
+			var days_since_last_visit = since(last_visit_date);
+			var expected_amount_remaining = quantity - Math.round(days_since_last_visit * equivalent_daily_dose);
+			var doses_missed = amount_remaining - expected_amount_remaining;
+			var adherence = 100;
+			// To avoiding dividing by zero which result in a value of 'infinity' being inserted into the database as adherence value
+			if ((quantity - expected_amount_remaining) != 0)
+			{
+				adherence = Math.round(100 * (quantity - amount_remaining) / (quantity - expected_amount_remaining));
+			}
+			//set the adherence value
+      $('adherence_'+order_id).value = adherence;
+    }
 	</script>
 
   <% session_date = session[:datetime].to_date rescue nil                       
