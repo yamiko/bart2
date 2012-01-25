@@ -992,6 +992,8 @@ class ApplicationController < ActionController::Base
             end 
           end
         when 'ART ADHERENCE'
+          arv_drugs_given = PatientService.drug_given_before(@patient, session_date.to_date).arv.prescriptions rescue []
+          next if arv_drugs_given.blank?
           if encounter_available.blank? and user_selected_activities.match(/Manage ART adherence/i)
             task.url = "/encounters/new/art_adherence?show&patient_id=#{patient.id}"
             return task
