@@ -11,27 +11,28 @@
 
   function updateNextAppointmentNumber() {                                      
     var alerts = document.getElementsByClassName("noneWarnings");               
-    var appAlert = null;                                                        
+    var element = null;                                                        
     for (i=0 ; i < alerts.length ; i++) {                                       
       if (alerts[i].innerHTML.match(/Next appointment/i)) {                     
-        appAlert = alerts[i];                                                   
+        element = alerts[i];                                                   
         break;                                                                  
       }                                                                         
     }                                                                           
     
-    if(!appAlert)
+    if(!element)
       return
-    
-    new Ajax.Request("/patients/dashboard_display_number_of_booked_patients?date=" + appAlert.innerHTML ,
-    {method:'get',onSuccess: function(transport){
-      html = JSON.parse(transport.responseText) || "";                         
-      if (html) {         
-        appAlert.innerHTML = html;                                                  
-      }                                                                         
-    }});                                                                        
+
+    new Ajax.Request("/patients/dashboard_display_number_of_booked_patients?date=" + element.innerHTML, {
+      onComplete: function(transport) {
+      if (200 == transport.status)
+        element.innerHTML = transport.responseText;
+
+      }
+    });
+                                                                 
   } 
 
-  setInterval("updateNextAppointmentNumber();",9000); 
+  setInterval("updateNextAppointmentNumber();",5000); 
 </script>
 <style>
   .even {
