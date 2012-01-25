@@ -401,9 +401,7 @@
           reasonForArtEligibility = "PATIENT PREGNANT";              
         } else if ($('breast_feeding') && $('breast_feeding').value == "YES") {
           reasonForArtEligibility = "BREASTFEEDING";              
-        } else if (growthIndicators() == "Severe wasting"){
-          reasonForArtEligibility = whoStageConcept(4, "PEDS");
-        }
+        } 
       }catch(e){}
     }  
     $('reason_for_art_eligibility').value = reasonForArtEligibility;
@@ -523,52 +521,6 @@
     }
   }
 
-  function growthIndicators(){
-      weightForHeightValue = ""
-      currentHeight = <%= @current_height %>
-      currentWeight = <%= @current_weight %>
-      medianWeightHeight = [<%= WeightHeightForAge.median_weight_height(@patient_bean.age_in_months, @patient.person.gender).join(',') rescue nil -%>];
-      currentWeightPercentile = (currentWeight/(medianWeightHeight[0])*100).toFixed(0);
-      currentHeightPercentile = (currentHeight/(medianWeightHeight[1])*100).toFixed(0);
-      if (('<%= @patient_bean.age %>') < 15){
-         weightForHeightValue = showWeightForHeight();
-      }
-      return weightForHeightValue;
-   }
-
-   function showWeightForHeight() {
-    currentHeight = <%= @current_height %>
-    var currentHeightRounded = (currentHeight % Math.floor(currentHeight) < 0.5 ? 0 : 0.5) + Math.floor(currentHeight);
-    var weightForHeights = <%= WeightForHeight.patient_weight_for_height_values.to_json -%>;
-    var medianWeightHeight = weightForHeights[currentHeightRounded.toFixed(1)];
-    var weightForHeightPercentile = (currentWeight/(medianWeightHeight)*100).toFixed(0);
-
-
-    if (weightForHeightPercentile >= 80) {
-      return "Normal";
-    } else if ((weightForHeightPercentile >= 70) && (weightForHeightPercentile <= 79)) {
-      return "Moderate wasting";
-    } else {
-      return "Severe wasting";
-    }
-  }
-  function preSelectSevereWasting(condition_num,staging_condition){
-    returnValue = false;
-    input_text = $('staging_condition_' + condition_num);
-    optionsList = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC less than 11cm or oedema)"]
-   
-    for (x = 0 ; x < optionsList.length ; x++) {
-      if (staging_condition == optionsList[x]) {
-           if (growthIndicators() == "Severe wasting") {
-              input_text.value = "YES";
-              setSelectedStageConditions(condition_num, staging_condition);            
-              returnValue = true;
-           }
-      }
-    }
-    return returnValue;
-  }
-    
 </script>  
 <style type="text/css">
   .small .options li { font-size:1.1em; }

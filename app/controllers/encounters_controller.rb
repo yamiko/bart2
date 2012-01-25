@@ -633,9 +633,9 @@ class EncountersController < ApplicationController
 					@who_stage_iv = @who_stage_iv - concept_set('Unspecified Staging Conditions') - concept_set('Calculated WHO HIV staging conditions')
 				end
 
+				@moderate_wasting = []
+				@severe_wasting = []
 				if @patient_bean.age < 15
-					current_height_rounded = (@current_height % @current_height.to_f.floor < 0.5? 0 : 0.5) + @current_height.to_f.floor
-
 					median_weight_height = WeightHeightForAge.median_weight_height(@patient_bean.age_in_months, @patient.person.gender) rescue []
 					current_weight_percentile = (@current_weight/(median_weight_height[0])*100)
 
@@ -648,9 +648,6 @@ class EncountersController < ApplicationController
 						@who_stage_iv = @who_stage_iv.flatten.uniq if CoreService.get_global_property_value('use.extended.staging.questions').to_s != "true"
 						@moderate_wasting = []
 					end
-				else
-					@moderate_wasting = []
-					@severe_wasting = []
 				end
 				
 				reason_for_art = @patient.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue []
