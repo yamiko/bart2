@@ -611,37 +611,42 @@ class EncountersController < ApplicationController
 				end
 			end
 
-		  if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING'
-        #added current weight to use on HIV staging for infants
-        @current_weight = PatientService.get_patient_attribute_value(@patient,
-                                                              "current_weight")
-        if !@retrospective
-          @who_stage_i = @who_stage_i - concept_set('Unspecified Staging Conditions')
-          @who_stage_ii = @who_stage_ii - concept_set('Unspecified Staging Conditions')
-          @who_stage_iii = @who_stage_iii - concept_set('Unspecified Staging Conditions')
-          @who_stage_iv = @who_stage_iv - concept_set('Unspecified Staging Conditions') - concept_set('Calculated WHO HIV staging conditions')
-        end
-        
-        if @patient_bean.age < 15
-			current_height_rounded = (@current_height % @current_height.to_f.floor < 0.5? 0 : 0.5) + @current_height.to_f.floor
+			if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING'
+				#added current weight to use on HIV staging for infants
+				@current_weight = PatientService.get_patient_attribute_value(@patient,
+													                  "current_weight")
+				if !@retrospective
+					@who_stage_i = @who_stage_i - concept_set('Unspecified Staging Conditions')
+					@who_stage_ii = @who_stage_ii - concept_set('Unspecified Staging Conditions')
+					@who_stage_iii = @who_stage_iii - concept_set('Unspecified Staging Conditions')
+					@who_stage_iv = @who_stage_iv - concept_set('Unspecified Staging Conditions') - concept_set('Calculated WHO HIV staging conditions')
+				end
 
-			median_weight_height = WeightHeightForAge.median_weight_height(@patient_bean.age_in_months, @patient.person.gender) rescue []
-			current_weight_percentile = (@current_weight/(median_weight_height[0])*100)
+				if @patient_bean.age < 15
+					current_height_rounded = (@current_height % @current_height.to_f.floor < 0.5? 0 : 0.5) + @current_height.to_f.floor
 
-			if current_weight_percentile >= 70 && current_weight_percentile <= 79
-				@moderate_wasting = ["Moderate unexplained wasting/malnutrition not responding to treatment (weight-for-height/ -age 70-79% or muac 11-12 cm)"]
-				@who_stage_iii = @who_stage_iii.flatten.uniq if CoreService.get_global_property_value('use.extended.staging.questions').to_s != "true"       
-				@severe_wasting = []
-			elsif current_weight_percentile < 70
-				@severe_wasting = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC less than 11cm or oedema)"]
-				@who_stage_iv = @who_stage_iv.flatten.uniq if CoreService.get_global_property_value('use.extended.staging.questions').to_s != "true"
-				@moderate_wasting = []
-			end
-        else
-			@moderate_wasting = []
-			@severe_wasting = []
-        end
-        
+					median_weight_height = WeightHeightForAge.median_weight_height(@patient_bean.age_in_months, @patient.person.gender) rescue []
+					current_weight_percentile = (@current_weight/(median_weight_height[0])*100)
+
+					if current_weight_percentile >= 70 && current_weight_percentile <= 79
+						@moderate_wasting = ["Moderate unexplained wasting/malnutrition not responding to treatment (weight-for-height/ -age 70-79% or muac 11-12 cm)"]
+						@who_stage_iii = @who_stage_iii.flatten.uniq if CoreService.get_global_property_value('use.extended.staging.questions').to_s != "true"       
+						@severe_wasting = []
+					elsif current_weight_percentile < 70
+						@severe_wasting = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC less than 11cm or oedema)"]
+						@who_stage_iv = @who_stage_iv.flatten.uniq if CoreService.get_global_property_value('use.extended.staging.questions').to_s != "true"
+						@moderate_wasting = []
+					end
+				else
+					@moderate_wasting = []
+					@severe_wasting = []
+				end
+				
+				reason_for_art = @patient.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue []
+		        @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
+				if !@reason_for_art_eligibility != nil && @reason_for_art_eligibility.upcase == 'NONE'
+					@reason_for_art_eligibility = nil				
+				end
 			end
 			
 			if @tb_status == true && @hiv_status != 'Negative'
@@ -664,14 +669,14 @@ class EncountersController < ApplicationController
 			other = []
 
 			@arv_drugs = MedicationService.arv_drugs.collect { | drug | 
-						if (CoreService.get_global_property_value('use_regimen_short_names').to_s == "true" rescue false)					
-							other << [drug.concept.shortname, drug.concept.shortname] if (drug.concept.shortname.upcase.include?('OTHER') || drug.concept.shortname.upcase.include?('UNKNOWN'))
-							[drug.concept.shortname, drug.concept.shortname] 
-						else
-							other << [drug.concept.fullname, drug.concept.fullname] if (drug.concept.fullname.upcase.include?('OTHER') || drug.concept.fullname.upcase.include?('UKNOWN'))
-							[drug.concept.fullname, drug.concept.fullname]
-						end
-					}
+				if (CoreService.get_global_property_value('use_regimen_short_names').to_s == "true" rescue false)					
+					other << [drug.concept.shortname, drug.concept.shortname] if (drug.concept.shortname.upcase.include?('OTHER') || drug.concept.shortname.upcase.include?('UNKNOWN'))
+					[drug.concept.shortname, drug.concept.shortname] 
+				else
+					other << [drug.concept.fullname, drug.concept.fullname] if (drug.concept.fullname.upcase.include?('OTHER') || drug.concept.fullname.upcase.include?('UKNOWN'))
+					[drug.concept.fullname, drug.concept.fullname]
+				end
+			}
 			@arv_drugs = @arv_drugs - other
 			@arv_drugs = @arv_drugs.sort {|a,b| a.to_s.downcase <=> b.to_s.downcase}
 			@arv_drugs = @arv_drugs + other
