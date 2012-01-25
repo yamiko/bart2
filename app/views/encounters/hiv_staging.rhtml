@@ -300,9 +300,7 @@
 					reasonForArtEligibility = "PATIENT PREGNANT";              
 				} else if ($('breast_feeding') && $('breast_feeding').value == "YES") {
 					reasonForArtEligibility = "BREASTFEEDING";              
-				} else if (growthIndicators()() == "Severe wasting"){
-                    reasonForArtEligibility = whoStageConcept(4, "PEDS");
-                }
+				} 
 			} catch (e) {}
 		}
   
@@ -417,52 +415,6 @@
 		}
 		return true;
 	}
-
-    function growthIndicators(){
-      weightForHeightValue = ""
-      currentHeight = <%= @current_height %>
-      currentWeight = <%= @current_weight %>
-      medianWeightHeight = [<%= WeightHeightForAge.median_weight_height(@patient_bean.age_in_months, @patient.person.gender).join(',') rescue nil -%>];
-      currentWeightPercentile = (currentWeight/(medianWeightHeight[0])*100).toFixed(0);
-      currentHeightPercentile = (currentHeight/(medianWeightHeight[1])*100).toFixed(0);
-      if (('<%= @patient_bean.age %>') < 15){
-         weightForHeightValue = showWeightForHeight();
-      }
-      return weightForHeightValue;
-   }
-
-   function showWeightForHeight() {
-    currentHeight = <%= @current_height %>
-    var currentHeightRounded = (currentHeight % Math.floor(currentHeight) < 0.5 ? 0 : 0.5) + Math.floor(currentHeight);
-    var weightForHeights = <%= WeightForHeight.patient_weight_for_height_values.to_json -%>;
-    var medianWeightHeight = weightForHeights[currentHeightRounded.toFixed(1)];
-    var weightForHeightPercentile = (currentWeight/(medianWeightHeight)*100).toFixed(0);
-
-
-    if (weightForHeightPercentile >= 80) {
-      return "Normal";
-    } else if ((weightForHeightPercentile >= 70) && (weightForHeightPercentile <= 79)) {
-      return "Moderate wasting";
-    } else {
-      return "Severe wasting";
-    }
-  }
-
-  function preSelectSevereWasting(){
-    if (growthIndicators() == "Severe wasting") {
-      optionsList = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC less than 11cm or oedema)"]
-      if (optionsList.length > 0) {
-          options = document.getElementsByTagName('li');
-          for (x = 0 ; x < optionsList.length ; x++) {
-            for (i = 0 ; i < options.length ; i++) {
-              if (options[i].getAttribute('tstvalue') == optionsList[x]) {
-                updateTouchscreenInputForSelect(options[i]);
-              }
-            }
-          }
-        }
-    }
-  }
 
 </script>  
 <style type="text/css">
@@ -645,7 +597,7 @@
 			<%= touch_location_tag "CD4 PERCENT LOCATION", @patient, nil,
 				{	:id => "cd4_percent_location",
 					:condition => '$("new_cd4_percent_available").value == "YES" || $("new_lymphocyte_count_available").value == "YES" || ($("new_cd4_count_available").value == "YES" && transferInPatient() == false)',
-					:helpText => "CD4/Lymphocyte count location"} %>
+					:helpText => "CD4 or Lymphocyte count location"} %>
 		<% end %>
   
 		<%= touch_text_area_tag("CLINICAL NOTES CONSTRUCT", @patient, nil,
