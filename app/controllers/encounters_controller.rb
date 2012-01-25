@@ -623,7 +623,6 @@ class EncountersController < ApplicationController
 				end
 
 				if @patient_bean.age < 15
-					current_height_rounded = (@current_height % @current_height.to_f.floor < 0.5? 0 : 0.5) + @current_height.to_f.floor
 
 					median_weight_height = WeightHeightForAge.median_weight_height(@patient_bean.age_in_months, @patient.person.gender) rescue []
 					current_weight_percentile = (@current_weight/(median_weight_height[0])*100)
