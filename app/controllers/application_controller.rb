@@ -917,7 +917,7 @@ class ApplicationController < ActionController::Base
           elsif encounter_available.blank? and not user_selected_activities.match(/Manage HIV staging visits/i)
             task.url = "/patients/show/#{patient.id}"
             return task
-          end if !reason_for_art.nil? or reason_for_art.blank?
+          end if reason_for_art.nil? or reason_for_art.blank?
         when 'HIV RECEPTION'
           encounter_art_initial = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
                                          patient.id,EncounterType.find_by_name('ART_INITIAL').id],
