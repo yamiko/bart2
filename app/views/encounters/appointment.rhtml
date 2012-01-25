@@ -360,6 +360,9 @@ if session_date %>
 <% else %>                                                                  
   <%= hidden_field_tag "filter[provider]", nil %>                           
 <%end%>
+<% if params[:change_app]=="true"%>
+  <%= hidden_field_tag "change_appointment_date", true %>                           
+<%end%>
 </form>
 
 <div id = "information">

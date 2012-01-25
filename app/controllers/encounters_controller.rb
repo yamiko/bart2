@@ -1,6 +1,17 @@
 class EncountersController < ApplicationController
   def create(params=params, session=session)
     #raise params.to_yaml
+    
+    if params[:change_appointment_date] == "true"
+      type = EncounterType.find_by_name("APPOINTMENT")                            
+      appointment_encounter = Observation.find(:first,                            
+      :order => "encounter_datetime DESC,encounter.date_created DESC",
+      :joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
+      :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?",
+      ConceptName.find_by_name('Appointment date').concept_id,
+      type.id, params[:encounter]["patient_id"]]).encounter
+      appointment_encounter.void("Given a new appointment date")
+    end
     	
     if params['encounter']['encounter_type_name'] == 'TB_INITIAL'
       (params[:observations] || []).each do |observation|
