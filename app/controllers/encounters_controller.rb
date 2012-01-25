@@ -169,8 +169,16 @@ class EncountersController < ApplicationController
           user_person_id = User.find_by_user_id(params['encounter']['provider_id']).person_id
         end
         encounter.provider_id = user_person_id
-        encounter.save   
+        encounter.save 
+          
         params[:observations] = observations 
+
+        (params[:observations] || []).each do |observation|
+          if observation['concept_name'].upcase == 'CD4 COUNT' or observation['concept_name'].upcase == "LYMPHOCYTE COUNT"
+            observation['value_modifier'] = observation['value_numeric'].match(/=|>|</i)[0] rescue nil
+            observation['value_numeric'] = observation['value_numeric'].match(/[0-9](.*)/i)[0] rescue nil
+          end
+        end
         create_obs(encounter , params)
       end
       params[:observations] = initial_observations if has_tranfer_letter  
@@ -179,8 +187,8 @@ class EncountersController < ApplicationController
     if params['encounter']['encounter_type_name'].upcase == 'HIV STAGING'
       observations = []
       (params[:observations] || []).each do |observation|
-        if observation['concept_name'].upcase == 'CD4 COUNT'
-          observation['value_modifier'] = observation['value_numeric'].match(/<|>/)[0] rescue nil
+        if observation['concept_name'].upcase == 'CD4 COUNT' or observation['concept_name'].upcase == "LYMPHOCYTE COUNT"
+          observation['value_modifier'] = observation['value_numeric'].match(/=|>|</i)[0] rescue nil
           observation['value_numeric'] = observation['value_numeric'].match(/[0-9](.*)/i)[0] rescue nil
         end
         if observation['concept_name'].upcase == 'CD4 COUNT LOCATION' or observation['concept_name'].upcase == 'LYMPHOCYTE COUNT LOCATION'
@@ -1437,6 +1445,7 @@ class EncountersController < ApplicationController
         observation["value_#{value_name}"] unless observation["value_#{value_name}"].blank? rescue nil
       }.compact
       next if values.length == 0
+      
       observation[:value_text] = observation[:value_text].join(", ") if observation[:value_text].present? && observation[:value_text].is_a?(Array)
       observation.delete(:value_text) unless observation[:value_coded_or_text].blank?
       observation[:encounter_id] = encounter.id
