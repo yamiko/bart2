@@ -623,15 +623,13 @@
 					
 
       
-                      <%opts = {	:id => "staging_condition_#{count+=1}" ,
-                          :optional => false,
-                          :tt_onLoad =>  "$('nextButton').style.display = 'none';setTimeout('cssText();',1);",
-                          :tt_requireNextClick => false,
-                          :tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition[0]}');",
-                          :helpText => staging_condition[0] }
-
-                      opts[:condition] = "preSelectSevereWasting(#{count},'#{staging_condition[0]}') == false;" if staging_condition[0] == "Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC less than 11cm or oedema)"
-                    %>
+					<% opts = {	:id => "staging_condition_#{count+=1}" ,
+						:optional => false,
+						:tt_onLoad =>  "$('nextButton').style.display = 'none';setTimeout('cssText();',1);",
+						:tt_requireNextClick => false,
+						:tt_onUnLoad => "setSelectedStageConditions(#{count},'#{staging_condition[0]}');",
+						:helpText => staging_condition[0] }
+					%>
 
                       <%= touch_yes_no_unknown_tag staging_condition[0] , @patient, nil, opts %>
                 <% end %>
