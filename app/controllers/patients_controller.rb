@@ -2447,7 +2447,7 @@ class PatientsController < ApplicationController
     count = '0' if count.blank?
     render :text => "Next appointment: #{date.strftime('%d %B %Y')} (#{count})"
   end 
-  
+
   private
 
 end
