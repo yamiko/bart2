@@ -52,6 +52,10 @@
     top: 60px; 
   }
 
+  #tt_page_cd4_or_lymphocyte_count_location .inputFrameClass {                                                            
+    top: 60px; 
+  }
+
   #tt_page_lymphocyte_count_location .inputFrameClass {                                                            
     top: 60px; 
   }
@@ -768,7 +772,7 @@
 			<%= touch_location_tag "CD4 PERCENT LOCATION", @patient, nil,
 				{	:id => "cd4_percent_location",
 					:condition => '$("new_cd4_percent_available").value == "YES" || $("new_lymphocyte_count_available").value == "YES" || ($("new_cd4_count_available").value == "YES" && transferInPatient() == false)',
-					:helpText => "CD4/Lymphocyte count location"} %>		
+					:helpText => "CD4 or Lymphocyte count location"} %>		
 		<% end %>
   
   <%= touch_text_area_tag("CLINICAL NOTES CONSTRUCT", @patient, nil,
