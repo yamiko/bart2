@@ -11,6 +11,15 @@ class EncountersController < ApplicationController
     end
 
     if params['encounter']['encounter_type_name'] == 'ART_INITIAL'
+
+      has_tranfer_letter = false
+      (params["observations"]).each do |ob|
+        if ob["concept_name"] == "HAS TRANSFER LETTER" 
+          has_tranfer_letter = (ob["value_coded_or_text"].upcase == "YES")
+          break
+        end
+      end
+      
       if params[:observations][0]['concept_name'].upcase == 'EVER RECEIVED ART' and params[:observations][0]['value_coded_or_text'].upcase == 'NO'
         observations = []
         (params[:observations] || []).each do |observation|
@@ -49,6 +58,7 @@ class EncountersController < ApplicationController
       params[:observations] = observations unless observations.blank?
 
       observations = []
+      vitals_observations = []
       initial_observations = []
       (params[:observations] || []).each do |observation|
         if observation['concept_name'].upcase == 'WHO STAGES CRITERIA PRESENT'
@@ -73,10 +83,40 @@ class EncountersController < ApplicationController
           observations << observation
         elsif observation['concept_name'].upcase == 'WHO STAGE'
           observations << observation
+        elsif observation['concept_name'].upcase == 'BODY MASS INDEX, MEASURED'
+          bmi = nil
+          (params["observations"]).each do |ob|
+            if ob["concept_name"] == "BODY MASS INDEX, MEASURED" 
+              bmi = ob["value_numeric"]
+              break
+            end
+          end
+          next if bmi.blank? 
+          vitals_observations << observation
+        elsif observation['concept_name'].upcase == 'WEIGHT (KG)'
+          weight = 0
+          (params["observations"]).each do |ob|
+            if ob["concept_name"] == "WEIGHT (KG)" 
+              weight = ob["value_numeric"].to_f rescue 0
+              break
+            end
+          end
+          next if weight.blank? or weight < 1
+          vitals_observations << observation
+        elsif observation['concept_name'].upcase == 'HEIGHT (CM)'
+          height = 0
+          (params["observations"]).each do |ob|
+            if ob["concept_name"] == "HEIGHT (CM)" 
+              height = ob["value_numeric"].to_i rescue 0
+              break
+            end
+          end
+          next if height.blank? or height < 1
+          vitals_observations << observation
         else
           initial_observations << observation
         end
-      end
+      end if has_tranfer_letter
 
       date_started_art = nil
       (initial_observations || []).each do |ob|
@@ -85,7 +125,26 @@ class EncountersController < ApplicationController
         end
       end
 
-      unless observations.blank? and observations.length > 0
+      unless vitals_observations.blank?
+        encounter = Encounter.new()
+        encounter.encounter_type = EncounterType.find_by_name("VITALS").id
+        encounter.patient_id = params['encounter']['patient_id']
+        encounter.encounter_datetime = date_started_art 
+        if encounter.encounter_datetime.blank?                                                                        
+          encounter.encounter_datetime = params['encounter']['encounter_datetime']  
+        end 
+        if params[:filter] and !params[:filter][:provider].blank?
+          user_person_id = User.find_by_username(params[:filter][:provider]).person_id
+        else
+          user_person_id = User.find_by_user_id(params['encounter']['provider_id']).person_id
+        end
+        encounter.provider_id = user_person_id
+        encounter.save   
+        params[:observations] = vitals_observations
+        create_obs(encounter , params)
+      end
+
+      unless observations.blank? 
         encounter = Encounter.new()
         encounter.encounter_type = EncounterType.find_by_name("HIV STAGING").id
         encounter.patient_id = params['encounter']['patient_id']
@@ -103,7 +162,7 @@ class EncountersController < ApplicationController
         params[:observations] = observations 
         create_obs(encounter , params)
       end
-      params[:observations] = initial_observations 
+      params[:observations] = initial_observations if has_tranfer_letter  
     end
 
     if params['encounter']['encounter_type_name'].upcase == 'HIV STAGING'
@@ -313,9 +372,6 @@ class EncountersController < ApplicationController
 			@retrospective = false
 		end
     @current_height = PatientService.get_patient_attribute_value(@patient, "current_height")
-    #added current weight to use on HIV staging for infants
-    @current_weight = PatientService.get_patient_attribute_value(@patient,
-                                                            "current_weight")
 
 		@min_weight = PatientService.get_patient_attribute_value(@patient, "min_weight")
         @max_weight = PatientService.get_patient_attribute_value(@patient, "max_weight")
@@ -555,13 +611,37 @@ class EncountersController < ApplicationController
 				end
 			end
 
-		  if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' 
+		  if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING'
+        #added current weight to use on HIV staging for infants
+        @current_weight = PatientService.get_patient_attribute_value(@patient,
+                                                              "current_weight")
         if !@retrospective
           @who_stage_i = @who_stage_i - concept_set('Unspecified Staging Conditions')
           @who_stage_ii = @who_stage_ii - concept_set('Unspecified Staging Conditions')
           @who_stage_iii = @who_stage_iii - concept_set('Unspecified Staging Conditions')
           @who_stage_iv = @who_stage_iv - concept_set('Unspecified Staging Conditions') - concept_set('Calculated WHO HIV staging conditions')
         end
+        
+        if @patient_bean.age < 15
+			current_height_rounded = (@current_height % @current_height.to_f.floor < 0.5? 0 : 0.5) + @current_height.to_f.floor
+
+			median_weight_height = WeightHeightForAge.median_weight_height(@patient_bean.age_in_months, @patient.person.gender) rescue []
+			current_weight_percentile = (@current_weight/(median_weight_height[0])*100)
+
+			if current_weight_percentile >= 70 && current_weight_percentile <= 79
+				@moderate_wasting = ["Moderate unexplained wasting/malnutrition not responding to treatment (weight-for-height/ -age 70-79% or muac 11-12 cm)"]
+				@who_stage_iii = @who_stage_iii.flatten.uniq if CoreService.get_global_property_value('use.extended.staging.questions').to_s != "true"       
+				@severe_wasting = []
+			elsif current_weight_percentile < 70
+				@severe_wasting = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC less than 11cm or oedema)"]
+				@who_stage_iv = @who_stage_iv.flatten.uniq if CoreService.get_global_property_value('use.extended.staging.questions').to_s != "true"
+				@moderate_wasting = []
+			end
+        else
+			@moderate_wasting = []
+			@severe_wasting = []
+        end
+        
 			end
 			
 			if @tb_status == true && @hiv_status != 'Negative'
@@ -575,6 +655,8 @@ class EncountersController < ApplicationController
 			#raise CoreService.get_global_property_value('use.extended.staging.questions').to_s
 			#raise @not_explicitly_asked.to_yaml
 			#raise concept_set('PRESUMED SEVERE HIV CRITERIA IN INFANTS').to_yaml
+      #@who_stage_iv = @who_stage_iv.flatten.uniq
+      
 		end
 
 		@arv_drugs = nil
