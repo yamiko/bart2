@@ -641,7 +641,7 @@ class EncountersController < ApplicationController
 				
 				reason_for_art = @patient.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue []
 		        @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
-				if !@reason_for_art_eligibility != nil && @reason_for_art_eligibility.upcase == 'NONE'
+				if !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.upcase == 'NONE'
 					@reason_for_art_eligibility = nil				
 				end
 			end
