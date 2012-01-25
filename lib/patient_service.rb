@@ -1155,8 +1155,8 @@ EOF
 
     if first_vitals.blank?
       encounter = Encounter.find(:first,:order => "encounter_datetime DESC",
-        :conditions =>["patient_id = ? AND encounter_type = ?",git
-          patient.id,EncounterType.find_by_name('LAB ORDERS').id])
+        :conditions =>["patient_id = ? AND encounter_type = ?",patient.id,
+        EncounterType.find_by_name('LAB ORDERS').id])
       
       sup_result = self.next_lab_encounter(patient , encounter, session_date)
 
