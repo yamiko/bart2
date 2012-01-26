@@ -1,6 +1,17 @@
 class EncountersController < ApplicationController
   def create(params=params, session=session)
     #raise params.to_yaml
+    
+    if params[:change_appointment_date] == "true"
+      type = EncounterType.find_by_name("APPOINTMENT")                            
+      appointment_encounter = Observation.find(:first,                            
+      :order => "encounter_datetime DESC,encounter.date_created DESC",
+      :joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
+      :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?",
+      ConceptName.find_by_name('Appointment date').concept_id,
+      type.id, params[:encounter]["patient_id"]]).encounter
+      appointment_encounter.void("Given a new appointment date")
+    end
     	
     if params['encounter']['encounter_type_name'] == 'TB_INITIAL'
       (params[:observations] || []).each do |observation|
@@ -158,18 +169,26 @@ class EncountersController < ApplicationController
           user_person_id = User.find_by_user_id(params['encounter']['provider_id']).person_id
         end
         encounter.provider_id = user_person_id
-        encounter.save   
+        encounter.save 
+          
         params[:observations] = observations 
+
+        (params[:observations] || []).each do |observation|
+          if observation['concept_name'].upcase == 'CD4 COUNT' or observation['concept_name'].upcase == "LYMPHOCYTE COUNT"
+            observation['value_modifier'] = observation['value_numeric'].match(/=|>|</i)[0] rescue nil
+            observation['value_numeric'] = observation['value_numeric'].match(/[0-9](.*)/i)[0] rescue nil
+          end
+        end
         create_obs(encounter , params)
       end
-      params[:observations] = initial_observations 
+      params[:observations] = initial_observations if has_tranfer_letter  
     end
 
     if params['encounter']['encounter_type_name'].upcase == 'HIV STAGING'
       observations = []
       (params[:observations] || []).each do |observation|
-        if observation['concept_name'].upcase == 'CD4 COUNT'
-          observation['value_modifier'] = observation['value_numeric'].match(/<|>/)[0] rescue nil
+        if observation['concept_name'].upcase == 'CD4 COUNT' or observation['concept_name'].upcase == "LYMPHOCYTE COUNT"
+          observation['value_modifier'] = observation['value_numeric'].match(/=|>|</i)[0] rescue nil
           observation['value_numeric'] = observation['value_numeric'].match(/[0-9](.*)/i)[0] rescue nil
         end
         if observation['concept_name'].upcase == 'CD4 COUNT LOCATION' or observation['concept_name'].upcase == 'LYMPHOCYTE COUNT LOCATION'
@@ -611,28 +630,39 @@ class EncountersController < ApplicationController
 				end
 			end
 
-		  if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING'
-        #added current weight to use on HIV staging for infants
-        @current_weight = PatientService.get_patient_attribute_value(@patient,
-                                                              "current_weight")
-        if !@retrospective
-          @who_stage_i = @who_stage_i - concept_set('Unspecified Staging Conditions')
-          @who_stage_ii = @who_stage_ii - concept_set('Unspecified Staging Conditions')
-          @who_stage_iii = @who_stage_iii - concept_set('Unspecified Staging Conditions')
-          @who_stage_iv = @who_stage_iv - concept_set('Unspecified Staging Conditions') - concept_set('Calculated WHO HIV staging conditions')
-        end
-        if @patient_bean.age < 15
-          current_height_rounded = (@current_height % @current_height.to_f.floor < 0.5? 0 : 0.5) + @current_height.to_f.floor
-          weight_for_heights = WeightForHeight.patient_weight_for_height_values       
-          median_weight_height = weight_for_heights[current_height_rounded.to_f]
-          weight_for_height_percentile = (@current_weight/(median_weight_height)*100)
+			if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING'
+				#added current weight to use on HIV staging for infants
+				@current_weight = PatientService.get_patient_attribute_value(@patient,
+													                  "current_weight")
+				if !@retrospective
+					@who_stage_i = @who_stage_i - concept_set('Unspecified Staging Conditions')
+					@who_stage_ii = @who_stage_ii - concept_set('Unspecified Staging Conditions')
+					@who_stage_iii = @who_stage_iii - concept_set('Unspecified Staging Conditions')
+					@who_stage_iv = @who_stage_iv - concept_set('Unspecified Staging Conditions') - concept_set('Calculated WHO HIV staging conditions')
+				end
 
-          if weight_for_height_percentile < 70
-           @severe_wasting = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC less than 11cm or oedema)"]
-          end
-        else
-           @severe_wasting = []
-        end
+				@moderate_wasting = []
+				@severe_wasting = []
+				if @patient_bean.age < 15
+					median_weight_height = WeightHeightForAge.median_weight_height(@patient_bean.age_in_months, @patient.person.gender) rescue []
+					current_weight_percentile = (@current_weight/(median_weight_height[0])*100)
+
+					if current_weight_percentile >= 70 && current_weight_percentile <= 79
+						@moderate_wasting = ["Moderate unexplained wasting/malnutrition not responding to treatment (weight-for-height/ -age 70-79% or muac 11-12 cm)"]
+						@who_stage_iii = @who_stage_iii.flatten.uniq if CoreService.get_global_property_value('use.extended.staging.questions').to_s != "true"       
+						@severe_wasting = []
+					elsif current_weight_percentile < 70
+						@severe_wasting = ["Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC less than 11cm or oedema)"]
+						@who_stage_iv = @who_stage_iv.flatten.uniq if CoreService.get_global_property_value('use.extended.staging.questions').to_s != "true"
+						@moderate_wasting = []
+					end
+				end
+				
+				reason_for_art = @patient.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue []
+		        @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
+				if !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.upcase == 'NONE'
+					@reason_for_art_eligibility = nil				
+				end
 			end
 			
 			if @tb_status == true && @hiv_status != 'Negative'
@@ -646,7 +676,7 @@ class EncountersController < ApplicationController
 			#raise CoreService.get_global_property_value('use.extended.staging.questions').to_s
 			#raise @not_explicitly_asked.to_yaml
 			#raise concept_set('PRESUMED SEVERE HIV CRITERIA IN INFANTS').to_yaml
-      @who_stage_iv = @who_stage_iv.flatten.uniq
+      #@who_stage_iv = @who_stage_iv.flatten.uniq
       
 		end
 
@@ -655,14 +685,14 @@ class EncountersController < ApplicationController
 			other = []
 
 			@arv_drugs = MedicationService.arv_drugs.collect { | drug | 
-						if (CoreService.get_global_property_value('use_regimen_short_names').to_s == "true" rescue false)					
-							other << [drug.concept.shortname, drug.concept.shortname] if (drug.concept.shortname.upcase.include?('OTHER') || drug.concept.shortname.upcase.include?('UNKNOWN'))
-							[drug.concept.shortname, drug.concept.shortname] 
-						else
-							other << [drug.concept.fullname, drug.concept.fullname] if (drug.concept.fullname.upcase.include?('OTHER') || drug.concept.fullname.upcase.include?('UKNOWN'))
-							[drug.concept.fullname, drug.concept.fullname]
-						end
-					}
+				if (CoreService.get_global_property_value('use_regimen_short_names').to_s == "true" rescue false)					
+					other << [drug.concept.shortname, drug.concept.shortname] if (drug.concept.shortname.upcase.include?('OTHER') || drug.concept.shortname.upcase.include?('UNKNOWN'))
+					[drug.concept.shortname, drug.concept.shortname] 
+				else
+					other << [drug.concept.fullname, drug.concept.fullname] if (drug.concept.fullname.upcase.include?('OTHER') || drug.concept.fullname.upcase.include?('UKNOWN'))
+					[drug.concept.fullname, drug.concept.fullname]
+				end
+			}
 			@arv_drugs = @arv_drugs - other
 			@arv_drugs = @arv_drugs.sort {|a,b| a.to_s.downcase <=> b.to_s.downcase}
 			@arv_drugs = @arv_drugs + other
@@ -1415,6 +1445,7 @@ class EncountersController < ApplicationController
         observation["value_#{value_name}"] unless observation["value_#{value_name}"].blank? rescue nil
       }.compact
       next if values.length == 0
+      
       observation[:value_text] = observation[:value_text].join(", ") if observation[:value_text].present? && observation[:value_text].is_a?(Array)
       observation.delete(:value_text) unless observation[:value_coded_or_text].blank?
       observation[:encounter_id] = encounter.id

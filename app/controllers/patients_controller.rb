@@ -27,6 +27,9 @@ class PatientsController < ApplicationController
         @task = main_next_task(Location.current_location,@patient,session_date)
         @hiv_status = PatientService.patient_hiv_status(@patient)
         @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
+		if  !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.upcase == 'NONE'
+			@reason_for_art_eligibility = nil				
+		end
         @arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
         render :template => 'patients/index', :layout => false
      end
@@ -1635,7 +1638,7 @@ class PatientsController < ApplicationController
       next if starting_index == 0
       label.draw_text("#{data}",starting_index,starting_line,0,2,1,1,bold)
     } rescue []
-    label.print(1)
+    label.print(2)
   end
 
   def adherence_to_show(adherence_data)
@@ -2431,7 +2434,20 @@ class PatientsController < ApplicationController
     end
     return
   end
-  
+
+  def dashboard_display_number_of_booked_patients                                                
+    date = (params[:date].sub("Next appointment:","").sub(/\((.*)/,"")).to_date                                                
+    encounter_type = EncounterType.find_by_name('APPOINTMENT')
+    concept_id = ConceptName.find_by_name('APPOINTMENT DATE').concept_id
+    count = Observation.count(:all,
+            :joins => "INNER JOIN encounter e USING(encounter_id)",:group => "value_datetime",
+            :conditions =>["concept_id = ? AND encounter_type = ? AND value_datetime >= ? AND value_datetime <= ?",
+            concept_id,encounter_type.id,date.strftime('%Y-%m-%d 00:00:00'),date.strftime('%Y-%m-%d 23:59:59')])
+    count = count.values unless count.blank?
+    count = '0' if count.blank?
+    render :text => "Next appointment: #{date.strftime('%d %B %Y')} (#{count})"
+  end 
+
   private
 
 end

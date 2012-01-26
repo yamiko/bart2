@@ -408,7 +408,47 @@
           :condition => 'showConditions()',                            
           :helpText => "Initial CD4 Count available",
           :tt_pageStyleClass => 'NoKeyboard' %>
+    <% "..............................................................." %>
+                                                                                
+      <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,               
+        {:id => "cd4_count_location",                                           
+         :condition => '$("new_cd4_count_available").value == "YES" && showConditions()',
+         :helpText => "CD4 Count Location"} %>                                  
+                                                                                
+      <%= touch_date_tag "CD4 COUNT DATETIME", @patient, nil,                   
+        {:id => "cd4_count_date",                                               
+         :condition => '$("new_cd4_count_available").value == "YES" && showConditions()',
+         :helpText => "CD4 Count Date",                                         
+         :max => "#{session[:datetime].to_date rescue Date.today}"} %>          
+                                                                                
+      <%= touch_cd4_count_numeric_tag "CD4 COUNT", @patient, nil,               
+        {:id => "cd4_count",                                                    
+         :condition => '$("new_cd4_count_available").value == "YES" && showConditions()',
+         :helpText => "CD4 Count",                                              
+         :max => 1000 ,                                                         
+         :min => 1 ,                                                            
+         :tt_onLoad => "updateCD4CountKeyPad();",                               
+         :tt_onUnLoad => "updateCD4Count();"} %>                                
+                                                                                
+         <%= touch_hidden_tag "CD4 COUNT LESS THAN OR EQUAL TO 250", @patient, "", :id => "cd4_count_less_than_250" %>
+         <%= touch_hidden_tag "CD4 COUNT LESS THAN OR EQUAL TO 350", @patient, "", :id => "cd4_count_less_than_350" %>
+                                                                                
+      <%= select_tag "new_cd4_percent_available", options_for_select([['Yes','YES'],['No','NO']]),
+          :id => 'new_cd4_percent_available',                                   
+          :condition => 'showConditions() == true',                             
+          :helpText => "Initial CD4 percent available",                         
+          :tt_pageStyleClass => 'NoKeyboard' %>                                 
+                                                                                
+      <%= touch_cd4_count_numeric_tag "CD4 PERCENT", @patient, nil,             
+          {:id => "cd4_percent",                                                
+           :condition => '$("new_cd4_percent_available").value == "YES" && showConditions()',
+           :helpText => "CD4 Percent",                                          
+           :tt_onLoad => "updateCD4CountKeyPad();",                             
+           :tt_onUnLoad => 'updateCD4Percent()'} %> 
 
+      <%= touch_hidden_tag "CD4 PERCENT LESS THAN 25", @patient, "", :id => "cd4_percent_less_than_25" %>
+
+      <% ".................................." %>
 
       <%= text_field_tag "observations[][value_numeric]", nil,                  
         {:id => "height",                                                       
@@ -451,44 +491,6 @@
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>      
       <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 
-    <% "..............................................................." %>
-      <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,               
-        {:id => "cd4_count_location",                                           
-         :condition => '$("new_cd4_count_available").value == "YES" && showConditions()',              
-         :helpText => "CD4 Count Location"} %>                                  
-                                                                                
-      <%= touch_date_tag "CD4 COUNT DATETIME", @patient, nil,                   
-        {:id => "cd4_count_date",                                               
-         :condition => '$("new_cd4_count_available").value == "YES" && showConditions()',              
-         :helpText => "CD4 Count Date",                                         
-         :max => "#{session[:datetime].to_date rescue Date.today}"} %>          
-                                                                                
-      <%= touch_cd4_count_numeric_tag "CD4 COUNT", @patient, nil,               
-        {:id => "cd4_count",                                                    
-         :condition => '$("new_cd4_count_available").value == "YES" && showConditions()',              
-         :helpText => "CD4 Count",                                              
-         :max => 1000 ,                                                         
-         :min => 1 ,                                                            
-         :tt_onLoad => "updateCD4CountKeyPad();",                               
-         :tt_onUnLoad => "updateCD4Count();"} %>
-
-         <%= touch_hidden_tag "CD4 COUNT LESS THAN OR EQUAL TO 250", @patient, "", :id => "cd4_count_less_than_250" %>
-         <%= touch_hidden_tag "CD4 COUNT LESS THAN OR EQUAL TO 350", @patient, "", :id => "cd4_count_less_than_350" %>
-
-      <%= select_tag "new_cd4_percent_available", options_for_select([['Yes','YES'],['No','NO']]), 
-          :id => 'new_cd4_percent_available', 
-          :condition => 'showConditions() == true',                            
-          :helpText => "Initial CD4 percent available",
-          :tt_pageStyleClass => 'NoKeyboard' %>
-
-      <%= touch_cd4_count_numeric_tag "CD4 PERCENT", @patient, nil,               
-          {:id => "cd4_percent",                                                
-           :condition => '$("new_cd4_percent_available").value == "YES" && showConditions()',              
-           :helpText => "CD4 Percent",                                          
-           :tt_onLoad => "updateCD4CountKeyPad();",                               
-           :tt_onUnLoad => 'updateCD4Percent()'} %>                             
-                                                                                
-      <%= touch_hidden_tag "CD4 PERCENT LESS THAN 25", @patient, "", :id => "cd4_percent_less_than_25" %>
 
     <% "..............................................................." %>
 
