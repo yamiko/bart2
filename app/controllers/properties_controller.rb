@@ -120,13 +120,16 @@ class PropertiesController < ApplicationController
       else
         redirect_to "/clinic" and return
       end
+    else
+      @privileges = Privilege.find(:all).collect{|r|r.privilege}
+      @activities = [] #RolePrivilege.find(:all)
     end
   end
 
   def selected_roles
     render :text => RolePrivilege.find(:all,
            :conditions =>["role = ?",
-           params[:role]]).collect{|r|r.privilege.privilege}.join(',') and return
+           params[:role]]).collect{|r|r.privilege.privilege} and return
   end
 
   def creation
