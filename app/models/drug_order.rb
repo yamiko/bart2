@@ -123,7 +123,10 @@ class DrugOrder < ActiveRecord::Base
   def total_drug_supply(patient, encounter = nil, session_date = Date.today)
     if encounter.blank?  
       type = EncounterType.find_by_name("DISPENSING")
-      encounter = encounters.find(:first,:conditions =>["DATE(encounter_datetime) = ? AND encounter_type = ?",session_date,type.id])
+      encounter = encounters.find(:first,:conditions =>["encounter_datetime BETWEEN ? AND ? AND encounter_type = ?",
+                                  session_date.to_date.strftime('%Y-%m-%d 00:00:00'),
+                                  session_date.to_date.strftime('%Y-%m-%d 23:59:59'),
+                                  type.id])
     end
     
     return [] if encounter.blank?
@@ -131,7 +134,7 @@ class DrugOrder < ActiveRecord::Base
     amounts_brought = Observation.all(:conditions => 
       ['obs.concept_id = ? AND ' +
        'obs.person_id = ? AND ' +
-       "DATE(encounter.encounter_datetime) = '#{session_date.to_date}' AND " +
+       "encounter_datetime BETWEEN session_date.to_date.strftime('%Y-%m-%d 00:00:00') AND session_date.to_date.strftime('%Y-%m-%d 23:59:59') AND " +
        'drug_order.drug_inventory_id = ?',
         ConceptName.find_by_name("AMOUNT OF DRUG BROUGHT TO CLINIC").concept_id,
         patient.person.person_id,
@@ -156,8 +159,11 @@ class DrugOrder < ActiveRecord::Base
   def self.all_orders_complete(patient,encounter_date)                               
     type = EncounterType.find_by_name('TREATMENT').id                           
     all = Encounter.find(:all,                                                  
-      :conditions =>["patient_id = ? AND DATE(encounter_datetime) = ?           
-      AND encounter_type = ?",patient.id , encounter_date , type])              
+      :conditions =>["patient_id = ? AND encounter_datetime BETWEEN ? AND ?           
+      AND encounter_type = ?",patient.id , 
+      encounter_date.to_date.strftime('%Y-%m-%d 00:00:00'),
+      encounter_date.to_date.strftime('%Y-%m-%d 23:59:59') , 
+      type])              
                                                                                 
     complete = true                                                             
     (all || []).each do |encounter|                                             
@@ -172,8 +178,9 @@ class DrugOrder < ActiveRecord::Base
   def self.prescription_dates(patient,date)
     type = EncounterType.find_by_name('TREATMENT').id                           
     all = Encounter.find(:all,                                                  
-      :conditions =>["patient_id = ? AND DATE(encounter_datetime) = ?           
-      AND encounter_type = ?",patient.id , date.to_date , type])                        
+      :conditions =>["patient_id = ? AND encounter_datetime BETWEEN ? AND ?           
+      AND encounter_type = ?",patient.id , date.to_date.strftime('%Y-%m-%d 00:00:00'),                     
+                      date.to_date.strftime('%Y-%m-%d 23:59:59')  , type])                        
                                                                                 
     start_date = nil ; end_date = nil                                        
     (all || []).each do |encounter|                                             
