@@ -268,7 +268,7 @@
     }else if ($("stage_2_conditions").value.length > 0) {
       stage = "II";
     }
-    var startDate =  getDateStartedART();   
+    var startDate = getDateStartedART();   
     var patientBirthdate = new Date("<%=@patient.person.birthdate %>");
     var dateCreated = new Date("<%=@patient.person.date_created %>");
     var patientBirthdateEstimated = "<%=@patient.person.birthdate_estimated %>";
@@ -456,7 +456,11 @@
           end
         art_reasons = []
         @reasons.map do |reason|
-          r = reason.humanize.gsub("Cd4","CD4").gsub("Hiv","HIV").gsub("hiv","HIV") unless reason.match(/who stage/i)
+          unless reason[0..9].upcase.match(/who stage/i)
+            r = reason.humanize.gsub("Cd4","CD4").gsub("Hiv","HIV").gsub("hiv","HIV") 
+          else
+            r = reason 
+          end
           art_reasons << [r,r]
         end
       %>

@@ -122,14 +122,14 @@ class PropertiesController < ApplicationController
       end
     else
       @privileges = Privilege.find(:all).collect{|r|r.privilege}
-      @activities = [] #RolePrivilege.find(:all)
+      @activities = RolePrivilege.find(:all).collect{|r|r.privilege}
     end
   end
 
   def selected_roles
     render :text => RolePrivilege.find(:all,
            :conditions =>["role = ?",
-           params[:role]]).collect{|r|r.privilege.privilege} and return
+           params[:role]]).collect{|r|r.privilege.privilege}.join(',') and return
   end
 
   def creation
