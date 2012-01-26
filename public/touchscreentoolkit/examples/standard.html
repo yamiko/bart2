@@ -18,9 +18,20 @@
                             <th colspan=2>Registration</th>
                         </tr>
                         <tr>
+                            <td>Preferred Keyboard</td>
+                            <td>
+                                <select style='width: 100%' name='keybrd' id='keybrd' 
+                                        helptext='Preferred Keyboard' tt_onUnLoad="tstUserKeyboardPref=__$('keybrd').value">
+                                    <option></option>
+                                    <option value="abc">abc</option>
+                                    <option value="qwerty">qwerty</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
                             <td>First Name</td>
                             <td>
-                                <input type='text' value='Text' field_type='text' name='first_name' id='first_name' 
+                                <input type='text' value='Text' field_type='password' name='first_name' id='first_name' 
                                        helptext='First Name' />
                             </td>
                         </tr>
@@ -52,7 +63,37 @@
                         <tr>
                             <td>Allergies (Multiple Selection Example)</td>
                             <td>
-                                <select style='width: 100%' name='gender' id='gender' helptext='Allergies (Multiple Selection Example)' 
+                                <select style='width: 100%' name='drug' id='drug' helptext='Allergies (Multiple Selection Example)' 
+                                        multiple="multiple">
+                                    <option value="ABC+3TC">ABC+3TC</option>
+                                    <option value="AZT + 3TC">AZT + 3TC</option>
+
+                                    <option value="AZT/3TC/NVP">AZT/3TC/NVP</option>
+                                    <option value="d4T/3TC/EFV">d4T/3TC/EFV</option>
+                                    <option value="d4T/3TC/NVP">d4T/3TC/NVP</option>
+                                    <option value="d4T/3TC">d4T/3TC</option>
+                                    <option value="d4T">d4T</option>
+                                    <option value="Didanosine">Didanosine</option>
+                                    <option value="Efavirenz">Efavirenz</option>
+                                    <option value="Lamivudine">Lamivudine</option>
+                                    <option value="LPV/r">LPV/r</option>
+
+                                    <option value="Nelfinavir">Nelfinavir</option>
+                                    <option value="Nevirapine">Nevirapine</option>
+                                    <option value="Stavudine Lamivudine and Abacavir">Stavudine Lamivudine and Abacavir</option>
+                                    <option value="TDF+3TC">TDF+3TC</option>
+                                    <option value="TDF/3TC/EFV">TDF/3TC/EFV</option>
+                                    <option value="TDF">TDF</option>
+                                    <option value="Zidovudine">Zidovudine</option>
+                                    <option value="Other antiretroviral drug">Other antiretroviral drug</option>
+                                    <option value="Unknown antiretroviral drug">Unknown antiretroviral drug</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Secondary Drug (Multiple Selection Example)</td>
+                            <td>
+                                <select style='width: 100%' name='secdrug' id='secdrug' helptext='Allergies (Multiple Selection Example)' 
                                         multiple="multiple">
                                     <option value="ABC+3TC">ABC+3TC</option>
                                     <option value="AZT + 3TC">AZT + 3TC</option>
