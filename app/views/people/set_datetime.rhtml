@@ -4,8 +4,23 @@
     year = parseFloat(document.getElementsByName('set_year')[0].value)
     month = parseFloat(document.getElementsByName('set_month')[0].value)
     day = parseFloat(document.getElementsByName('set_day')[0].value)
-    return dateDiff(year,month,day);
+
+    /*if(day.length < 1){
+      gotoNextPage();
+      return
+    }*/
+
+    if (dateDiff(year,month,day)) {
+      gotoNextPage();
+    }else{ 
+      msgBar = $("messageBar");
+      msgBar.innerHTML = "You must enter an earlier date than <%=Date.today.strftime('%Y-%b-%d')%>"
+      msgBar.style.display = "block";
+      setTimeout("hideMsg();",2000);
+    }     
   }
+
+  function hideMsg() { $("messageBar").style.display = "none"; }
 
   function dateDiff(year,month,day){
     today = new Date();
@@ -14,7 +29,7 @@
     yearStr = today.getFullYear();
     today = new Date(parseFloat(yearStr),parseFloat(monthStr),parseFloat(dateStr));
     set_date = new Date(parseFloat(year),parseFloat(month),parseFloat(day));
-    return (today > set_date)
+    return (today > set_date) 
   }
 
   <% if @patient_id %>
@@ -22,6 +37,15 @@
   <% else %>
     var tt_cancel_destination = "/clinic"
   <% end %>
+        //:validationMessage => "You must enter an earlier date than #{Date.today.strftime('%Y-%b-%d')}")  %>
+
+  function setAttributes() {
+    $('nextButton').setAttribute("onmousedown","validateDate();");
+  }
+
+  function resetAttributes() {
+    $('nextButton').setAttribute("onmousedown","gotoNextPage()");
+  }
 </script>
 
 <style>
@@ -47,9 +71,10 @@
     days_with_unknown = day 
     days = [""].concat day%>
     <%= select_tag(:set_day, options_for_select(days), 
-        :field_type => 'number' , :absoluteMax => Date.today.to_s ,:helpText => 'Day' ,
-        :validationJS =>'validateDate()',
-        :validationMessage => "You must enter an earlier date than #{Date.today.strftime('%Y-%b-%d')}")  %>
+        :field_type => 'number' , 
+        :helpText => 'Day' ,
+        :tt_OnUnLoad => "resetAttributes();",
+        :tt_OnLoad => "setAttributes();") %>
 
   <%= submit_tag "Set visit date" %>
 </form>
