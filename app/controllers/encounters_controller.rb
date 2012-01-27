@@ -284,10 +284,9 @@ class EncountersController < ApplicationController
       # Look up the program if the program id is set      
       @patient_program = PatientProgram.find(program[:patient_program_id]) unless program[:patient_program_id].blank?
 
-
       #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       #if params[:location] is not blank == migration params
-      if params[:location] and not @patient_program.blank?
+      if not params[:location].blank? and not @patient_program.blank?
         next if @patient_program.date_completed.blank?
       end
       #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
