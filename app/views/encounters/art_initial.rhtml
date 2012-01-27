@@ -383,24 +383,27 @@
           end
         art_reasons = []
         @reasons.map do |reason|
+        	if reason.match(/WHO stage/i)
+		    	if @patient_bean.age < 15
+		    		reason = reason + " peds"
+		    	else
+		    		reason = reason + " adult"		    	
+		    	end
+		    end
           art_reasons << [reason,reason]
         end
       %>
 
-      <%= select_tag("reason_for_art", options_for_select(art_reasons,[]),
-        :helpText => "Reason for ART eligibility",
-        :id => 'reason_for_art', 
-        :allowFreeText => false,                                                  
-        :condition => 'showConditions()',                            
-        :tt_onLoad => "calculateWHOstage();",                    
-        :tt_onUnLoad => "calculateReasonForStarting();",                    
-        :helpText => "Reason for ART eligibility",
-        :tt_pageStyleClass => 'NoKeyboard') %>
-
-
+	<%= touch_select_tag "REASON FOR ART ELIGIBILITY", @patient, options_for_select(art_reasons,[]),
+		{	:id => "reason_for_art_eligibility",
+			:condition => 'showConditions()',
+			:helpText => "Reason for ART eligibility",
+			:tt_onLoad => "calculateWHOstage();",
+			:tt_pageStyleClass => 'NoKeyboard'
+					
+			}%>
 
      <%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
-     <%= touch_hidden_tag "REASON FOR ART ELIGIBILITY", @patient, "", :id => "reason_for_art_eligibility" %>
 
     <% "..............................................................." %>
       <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), 
