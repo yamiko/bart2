@@ -5,7 +5,6 @@
    var selected_roles = [];
 
    function showSelected() {
-     //role = document.getElementById('role').value;
      role = document.getElementById('touchscreenInput' + tstCurrentPage).value;
      document.getElementById('role').value = role;
      selected_roles = [];
@@ -58,8 +57,6 @@
                 'DISPENSING',
                 'PART_FOLLOWUP'
                ]
-  @privileges = Privilege.find(:all) #,:conditions => ["privilege IN (?)",privileges])
-  #@activities = RolePrivilege.find(:all)
 %>
 
 <form method = 'post' action = '/properties/set_role_privileges'>
@@ -70,11 +67,9 @@
       :tt_onUnLoad => 'showSelected();',
       :ajaxURL => '/user/role/Role?field=role&value='%>
 
-
-  <%= select_tag 'role[privileges][]', 
-      options_from_collection_for_select(@privileges.sort_by{|p|p.privilege}, :privilege, :privilege, @activities), 
+  <%= select_tag 'user[activities][]',                                          
+      options_for_select(@privileges, @activities),                             
       :helpText => "Select activities" ,
-      :id => 'activities' ,
       :tt_onLoad => 'changeAttributes();',
       :multiple =>  true %>
 </form>

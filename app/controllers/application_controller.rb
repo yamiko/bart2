@@ -909,6 +909,8 @@ class ApplicationController < ActionController::Base
             return task
           end  
         when 'HIV STAGING'
+          arv_drugs_given = PatientService.drug_given_before(@patient, Date.today).arv.prescriptions rescue []
+          next unless arv_drugs_given.blank?
           if encounter_available.blank? and user_selected_activities.match(/Manage HIV staging visits/i) 
             task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}"
             return task
