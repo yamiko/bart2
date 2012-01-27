@@ -9,9 +9,6 @@
 
 	.tt_controls_last_arv_drugs_taken .keyboard { display:none; }
 
-
-
-
   .tt_controls_cd4_count #qwerty , .tt_controls_cd4_percent #qwerty { 
     display: none; 
    }                              
@@ -291,17 +288,6 @@
     }else{
       return patient_age
     }
-  } 
-
-  function calculateReasonForStarting() {
-    var reason_for_art = $("reason_for_art").value;
-    var adultOrPeds = (patient_age > 14) ? "ADULT" : "PEDS";
-
-    if (reason_for_art.match(/WHO stage/i)) {
-      $("reason_for_art_eligibility").value = reason_for_art + " " + adultOrPeds;
-    }else{
-      $("reason_for_art_eligibility").value = reason_for_art;
-    }
   }
   
   function calculateBMI() {
@@ -456,14 +442,35 @@
           end
         art_reasons = []
         @reasons.map do |reason|
+        
+        	if reason.match(/WHO stage/i)
+		    	if @patient_bean.age < 15
+		    		reason = reason + " peds"
+		    	else
+		    		reason = reason + " adult"		    	
+		    	end
+		    end
+
           unless reason[0..9].upcase.match(/who stage/i)
-            r = reason.humanize.gsub("Cd4","CD4").gsub("Hiv","HIV").gsub("hiv","HIV") 
-          else
-            r = reason 
+            reason = reason.humanize.gsub("Cd4","CD4").gsub("Hiv","HIV").gsub("hiv","HIV") 
           end
-          art_reasons << [r,r]
+                  
+          art_reasons << [reason,reason]
+          
         end
       %>
+
+	<%= touch_select_tag "REASON FOR ART ELIGIBILITY", @patient, options_for_select(art_reasons,[]),
+		{	:id => "reason_for_art_eligibility",
+			:condition => 'showConditions()',
+			:helpText => "Reason for ART eligibility",
+			:tt_onLoad => "calculateWHOstage();",
+			:tt_pageStyleClass => 'NoKeyboard'
+					
+			}%>
+
+     <%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
+
 
       <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), 
           :id => 'new_cd4_count_available', 
@@ -509,19 +516,7 @@
 
       <%= touch_hidden_tag "CD4 PERCENT LESS THAN 25", @patient, "", :id => "cd4_percent_less_than_25" %>
 
-
-      <%= select_tag("reason_for_art", options_for_select(art_reasons,[]),
-        :helpText => "Reason for ART eligibility",
-        :id => 'reason_for_art', 
-        :allowFreeText => false,                                                  
-        :condition => 'showConditions()',                            
-        :tt_onLoad => "calculateWHOstage();",                    
-        :tt_onUnLoad => "calculateReasonForStarting();",                    
-        :helpText => "Reason for ART eligibility",
-        :tt_pageStyleClass => 'NoKeyboard') %>
-
      <%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
-     <%= touch_hidden_tag "REASON FOR ART ELIGIBILITY", @patient, "", :id => "reason_for_art_eligibility" %>
 
 
       <%= text_field_tag "observations[][value_numeric]", nil,                  
@@ -565,8 +560,6 @@
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>      
       <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 
-
-    <% "..............................................................." %>
 
 
 		<%  if @cell_number.to_i != 0 %>
