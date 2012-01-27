@@ -9,9 +9,6 @@
 
 	.tt_controls_last_arv_drugs_taken .keyboard { display:none; }
 
-
-
-
   .tt_controls_cd4_count #qwerty , .tt_controls_cd4_percent #qwerty { 
     display: none; 
    }                              
@@ -52,6 +49,39 @@
 <script>
 	var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
   var patient_age = null;
+
+  function validateDOB() {                                                      
+    setDOB();                                                                   
+    curr_date = new Date();                                                     
+                                                                                
+    if (dateCreate(set_dob) == 'Invalid Date') {                                
+      if (set_dob.split('-')[1] == 'Unknown')                                   
+        return true                                                             
+                                                                                
+      if (curr_date.getFullYear() == parseInt(dob_year)) {                      
+        if ((curr_date.getMonth() + 1) < parseInt(dob_month)){                  
+          if (document.getElementById('tt_page_month_started_art') != null)        
+            return true                                                         
+                                                                                
+          return false                                                          
+        }                                                                       
+      }                                                                         
+                                                                                
+      if (dob_month == 'Unknown'){                                              
+        if (curr_date.getFullYear() == parseInt(dob_year)) {                    
+          if ((curr_date.getMonth() + 1) < parseInt(dob_month))                 
+            return false                                                        
+        }                                                                       
+      }                                                                         
+    }else{                                                                      
+      if (document.getElementById('tt_page_month_started_art') != null)            
+        return true                                                             
+                                                                                
+      if (curr_date < dateCreate(set_dob))                                      
+        return false                                                            
+    }                                                                           
+    return true                                                                 
+  }   
 
   function checkBirthDate(){
     var dateCheck = "";
@@ -204,6 +234,28 @@
     }                                                                           
   }  
 
+  function getDateStartedART() {
+    var year = $("year_started_art").value;
+    var month = $("month_started_art").value;
+    var day = $("day_started_art").value;
+
+    if (month.length == 1)
+      month = 0 + month;
+
+    if (day.length == 1)
+      day = 0 + day;
+
+    if(year == "Unknown") {
+      return new Date();
+    }else if(month == "Unknown") {
+      return new Date(year + "-07-01")
+    }else if(day == "Unknown") {
+      return new Date(year + "-" + month + "-01")
+    }else{
+      return new Date(year + "-" + month + "-" + day)
+    }
+  }
+  
   function calculateWHOstage() {
     stage = "I";
     if ($("stage_4_conditions").value.length > 0) {
@@ -213,7 +265,7 @@
     }else if ($("stage_2_conditions").value.length > 0) {
       stage = "II";
     }
-    var startDate = new Date($("date_started_art").value);
+    var startDate = getDateStartedART();   
     var patientBirthdate = new Date("<%=@patient.person.birthdate %>");
     var dateCreated = new Date("<%=@patient.person.date_created %>");
     var patientBirthdateEstimated = "<%=@patient.person.birthdate_estimated %>";
@@ -224,6 +276,7 @@
     }else{
       $("who_stage").value = "WHO stage " + stage + " adult";
     }
+    $("date_started_art").value = startDate;
   } 
   
   function age(birthdate,birthdate_estimated,date_created,today) {
@@ -234,17 +287,6 @@
       return patient_age + 1                                                   
     }else{
       return patient_age
-    }
-  } 
-
-  function calculateReasonForStarting() {
-    var reason_for_art = $("reason_for_art").value;
-    var adultOrPeds = (patient_age > 14) ? "ADULT" : "PEDS";
-
-    if (reason_for_art.match(/WHO stage/i)) {
-      $("reason_for_art_eligibility").value = reason_for_art + " " + adultOrPeds;
-    }else{
-      $("reason_for_art_eligibility").value = reason_for_art;
     }
   }
   
@@ -314,7 +356,7 @@
 		<%= touch_yes_no_tag "HAS TRANSFER LETTER", @patient, nil,
 			{	:id => "has_transfer_letter",
 			 	:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
-			 	:helpText => "Has transfer letter?"} %>
+			 	:helpText => "Has staging information?"} %>
 
 		<%= touch_location_tag "LOCATION OF ART INITIATION", @patient, nil,
 			{	:id => "location_of_art_initialization",
@@ -327,15 +369,32 @@
 				:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
 				:helpText => "ART number at previous location" } %>
 
-
-    <% "..............................................................." %>
 		
-    <%= touch_date_tag "Date antiretrovirals started", @patient, nil,
-			{	:id => "date_started_art",
-			 	:absoluteMax => Date.today,
-				:condition => '$("ever_registered_at_ART_clinic").value == "YES" && showConditions()',
-			 	:helpText => "Date started ART"} %>
+    <%= text_field_tag "year_started_art", nil, 
+      {:helpText => 'Year started ART', 
+       :field_type => 'number', 
+       :absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year, 
+       :tt_pageStyleClass => "Numeric NumbersOnly", 
+       :condition => '$("ever_registered_at_ART_clinic").value == "YES" && showConditions()',
+       :id => "year_started_art" ,
+       :validationJS => "setDOB();" }  %>
 
+    <%= select_tag "month_started_art", month_name_options, 
+      {:helpText => 'Month started ART', 
+       :condition => '$("year_started_art").value.toLowerCase() != "unknown" && $("ever_registered_at_ART_clinic").value == "YES" && showConditions()',
+       :validationJS => "validateDOB();",
+       :id => "month_started_art" ,
+       :validationMessage => 'Please enter a valid date'}%>
+
+    <%= text_field_tag "day_started_art",  nil, 
+        :field_type => 'number', :helpText => 'Day started ART', 
+        :condition => '($("year_started_art").value !="Unknown") && ($("month_started_art").value != "Unknown") && $("ever_registered_at_ART_clinic").value == "YES" && showConditions()', 
+        :tt_onLoad => "getDayOfMonthPicker($('year_started_art').value, $('month_started_art').value);$('nextButton').style.display = 'block';",
+        :validationJS => "validateDOB()",
+        :id => "day_started_art" ,
+        :validationMessage => 'Please enter a valid date'%>
+
+     <%= touch_hidden_tag "Date antiretrovirals started", @patient, "", :id => "date_started_art" %>
 
       <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, options_for_select(@who_stage_i),
           {:id => "stage_1_conditions",                                         
@@ -376,39 +435,48 @@
                       "PRESUMED SEVERE HIV","HIV DNA POLYMERASE CHAIN REACTION",
                       "HIV infected","CD4 COUNT LESS THAN OR EQUAL TO 750",
                       "CD4 COUNT LESS THAN OR EQUAL TO 350","CD4 COUNT LESS THAN OR EQUAL TO 250",
-                      "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2"]
-          if not @patient.person.gender == "F"
+                      "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2","Unknown"]
+          if @patient.person.gender == "F"
             @reasons << "PATIENT PREGNANT"
             @reasons << "BREASTFEEDING"
           end
         art_reasons = []
         @reasons.map do |reason|
+        
+        	if reason.match(/WHO stage/i)
+		    	if @patient_bean.age < 15
+		    		reason = reason + " peds"
+		    	else
+		    		reason = reason + " adult"		    	
+		    	end
+		    end
+
+          unless reason[0..9].upcase.match(/who stage/i)
+            reason = reason.humanize.gsub("Cd4","CD4").gsub("Hiv","HIV").gsub("hiv","HIV") 
+          end
+                  
           art_reasons << [reason,reason]
+          
         end
       %>
 
-      <%= select_tag("reason_for_art", options_for_select(art_reasons,[]),
-        :helpText => "Reason for ART eligibility",
-        :id => 'reason_for_art', 
-        :allowFreeText => false,                                                  
-        :condition => 'showConditions()',                            
-        :tt_onLoad => "calculateWHOstage();",                    
-        :tt_onUnLoad => "calculateReasonForStarting();",                    
-        :helpText => "Reason for ART eligibility",
-        :tt_pageStyleClass => 'NoKeyboard') %>
-
-
+	<%= touch_select_tag "REASON FOR ART ELIGIBILITY", @patient, options_for_select(art_reasons,[]),
+		{	:id => "reason_for_art_eligibility",
+			:condition => 'showConditions()',
+			:helpText => "Reason for ART eligibility",
+			:tt_onLoad => "calculateWHOstage();",
+			:tt_pageStyleClass => 'NoKeyboard'
+					
+			}%>
 
      <%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
-     <%= touch_hidden_tag "REASON FOR ART ELIGIBILITY", @patient, "", :id => "reason_for_art_eligibility" %>
 
-    <% "..............................................................." %>
+
       <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), 
           :id => 'new_cd4_count_available', 
           :condition => 'showConditions()',                            
           :helpText => "Initial CD4 Count available",
           :tt_pageStyleClass => 'NoKeyboard' %>
-    <% "..............................................................." %>
                                                                                 
       <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,               
         {:id => "cd4_count_location",                                           
@@ -448,7 +516,8 @@
 
       <%= touch_hidden_tag "CD4 PERCENT LESS THAN 25", @patient, "", :id => "cd4_percent_less_than_25" %>
 
-      <% ".................................." %>
+     <%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
+
 
       <%= text_field_tag "observations[][value_numeric]", nil,                  
         {:id => "height",                                                       
@@ -491,8 +560,6 @@
       <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>      
       <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 
-
-    <% "..............................................................." %>
 
 
 		<%  if @cell_number.to_i != 0 %>

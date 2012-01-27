@@ -66,6 +66,8 @@ var tstMessageBoxType = {
 var tstTimerHandle = null;
 var tstTimerFunctionCall = "";
 
+var tstMultipleSelected = {};
+
 //--------------------------------------
 // Default method in module to access element id changed to __$ to avoid
 // conflicts with other libraries like jQuery. The same is recommended for use
@@ -917,7 +919,6 @@ function unhighlight(element){
 
 //TODO make these into 1 function
 function updateTouchscreenInputForSelect(element){
-    
     var inputTarget = tstInputTarget;
     var multiple = inputTarget.getAttribute("multiple") == "multiple";
 
@@ -932,12 +933,15 @@ function updateTouchscreenInputForSelect(element){
             val = element.value;
         
         // Check if the item is already included
-        var idx = val_arr.toString().indexOf(val);
-        if (idx == -1)
+        // var idx = val_arr.toString().indexOf(val);
+        if (!tstMultipleSelected[val]){ //(idx == -1){
             val_arr.push(val);
-        else
+            tstMultipleSelected[val] = true;
+        } else {
             // val_arr.splice(idx, 1);
             val_arr = removeFromArray(val_arr, val);
+            delete(tstMultipleSelected[val]);
+        }
         inputTarget.value = val_arr.join(tstMultipleSplitChar);
         if (inputTarget.value.indexOf(tstMultipleSplitChar) == 0)
             inputTarget.value = inputTarget.value.substring(1, inputTarget.value.length);
@@ -1568,7 +1572,6 @@ function clearInput(){
             for(var i = 0; i < options.length; i++){
                 if(options[i].style.backgroundColor == "lightblue"){
                     options[i].click();
-                    options[i].click();
                 }
             }
         } else {
@@ -1678,7 +1681,7 @@ function showBestKeyboard(aPageNum) {
     switch (inputElement.getAttribute("field_type")) {
         case "password":
         case "full_keyboard":
-            showKeyboard(true);
+            showKeyboard(true, (tstUserKeyboardPref.toLowerCase() == "qwerty" ? true : false));
             break;
         case "alpha":
             __$("keyboard").innerHTML = getPreferredKeyboard();
@@ -1747,6 +1750,7 @@ function getDatePart(aElementName) {
 
 
 function gotoNextPage() {
+    tstMultipleSelected = {};
     gotoPage(tstCurrentPage+1, true);
 }
 
@@ -3528,15 +3532,15 @@ function stripZero(value){
     return value;
 }
 
-function showKeyboard(full_keyboard){   
+function showKeyboard(full_keyboard, qwerty){   
     var div = document.createElement("div");
     div.id = "divMenu";
     // div.className = "keyboard";
     
-    var row1 = ["Q","W","E","R","T","Y","U","I","O","P"];
-    var row2 = ["A","S","D","F","G","H","J","K","L",":"];
-    var row3 = ["Z","X","C","V","B","N","M",",",".","?"];
-    var row4 = ["cap","space","delete"];
+    var row1 = (qwerty ? ["q","w","e","r","t","y","u","i","o","p"] : ["a","b","c","d","e","f","g","h","i","j"]);
+    var row2 = (qwerty ? ["a","s","d","f","g","h","j","k","l",":"] : ["k","l","m","n","o","p","q","r","s",":"]);
+    var row3 = (qwerty ? ["z","x","c","v","b","n","m",",",".","?"] : ["t","u","v","w","x","y","z",",",".","?"]);
+    var row4 = ["CAP","space","delete"];
     var row5 = ["1","2","3","4","5","6","7","8","9","0"];
     var row6 = ["_","-","@","(",")","+",";","=","\\","/"];
 
@@ -3773,13 +3777,13 @@ function showKeyboard(full_keyboard){
 
                 full_keyboard = true;
 
-                showKeyboard(global_control);
+                showKeyboard(global_control, qwerty);
 
             } else if(this.innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() == "basic"){
 
                 full_keyboard = false;
 
-                showKeyboard(global_control);
+                showKeyboard(global_control, qwerty);
 
             } else if(!this.innerHTML.match(/<span>(.+)<\/span>/)[1].match(/^$/)){
 
