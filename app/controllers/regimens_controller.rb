@@ -234,7 +234,6 @@ class RegimensController < ApplicationController
 			end if prescribe_tb_continuation_drugs
 		end
 
-		reduced = false
 		orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:regimen]})
 		ActiveRecord::Base.transaction do
 			# Need to write an obs for the regimen they are on, note that this is ARV
@@ -247,11 +246,6 @@ class RegimensController < ApplicationController
 				:value_coded => params[:regimen_concept_id],
 				:obs_datetime => start_date) if prescribe_arvs
 			orders.each do |order|
-				if order.regimen.concept.shortname.upcase.match(/STARTER PACK/i) and !reduced
-					reduced = true
-					auto_expire_date  = auto_expire_date - 1.days
-				end
-
 				drug = Drug.find(order.drug_inventory_id)
 				regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept.name).name
 				DrugOrder.write_order(
