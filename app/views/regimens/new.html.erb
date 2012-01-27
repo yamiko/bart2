@@ -263,7 +263,7 @@
        :condition => 'isRegisteredForTB() == true',
        :helpText => "Prescribe TB Regimen?" } %>
 
-  <% unless @tb_programs.count == 1 %>
+  <% unless @tb_programs.uniq.count == 1 %>
   	<%= select_tag :tb_patient_program, options_for_select(@tb_programs.map{|program| [program.program.name, program.patient_program_id] if PatientProgram.find(program.patient_program_id).date_completed == nil}), {
     :textCase => "upper", 
      :condition => '$("prescribe_tb_drugs").value == "YES"',
@@ -346,7 +346,7 @@
 	<% end %>
 
 	<!-- HIV Regimen -->
-  <% if @hiv_programs.count > 1 %>
+  <% if @hiv_programs.uniq.count > 1 %>
   	<%= select_tag :patient_program, options_for_select(@hiv_programs.map{|program| [program.program.name, program.patient_program_id] if PatientProgram.find(program.patient_program_id).date_completed == nil}), {
     :textCase => "upper", 
     :allowFreeText => 'false',
