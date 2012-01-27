@@ -134,7 +134,7 @@ class DrugOrder < ActiveRecord::Base
     amounts_brought = Observation.all(:conditions => 
       ['obs.concept_id = ? AND ' +
        'obs.person_id = ? AND ' +
-       "encounter_datetime BETWEEN session_date.to_date.strftime('%Y-%m-%d 00:00:00') AND session_date.to_date.strftime('%Y-%m-%d 23:59:59') AND " +
+       "encounter_datetime BETWEEN '#{session_date.to_date.strftime('%Y-%m-%d 00:00:00')}' AND '#{session_date.to_date.strftime('%Y-%m-%d 23:59:59')}' AND " +
        'drug_order.drug_inventory_id = ?',
         ConceptName.find_by_name("AMOUNT OF DRUG BROUGHT TO CLINIC").concept_id,
         patient.person.person_id,
