@@ -265,7 +265,7 @@
     }else if ($("stage_2_conditions").value.length > 0) {
       stage = "II";
     }
-    var startDate =  getDateStartedART();   
+    var startDate = getDateStartedART();   
     var patientBirthdate = new Date("<%=@patient.person.birthdate %>");
     var dateCreated = new Date("<%=@patient.person.date_created %>");
     var patientBirthdateEstimated = "<%=@patient.person.birthdate_estimated %>";
@@ -450,8 +450,13 @@
 		    		reason = reason + " adult"		    	
 		    	end
 		    end
-          reason = reason.humanize.gsub("Cd4","CD4").gsub("Hiv","HIV").gsub("hiv","HIV") unless reason.match(/who stage/i)
+
+          unless reason[0..9].upcase.match(/who stage/i)
+            reason = reason.humanize.gsub("Cd4","CD4").gsub("Hiv","HIV").gsub("hiv","HIV") 
+          end
+                  
           art_reasons << [reason,reason]
+          
         end
       %>
 
