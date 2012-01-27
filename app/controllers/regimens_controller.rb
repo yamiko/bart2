@@ -234,7 +234,6 @@ class RegimensController < ApplicationController
 			end if prescribe_tb_continuation_drugs
 		end
 
-		reduced = false
 		orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:regimen]})
 		ActiveRecord::Base.transaction do
 			# Need to write an obs for the regimen they are on, note that this is ARV
@@ -247,11 +246,6 @@ class RegimensController < ApplicationController
 				:value_coded => params[:regimen_concept_id],
 				:obs_datetime => start_date) if prescribe_arvs
 			orders.each do |order|
-				if order.regimen.concept.shortname.upcase.match(/STARTER PACK/i) and !reduced
-					reduced = true
-					auto_expire_date  = auto_expire_date - 1.days
-				end
-
 				drug = Drug.find(order.drug_inventory_id)
 				regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept.name).name
 				DrugOrder.write_order(
@@ -292,8 +286,12 @@ class RegimensController < ApplicationController
 			else
 				drug = Drug.find_by_name('INH or H (Isoniazid 100mg tablet)')
 			end
-
-			orders = RegimenDrugOrder.all(:conditions => {:regimen_id => Regimen.find_by_concept_id(drug.concept_id).regimen_id})
+			
+			weight = @current_weight = PatientService.get_patient_attribute_value(@patient, "current_weight")
+			regimen_id = Regimen.all(:conditions =>  ['min_weight <= ? AND max_weight >= ? AND concept_id = ?', weight, weight, drug.concept_id]).first.regimen_id
+			
+			orders = RegimenDrugOrder.all(:conditions => {:regimen_id => regimen_id})			
+			# orders = RegimenDrugOrder.all(:conditions => {:regimen_id => Regimen.find_by_concept_id(drug.concept_id).regimen_id})
 			orders.each do |order|
 				drug = Drug.find(order.drug_inventory_id)
 				regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept_names.typed("FULLY_SPECIFIED").first).name
