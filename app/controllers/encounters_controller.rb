@@ -286,8 +286,8 @@ class EncountersController < ApplicationController
 
       #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       #if params[:location] is not blank == migration params
-      if not params[:location].blank? and not @patient_program.blank?
-        next if @patient_program.date_completed.blank?
+      if params[:location]
+        next if not @patient.patient_programs.in_programs("HIV PROGRAM").blank?
       end
       #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
