@@ -3,13 +3,16 @@ class EncountersController < ApplicationController
     #raise params.to_yaml
     
     if params[:change_appointment_date] == "true"
+      session_date = session[:datetime].to_date rescue Date.today
       type = EncounterType.find_by_name("APPOINTMENT")                            
       appointment_encounter = Observation.find(:first,                            
       :order => "encounter_datetime DESC,encounter.date_created DESC",
       :joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
-      :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?",
+      :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
+      AND encounter_datetime >= ? AND encounter_datetime <= ?",
       ConceptName.find_by_name('Appointment date').concept_id,
-      type.id, params[:encounter]["patient_id"]]).encounter
+      type.id, params[:encounter]["patient_id"],session_date.strftime("%Y-%m-%d 00:00:00"),             
+      session_date.strftime("%Y-%m-%d 23:59:59")]).encounter
       appointment_encounter.void("Given a new appointment date")
     end
     	

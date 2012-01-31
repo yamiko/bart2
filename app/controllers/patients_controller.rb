@@ -746,11 +746,22 @@ class PatientsController < ApplicationController
     alerts = []
 
     type = EncounterType.find_by_name("APPOINTMENT")
+    
+    @show_change_app_date = Observation.find(:first,                          
+    :order => "encounter_datetime DESC,encounter.date_created DESC",          
+    :joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
+    :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
+    AND encounter_datetime >= ? AND encounter_datetime <= ?",
+    ConceptName.find_by_name('Appointment date').concept_id,                  
+    type.id, patient.id,session_date.strftime("%Y-%m-%d 00:00:00"),
+    session_date.strftime("%Y-%m-%d 23:59:59")]) != nil                    
+
     next_appt = Observation.find(:first,:order => "encounter_datetime DESC,encounter.date_created DESC",
                :joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
-               :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?",
-               ConceptName.find_by_name('Appointment date').concept_id,
-               type.id,patient.id]).value_datetime.strftime("%a %d %B %Y") rescue nil
+               :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
+               AND obs_datetime <= ?",ConceptName.find_by_name('Appointment date').concept_id,
+               type.id,patient.id,session_date.strftime("%Y-%m-%d 23:59:59")
+               ]).value_datetime.strftime("%a %d %B %Y") rescue nil
     alerts << ('Next appointment: ' + next_appt) unless next_appt.blank?
 
     encounter_dates = Encounter.find_by_sql("SELECT * FROM encounter WHERE patient_id = #{patient.id} AND encounter_type IN (" +
