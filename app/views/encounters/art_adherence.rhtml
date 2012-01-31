@@ -30,7 +30,7 @@
 
 <script>
 	var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
-  
+  /* 
   var adherence_ids = new Array
   var drug_names = new Array
   var drug_orders = new Array 
@@ -41,7 +41,16 @@
   var amount_brought_ids = new Array
   var amount_other_ids = new Array
   var auto_expire_date = new Array
-  
+  */
+  var drug_names = {}
+  var daily_consumption = {}
+  var order_start_date = {}
+  var amount_given_last_time = {}
+  var order_auto_expire_date = {}
+  var amount_brought_ids = {}
+  var amount_other_ids = {}
+  var auto_expire_date = {}
+
 	function dateCreate(date_str){
 		intyear = 0 ; intmonth = 0 ; intday = 0;
 		intyear = parseInt(date_str.substring(0,4))
@@ -56,6 +65,14 @@
 
 		return new Date(intyear,intmonth,intday)
 	}
+
+  function setAttributes() {
+    page = $("page"+tstCurrentPage);
+    page.style.cssText = "height: 95% !important;";
+    divSummary = document.getElementsByClassName("summary")[0];
+    divSummary.style.cssText = "height: 100%;"
+  }
+
 </script>
 
 <form id='art_adherence' action="/encounters/create" method='post'>
@@ -72,38 +89,32 @@
 				:order_id  => "#{order.order_id}",
 				:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} brought to clinic"} %>
 
-		<%= touch_numeric_tag "AMOUNT OF DRUG REMAINING AT HOME", @patient, nil,
+		<%= #touch_numeric_tag "AMOUNT OF DRUG REMAINING AT HOME", @patient, nil,
 			{	:id        => "amount_other_#{order.order_id}",
 				:units     => "#{order.drug_order.units}",
 				:order_id  => "#{order.order_id}",
-				:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} left at home",
-				:tt_onUnLoad   => "getAdherence(#{order.id}, '#{order.start_date.strftime('%Y-%m-%d')}', '#{order.auto_expire_date.strftime('%Y-%m-%d')}', #{order.drug_order.equivalent_daily_dose || 0}, #{order.drug_order.quantity || 0})" } %>
+				:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} left at home" } %>
 
 		<%= touch_hidden_tag "WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER", @patient, nil,
 			{	:id          => "adherence_#{order.order_id}",
 				:helpText    => "Adherence summary for #{order.drug_order.drug.name}",
-				:tt_onLoad   => "getAdherence(#{order.id}, '#{order.start_date.strftime('%Y-%m-%d')}', '#{order.auto_expire_date.strftime('%Y-%m-%d')}', #{order.drug_order.equivalent_daily_dose || 0}, #{order.drug_order.quantity || 0})",
 				:optional    => "true",
 				:order_id    => "#{order.order_id}",
 				:tt_pageStyleClass => "NoControls"} %>
 				
 			<script>
-        adherence_ids.push("adherence_<%=order.order_id %>");
-        drug_names.push("<%=order.drug_order.drug.name %>");
-        equivalent_daily_dose.push("<%= order.drug_order.equivalent_daily_dose %>");
-        order_start_date.push("<%= order.start_date.strftime('%Y-%m-%d') %>");
-        drug_order_quantity.push("<%= order.drug_order.quantity %>");
-        order_auto_expire_date.push("<%= order.auto_expire_date.strftime('%Y-%m-%d') %>");
-        amount_brought_ids.push("amount_brought_<%=order.order_id %>");
-        amount_other_ids.push("amount_other_<%=order.order_id %>");
-        auto_expire_date.push("<%= order.auto_expire_date.strftime('%Y-%m-%d') %>");
+        drug_names['<%=order.order_id%>'] = "<%=order.drug_order.drug.name %>";
+        daily_consumption['<%=order.order_id%>'] = "<%=order.drug_order.equivalent_daily_dose %>";
+        order_start_date['<%=order.order_id%>'] = "<%=order.start_date.strftime('%Y-%m-%d') %>";
+        order_auto_expire_date['<%=order.order_id%>'] = "<%= order.auto_expire_date.strftime('%Y-%m-%d') %>";
+        amount_given_last_time['<%=order.order_id%>'] = "<%=order.drug_order.quantity %>";
       </script>
 
 	<% end rescue [] %>
 
   <label for='summary'>Adherence Report</label>
     <%= text_field_tag :summary, nil,
-      { :tt_onLoad => "adherenceReport();",
+      { :tt_onLoad => "adherenceReport();setAttributes();",
         :optional => "true",
         :tt_pageStyleClass => "NoControls" } %>
 
@@ -116,39 +127,40 @@
 
        var summary = "<div class='summary' style='height:670px'>";
 		   
-		   for (var i=0; i <  drug_names.length; i++){
-		      var amount_brought = "";
-		      var amount_other = "";
-		      var adherence = 100;
-		      
-		      amount_brought = amount_brought_ids[i];
-		      amount_other = amount_other_ids[i];
-		      adherence= adherence_ids[i];
-		      
-		      if (parseFloat($(amount_brought).value) > 0) amount_remaining += parseFloat($(amount_brought).value);
-			    if (parseFloat($(amount_other).value) > 0) amount_remaining += parseFloat($(amount_other).value);
+		   //for (var i=0; i <  drug_names.length; i++){
+       for(i in drug_names){
+		      amount_remaining = parseFloat($("amount_brought_" + i).value);
 		      
 		      var days_overdue_for_visit = since(auto_expire_date[i]);
-		      
+          var doses_missed = 0;
 		      var last_visit_date = dateCreate(order_start_date[i]);
-			    var days_since_last_visit = since(last_visit_date);
-			    var expected_amount_remaining = drug_order_quantity[i] - Math.round(days_since_last_visit * equivalent_daily_dose[i]);
-			    var doses_missed = amount_remaining - expected_amount_remaining;
-			    var number_missed = amount_remaining - expected_amount_remaining;
+			    var num_days = since(last_visit_date);
+			    var expected_amount_remaining = parseFloat(amount_given_last_time[i] - (num_days * daily_consumption[i]));
+
+          if(expected_amount_remaining == amount_remaining) {
+            doses_missed = 0;
+          }else{
+            doses_missed = parseFloat((expected_amount_remaining - amount_remaining) / daily_consumption[i]);
+          }          
+
+          var adherence = Math.round(100*(amount_given_last_time[i] - amount_remaining) / (amount_given_last_time[i] - expected_amount_remaining))
+          $('adherence_'+i).value = adherence;
+
 			    var drug_name = drug_names[i];
-		      
-		      var warning = ($(adherence).value < 95) ? 'warning' : '';
+		      var warning = (adherence < 95) ? 'warning' : '';
 
 		      summary += "<div><span class='title'></span><span class='title'>"+drug_name+"</span></div>"
 			    summary += "<div><span >Last visit date:&nbsp;</span><span class='value'>"+dateFormat(last_visit_date,"dddd, mmmm dS, yyyy")+"</span></div>"
 			    if (doses_missed >= 0) summary += "<div><span class='value'>Doses missed:&nbsp;</span><span class='value'>"+doses_missed+"</span></div>"
 			    if (doses_missed < 0) summary += "<div><span>Doses unaccounted for:&nbsp;</span><span class='value'>"+(-doses_missed)+"</span></div>"
+			    summary += "<div><span>Tablets given last time:&nbsp;</span><span class='value'>"+(amount_given_last_time[i])+"</span></div>"
+			    summary += "<div><span>Daily consumption:&nbsp;</span><span class='value'>"+(daily_consumption[i])+"</span></div>"
 			    if (expected_amount_remaining > 0) summary += "<div><span >Expected tablets remaining:&nbsp;</span><span class='value'>"+expected_amount_remaining+"</span></div>"
 			    if (expected_amount_remaining < 0 && days_overdue_for_visit > 0) summary += "<div><span>Days overdue for visit:&nbsp;</span><span class='value'>"+days_overdue_for_visit+"</span></div>"
 			    summary += "<div><span>Actual tablets remaining:&nbsp;</span><span class='value'>"+amount_remaining+"</span></div>"
 			
-			    summary += "<div class='value'><span>Percentage of doses taken:&nbsp;</span><span class='value'>"+ $(adherence).value +"%</span></div>"
-			    if ($(adherence).value < 95 || $(adherence).value > 105) summary += "<div class='" + warning + "'><span style='color:red' class='recommendation'>Patient needs counseling</span></div><br /><br />"
+			    summary += "<div class='value'><span>Percentage of doses taken:&nbsp;</span><span class='value'>"+ adherence +"%</span></div>"
+			    if (adherence < 95 || adherence > 105) summary += "<div class='" + warning + "'><span style='color:red' class='recommendation'>Patient needs counseling</span></div><br /><br />"
 			    
 		    }
         summary += "</div>"
@@ -167,25 +179,6 @@
 			return ""+date.getDate()+"-"+months[date.getMonth()]+"-"+date.getFullYear();
 		}
 
-    function getAdherence(order_id, start_date, auto_expire_date, equivalent_daily_dose, quantity){
-      var amount_remaining = 0
-			
-			if (parseFloat($('amount_brought_'+order_id).value) > 0) amount_remaining += parseFloat($('amount_brought_'+order_id).value);
-			if (parseFloat($('amount_other_'+order_id).value) > 0) amount_remaining += parseFloat($('amount_other_'+order_id).value);
-
-			var last_visit_date = dateCreate(start_date);
-			var days_since_last_visit = since(last_visit_date);
-			var expected_amount_remaining = quantity - Math.round(days_since_last_visit * equivalent_daily_dose);
-			var doses_missed = amount_remaining - expected_amount_remaining;
-			var adherence = 100;
-			// To avoiding dividing by zero which result in a value of 'infinity' being inserted into the database as adherence value
-			if ((quantity - expected_amount_remaining) != 0)
-			{
-				adherence = Math.round(100 * (quantity - amount_remaining) / (quantity - expected_amount_remaining));
-			}
-			//set the adherence value
-      $('adherence_'+order_id).value = adherence;
-    }
 	</script>
 
   <% session_date = session[:datetime].to_date rescue nil                       
