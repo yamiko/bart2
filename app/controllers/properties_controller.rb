@@ -120,6 +120,9 @@ class PropertiesController < ApplicationController
       else
         redirect_to "/clinic" and return
       end
+    else
+      @privileges = Privilege.find(:all).collect{|r|r.privilege}
+      @activities = RolePrivilege.find(:all).collect{|r|r.privilege}
     end
   end
 

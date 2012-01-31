@@ -181,15 +181,12 @@
     }                                                                           
   }
 
-
-
-
-
-
   function updateCD4Count() {
     var cd4_available = $('new_cd4_count_available').value == 'YES';
     var cd4_count = cd4_available ? $('cd4_count').value : null;
-    try { cd4_count_numeric = parseInt(cd4_count); } catch(e) { cd4_count_numeric = null; }
+    try { 
+      cd4_count_numeric = parseInt(cd4_count.match(/[0-9](.*)/i)[0]); 
+    } catch(e) { cd4_count_numeric = null; }
     if (cd4_count_numeric == null || ''+cd4_count_numeric == 'NaN') {
       try {
         var matches = cd4_count.match(/^(\<|\>)([0-9\.]+)$/)

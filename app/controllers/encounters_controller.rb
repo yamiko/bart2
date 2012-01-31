@@ -283,6 +283,14 @@ class EncountersController < ApplicationController
     (params[:programs] || []).each do |program|
       # Look up the program if the program id is set      
       @patient_program = PatientProgram.find(program[:patient_program_id]) unless program[:patient_program_id].blank?
+
+      #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      #if params[:location] is not blank == migration params
+      if params[:location]
+        next if not @patient.patient_programs.in_programs("HIV PROGRAM").blank?
+      end
+      #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
       # If it wasn't set, we need to create it
       unless (@patient_program)
         @patient_program = @patient.patient_programs.create(
@@ -390,7 +398,7 @@ class EncountersController < ApplicationController
 		else
 			@retrospective = false
 		end
-    @current_height = PatientService.get_patient_attribute_value(@patient, "current_height")
+		@current_height = PatientService.get_patient_attribute_value(@patient, "current_height")
 
 		@min_weight = PatientService.get_patient_attribute_value(@patient, "min_weight")
         @max_weight = PatientService.get_patient_attribute_value(@patient, "max_weight")
