@@ -44,6 +44,14 @@
     display: none; 
    }                              
                                                                                 
+	.tt_controls_confirmatory_hiv_test_year #Unknown { display: inline; }
+
+
+	.tt_controls_confirmatory_hiv_test_month .keyboard { display:none; }
+
+	#tt_page_confirmatory_hiv_test_month .options {  height: 90%; }
+
+	#tt_page_confirmatory_hiv_test_month .inputFrameClass {  height: 86%; }
 </style>
 
 <script>
@@ -295,6 +303,41 @@
     var currentHeight = $("height").value;
     currentBmi = (currentWeight/(currentHeight*currentHeight)*10000).toFixed(1);
     $('bmi').value = currentBmi;
+  }
+  
+  function buildConfirmatoryTestDate() {
+    var year = $("confirmatory_hiv_test_year").value;
+    var month = $("confirmatory_hiv_test_month").value;
+    var day = $("confirmatory_hiv_test_day").value;
+    if(day.length < 1) {
+      try {
+        var days = document.getElementsByName("day_confirmatory_hiv_test")
+        for(i = 0;i<days.length;i++) {
+          if(days[i].value.length > 0){
+            day = days[i].value;
+            break;
+          }
+        }
+      }catch(e){ return }
+    }
+
+    if (month.length == 1)
+      month = 0 + month;
+
+    if (day.length == 1)
+      day = 0 + day;
+
+    alert(year + "-" + month + "-" + day)
+
+    if(year == "Unknown") {
+      $("confirmatory_hiv_test_date").value = year;
+    }else if(month == "Unknown") {
+      $("confirmatory_hiv_test_date").value = year + "-07-01";
+    }else if(day == "Unknown") {
+      $("confirmatory_hiv_test_date").value = year + "-" + month + "-01";
+    }else{
+      $("confirmatory_hiv_test_date").value = year + "-" + month + "-" + day;
+    }
   } 
 </script>
 <%#= raise @patient.person.birthdate.day.to_s %>
@@ -583,9 +626,38 @@
 		<%= touch_date_tag "CONFIRMATORY HIV TEST DATE", @patient, nil,
 			{	:id => "confirmatory_hiv_test_date",
 			 	:max => "#{session[:datetime].to_date rescue Date.today}",
+        :condition => '$("ever_registered_at_ART_clinic").value == "NO"',
 			 	:validationCode => "checkBirthDate() == 'true'",
 			 	:validationMessage => "Confirmatory HIV test date is greater than patient's date of birth #{@patient.person.birthdate}",
 			 	:helpText => "Date of confirmatory HIV test"} %>
+
+     <%= text_field_tag "year_confirmatory_hiv_test", nil,                                 
+      {:helpText => 'Confirmatory HIV test year',                                         
+       :field_type => 'number',     
+       :tt_onUnLoad => "buildConfirmatoryTestDate();",                                            
+       :absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year, 
+       :tt_pageStyleClass => "Numeric NumbersOnly",                             
+       :condition => '$("ever_registered_at_ART_clinic").value == "YES"',
+       :id => "confirmatory_hiv_test_year" ,                                              
+       :validationJS => "setDOB();" }  %>                                       
+                                                                                
+    <%= select_tag "month_confirmatory_hiv_test", month_name_options,                     
+      {:helpText => 'Confirmatory HIV test month',                                        
+       :condition => '$("confirmatory_hiv_test_year").value.toLowerCase() != "unknown" && $("ever_registered_at_ART_clinic").value == "YES"',
+       :validationJS => "validateDOB();",                                       
+       :tt_onUnLoad => "buildConfirmatoryTestDate();",                                            
+       :id => "confirmatory_hiv_test_month" ,                                             
+       :validationMessage => 'Please enter a valid date'}%>                     
+                                                                                
+    <%= text_field_tag "day_confirmatory_hiv_test",  nil,                                 
+        :field_type => 'number', :helpText => 'Confirmatory HIV test day',                
+        :tt_onUnLoad => "buildConfirmatoryTestDate();",                                            
+        :condition => '($("confirmatory_hiv_test_year").value !="Unknown") && ($("confirmatory_hiv_test_month").value != "Unknown") && $("ever_registered_at_ART_clinic").value == "YES"',
+        :tt_onLoad => "getDayOfMonthPicker($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value);$('nextButton').style.display = 'block';",
+        :validationJS => "validateDOB()",                                       
+        :id => "confirmatory_hiv_test_day" ,                                              
+        :validationMessage => 'Please enter a valid date'%>
+
 
    <% session_date = session[:datetime].to_date rescue nil                       
     if session_date %>
