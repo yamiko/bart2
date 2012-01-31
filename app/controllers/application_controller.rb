@@ -950,13 +950,13 @@ class ApplicationController < ActionController::Base
             return task
           end
         when 'DISPENSING'
-          treatment = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
-                            patient.id,session_date,EncounterType.find_by_name('TREATMENT').id])
-
           encounter_art_visit = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                                    patient.id,EncounterType.find_by_name('ART VISIT').id,session_date],
                                    :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
           next unless encounter_art_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Prescribe drugs:  Yes'.upcase
+
+          treatment = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
+                            patient.id,session_date,EncounterType.find_by_name('TREATMENT').id])
 
           if encounter_available.blank? and user_selected_activities.match(/Manage drug dispensations/i)
             task.url = "/patients/treatment_dashboard/#{patient.id}"
