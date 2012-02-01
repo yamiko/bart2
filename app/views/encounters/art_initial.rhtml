@@ -327,8 +327,6 @@
     if (day.length == 1)
       day = 0 + day;
 
-    alert(year + "-" + month + "-" + day)
-
     if(year == "Unknown") {
       $("confirmatory_hiv_test_date").value = year;
     }else if(month == "Unknown") {
@@ -413,197 +411,192 @@
 				:helpText => "ART number at previous location" } %>
 
 		
-    <%= text_field_tag "year_started_art", nil, 
-      {:helpText => 'Year started ART', 
-       :field_type => 'number', 
-       :absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year, 
-       :tt_pageStyleClass => "Numeric NumbersOnly", 
-       :condition => '$("ever_registered_at_ART_clinic").value == "YES" && showConditions()',
-       :id => "year_started_art" ,
-       :validationJS => "setDOB();" }  %>
+		<%= text_field_tag "year_started_art", nil, 
+			{	:helpText => 'Year started ART', 
+				:field_type => 'number', 
+				:absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year, 
+				:tt_pageStyleClass => "Numeric NumbersOnly", 
+				:condition => '$("ever_registered_at_ART_clinic").value == "YES" && showConditions()',
+				:id => "year_started_art" ,
+				:validationJS => "setDOB();" }  %>
 
-    <%= select_tag "month_started_art", month_name_options, 
-      {:helpText => 'Month started ART', 
-       :condition => '$("year_started_art").value.toLowerCase() != "unknown" && $("ever_registered_at_ART_clinic").value == "YES" && showConditions()',
-       :validationJS => "validateDOB();",
-       :id => "month_started_art" ,
-       :validationMessage => 'Please enter a valid date'}%>
+		<%= select_tag "month_started_art", month_name_options, 
+			{	:helpText => 'Month started ART', 
+				:condition => '$("year_started_art").value.toLowerCase() != "unknown" && $("ever_registered_at_ART_clinic").value == "YES" && showConditions()',
+				:validationJS => "validateDOB();",
+				:id => "month_started_art" ,
+				:validationMessage => 'Please enter a valid date'}%>
 
-    <%= text_field_tag "day_started_art",  nil, 
-        :field_type => 'number', :helpText => 'Day started ART', 
-        :condition => '($("year_started_art").value !="Unknown") && ($("month_started_art").value != "Unknown") && $("ever_registered_at_ART_clinic").value == "YES" && showConditions()', 
-        :tt_onLoad => "getDayOfMonthPicker($('year_started_art').value, $('month_started_art').value);$('nextButton').style.display = 'block';",
-        :validationJS => "validateDOB()",
-        :id => "day_started_art" ,
-        :validationMessage => 'Please enter a valid date'%>
+		<%= text_field_tag "day_started_art",  nil, 
+				:field_type => 'number', :helpText => 'Day started ART', 
+				:condition => '($("year_started_art").value !="Unknown") && ($("month_started_art").value != "Unknown") && $("ever_registered_at_ART_clinic").value == "YES" && showConditions()', 
+				:tt_onLoad => "getDayOfMonthPicker($('year_started_art').value, $('month_started_art').value);$('nextButton').style.display = 'block';",
+				:validationJS => "validateDOB()",
+				:id => "day_started_art" ,
+				:validationMessage => 'Please enter a valid date'%>
 
-     <%= touch_hidden_tag "Date antiretrovirals started", @patient, "", :id => "date_started_art" %>
+		<%= touch_hidden_tag "Date antiretrovirals started", @patient, "", :id => "date_started_art" %>
 
-      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, options_for_select(@who_stage_i),
-          {:id => "stage_1_conditions",                                         
-           :multiple => true,                                                   
-           :condition => 'showConditions()',                            
-           :optional => true,                                                   
-           :helpText => "Stage 1 Conditions",                                   
-           :tt_pageStyleClass => "NoKeyboard NoInput small" } %>                
+		<%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, options_for_select(@who_stage_i),
+			{	:id => "stage_1_conditions",                                         
+				:multiple => true,                                                   
+				:condition => 'showConditions()',                            
+				:optional => true,                                                   
+				:helpText => "Stage 1 Conditions",                                   
+				:tt_pageStyleClass => "NoKeyboard NoInput small" } %>                
                                                                                 
-      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient,  options_for_select(@who_stage_ii),
-        {:id => "stage_2_conditions",                                         
-         :multiple => true,                                                   
-         :optional => true,                                                   
-         :condition => 'showConditions()',                            
-         :helpText => "Stage 2 Conditions",                                   
-         :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>               
+		<%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient,  options_for_select(@who_stage_ii),
+			{	:id => "stage_2_conditions",                                         
+				:multiple => true,                                                   
+				:optional => true,                                                   
+				:condition => 'showConditions()',                            
+				:helpText => "Stage 2 Conditions",                                   
+				:tt_pageStyleClass => "NoKeyboard NoInput small"  } %>               
+				                                                        
+				                                                        
+		<%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient,  options_for_select(@who_stage_iii),
+			{	:id => "stage_3_conditions",                                         
+				:multiple => true,                                                   
+				:optional => true,                                                   
+				:condition => 'showConditions()',                            
+				:helpText => "Stage 3 Conditions",                                   
+				:tt_pageStyleClass => "NoKeyboard NoInput small"  } %>               
                                                                                 
                                                                                 
-      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient,  options_for_select(@who_stage_iii),
-        {:id => "stage_3_conditions",                                         
-         :multiple => true,                                                   
-         :optional => true,                                                   
-         :condition => 'showConditions()',                            
-         :helpText => "Stage 3 Conditions",                                   
-         :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>               
-                                                                                
-                                                                                
-      <%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient,  options_for_select(@who_stage_iv),
-        {:id => "stage_4_conditions",                                         
-         :multiple => true,                                                   
-         :optional => true,                                                   
-         :condition => 'showConditions()',                            
-         :helpText => "Stage 4 Conditions",                                   
-         :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
+		<%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient,  options_for_select(@who_stage_iv),
+			{	:id => "stage_4_conditions",                                         
+				:multiple => true,                                                   
+			:optional => true,                                                   
+			:condition => 'showConditions()',                            
+			:helpText => "Stage 4 Conditions",                                   
+			:tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
 
-      <%
-          @reasons = ["WHO stage I","WHO stage II","WHO stage III","WHO stage IV",
-                      "PRESUMED SEVERE HIV","HIV DNA POLYMERASE CHAIN REACTION",
-                      "HIV infected","CD4 COUNT LESS THAN OR EQUAL TO 750",
-                      "CD4 COUNT LESS THAN OR EQUAL TO 350","CD4 COUNT LESS THAN OR EQUAL TO 250",
-                      "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2","Unknown"]
-          if @patient.person.gender == "F"
-            @reasons << "PATIENT PREGNANT"
-            @reasons << "BREASTFEEDING"
-          end
-        art_reasons = []
-        @reasons.map do |reason|
+		<%
+			@reasons = ["WHO stage I","WHO stage II","WHO stage III","WHO stage IV",
+				"PRESUMED SEVERE HIV","HIV DNA POLYMERASE CHAIN REACTION",
+				"HIV infected","CD4 COUNT LESS THAN OR EQUAL TO 750",
+				"CD4 COUNT LESS THAN OR EQUAL TO 350","CD4 COUNT LESS THAN OR EQUAL TO 250",
+				"LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2","Unknown"]
+			if @patient.person.gender == "F"
+				@reasons << "PATIENT PREGNANT"
+				@reasons << "BREASTFEEDING"
+			end
+	        art_reasons = []
+	        @reasons.map do |reason|
         
-        	if reason.match(/WHO stage/i)
-		    	if @patient_bean.age < 15
-		    		reason = reason + " peds"
-		    	else
-		    		reason = reason + " adult"		    	
-		    	end
-		    end
+		    	if reason.match(/WHO stage/i)
+					if @patient_bean.age < 15
+						reason = reason + " peds"
+					else
+						reason = reason + " adult"		    	
+					end
+				end
 
-          unless reason[0..9].upcase.match(/who stage/i)
-            reason = reason.humanize.gsub("Cd4","CD4").gsub("Hiv","HIV").gsub("hiv","HIV") 
-          end
-                  
-          art_reasons << [reason,reason]
+				unless reason[0..9].upcase.match(/who stage/i)
+					reason = reason.humanize.gsub("Cd4","CD4").gsub("Hiv","HIV").gsub("hiv","HIV") 
+				end
+		              
+				art_reasons << [reason, reason]
           
-        end
-      %>
+	        end
+		%>
 
-	<%= touch_select_tag "REASON FOR ART ELIGIBILITY", @patient, options_for_select(art_reasons,[]),
-		{	:id => "reason_for_art_eligibility",
-			:condition => 'showConditions()',
-			:helpText => "Reason for ART eligibility",
-			:tt_onLoad => "calculateWHOstage();",
-			:tt_pageStyleClass => 'NoKeyboard'
-					
-			}%>
+		<%= touch_select_tag "REASON FOR ART ELIGIBILITY", @patient, options_for_select(art_reasons,[]),
+			{	:id => "reason_for_art_eligibility",
+				:condition => 'showConditions()',
+				:helpText => "Reason for ART eligibility",
+				:tt_onLoad => "calculateWHOstage();",
+				:tt_pageStyleClass => 'NoKeyboard' } %>
 
-     <%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
+		<%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
 
 
-      <%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), 
-          :id => 'new_cd4_count_available', 
-          :condition => 'showConditions()',                            
-          :helpText => "Initial CD4 Count available",
-          :tt_pageStyleClass => 'NoKeyboard' %>
+		<%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), 
+			:id => 'new_cd4_count_available', 
+			:condition => 'showConditions()',                            
+			:helpText => "Initial CD4 Count available",
+			:tt_pageStyleClass => 'NoKeyboard' %>
                                                                                 
-      <%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,               
-        {:id => "cd4_count_location",                                           
-         :condition => '$("new_cd4_count_available").value == "YES" && showConditions()',
-         :helpText => "CD4 Count Location"} %>                                  
+		<%= touch_location_tag "CD4 COUNT LOCATION", @patient, nil,               
+			{	:id => "cd4_count_location",                                           
+				:condition => '$("new_cd4_count_available").value == "YES" && showConditions()',
+				:helpText => "CD4 Count Location"} %>                                  
+				                                                            
+		<%= touch_date_tag "CD4 COUNT DATETIME", @patient, nil,                   
+			{	:id => "cd4_count_date",                                               
+				:condition => '$("new_cd4_count_available").value == "YES" && showConditions()',
+				:helpText => "CD4 Count Date",                                         
+				:max => "#{session[:datetime].to_date rescue Date.today}"} %>          
+				                                                            
+		<%= touch_cd4_count_numeric_tag "CD4 COUNT", @patient, nil,               
+			{	:id => "cd4_count",                                                    
+				:condition => '$("new_cd4_count_available").value == "YES" && showConditions()',
+				:helpText => "CD4 Count",                                              
+				:max => 1000 ,                                                         
+				:min => 1 ,                                                            
+				:tt_onLoad => "updateCD4CountKeyPad();",                               
+				:tt_onUnLoad => "updateCD4Count();"} %>                                
                                                                                 
-      <%= touch_date_tag "CD4 COUNT DATETIME", @patient, nil,                   
-        {:id => "cd4_count_date",                                               
-         :condition => '$("new_cd4_count_available").value == "YES" && showConditions()',
-         :helpText => "CD4 Count Date",                                         
-         :max => "#{session[:datetime].to_date rescue Date.today}"} %>          
+		<%= touch_hidden_tag "CD4 COUNT LESS THAN OR EQUAL TO 250", @patient, "", :id => "cd4_count_less_than_250" %>
+		<%= touch_hidden_tag "CD4 COUNT LESS THAN OR EQUAL TO 350", @patient, "", :id => "cd4_count_less_than_350" %>
                                                                                 
-      <%= touch_cd4_count_numeric_tag "CD4 COUNT", @patient, nil,               
-        {:id => "cd4_count",                                                    
-         :condition => '$("new_cd4_count_available").value == "YES" && showConditions()',
-         :helpText => "CD4 Count",                                              
-         :max => 1000 ,                                                         
-         :min => 1 ,                                                            
-         :tt_onLoad => "updateCD4CountKeyPad();",                               
-         :tt_onUnLoad => "updateCD4Count();"} %>                                
-                                                                                
-         <%= touch_hidden_tag "CD4 COUNT LESS THAN OR EQUAL TO 250", @patient, "", :id => "cd4_count_less_than_250" %>
-         <%= touch_hidden_tag "CD4 COUNT LESS THAN OR EQUAL TO 350", @patient, "", :id => "cd4_count_less_than_350" %>
-                                                                                
-      <%= select_tag "new_cd4_percent_available", options_for_select([['Yes','YES'],['No','NO']]),
-          :id => 'new_cd4_percent_available',                                   
-          :condition => 'showConditions() == true',                             
-          :helpText => "Initial CD4 percent available",                         
-          :tt_pageStyleClass => 'NoKeyboard' %>                                 
-                                                                                
-      <%= touch_cd4_count_numeric_tag "CD4 PERCENT", @patient, nil,             
-          {:id => "cd4_percent",                                                
-           :condition => '$("new_cd4_percent_available").value == "YES" && showConditions()',
-           :helpText => "CD4 Percent",                                          
-           :tt_onLoad => "updateCD4CountKeyPad();",                             
-           :tt_onUnLoad => 'updateCD4Percent()'} %> 
+		<%= select_tag "new_cd4_percent_available", options_for_select([['Yes','YES'],['No','NO']]),
+			:id => 'new_cd4_percent_available',                                   
+			:condition => 'showConditions() == true',                             
+			:helpText => "Initial CD4 percent available",                         
+			:tt_pageStyleClass => 'NoKeyboard' %>                                 
+				                                                                
+		<%= touch_cd4_count_numeric_tag "CD4 PERCENT", @patient, nil,             
+			{	:id => "cd4_percent",                                                
+				:condition => '$("new_cd4_percent_available").value == "YES" && showConditions()',
+				:helpText => "CD4 Percent",                                          
+				:tt_onLoad => "updateCD4CountKeyPad();",                             
+				:tt_onUnLoad => 'updateCD4Percent()'} %> 
 
-      <%= touch_hidden_tag "CD4 PERCENT LESS THAN 25", @patient, "", :id => "cd4_percent_less_than_25" %>
+		<%= touch_hidden_tag "CD4 PERCENT LESS THAN 25", @patient, "", :id => "cd4_percent_less_than_25" %>
 
-     <%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
+		<%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
 
-
-      <%= text_field_tag "observations[][value_numeric]", nil,                  
-        {:id => "height",                                                       
-         :field_type => 'number',                                               
-         :condition => 'showConditions()',                            
-         :min => number_with_precision(0, :precision => 1),           
-         :max => number_with_precision(183, :precision => 1),           
-         :absoluteMin => 10,                                                    
-         :absoluteMax => 228,                                                   
-         :helpText => "Initial Height (CM)",
-         :units => 'cm',                                                        
-         :validationRule => "^([0-9]+)|Unknown$",                               
-         :validationMessage => "You must enter numbers only (for example 157)", 
-         :tt_pageStyleClass => "Numeric NumbersOnly"} %>                        
-      <%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>    
-      <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
-      <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %> 
+		<%= text_field_tag "observations[][value_numeric]", nil,                  
+			{	:id => "height",                                                       
+				:field_type => 'number',                                               
+				:condition => 'showConditions()',                            
+				:min => number_with_precision(0, :precision => 1),           
+				:max => number_with_precision(183, :precision => 1),           
+				:absoluteMin => 10,                                                    
+				:absoluteMax => 228,                                                   
+				:helpText => "Initial Height (CM)",
+				:units => 'cm',                                                        
+				:validationRule => "^([0-9]+)|Unknown$",                               
+				:validationMessage => "You must enter numbers only (for example 157)", 
+				:tt_pageStyleClass => "Numeric NumbersOnly"} %>                        
+		<%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>    
+		<%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
+		<%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %> 
 
       
-      <%= text_field_tag "observations[][value_numeric]", nil,                  
-        {:id => "weight",                                                       
-         :field_type => 'number',                                               
-         :min => number_with_precision(0, :precision => 1),           
-         :max => number_with_precision(80, :precision => 1),           
-         :condition => 'showConditions()',                            
-         :helpText => "Initial Weight (Kg)",
-         :absoluteMin => 0,                                                     
-         :absoluteMax => 250,                                                   
-         :units => 'kg',                                                        
-         :validationRule => "([0-9]+\\.[0-9])|Unknown$",                        
-         :validationMessage => "You must enter a decimal between 0 and 9 (for example: 54<b>.6</b>)",
-         :tt_onUnLoad => "calculateBMI();",
-         :tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal"} %>             
-      <%= hidden_field_tag("observations[][concept_name]", "WEIGHT (KG)") %>    
-      <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
-      <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+		<%= text_field_tag "observations[][value_numeric]", nil,                  
+			{	:id => "weight",                                                       
+				:field_type => 'number',                                               
+				:min => number_with_precision(0, :precision => 1),           
+				:max => number_with_precision(80, :precision => 1),           
+				:condition => 'showConditions()',                            
+				:helpText => "Initial Weight (Kg)",
+				:absoluteMin => 0,                                                     
+				:absoluteMax => 250,                                                   
+				:units => 'kg',                                                        
+				:validationRule => "([0-9]+\\.[0-9])|Unknown$",                        
+				:validationMessage => "You must enter a decimal between 0 and 9 (for example: 54<b>.6</b>)",
+				:tt_onUnLoad => "calculateBMI();",
+				:tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal"} %>             
+		<%= hidden_field_tag("observations[][concept_name]", "WEIGHT (KG)") %>    
+		<%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
+		<%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 
-      <%= hidden_field_tag("observations[][value_numeric]", nil, {:id => 'bmi'}) %>
-      <%= hidden_field_tag("observations[][concept_name]", "BODY MASS INDEX, MEASURED") %>
-      <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>      
-      <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-
-
+		<%= hidden_field_tag("observations[][value_numeric]", nil, {:id => 'bmi'}) %>
+		<%= hidden_field_tag("observations[][concept_name]", "BODY MASS INDEX, MEASURED") %>
+		<%= hidden_field_tag("observations[][patient_id]", @patient.id) %>      
+		<%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 
 		<%  if @cell_number.to_i != 0 %>
 			<%= touch_yes_no_unknown_tag "SEND SMS", @patient, nil,
@@ -631,42 +624,41 @@
 			 	:validationMessage => "Confirmatory HIV test date is greater than patient's date of birth #{@patient.person.birthdate}",
 			 	:helpText => "Date of confirmatory HIV test"} %>
 
-     <%= text_field_tag "year_confirmatory_hiv_test", nil,                                 
-      {:helpText => 'Confirmatory HIV test year',                                         
-       :field_type => 'number',     
-       :tt_onUnLoad => "buildConfirmatoryTestDate();",                                            
-       :absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year, 
-       :tt_pageStyleClass => "Numeric NumbersOnly",                             
-       :condition => '$("ever_registered_at_ART_clinic").value == "YES"',
-       :id => "confirmatory_hiv_test_year" ,                                              
-       :validationJS => "setDOB();" }  %>                                       
-                                                                                
-    <%= select_tag "month_confirmatory_hiv_test", month_name_options,                     
-      {:helpText => 'Confirmatory HIV test month',                                        
-       :condition => '$("confirmatory_hiv_test_year").value.toLowerCase() != "unknown" && $("ever_registered_at_ART_clinic").value == "YES"',
-       :validationJS => "validateDOB();",                                       
-       :tt_onUnLoad => "buildConfirmatoryTestDate();",                                            
-       :id => "confirmatory_hiv_test_month" ,                                             
-       :validationMessage => 'Please enter a valid date'}%>                     
-                                                                                
-    <%= text_field_tag "day_confirmatory_hiv_test",  nil,                                 
-        :field_type => 'number', :helpText => 'Confirmatory HIV test day',                
-        :tt_onUnLoad => "buildConfirmatoryTestDate();",                                            
-        :condition => '($("confirmatory_hiv_test_year").value !="Unknown") && ($("confirmatory_hiv_test_month").value != "Unknown") && $("ever_registered_at_ART_clinic").value == "YES"',
-        :tt_onLoad => "getDayOfMonthPicker($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value);$('nextButton').style.display = 'block';",
-        :validationJS => "validateDOB()",                                       
-        :id => "confirmatory_hiv_test_day" ,                                              
-        :validationMessage => 'Please enter a valid date'%>
+		<%= text_field_tag "year_confirmatory_hiv_test", nil,                                 
+			{	:helpText => 'Confirmatory HIV test year',                                         
+				:field_type => 'number',     
+				:tt_onUnLoad => "buildConfirmatoryTestDate();",                                            
+				:absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year, 
+				:tt_pageStyleClass => "Numeric NumbersOnly",                             
+				:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
+				:id => "confirmatory_hiv_test_year" ,                                              
+				:validationJS => "setDOB();" }  %>                                       
+				                                                            
+		<%= select_tag "month_confirmatory_hiv_test", month_name_options,                     
+			{	:helpText => 'Confirmatory HIV test month',                                        
+				:condition => '$("confirmatory_hiv_test_year").value.toLowerCase() != "unknown" && $("ever_registered_at_ART_clinic").value == "YES"',
+				:validationJS => "validateDOB();",                                       
+				:tt_onUnLoad => "buildConfirmatoryTestDate();",                                            
+				:id => "confirmatory_hiv_test_month" ,                                             
+				:validationMessage => 'Please enter a valid date'} %>                     
+				                                                            
+		<%= text_field_tag "day_confirmatory_hiv_test",  nil,                                 
+			:field_type => 'number', :helpText => 'Confirmatory HIV test day',                
+			:tt_onUnLoad => "buildConfirmatoryTestDate();",                                            
+			:condition => '($("confirmatory_hiv_test_year").value !="Unknown") && ($("confirmatory_hiv_test_month").value != "Unknown") && $("ever_registered_at_ART_clinic").value == "YES"',
+			:tt_onLoad => "getDayOfMonthPicker($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value);$('nextButton').style.display = 'block';",
+			:validationJS => "validateDOB()",                                       
+			:id => "confirmatory_hiv_test_day" ,                                              
+			:validationMessage => 'Please enter a valid date' %>
 
+		<% if @retrospective %>
+			<p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
+			<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+		<% else %>
+			<%= hidden_field_tag "filter[provider]", nil %>
+		<%end%>
 
-   <% session_date = session[:datetime].to_date rescue nil                       
-    if session_date %>
-
-    <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
-<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
-    <% else %>
-      <%= hidden_field_tag "filter[provider]", nil %>
-    <%end%>
 		<%= submit_tag "Finish" %>    
+
 	</form>
 <% end %>
