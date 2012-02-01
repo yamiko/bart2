@@ -301,7 +301,7 @@ class PeopleController < ApplicationController
   def find_by_arv_number
     if request.post?
       redirect_to :action => 'search' ,
-        :identifier => "#{PatientIdentifier.site_prefix} #{params[:arv_number]}" and return
+        :identifier => "#{site_prefix}-ARV-#{params[:arv_number]}" and return
     end
   end
   

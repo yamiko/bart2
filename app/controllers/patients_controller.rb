@@ -746,11 +746,22 @@ class PatientsController < ApplicationController
     alerts = []
 
     type = EncounterType.find_by_name("APPOINTMENT")
+    
+    @show_change_app_date = Observation.find(:first,                          
+    :order => "encounter_datetime DESC,encounter.date_created DESC",          
+    :joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
+    :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
+    AND encounter_datetime >= ? AND encounter_datetime <= ?",
+    ConceptName.find_by_name('Appointment date').concept_id,                  
+    type.id, patient.id,session_date.strftime("%Y-%m-%d 00:00:00"),
+    session_date.strftime("%Y-%m-%d 23:59:59")]) != nil                    
+
     next_appt = Observation.find(:first,:order => "encounter_datetime DESC,encounter.date_created DESC",
                :joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
-               :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?",
-               ConceptName.find_by_name('Appointment date').concept_id,
-               type.id,patient.id]).value_datetime.strftime("%a %d %B %Y") rescue nil
+               :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
+               AND obs_datetime <= ?",ConceptName.find_by_name('Appointment date').concept_id,
+               type.id,patient.id,session_date.strftime("%Y-%m-%d 23:59:59")
+               ]).value_datetime.strftime("%a %d %B %Y") rescue nil
     alerts << ('Next appointment: ' + next_appt) unless next_appt.blank?
 
     encounter_dates = Encounter.find_by_sql("SELECT * FROM encounter WHERE patient_id = #{patient.id} AND encounter_type IN (" +
@@ -764,16 +775,24 @@ class PatientsController < ApplicationController
         encounter_dates], :order => "encounter_datetime").observations.last.to_s rescue nil
     alerts << ('Missed ' + missed_appt).capitalize unless missed_appt.blank?
 
+
+
+
     @adherence_level = ConceptName.find_by_name('What was the patients adherence for this drug order').concept_id
     type = EncounterType.find_by_name("ART ADHERENCE")
 
-    patient.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.map do |adh|
-      if adh.concept_id == @adherence_level
-        if (adh.value_numeric.to_i < 95 || adh.value_numeric.to_i > 105)
-          alerts << "Adherence: #{adh.order.drug_order.drug.name} (#{adh.value_numeric}%)"
-        end
+    observations = Observation.find(:all,:joins =>"INNER JOIN encounter e USING(encounter_id)",
+      :conditions =>["concept_id = ? AND encounter_type = ? AND patient_id = ? AND 
+      encounter_datetime >= ? AND encounter_datetime <= ?",@adherence_level,type,
+      patient.id,session_date.strftime("%Y-%m-%d 00:00:00"),session_date.strftime("%Y-%m-%d 23:59:59")],
+      :order => "obs_datetime DESC")
+
+    (observations || []).map do |adh|
+      adherence = adh.value_numeric ||= adh.value_text
+      if (adherence.to_f >= 95 || adherence.to_f <= 105)
+        alerts << "Adherence: #{adh.order.drug_order.drug.name} (#{adh.value_numeric}%)"
       end
-    end rescue []
+    end 
 
     type = EncounterType.find_by_name("DISPENSING")
     patient.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.each do | obs |

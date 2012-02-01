@@ -9,35 +9,6 @@
       tstCurrentDate = "<%= @date %>";
       //tt_cancel_destination = '/clinic';
       tt_cancel_show = '/clinic';
-      showSetAppDate = false;
-      <%
-          @alerts.each do |alert|
-            next unless alert.match(/Next appointment/i) 
-      %>
-          showSetAppDate = true
-      <%
-            break
-          end
-      %>
-      
-      function showSetAppointmentDate() {
-        buttons = document.getElementsByClassName("blue");
-        if(showSetAppDate) {
-          for(i=0;i<buttons.length;i++) {
-            if(buttons[i].innerHTML.match(/Change appointment/i)){
-              buttons[i].style.display = "inline";
-              break
-            }
-          }
-        }else{
-          for(i=0;i<buttons.length;i++) {
-            if(buttons[i].innerHTML.match(/Change appointment/i)){
-              buttons[i].style.display = "none";
-              break
-            }
-          }
-        }
-      }
     </script>
     <style>
       #tab5 {
@@ -48,7 +19,7 @@
       }
     </style>
   </head>
-  <body onload="setInterval('showSetAppointmentDate();',500);"><div id='content'>
+  <body><div id='content'>
       <div id='description' style='color:#777;position:absolute;margin-top:-70px;'></div><center>
         <form id = 'dashboard' action='/clinic'>
           <table cellpadding=10>
@@ -129,7 +100,9 @@
                   <% if show_lab_results %>
                     <option link="/lab/results/<%=@patient.id -%>">Lab results</option>
                   <%end%>
+                    <% if @show_change_app_date %>
                     <option link="/encounter_types/show?encounter_type=Appointment&change_app=true&id=show&patient_id=<%=@patient.id -%>">Change appointment</option>
+                    <%end%>
                     <option link='<%= ((session[:datetime].to_date rescue '') != '' ?
                           "/people/reset_datetime/#{@patient.id}" : "/people/set_datetime/#{@patient.id}") %>'  ttSize="160px">
                      <%= ((session[:datetime].to_date rescue '') != '' ? "Reset Date" : "Set Date") %></option>

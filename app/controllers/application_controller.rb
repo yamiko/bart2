@@ -950,6 +950,11 @@ class ApplicationController < ActionController::Base
             return task
           end
         when 'DISPENSING'
+          encounter_art_visit = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
+                                   patient.id,EncounterType.find_by_name('ART VISIT').id,session_date],
+                                   :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
+          next unless encounter_art_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Prescribe drugs:  Yes'.upcase
+
           treatment = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
                             patient.id,session_date,EncounterType.find_by_name('TREATMENT').id])
 
@@ -981,7 +986,7 @@ class ApplicationController < ActionController::Base
             task.url = "/patients/show/#{patient.id}"
             return task
           end if show_treatment
-
+=begin
           if not show_treatment
             if not encounter_art_visit.blank? and user_selected_activities.match(/Manage ART visits/i)
               task.url = "/patients/show/#{patient.id}"
@@ -991,6 +996,7 @@ class ApplicationController < ActionController::Base
               return task
             end 
           end
+=end
         when 'ART ADHERENCE'
           arv_drugs_given = PatientService.drug_given_before(@patient, session_date.to_date).arv.prescriptions rescue []
           next if arv_drugs_given.blank?
