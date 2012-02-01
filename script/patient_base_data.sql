@@ -85,7 +85,7 @@ INSERT INTO openmrs_b2.patient_identifier (patient_id, identifier_type, preferre
 SELECT patient_id, 17 AS identifier_type, preferred, location_id, identifier, creator, voided, voided_by, void_reason, date_voided, date_created, (SELECT UUID()) AS uuid FROM openmrs_bart1.patient_identifier WHERE identifier_type = 10;
 
 INSERT INTO openmrs_b2.patient_identifier (patient_id, identifier_type, preferred, location_id, identifier, creator, voided, voided_by, void_reason, date_voided, date_created, uuid)
-SELECT patient_id, 4 AS identifier_type, preferred, location_id, identifier, creator, voided, voided_by, void_reason, date_voided, date_created, (SELECT UUID()) AS uuid FROM openmrs_bart1.patient_identifier WHERE identifier_type = 18;
+SELECT patient_id, 4 AS identifier_type, preferred, location_id, CONCAT_WS('-ARV-',SUBSTRING(identifier,1,3), RTRIM(LTRIM(RIGHT(identifier,LENGTH(identifier)-3)))) AS identifier, creator, voided, voided_by, void_reason, date_voided, date_created, (SELECT UUID()) AS uuid FROM openmrs_bart1.patient_identifier WHERE identifier_type = 18;
 
 INSERT INTO openmrs_b2.patient_identifier (patient_id, identifier_type, preferred, location_id, identifier, creator, voided, voided_by, void_reason, date_voided, date_created, uuid)
 SELECT patient_id, 18 AS identifier_type, preferred, location_id, identifier, creator, voided, voided_by, void_reason, date_voided, date_created, (SELECT UUID()) AS uuid FROM openmrs_bart1.patient_identifier WHERE identifier_type = 19;
