@@ -203,9 +203,11 @@ end -%>
   }
    
   function makeRemoteButton(){
+    <% if create_from_dde_server %>
     __$("backButton").innerHTML = "<span>Remote Search</span>";
     __$('backButton').setAttribute("onmousedown","search_remote();");
     __$('backButton').style.display = "block";
+    <%end%>
   }
     
   function createNewSearchButton(){
