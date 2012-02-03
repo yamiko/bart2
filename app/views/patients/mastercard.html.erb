@@ -61,6 +61,15 @@
             </span>
           </button>
         <% end %>
+    
+        <% if show_lab_results %>                                     
+          <button class="button navButton blue" style="float: left;"
+                  onmousedown="window.location = '/lab/results/<%=@patient.id -%>'">
+            <span>
+              Lab trail
+            </span>
+          </button>
+        <%end%> 
 
       </div>
     </div>
