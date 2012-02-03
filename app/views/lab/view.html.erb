@@ -65,11 +65,11 @@
       value = (document.getElementById(type + '_' + count).innerHTML);
       if (value) {
         path += (document.getElementById(count).innerHTML) + ',';
-        path += (document.getElementById(type + '_' + count).innerHTML) + ';';
+        path += (document.getElementById(type + '_' + count).innerHTML.replace("&gt;","")) + ';';
       }
       count++;
     }
-
+  
     submitForm = document.createElement("FORM");
     submitForm.setAttribute("type","hidden");
     submitForm.method = "POST";
