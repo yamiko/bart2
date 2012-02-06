@@ -454,8 +454,6 @@
 			 	:condition => "$('ever_registered_at_ART_clinic').value == 'YES'",
 			 	:helpText => "Has staging information?" } %>
 
-<<<<<<< HEAD
-=======
    <%estimates = ["6 months ago","12 months ago","18 months ago","24 months","Over 2 years ago"]%>
    <%= select_tag(:art_start_date_estimation, options_for_select(estimates ,[]),
       :helpText =>"Estimate ART start period",                                                 
@@ -470,7 +468,6 @@
 
 		<%= touch_location_tag "LOCATION OF ART INITIATION", @patient, nil,
 			{	:id => "location_of_art_initialization",
->>>>>>> bb5a0dc3c2cb35eaf6f3a2c6bf1ed3ea8fac1351
 			 	:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
 			 	:optional => false,
 			 	:helpText => "Location of ART initiation" } %>
