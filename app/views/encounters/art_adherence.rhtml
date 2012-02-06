@@ -151,11 +151,11 @@
 
 		      summary += "<div><span class='title'></span><span class='title'>"+drug_name+"</span></div>"
 			    summary += "<div><span >Last visit date:&nbsp;</span><span class='value'>"+dateFormat(last_visit_date,"dddd, mmmm dS, yyyy")+"</span></div>"
-			    if (doses_missed >= 0) summary += "<div><span class='value'>Doses missed:&nbsp;</span><span class='value'>"+doses_missed+"</span></div>"
-			    if (doses_missed < 0) summary += "<div><span>Doses unaccounted for:&nbsp;</span><span class='value'>"+(-doses_missed)+"</span></div>"
+			    if (doses_missed >= 0) summary += "<div><span class='value'>Doses unaccounted for:&nbsp;</span><span class='value'>"+doses_missed+"</span></div>"
+			    if (doses_missed < 0) summary += "<div><span>Doses missed:&nbsp;</span><span class='value'>"+(-doses_missed)+"</span></div>"
 			    summary += "<div><span>Tablets given last time:&nbsp;</span><span class='value'>"+(amount_given_last_time[i])+"</span></div>"
 			    summary += "<div><span>Daily consumption:&nbsp;</span><span class='value'>"+(daily_consumption[i])+"</span></div>"
-			    if (expected_amount_remaining > 0) summary += "<div><span >Expected tablets remaining:&nbsp;</span><span class='value'>"+expected_amount_remaining+"</span></div>"
+			    if (expected_amount_remaining >= 0) summary += "<div><span >Expected tablets remaining:&nbsp;</span><span class='value'>"+expected_amount_remaining+"</span></div>"
 			    if (expected_amount_remaining < 0 && days_overdue_for_visit > 0) summary += "<div><span>Days overdue for visit:&nbsp;</span><span class='value'>"+days_overdue_for_visit+"</span></div>"
 			    summary += "<div><span>Actual tablets remaining:&nbsp;</span><span class='value'>"+amount_remaining+"</span></div>"
 			
