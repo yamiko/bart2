@@ -97,9 +97,6 @@
                 <select id="navigation_links">
                     <option link="/encounter_types?patient_id=<%= @patient.id -%>" ttSize = "160px">Tasks</option>
                   <option link="/patients/mastercard_menu?patient_id=<%= @patient.id -%>&source=<%= @source -%>">Mastercard</option>
-                  <% if show_lab_results %>
-                    <option link="/lab/results/<%=@patient.id -%>">Lab results</option>
-                  <%end%>
                     <% if @show_change_app_date %>
                     <option link="/encounter_types/show?encounter_type=Appointment&change_app=true&id=show&patient_id=<%=@patient.id -%>">Change appointment</option>
                     <%end%>
