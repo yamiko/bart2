@@ -16,6 +16,19 @@ class LabController < ApplicationController
     @test = params[:test]
     patient_ids = id_identifiers(@patient)
     @results = Lab.results_by_type(@patient, @test, patient_ids)
+
+    @all = {}
+    @results.map do |key,values|
+     date = key.split("::")[0].to_date rescue "1900-01-01".to_date
+     name = key.split("::")[1].strip 
+     value = values["TestValue"]
+     next if date == "1900-01-01".to_date and value.blank?
+     next if ((Date.today - 2.year) > date)
+     @all[name] = [] if @all[name].blank?
+     @all[name] << [date,value]
+     @all[name] = @all[name].sort
+    end
+
     @table_th = build_table(@results) unless @results.blank?
     render :layout => 'menu'
   end
