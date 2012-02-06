@@ -392,15 +392,14 @@
 
 		<%= touch_yes_no_tag "Ever registered at ART clinic", @patient, nil,
 			{	:id => "ever_registered_at_ART_clinic",
-			 	:helpText => "Ever registered at an ART clinic?"} %>
+				:tt_onUnload=>  "$('programs__states__state').value = 'Patient transferred in'",
+			 	:helpText => "Ever registered at an ART clinic?" } %>
 
 		<%= touch_yes_no_tag "HAS TRANSFER LETTER", @patient, nil,
 			{	:id => "has_transfer_letter",
-			 	:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
-			 	:helpText => "Has staging information?"} %>
+			 	:condition => "$('ever_registered_at_ART_clinic').value == 'YES'",
+			 	:helpText => "Has staging information?" } %>
 
-		<%= touch_location_tag "LOCATION OF ART INITIATION", @patient, nil,
-			{	:id => "location_of_art_initialization",
 			 	:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
 			 	:optional => false,
 			 	:helpText => "Location of ART initiation" } %>
@@ -466,10 +465,10 @@
 		<%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient,  options_for_select(@who_stage_iv),
 			{	:id => "stage_4_conditions",                                         
 				:multiple => true,                                                   
-			:optional => true,                                                   
-			:condition => 'showConditions()',                            
-			:helpText => "Stage 4 Conditions",                                   
-			:tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
+				:optional => true,                                                   
+				:condition => 'showConditions()',                            
+				:helpText => "Stage 4 Conditions",                                   
+				:tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
 
 		<%
 			@reasons = ["WHO stage I","WHO stage II","WHO stage III","WHO stage IV",
@@ -557,7 +556,7 @@
 
 		<%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
 
-		<%= text_field_tag "observations[][value_numeric]", nil,                  
+		<%= touch_text_field_tag "HEIGHT (CM)", @patient, nil,                  
 			{	:id => "height",                                                       
 				:field_type => 'number',                                               
 				:condition => 'showConditions()',                            
@@ -569,13 +568,9 @@
 				:units => 'cm',                                                        
 				:validationRule => "^([0-9]+)|Unknown$",                               
 				:validationMessage => "You must enter numbers only (for example 157)", 
-				:tt_pageStyleClass => "Numeric NumbersOnly"} %>                        
-		<%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>    
-		<%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
-		<%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %> 
+				:tt_pageStyleClass => "Numeric NumbersOnly" } %>                        
 
-      
-		<%= text_field_tag "observations[][value_numeric]", nil,                  
+		<%= touch_text_field_tag "WEIGHT (KG)", @patient, nil,                  
 			{	:id => "weight",                                                       
 				:field_type => 'number',                                               
 				:min => number_with_precision(0, :precision => 1),           
@@ -589,14 +584,6 @@
 				:validationMessage => "You must enter a decimal between 0 and 9 (for example: 54<b>.6</b>)",
 				:tt_onUnLoad => "calculateBMI();",
 				:tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal"} %>             
-		<%= hidden_field_tag("observations[][concept_name]", "WEIGHT (KG)") %>    
-		<%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
-		<%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-
-		<%= hidden_field_tag("observations[][value_numeric]", nil, {:id => 'bmi'}) %>
-		<%= hidden_field_tag("observations[][concept_name]", "BODY MASS INDEX, MEASURED") %>
-		<%= hidden_field_tag("observations[][patient_id]", @patient.id) %>      
-		<%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 
 		<%  if @cell_number.to_i != 0 %>
 			<%= touch_yes_no_unknown_tag "SEND SMS", @patient, nil,
@@ -662,3 +649,5 @@
 
 	</form>
 <% end %>
+		<%= touch_location_tag "LOCATION OF ART INITIATION", @patient, nil,
+			{	:id => "location_of_art_initialization",
