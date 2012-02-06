@@ -176,6 +176,10 @@ class PatientsController < ApplicationController
     if use_user_selected_activities
       @links << ["Change User Activities","/user/activities/#{User.current_user.id}?patient_id=#{patient.id}"]
     end
+      
+    if show_lab_results
+      @links << ["Lab trail", "/lab/results/#{patient.id}"]
+    end
 
     @links << ["Recent Lab Orders Label","/patients/recent_lab_orders?patient_id=#{patient.id}"]
     @links << ["Transfer out label (Print)","/patients/print_transfer_out_label/#{patient.id}"]

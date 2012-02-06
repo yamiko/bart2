@@ -46,13 +46,20 @@
                                                                                 
 	.tt_controls_confirmatory_hiv_test_year #Unknown { display: inline; }
 
-
 	.tt_controls_confirmatory_hiv_test_month .keyboard { display:none; }
 
 	#tt_page_confirmatory_hiv_test_month .options {  height: 90%; }
 
 	#tt_page_confirmatory_hiv_test_month .inputFrameClass {  height: 86%; }
+
+	.tt_controls_month_started_art .keyboard { display:none; }
+
+	#tt_page_month_started_art .options {  height: 90%; }
+
+	#tt_page_month_started_art .inputFrameClass {  height: 86%; }
 </style>
+
+<%= javascript_include_tag "dateformat" %>
 
 <script>
 	var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
@@ -266,25 +273,42 @@
   
   function calculateWHOstage() {
     stage = "I";
-    if ($("stage_4_conditions").value.length > 0) {
-      stage = "IV";
-    }else if ($("stage_3_conditions").value.length > 0) {
-      stage = "III";
-    }else if ($("stage_2_conditions").value.length > 0) {
-      stage = "II";
+    if ($("has_transfer_letter").value == "YES") {
+      if ($("stage_4_conditions").value.length > 0) {
+        stage = "IV";
+      }else if ($("stage_3_conditions").value.length > 0) {
+        stage = "III";
+      }else if ($("stage_2_conditions").value.length > 0) {
+        stage = "II";
+      }
+      var startDate = getDateStartedART();   
+    }else{
+      ARTstartDateEstimate = $("art_start_date_estimation").value;
+      <% curr_session_date = session[:datetime].to_date rescue Date.today %>
+      if (ARTstartDateEstimate == "6 months ago") {
+        var startDate = new Date("<%= (curr_session_date - 6.months).to_s%>");   
+      }else if (ARTstartDateEstimate == "12 months ago") {
+        var startDate = new Date("<%= (curr_session_date - 12.months).to_s%>");   
+      }else if (ARTstartDateEstimate == "18 months ago") {
+        var startDate = new Date("<%= (curr_session_date - 18.months).to_s%>");   
+      }else if (ARTstartDateEstimate == "24 months ago") {
+        var startDate = new Date("<%= (curr_session_date - 24.months).to_s%>");   
+      }else if (ARTstartDateEstimate == "Over 2 years ago") {
+        var startDate = new Date("<%= (curr_session_date - 30.months).to_s%>");   
+      }
     }
-    var startDate = getDateStartedART();   
     var patientBirthdate = new Date("<%=@patient.person.birthdate %>");
     var dateCreated = new Date("<%=@patient.person.date_created %>");
     var patientBirthdateEstimated = "<%=@patient.person.birthdate_estimated %>";
-    patient_age = age(patientBirthdate , patientBirthdateEstimated , dateCreated, startDate);
+    
+    var patient_age = age(patientBirthdate , patientBirthdateEstimated , dateCreated, startDate);
 
     if (patient_age <= 14) {
       $("who_stage").value = "WHO stage " + stage + " peds";
     }else{
       $("who_stage").value = "WHO stage " + stage + " adult";
     }
-    $("date_started_art").value = startDate;
+    $("date_started_art").value = dateFormat(startDate,"yyyy-mm-dd");
   } 
   
   function age(birthdate,birthdate_estimated,date_created,today) {
@@ -337,6 +361,36 @@
       $("confirmatory_hiv_test_date").value = year + "-" + month + "-" + day;
     }
   } 
+
+  function setUnkownStage() {
+    if($("has_transfer_letter").value == "YES")
+      return
+
+    everReceivedARVs = $("ever_received_art").value;
+    everRegisteredAtARTclinic = $("ever_registered_at_ART_clinic").value;
+
+    if (everRegisteredAtARTclinic == "YES" && everReceivedARVs == "YES") {
+      $("reason_for_art_eligibility").value = "Unknown";
+      $("drug_start_date").value = "Estimated";
+      calculateWHOstage();
+    }else{
+      $("reason_for_art_eligibility").value = null;
+      $("drug_start_date").value = null;
+    }
+  }
+
+  function setReasonForStarting() {
+    var backButton = $("backButton");
+    backButton.setAttribute("onmousedown","resetReasonForStarting();gotoPage('" + (tstCurrentPage - 1) + "',null,true);");
+    $("reason_for_art_eligibility").value = null;
+    $("drug_start_date").value = null;
+  }
+
+  function resetReasonForStarting() {
+    var backButton = $("backButton");
+    backButton.setAttribute("onmousedown","gotoPage('" + tstCurrentPage + "',null,true);");
+    $("reason_for_art_eligibility").value = null;
+  }
 </script>
 <%#= raise @patient.person.birthdate.day.to_s %>
 <% if @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM') %>
@@ -400,6 +454,23 @@
 			 	:condition => "$('ever_registered_at_ART_clinic').value == 'YES'",
 			 	:helpText => "Has staging information?" } %>
 
+<<<<<<< HEAD
+=======
+   <%estimates = ["6 months ago","12 months ago","18 months ago","24 months","Over 2 years ago"]%>
+   <%= select_tag(:art_start_date_estimation, options_for_select(estimates ,[]),
+      :helpText =>"Estimate ART start period",                                                 
+      :id => "art_start_date_estimation",                                                      
+      :allowFreeText => false,                                                  
+      :tt_onUnLoad => "setUnkownStage();",
+      :tt_onLoad => "setReasonForStarting();",
+      :condition => '$("ever_registered_at_ART_clinic").value == "YES" && $("has_transfer_letter").value =="NO"',
+      :ttMatchFromBeginning => "true")%> 
+
+		<%= touch_hidden_tag "Drug start date", @patient, "", :id => "drug_start_date" %>
+
+		<%= touch_location_tag "LOCATION OF ART INITIATION", @patient, nil,
+			{	:id => "location_of_art_initialization",
+>>>>>>> bb5a0dc3c2cb35eaf6f3a2c6bf1ed3ea8fac1351
 			 	:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
 			 	:optional => false,
 			 	:helpText => "Location of ART initiation" } %>
