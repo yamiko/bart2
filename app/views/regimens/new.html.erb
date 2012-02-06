@@ -356,8 +356,7 @@
   <%end%>
 
   <%= touch_yes_no_tag "PRESCRIBE ARVS", @patient, nil,
-      {:optional => false,
-       :id => 'prescribe_arvs',
+      {:id => 'prescribe_arvs',
        :condition => 'hasReasonForART() == true && prescribeAntiretroviralDrugs() == true',
        :helpText => "Prescribe ARVS?" } %>
 
