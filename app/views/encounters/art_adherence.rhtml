@@ -151,6 +151,7 @@
             doses_missed = 0;
           }else{
             doses_missed = parseFloat((expected_amount_remaining - amount_remaining) / daily_consumption[i]);
+            doses_missed = Math.round(doses_missed*10)/10;
           }          
 
           var adherence = Math.round(100*(amount_given_last_time[i] - amount_remaining) / (amount_given_last_time[i] - expected_amount_remaining))
