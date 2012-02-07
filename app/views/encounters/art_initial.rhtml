@@ -66,6 +66,8 @@
 
 	#tt_page_month_art_last_taken .inputFrameClass {  height: 86%; }
 
+	.tt_controls_year_started_art #Unknown { display: inline; }
+
 </style>
 
 <%= javascript_include_tag "dateformat" %>
@@ -335,7 +337,9 @@
     var currentWeight = $("weight").value;
     var currentHeight = $("height").value;
     currentBmi = (currentWeight/(currentHeight*currentHeight)*10000).toFixed(1);
-    $('bmi').value = currentBmi;
+    try {
+      $('bmi').value = currentBmi;
+    }catch(e){}
   }
   
   function buildDate(type) {
@@ -738,6 +742,20 @@
 				:validationMessage => "You must enter a decimal between 0 and 9 (for example: 54<b>.6</b>)",
 				:tt_onUnLoad => "calculateBMI();",
 				:tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal"} %>             
+
+
+      <% if @patient_bean.age > 14 %>                                           
+                                                                                
+        <%= hidden_field_tag("observations[][value_numeric]", nil, {:id => 'bmi'}) %>
+        <%= hidden_field_tag("observations[][concept_name]", "BODY MASS INDEX, MEASURED") %>
+        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>      
+                                                                                
+      <% end %>
+
+
+ 
+
+
 
 		<%  if @cell_number.to_i != 0 %>
 			<%= touch_yes_no_unknown_tag "SEND SMS", @patient, nil,
