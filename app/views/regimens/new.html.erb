@@ -435,10 +435,7 @@
 
   <%= touch_yes_no_tag "PRESCRIBE ARVS", @patient, nil,
       {:id => 'prescribe_arvs',
-<<<<<<< HEAD
-=======
        :allowFreeText => 'false',
->>>>>>> bb5a0dc3c2cb35eaf6f3a2c6bf1ed3ea8fac1351
        :condition => 'hasReasonForART() == true && prescribeAntiretroviralDrugs() == true',
        :helpText => "Prescribe ARVS?" } %>
 
@@ -487,12 +484,12 @@
          :helpText => "Prescribe CPT" } %>
   <% end %>
 
-  <% if @patient_bean.age >= 2 %>
+  <% if @patient_bean.age >= 2 && !@current_hiv_program_state.match(/On antiretrovirals/i) && !@current_hiv_program_state.match(/Patient transferred in/i) %>
 		<%= touch_yes_no_tag "ISONIAZID", @patient, nil,
-		    {:id => 'ipt_given',
-         :allowFreeText => 'false',
-         :condition => "prescribeAntiretroviralDrugs() && $('prescribe_arvs').value != 'YES'",
-		     :helpText => "Prescribe IPT" } %>
+		    {	:id => 'ipt_given',
+     			:allowFreeText => 'false',
+         		:condition => "prescribeAntiretroviralDrugs() && $('prescribe_arvs').value != 'YES'",
+		 		:helpText => "Prescribe IPT" } %>
   <%else%>
 		<%= touch_hidden_tag "ISONIAZID", @patient, "", :id => "ipt_given" %>
   <%end%>

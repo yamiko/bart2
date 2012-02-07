@@ -544,7 +544,6 @@
 		<%= touch_location_tag "LOCATION OF ART INITIATION", @patient, nil,
 			{	:id => "location_of_art_initialization",
 			 	:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
-			 	:optional => false,
 			 	:helpText => "Location of ART initiation" } %>
 
 		<%= touch_text_field_tag "ART NUMBER AT PREVIOUS LOCATION", @patient, nil,

@@ -28,7 +28,7 @@
 }
 </style>
 
-<%ask_pills_remaining_at_home = GlobalProperty.find_by_property("ask.pills.remaining.at.home").property_value == "true" rescue false%>
+<%ask_pills_remaining_at_home =  CoreService.get_global_property_value("ask.pills.remaining.at.home").to_s == "true" rescue false %>
 <script>
 	var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
   /* 
