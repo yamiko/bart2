@@ -136,9 +136,12 @@ class EncountersController < ApplicationController
       (initial_observations || []).each do |ob|
         if ob['concept_name'].upcase == 'DATE ANTIRETROVIRALS STARTED'
           date_started_art = ob["value_datetime"].to_date rescue nil
+          if date_started_art.blank?
+            date_started_art = ob["value_coded_or_text"].to_date rescue nil
+          end
         end
       end
-
+      
       unless vitals_observations.blank?
         encounter = Encounter.new()
         encounter.encounter_type = EncounterType.find_by_name("VITALS").id

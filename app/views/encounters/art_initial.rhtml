@@ -714,7 +714,7 @@
 
 		<%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
 
-		<%= touch_text_field_tag "HEIGHT (CM)", @patient, nil,                  
+		<%= text_field_tag "observations[][value_numeric]", nil,                  
 			{	:id => "height",                                                       
 				:field_type => 'number',                                               
 				:condition => 'showConditions()',                            
@@ -727,8 +727,10 @@
 				:validationRule => "^([0-9]+)|Unknown$",                               
 				:validationMessage => "You must enter numbers only (for example 157)", 
 				:tt_pageStyleClass => "Numeric NumbersOnly" } %>                        
+        <%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>    
+        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
 
-		<%= touch_text_field_tag "WEIGHT (KG)", @patient, nil,                  
+		<%= text_field_tag "observations[][value_numeric]", nil,                  
 			{	:id => "weight",                                                       
 				:field_type => 'number',                                               
 				:min => number_with_precision(0, :precision => 1),           
@@ -742,7 +744,8 @@
 				:validationMessage => "You must enter a decimal between 0 and 9 (for example: 54<b>.6</b>)",
 				:tt_onUnLoad => "calculateBMI();",
 				:tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal"} %>             
-
+        <%= hidden_field_tag("observations[][concept_name]", "WEIGHT (KG)") %>    
+        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
 
       <% if @patient_bean.age > 14 %>                                           
                                                                                 
@@ -751,10 +754,6 @@
         <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>      
                                                                                 
       <% end %>
-
-
- 
-
 
 
 		<%  if @cell_number.to_i != 0 %>
