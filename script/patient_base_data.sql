@@ -127,7 +127,7 @@ INSERT INTO openmrs_b2.patient_state (patient_program_id, state, start_date, cre
 SELECT patient_program_id, 1, date_enrolled, creator, voided, voided_by, void_reason, date_voided, date_created, (SELECT UUID()) AS uuid FROM openmrs_b2.patient_program WHERE program_id = 1;
 
 INSERT INTO openmrs_b2.patient_state (patient_program_id, state, start_date, creator, voided, voided_by, void_reason, date_voided, date_created, uuid)
-SELECT patient_program_id, 18, date_enrolled, creator, voided, voided_by, void_reason, date_voided, date_created, (SELECT UUID()) AS uuid FROM openmrs_b2.patient_program WHERE program_id = 2;
+SELECT patient_program_id, 118, date_enrolled, creator, voided, voided_by, void_reason, date_voided, date_created, (SELECT UUID()) AS uuid FROM openmrs_b2.patient_program WHERE program_id = 2;
 
 
 INSERT INTO openmrs_b2.relationship (person_a, relationship, person_b, creator, date_created, voided, voided_by, date_voided, void_reason, uuid)
