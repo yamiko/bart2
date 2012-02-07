@@ -349,8 +349,14 @@
       var day_element = $("day_art_last_taken");
     }
 
-    if(year.length < 1)
+    if(year.length < 1) {
+      if (type.match(/confirmatory/i)) {
+        $("confirmatory_hiv_test_date").value = null;
+      }else if (type.match(/art_last_taken/i)) {
+        $("date_art_last_taken").value = null;
+      }
       return
+    }
 
     if(day.length < 1) {
       try {
