@@ -11,11 +11,11 @@ class CohortToolController < ApplicationController
       @arv_number_end   = params[:arv_number_end]
     end
 
-  start_date  = PatientService.initial_encounter.encounter_datetime rescue Date.today
+    start_date  = PatientService.initial_encounter.encounter_datetime rescue Date.today
 
-  end_date    = Date.today
+    end_date    = Date.today
 
-  @cohort_quarters  += Report.generate_cohort_quarters(start_date, end_date)
+    @cohort_quarters  += Report.generate_cohort_quarters(start_date, end_date)
   end
 
   def reports
@@ -600,6 +600,700 @@ class CohortToolController < ApplicationController
 
     render :layout => 'report'
   end
+  
+  def list_patients_details
+    @report = []
+    include_url_params_for_back_button
+    
+    @quarter = params[:quarter]
+    start_date,end_date = Report.generate_cohort_date_range(@quarter)
+    cohort = Cohort.new(start_date,end_date)
+    #raise cohort.transferred_out_patients.to_yaml
+    #raise cohort.total_registered_by_gender_age(start_date,end_date,'F').to_yaml
+    @first_registration_date = cohort.first_registration_date
+    
+    regimens = []
+    regimens = cohort.regimens_with_patient_ids(@first_registration_date)
+    
+    @regimen_1_a = []
+    @regimen_1_p = []
+    @regimen_2_a = []
+    @regimen_2_p = []
+    @regimen_3_a = []
+    @regimen_3_p = []
+    @regimen_4_a = []
+    @regimen_4_p = []
+    @regimen_5_a = []
+    @regimen_5_p = []
+    @regimen_6_a = []
+    @regimen_6_p = []
+    @regimen_7_a = []
+    @regimen_7_p = []
+    @regimen_8_a = []
+    @regimen_8_p = []
+    @regimen_9_a = []
+    @regimen_9_p = []
+    @unknown_arv_regimen = []
+    
+    regimens.map do |regimen|
+      if regimen.regimen.include?('d4T/3TC/NVP')
+        if regimen.person_age_at_drug_dispension.to_i > 14
+          @regimen_1_a << regimen.patient_id
+        else
+          @regimen_1_p << regimen.patient_id
+        end
+      elsif regimen.regimen.include?('d4T 3TC + d4T 3TC NVP')
+        if regimen.person_age_at_drug_dispension.to_i > 14
+          @regimen_1_a << regimen.patient_id
+        else
+          @regimen_1_p << regimen.patient_id
+        end
+      elsif regimen.regimen.include?('AZT/3TC/NVP')
+        if regimen.person_age_at_drug_dispension.to_i > 14
+          @regimen_2_a << regimen.patient_id
+        else
+          @regimen_2_p << regimen.patient_id
+        end
+      elsif regimen.regimen == "d4T/3TC/EFV"
+        if regimen.person_age_at_drug_dispension.to_i > 14
+          @regimen_3_a << regimen.patient_id
+        else
+          @regimen_3_p << regimen.patient_id
+        end
+      elsif regimen.regimen == "AZT/3TC+EFV"
+        if regimen.person_age_at_drug_dispension.to_i > 14
+          @regimen_4_a << regimen.patient_id
+        else
+          @regimen_4_p << regimen.patient_id
+        end
+      elsif regimen.regimen == "TDF/3TC/EFV"
+        if regimen.person_age_at_drug_dispension.to_i > 14
+          @regimen_5_a << regimen.patient_id
+        else
+          @regimen_5_p << regimen.patient_id
+        end
+      elsif regimen.regimen == "TDF/3TC+NVP"
+        if regimen.person_age_at_drug_dispension.to_i > 14
+          @regimen_6_a << regimen.patient_id
+        else
+          @regimen_6_p << regimen.patient_id
+        end
+      elsif regimen.regimen == "TDF/3TC+LPV/r"
+        if regimen.person_age_at_drug_dispension.to_i > 14
+          @regimen_7_a << regimen.patient_id
+        else
+          @regimen_7_p << regimen.patient_id
+        end
+      elsif regimen.regimen == "AZT/3TC+LPV/r"
+        if regimen.person_age_at_drug_dispension.to_i > 14
+          @regimen_8_a << regimen.patient_id
+        else
+          @regimen_8_p << regimen.patient_id
+        end
+      elsif regimen.regimen == "AZT/3TC+LPV/r"
+        if regimen.person_age_at_drug_dispension.to_i > 14
+          @regimen_9_a << regimen.patient_id
+        else
+          @regimen_9_p << regimen.patient_id
+        end
+      else
+        @unknown_arv_regimen << regimen.patient_id
+      end
+    end
+
+    tb_status = []
+    tb_status = cohort.tb_status_with_patient_ids
+    
+    @tb_not_suspected = []
+    @tb_suspected = []
+    @confirmed_tb_on_treatment = []
+    @confirmed_tb_not_on_treatment = []
+    @unknown_tb_status = []
+    
+    tb_status = []
+    tb_status = cohort.tb_status_with_patient_ids
+
+    tb_status.each do  |status|
+      if status.tbstatus == 'TB NOT SUSPECTED' or status.tbstatus == 'noSusp' or status.tbstatus == 'noSup' or status.tbstatus == 'TB not suspected' or status.tbstatus == 'TB NOT suspected' or status.tbstatus == 'Nosup'
+        @tb_not_suspected << status.patient_id
+      
+      elsif status.tbstatus == 'TB SUSPECTED' or status.tbstatus == 'susp' or status.tbstatus == 'sup' or status.tbstatus == 'TB suspected' or status.tbstatus == 'Tb suspected'
+        @tb_suspected << status.patient_id
+      
+      elsif status.tbstatus == 'RX' or status.tbstatus == 'CONFIRMED TB ON TREATMENT' or status.tbstatus == 'Rx' or status.tbstatus == 'CONFIRMED TB ON TREATMENT' or status.tbstatus == 'Confirmed TB on treatment' or status.tbstatus == 'Confirmed TB on treatment' or status.tbstatus == 'Norx'
+        @confirmed_tb_on_treatment << status.patient_id
+      
+      elsif status.tbstatus == 'noRX' or status.tbstatus == 'CONFIRMED TB NOT ON TREATMENT' or status.tbstatus =='Confirmed TB not on treatment' or status.tbstatus == 'Confirmed TB NOT on treatment'
+        @confirmed_tb_not_on_treatment << status.patient_id
+      
+      else
+        @unknown_tb_status << status.patient_id
+      end
+    end
+    
+    
+    newly_registered_start_reasons = []
+    total_registered_start_reasons = []
+    
+    newly_registered_start_reasons = cohort.start_reason(start_date,end_date)
+
+    @presumed_severe_HIV_disease_in_infants = []
+    @confirmed_HIV_infection_in_infants = []
+    @who_stage_1_or_2_cd4_below_threshold = []
+    @who_stage_2_total_lymphocytes = []
+    @who_stage_3 = []
+    @who_stage_4 = []
+    @patient_pregnant = []
+    @patient_breastfeeding = []
+    @hiv_infected = [] 
+    @Unknown_reason = []
+
+    newly_registered_start_reasons.each do  |reason|
+      if reason.name.include?('Presumed')
+        @presumed_severe_HIV_disease_in_infants << reason.patient_id
+      elsif reason.name.include?('Confirmed')
+        @confirmed_HIV_infection_in_infants << reason.patient_id
+      elsif reason.name[0..11].strip.upcase == 'WHO STAGE I' or reason.name.match(/CD/i)
+        @who_stage_1_or_2_cd4_below_threshold << reason.patient_id
+      elsif reason.name[0..12].strip.upcase == 'WHO STAGE II' or reason.name.match(/lymphocytes/i) or reason.name.match(/LYMPHOCYTE/i)
+        @who_stage_2_total_lymphocytes << reason.patient_id
+      elsif reason.name[0..13].strip.upcase == 'WHO STAGE III'
+        @who_stage_3 << reason.patient_id
+      elsif reason.name[0..11].strip.upcase == 'WHO STAGE IV'
+        @who_stage_4 << reason.patient_id
+      elsif reason.name.strip.humanize == 'Patient pregnant'
+        @patient_pregnant << reason.patient_id
+     elsif reason.name.match(/Breastfeeding/i)
+        @patient_breastfeeding << reason.patient_id
+      elsif reason.name.strip.upcase == 'HIV INFECTED'
+        @hiv_infected << reason.patient_id
+      else 
+        @Unknown_reason << reason.patient_id
+      end
+    end
+    
+    @total_presumed_severe_HIV_disease_in_infants = []
+    @total_confirmed_HIV_infection_in_infants = []
+    @total_who_stage_1_or_2_cd4_below_threshold = []
+    @total_who_stage_2_total_lymphocytes = []
+    @total_who_stage_3 = []
+    @total_who_stage_4 = []
+    @total_patient_pregnant = []
+    @total_patient_breastfeeding = []
+    @total_hiv_infected = [] 
+    @total_unknown_reason = []
+
+    total_registered_start_reasons = cohort.start_reason(@first_registration_date,end_date)
+
+    total_registered_start_reasons.each do  |reason|
+      if reason.name.include?('Presumed')
+        @total_presumed_severe_HIV_disease_in_infants << reason.patient_id
+      elsif reason.name.include?('Confirmed')
+        @total_confirmed_HIV_infection_in_infants << reason.patient_id
+      elsif reason.name[0..11].strip.upcase == 'WHO STAGE I' or reason.name.match(/CD/i)
+        @total_who_stage_1_or_2_cd4_below_threshold << reason.patient_id
+      elsif reason.name[0..12].strip.upcase == 'WHO STAGE II' or reason.name.match(/lymphocytes/i) or reason.name.match(/LYMPHOCYTE/i)
+        @total_who_stage_2_total_lymphocytes << reason.patient_id
+      elsif reason.name[0..13].strip.upcase == 'WHO STAGE III'
+        @total_who_stage_3 << reason.patient_id
+      elsif reason.name[0..11].strip.upcase == 'WHO STAGE IV'
+        @total_who_stage_4 << reason.patient_id
+      elsif reason.name.strip.humanize == 'Patient pregnant'
+        @total_patient_pregnant << reason.patient_id
+      elsif reason.name.match(/Breastfeeding/i)
+        @total_patient_breastfeeding << reason.patient_id
+      elsif reason.name.strip.upcase == 'HIV INFECTED'
+        @total_hiv_infected << reason.patient_id
+      else 
+        @total_unknown_reason << reason.patient_id
+      end
+    end
+
+    case params[:field]
+      when 'newly_total_registered' then
+        newly_registered_patients = []
+
+        newly_registered_patients = cohort.total_registered_patient_ids
+        
+        newly_registered_patients.each do |patient_id|
+          patient = Patient.find_by_patient_id(patient_id.patient_id)
+          @report << PatientService.get_patient(patient.person) 
+        end
+      when 'total_registered' then
+        total_registered_patients = []
+
+        total_registered_patients = cohort.total_registered_patient_ids(@first_registration_date)
+
+        total_registered_patients.each do |patient_id|
+          patient = Patient.find_by_patient_id(patient_id.patient_id)
+          @report << PatientService.get_patient(patient.person) 
+        end
+      when 'newly_registered_patients_initiated_on_art_first_time' then
+        patients_initiated_on_art_first_time = []
+    
+        patients_initiated_on_art_first_time = cohort.patients_initiated_on_art_first_time
+        
+        patients_initiated_on_art_first_time.each do |patient_id|
+          patient = Patient.find_by_patient_id(patient_id.patient_id)
+          @report << PatientService.get_patient(patient.person) 
+        end
+      when 'total_registered_patients_initiated_on_art_first_time' then
+        patients_initiated_on_art_first_time = []
+
+        patients_initiated_on_art_first_time = cohort.patients_initiated_on_art_first_time(@first_registration_date)
+        
+        patients_initiated_on_art_first_time.each do |patient_id|
+          patient = Patient.find_by_patient_id(patient_id.patient_id)
+          @report << PatientService.get_patient(patient.person) 
+        end     
+      when 'newly_registered_male_all_ages' then
+        men_all_ages = []
+
+        men_all_ages = cohort.total_registered_by_gender_age(start_date,end_date,"M")
+        men_all_ages.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_registered_male_all_ages' then
+        men_all_ages = []
+
+        men_all_ages = cohort.total_registered_by_gender_age(@first_registration_date,end_date,'M')
+
+        men_all_ages.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'newly_registered_pregnant_females_all_ages' then
+        pregnant_women_all_ages = []
+        pregnant_women_all_ages = cohort.pregnant_women(start_date,end_date)
+
+        pregnant_women_all_ages.each do |patient_id|
+          patient = Patient.find_by_patient_id(patient_id.patient_id)
+          @report << PatientService.get_patient(patient.person) 
+        end
+      when 'total_registered_pregnant_females_all_ages' then
+        pregnant_women_all_ages = []
+        pregnant_women_all_ages = cohort.pregnant_women(@first_registration_date,end_date)
+
+        pregnant_women_all_ages.each do |patient_id|
+          patient = Patient.find_by_patient_id(patient_id.patient_id)
+          @report << PatientService.get_patient(patient.person) 
+        end
+      when 'newly_registered_non_pregnant_females_all_ages' then
+        non_pregnant_women_all_ages = []
+
+        non_pregnant_women_all_ages = cohort.non_pregnant_women(start_date,end_date)
+        non_pregnant_women_all_ages.each do |patient_id|
+          patient = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient.person) 
+        end
+      when 'total_registered_non_pregnant_females_all_ages' then
+        non_pregnant_women_all_ages = []
+
+        non_pregnant_women_all_ages = cohort.non_pregnant_women(@first_registration_date,end_date)
+        non_pregnant_women_all_ages.each do |patient_id|
+          patient = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient.person) 
+        end
+      when 'newly_registered_infants' then
+        newly_registered_infants = []
+
+        newly_registered_infants = cohort.total_registered_by_gender_age(start_date,end_date,nil,0,1.5)
+        newly_registered_infants.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_registered_infants' then
+        total_registered_infants = []
+
+        total_registered_infants = cohort.total_registered_by_gender_age(@first_registration_date,end_date,nil,0,1.5)
+        total_registered_infants.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'newly_registered_children' then
+        newly_registered_children = []
+
+        newly_registered_children = cohort.total_registered_by_gender_age(start_date,end_date,nil,1.5,14)
+        newly_registered_children.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_registered_children' then
+        total_registered_children = []
+
+        total_registered_children = cohort.total_registered_by_gender_age(@first_registration_date,end_date,nil,1.5,14)
+        total_registered_children.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'newly_registered_adults' then
+        newly_registered_adults = []
+
+        newly_registered_adults = cohort.total_registered_by_gender_age(start_date,end_date,nil,14,300)
+        newly_registered_adults.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_registered_adults' then
+        total_registered_adults = []
+
+        total_registered_adults = cohort.total_registered_by_gender_age(start_date,end_date,nil,14,300)
+        total_registered_adults.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'presumed_severe_hiv_disease_in_infants' then
+         @presumed_severe_HIV_disease_in_infants.each do |patient_id|
+           patient_obj = Patient.find_by_patient_id(patient_id)
+           @report << PatientService.get_patient(patient_obj.person) 
+         end
+      when 'total_presumed_severe_hiv_disease_in_infants' then
+         @total_presumed_severe_HIV_disease_in_infants.each do |patient_id|
+           patient_obj = Patient.find_by_patient_id(patient_id)
+           @report << PatientService.get_patient(patient_obj.person) 
+         end
+      when 'confirmed_hiv_infection_in_infants' then
+        @confirmed_HIV_infection_in_infants.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_confirmed_hiv_infection_in_infants' then
+        @total_confirmed_HIV_infection_in_infants.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'who_stage_1_or_2_cd4_below_threshold' then
+        @who_stage_1_or_2_cd4_below_threshold.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_who_stage_1_or_2_cd4_below_threshold' then
+        @total_who_stage_1_or_2_cd4_below_threshold.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'who_stage_2_total_lymphocytes' then
+        @who_stage_2_total_lymphocytes.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_who_stage_2_total_lymphocytes' then
+        @total_who_stage_2_total_lymphocytes.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'who_stage_3' then
+        @who_stage_3.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_who_stage_3' then
+        @total_who_stage_3.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'who_stage_4' then
+        @who_stage_4.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_who_stage_4' then
+        @total_who_stage_4.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'patient_pregnant' then
+        @patient_pregnant.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_patient_pregnant' then
+        @total_patient_pregnant.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'patient_breastfeeding' then
+        @patient_breastfeeding.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_patient_breastfeeding' then
+        @total_patient_breastfeeding.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_hiv_infected' then
+        @total_hiv_infected.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'unknown_reason' then
+        @Unknown_reason.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'tb_not_suspected' then
+        @tb_not_suspected.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'tb_suspected' then
+        @tb_suspected.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'confirmed_tb_on_treatment' then
+        @confirmed_tb_on_treatment.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'confirmed_tb_not_on_treatment' then
+        @confirmed_tb_not_on_treatment.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'unknown_tb_status' then
+        @unknown_tb_status.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'ARV_regimen_1A' then
+        @regimen_1_a.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'ARV_regimen_1P' then
+        @regimen_1_p.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'ARV_regimen_2P' then
+        @regimen_2_p.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'ARV_regimen_2A' then
+        @regimen_2_a.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'ARV_regimen_3A' then
+        @regimen_3_a.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'ARV_regimen_3P' then
+        @regimen_3_p.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'ARV_regimen_4P' then
+        @regimen_4_p.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'ARV_regimen_4A' then
+        @regimen_4_a.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'ARV_regimen_5A' then
+        @regimen_5_a.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'ARV_regimen_6A' then
+        @regimen_6_a.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'ARV_regimen_7A' then
+        @regimen_7_a.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'ARV_regimen_8A' then
+        @regimen_8_a.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'ARV_regimen_9P' then
+        @regimen_9_p.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'newly_registered_patients_reinitiated_on_art' then
+        patients_re_initiated_on_art = []
+        patients_re_initiated_on_art = cohort.patients_reinitiated_on_art
+        patients_re_initiated_on_art.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_registered_patients_reinitiated_on_art' then
+        patients_re_initiated_on_art = []
+        patients_re_initiated_on_art = cohort.patients_reinitiated_on_art(@first_registration_date,end_date)
+        patients_re_initiated_on_art.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'newly_registered_patients_transfered_in_on_art' then
+        patients_transfered_in_on_art = []
+        patients_transfered_in_on_art = cohort.transferred_in_patients
+        patients_transfered_in_on_art.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_registered_patients_transfered_in_on_art' then
+        patients_transfered_in_on_art = []
+        patients_transfered_in_on_art = cohort.transferred_in_patients(@first_registration_date,end_date)
+        patients_transfered_in_on_art.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_alive_and_on_art' then
+        total_alive_and_on_art = []
+        total_alive_and_on_art = cohort.total_alive_and_on_art
+        total_alive_and_on_art.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'current_episode_of_tb' then
+        current_espisode_of_tb = []
+        current_espisode_of_tb = cohort.current_espisode_of_tb
+        current_espisode_of_tb.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_current_episode_of_tb' then
+        total_current_episode_of_tb = []
+        total_current_episode_of_tb = cohort.current_espisode_of_tb(@first_registration_date,end_date)
+        total_current_episode_of_tb.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'kaposis_sarcoma' then
+        kaposis_sarcoma = []
+        kaposis_sarcoma = cohort.kaposis_sarcoma
+        kaposis_sarcoma.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_kaposis_sarcoma' then
+        total_kaposis_sarcoma = []
+        total_kaposis_sarcoma = cohort.kaposis_sarcoma(@first_registration_date,end_date)
+        total_kaposis_sarcoma.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end 
+      when 'TB_within_the_last_2_years' then
+        tb_within_the_last_2_years = []
+        tb_within_the_last_2_years = cohort.tb_within_the_last_2_yrs
+        tb_within_the_last_2_years.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_TB_within_the_last_2_years' then
+        total_tb_within_the_last_2_years = []
+        total_tb_within_the_last_2_years = cohort.tb_within_the_last_2_yrs(@first_registration_date,end_date)
+        total_tb_within_the_last_2_years.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'never_TB_or_TB_over_2_years_ago' then
+        total_registered = cohort.total_registered_patient_ids.map{|patient| patient.patient_id}
+        current_episode_of_tb = cohort.current_espisode_of_tb.map{|patient| patient.patient_id}
+        tb_with_2_years = cohort.tb_within_the_last_2_yrs.map{|patient| patient.patient_id}
+
+        no_tb = (total_registered - (current_episode_of_tb + tb_with_2_years))
+        no_tb.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_never_TB_or_TB_over_2_years_ago' then
+        total_registered = cohort.total_registered_patient_ids(@first_registration_date).map{|patient| patient.patient_id}
+        current_episode_of_tb = cohort.current_espisode_of_tb(@first_registration_date,end_date).map{|patient| patient.patient_id}
+        tb_with_2_years = cohort.tb_within_the_last_2_yrs(@first_registration_date,end_date).map{|patient| patient.patient_id}
+        no_tb = (total_registered - (current_episode_of_tb + tb_with_2_years))
+        no_tb.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_patients_died' then
+        total_patients_died = []
+        total_patients_died = cohort.outcomes_total('PATIENT DIED')
+        total_patients_died.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_art_defaulted_patients' then
+        total_art_defaulted_patients = []
+        
+        total_art_defaulted_patients = cohort.outcomes_total('PATIENT DEFAULTED')
+        total_art_defaulted_patients.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_patients_who_stopped_treatment' then
+        total_patients_who_stopped_treatment = []
+        
+        total_patients_who_stopped_treatment = cohort.outcomes_total('TREATMENT STOPPED')
+        total_patients_who_stopped_treatment.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_patients_transfered_out' then
+        total_patients_transfered_out = []
+        
+        total_patients_transfered_out = cohort.outcomes_total('PATIENT TRANSFERRED OUT')
+        total_patients_transfered_out.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'died_within_the_first_month' then
+        #@first_month.each do |patient|
+         # patient_obj = Patient.find_by_patient_id(patient.patient_id)
+        #  @report << PatientService.get_patient(patient_obj.person) 
+        #end
+      when 'total_died_within_the_first_month' then
+        #@total_first_month.each do |patient|
+        #  patient_obj = Patient.find_by_patient_id(patient.patient_id)
+        #  @report << PatientService.get_patient(patient_obj.person) 
+        #end
+      when 'died_within_the_second_month' then
+        #@second_month.each do |patient|
+        #  patient_obj = Patient.find_by_patient_id(patient.patient_id)
+        #  @report << PatientService.get_patient(patient_obj.person) 
+        #end
+      when 'total_died_within_the_second_month' then
+        #@total_second_month.each do |patient|
+        #  patient_obj = Patient.find_by_patient_id(patient.patient_id)
+        #  @report << PatientService.get_patient(patient_obj.person) 
+        #end
+      when 'died_within_the_third_month' then
+        #@third_month.each do |patient|
+        #  patient_obj = Patient.find_by_patient_id(patient.patient_id)
+        #  @report << PatientService.get_patient(patient_obj.person) 
+        #end
+      when 'total_died_within_the_third_month' then
+        #@total_third_month.each do |patient|
+        #  patient_obj = Patient.find_by_patient_id(patient.patient_id)
+        #  @report << PatientService.get_patient(patient_obj.person) 
+        #end
+      when 'died_after_the_third_month' then
+        #@after_third_month.each do |patient|
+        #  patient_obj = Patient.find_by_patient_id(patient.patient_id)
+        #  @report << PatientService.get_patient(patient_obj.person) 
+        #end
+      when 'total_died_after_the_third_month' then
+        #@total_after_third_month.each do |patient|
+        #  patient_obj = Patient.find_by_patient_id(patient.patient_id)
+        #  @report << PatientService.get_patient(patient_obj.person) 
+        #end
+    end
+
+    render :layout => 'report'
+  end
 
   def include_url_params_for_back_button
        @report_quarter = params[:quarter]
@@ -661,7 +1355,7 @@ class CohortToolController < ApplicationController
       session[:list_of_patients] = nil
 
       @patients = adherence_over_hundred(params[:quarter],min_range,max_range,missing_adherence)
-
+cohort.regimens_with_patient_ids(@first_registration_date)
       @quarter = params[:quarter] + ": (#{@patients.length})" rescue  params[:quarter]
       if missing_adherence
         @report_type = "Patient(s) with missing adherence"
