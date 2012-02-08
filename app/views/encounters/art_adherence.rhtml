@@ -28,6 +28,7 @@
 }
 </style>
 
+<%ask_pills_remaining_at_home =  CoreService.get_global_property_value("ask.pills.remaining.at.home").to_s == "true" rescue false %>
 <script>
 	var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
   /* 
@@ -82,19 +83,23 @@
 	<%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
   	<%session_date = session[:datetime] || Time.now() %>
 
-	<% PatientService.drug_given_before(@patient, session_date.to_date).arv.prescriptions.each do |order| %>
+	<% PatientService.drug_given_before(@patient, session_date.to_date).each do |order| 
+       next unless MedicationService.arv(order.drug_order.drug)
+  %>
 		<%= touch_numeric_tag "AMOUNT OF DRUG BROUGHT TO CLINIC", @patient, nil,
 			{	:id        => "amount_brought_#{order.order_id}",
 				:units     => "#{order.drug_order.units}",
 				:order_id  => "#{order.order_id}",
 				:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} brought to clinic"} %>
 
-		<%= #touch_numeric_tag "AMOUNT OF DRUG REMAINING AT HOME", @patient, nil,
+    <%if  ask_pills_remaining_at_home %>
+		<%= touch_numeric_tag "AMOUNT OF DRUG REMAINING AT HOME", @patient, nil,
 			{	:id        => "amount_other_#{order.order_id}",
 				:units     => "#{order.drug_order.units}",
 				:order_id  => "#{order.order_id}",
 				:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} left at home" } %>
-
+    <%end%>
+      
 		<%= touch_hidden_tag "WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER", @patient, nil,
 			{	:id          => "adherence_#{order.order_id}",
 				:helpText    => "Adherence summary for #{order.drug_order.drug.name}",
@@ -129,8 +134,13 @@
 		   
 		   //for (var i=0; i <  drug_names.length; i++){
        for(i in drug_names){
-		      amount_remaining = parseFloat($("amount_brought_" + i).value);
-		      
+          <% if ask_pills_remaining_at_home %>
+		        amount_remaining = parseFloat($("amount_brought_" + i).value);
+		        amount_remaining += parseFloat($("amount_other_" + i).value);
+		      <%else%>
+		        amount_remaining = parseFloat($("amount_brought_" + i).value);
+		      <%end%>
+
 		      var days_overdue_for_visit = since(auto_expire_date[i]);
           var doses_missed = 0;
 		      var last_visit_date = dateCreate(order_start_date[i]);
@@ -141,6 +151,7 @@
             doses_missed = 0;
           }else{
             doses_missed = parseFloat((expected_amount_remaining - amount_remaining) / daily_consumption[i]);
+            doses_missed = Math.round(doses_missed);
           }          
 
           var adherence = Math.round(100*(amount_given_last_time[i] - amount_remaining) / (amount_given_last_time[i] - expected_amount_remaining))
@@ -151,11 +162,11 @@
 
 		      summary += "<div><span class='title'></span><span class='title'>"+drug_name+"</span></div>"
 			    summary += "<div><span >Last visit date:&nbsp;</span><span class='value'>"+dateFormat(last_visit_date,"dddd, mmmm dS, yyyy")+"</span></div>"
-			    if (doses_missed >= 0) summary += "<div><span class='value'>Doses missed:&nbsp;</span><span class='value'>"+doses_missed+"</span></div>"
-			    if (doses_missed < 0) summary += "<div><span>Doses unaccounted for:&nbsp;</span><span class='value'>"+(-doses_missed)+"</span></div>"
+			    if (doses_missed >= 0) summary += "<div><span class='value'>Doses unaccounted for:&nbsp;</span><span class='value'>"+doses_missed+"</span></div>"
+			    if (doses_missed < 0) summary += "<div><span>Doses missed:&nbsp;</span><span class='value'>"+(-doses_missed)+"</span></div>"
 			    summary += "<div><span>Tablets given last time:&nbsp;</span><span class='value'>"+(amount_given_last_time[i])+"</span></div>"
 			    summary += "<div><span>Daily consumption:&nbsp;</span><span class='value'>"+(daily_consumption[i])+"</span></div>"
-			    if (expected_amount_remaining > 0) summary += "<div><span >Expected tablets remaining:&nbsp;</span><span class='value'>"+expected_amount_remaining+"</span></div>"
+			    if (expected_amount_remaining >= 0) summary += "<div><span >Expected tablets remaining:&nbsp;</span><span class='value'>"+expected_amount_remaining+"</span></div>"
 			    if (expected_amount_remaining < 0 && days_overdue_for_visit > 0) summary += "<div><span>Days overdue for visit:&nbsp;</span><span class='value'>"+days_overdue_for_visit+"</span></div>"
 			    summary += "<div><span>Actual tablets remaining:&nbsp;</span><span class='value'>"+amount_remaining+"</span></div>"
 			

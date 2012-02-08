@@ -42,8 +42,65 @@
     text-decoration: none;
   }
 
+  #viewAllButton {
+  }
 </style>
 
+<script>
+  function addAttributes() {
+    buttonDiv = document.getElementById("buttons")
+    buttonDiv.innerHTML+= "<button id='viewAllButton' class='button navButton'" +
+    "onmousedown='viewAll();' ><span>View all</span></button>"
+    button = document.getElementById("viewAllButton");
+    button.style.cssText = "float: left;";
+  }
+
+  function viewAll() {
+    var  all = null;
+    <% @all.map do |key , values | 
+      value_string = nil
+      values.map do |value|
+        value_string+=",#{value.join("|")}" unless value_string.blank?
+        value_string = value.join("|") if value_string.blank?
+      end
+    %>
+      if(all){
+        all+= "<%=key%>:<%=value_string%>;";
+      }else{
+        all = "<%=key%>:<%=value_string%>;";
+      }
+    <%end%>
+    
+    submitForm = document.createElement("FORM");
+    submitForm.setAttribute("type","hidden");
+    submitForm.method = "POST";
+    document.body.appendChild(submitForm);
+
+    newElement = document.createElement("input")
+    newElement.setAttribute("name",'results')
+    newElement.setAttribute("type","hidden");
+    newElement.value = all;
+    submitForm.appendChild(newElement);
+
+    newElement = document.createElement("input")
+    newElement.setAttribute("name",'patient_id')
+    newElement.setAttribute("type","hidden");
+    newElement.value = "<%=@patient.id%>";
+    submitForm.appendChild(newElement);
+
+    newElement = document.createElement("input")
+    newElement.setAttribute("name",'type')
+    newElement.setAttribute("type","hidden");
+    newElement.value = "<%=@test.gsub('_',' ')%>";
+    submitForm.appendChild(newElement);
+
+    submitForm.action= "/charts/series";
+
+    submitForm.submit();
+  }
+</script>
+
+<body onload="setTimeout('addAttributes();',10);">
 <div id = 'headdiv'>
 <h2><%=@patient_bean.name%>&nbsp;(<%=@patient_bean.sex%>)&nbsp;Age:&nbsp;<%=@patient_bean.age%></h2>
 <h3><%=@test.gsub('_',' ')%>:&nbsp;Results table</h3>
@@ -55,6 +112,8 @@
   </table>
 </div>
 
+</body>
+
 <script>
 
   var tt_cancel_destination = "/lab/results/<%=@patient.id%>"
@@ -65,11 +124,11 @@
       value = (document.getElementById(type + '_' + count).innerHTML);
       if (value) {
         path += (document.getElementById(count).innerHTML) + ',';
-        path += (document.getElementById(type + '_' + count).innerHTML) + ';';
+        path += (document.getElementById(type + '_' + count).innerHTML.replace("&gt;","")) + ';';
       }
       count++;
     }
-
+  
     submitForm = document.createElement("FORM");
     submitForm.setAttribute("type","hidden");
     submitForm.method = "POST";

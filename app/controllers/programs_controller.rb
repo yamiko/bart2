@@ -69,7 +69,7 @@ class ProgramsController < ApplicationController
         search = params[:q] || ''
         location_tag_id = LocationTag.find_by_name("#{params[:transfer_type]}").id
         location_ids = LocationTagMap.find(:all,:conditions => ["location_tag_id = (?)",location_tag_id]).map{|e|e.location_id}
-        @locations = Location.find(:all, :conditions=>["location.retired = 0 AND location_id IN (?) AND name LIKE ?", location_ids, "#{search}%"])
+        @locations = Location.find(:all, :conditions=>["location.retired = 0 AND location_id IN (?) AND name LIKE ? AND name != ''", location_ids, "#{search}%"])
     end
     @names = @locations.map do | location | 
       next if generic_locations.include?(location.name)
@@ -253,7 +253,7 @@ class ProgramsController < ApplicationController
       "SELECT DISTINCT location.name AS name, location.location_id AS location_id \
        FROM location \
        INNER JOIN patient_program ON patient_program.location_id = location.location_id AND patient_program.voided = 0 \
-       WHERE location.retired = 0 AND name LIKE ? \
+       WHERE location.retired = 0 AND name LIKE ? AND name != '' \
        GROUP BY patient_program.location_id \
        ORDER BY INSTR(name, ?) ASC, COUNT(name) DESC, name ASC \
        LIMIT 10",
@@ -264,7 +264,7 @@ class ProgramsController < ApplicationController
     return (Location.find_by_sql([
       "SELECT DISTINCT location.name AS name, location.location_id AS location_id \
        FROM location \
-       WHERE location.retired = 0 AND name LIKE ? \
+       WHERE location.retired = 0 AND name LIKE ? AND name != '' \
        ORDER BY name ASC \
        LIMIT 10",
        "%#{search}%"])).uniq

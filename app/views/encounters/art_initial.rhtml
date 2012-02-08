@@ -46,13 +46,31 @@
                                                                                 
 	.tt_controls_confirmatory_hiv_test_year #Unknown { display: inline; }
 
-
 	.tt_controls_confirmatory_hiv_test_month .keyboard { display:none; }
 
 	#tt_page_confirmatory_hiv_test_month .options {  height: 90%; }
 
 	#tt_page_confirmatory_hiv_test_month .inputFrameClass {  height: 86%; }
+
+	.tt_controls_month_started_art .keyboard { display:none; }
+
+	#tt_page_month_started_art .options {  height: 90%; }
+
+	#tt_page_month_started_art .inputFrameClass {  height: 86%; }
+
+	.tt_controls_year_art_last_taken #Unknown { display: inline; }
+
+	.tt_controls_month_art_last_taken .keyboard { display:none; }
+
+	#tt_page_month_art_last_taken .options {  height: 90%; }
+
+	#tt_page_month_art_last_taken .inputFrameClass {  height: 86%; }
+
+	.tt_controls_year_started_art #Unknown { display: inline; }
+
 </style>
+
+<%= javascript_include_tag "dateformat" %>
 
 <script>
 	var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
@@ -266,25 +284,42 @@
   
   function calculateWHOstage() {
     stage = "I";
-    if ($("stage_4_conditions").value.length > 0) {
-      stage = "IV";
-    }else if ($("stage_3_conditions").value.length > 0) {
-      stage = "III";
-    }else if ($("stage_2_conditions").value.length > 0) {
-      stage = "II";
+    if ($("has_transfer_letter").value == "YES") {
+      if ($("stage_4_conditions").value.length > 0) {
+        stage = "IV";
+      }else if ($("stage_3_conditions").value.length > 0) {
+        stage = "III";
+      }else if ($("stage_2_conditions").value.length > 0) {
+        stage = "II";
+      }
+      var startDate = getDateStartedART();   
+    }else{
+      ARTstartDateEstimate = $("art_start_date_estimation").value;
+      <% curr_session_date = session[:datetime].to_date rescue Date.today %>
+      if (ARTstartDateEstimate == "6 months ago") {
+        var startDate = new Date("<%= (curr_session_date - 6.months).to_s%>");   
+      }else if (ARTstartDateEstimate == "12 months ago") {
+        var startDate = new Date("<%= (curr_session_date - 12.months).to_s%>");   
+      }else if (ARTstartDateEstimate == "18 months ago") {
+        var startDate = new Date("<%= (curr_session_date - 18.months).to_s%>");   
+      }else if (ARTstartDateEstimate == "24 months ago") {
+        var startDate = new Date("<%= (curr_session_date - 24.months).to_s%>");   
+      }else if (ARTstartDateEstimate == "Over 2 years ago") {
+        var startDate = new Date("<%= (curr_session_date - 30.months).to_s%>");   
+      }
     }
-    var startDate = getDateStartedART();   
     var patientBirthdate = new Date("<%=@patient.person.birthdate %>");
     var dateCreated = new Date("<%=@patient.person.date_created %>");
     var patientBirthdateEstimated = "<%=@patient.person.birthdate_estimated %>";
-    patient_age = age(patientBirthdate , patientBirthdateEstimated , dateCreated, startDate);
+    
+    var patient_age = age(patientBirthdate , patientBirthdateEstimated , dateCreated, startDate);
 
     if (patient_age <= 14) {
       $("who_stage").value = "WHO stage " + stage + " peds";
     }else{
       $("who_stage").value = "WHO stage " + stage + " adult";
     }
-    $("date_started_art").value = startDate;
+    $("date_started_art").value = dateFormat(startDate,"yyyy-mm-dd");
   } 
   
   function age(birthdate,birthdate_estimated,date_created,today) {
@@ -302,16 +337,40 @@
     var currentWeight = $("weight").value;
     var currentHeight = $("height").value;
     currentBmi = (currentWeight/(currentHeight*currentHeight)*10000).toFixed(1);
-    $('bmi').value = currentBmi;
+    try {
+      $('bmi').value = currentBmi;
+    }catch(e){}
   }
   
-  function buildConfirmatoryTestDate() {
-    var year = $("confirmatory_hiv_test_year").value;
-    var month = $("confirmatory_hiv_test_month").value;
-    var day = $("confirmatory_hiv_test_day").value;
+  function buildDate(type) {
+    if (type.match(/confirmatory/i)) {
+      var year = $("confirmatory_hiv_test_year").value;
+      var year_element = $("confirmatory_hiv_test_year");
+      var month = $("confirmatory_hiv_test_month").value;
+      var month_element = $("confirmatory_hiv_test_month");
+      var day = $("confirmatory_hiv_test_day").value;
+      var day_element = $("confirmatory_hiv_test_day");
+    }else if (type.match(/art_last_taken/i)) {
+      var year = $("year_art_last_taken").value;
+      var year_element = $("year_art_last_taken");
+      var month = $("month_art_last_taken").value;
+      var month_element = $("month_art_last_taken");
+      var day = $("day_art_last_taken").value;
+      var day_element = $("day_art_last_taken");
+    }
+
+    if(year.length < 1) {
+      if (type.match(/confirmatory/i)) {
+        $("confirmatory_hiv_test_date").value = null;
+      }else if (type.match(/art_last_taken/i)) {
+        $("date_art_last_taken").value = null;
+      }
+      return
+    }
+
     if(day.length < 1) {
       try {
-        var days = document.getElementsByName("day_confirmatory_hiv_test")
+        var days = day_element;
         for(i = 0;i<days.length;i++) {
           if(days[i].value.length > 0){
             day = days[i].value;
@@ -327,16 +386,64 @@
     if (day.length == 1)
       day = 0 + day;
 
-    if(year == "Unknown") {
-      $("confirmatory_hiv_test_date").value = year;
-    }else if(month == "Unknown") {
-      $("confirmatory_hiv_test_date").value = year + "-07-01";
-    }else if(day == "Unknown") {
-      $("confirmatory_hiv_test_date").value = year + "-" + month + "-01";
-    }else{
-      $("confirmatory_hiv_test_date").value = year + "-" + month + "-" + day;
+
+
+    if (type.match(/confirmatory/i)) {
+      if(year == "Unknown") {
+        $("confirmatory_hiv_test_date").value = year;
+      }else if(month == "Unknown") {
+        $("confirmatory_hiv_test_date").value = year + "-07-01";
+      }else if(day == "Unknown") {
+        $("confirmatory_hiv_test_date").value = year + "-" + month + "-01";
+      }else{
+        $("confirmatory_hiv_test_date").value = year + "-" + month + "-" + day;
+      }
+    }else if (type.match(/art_last_taken/i)) {
+      if(year == "Unknown") {
+        $("date_art_last_taken").value = year;
+      }else if(month == "Unknown") {
+        $("date_art_last_taken").value = year + "-07-01";
+      }else if(day == "Unknown") {
+        $("date_art_last_taken").value = year + "-" + month + "-01";
+      }else{
+        $("date_art_last_taken").value = year + "-" + month + "-" + day;
+      }
     }
   } 
+
+  function setUnkownStage() {
+    if($("has_transfer_letter").value == "YES")
+      return
+
+    everReceivedARVs = $("ever_received_art").value;
+    everRegisteredAtARTclinic = $("ever_registered_at_ART_clinic").value;
+
+    if (everRegisteredAtARTclinic == "YES" && everReceivedARVs == "YES") {
+      $("reason_for_art_eligibility").value = "Unknown";
+      $("drug_start_date").value = "Estimated";
+      calculateWHOstage();
+    }else{
+      $("reason_for_art_eligibility").value = null;
+      $("drug_start_date").value = null;
+    }
+  }
+
+  function setReasonForStarting() {
+    var backButton = $("backButton");
+    backButton.setAttribute("onmousedown","resetReasonForStarting();gotoPage('" + (tstCurrentPage - 1) + "',null,true);");
+    $("reason_for_art_eligibility").value = null;
+    $("drug_start_date").value = null;
+  }
+
+  function resetReasonForStarting() {
+    var backButton = $("backButton");
+    backButton.setAttribute("onmousedown","gotoPage('" + tstCurrentPage + "',null,true);");
+    $("reason_for_art_eligibility").value = null;
+  }
+
+  function validateDate() {
+    return false;
+  }
 </script>
 <%#= raise @patient.person.birthdate.day.to_s %>
 <% if @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM') %>
@@ -368,11 +475,49 @@
 	  
 		<%= touch_select_tag("EVER RECEIVED ART", @patient, options_for_select([['Yes','YES'],['No','NO']]), {:id => 'ever_received_art'}) %>
 
-		<%= touch_date_tag "DATE ART LAST TAKEN", @patient, nil,
+
+
+
+
+
+		<%#= touch_date_tag "DATE ART LAST TAKEN", @patient, nil,
 			{	:id => "date_art_last_taken",
 			 	:absoluteMax => Date.today,
 			 	:condition => '$("ever_received_art").value == "YES"',
 			 	:helpText => "Date ART last taken"} %>
+
+<!--
+-->
+    <%= text_field_tag "year_art_last_taken", nil,                                 
+      { :helpText => 'Year ART last taken',                                        
+        :field_type => 'number',                                                
+        :tt_onUnLoad => "buildDate('art_last_taken');",                                            
+        :absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year,
+        :tt_pageStyleClass => "Numeric NumbersOnly",                            
+        :condition => '$("ever_received_art").value == "YES"',
+        :id => "year_art_last_taken" }  %>                                      
+                                                                                
+    <%= select_tag "month_art_last_taken", month_name_options,                     
+      { :helpText => 'Month ART last taken',                                       
+        :condition => '$("year_art_last_taken").value.toLowerCase() != "unknown" && $("ever_received_art").value == "YES"',
+        :validationJS => "validateDate();",                                      
+        :tt_onUnLoad => "buildDate('art_last_taken');",                                            
+        :id => "month_art_last_taken" ,                                            
+        :validationMessage => 'Please enter a valid date'}%>                    
+                                                                                
+    <%= text_field_tag "day_art_last_taken",  nil,                                 
+        :field_type => 'number', :helpText => 'Day ART last taken',                
+        :condition => '($("year_art_last_taken").value !="Unknown") && ($("month_art_last_taken").value != "Unknown") && $("ever_received_art"). value == "YES"',
+        :tt_onLoad => "getDayOfMonthPicker($('year_art_last_taken').value, $('month_art_last_taken').value);$('nextButton').style.display = 'block';",
+        :tt_onUnLoad => "buildDate('art_last_taken');",                                            
+        :validationJS => "validateDate()",                                       
+        :id => "day_art_last_taken" ,                                              
+        :validationMessage => 'Please enter a valid date'%>                     
+                                                                                
+    <%= touch_hidden_tag "DATE ART LAST TAKEN", @patient, "", :id => "date_art_last_taken" %> 
+
+<!--
+-->
 
 		<%= touch_yes_no_unknown_tag "HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS", @patient, nil,
 			{	:id => "taken_art_in_last_two_months",
@@ -392,17 +537,29 @@
 
 		<%= touch_yes_no_tag "Ever registered at ART clinic", @patient, nil,
 			{	:id => "ever_registered_at_ART_clinic",
-			 	:helpText => "Ever registered at an ART clinic?"} %>
+				:tt_onUnload=>  "$('programs__states__state').value = 'Patient transferred in'",
+			 	:helpText => "Ever registered at an ART clinic?" } %>
 
 		<%= touch_yes_no_tag "HAS TRANSFER LETTER", @patient, nil,
 			{	:id => "has_transfer_letter",
-			 	:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
-			 	:helpText => "Has staging information?"} %>
+			 	:condition => "$('ever_registered_at_ART_clinic').value == 'YES'",
+			 	:helpText => "Has staging information?" } %>
+
+   <%estimates = ["6 months ago","12 months ago","18 months ago","24 months","Over 2 years ago"]%>
+   <%= select_tag(:art_start_date_estimation, options_for_select(estimates ,[]),
+      :helpText =>"Estimate ART start period",                                                 
+      :id => "art_start_date_estimation",                                                      
+      :allowFreeText => false,                                                  
+      :tt_onUnLoad => "setUnkownStage();",
+      :tt_onLoad => "setReasonForStarting();",
+      :condition => '$("ever_registered_at_ART_clinic").value == "YES" && $("has_transfer_letter").value =="NO"',
+      :ttMatchFromBeginning => "true")%> 
+
+		<%= touch_hidden_tag "Drug start date", @patient, "", :id => "drug_start_date" %>
 
 		<%= touch_location_tag "LOCATION OF ART INITIATION", @patient, nil,
 			{	:id => "location_of_art_initialization",
 			 	:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
-			 	:optional => false,
 			 	:helpText => "Location of ART initiation" } %>
 
 		<%= touch_text_field_tag "ART NUMBER AT PREVIOUS LOCATION", @patient, nil,
@@ -466,10 +623,10 @@
 		<%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient,  options_for_select(@who_stage_iv),
 			{	:id => "stage_4_conditions",                                         
 				:multiple => true,                                                   
-			:optional => true,                                                   
-			:condition => 'showConditions()',                            
-			:helpText => "Stage 4 Conditions",                                   
-			:tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
+				:optional => true,                                                   
+				:condition => 'showConditions()',                            
+				:helpText => "Stage 4 Conditions",                                   
+				:tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
 
 		<%
 			@reasons = ["WHO stage I","WHO stage II","WHO stage III","WHO stage IV",
@@ -569,12 +726,10 @@
 				:units => 'cm',                                                        
 				:validationRule => "^([0-9]+)|Unknown$",                               
 				:validationMessage => "You must enter numbers only (for example 157)", 
-				:tt_pageStyleClass => "Numeric NumbersOnly"} %>                        
-		<%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>    
-		<%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
-		<%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %> 
+				:tt_pageStyleClass => "Numeric NumbersOnly" } %>                        
+        <%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>    
+        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
 
-      
 		<%= text_field_tag "observations[][value_numeric]", nil,                  
 			{	:id => "weight",                                                       
 				:field_type => 'number',                                               
@@ -589,14 +744,17 @@
 				:validationMessage => "You must enter a decimal between 0 and 9 (for example: 54<b>.6</b>)",
 				:tt_onUnLoad => "calculateBMI();",
 				:tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal"} %>             
-		<%= hidden_field_tag("observations[][concept_name]", "WEIGHT (KG)") %>    
-		<%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
-		<%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+        <%= hidden_field_tag("observations[][concept_name]", "WEIGHT (KG)") %>    
+        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>        
 
-		<%= hidden_field_tag("observations[][value_numeric]", nil, {:id => 'bmi'}) %>
-		<%= hidden_field_tag("observations[][concept_name]", "BODY MASS INDEX, MEASURED") %>
-		<%= hidden_field_tag("observations[][patient_id]", @patient.id) %>      
-		<%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+      <% if @patient_bean.age > 14 %>                                           
+                                                                                
+        <%= hidden_field_tag("observations[][value_numeric]", nil, {:id => 'bmi'}) %>
+        <%= hidden_field_tag("observations[][concept_name]", "BODY MASS INDEX, MEASURED") %>
+        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>      
+                                                                                
+      <% end %>
+
 
 		<%  if @cell_number.to_i != 0 %>
 			<%= touch_yes_no_unknown_tag "SEND SMS", @patient, nil,
@@ -627,7 +785,7 @@
 		<%= text_field_tag "year_confirmatory_hiv_test", nil,                                 
 			{	:helpText => 'Confirmatory HIV test year',                                         
 				:field_type => 'number',     
-				:tt_onUnLoad => "buildConfirmatoryTestDate();",                                            
+        :tt_onUnLoad => "buildDate('confirmatory');",                                            
 				:absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year, 
 				:tt_pageStyleClass => "Numeric NumbersOnly",                             
 				:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
@@ -638,13 +796,13 @@
 			{	:helpText => 'Confirmatory HIV test month',                                        
 				:condition => '$("confirmatory_hiv_test_year").value.toLowerCase() != "unknown" && $("ever_registered_at_ART_clinic").value == "YES"',
 				:validationJS => "validateDOB();",                                       
-				:tt_onUnLoad => "buildConfirmatoryTestDate();",                                            
+        :tt_onUnLoad => "buildDate('confirmatory');",                                            
 				:id => "confirmatory_hiv_test_month" ,                                             
 				:validationMessage => 'Please enter a valid date'} %>                     
 				                                                            
 		<%= text_field_tag "day_confirmatory_hiv_test",  nil,                                 
 			:field_type => 'number', :helpText => 'Confirmatory HIV test day',                
-			:tt_onUnLoad => "buildConfirmatoryTestDate();",                                            
+			:tt_onUnLoad => "buildDate('confirmatory');",                                            
 			:condition => '($("confirmatory_hiv_test_year").value !="Unknown") && ($("confirmatory_hiv_test_month").value != "Unknown") && $("ever_registered_at_ART_clinic").value == "YES"',
 			:tt_onLoad => "getDayOfMonthPicker($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value);$('nextButton').style.display = 'block';",
 			:validationJS => "validateDOB()",                                       
@@ -662,3 +820,5 @@
 
 	</form>
 <% end %>
+		<%= touch_location_tag "LOCATION OF ART INITIATION", @patient, nil,
+			{	:id => "location_of_art_initialization",
