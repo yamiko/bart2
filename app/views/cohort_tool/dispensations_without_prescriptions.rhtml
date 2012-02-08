@@ -6,37 +6,44 @@
 
 </script>
 <h1 align='center'><u>Dispensations Without Prescriptions Report</u></h1>
-<table id='summary'>
-  <thead>
-  <tr>
-  <th>ID</th>
-  <th>ARV Number</th>
-  <th>National ID</th>
-  <th>Visit Date</th>
-  <th>Drug Name</th>
-  </tr>
-  </thead>
-  <tbody>
 
-  <% session[:mastercard_ids] = [] %>
-  <% session[:mastercard_counter] = 0 %>
+<div style="position:relative; width:100%; overflow-y:scroll;">
+	<table class='summary'style="width:auto;">
+			<thead>
+					<tr>
+					<th>ID</th>
+					<th>ARV Number</th>
+					<th>National ID</th>
+					<th>Visit Date</th>
+					<th>Drug Name</th>
+					</tr>
+			</thead>
+	</table>
+</div>
 
-  <%@report.each do |data_row|%>
+<div style = "position : relative; width : 100%; height: 540px; overflow-y:scroll;">
+	<table class='summary'>
+		  <tbody>
+				<% session[:mastercard_ids] = [] %>
+				<% session[:mastercard_counter] = 0 %>
 
-  <% session[:mastercard_ids] << data_row['person_id']%>
+				<%@report.each do |data_row|%>
 
-  <tr>
-    <td align='center'><%= link_to_onmousedown "#{data_row['person_id']}",{:controller =>"patients", :action => 'mastercard', 
-                           :patient_id => "#{data_row['person_id']}" ,:source =>"dispensations_without_prescriptions", :quarter => "#{@report_quarter}"}%></td>
-    <td align='center'><%= data_row['arv_number'] %></td>
-    <td align='center'><%= data_row['national_id']%></td>
-    <td align='center'><%= data_row['date_created'] %></td>
-    <td><%= data_row['drug_name'] %></td>
-  </tr>
-  <%end rescue nil%>
-  <script>
-    insertBlankRow ();
-  </script>
-  </tbody>
+				<% session[:mastercard_ids] << data_row['person_id']%>
+
+				<tr>
+					<td align='center'><%= link_to_onmousedown "#{data_row['person_id']}",{:controller =>"patients", :action => 'mastercard', 
+								                 :patient_id => "#{data_row['person_id']}" ,:source =>"dispensations_without_prescriptions", :quarter => "#{@report_quarter}"}%></td>
+					<td align='center'><%= data_row['arv_number'] %></td>
+					<td align='center'><%= data_row['national_id']%></td>
+					<td align='center'><%= data_row['date_created'] %></td>
+					<td align='left'><span style="padding-left:30px; display:block;"> <%= data_row['drug_name'] %></span></td>
+				</tr>
+				<%end rescue nil%>
+				<script>
+					insertBlankRow ();
+				</script>
+			</tbody>
   </table>
+</div>
 

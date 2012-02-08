@@ -552,7 +552,7 @@ class CohortToolController < ApplicationController
       date_range        = Report.generate_cohort_date_range(params[:quarter])
       start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
       end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
-      arv_number_range  = [params[:arv_start_number].to_i, params[:arv_end_number].to_i]
+      arv_number_range  = [params[:arv_start_number].to_s.gsub(/[^0-9]/,'').to_i, params[:arv_end_number].to_s.gsub(/[^0-9]/,'').to_i]
 
       @report = report_out_of_range_arv_numbers(arv_number_range, start_date, end_date)
 
@@ -574,7 +574,7 @@ class CohortToolController < ApplicationController
                                            :patients_with_wrong_start_dates => @patients_with_wrong_start_dates,
                                            :move_from_second_line_to_first =>  @move_from_second_line_to_first
                                          }
-      @checks = [['Dead patients with Visits', @dead_patients_with_visits.length],
+      @checks = [['Dead patients with visits', @dead_patients_with_visits.length],
                  ['Male patients with a pregnant observation', @males_allegedly_pregnant.length],
                  ['Patients who moved from 2nd to 1st line drugs', @move_from_second_line_to_first.length],
                  ['patients with start dates > first receive drug dates', @patients_with_wrong_start_dates.length]]
@@ -683,10 +683,11 @@ class CohortToolController < ApplicationController
                  WHERE (SELECT COUNT(*)
                         FROM obs observation
                         WHERE   observation.concept_id = ?
-                                AND observation.person_id = obs.person_id) > 1                                
+                                AND observation.person_id = obs.person_id) > 1                               
                                 AND date_created >= ? AND date_created <= ?
                                 AND obs.concept_id = ?
-                                AND obs.voided = 0", art_eligibility_id, start_date, end_date, art_eligibility_id])
+                                AND obs.voided = 0 
+               	 ORDER BY person_id ASC", art_eligibility_id, start_date, end_date, art_eligibility_id])
 
     patients_data = []
 
@@ -697,7 +698,7 @@ class CohortToolController < ApplicationController
                         'arv_number' => patient_bean.arv_number,
                         'national_id' => patient_bean.national_id,
                         'date_created' => reason[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
-                        'start_reason' => ConceptName.find(reason[:value_coded_name_id]).name
+                        'start_reason' => (ConceptName.find(reason[:value_coded_name_id]).name rescue '')
                        }
     end
    patients_data
@@ -714,21 +715,24 @@ class CohortToolController < ApplicationController
   end
 
   def report_out_of_range_arv_numbers(arv_number_range, start_date , end_date)
-    arv_number_id             = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
-    arv_start_number          = arv_number_range.first
-    arv_end_number            = arv_number_range.last
+    arv_number_id = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
+    arv_start_number = arv_number_range.first.to_s.gsub(/[^0-9]/,'').to_i
+    arv_end_number = arv_number_range.last.to_s.gsub(/[^0-9]/,'').to_i
+    
+    arv_number_suffix = PatientIdentifier.find_by_identifier_type(arv_number_id).identifier.gsub(/[0-9]/, '')
 
     out_of_range_arv_numbers  = PatientIdentifier.find_by_sql(["SELECT patient_id, identifier, date_created FROM patient_identifier
-                                   WHERE identifier_type = ? AND REPLACE(identifier, 'MPC-ARV-', '') >= ?
-                                   AND REPLACE(identifier, 'MPC-ARV-', '') <= ?
+                                   WHERE identifier_type = ? AND (REPLACE(identifier, '#{arv_number_suffix}', '')+0) >= ?
+                                   AND (REPLACE(identifier, '#{arv_number_suffix}', '')+0) <= ?
                                    AND voided = 0
                                    AND (NOT EXISTS(SELECT * FROM patient_identifier
-                                   WHERE identifier_type = ? AND date_created >= ? AND date_created <= ?))",
+                                   WHERE identifier_type = ? AND date_created >= ? AND date_created <= ?))
+                                   ORDER BY (REPLACE(identifier, '#{arv_number_suffix}', '')+0) ASC",
                                    arv_number_id,  arv_start_number,  arv_end_number, arv_number_id, start_date, end_date])
 
     out_of_range_arv_numbers_data = []
     out_of_range_arv_numbers.each do |arv_num_data|
-      patient     = Person.find(arv_num_data[:patient_id].to_i)
+      patient     = Patient.find(arv_num_data[:patient_id].to_i)
       patient_bean = PatientService.get_patient(patient.person)
 
       out_of_range_arv_numbers_data <<{'person_id' => patient.id,
