@@ -679,7 +679,10 @@ class ApplicationController < ActionController::Base
             return task
           end if not reason_for_art.upcase ==  'UNKNOWN'
         when 'TB ADHERENCE'
-          drugs_given_before = (not PatientService.drug_given_before(patient,session_date).prescriptions.blank?) rescue false
+          drugs_given_before = false
+          PatientService.drug_given_before(patient,session_date).each do |order|
+            drugs_given_before = true                                              
+          end
            
           tb_adherence = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
@@ -693,7 +696,11 @@ class ApplicationController < ActionController::Base
             return task
           end if drugs_given_before
         when 'ART ADHERENCE'
-          art_drugs_given_before = (not PatientService.drug_given_before(patient,session_date).arv.prescriptions.blank?) rescue false
+          art_drugs_given_before = false
+          PatientService.drug_given_before(patient,session_date).each do |order|
+            next unless MedicationService.arv(order.drug_order.drug)
+            art_drugs_given_before = true
+          end
 
           art_adherence = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
@@ -909,8 +916,12 @@ class ApplicationController < ActionController::Base
             return task
           end  
         when 'HIV STAGING'
-          arv_drugs_given = PatientService.drug_given_before(@patient, Date.today).arv.prescriptions rescue []
-          next unless arv_drugs_given.blank?
+          arv_drugs_given = false
+          PatientService.drug_given_before(patient,session_date).each do |order|
+            next unless MedicationService.arv(order.drug_order.drug)
+            arv_drugs_given = true
+          end
+          next if arv_drugs_given
           if encounter_available.blank? and user_selected_activities.match(/Manage HIV staging visits/i) 
             task.url = "/encounters/new/hiv_staging?show&patient_id=#{patient.id}"
             return task
@@ -998,8 +1009,12 @@ class ApplicationController < ActionController::Base
           end
 =end
         when 'ART ADHERENCE'
-          arv_drugs_given = PatientService.drug_given_before(@patient, session_date.to_date).arv.prescriptions rescue []
-          next if arv_drugs_given.blank?
+          arv_drugs_given = false 
+          PatientService.drug_given_before(patient,session_date).each do |order|
+            next unless MedicationService.arv(order.drug_order.drug)
+            arv_drugs_given = true
+          end
+          next unless arv_drugs_given
           if encounter_available.blank? and user_selected_activities.match(/Manage ART adherence/i)
             task.url = "/encounters/new/art_adherence?show&patient_id=#{patient.id}"
             return task
@@ -1128,7 +1143,13 @@ class ApplicationController < ActionController::Base
         skip = true unless enc.present?
       end
 
-      if task.encounter_type == 'ART ADHERENCE' and PatientService.drug_given_before(patient,session_date).blank?
+      arv_drugs_given = false
+      PatientService.drug_given_before(patient,session_date).each do |order|
+        next unless MedicationService.arv(order.drug_order.drug)            
+        arv_drugs_given = true                                              
+      end
+
+      if task.encounter_type == 'ART ADHERENCE' and not arv_drugs_given
         skip = true
       end
       
@@ -1272,7 +1293,13 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    unless PatientService.drug_given_before(patient,session_date).blank?
+    arv_drugs_given = false
+    PatientService.drug_given_before(patient,session_date).each do |order|
+      next unless MedicationService.arv(order.drug_order.drug)            
+      arv_drugs_given = true                                              
+    end
+
+    if arv_drugs_given
       art_adherance = Encounter.find(:first,
                                      :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                                      patient.id,EncounterType.find_by_name(art_encounters[5]).id,session_date],
