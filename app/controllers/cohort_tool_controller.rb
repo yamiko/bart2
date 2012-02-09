@@ -586,7 +586,7 @@ class CohortToolController < ApplicationController
     include_url_params_for_back_button
 
     case params[:check_type]
-       when 'Dead patients with Visits' then
+       when 'Dead patients with visits' then
             @report  =  session[:data_consistency_check][:dead_patients_with_visits]
        when 'Patients who moved from 2nd to 1st line drugs'then
              @report =  session[:data_consistency_check][:move_from_second_line_to_first]
