@@ -570,7 +570,9 @@ class PatientsController < ApplicationController
   def visit_history
     session[:mastercard_ids] = []
     session_date = session[:datetime].to_date rescue Date.today
-    @encounters = @patient.encounters.find_by_date(session_date)
+	start_date = session_date.strftime('%Y-%m-%d 00:00:00')
+	end_date = session_date.strftime('%Y-%m-%d 23:59:59')
+    @encounters = Encounter.find(:all, 	:conditions => [" patient_id = ? AND encounter_datetime >= ? AND encounter_datetime <= ?", @patient.id, start_date, end_date]) 
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
     @alerts = alerts(@patient, session_date) rescue nil

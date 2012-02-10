@@ -24,7 +24,6 @@
   jQuery(document).ready(function($) {
     $('#encounters li.data').click(function() { select($(this)); });
     $('#encounters li.data div.void').click(function() { voiding($(this)); return false; });
-    $('#charts').empty().load('/patients/graph/<%= @patient.id -%>?data=weight');
     recent = $('#encounters li.data:first');
     if (recent) select(recent);
   })
