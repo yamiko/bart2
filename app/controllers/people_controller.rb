@@ -547,6 +547,12 @@ class PeopleController < ApplicationController
     
     render :text => result, :layout => false
   end
+
+  def demographics
+    @person = Person.find(params[:id])
+		@patient_bean = PatientService.get_patient(@person)
+		render :layout => 'menu'
+  end
   
 private
   
