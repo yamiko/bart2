@@ -52,12 +52,25 @@
 
     <% @side_effects = concept_set('MALAWI ART DRUG INDUCED SYMPTOM SET') %>
     var myArray = "<%= @side_effects.to_a %>";
-
+	
+	var x = -1;
+	var css = "even";
     for (var i=0; i < options.length; i++) {
-      if (options[i].selected && options[i].value != "") {
-       if (myArray.indexOf(options[i].value) != -1) {
-        symptoms +=  "<li value='" + options[i].value + "' id='" + i + "' onmousedown='null; updateTouchscreenInputForSelect(this); ' style='display: block;'>" + options[i].value + "</li>";
-        $("drug_induced_effects").innerHTML += "<option>" + options[i].value + "</option>";
+		if (options[i].selected && options[i].value != "") {
+			if (myArray.indexOf(options[i].value) != -1) {
+				x = x + 1;
+        		symptoms +=  '<li id="' + x + '" class="' + css + '" onclick="null; updateTouchscreenInputForSelect(__$(\'optionValue\' + this.id));" onmousedown="" tag="odd" tstvalue="' + options[i].value + '" style="">'
+				+ "<div style='display: table; border-spacing: 0px;' <div style='display: table-row'><div style='display: table-cell;'><img id='img" + x + "' alt='[ ]' src='/touchscreentoolkit/lib/images/unticked.jpg'></div><div id='optionValue" + x + "' style='display: table-cell; vertical-align: middle; text-align: left; padding-left: 15px;'>" 
+				+ options[i].value 
+				+ "</div></div>"				
+				 + "</li>";
+			if(css == "odd") {
+				css = "even";
+			} else {
+				css = "odd";
+			}
+
+        	$("drug_induced_effects").innerHTML += "<option>" + options[i].value + "</option>";
        }
       }
     }
