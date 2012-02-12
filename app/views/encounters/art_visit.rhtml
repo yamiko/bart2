@@ -208,26 +208,37 @@
 <%end%>
 
   <%
+    date = session[:datetime].to_date rescue Date.today                    
+    hiv_reception_encounter = Encounter.find(:first,
+      :conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
+      @patient.id,date,EncounterType.find_by_name('HIV RECEPTION').id])
+    reception = false
+    obs = hiv_reception_encounter.observations 
+    obs.collect do | ob | 
+      if ob.to_s.squeeze.strip.match(/PATIENT PRESENT FOR CONSULTATION: YES/i)
+        reception = true
+        break
+      end
+    end
+
+  %>
+
+  <% if User.current_user.user_roles.map{|r|r.role}.include?('Nurse') and reception %>
+    <%= touch_yes_no_tag "REFER TO ART CLINICIAN", @patient, nil,
+      {:id => "refer_to_clinician",
+      :helpText => "Refer to clinician?" } %>
+  <%else%>
+    <%= touch_hidden_tag "REFER TO ART CLINICIAN", @patient, "NO", :id => "refer_to_clinician" %>
+  <%end
+
     if @obs_ans.match(/Prescribe drugs: Yes/i)
   %>
     <%= touch_hidden_tag "Prescribe drugs", @patient, "YES", :id => "prescribe_drugs" %>
   <%else%>
     <%= touch_yes_no_unknown_tag "Prescribe drugs", @patient, nil,
       {:id => "prescribe_drugs",
+       :condition => "$('refer_to_clinician').value == 'NO'" ,
        :helpText => "Prescribe drugs during this visit" } %>
-  <%end%>
-  <%
-    reception = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
-                @patient.id,session_date,EncounterType.find_by_name('HIV RECEPTION').id]).observations.collect{| r | r.to_s}.join(',') rescue ''
-
-  %>
-
-  <% if User.current_user.user_roles.map{|r|r.role}.include?('Nurse') and reception.match(/PATIENT PRESENT FOR CONSULTATION: YES/i) %>
-    <%= touch_yes_no_unknown_tag "REFER TO ART CLINICIAN", @patient, nil,
-      {:id => "refer_to_clinician",
-      :helpText => "Refer to clinician?" } %>
-  <%else%>
-    <%= touch_hidden_tag "REFER TO ART CLINICIAN", @patient, "NO", :id => "refer_to_clinician" %>
   <%end%>
 
   <%if @allergic_to_sulphur.match(/Allergic to sulphur:/i).blank? %>
