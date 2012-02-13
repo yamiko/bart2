@@ -672,7 +672,7 @@ class Cohort
       when 'd4T/3TC/NVP'
         return 'A1' if age > 14
         return 'P1'
-      when 'd4T 3TC + d4T 3TC NVP'
+      when 'd4T/3TC + d4T/3TC/NVP (Starter pack)'
         return 'A1' if age > 14
         return 'P1'
       when 'AZT/3TC/NVP'
