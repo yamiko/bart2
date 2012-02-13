@@ -159,7 +159,6 @@ class Cohort
     cohort_report = {}
     cohort_report['Total registrated'] = self.total_registered(@@first_registration_date)
     cohort_report['Newly total registrated'] = self.total_registered
-
     cohort_report['Total transferred in patients'] = self.transferred_in_patients(@@first_registration_date).length
     cohort_report['Newly transferred in patients'] = self.transferred_in_patients.length
 
@@ -367,6 +366,7 @@ class Cohort
     patients = []
     no_concept = ConceptName.find_by_name('NO')
     date_art_last_taken_concept = ConceptName.find_by_name('DATE ART LAST TAKEN')
+
     taken_arvs_concept = ConceptName.find_by_name('HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS')
     PatientProgram.find_by_sql("SELECT 
                                 patient_id , value_datetime date_art_last_taken,obs_datetime visit_date,value_coded,obs.concept_id concept_id  
@@ -381,6 +381,7 @@ class Cohort
                                 GROUP BY patient_id
                                 ORDER BY obs.obs_datetime DESC").map do | ob |
                                   if ob.concept_id.to_s == date_art_last_taken_concept.concept_id.to_s
+
                                     unless 4 >= ((ob.visit_date.to_date -
                                                   ob.date_art_last_taken.to_date) / 7).to_i
                                       patients << ob.patient_id
@@ -417,13 +418,13 @@ class Cohort
 
     ( self.died_total || [] ).each do | state |
       if (state.date_enrolled.to_datetime >= first_month_date[0]  and state.date_enrolled.to_datetime <= first_month_date[1] )
-          first_month << state.patient_id
+          first_month << state
       elsif (state.date_enrolled.to_datetime >= second_month_date[0]  and state.date_enrolled.to_datetime <= second_month_date[1] )
-          second_month << state.patient_id
+          second_month << state
       elsif (state.date_enrolled.to_datetime >= third_month_date[0]  and state.date_enrolled.to_datetime <= third_month_date[1] )
-          third_month << state.patient_id
+          third_month << state
       elsif (state.date_enrolled.to_datetime > third_month_date[1])
-          after_third_month << state.patient_id
+          after_third_month << state
       end
     end
 

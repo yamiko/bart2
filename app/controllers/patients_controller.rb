@@ -164,6 +164,7 @@ class PatientsController < ApplicationController
     @links << ["Demographics (Print)","/patients/print_demographics/#{patient.id}"]
     @links << ["Visit Summary (Print)","/patients/dashboard_print_visit/#{patient.id}"]
     @links << ["National ID (Print)","/patients/dashboard_print_national_id/#{patient.id}"]
+    @links << ["Demographics (Edit)","/people/demographics/#{patient.id}"]
 
     if use_filing_number and not PatientService.get_patient_identifier(patient, 'Filing Number').blank?
       @links << ["Filing Number (Print)","/patients/print_filing_number/#{patient.id}"]
@@ -314,7 +315,7 @@ class PatientsController < ApplicationController
   def mastercard
     @type = params[:type]
     
-    if session[:from_report]
+    if session[:from_report].to_s == "true"
 			@from_report = true
 			session[:from_report] = false
     end
@@ -445,7 +446,9 @@ class PatientsController < ApplicationController
       save_mastercard_attribute(params)
       if params[:source].to_s == "opd"
         redirect_to "/patients/opdcard/#{@patient_id}" and return
-
+      elsif params[:from_demo] == "true"
+        redirect_to :controller => "people" ,
+        :action => "demographics",:id => @patient_id and return
       else
         redirect_to :action => "mastercard",:patient_id => @patient_id and return
       end
@@ -586,7 +589,9 @@ class PatientsController < ApplicationController
   def visit_history
     session[:mastercard_ids] = []
     session_date = session[:datetime].to_date rescue Date.today
-    @encounters = @patient.encounters.find_by_date(session_date)
+	start_date = session_date.strftime('%Y-%m-%d 00:00:00')
+	end_date = session_date.strftime('%Y-%m-%d 23:59:59')
+    @encounters = Encounter.find(:all, 	:conditions => [" patient_id = ? AND encounter_datetime >= ? AND encounter_datetime <= ?", @patient.id, start_date, end_date]) 
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
     @alerts = alerts(@patient, session_date) rescue nil
@@ -1848,6 +1853,39 @@ class PatientsController < ApplicationController
     when "ta"
       county_district = params[:person][:addresses]
       patient.person.addresses.first.update_attributes(county_district) if county_district
+    when "cell_phone_number"
+      attribute_type = PersonAttributeType.find_by_name("Cell Phone Number").id
+      person_attribute = patient.person.person_attributes.find_by_person_attribute_type_id(attribute_type)
+      if person_attribute.blank?
+        attribute = {'value' => params[:person]["cell_phone_number"],
+                     'person_attribute_type_id' => attribute_type,
+                     'person_id' => patient.id}
+        PersonAttribute.create(attribute)
+      else
+        person_attribute.update_attributes({'value' => params[:person]["cell_phone_number"]})
+      end
+    when "office_phone_number"
+      attribute_type = PersonAttributeType.find_by_name("Office Phone Number").id
+      person_attribute = patient.person.person_attributes.find_by_person_attribute_type_id(attribute_type)
+      if person_attribute.blank?
+        attribute = {'value' => params[:person]["office_phone_number"],
+                     'person_attribute_type_id' => attribute_type,
+                     'person_id' => patient.id}
+        PersonAttribute.create(attribute)
+      else
+        person_attribute.update_attributes({'value' => params[:person]["office_phone_number"]})
+      end
+    when "home_phone_number"
+      attribute_type = PersonAttributeType.find_by_name("Home Phone Number").id
+      person_attribute = patient.person.person_attributes.find_by_person_attribute_type_id(attribute_type)
+      if person_attribute.blank?
+        attribute = {'value' => params[:person]["home_phone_number"],
+                     'person_attribute_type_id' => attribute_type,
+                     'person_id' => patient.id}
+        PersonAttribute.create(attribute)
+      else
+        person_attribute.update_attributes({'value' => params[:person]["home_phone_number"]})
+      end
     end
   end
 

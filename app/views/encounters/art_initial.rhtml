@@ -475,11 +475,6 @@
 	  
 		<%= touch_select_tag("EVER RECEIVED ART", @patient, options_for_select([['Yes','YES'],['No','NO']]), {:id => 'ever_received_art'}) %>
 
-
-
-
-
-
 		<%#= touch_date_tag "DATE ART LAST TAKEN", @patient, nil,
 			{	:id => "date_art_last_taken",
 			 	:absoluteMax => Date.today,
@@ -514,8 +509,7 @@
         :id => "day_art_last_taken" ,                                              
         :validationMessage => 'Please enter a valid date'%>                     
                                                                                 
-    <%= touch_hidden_tag "DATE ART LAST TAKEN", @patient, "", :id => "date_art_last_taken" %> 
-
+   <%= touch_hidden_tag "DATE ART LAST TAKEN", @patient, nil, {:id => "date_art_last_taken", :value_datetime => true}%>
 <!--
 -->
 
