@@ -207,23 +207,7 @@
 
 <%end%>
 
-  <%
-    date = session[:datetime].to_date rescue Date.today                    
-    hiv_reception_encounter = Encounter.find(:first,
-      :conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
-      @patient.id,date,EncounterType.find_by_name('HIV RECEPTION').id])
-    reception = false
-    obs = hiv_reception_encounter.observations 
-    obs.collect do | ob | 
-      if ob.to_s.squeeze.strip.match(/PATIENT PRESENT FOR CONSULTATION: YES/i)
-        reception = true
-        break
-      end
-    end
-
-  %>
-
-  <% if User.current_user.user_roles.map{|r|r.role}.include?('Nurse') and reception %>
+  <% if current_user_roles.include?('Nurse') %>
     <%= touch_yes_no_tag "REFER TO ART CLINICIAN", @patient, nil,
       {:id => "refer_to_clinician",
       :helpText => "Refer to clinician?" } %>
