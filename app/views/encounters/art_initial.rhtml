@@ -293,25 +293,10 @@
         stage = "II";
       }
       var startDate = getDateStartedART();   
-    }else{
-      ARTstartDateEstimate = $("art_start_date_estimation").value;
-      <% curr_session_date = session[:datetime].to_date rescue Date.today %>
-      if (ARTstartDateEstimate == "6 months ago") {
-        var startDate = new Date("<%= (curr_session_date - 6.months).to_s%>");   
-      }else if (ARTstartDateEstimate == "12 months ago") {
-        var startDate = new Date("<%= (curr_session_date - 12.months).to_s%>");   
-      }else if (ARTstartDateEstimate == "18 months ago") {
-        var startDate = new Date("<%= (curr_session_date - 18.months).to_s%>");   
-      }else if (ARTstartDateEstimate == "24 months ago") {
-        var startDate = new Date("<%= (curr_session_date - 24.months).to_s%>");   
-      }else if (ARTstartDateEstimate == "Over 2 years ago") {
-        var startDate = new Date("<%= (curr_session_date - 30.months).to_s%>");   
-      }
     }
 
-
     if ($("has_transfer_letter").value == "YES" && $("year_started_art").value.toUpperCase() == "UNKNOWN") {
-      ARTstartDateEstimate = $("art_start_date_estimation_two").value;
+      ARTstartDateEstimate = $("art_start_date_estimation").value;
       <% curr_session_date = session[:datetime].to_date rescue Date.today %>
       if (ARTstartDateEstimate == "6 months ago") {
         var startDate = new Date("<%= (curr_session_date - 6.months).to_s%>");   
