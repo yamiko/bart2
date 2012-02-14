@@ -160,8 +160,8 @@ class DispensationsController < ApplicationController
     return unless dispense_finish
     return if dispensed_drugs_inventory_ids.blank?
 
-    regimen_id = ActiveRecord::Base.connection.select_all <<EOF
-SELECT r.concept_id ,
+    regimen_drug_order = ActiveRecord::Base.connection.select_all <<EOF
+SELECT r.regimen_id , r.concept_id ,
 (SELECT COUNT(t3.regimen_id) FROM regimen_drug_order t3
 WHERE t3.regimen_id = t.regimen_id GROUP BY t3.regimen_id) as c
 FROM regimen_drug_order t, regimen r
@@ -169,9 +169,14 @@ WHERE t.drug_inventory_id IN (#{dispensed_drugs_inventory_ids.join(',')})
 AND r.regimen_id = t.regimen_id
 GROUP BY r.concept_id
 HAVING c = #{dispensed_drugs_inventory_ids.length}
+AND r.regimen_id = (
+SELECT x.regimen_id FROM regimen_drug_order x 
+WHERE x.drug_inventory_id IN (#{dispensed_drugs_inventory_ids.join(',')}) 
+GROUP BY x.drug_inventory_id 
+HAVING count(x.drug_inventory_id) = c)
 EOF
 
-    regimen_prescribed = regimen_id.first['concept_id'].to_i rescue ConceptName.find_by_name('UNKNOWN ANTIRETROVIRAL DRUG').concept_id
+    regimen_prescribed = regimen_drug_order.first['concept_id'].to_i rescue ConceptName.find_by_name('UNKNOWN ANTIRETROVIRAL DRUG').concept_id
 
     if (Observation.find(:first,:conditions => ["person_id = ? AND encounter_id = ? AND concept_id = ?",
             patient.id,encounter.id,ConceptName.find_by_name('ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT').concept_id])).blank?
