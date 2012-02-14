@@ -95,7 +95,7 @@ print_time("import utility started")
 
 initialize_variables
 
-if @import_type = 'patient' #default, based on quarters
+if @import_type == 'patient' #default, based on quarters
   @import_years.each do |year|
     threads = []
     @quarters.each do |quarter|
@@ -109,14 +109,15 @@ if @import_type = 'patient' #default, based on quarters
         log "BART-Migrator:*********#{year}-#{quarter} completed ******************"
       end
     end
+   
 
     threads.each {|thread| thread.join}
     puts "\nBART-Migrator:*************Finished importing Year: #{year} ********************"
     log "\nBART-Migrator:*************Finished importing Year: #{year} ********************"
     dump_db(year)
     log "\nDumped database at year #{year}"
-else #encounter
-  #default quarter to first
+  end
+else 
   current_dir = @import_path + "/encounters"
   @ordered_files.each do |file|
      import_encounters(file, current_dir,'first') #added quarter to ensure that we get the right bart_url_import_path
@@ -124,10 +125,11 @@ else #encounter
   end
   puts "BART-Migrator:*********completed ******************"
   log "BART-Migrator:*********completed ******************"
-  dump_db('All')
-  log "\nDumped database at year #{All}"
+  year = "1900"
+  dump_db(year)
+  log "\nDumped database at year #{year}"
 end
-end
+
 
 print_time("----- Finished Import Script in #{Time.now - @start_time}s -----")
 
