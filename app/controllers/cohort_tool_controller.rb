@@ -620,7 +620,7 @@ class CohortToolController < ApplicationController
     @regimen_5_a = []; @regimen_5_p = []; @regimen_6_a = []; @regimen_6_p = []
     @regimen_7_a = []; @regimen_7_p = []; @regimen_8_a = []; @regimen_8_p = []
     @regimen_9_a = []; @regimen_9_p = []; @unknown_arv_regimen = []
-    
+
     regimens.map do |regimen|
       if regimen.regimen.include?('d4T/3TC/NVP')
         if regimen.person_age_at_drug_dispension.to_i > 14
@@ -640,7 +640,7 @@ class CohortToolController < ApplicationController
         else
           @regimen_2_p << regimen.patient_id
         end
-      elsif regimen.regimen.include?('d4T/3TC/EFV')
+      elsif regimen.regimen.include?("d4T/3TC/EFV")
         if regimen.person_age_at_drug_dispension.to_i > 14
           @regimen_3_a << regimen.patient_id
         else
@@ -749,7 +749,7 @@ class CohortToolController < ApplicationController
         @Unknown_reason << reason.patient_id
       end
     end
-    
+
     @total_presumed_severe_HIV_disease_in_infants = []
     @total_confirmed_HIV_infection_in_infants = []
     @total_who_stage_1_or_2_cd4_below_threshold = []
@@ -1156,6 +1156,11 @@ class CohortToolController < ApplicationController
         end
       when 'ARV_regimen_9P' then
         @regimen_9_p.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'patients_on_any_other_regimens' then
+        @unknown_arv_regimen.each do |patient_id|
           patient_obj = Patient.find_by_patient_id(patient_id)
           @report << PatientService.get_patient(patient_obj.person) 
         end
@@ -1584,7 +1589,7 @@ class CohortToolController < ApplicationController
         end
         patients_data
   end
-  
+
   def report_patients_who_moved_from_second_to_first_line_drugs(start_date, end_date)
   
     first_line_regimen = "('D4T+3TC+NVP', 'd4T 3TC + d4T 3TC NVP')"
