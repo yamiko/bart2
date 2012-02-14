@@ -552,7 +552,7 @@ class CohortToolController < ApplicationController
       date_range        = Report.generate_cohort_date_range(params[:quarter])
       start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
       end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
-      arv_number_range  = [params[:arv_start_number].to_i, params[:arv_end_number].to_i]
+      arv_number_range  = [params[:arv_start_number].to_s.gsub(/[^0-9]/,'').to_i, params[:arv_end_number].to_s.gsub(/[^0-9]/,'').to_i]
 
       @report = report_out_of_range_arv_numbers(arv_number_range, start_date, end_date)
 
@@ -574,7 +574,7 @@ class CohortToolController < ApplicationController
                                            :patients_with_wrong_start_dates => @patients_with_wrong_start_dates,
                                            :move_from_second_line_to_first =>  @move_from_second_line_to_first
                                          }
-      @checks = [['Dead patients with Visits', @dead_patients_with_visits.length],
+      @checks = [['Dead patients with visits', @dead_patients_with_visits.length],
                  ['Male patients with a pregnant observation', @males_allegedly_pregnant.length],
                  ['Patients who moved from 2nd to 1st line drugs', @move_from_second_line_to_first.length],
                  ['patients with start dates > first receive drug dates', @patients_with_wrong_start_dates.length]]
@@ -586,7 +586,7 @@ class CohortToolController < ApplicationController
     include_url_params_for_back_button
 
     case params[:check_type]
-       when 'Dead patients with Visits' then
+       when 'Dead patients with visits' then
             @report  =  session[:data_consistency_check][:dead_patients_with_visits]
        when 'Patients who moved from 2nd to 1st line drugs'then
              @report =  session[:data_consistency_check][:move_from_second_line_to_first]
@@ -604,37 +604,23 @@ class CohortToolController < ApplicationController
   def list_patients_details
     @report = []
     include_url_params_for_back_button
-    
+
     @quarter = params[:quarter]
     start_date,end_date = Report.generate_cohort_date_range(@quarter)
     cohort = Cohort.new(start_date,end_date)
-    #raise cohort.transferred_out_patients.to_yaml
-    #raise cohort.total_registered_by_gender_age(start_date,end_date,'F').to_yaml
+
     @first_registration_date = cohort.first_registration_date
-    
+
+    #populating start regimens
     regimens = []
     regimens = cohort.regimens_with_patient_ids(@first_registration_date)
-    
-    @regimen_1_a = []
-    @regimen_1_p = []
-    @regimen_2_a = []
-    @regimen_2_p = []
-    @regimen_3_a = []
-    @regimen_3_p = []
-    @regimen_4_a = []
-    @regimen_4_p = []
-    @regimen_5_a = []
-    @regimen_5_p = []
-    @regimen_6_a = []
-    @regimen_6_p = []
-    @regimen_7_a = []
-    @regimen_7_p = []
-    @regimen_8_a = []
-    @regimen_8_p = []
-    @regimen_9_a = []
-    @regimen_9_p = []
-    @unknown_arv_regimen = []
-    
+
+    @regimen_1_a = []; @regimen_1_p = []; @regimen_2_a = []; @regimen_2_p = []
+    @regimen_3_a = []; @regimen_3_p = []; @regimen_4_a = []; @regimen_4_p = []
+    @regimen_5_a = []; @regimen_5_p = []; @regimen_6_a = []; @regimen_6_p = []
+    @regimen_7_a = []; @regimen_7_p = []; @regimen_8_a = []; @regimen_8_p = []
+    @regimen_9_a = []; @regimen_9_p = []; @unknown_arv_regimen = []
+
     regimens.map do |regimen|
       if regimen.regimen.include?('d4T/3TC/NVP')
         if regimen.person_age_at_drug_dispension.to_i > 14
@@ -642,7 +628,7 @@ class CohortToolController < ApplicationController
         else
           @regimen_1_p << regimen.patient_id
         end
-      elsif regimen.regimen.include?('d4T 3TC + d4T 3TC NVP')
+      elsif regimen.regimen.include?('d4T/3TC + d4T/3TC/NVP (Starter pack)')
         if regimen.person_age_at_drug_dispension.to_i > 14
           @regimen_1_a << regimen.patient_id
         else
@@ -654,43 +640,49 @@ class CohortToolController < ApplicationController
         else
           @regimen_2_p << regimen.patient_id
         end
-      elsif regimen.regimen == "d4T/3TC/EFV"
+      elsif regimen.regimen.include?('AZT/3TC + AZT/3TC/NVP (Starter pack)')
+        if regimen.person_age_at_drug_dispension.to_i > 14
+          @regimen_2_a << regimen.patient_id
+        else
+          @regimen_2_p << regimen.patient_id
+        end
+      elsif regimen.regimen.include?("d4T/3TC/EFV")
         if regimen.person_age_at_drug_dispension.to_i > 14
           @regimen_3_a << regimen.patient_id
         else
           @regimen_3_p << regimen.patient_id
         end
-      elsif regimen.regimen == "AZT/3TC+EFV"
+      elsif regimen.regimen.include?('AZT/3TC+EFV')
         if regimen.person_age_at_drug_dispension.to_i > 14
           @regimen_4_a << regimen.patient_id
         else
           @regimen_4_p << regimen.patient_id
         end
-      elsif regimen.regimen == "TDF/3TC/EFV"
+      elsif regimen.regimen.include?('TDF/3TC/EFV')
         if regimen.person_age_at_drug_dispension.to_i > 14
           @regimen_5_a << regimen.patient_id
         else
           @regimen_5_p << regimen.patient_id
         end
-      elsif regimen.regimen == "TDF/3TC+NVP"
+      elsif regimen.regimen.include?('TDF/3TC+NVP')
         if regimen.person_age_at_drug_dispension.to_i > 14
           @regimen_6_a << regimen.patient_id
         else
           @regimen_6_p << regimen.patient_id
         end
-      elsif regimen.regimen == "TDF/3TC+LPV/r"
+      elsif regimen.regimen.include?('TDF/3TC+LPV/r')
         if regimen.person_age_at_drug_dispension.to_i > 14
           @regimen_7_a << regimen.patient_id
         else
           @regimen_7_p << regimen.patient_id
         end
-      elsif regimen.regimen == "AZT/3TC+LPV/r"
+      elsif regimen.regimen.include?('AZT/3TC+LPV/r')
         if regimen.person_age_at_drug_dispension.to_i > 14
           @regimen_8_a << regimen.patient_id
         else
           @regimen_8_p << regimen.patient_id
         end
-      elsif regimen.regimen == "AZT/3TC+LPV/r"
+      elsif regimen.regimen.include?('ABC/3TC+LPV/r')
         if regimen.person_age_at_drug_dispension.to_i > 14
           @regimen_9_a << regimen.patient_id
         else
@@ -701,15 +693,13 @@ class CohortToolController < ApplicationController
       end
     end
 
+    #populating tb_status
     tb_status = []
     tb_status = cohort.tb_status_with_patient_ids
-    
-    @tb_not_suspected = []
-    @tb_suspected = []
-    @confirmed_tb_on_treatment = []
-    @confirmed_tb_not_on_treatment = []
-    @unknown_tb_status = []
-    
+
+    @tb_not_suspected = []; @tb_suspected = []; @confirmed_tb_on_treatment = []
+    @confirmed_tb_not_on_treatment = []; @unknown_tb_status = []
+
     tb_status = []
     tb_status = cohort.tb_status_with_patient_ids
 
@@ -730,23 +720,17 @@ class CohortToolController < ApplicationController
         @unknown_tb_status << status.patient_id
       end
     end
-    
-    
+
+    #populating start reasons
     newly_registered_start_reasons = []
     total_registered_start_reasons = []
     
     newly_registered_start_reasons = cohort.start_reason(start_date,end_date)
 
-    @presumed_severe_HIV_disease_in_infants = []
-    @confirmed_HIV_infection_in_infants = []
-    @who_stage_1_or_2_cd4_below_threshold = []
-    @who_stage_2_total_lymphocytes = []
-    @who_stage_3 = []
-    @who_stage_4 = []
-    @patient_pregnant = []
-    @patient_breastfeeding = []
-    @hiv_infected = [] 
-    @Unknown_reason = []
+    @presumed_severe_HIV_disease_in_infants = []; @confirmed_HIV_infection_in_infants = []
+    @who_stage_1_or_2_cd4_below_threshold = []; @who_stage_2_total_lymphocytes = []
+    @who_stage_3 = []; @who_stage_4 = []; @patient_pregnant = []; @patient_breastfeeding = []
+    @hiv_infected = []; @Unknown_reason = []
 
     newly_registered_start_reasons.each do  |reason|
       if reason.name.include?('Presumed')
@@ -771,7 +755,7 @@ class CohortToolController < ApplicationController
         @Unknown_reason << reason.patient_id
       end
     end
-    
+
     @total_presumed_severe_HIV_disease_in_infants = []
     @total_confirmed_HIV_infection_in_infants = []
     @total_who_stage_1_or_2_cd4_below_threshold = []
@@ -809,6 +793,64 @@ class CohortToolController < ApplicationController
       end
     end
 
+    #populating the death_dates
+    @first_month = [] ; @second_month = [] ; @third_month = [] ; @after_third_month = []
+    @death_dates = []
+    @death_dates = cohort.death_dates(@first_registration_date, start_date)
+
+    if !@death_dates[0].empty?
+      @death_dates[0].each do |patient|
+        @first_month << patient
+      end
+    end
+
+    if !@death_dates[1].empty?
+      @death_dates[1].each do |patient|
+        @second_month << patient
+      end
+    end
+
+    if !@death_dates[2].empty?
+      @death_dates[2].each do |patient|
+        @third_month << patient
+      end
+    end
+
+    if !@death_dates[3].empty?
+      @death_dates[3].each do |patient|
+        @after_third_month << patient
+      end
+    end
+
+    @total_first_month = [] ; @total_second_month = [] ; @total_third_month = [] ; @total_after_third_month = []
+    @total_death_dates = []
+    @death_dates = cohort.death_dates(@first_registration_date, end_date)
+
+    if !@death_dates[0].empty?
+      @death_dates[0].each do |patient|
+        @total_first_month << patient
+      end
+    end
+
+    if !@death_dates[1].empty?
+      @death_dates[1].each do |patient|
+        @total_second_month << patient
+      end
+    end
+
+    if !@death_dates[2].empty?
+      @death_dates[2].each do |patient|
+        @total_third_month << patient
+      end
+    end
+
+    if !@death_dates[3].empty?
+      @death_dates[3].each do |patient|
+        @total_after_third_month << patient
+      end
+    end
+
+    #populating the @report with patient's details on each and every link
     case params[:field]
       when 'newly_total_registered' then
         newly_registered_patients = []
@@ -1123,6 +1165,11 @@ class CohortToolController < ApplicationController
           patient_obj = Patient.find_by_patient_id(patient_id)
           @report << PatientService.get_patient(patient_obj.person) 
         end
+      when 'patients_on_any_other_regimens' then
+        @unknown_arv_regimen.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
       when 'newly_registered_patients_reinitiated_on_art' then
         patients_re_initiated_on_art = []
         patients_re_initiated_on_art = cohort.patients_reinitiated_on_art
@@ -1208,7 +1255,7 @@ class CohortToolController < ApplicationController
         no_tb = (total_registered - (current_episode_of_tb + tb_with_2_years))
         no_tb.each do |patient|
           patient_obj = Patient.find_by_patient_id(patient)
-          @report << PatientService.get_patient(patient_obj.person) 
+          @report << PatientService.get_patient(patient_obj.person)
         end
       when 'total_never_TB_or_TB_over_2_years_ago' then
         total_registered = cohort.total_registered_patient_ids(@first_registration_date).map{|patient| patient.patient_id}
@@ -1217,14 +1264,14 @@ class CohortToolController < ApplicationController
         no_tb = (total_registered - (current_episode_of_tb + tb_with_2_years))
         no_tb.each do |patient|
           patient_obj = Patient.find_by_patient_id(patient)
-          @report << PatientService.get_patient(patient_obj.person) 
+          @report << PatientService.get_patient(patient_obj.person)
         end
       when 'total_patients_died' then
         total_patients_died = []
         total_patients_died = cohort.outcomes_total('PATIENT DIED')
         total_patients_died.each do |patient|
           patient_obj = Patient.find_by_patient_id(patient.patient_id)
-          @report << PatientService.get_patient(patient_obj.person) 
+          @report << PatientService.get_patient(patient_obj.person)
         end
       when 'total_art_defaulted_patients' then
         total_art_defaulted_patients = []
@@ -1232,7 +1279,7 @@ class CohortToolController < ApplicationController
         total_art_defaulted_patients = cohort.outcomes_total('PATIENT DEFAULTED')
         total_art_defaulted_patients.each do |patient|
           patient_obj = Patient.find_by_patient_id(patient.patient_id)
-          @report << PatientService.get_patient(patient_obj.person) 
+          @report << PatientService.get_patient(patient_obj.person)
         end
       when 'total_patients_who_stopped_treatment' then
         total_patients_who_stopped_treatment = []
@@ -1240,56 +1287,56 @@ class CohortToolController < ApplicationController
         total_patients_who_stopped_treatment = cohort.outcomes_total('TREATMENT STOPPED')
         total_patients_who_stopped_treatment.each do |patient|
           patient_obj = Patient.find_by_patient_id(patient.patient_id)
-          @report << PatientService.get_patient(patient_obj.person) 
+          @report << PatientService.get_patient(patient_obj.person)
         end
       when 'total_patients_transfered_out' then
         total_patients_transfered_out = []
-        
         total_patients_transfered_out = cohort.outcomes_total('PATIENT TRANSFERRED OUT')
         total_patients_transfered_out.each do |patient|
           patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person)
+        end
+      when 'died_within_the_first_month_of_ART_initiation' then
+        @first_month.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person)
+        end
+      when 'total_died_within_the_first_month_of_ART_initiation' then
+        @total_first_month.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
           @report << PatientService.get_patient(patient_obj.person) 
         end
-      when 'died_within_the_first_month' then
-        #@first_month.each do |patient|
-         # patient_obj = Patient.find_by_patient_id(patient.patient_id)
-        #  @report << PatientService.get_patient(patient_obj.person) 
-        #end
-      when 'total_died_within_the_first_month' then
-        #@total_first_month.each do |patient|
-        #  patient_obj = Patient.find_by_patient_id(patient.patient_id)
-        #  @report << PatientService.get_patient(patient_obj.person) 
-        #end
-      when 'died_within_the_second_month' then
-        #@second_month.each do |patient|
-        #  patient_obj = Patient.find_by_patient_id(patient.patient_id)
-        #  @report << PatientService.get_patient(patient_obj.person) 
-        #end
-      when 'total_died_within_the_second_month' then
-        #@total_second_month.each do |patient|
-        #  patient_obj = Patient.find_by_patient_id(patient.patient_id)
-        #  @report << PatientService.get_patient(patient_obj.person) 
-        #end
-      when 'died_within_the_third_month' then
-        #@third_month.each do |patient|
-        #  patient_obj = Patient.find_by_patient_id(patient.patient_id)
-        #  @report << PatientService.get_patient(patient_obj.person) 
-        #end
-      when 'total_died_within_the_third_month' then
-        #@total_third_month.each do |patient|
-        #  patient_obj = Patient.find_by_patient_id(patient.patient_id)
-        #  @report << PatientService.get_patient(patient_obj.person) 
-        #end
-      when 'died_after_the_third_month' then
-        #@after_third_month.each do |patient|
-        #  patient_obj = Patient.find_by_patient_id(patient.patient_id)
-        #  @report << PatientService.get_patient(patient_obj.person) 
-        #end
-      when 'total_died_after_the_third_month' then
-        #@total_after_third_month.each do |patient|
-        #  patient_obj = Patient.find_by_patient_id(patient.patient_id)
-        #  @report << PatientService.get_patient(patient_obj.person) 
-        #end
+      when 'died_within_the_second_month_of_ART_initiation' then
+        @second_month.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person)
+        end
+      when 'total_died_within_the_second_month_of_ART_initiation' then
+        @total_second_month.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person)
+        end
+      when 'died_within_the_third_month_of_ART_initiation' then
+        @third_month.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person)
+        end
+      when 'total_died_within_the_third_month_of_ART_initiation' then
+        @total_third_month.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person)
+        end
+      when 'died_after_the_third_month_of_ART_initiation' then
+        @after_third_month.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person)
+        end
+      when 'total_died_after_the_third_month_of_ART_initiation' then
+        @total_after_third_month.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person)
+        end
+      else
     end
 
     render :layout => 'report'
@@ -1355,7 +1402,7 @@ class CohortToolController < ApplicationController
       session[:list_of_patients] = nil
 
       @patients = adherence_over_hundred(params[:quarter],min_range,max_range,missing_adherence)
-cohort.regimens_with_patient_ids(@first_registration_date)
+      cohort.regimens_with_patient_ids(@first_registration_date)
       @quarter = params[:quarter] + ": (#{@patients.length})" rescue  params[:quarter]
       if missing_adherence
         @report_type = "Patient(s) with missing adherence"
@@ -1377,10 +1424,11 @@ cohort.regimens_with_patient_ids(@first_registration_date)
                  WHERE (SELECT COUNT(*)
                         FROM obs observation
                         WHERE   observation.concept_id = ?
-                                AND observation.person_id = obs.person_id) > 1                                
+                                AND observation.person_id = obs.person_id) > 1                               
                                 AND date_created >= ? AND date_created <= ?
                                 AND obs.concept_id = ?
-                                AND obs.voided = 0", art_eligibility_id, start_date, end_date, art_eligibility_id])
+                                AND obs.voided = 0 
+               	 ORDER BY person_id ASC", art_eligibility_id, start_date, end_date, art_eligibility_id])
 
     patients_data = []
 
@@ -1391,7 +1439,7 @@ cohort.regimens_with_patient_ids(@first_registration_date)
                         'arv_number' => patient_bean.arv_number,
                         'national_id' => patient_bean.national_id,
                         'date_created' => reason[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
-                        'start_reason' => ConceptName.find(reason[:value_coded_name_id]).name
+                        'start_reason' => (ConceptName.find(reason[:value_coded_name_id]).name rescue '')
                        }
     end
    patients_data
@@ -1408,21 +1456,24 @@ cohort.regimens_with_patient_ids(@first_registration_date)
   end
 
   def report_out_of_range_arv_numbers(arv_number_range, start_date , end_date)
-    arv_number_id             = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
-    arv_start_number          = arv_number_range.first
-    arv_end_number            = arv_number_range.last
+    arv_number_id = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
+    arv_start_number = arv_number_range.first.to_s.gsub(/[^0-9]/,'').to_i
+    arv_end_number = arv_number_range.last.to_s.gsub(/[^0-9]/,'').to_i
+    
+    arv_number_suffix = PatientIdentifier.find_by_identifier_type(arv_number_id).identifier.gsub(/[0-9]/, '')
 
     out_of_range_arv_numbers  = PatientIdentifier.find_by_sql(["SELECT patient_id, identifier, date_created FROM patient_identifier
-                                   WHERE identifier_type = ? AND REPLACE(identifier, 'MPC-ARV-', '') >= ?
-                                   AND REPLACE(identifier, 'MPC-ARV-', '') <= ?
+                                   WHERE identifier_type = ? AND (REPLACE(identifier, '#{arv_number_suffix}', '')+0) >= ?
+                                   AND (REPLACE(identifier, '#{arv_number_suffix}', '')+0) <= ?
                                    AND voided = 0
                                    AND (NOT EXISTS(SELECT * FROM patient_identifier
-                                   WHERE identifier_type = ? AND date_created >= ? AND date_created <= ?))",
+                                   WHERE identifier_type = ? AND date_created >= ? AND date_created <= ?))
+                                   ORDER BY (REPLACE(identifier, '#{arv_number_suffix}', '')+0) ASC",
                                    arv_number_id,  arv_start_number,  arv_end_number, arv_number_id, start_date, end_date])
 
     out_of_range_arv_numbers_data = []
     out_of_range_arv_numbers.each do |arv_num_data|
-      patient     = Person.find(arv_num_data[:patient_id].to_i)
+      patient     = Patient.find(arv_num_data[:patient_id].to_i)
       patient_bean = PatientService.get_patient(patient.person)
 
       out_of_range_arv_numbers_data <<{'person_id' => patient.id,
@@ -1544,7 +1595,7 @@ cohort.regimens_with_patient_ids(@first_registration_date)
         end
         patients_data
   end
-  
+
   def report_patients_who_moved_from_second_to_first_line_drugs(start_date, end_date)
   
     first_line_regimen = "('D4T+3TC+NVP', 'd4T 3TC + d4T 3TC NVP')"

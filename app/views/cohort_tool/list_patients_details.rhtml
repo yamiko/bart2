@@ -25,21 +25,27 @@
 </style>
 
 <h1 align='center'><u><%=params[:field]-%></u></h1>
-<table id='summary'>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>ARV Number</th>
-            <th>Name</th>
-            <th>National ID</th>
-            <th>Gender</th>
-            <th>Age</th>
-            <th>DOB</th>
-            <th>Phone Number</th>
-            <th>Date Started</th>
-        </tr>
-    </thead>
-    <tbody>
+<div style="position:relative; width:100%; overflow-y:scroll;">
+  <table class='summary' style="width:auto;">
+	  <thead>
+	      <tr style="bor der-bottom:4px solid black;">
+	          <th>ID</th>
+	          <th>ARV Number</th>
+	          <th>Name</th>
+	          <th>National ID</th>
+	          <th>Gender</th>
+	          <th>Age</th>
+	          <th>DOB</th>
+	          <th>Phone Number</th>
+	          <th>Date Started</th>
+	      </tr>
+	  </thead>
+  </table>
+</div>
+
+<div style = "position : relative; width : 100%; height: 540px; overflow-y:scroll;">
+	<table class='summary'>
+		  <tbody>
         <% session[:mastercard_ids] = [] %>
         <% session[:mastercard_counter] = 0 %>
         <% @report.each do |data_row| %>
@@ -53,7 +59,11 @@
                 <td><%= data_row.name %></td>
                 <td align='center'><%= data_row.national_id_with_dashes %></td>
                 <td align='center'><%= data_row.sex %></td>
-                <td align='center'><%= data_row.age %></td>
+                <% if data_row.age > 0 %>
+                  <td align='center'><%= data_row.age %></td>
+                <% else %>
+                  <td align='center'><%= data_row.age_in_months %> Months</td>
+                <% end %>
                 <td align='center'><%= data_row.birth_date %></td>    
                 <%
                   phone_numbers = ""
@@ -78,5 +88,5 @@
             insertBlankRow ();
         </script>
     <tbody>
-</table>
-
+  </table>
+</div>

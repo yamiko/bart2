@@ -296,26 +296,26 @@
 <tr class = 'row_break'>
   <td>31</td>
   <td style="text-align:left;border-width:1px 0px 0px 1px">Died within the 1st month of ART initiation</td>
-  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Died within the 1st month after ART initiation'], "/cohort_tool/list_patients_details?field=died_within_the_first_month&quarter=#{@quarter}" -%></td>
-  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Total Died within the 1st month after ART initiation'], "/cohort_tool/list_patients_details?field=total_died_within_the_first_month&quarter=#{@quarter}" -%></td>
+  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Died within the 1st month after ART initiation'], "/cohort_tool/list_patients_details?field=died_within_the_first_month_of_ART_initiation&quarter=#{@quarter}" -%></td>
+  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Total Died within the 1st month after ART initiation'], "/cohort_tool/list_patients_details?field=total_died_within_the_first_month_of_ART_initiation&quarter=#{@quarter}" -%></td>
 </tr>
 <tr class = 'row_break'>
   <td>32</td>
   <td style="text-align:left;border-width:0px 0px 0px 1px">Died within the 2nd month of ART initiation</td>
-  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Died within the 2nd month after ART initiation'], "/cohort_tool/list_patients_details?field=died_within_the_second_month&quarter=#{@quarter}" -%></td>
-  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Total Died within the 2nd month after ART initiation'], "/cohort_tool/list_patients_details?field=total_died_within_the_second_month&quarter=#{@quarter}" -%></td>
+  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Died within the 2nd month after ART initiation'], "/cohort_tool/list_patients_details?field=died_within_the_second_month_of_ART_initiation&quarter=#{@quarter}" -%></td>
+  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Total Died within the 2nd month after ART initiation'], "/cohort_tool/list_patients_details?field=total_died_within_the_second_month_of_ART_initiation&quarter=#{@quarter}" -%></td>
 </tr>
 <tr class = 'row_break'>
   <td>33</td>
   <td style="text-align:left;border-width:0px 0px 0px 1px">Died within the 3rd month of ART initiation</td>
-  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Died within the 3rd month after ART initiation'], "/cohort_tool/list_patients_details?field=died_within_the_third_month&quarter=#{@quarter}" -%></td>
-  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Total Died within the 3rd month after ART initiation'], "/cohort_tool/list_patients_details?field=total_died_within_the_third_month&quarter=#{@quarter}" -%></td>
+  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Died within the 3rd month after ART initiation'], "/cohort_tool/list_patients_details?field=died_within_the_third_month_of_ART_initiation&quarter=#{@quarter}" -%></td>
+  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Total Died within the 3rd month after ART initiation'], "/cohort_tool/list_patients_details?field=total_died_within_the_third_month_of_ART_initiation&quarter=#{@quarter}" -%></td>
 </tr>
 <tr class = 'row_break'>
   <td>34</td>
   <td style="text-align:left;border-width:0px 0px 1px 1px">Died after the 3rd month of ART initiation</td>
-  <td style="border-width:1px 0px 1px 1px"><%= link_to @cohort['Died after the end of the 3rd month after ART initiation'], "/cohort_tool/list_patients_details?field=died_after_the_third_month&quarter=#{@quarter}" -%></td>
-  <td style="border-width:1px 0px 1px 1px"><%= link_to @cohort['Total Died after the end of the 3rd month after ART initiation'], "/cohort_tool/list_patients_details?field=total_died_after_the_third_month&quarter=#{@quarter}" -%></td>
+  <td style="border-width:1px 0px 1px 1px"><%= link_to @cohort['Died after the end of the 3rd month after ART initiation'], "/cohort_tool/list_patients_details?field=died_after_the_third_month_of_ART_initiation&quarter=#{@quarter}" -%></td>
+  <td style="border-width:1px 0px 1px 1px"><%= link_to @cohort['Total Died after the end of the 3rd month after ART initiation'], "/cohort_tool/list_patients_details?field=total_died_after_the_third_month_of_ART_initiation&quarter=#{@quarter}" -%></td>
 </tr>
 <tr class = 'row_break'>
   <td>35</td>
@@ -393,7 +393,7 @@
   <td style="text-align:left;border-width:1px 0px 1px 1px;">AZT/3TC/NVP</td>
   <td style="border-width:1px 0px 0px 1px;">2A<br />2P</td>
   <td style="border-width:1px 0px 0px 1px">
-    <%= link_to @cohort['Regimens']['A2'] || '0', "/cohort_tool/list_patients_details?field=ARV_regimen_2Aa&quarter=#{@quarter}" -%><br />
+    <%= link_to @cohort['Regimens']['A2'] || '0', "/cohort_tool/list_patients_details?field=ARV_regimen_2A&quarter=#{@quarter}" -%><br />
     <%= link_to @cohort['Regimens']['P2'] || '0', "/cohort_tool/list_patients_details?field=ARV_regimen_2P&quarter=#{@quarter}" -%>
   </td>
 </tr>

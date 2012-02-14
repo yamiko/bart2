@@ -293,7 +293,9 @@
         stage = "II";
       }
       var startDate = getDateStartedART();   
-    }else{
+    }
+
+    if ($("has_transfer_letter").value == "YES" && $("year_started_art").value.toUpperCase() == "UNKNOWN") {
       ARTstartDateEstimate = $("art_start_date_estimation").value;
       <% curr_session_date = session[:datetime].to_date rescue Date.today %>
       if (ARTstartDateEstimate == "6 months ago") {
@@ -308,6 +310,7 @@
         var startDate = new Date("<%= (curr_session_date - 30.months).to_s%>");   
       }
     }
+    
     var patientBirthdate = new Date("<%=@patient.person.birthdate %>");
     var dateCreated = new Date("<%=@patient.person.date_created %>");
     var patientBirthdateEstimated = "<%=@patient.person.birthdate_estimated %>";
@@ -418,7 +421,7 @@
     everReceivedARVs = $("ever_received_art").value;
     everRegisteredAtARTclinic = $("ever_registered_at_ART_clinic").value;
 
-    if (everRegisteredAtARTclinic == "YES" && everReceivedARVs == "YES") {
+    if (everRegisteredAtARTclinic == "YES" && everReceivedARVs == "YES" && $("has_transfer_letter").value == "NO") {
       $("reason_for_art_eligibility").value = "Unknown";
       $("drug_start_date").value = "Estimated";
       calculateWHOstage();
@@ -443,6 +446,14 @@
 
   function validateDate() {
     return false;
+  }
+
+  function showARTstartDate() {
+    if($("ever_received_art").value == "YES" && $("ever_registered_at_ART_clinic").value == "YES"){
+      if($("has_transfer_letter").value == "NO" || $("has_transfer_letter").value == "YES")
+        return true
+    } 
+    return false
   }
 </script>
 <%#= raise @patient.person.birthdate.day.to_s %>
@@ -474,11 +485,6 @@
 		<%= hidden_field_tag("programs[][states][][state]", "Pre-ART (Continue)") %>
 	  
 		<%= touch_select_tag("EVER RECEIVED ART", @patient, options_for_select([['Yes','YES'],['No','NO']]), {:id => 'ever_received_art'}) %>
-
-
-
-
-
 
 		<%#= touch_date_tag "DATE ART LAST TAKEN", @patient, nil,
 			{	:id => "date_art_last_taken",
@@ -514,19 +520,17 @@
         :id => "day_art_last_taken" ,                                              
         :validationMessage => 'Please enter a valid date'%>                     
                                                                                 
-    <%= touch_hidden_tag "DATE ART LAST TAKEN", @patient, "", :id => "date_art_last_taken" %> 
+   <%= touch_hidden_tag "DATE ART LAST TAKEN", @patient, nil, {:id => "date_art_last_taken", :value_datetime => true}%>
 
-<!--
--->
 
 		<%= touch_yes_no_unknown_tag "HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS", @patient, nil,
 			{	:id => "taken_art_in_last_two_months",
-			 	:condition => '$("date_art_last_taken").value.toUpperCase() == "UNKNOWN"',
+			 	:condition => '$("year_art_last_taken").value.toUpperCase() == "UNKNOWN"',
 			 	:helpText => "Taken ART in the last two months?" } %>
 
 		<%= touch_yes_no_unknown_tag "HAS THE PATIENT TAKEN ART IN THE LAST TWO WEEKS", @patient, nil,
 			{	:id => "taken_art_in_last_two_weeks",
-			 	:condition => '$("taken_art_in_last_two_months").value == "YES" && $("date_art_last_taken").value.toUpperCase() == "UNKNOWN"',
+			 	:condition => '$("taken_art_in_last_two_months").value == "YES" && $("year_art_last_taken").value.toUpperCase() == "UNKNOWN"',
 			 	:helpText => "Taken ART in the last two weeks?" } %>
 
 		<%= touch_select_tag "LAST ART DRUGS TAKEN", @patient, options_for_select(@arv_drugs),
@@ -537,34 +541,24 @@
 
 		<%= touch_yes_no_tag "Ever registered at ART clinic", @patient, nil,
 			{	:id => "ever_registered_at_ART_clinic",
-				:tt_onUnload=>  "$('programs__states__state').value = 'Patient transferred in'",
+				:condition => "$('ever_received_art').value == 'YES'",
 			 	:helpText => "Ever registered at an ART clinic?" } %>
 
 		<%= touch_yes_no_tag "HAS TRANSFER LETTER", @patient, nil,
 			{	:id => "has_transfer_letter",
-			 	:condition => "$('ever_registered_at_ART_clinic').value == 'YES'",
+				:tt_onUnload=>  "$('programs__states__state').value = 'Patient transferred in'",
+			 	:condition => "$('ever_registered_at_ART_clinic').value == 'YES' && $('ever_received_art').value == 'YES'",
 			 	:helpText => "Has staging information?" } %>
 
-   <%estimates = ["6 months ago","12 months ago","18 months ago","24 months","Over 2 years ago"]%>
-   <%= select_tag(:art_start_date_estimation, options_for_select(estimates ,[]),
-      :helpText =>"Estimate ART start period",                                                 
-      :id => "art_start_date_estimation",                                                      
-      :allowFreeText => false,                                                  
-      :tt_onUnLoad => "setUnkownStage();",
-      :tt_onLoad => "setReasonForStarting();",
-      :condition => '$("ever_registered_at_ART_clinic").value == "YES" && $("has_transfer_letter").value =="NO"',
-      :ttMatchFromBeginning => "true")%> 
-
-		<%= touch_hidden_tag "Drug start date", @patient, "", :id => "drug_start_date" %>
 
 		<%= touch_location_tag "LOCATION OF ART INITIATION", @patient, nil,
 			{	:id => "location_of_art_initialization",
-			 	:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
+			 	:condition => '$("ever_registered_at_ART_clinic").value == "YES" && $("ever_received_art").value == "YES"',
 			 	:helpText => "Location of ART initiation" } %>
 
 		<%= touch_text_field_tag "ART NUMBER AT PREVIOUS LOCATION", @patient, nil,
 			{	:id => "previous_art_number",
-				:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
+				:condition => '$("ever_registered_at_ART_clinic").value == "YES" && $("ever_received_art").value == "YES"',
 				:helpText => "ART number at previous location" } %>
 
 		
@@ -573,23 +567,37 @@
 				:field_type => 'number', 
 				:absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year, 
 				:tt_pageStyleClass => "Numeric NumbersOnly", 
-				:condition => '$("ever_registered_at_ART_clinic").value == "YES" && showConditions()',
+				:condition => '$("ever_received_art").value == "YES" && $("ever_registered_at_ART_clinic").value == "YES" && showARTstartDate();',
 				:id => "year_started_art" ,
 				:validationJS => "setDOB();" }  %>
 
+     <%estimates = ["6 months ago","12 months ago","18 months ago","24 months","Over 2 years ago"]%>
+     <%= select_tag(:art_start_date_estimation, options_for_select(estimates ,[]),
+        :helpText =>"Estimate ART start period",                                                 
+        :id => "art_start_date_estimation",                                                      
+        :allowFreeText => false,                                                  
+        :tt_onUnLoad => "setUnkownStage();",
+        :tt_onLoad => "setReasonForStarting();",
+        :condition => '$("year_started_art").value.toUpperCase() == "UNKNOWN" && showARTstartDate();',
+        :ttMatchFromBeginning => "true")%> 
+
+      <%= touch_hidden_tag "Drug start date", @patient, "", :id => "drug_start_date" %>
+
 		<%= select_tag "month_started_art", month_name_options, 
 			{	:helpText => 'Month started ART', 
-				:condition => '$("year_started_art").value.toLowerCase() != "unknown" && $("ever_registered_at_ART_clinic").value == "YES" && showConditions()',
+				:condition => '$("ever_received_art").value == "YES" && $("year_started_art").value.toLowerCase() != "unknown" && showARTstartDate();',
 				:validationJS => "validateDOB();",
+        :tt_onUnLoad => "setUnkownStage();",
 				:id => "month_started_art" ,
 				:validationMessage => 'Please enter a valid date'}%>
 
 		<%= text_field_tag "day_started_art",  nil, 
 				:field_type => 'number', :helpText => 'Day started ART', 
-				:condition => '($("year_started_art").value !="Unknown") && ($("month_started_art").value != "Unknown") && $("ever_registered_at_ART_clinic").value == "YES" && showConditions()', 
+				:condition => '$("ever_received_art").value == "YES" && ($("year_started_art").value !="Unknown") && ($("month_started_art").value != "Unknown") && showARTstartDate();', 
 				:tt_onLoad => "getDayOfMonthPicker($('year_started_art').value, $('month_started_art').value);$('nextButton').style.display = 'block';",
 				:validationJS => "validateDOB()",
 				:id => "day_started_art" ,
+        :tt_onUnLoad => "setUnkownStage();",
 				:validationMessage => 'Please enter a valid date'%>
 
 		<%= touch_hidden_tag "Date antiretrovirals started", @patient, "", :id => "date_started_art" %>

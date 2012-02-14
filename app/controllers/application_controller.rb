@@ -414,7 +414,7 @@ class ApplicationController < ActionController::Base
                             :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                             session_date.to_date,patient.id,EncounterType.find_by_name('TB VISIT').id])
               if (tb_visits.length == 1) 
-                roles = User.current_user.user_roles.map{|u|u.role}.join(',') rescue ''
+                roles = current_user_roles.join(',') rescue ''
                 if not (roles.match(/Clinician/i) or roles.match(/Doctor/i))
                     task.encounter_type = 'TB VISIT'
                     task.url = "/patients/show/#{patient.id}"
@@ -625,7 +625,7 @@ class ApplicationController < ActionController::Base
                             :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                             session_date.to_date,patient.id,EncounterType.find_by_name('TB VISIT').id])
               if (tb_visits.length == 1) 
-                roles = User.current_user.user_roles.map{|u|u.role}.join(',') rescue ''
+                roles = current_user_roles.join(',') rescue ''
                 if not (roles.match(/Clinician/i) or roles.match(/Doctor/i))
                     task.encounter_type = 'TB VISIT'
                     task.url = "/patients/show/#{patient.id}"
@@ -893,7 +893,7 @@ class ApplicationController < ActionController::Base
     encounters.each do | type |
       encounter_available = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                                      patient.id,EncounterType.find_by_name(type).id,session_date],
-                                     :order =>'encounter_datetime DESC',:limit => 1)
+                                     :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
       reception = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
                         patient.id,session_date,EncounterType.find_by_name('HIV RECEPTION').id]).observations.collect{| r | r.to_s}.join(',') rescue ''
         
@@ -914,7 +914,60 @@ class ApplicationController < ActionController::Base
           elsif encounter_available.blank? and not user_selected_activities.match(/Manage ART visits/i)
             task.url = "/patients/show/#{patient.id}"
             return task
-          end  
+          end 
+          
+          #if a nurse has refered a patient to a doctor/clinic 
+          concept_id = ConceptName.find_by_name("Refer to ART clinician").concept_id
+          ob = encounter_available.observations.find_last_by_concept_id(concept_id)
+          refer_to_clinician = ob.to_s.squish.upcase == 'Refer to ART clinician: yes'.upcase
+
+
+          if current_user_roles.include?('Nurse')
+            adherence_encounter_available = Encounter.find(:first,
+              :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
+              patient.id,EncounterType.find_by_name("ART ADHERENCE").id,session_date],
+              :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
+
+            arv_drugs_given = false                                               
+            PatientService.drug_given_before(patient,session_date).each do |order|
+              next unless MedicationService.arv(order.drug_order.drug)            
+              arv_drugs_given = true                                              
+            end                                                                   
+            if arv_drugs_given                                           
+              if adherence_encounter_available.blank? and user_selected_activities.match(/Manage ART adherence/i)
+                task.encounter_type = "ART ADHERENCE"
+                task.url = "/encounters/new/art_adherence?show&patient_id=#{patient.id}"
+                return task                                                         
+              elsif adherence_encounter_available.blank? and not user_selected_activities.match(/Manage ART adherence/i)
+                task.encounter_type = "ART ADHERENCE"
+                task.url = "/patients/show/#{patient.id}"                           
+                return task                                                         
+              end if not PatientService.drug_given_before(patient,session_date).blank?
+            end
+          end if refer_to_clinician 
+
+
+          
+          if not encounter_available.blank? and refer_to_clinician 
+            task.url = "/patients/show/#{patient.id}"
+            task.encounter_type = "Clinician " + task.encounter_type
+            return task
+          end if current_user_roles.include?('Nurse')
+
+          roles = current_user_roles.join(',') rescue ''
+          clinician_or_doctor = roles.match(/Clinician/i) or roles.match(/Doctor/i)
+
+          if not encounter_available.blank? and refer_to_clinician 
+            if user_selected_activities.match(/Manage ART visits/i)
+              task.url = "/encounters/new/art_visit?show&patient_id=#{patient.id}"
+              task.encounter_type = "Clinician " + task.encounter_type
+              return task
+            elsif not user_selected_activities.match(/Manage ART visits/i)
+              task.url = "/patients/show/#{patient.id}"
+              task.encounter_type = "Clinician " + task.encounter_type
+              return task
+            end 
+          end if clinician_or_doctor
         when 'HIV STAGING'
           arv_drugs_given = false
           PatientService.drug_given_before(patient,session_date).each do |order|
@@ -982,7 +1035,11 @@ class ApplicationController < ActionController::Base
                                    :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
 
           prescribe_arvs = encounter_art_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Prescribe drugs:  Yes'.upcase
-          not_refer_to_clinician = encounter_art_visit.observations.map{|obs| obs.to_s.strip.upcase }.include? 'Refer to ART clinician:  No'.upcase
+          #not_refer_to_clinician = encounter_art_visit.observations.map{|obs| obs.to_s.squish.upcase }.include? 'Refer to ART clinician: No'.upcase
+
+          concept_id = ConceptName.find_by_name("Refer to ART clinician").concept_id
+          ob = encounter_art_visit.observations.find_last_by_concept_id(concept_id)
+          not_refer_to_clinician = ob.to_s.squish.upcase == 'Refer to ART clinician: No'.upcase
 
           if prescribe_arvs and not_refer_to_clinician 
             show_treatment = true
@@ -1329,6 +1386,12 @@ class ApplicationController < ActionController::Base
     end
 
     task
+  end
+    
+  def current_user_roles
+    user_roles = UserRole.find(:all,:conditions =>["user_id = ?", User.current_user.id]).collect{|r|r.role}
+    RoleRole.find(:all,:conditions => ["child_role IN (?)", user_roles]).collect{|r|user_roles << r.parent_role}
+    return user_roles.uniq
   end
 
 private
