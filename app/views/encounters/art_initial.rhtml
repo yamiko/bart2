@@ -548,6 +548,7 @@
 
 		<%= touch_yes_no_tag "Ever registered at ART clinic", @patient, nil,
 			{	:id => "ever_registered_at_ART_clinic",
+				:condition => "$('ever_received_art').value == 'YES'",
 			 	:helpText => "Ever registered at an ART clinic?" } %>
 
 		<%= touch_yes_no_tag "HAS TRANSFER LETTER", @patient, nil,
