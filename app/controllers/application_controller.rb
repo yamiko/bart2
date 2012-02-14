@@ -414,7 +414,7 @@ class ApplicationController < ActionController::Base
                             :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                             session_date.to_date,patient.id,EncounterType.find_by_name('TB VISIT').id])
               if (tb_visits.length == 1) 
-                roles = User.current_user.user_roles.map{|u|u.role}.join(',') rescue ''
+                roles = current_user_roles.join(',') rescue ''
                 if not (roles.match(/Clinician/i) or roles.match(/Doctor/i))
                     task.encounter_type = 'TB VISIT'
                     task.url = "/patients/show/#{patient.id}"
@@ -625,7 +625,7 @@ class ApplicationController < ActionController::Base
                             :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                             session_date.to_date,patient.id,EncounterType.find_by_name('TB VISIT').id])
               if (tb_visits.length == 1) 
-                roles = User.current_user.user_roles.map{|u|u.role}.join(',') rescue ''
+                roles = current_user_roles.join(',') rescue ''
                 if not (roles.match(/Clinician/i) or roles.match(/Doctor/i))
                     task.encounter_type = 'TB VISIT'
                     task.url = "/patients/show/#{patient.id}"
@@ -922,7 +922,7 @@ class ApplicationController < ActionController::Base
           refer_to_clinician = ob.to_s.squish.upcase == 'Refer to ART clinician: yes'.upcase
 
 
-          if User.current_user.user_roles.map{|r|r.role}.include?('Nurse')
+          if current_user_roles.include?('Nurse')
             adherence_encounter_available = Encounter.find(:first,
               :conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
               patient.id,EncounterType.find_by_name("ART ADHERENCE").id,session_date],
@@ -952,9 +952,9 @@ class ApplicationController < ActionController::Base
             task.url = "/patients/show/#{patient.id}"
             task.encounter_type = "Clinician " + task.encounter_type
             return task
-          end if User.current_user.user_roles.map{|r|r.role}.include?('Nurse')
+          end if current_user_roles.include?('Nurse')
 
-          roles = User.current_user.user_roles.map{|u|u.role}.join(',') rescue ''
+          roles = current_user_roles.join(',') rescue ''
           clinician_or_doctor = roles.match(/Clinician/i) or roles.match(/Doctor/i)
 
           if not encounter_available.blank? and refer_to_clinician 
