@@ -295,7 +295,7 @@
       var startDate = getDateStartedART();   
     }
 
-    if ($("has_transfer_letter").value == "YES" && $("year_started_art").value.toUpperCase() == "UNKNOWN") {
+    if(showARTstartDate() && $("year_started_art").value.toUpperCase() == "UNKNOWN") {
       ARTstartDateEstimate = $("art_start_date_estimation").value;
       <% curr_session_date = session[:datetime].to_date rescue Date.today %>
       if (ARTstartDateEstimate == "6 months ago") {
@@ -310,7 +310,7 @@
         var startDate = new Date("<%= (curr_session_date - 30.months).to_s%>");   
       }
     }
-    
+   
     var patientBirthdate = new Date("<%=@patient.person.birthdate %>");
     var dateCreated = new Date("<%=@patient.person.date_created %>");
     var patientBirthdateEstimated = "<%=@patient.person.birthdate_estimated %>";
