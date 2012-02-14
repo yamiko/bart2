@@ -12,6 +12,7 @@ def read_config
   @import_path = config["config"]["import_path"]
   @import_years = (config["config"]["import_years"]).split(",")
   @file_map_location = config["config"]["file_map_location"]
+  @import_type = config["config"]["import_type"]
 end
 
 def initialize_variables
@@ -30,8 +31,8 @@ def initialize_variables
   @importers = {
     'general_reception.csv'      => ReceptionImporter,
     'update_outcome.csv'         => OutcomeImporter,
-    'give_drugs.csv'             => DispensationImporter,
     'art_visit.csv'              => ArtVisitImporter,
+    'give_drugs.csv'             => DispensationImporter,
     'hiv_first_visit.csv'        => ArtInitialImporter,
     'date_of_art_initiation.csv' => ArtInitialImporter,
     'height_weight.csv'          => VitalsImporter,
@@ -39,9 +40,15 @@ def initialize_variables
     'hiv_reception.csv'          => ReceptionImporter
   }
 
-  @ordered_files = ['general_reception.csv', 'hiv_reception.csv',
-    'hiv_first_visit.csv', 'date_of_art_initiation.csv', 'height_weight.csv',
-    'hiv_staging.csv', 'art_visit.csv', 'give_drugs.csv', 'update_outcome.csv'
+  @ordered_files = ['general_reception.csv',
+		    	          'hiv_reception.csv',
+              			'hiv_first_visit.csv', 
+              			'date_of_art_initiation.csv', 
+              			'height_weight.csv',
+          		    	'hiv_staging.csv', 
+              			'art_visit.csv',
+              			'give_drugs.csv', 
+              			'update_outcome.csv'
   ]
   @quarters = ['first','second','third','fourth']
   
@@ -88,25 +95,38 @@ print_time("import utility started")
 
 initialize_variables
 
-@import_years.each do |year|
-  threads = []
-  @quarters.each do |quarter|
-    threads << Thread.new(quarter) do |path|
-      current_dir = @import_path + "/#{year}/#{quarter}"
-      @ordered_files.each do |file|
-        import_encounters(file, current_dir,quarter) #added quarter to ensure that we get the right bart_url_import_path
-        log "BART-Migrator:***********File #{year}-#{quarter} #{file} imported ******************"
+if @import_type = 'patient' #default, based on quarters
+  @import_years.each do |year|
+    threads = []
+    @quarters.each do |quarter|
+      threads << Thread.new(quarter) do |path|
+        current_dir = @import_path + "/#{year}/#{quarter}"
+        @ordered_files.each do |file|
+          import_encounters(file, current_dir,quarter) #added quarter to ensure that we get the right bart_url_import_path
+          log "BART-Migrator:***********File #{year}-#{quarter} #{file} imported ******************"
+        end
+        puts "BART-Migrator:*********#{year}-#{quarter} completed ******************"
+        log "BART-Migrator:*********#{year}-#{quarter} completed ******************"
       end
-      puts "BART-Migrator:*********#{year}-#{quarter} completed ******************"
-      log "BART-Migrator:*********#{year}-#{quarter} completed ******************"
     end
-  end
 
-  threads.each {|thread| thread.join}
-  puts "\nBART-Migrator:*************Finished importing Year: #{year} ********************"
-  log "\nBART-Migrator:*************Finished importing Year: #{year} ********************"
-  dump_db(year)
-  log "\nDumped database at year #{year}"
+    threads.each {|thread| thread.join}
+    puts "\nBART-Migrator:*************Finished importing Year: #{year} ********************"
+    log "\nBART-Migrator:*************Finished importing Year: #{year} ********************"
+    dump_db(year)
+    log "\nDumped database at year #{year}"
+else #encounter
+  #default quarter to first
+  current_dir = @import_path + "/encounters"
+  @ordered_files.each do |file|
+     import_encounters(file, current_dir,'first') #added quarter to ensure that we get the right bart_url_import_path
+     log "BART-Migrator:***********File imported ******************"
+  end
+  puts "BART-Migrator:*********completed ******************"
+  log "BART-Migrator:*********completed ******************"
+  dump_db('All')
+  log "\nDumped database at year #{All}"
+end
 end
 
 print_time("----- Finished Import Script in #{Time.now - @start_time}s -----")
