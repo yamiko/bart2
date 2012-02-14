@@ -222,7 +222,7 @@
   <% if current_user_roles.include?('Nurse') and patient_present %>
     <%= touch_yes_no_tag "REFER TO ART CLINICIAN", @patient, nil,
       {:id => "refer_to_clinician",
-      :helpText => "Refer to patient clinician?" } %>
+      :helpText => "Refer patient to clinician?" } %>
   <%else%>
     <%= touch_hidden_tag "REFER TO ART CLINICIAN", @patient, "NO", :id => "refer_to_clinician" %>
   <%end
