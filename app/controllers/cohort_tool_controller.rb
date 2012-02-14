@@ -628,13 +628,19 @@ class CohortToolController < ApplicationController
         else
           @regimen_1_p << regimen.patient_id
         end
-      elsif regimen.regimen.include?('d4T 3TC + d4T 3TC NVP')
+      elsif regimen.regimen.include?('d4T/3TC + d4T/3TC/NVP (Starter pack)')
         if regimen.person_age_at_drug_dispension.to_i > 14
           @regimen_1_a << regimen.patient_id
         else
           @regimen_1_p << regimen.patient_id
         end
       elsif regimen.regimen.include?('AZT/3TC/NVP')
+        if regimen.person_age_at_drug_dispension.to_i > 14
+          @regimen_2_a << regimen.patient_id
+        else
+          @regimen_2_p << regimen.patient_id
+        end
+      elsif regimen.regimen.include?('AZT/3TC + AZT/3TC/NVP (Starter pack)')
         if regimen.person_age_at_drug_dispension.to_i > 14
           @regimen_2_a << regimen.patient_id
         else

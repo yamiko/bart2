@@ -678,6 +678,9 @@ class Cohort
       when 'AZT/3TC/NVP'
         return 'A2' if age > 14
         return 'P2'
+      when 'AZT/3TC + AZT/3TC/NVP (Starter pack)'
+        return 'A2' if age > 14
+        return 'P2'
       when 'd4T/3TC/EFV'
         return 'A3' if age > 14
         return 'P3'
