@@ -59,7 +59,11 @@
                 <td><%= data_row.name %></td>
                 <td align='center'><%= data_row.national_id_with_dashes %></td>
                 <td align='center'><%= data_row.sex %></td>
-                <td align='center'><%= data_row.age %></td>
+                <% if data_row.age > 0 %>
+                  <td align='center'><%= data_row.age %></td>
+                <% else %>
+                  <td align='center'><%= data_row.age_in_months %> Months</td>
+                <% end %>
                 <td align='center'><%= data_row.birth_date %></td>    
                 <%
                   phone_numbers = ""
@@ -84,5 +88,5 @@
             insertBlankRow ();
         </script>
     <tbody>
-</table>
+  </table>
 </div>
