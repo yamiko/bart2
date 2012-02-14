@@ -31,7 +31,7 @@
         <% session[:mastercard_counter] = 0 %>
 
         <%@report.each do |data_row|%>
-            <% session[:mastercard_ids] << data_row['patient_id'].to_i %>
+            <% session[:mastercard_ids] << data_row['person_id'].to_i %>
             <tr>
             <td align='center'><%= link_to_onmousedown "#{data_row['person_id']}",{:controller =>"patients", :action => 'mastercard',
                              :patient_id => "#{data_row['person_id']}" ,:source =>"out_of_range_arv_number", :quarter => "#{@report_quarter}",

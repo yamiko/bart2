@@ -315,20 +315,38 @@ class PatientsController < ApplicationController
   def mastercard
     @type = params[:type]
     
+    if session[:from_report].to_s == "true"
+			@from_report = true
+			session[:from_report] = false
+    end
     #the parameter are used to re-construct the url when the mastercard is called from a Data cleaning report
     @quarter = params[:quarter]
     @arv_start_number = params[:arv_start_number]
     @arv_end_number = params[:arv_end_number]
-    @show_mastercard_counter = false
-
-    if params[:patient_id].blank?
-
+    
+    if params[:show_mastercard_counter].to_s == "true" && !params[:current].blank?
+			@show_mastercard_counter = true
+			session[:mastercard_counter] = params[:current].to_i - 1
       @patient_id = session[:mastercard_ids][session[:mastercard_counter]]
-       
+      
+      @prev_button_class = "yellow"
+      @next_button_class = "yellow"
+      
+      if params[:current].to_i ==  1
+        @prev_button_class = "gray"
+      elsif params[:current].to_i ==  session[:mastercard_ids].length
+        @next_button_class = "gray"
+      end
+      
+    elsif params[:patient_id].blank?
+      @patient_id = session[:mastercard_ids][session[:mastercard_counter]] 
+           
     elsif session[:mastercard_ids].length.to_i != 0
       @patient_id = params[:patient_id]
+      
     else
       @patient_id = params[:patient_id]
+      
     end
 
     unless params.include?("source")
@@ -355,6 +373,7 @@ class PatientsController < ApplicationController
       if !params[:current].blank?
         session[:mastercard_counter] = params[:current].to_i - 1
       end
+      
       @prev_button_class = "yellow"
       @next_button_class = "yellow"
       if params[:current].to_i ==  1
@@ -515,8 +534,8 @@ class PatientsController < ApplicationController
       }
 
     end
-
-    redirect_to "/patients/mastercard?patient_id=#{@patient.id}" and return
+    
+    redirect_to request.request_uri.to_s.gsub('print_mastercard', 'mastercard') and return
   end
   
   def demographics

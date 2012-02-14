@@ -1,9 +1,12 @@
+<% session[:from_report] = true rescue false %>
+<% session[:report_url] = request.request_uri.to_s rescue nil%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
     <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
     <title><%= @title = "#{controller.controller_name.humanize} #{controller.action_name.humanize}" rescue ""  %></title>
+    
     <script language="javascript">
       tstUsername = "<%= User.current_user.username unless User.current_user.nil? %>";
       tstCurrentDate = "<%= Time.now.strftime("%Y-%m-%d") %>";
@@ -111,7 +114,7 @@
 
       <% if session[:mastercard_ids].length.to_i != 0 %>
          <% session[:mastercard_ids] = session[:mastercard_ids].uniq.sort! rescue ""%>
-        <form action="/patients/mastercard?source=data_cleaning"  method="post" id="myform">
+        <form action="/patients/mastercard?source=data_cleaning&show_mastercard_counter=true&current=1"  method="post" id="myform">
         </form>
       <% end rescue "" %>
 
