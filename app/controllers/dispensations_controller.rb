@@ -173,7 +173,8 @@ AND r.regimen_id = (
 SELECT x.regimen_id FROM regimen_drug_order x 
 WHERE x.drug_inventory_id IN (#{dispensed_drugs_inventory_ids.join(',')}) 
 GROUP BY x.regimen_id 
-HAVING count(x.drug_inventory_id) = c)
+HAVING count(x.drug_inventory_id) = c
+LIMIT 1)
 EOF
 
     regimen_prescribed = regimen_drug_order.first['concept_id'].to_i rescue ConceptName.find_by_name('UNKNOWN ANTIRETROVIRAL DRUG').concept_id
