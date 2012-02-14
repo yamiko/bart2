@@ -1390,7 +1390,8 @@ class ApplicationController < ActionController::Base
     
   def current_user_roles
     user_roles = UserRole.find(:all,:conditions =>["user_id = ?", User.current_user.id]).collect{|r|r.role}
-    inherited_roles = RoleRole.find(:all,:conditions => ["child_role IN (?)", user_roles]).collect{|r|r.parent_role}
+    RoleRole.find(:all,:conditions => ["child_role IN (?)", user_roles]).collect{|r|user_roles << r.parent_role}
+    return user_roles.uniq
   end
 
 private
