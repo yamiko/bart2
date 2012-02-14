@@ -26,7 +26,11 @@
             <span id='patient_name'><%= @patient_bean.name rescue "" %></span>
             <span id='patient_id'><%= @patient_bean.national_id_with_dashes rescue "" %></span>
             <span id='patient_residence'><%= @patient_bean.current_residence rescue "" %></span>
-            <span id='patient_age'><%= @patient_bean.age rescue "" %></span>
+            <% if @patient_bean.age > 0 %>
+                <span id='patient_age'><%= @patient_bean.age rescue "" %></span>
+            <% else %>
+                <span id='patient_age'><%= "#{@patient_bean.age_in_months} Months" rescue "" %></span>
+            <% end %>
             <span id='patient_gender'><%= @patient_bean.sex rescue "" %></span>
 
             <div id="patient_card">
