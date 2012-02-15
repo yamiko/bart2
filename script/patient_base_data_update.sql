@@ -9,6 +9,12 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+/* Reset users persons */
+SET @'min_person_id' = (SELECT MIN(person_id) FROM openmrs_b2.users);
+
+UPDATE openmrs_b2.users SET person_id = NULL;
+
+DELETE FROM openmrs_b2.users WHERE person_id >= @'min_person_id';
 
 /* Update patient and person details */
 INSERT INTO openmrs_b2.person (person_id, birthdate, birthdate_estimated, gender, death_date, creator, voided, voided_by, void_reason, date_voided, date_created, uuid)
@@ -68,6 +74,16 @@ SELECT patient_program_id, 118, date_enrolled, creator, voided, voided_by, void_
 INSERT INTO openmrs_b2.relationship (person_a, relationship, person_b, creator, date_created, voided, voided_by, date_voided, void_reason, uuid)
 SELECT p1.patient_id, 13, p2.patient_id, creator, date_created, voided, voided_by, date_voided, void_reason, (SELECT UUID()) AS uuid FROM openmrs_bart1.relationship rel LEFT JOIN openmrs_bart1.person p1 ON rel.person_id = p1.person_id LEFT JOIN openmrs_bart1.person p2 ON rel.relative_id = p2.person_id WHERE date_created BETWEEN 'the_start_date' AND 'the_end_date';
 
+/* Update users persons */
+SET @'max_person_id' = (SELECT MAX(person_id) FROM openmrs_b2.person);
+
+INSERT INTO openmrs_b2.person (person_id, birthdate, birthdate_estimated, gender, death_date, creator, voided, voided_by, void_reason, date_voided, date_created, uuid)
+SELECT (user_id + @'max_person_id') AS user_id, NOW(), 0, 'M', NULL, creator, retired, retired_by, retire_reason, date_retired, date_created, (SELECT UUID()) AS uuid FROM openmrs_b2.users;
+
+UPDATE openmrs_b2.users SET person_id = user_id + @'max_person_id';
+ 
+INSERT INTO openmrs_b2.person_name (person_id, middle_name, given_name, family_name, preferred, prefix, creator, voided, voided_by, void_reason, date_voided, date_created, uuid)
+SELECT person_id, username, username, username,  1, NULL, creator, retired, retired_by, retire_reason, date_retired, date_created, (SELECT UUID()) AS uuid FROM openmrs_b2.users;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
