@@ -80,16 +80,7 @@ class Cohort
                                 INNER JOIN patient_state s USING (patient_program_id)
                                 WHERE p.voided = 0 AND s.voided = 0 AND program_id = #{@@program_id}
                                 AND patient_start_date(patient_id) >= '#{start_date}' AND patient_start_date(patient_id) <= '#{end_date}'
-                                GROUP BY patient_id ORDER BY date_enrolled").length rescue 0
-
-  end
-  
-  def total_registered_patient_ids(start_date = @start_date, end_date = @end_date)
-    PatientProgram.find_by_sql("SELECT patient_id FROM patient_program p
-                                INNER JOIN patient_state s USING (patient_program_id)
-                                WHERE p.voided = 0 AND s.voided = 0 AND program_id = #{@@program_id}
-                                AND patient_start_date(patient_id) >= '#{start_date}' AND patient_start_date(patient_id) <= '#{end_date}'
-                                GROUP BY patient_id ORDER BY date_enrolled") rescue 0
+                                GROUP BY patient_id ORDER BY date_enrolled")#.length rescue 0
 
   end
 
@@ -100,9 +91,14 @@ class Cohort
     PatientProgram.find_by_sql("SELECT p.patient_id FROM patient_program p
                                 INNER JOIN patient_state s ON p.patient_program_id = s.patient_program_id
                                 INNER JOIN obs ON obs.person_id = p.patient_id 
-                                WHERE p.voided = 0 AND s.voided = 0 AND program_id = 1 AND obs.voided = 0
-                                AND patient_start_date(p.patient_id) >= '#{start_date}' AND patient_start_date(p.patient_id) <= '#{end_date}'
-                                AND obs.concept_id = #{ever_received_concept_id} AND value_coded = #{yes_concept_id}
+                                WHERE p.voided = 0
+                                AND s.voided = 0
+                                AND program_id = 1
+                                AND obs.voided = 0
+                                AND patient_start_date(p.patient_id) >= '#{start_date}'
+                                AND patient_start_date(p.patient_id) <= '#{end_date}'
+                                AND obs.concept_id = #{ever_received_concept_id}
+                                AND value_coded = #{yes_concept_id}
                                 GROUP BY patient_id") rescue 0
   end
 
@@ -123,8 +119,12 @@ class Cohort
                                 INNER JOIN patient_state s ON p.patient_program_id = s.patient_program_id
                                 INNER JOIN obs ON obs.person_id = p.patient_id 
                                 INNER JOIN person ON person.person_id = p.patient_id 
-                                WHERE p.voided = 0 AND s.voided = 0 AND program_id = 1 AND obs.voided = 0
-                                AND patient_start_date(p.patient_id) >= '#{start_date}' AND patient_start_date(p.patient_id) <= '#{end_date}'
+                                WHERE p.voided = 0
+                                AND s.voided = 0
+                                AND program_id = 1
+                                AND obs.voided = 0
+                                AND patient_start_date(p.patient_id) >= '#{start_date}'
+                                AND patient_start_date(p.patient_id) <= '#{end_date}'
                                 #{conditions} GROUP BY patient_id")
   end
   
@@ -137,9 +137,12 @@ class Cohort
                                 INNER JOIN patient_program p ON p.patient_id = obs.person_id
                                 INNER JOIN patient_state s ON p.patient_program_id = s.patient_program_id
                                 INNER JOIN person ON person.person_id = p.patient_id
-                                WHERE p.program_id = 1 AND gender ='F' 
-                                AND patient_start_date(patient_id) >= '#{start_date}' AND patient_start_date(patient_id) <= '#{end_date}' 
-                                AND ((obs.concept_id = #{pregnant_concept_id} AND obs.value_coded = #{yes_concept_id} )) 
+                                WHERE p.program_id = 1
+                                AND gender ='F' 
+                                AND patient_start_date(patient_id) >= '#{start_date}'
+                                AND patient_start_date(patient_id) <= '#{end_date}' 
+                                AND ((obs.concept_id = #{pregnant_concept_id}
+                                AND obs.value_coded = #{yes_concept_id} )) 
                                 AND (DATEDIFF(DATE(obs.obs_datetime), date_enrolled) >= 0) 
                                 AND DATEDIFF(DATE(obs.obs_datetime),date_enrolled) <= 30
                                 GROUP BY patient_id")
@@ -157,8 +160,8 @@ class Cohort
   def report
     return {} if @@first_registration_date.blank?
     cohort_report = {}
-    cohort_report['Total registrated'] = self.total_registered(@@first_registration_date)
-    cohort_report['Newly total registrated'] = self.total_registered
+    cohort_report['Total registrated'] = self.total_registered(@@first_registration_date).length
+    cohort_report['Newly total registrated'] = self.total_registered.length
     cohort_report['Total transferred in patients'] = self.transferred_in_patients(@@first_registration_date).length
     cohort_report['Newly transferred in patients'] = self.transferred_in_patients.length
 
@@ -261,10 +264,7 @@ class Cohort
 
     cohort_report['No TB'] = (cohort_report['Newly total registrated'] - (cohort_report['Current episode of TB'] + cohort_report['TB within the last 2 years']))
     cohort_report['Total No TB'] = (cohort_report['Total registrated'] - (cohort_report['Total Current episode of TB'] + cohort_report['Total TB within the last 2 years']))
-=begin
-    cohort_report['No TB'] = (cohort_report['Newly total registrated'] - (cohort_report['Kaposis Sarcoma'] + cohort_report['Current episode of TB'] + cohort_report['TB within the last 2 years']))
-    cohort_report['Total No TB'] = (cohort_report['Total registrated'] - (cohort_report['Total Kaposis Sarcoma'] + cohort_report['Total Current episode of TB'] + cohort_report['Total TB within the last 2 years']))
-=end
+
     cohort_report['Total alive and on ART'] = self.total_alive_and_on_art.length
     cohort_report['Died total'] = self.total_number_of_dead_patients
 
@@ -364,23 +364,23 @@ class Cohort
 
   def patients_reinitiated_on_art(start_date = @start_date, end_date = @end_date)
     patients = []
-    no_concept = ConceptName.find_by_name('NO')
-    date_art_last_taken_concept = ConceptName.find_by_name('DATE ART LAST TAKEN')
+    no_concept = ConceptName.find_by_name('NO').concept_id
+    date_art_last_taken_concept = ConceptName.find_by_name('DATE ART LAST TAKEN').concept_id
 
-    taken_arvs_concept = ConceptName.find_by_name('HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS')
+    taken_arvs_concept = ConceptName.find_by_name('HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS').concept_id
     PatientProgram.find_by_sql("SELECT 
                                 patient_id , value_datetime date_art_last_taken,obs_datetime visit_date,value_coded,obs.concept_id concept_id  
                                 FROM obs 
                                 INNER JOIN patient_program p ON p.patient_id = obs.person_id
                                 INNER JOIN patient_state s ON p.patient_program_id = s.patient_program_id
                                 WHERE p.program_id = #{@@program_id} 
-                                AND (obs.concept_id = #{date_art_last_taken_concept.concept_id}
-                                OR obs.concept_id = #{taken_arvs_concept.concept_id})
+                                AND (obs.concept_id = #{date_art_last_taken_concept}
+                                OR obs.concept_id = #{taken_arvs_concept})
                                 AND patient_start_date(patient_id) >= '#{start_date}'
                                 AND patient_start_date(patient_id) <= '#{end_date}'
                                 GROUP BY patient_id
                                 ORDER BY obs.obs_datetime DESC").map do | ob |
-                                  if ob.concept_id.to_s == date_art_last_taken_concept.concept_id.to_s
+                                  if ob.concept_id.to_s == date_art_last_taken_concept.to_s
 
                                     unless 4 >= ((ob.visit_date.to_date -
                                                   ob.date_art_last_taken.to_date) / 7).to_i
@@ -388,7 +388,7 @@ class Cohort
                                     end
                                   else
                                     patients << ob.patient_id if ob.value_coded.to_s ==
-                                                                 no_concept.concept_id.to_s
+                                                                 no_concept.to_s
                                   end
                                 end
     patients
@@ -573,12 +573,12 @@ class Cohort
                                 INNER JOIN patient_program p ON p.patient_id = obs.person_id
                                 INNER JOIN patient_state s ON p.patient_program_id = s.patient_program_id
                                 INNER JOIN concept_name n ON n.concept_id = obs.value_coded
-                                WHERE patient_start_date(patient_id) >='#{start_date}' AND patient_start_date(patient_id) <= '#{end_date}' 
+                                WHERE patient_start_date(patient_id) >='#{start_date}'
+                                AND patient_start_date(patient_id) <= '#{end_date}' 
                                 AND obs.concept_id = #{reason_concept_id}
                                 AND p.program_id = #{@@program_id}
                                 AND n.name != ''
-                                GROUP BY patient_id")#.map{ | value | value.name }
-    
+                                GROUP BY patient_id")
   end
 
   def tb_status
@@ -594,11 +594,13 @@ class Cohort
                           INNER JOIN encounter e ON e.patient_id = p.patient_id
                           INNER JOIN obs ON obs.encounter_id = e.encounter_id
                           INNER JOIN concept_name n ON obs.value_coded = n.concept_id
-                          WHERE p.voided = 0 AND s.voided = 0
+                          WHERE p.voided = 0
+                          AND s.voided = 0
                           AND obs.obs_datetime = e.encounter_datetime
                           AND (patient_start_date(e.patient_id) >= '#{@@first_registration_date}'
                           AND patient_start_date(e.patient_id) <= '#{@end_date}')
-                          AND obs.concept_id = #{tb_status_concept_id} AND e.encounter_type = #{art_visit_encounter_id}
+                          AND obs.concept_id = #{tb_status_concept_id}
+                          AND e.encounter_type = #{art_visit_encounter_id}
                           AND p.program_id = #{@@program_id}
                           ORDER BY e.encounter_datetime DESC, patient_state_id DESC , start_date DESC) K
                           GROUP BY K.patient_id
@@ -633,11 +635,13 @@ class Cohort
                           INNER JOIN encounter e ON e.patient_id = p.patient_id
                           INNER JOIN obs ON obs.encounter_id = e.encounter_id
                           INNER JOIN concept_name n ON obs.value_coded = n.concept_id
-                          WHERE p.voided = 0 AND s.voided = 0
+                          WHERE p.voided = 0
+                          AND s.voided = 0
                           AND obs.obs_datetime = e.encounter_datetime
                           AND (patient_start_date(e.patient_id) >= '#{@@first_registration_date}'
                           AND patient_start_date(e.patient_id) <= '#{@end_date}')
-                          AND obs.concept_id = #{tb_status_concept_id} AND e.encounter_type = #{art_visit_encounter_id}
+                          AND obs.concept_id = #{tb_status_concept_id}
+                          AND e.encounter_type = #{art_visit_encounter_id}
                           AND p.program_id = #{@@program_id}
                           ORDER BY e.encounter_datetime DESC, patient_state_id DESC , start_date DESC) K
                           GROUP BY K.patient_id
@@ -654,15 +658,17 @@ class Cohort
     concept_id = ConceptName.find_by_name('SYMPTOM PRESENT').concept_id
 
     encounter_ids = Encounter.find(:all,:conditions => ["encounter_type = ? 
-                    AND (patient_start_date(patient_id) >= '#{start_date}' AND patient_start_date(patient_id) <= '#{end_date}')
-                    AND (encounter_datetime >= '#{start_date}' AND encounter_datetime <= '#{end_date}')",
+                    AND (patient_start_date(patient_id) >= '#{start_date}'
+                    AND patient_start_date(patient_id) <= '#{end_date}')
+                    AND (encounter_datetime >= '#{start_date}'
+                    AND encounter_datetime <= '#{end_date}')",
                     encounter_type.id],:group => 'patient_id',:order => 'encounter_datetime DESC').map{| e | e.encounter_id }
 
     Observation.find(:all,
-                     :conditions => ["encounter_id IN (#{encounter_ids.join(',')}) AND concept_id = ? 
+                     :conditions => ["encounter_id IN (#{encounter_ids.join(',')})
+                     AND concept_id = ? 
                      AND value_coded IN (#{side_effect_concept_ids.join(',')})",concept_id],
                      :group =>'person_id').length
-
   end
 
   private
