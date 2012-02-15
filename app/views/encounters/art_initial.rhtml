@@ -308,12 +308,17 @@
         var startDate = new Date("<%= (curr_session_date - 24.months).to_s%>");   
       }else if (ARTstartDateEstimate == "Over 2 years ago") {
         var startDate = new Date("<%= (curr_session_date - 30.months).to_s%>");   
+      }else{
+        var startDate = getDateStartedART();
       }
     }
    
     var patientBirthdate = new Date("<%=@patient.person.birthdate %>");
     var dateCreated = new Date("<%=@patient.person.date_created %>");
     var patientBirthdateEstimated = "<%=@patient.person.birthdate_estimated %>";
+   
+    if(!startDate)
+      return 
     
     var patient_age = age(patientBirthdate , patientBirthdateEstimated , dateCreated, startDate);
 
