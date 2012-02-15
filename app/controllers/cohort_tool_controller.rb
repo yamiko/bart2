@@ -822,7 +822,7 @@ class CohortToolController < ApplicationController
       end
     end
 
-    @total_first_month = [] ; @total_second_month = [] ; @total_third_month = [] ; @total_after_third_month = []
+    @total_first_month = [] ; @total_second_month = [] ; @total_third_month = []; @total_after_third_month = []
     @total_death_dates = []
     @death_dates = cohort.death_dates(@first_registration_date, end_date)
 
@@ -855,7 +855,7 @@ class CohortToolController < ApplicationController
       when 'newly_total_registered' then
         newly_registered_patients = []
 
-        newly_registered_patients = cohort.total_registered_patient_ids
+        newly_registered_patients = cohort.total_registered
         
         newly_registered_patients.each do |patient_id|
           patient = Patient.find_by_patient_id(patient_id.patient_id)
@@ -864,7 +864,7 @@ class CohortToolController < ApplicationController
       when 'total_registered' then
         total_registered_patients = []
 
-        total_registered_patients = cohort.total_registered_patient_ids(@first_registration_date)
+        total_registered_patients = cohort.total_registered(@first_registration_date)
 
         total_registered_patients.each do |patient_id|
           patient = Patient.find_by_patient_id(patient_id.patient_id)
@@ -1248,7 +1248,7 @@ class CohortToolController < ApplicationController
           @report << PatientService.get_patient(patient_obj.person) 
         end
       when 'never_TB_or_TB_over_2_years_ago' then
-        total_registered = cohort.total_registered_patient_ids.map{|patient| patient.patient_id}
+        total_registered = cohort.total_registered.map{|patient| patient.patient_id}
         current_episode_of_tb = cohort.current_espisode_of_tb.map{|patient| patient.patient_id}
         tb_with_2_years = cohort.tb_within_the_last_2_yrs.map{|patient| patient.patient_id}
 
@@ -1258,7 +1258,7 @@ class CohortToolController < ApplicationController
           @report << PatientService.get_patient(patient_obj.person)
         end
       when 'total_never_TB_or_TB_over_2_years_ago' then
-        total_registered = cohort.total_registered_patient_ids(@first_registration_date).map{|patient| patient.patient_id}
+        total_registered = cohort.total_registered(@first_registration_date).map{|patient| patient.patient_id}
         current_episode_of_tb = cohort.current_espisode_of_tb(@first_registration_date,end_date).map{|patient| patient.patient_id}
         tb_with_2_years = cohort.tb_within_the_last_2_yrs(@first_registration_date,end_date).map{|patient| patient.patient_id}
         no_tb = (total_registered - (current_episode_of_tb + tb_with_2_years))
