@@ -26,15 +26,34 @@ pos = 1
       people[<%= pos %>]["Status"] = "<%=h 'Died' if person.dead == 1 rescue '' -%>";
   <% end %>
     
-    people[<%= pos %>]["Birthdate"] = "<%= person.birth_date rescue "" %>";
+    try {
+      people[<%= pos %>]["Birthdate"] = "<%= person.birth_date rescue "" %>";
+    }catch(e){
+      people[<%= pos %>]["Birthdate"] = null;
+    }
 
-    people[<%= pos %>]["Age"] = "<%= person.age rescue "" %>";
+    try {
+      people[<%= pos %>]["Age"] = "<%= person.age rescue "" %>";
+    }catch(e){
+      people[<%= pos %>]["Age"] = null;
+    }
            
-    people[<%= pos %>]["Home District"] = "<%=h person.home_district -%>";
+    try {
+      people[<%= pos %>]["Home District"] = "<%=h person.home_district -%>";
+    }catch(e){
+      people[<%= pos %>]["Home District"] = null;
+    }
 
-    people[<%= pos %>]["Ancestral Traditional Authority(T/A)"] = "<%=h person.traditional_authority -%>";
-
-    people[<%= pos %>]["Current Residence"] = "<%=h person.current_residence -%>";
+    try {
+      people[<%= pos %>]["Ancestral Traditional Authority(T/A)"] = "<%=h person.traditional_authority -%>";
+    }catch(e){
+      people[<%= pos %>]["Ancestral Traditional Authority(T/A)"] = null;
+    }
+    try {
+      people[<%= pos %>]["Current Residence"] = "<%=h person.current_residence -%>";
+    }catch(e){
+      people[<%= pos %>]["Current Residence"] = null;
+    }
 
   <% if !person.mothers_surname.blank? %>  
       people[<%= pos %>]["Mother Surname"] = "<%=h person.mothers_surname -%>";
