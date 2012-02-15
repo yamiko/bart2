@@ -20,6 +20,7 @@ class CohortToolController < ApplicationController
 
   def reports
     session[:list_of_patients] = nil
+
     if params[:report]
       case  params[:report_type]
         when "visits_by_day"
@@ -1065,6 +1066,11 @@ class CohortToolController < ApplicationController
           patient_obj = Patient.find_by_patient_id(patient_id)
           @report << PatientService.get_patient(patient_obj.person) 
         end
+      when 'hiv_infected' then
+        @hiv_infected.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
       when 'total_hiv_infected' then
         @total_hiv_infected.each do |patient_id|
           patient_obj = Patient.find_by_patient_id(patient_id)
@@ -1072,6 +1078,11 @@ class CohortToolController < ApplicationController
         end
       when 'unknown_reason' then
         @Unknown_reason.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person) 
+        end
+      when 'total_unknown_reason' then
+        @total_unknown_reason.each do |patient_id|
           patient_obj = Patient.find_by_patient_id(patient_id)
           @report << PatientService.get_patient(patient_obj.person) 
         end
