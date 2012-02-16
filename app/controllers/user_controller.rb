@@ -52,7 +52,8 @@ class UserController < ApplicationController
     else
       @users_with_provider_role = []
       users.each do |user|
-        @users_with_provider_role << user if UserRole.find_by_user_id(user.user_id).role == "Provider" rescue nil
+        is_provider = UserRole.find_all_by_user_id(user.user_id).map(&:role).include?("Provider") rescue nil
+        @users_with_provider_role << user if is_provider
       end
       users = @users_with_provider_role.map{| u | "<li value='#{u.username}'>#{u.username}</li>" }
     end
