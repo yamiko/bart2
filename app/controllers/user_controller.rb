@@ -47,7 +47,9 @@ class UserController < ApplicationController
   def username
     users = User.find(:all,:conditions => ["username LIKE (?)","%#{params[:username]}%"])
 
-    if params[:all_roles].blank? or params[:all_roles] == 0
+    if params[:all_roles] and params[:all_roles] == 1
+      users = users.map{|u| "<li value='#{u.username}'>#{u.username}</li>" }
+    else
       @users_with_provider_role = []
       users.each do |user|
         @users_with_provider_role << user if UserRole.find_by_user_id(user.user_id).role == "Provider" rescue nil
