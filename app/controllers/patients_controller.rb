@@ -1624,7 +1624,8 @@ class PatientsController < ApplicationController
 
 
     patient_states.each do |state| 
-      visit_date = state.start_date.to_date
+      visit_date = state.start_date.to_date rescue nil
+      next if visit_date.blank?
       patient_visits[visit_date] = Mastercard.new() if patient_visits[visit_date].blank?
       patient_visits[visit_date].outcome = state.program_workflow_state.concept.fullname rescue 'Unknown state'
       patient_visits[visit_date].date_of_outcome = state.start_date
