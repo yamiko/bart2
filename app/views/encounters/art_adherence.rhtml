@@ -71,11 +71,12 @@
     page = $("page"+tstCurrentPage);
     page.style.cssText = "height: 95% !important;";
     divSummary = document.getElementsByClassName("summary")[0];
-    divSummary.style.cssText = "height: 90%;"
+    divSummary.style.cssText = "height: 95%;"
     flame = document.getElementsByClassName("inputFrameClass")[0];
-    flame.style.cssText = "overflow: auto !important;"
+    flame.style.cssText = "height: 90%;overflow: auto !important;"
+   /* flame.style.cssText = "overflow: auto !important;"
     flame2 = document.getElementById("inputFrame2");
-    flame2.style.cssText = "height: 90%;overflow: auto !important;"
+    flame2.style.cssText = "height: 90%;overflow: auto !important;"*/
   }
 
 </script>
@@ -87,7 +88,7 @@
 	<%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
   	<%session_date = session[:datetime] || Time.now() %>
 
-	<% PatientService.drug_given_before(@patient, session_date.to_date).each do |order| 
+	<% PatientService.drug_given_before(@patient, session_date.to_date).uniq.each do |order| 
        next unless MedicationService.arv(order.drug_order.drug)
   %>
 		<%= touch_numeric_tag "AMOUNT OF DRUG BROUGHT TO CLINIC", @patient, nil,
@@ -101,7 +102,7 @@
 			{	:id        => "amount_other_#{order.order_id}",
 				:units     => "#{order.drug_order.units}",
 				:order_id  => "#{order.order_id}",
-				:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} left at home" } %>
+				:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} <span style='color:red;'>left at home</span>" } %>
     <%end%>
       
 		<%= touch_hidden_tag "WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER", @patient, nil,
