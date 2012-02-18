@@ -1630,13 +1630,20 @@ class PatientsController < ApplicationController
                                     program_id,encounter_date.to_date,patient_obj.patient_id],:order => "patient_state_id ASC")  
     end  
 
-
+=begin
     patient_states.each do |state| 
       visit_date = state.start_date.to_date rescue nil
       next if visit_date.blank?
       patient_visits[visit_date] = Mastercard.new() if patient_visits[visit_date].blank?
       patient_visits[visit_date].outcome = state.program_workflow_state.concept.fullname rescue 'Unknown state'
       patient_visits[visit_date].date_of_outcome = state.start_date
+    end
+=end
+
+    patient_visits.each do |visit_date,data| 
+      next if visit_date.blank?
+      patient_visits[visit_date].outcome = latest_state(patient_obj,visit_date)
+      patient_visits[visit_date].date_of_outcome = visit_date
     end
 
     unless encounter_date.blank? 
@@ -2550,4 +2557,17 @@ class PatientsController < ApplicationController
 
   private
 
+   def latest_state(patient_obj,visit_date)                                             
+     program_id = Program.find_by_name('HIV PROGRAM').id                        
+     patient_state = PatientState.find(:first,                                  
+       :joins => "INNER JOIN patient_program p                   
+       ON p.patient_program_id = patient_state.patient_program_id",
+       :conditions =>["patient_state.voided = 0 AND p.voided = 0 
+       AND p.program_id = ? AND start_date <= ? AND p.patient_id =?",
+       program_id,visit_date.to_date,patient_obj.id],        
+       :order => "patient_state_id DESC")                        
+                                                                                
+     return if patient_state.blank?                                             
+     ConceptName.find_by_concept_id(patient_state.program_workflow_state.concept_id).name
+  end 
 end
