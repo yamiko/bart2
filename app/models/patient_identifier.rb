@@ -88,10 +88,11 @@ class PatientIdentifier < ActiveRecord::Base
       date_created = person.date_created.strftime('%Y-%m-%d %H:%M:%S') rescue Time.now().strftime('%Y-%m-%d %H:%M:%S')
       first_name = patient_bin.name.split(" ")[0] rescue nil
       last_name = patient_bin.name.split(" ")[1] rescue nil
+      birthdate_estimated = person.birthdate_estimated
 
       ActiveRecord::Base.connection.execute <<EOF                             
-INSERT INTO openmrs_demographx.patient (patient_id,gender,birthdate,creator,date_created,date_changed)
-VALUES(#{patient_bin.patient_id},"#{patient_bin.sex}","#{person.birthdate}",#{person.creator},'#{date_created}','#{date_created}');
+INSERT INTO openmrs_demographx.patient (patient_id,gender,birthdate,birthdate_estimated,creator,date_created,date_changed)
+VALUES(#{patient_bin.patient_id},"#{patient_bin.sex}","#{person.birthdate}",#{birthdate_estimated},#{person.creator},'#{date_created}','#{date_created}');
 EOF
 
       ActiveRecord::Base.connection.execute <<EOF                             
