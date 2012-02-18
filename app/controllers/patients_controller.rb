@@ -1576,6 +1576,14 @@ class PatientsController < ApplicationController
             else
               patient_visits[visit_date].gave = [] if patient_visits[visit_date].gave.blank?
               patient_visits[visit_date].gave << [drug_name,obs.value_numeric]
+              drugs_given_uniq = Hash.new(0)
+              (patient_visits[visit_date].gave || {}).each do |drug_given_name,quantity_given|
+                drugs_given_uniq[drug_given_name] += quantity_given
+              end
+              patient_visits[visit_date].gave = []
+              (drugs_given_uniq || {}).each do |drug_given_name,quantity_given|
+                patient_visits[visit_date].gave << [drug_given_name,quantity_given]
+              end
             end
           when "REGIMEN"
             concept_name = obs.concept.fullname rescue []
