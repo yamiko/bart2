@@ -25,7 +25,7 @@ class ApplicationController < ActionController::Base
   helper :all
   helper_method :next_task
   filter_parameter_logging :password
-  before_filter :login_required, :except => ['login', 'logout','demographics','create_remote', 'mastercard_printable']
+  before_filter :login_required, :except => ['login', 'logout','remote_demographics','create_remote', 'mastercard_printable']
   before_filter :location_required, :except => ['login', 'logout', 'location','demographics','create_remote', 'mastercard_printable']
   
   def rescue_action_in_public(exception)
