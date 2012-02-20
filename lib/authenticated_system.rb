@@ -87,11 +87,16 @@ module AuthenticatedSystem
     end
 
     def location_required
+      if not located? and params[:location]
+        location = Location.find(params[:location]) rescue nil
+        self.current_location = location if location
+      end
       located? || location_denied
     end
 
     def located?
-      self.current_location 
+      
+      self.current_location
     end
 
     # Redirect as appropriate when an access request fails.
