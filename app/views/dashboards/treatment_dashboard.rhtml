@@ -82,8 +82,8 @@
               <option value='/patients/history_treatment?patient_id=<%= @patient.id %>'>Treatment history</option>
             </select>
             <select id="links">
-              <option value='/regimens/new?patient_id=<%= @patient.id -%>'>Prescribe</option>
-              <option value='/prescriptions/auto?patient_id=<%= @patient.id -%>'>Regimen</option>
+              <option value='/regimens/new?patient_id=<%= @patient.id -%>'>Regimen</option>
+              <option value='/prescriptions/auto?patient_id=<%= @patient.id -%>'>Other Drugs</option>
               <option value='/dispensations/new?patient_id=<%= @patient.id -%>'>Dispense</option>
               <%if User.current_user.activities.include?('Manage Lab Orders') or User.current_user.activities.include?('Manage Lab Results') or
        User.current_user.activities.include?('Manage Sputum Submissions') or User.current_user.activities.include?('Manage TB Clinic Visits') or
