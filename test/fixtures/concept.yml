@@ -81946,3 +81946,21 @@ concept_06987:
   datatype_id: 2
   concept_id: 6987
   date_created: 2011-04-17 11:54:03 +02:00
+concept_07759:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: 9ef30cd4-53ce-11e1-ab03-544249e32ba2
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2011-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 7759
+  date_created: 2011-04-17 11:54:03 +02:00

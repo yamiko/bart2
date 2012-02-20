@@ -588,3 +588,36 @@ encounter_type_00057:
   description: Lab Test order
   retired: "0"
   date_created: 2010-08-23 09:50:40
+encounter_type_00078:  
+  name: TB REGISTRATION
+  retire_reason: 
+  retired_by: 
+  encounter_type_id: "78"
+  uuid: 9fc5d376-53ce-11e1-ab03-544249e32ba2
+  creator: 1
+  date_retired: 
+  description: A TB registration encounter
+  retired: "0"
+  date_created: 2011-07-05 08:15:56
+encounter_type_00077:  
+  name: TB RECEPTION
+  retire_reason: 
+  retired_by: 
+  encounter_type_id: "77"
+  uuid: 9fc5d1c8-53ce-11e1-ab03-544249e32ba2
+  creator: 1
+  date_retired: 
+  description: A TB reception encounter, for program enrollment
+  retired: "0"
+  date_created: 2011-06-02 09:15:17
+encounter_type_00070:  
+  name: SPUTUM SUBMISSION
+  retire_reason: 
+  retired_by: 
+  encounter_type_id: "70"
+  uuid: 9fc5c3fe-53ce-11e1-ab03-544249e32ba2
+  creator: 1
+  date_retired: 
+  description: An encounter at the TB sputum submission desk
+  retired: "0"
+  date_created: 2011-02-21 14:24:48

@@ -9,3 +9,14 @@ global_property_00001:
   description: Indicates hostnames for retrieving patient demographics
   property_value: "localhost"
   uuid: 1fe590fa-268f-102d-a2b3-16da04859145
+global_property_00002: 
+  property: list.of.clinical.encounters.sequentially
+  description: Sequential list of encounters
+  property_value: "UPDATE HIV STATUS,LAB ORDERS,SPUTUM SUBMISSION,LAB RESULTS,TB REGISTRATION,TB RECEPTION,ART_INITIAL,HIV RECEPTION,VITALS,HIV STAGING,PART_FOLLOWUP,ART VISIT,ART ADHERENCE,TREATMENT,DISPENSING"
+  uuid: aa318db6-178b-11e1-9603-544249e32ba2
+global_property_00003: 
+  property: site_prefix
+  description: site prefix code
+  property_value: "MPC"
+  uuid: aa319e50-178b-11e1-9603-544249e32ba2
+
