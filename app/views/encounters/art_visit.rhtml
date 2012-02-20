@@ -99,7 +99,6 @@
     }
   }
   
-  
 </script>
 
 <form action="/encounters/create" method='post'>
@@ -219,30 +218,50 @@
   patient_present = reception.match(/PATIENT PRESENT FOR CONSULTATION: YES/i) 
 %>
 
+
+  <%
+  art_adherence_to_be_done = false
+  (PatientService.drug_given_before(@patient,date) || []).uniq.each do |order|  
+      next unless MedicationService.arv(order.drug_order.drug)
+      art_adherence_to_be_done = true
+      break
+  end
+  
+  if art_adherence_to_be_done
+    e = EncounterType.find_by_name("ART ADHERENCE")
+    art_adherence_to_be_done = Encounter.find(:first,
+    :conditions =>["patient_id=? AND encounter_type=?
+    AND encounter_datetime >= ? AND encounter_datetime <=?",@patient.id,e.id,
+    start_date,end_date]).blank?
+  end
+  
+  
+  %>
+
   <% if current_user_roles.include?('Nurse') and patient_present %>
     <%= touch_yes_no_tag "REFER TO ART CLINICIAN", @patient, nil,
       {:id => "refer_to_clinician",
       :helpText => "Refer patient to clinician?" } %>
   <%else%>
     <%= touch_hidden_tag "REFER TO ART CLINICIAN", @patient, "NO", :id => "refer_to_clinician" %>
-  <%end
+  <%end unless art_adherence_to_be_done %>
 
-    if @obs_ans.match(/Prescribe drugs: Yes/i)
-  %>
+
+  <%if @obs_ans.match(/Prescribe drugs: Yes/i) %>
     <%= touch_hidden_tag "Prescribe drugs", @patient, "YES", :id => "prescribe_drugs" %>
   <%else%>
     <%= touch_yes_no_unknown_tag "Prescribe drugs", @patient, nil,
       {:id => "prescribe_drugs",
        :condition => "$('refer_to_clinician').value == 'NO'" ,
        :helpText => "Prescribe drugs during this visit" } %>
-  <%end%>
+  <%end unless art_adherence_to_be_done %>
 
   <%if @allergic_to_sulphur.match(/Allergic to sulphur:/i).blank? %>
     <%= touch_yes_no_unknown_tag "Allergic to sulphur", @patient, nil,
 		  {	:id => "allergic_to_sulphur",
 			  :condition => "$('refer_to_clinician').value == 'NO'" ,
 			  :helpText => "Is patient allergic to sulphur" } %>
-  <%end%>
+  <%end unless art_adherence_to_be_done %>
   
   <% session_date = session[:datetime].to_date rescue nil                       
     if session_date %>
