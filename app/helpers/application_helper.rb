@@ -274,7 +274,9 @@ module ApplicationHelper
                                :dose => order.drug_order.equivalent_daily_dose 
                               }
       end
-    end
+    end rescue {}
+
+    return if drugs_given.blank?
 
     min_pills_given_per_drug = 0
     return_date = nil 
