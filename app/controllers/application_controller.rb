@@ -923,7 +923,7 @@ class ApplicationController < ActionController::Base
           #if a nurse has refered a patient to a doctor/clinic 
           concept_id = ConceptName.find_by_name("Refer to ART clinician").concept_id
           ob = Observation.find(:first,:conditions =>["person_id=? AND concept_id =?",
-              @patient.id,concept_id],:order =>"obs_datetime DESC,date_created DESC")
+              patient.id,concept_id],:order =>"obs_datetime DESC,date_created DESC")
 
           refer_to_clinician = ob.to_s.squish.upcase == 'Refer to ART clinician: yes'.upcase
 
@@ -1042,13 +1042,13 @@ class ApplicationController < ActionController::Base
 
           concept_id = ConceptName.find_by_name("Prescribe drugs").concept_id
           ob = Observation.find(:first,:conditions =>["person_id=? AND concept_id =?",
-              @patient.id,concept_id],:order =>"obs_datetime DESC,date_created DESC")
+              patient.id,concept_id],:order =>"obs_datetime DESC,date_created DESC")
 
           prescribe_arvs = ob.to_s.squish.upcase == 'Prescribe drugs: Yes'.upcase
 
           concept_id = ConceptName.find_by_name("Refer to ART clinician").concept_id
           ob = Observation.find(:first,:conditions =>["person_id=? AND concept_id =?",
-              @patient.id,concept_id],:order =>"obs_datetime DESC,date_created DESC")
+              patient.id,concept_id],:order =>"obs_datetime DESC,date_created DESC")
 
           not_refer_to_clinician = ob.to_s.squish.upcase == 'Refer to ART clinician: No'.upcase
 
@@ -1321,7 +1321,7 @@ class ApplicationController < ActionController::Base
     end
 
     hiv_staging = patient.encounters.find_by_encounter_type(EncounterType.find_by_name(art_encounters[3]).id)
-    art_reason = patient_obj.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue nil
+    art_reason = patient.person.observations.recent(1).question("REASON FOR ART ELIGIBILITY").all rescue nil
     reasons = art_reason.map{|c|ConceptName.find(c.value_coded_name_id).name}.join(',') rescue ''
 
     if ((reasons.blank?) and (task.encounter_type == art_encounters[3]))
