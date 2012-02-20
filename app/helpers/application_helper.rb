@@ -258,4 +258,37 @@ module ApplicationHelper
     RoleRole.find(:all,:conditions => ["child_role IN (?)", user_roles]).collect{|r|user_roles << r.parent_role}
     return user_roles.uniq
   end
+
+  def suggested_return_date(patient,dispensed_date)
+    session_date = dispensed_date + 1.day
+    drugs_given = Hash.new()
+    PatientService.drug_given_before(patient, session_date).uniq.each do |order|
+      drug = order.drug_order.drug
+      next unless MedicationService.arv(drug)
+      if drugs_given[drug.name].blank? 
+        drugs_given[drug.name] = {:quantity => order.drug_order.quantity ,
+                               :dose => order.drug_order.equivalent_daily_dose 
+                              }
+      else
+        drugs_given[drug.name] = {:quantity => order.drug_order.quantity + drugs_given[drug.name][:quantity],
+                               :dose => order.drug_order.equivalent_daily_dose 
+                              }
+      end
+    end
+
+    min_pills_given_per_drug = 0
+    return_date = nil 
+    (drugs_given || {}).each do |name,values|
+      if ((values[:quantity] <= min_pills_given_per_drug) || min_pills_given_per_drug == 0)
+        min_pills_given_per_drug = values[:quantity] 
+        return_date = dispensed_date + (values[:quantity]/values[:dose]).days
+      end
+    end
+   
+    #if the suggested_return_date is available we add a two day buffer by subtracting
+    #two days to the suggested_return_date
+    return_date -= 2.day if return_date 
+    return return_date
+  end
+
 end

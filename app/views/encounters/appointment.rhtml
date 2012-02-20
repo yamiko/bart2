@@ -36,7 +36,12 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
   var setDate = null;
   var setNextAppointmentDate = null;
   var sessionDate = new Date("<%=session[:datetime].to_date rescue Date.today %>");
-
+  <% dispensed_date = session[:datetime].to_date rescue Date.today %>
+  try {
+    var suggestedReturnDate = new Date("<%=suggested_return_date(@patient,dispensed_date)%>");
+  }catch(e){
+    var suggestedReturnDate = null;
+  }
   <%
     
     limit = 0 ; booked_dates = ''
@@ -167,6 +172,10 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
   }
   
   function assignCloseToExpireDate(set_date,auto_expire_date) {
+
+    if (suggestedReturnDate)
+      auto_expire_date = suggestedReturnDate;
+
     if (set_date < auto_expire_date){
       while (set_date < auto_expire_date) {
         set_date = new Date(set_date.getFullYear(),set_date.getMonth(),set_date.getDate() + 1)
