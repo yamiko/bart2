@@ -210,6 +210,50 @@ class EncountersController < ApplicationController
     end
 
     if params['encounter']['encounter_type_name'].upcase == 'ART ADHERENCE'
+      previous_art_visit_observations = []
+      art_adherence_observations = []
+      (params[:observations] || []).each do |observation|
+        if observation['concept_name'].upcase == 'REFER TO ART CLINICIAN'
+          previous_art_visit_observations << observation
+        elsif observation['concept_name'].upcase == 'PRESCRIBE DRUGS'
+          previous_art_visit_observations << observation
+        elsif observation['concept_name'].upcase == 'ALLERGIC TO SULPHUR'
+          previous_art_visit_observations << observation
+        else
+          art_adherence_observations << observation
+        end
+      end
+
+      unless previous_art_visit_observations.blank?
+        #if "REFER TO ART CLINICIAN","PRESCRIBE DRUGS" and "ALLERGIC TO SULPHUR" has
+        #already been asked during ART visit - we append the observations to the latest 
+        #ART visit encounter done on that day
+
+        session_date = session[:datetime].to_date rescue Date.today
+        encounter_type = EncounterType.find_by_name("ART visit")
+        encounter = Encounter.find(:first,:order =>"encounter_datetime DESC,date_created DESC",
+          :conditions =>["encounter_type=? AND patient_id=? AND encounter_datetime >= ?
+          AND encounter_datetime <= ?",encounter_type.id,params['encounter']['patient_id'],
+          session_date.strftime("%Y-%m-%d 00:00:00"),session_date.strftime("%Y-%m-%d 23:59:59")])
+        if encounter.blank?
+          encounter = Encounter.new()
+          encounter.encounter_type = encounter_type.id
+          encounter.patient_id = params['encounter']['patient_id']
+          encounter.encounter_datetime = session_date.strftime("%Y-%m-%d 00:00:01")
+          if params[:filter] and !params[:filter][:provider].blank?
+            user_person_id = User.find_by_username(params[:filter][:provider]).person_id
+          else
+            user_person_id = User.find_by_user_id(params['encounter']['provider_id']).person_id
+          end
+          encounter.provider_id = user_person_id
+          encounter.save   
+        end 
+        params[:observations] = previous_art_visit_observations
+        create_obs(encounter , params)
+      end
+
+      params[:observations] = art_adherence_observations
+
       observations = []
       (params[:observations] || []).each do |observation|
         if observation['concept_name'].upcase == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'
@@ -428,9 +472,7 @@ class EncountersController < ApplicationController
             @phone_numbers = PatientService.phone_numbers(Person.find(params[:patient_id]))
         end
        
-         
-        current_encounter_type = params[:encounter_type].upcase rescue ''
-        if 'ART_VISIT' == current_encounter_type || 'ART_ADHERENCE' == current_encounter_type
+        if 'ART_VISIT' == (params[:encounter_type].upcase rescue '') || 'ART_ADHERENCE' == (params[:encounter_type].upcase rescue '')
             session_date = session[:datetime].to_date rescue Date.today
 
             @allergic_to_sulphur = Observation.find(Observation.find(:first,                   

@@ -81443,6 +81443,7 @@ concept_00794:
   date_retired: 
   class_id: 3
   version: ""
+  concept_id: 792
   short_name: ""
   default_charge: 
   date_changed: 2009-02-24 09:30:24 +02:00
@@ -81963,4 +81964,112 @@ concept_07759:
   retired: 0
   datatype_id: 2
   concept_id: 7759
+  date_created: 2011-04-17 11:54:03 +02:00
+concept_07921:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: 9ef3e500-53ce-11e1-ab03-544249e32ba2
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2011-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 7921
+  date_created: 2011-04-17 11:54:03 +02:00
+concept_07923:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: 9ef3e7bc-53ce-11e1-ab03-544249e32ba2
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2011-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 7923
+  date_created: 2011-04-17 11:54:03 +02:00
+concept_07993:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: 9ef42948-53ce-11e1-ab03-544249e32ba2
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2011-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 7993
+  date_created: 2011-04-17 11:54:03 +02:00
+concept_08257:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: 9efadf04-53ce-11e1-ab03-544249e32ba2
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2011-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 8257
+  date_created: 2011-04-17 11:54:03 +02:00
+concept_08256:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: 9efade50-53ce-11e1-ab03-544249e32ba2
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2011-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 8256
+  date_created: 2011-04-17 11:54:03 +02:00
+concept_08258:
+  retire_reason:
+  retired_by:
+  is_set: 0
+  changed_by:
+  uuid: 9efae062-53ce-11e1-ab03-544249e32ba2
+  date_retired:
+  class_id: 11
+  version: ""
+  short_name:
+  default_charge:
+  date_changed: 2011-03-19 06:00:06 +02:00
+  form_text:
+  description:
+  retired: 0
+  datatype_id: 2
+  concept_id: 8258
   date_created: 2011-04-17 11:54:03 +02:00

@@ -18,7 +18,7 @@ class PatientsControllerTest < ActionController::TestCase
         logged_in_as :mikmck, :registration do
           get :show, {:id => patient(:evan).id}
           assert_response :success
-        end  
+        end
       end
     
       should "not show the pre art number if there is one and we are on the right location" do
@@ -68,6 +68,7 @@ class PatientsControllerTest < ActionController::TestCase
       should "get the index view and show all necessary patient information" do
         logged_in_as :mikmck, :registration do
           #TODO rewrite the test
+           @patient_bean = PatientService.get_patient(Person.find(patient(:evan).patient_id))
           get :index, {:patient_id => patient(:evan).patient_id}
           assert_response :success
           assert_equal @response.body.include?("ARV-311"), true
@@ -79,7 +80,7 @@ class PatientsControllerTest < ActionController::TestCase
         logged_in_as :mikmck, :registration do
           #TODO rewrite the test
           get :relationships, {:patient_id => patient(:evan).patient_id}
-          assert_response :success
+          assert_response :redirect
         end
       end    
     
