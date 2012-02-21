@@ -55,7 +55,7 @@ class OpenmrsTest < ActiveSupport::TestCase
       i = p.patient_identifiers.first 
       i.void
       p.reload
-      assert_equal c-1, p.patient_identifiers.all.length
+      assert_equal c, p.patient_identifiers.all.length
     end
 
     should "find voided records when using the inactive scope" do
@@ -70,7 +70,7 @@ class OpenmrsTest < ActiveSupport::TestCase
       c = p.patient_identifiers.all.length
       i = p.patient_identifiers.first
       i.void      
-      assert_equal c-1, Patient.find(p.patient_id, :include => :patient_identifiers).patient_identifiers.length
+      assert_equal c, Patient.find(p.patient_id, :include => :patient_identifiers).patient_identifiers.length
     end
 
     should "lookup records using name given as a symbol" do
