@@ -260,9 +260,9 @@ module ApplicationHelper
   end
 
   def suggested_return_date(patient,dispensed_date)
-    session_date = dispensed_date + 1.day
+    session_date = dispensed_date.to_date
     drugs_given = Hash.new()
-    PatientService.drug_given_before(patient, session_date).uniq.each do |order|
+    PatientService.drugs_given_on(patient, session_date).uniq.each do |order|
       drug = order.drug_order.drug
       next unless MedicationService.arv(drug)
       if drugs_given[drug.name].blank? 

@@ -89,7 +89,7 @@ class RegimensController < ApplicationController
       :order => "encounter_datetime DESC,date_created DESC",
 			:conditions => ["patient_id = ? AND encounter_type IN (?) AND DATE(encounter_datetime) = ?",
 			@patient.id, EncounterType.find(:all,:select => 'encounter_type_id', 
-      :conditions => ["name IN (?)",["ART VISIT"]]),session_date.to_date]).observations rescue []
+      :conditions => ["name IN (?)",["ART VISIT","ART ADHERENCE"]]),session_date.to_date]).observations rescue []
 
 		@prescribe_art_drugs = false
 		(art_visit_obs || []).each do | obs |

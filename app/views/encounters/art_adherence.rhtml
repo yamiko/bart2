@@ -197,6 +197,67 @@
 
 	</script>
 
+
+
+
+
+  <%
+
+    date = session[:datetime].to_date rescue Date.today                           
+    start_date = date.strftime("%Y-%m-%d 00:00:00")                               
+    end_date = date.strftime("%Y-%m-%d 23:59:59")                                 
+    reception = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
+    :conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?
+    AND encounter_datetime >= ? AND encounter_datetime <=?",@patient.id,date,     
+    EncounterType.find_by_name('HIV RECEPTION').id,start_date,end_date])          
+                                                                                  
+    reception = reception.observations.collect{|r|r.to_s.squish}.join(',') rescue ''
+    patient_present = reception.match(/PATIENT PRESENT FOR CONSULTATION: YES/i)   
+
+                                                            
+    e = EncounterType.find_by_name('ART visit')          
+    encounter = Encounter.find(:first, 
+      :conditions =>["encounter_type = ? AND patient_id =? AND
+      encounter_datetime >= ? AND encounter_datetime <= ?",
+      e.id,@patient.id,date.strftime("%Y-%m-%d 00:00:00"),
+      date.strftime("%Y-%m-%d 23:59:59")]) 
+
+   art_visit = encounter.observations.collect{|r|r.to_s.squish}.join(',') rescue ''
+   refer_to_clinician_already_asked = art_visit.match(/REFER TO ART CLINICIAN/i) 
+
+  %>                                                                         
+                                                                                
+  <% if current_user_roles.include?('Nurse') and patient_present %>             
+    <%= touch_yes_no_tag "REFER TO ART CLINICIAN", @patient, nil,               
+      {:id => "refer_to_clinician",                                             
+      :helpText => "Refer patient to clinician?" } %>                           
+  <%else%>                                                                      
+    <%= touch_hidden_tag "REFER TO ART CLINICIAN", @patient, "NO", :id => "refer_to_clinician" %>
+  <%end unless refer_to_clinician_already_asked %> 
+
+  <%if @obs_ans.match(/Prescribe drugs: Yes/i) %>                               
+    <%= touch_hidden_tag "Prescribe drugs", @patient, "YES", :id => "prescribe_drugs" %>
+  <%else%>                                                                      
+    <%= touch_yes_no_unknown_tag "Prescribe drugs", @patient, nil,              
+      {:id => "prescribe_drugs",                                                
+       :condition => "$('refer_to_clinician').value == 'NO'" ,                  
+       :helpText => "Prescribe drugs during this visit" } %>                    
+  <%end unless refer_to_clinician_already_asked %>                                      
+                                                                                
+  <%if @allergic_to_sulphur.match(/Allergic to sulphur:/i).blank? %>            
+    <%= touch_yes_no_unknown_tag "Allergic to sulphur", @patient, nil,          
+      { :id => "allergic_to_sulphur",                                           
+        :condition => "$('refer_to_clinician').value == 'NO'" ,                 
+        :helpText => "Is patient allergic to sulphur" } %>                      
+  <%end unless refer_to_clinician_already_asked %> 
+
+
+
+
+
+
+
+
   <% session_date = session[:datetime].to_date rescue nil                       
     if session_date %>
 
