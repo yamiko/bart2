@@ -65,11 +65,10 @@ class OpenmrsTest < ActiveSupport::TestCase
       assert_equal 1, Person.inactive.length
     end
 
-
     should "find not find voided records when using include" do
       p = patient(:evan)      
       c = p.patient_identifiers.all.length
-      i = p.patient_identifiers.first 
+      i = p.patient_identifiers.first
       i.void      
       assert_equal c-1, Patient.find(p.patient_id, :include => :patient_identifiers).patient_identifiers.length
     end

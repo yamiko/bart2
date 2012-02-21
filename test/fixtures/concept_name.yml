@@ -9254,7 +9254,7 @@ concept_name_03582:
   concept_id: 5215
   date_created: 2004-08-12 00:00:00 +02:00
 concept_name_01638: 
-  name: AZT+3TC+EFV
+  name: AZT/3TC+EFV
   voided: 0
   uuid: e0e4306c-df1a-11de-a277-0026181bb84d
   creator: 1
@@ -29798,10 +29798,11 @@ concept_name_02984:
   concept_id: 2766
   date_created: 2007-10-30 08:56:13 +02:00
 concept_name_06722: 
-  name: D4T+3TC+NVP
+  name: d4T/3TC/NVP
   voided: 0
   uuid: e1189bc2-df1a-11de-a277-0026181bb84d
   creator: 1
+  concept_name_type: SHORT
   voided_by: 
   void_reason: 
   date_voided: 
@@ -31466,10 +31467,11 @@ concept_name_04714:
   concept_id: 3364
   date_created: 2008-06-25 11:14:04 +02:00
 concept_name_05610: 
-  name: D4T+3TC+EFV
+  name: d4T/3TC/EFV
   voided: 0
   uuid: e109feaa-df1a-11de-a277-0026181bb84d
   creator: 1
+  concept_name_type: SHORT
   voided_by: 
   void_reason: 
   date_voided: 
@@ -36748,10 +36750,11 @@ concept_name_03524:
   concept_id: 5157
   date_created: 2004-08-12 00:00:00 +02:00
 concept_name_05608: 
-  name: AZT+3TC+NVP
+  name: AZT/3TC/NVP
   voided: 0
   uuid: e109fca2-df1a-11de-a277-0026181bb84d
   creator: 1
+  concept_name_type: SHORT
   voided_by: 
   void_reason: 
   date_voided: 
@@ -36782,19 +36785,7 @@ concept_name_03525:
   concept_name_id: 3525
   locale: en
   concept_id: 5158
-  date_created: 2004-08-12 00:00:00 +02:00
-concept_name_05609: 
-  name: AZT+3TC+EFV
-  voided: 0
-  uuid: e109fda6-df1a-11de-a277-0026181bb84d
-  creator: 1
-  voided_by: 
-  void_reason: 
-  date_voided: 
-  concept_name_id: 5609
-  locale: en
-  concept_id: 1612
-  date_created: 2006-09-06 17:08:19 +02:00
+  date_created: 2004-08-12 00:00:00 +02:00sss
 concept_name_07343: 
   name: ORAL POLIO VAX NO.2
   voided: 0
@@ -70522,6 +70513,7 @@ concept_name_06503:
   voided: 0
   uuid: e1177cce-df1a-11de-a277-0026181bb84d
   creator: 1
+  concept_name_type: SHORT
   voided_by: 
   void_reason: 
   date_voided: 
@@ -78826,6 +78818,7 @@ concept_name_03214:
   voided: 0
   uuid: e0f79df0-df1a-11de-a277-0026181bb84d
   creator: 1
+  concept_name_type: FULLY_SPECIFIED
   voided_by: 
   void_reason: 
   date_voided: 
@@ -84862,6 +84855,7 @@ concept_name_03204:
   voided: 0
   uuid: e0f793be-df1a-11de-a277-0026181bb84d
   creator: 1
+  concept_name_type: FULLY_SPECIFIED
   voided_by: 
   void_reason: 
   date_voided: 
@@ -84934,6 +84928,7 @@ concept_name_03205:
   voided: 0
   uuid: e0f794b8-df1a-11de-a277-0026181bb84d
   creator: 1
+  concept_name_type: FULLY_SPECIFIED
   voided_by: 
   void_reason: 
   date_voided: 
@@ -85894,6 +85889,7 @@ concept_name_00809:
   voided: 0
   uuid: e0daaf4c-df1a-11de-a277-0026181bb84d
   creator: 1
+  concept_name_type: FULLY_SPECIFIED
   voided_by: 
   void_reason: 
   date_voided: 
@@ -91726,6 +91722,7 @@ concept_name_01756:
   voided: 0
   uuid: e0e9f8b2-df1a-11de-a277-0026181bb84d
   creator: 1
+  concept_name_type: FULLY_SPECIFIED
   voided_by: 
   void_reason: 
   date_voided: 
@@ -91822,6 +91819,7 @@ concept_name_01758:
   voided: 0
   uuid: e0e9fc18-df1a-11de-a277-0026181bb84d
   creator: 1
+  concept_name_type: FULLY_SPECIFIED
   voided_by: 
   void_reason: 
   date_voided: 
@@ -91870,6 +91868,7 @@ concept_name_01759:
   voided: 0
   uuid: e0e9fdc6-df1a-11de-a277-0026181bb84d
   creator: 1
+  concept_name_type: FULLY_SPECIFIED
   voided_by: 
   void_reason: 
   date_voided: 
@@ -96918,10 +96917,11 @@ concept_name_04874:
   concept_id: 3522
   date_created: 2008-07-28 15:08:46 +02:00
 concept_name_06094: 
-  name: AZT+3TC+LOR/R
+  name: AZT/3TC+LPV/r
   voided: 0
   uuid: e1149374-df1a-11de-a277-0026181bb84d
   creator: 1
+  concept_name_type: SHORT
   voided_by: 
   void_reason: 
   date_voided: 
@@ -102654,8 +102654,9 @@ concept_name_04864:
   concept_id: 3512
   date_created: 2008-07-28 14:50:41 +02:00
 concept_name_06084: 
-  name: TDF+3TC+NVP
+  name: TDF/3TC+NVP
   voided: 0
+  concept_name_type: SHORT
   uuid: e11485f0-df1a-11de-a277-0026181bb84d
   creator: 1
   voided_by: 
@@ -102702,10 +102703,11 @@ concept_name_04865:
   concept_id: 3513
   date_created: 2008-07-28 14:55:29 +02:00
 concept_name_06085: 
-  name: TDF+3TC+EFV
+  name: TDF/3TC/EFV
   voided: 0
   uuid: e114878a-df1a-11de-a277-0026181bb84d
   creator: 1
+  concept_name_type: SHORT
   voided_by: 
   void_reason: 
   date_voided: 
@@ -103764,7 +103766,7 @@ concept_name_05833:
   creator: 1
   voided_by: 
   void_reason: 
-  date_voided: 
+  date_voided:
   concept_name_id: 5833
   locale: en
   concept_id: 2137
@@ -103841,7 +103843,7 @@ concept_name_03750:
   locale: en
   concept_id: 5381
   date_created: 2004-08-12 00:00:00 +02:00
-concept_name_06158: 
+concept_name_06158:
   name: PARTSTAT
   voided: 0
   uuid: e114d2b2-df1a-11de-a277-0026181bb84d
@@ -103853,7 +103855,21 @@ concept_name_06158:
   locale: en
   concept_id: 3082
   date_created: 2008-05-20 12:11:46 +02:00
-concept_name_04938: 
+concept_name_011328:
+  name: Unspecified Staging Conditions
+  voided: "0"
+  concept_name_type: FULLY_SPECIFIED
+  uuid: 9efae062-53ce-11e1-ab03-544249e32ba2
+  creator: "1"
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "11328"
+  locale_preferred: "0"
+  locale: en
+  concept_id: "8258"
+  date_created: 2011-11-18 12:03:18
+concept_name_04938:
   name: MOTHER WHO STAGE
   voided: 0
   uuid: e1054860-df1a-11de-a277-0026181bb84d
@@ -103877,7 +103893,7 @@ concept_name_05834:
   locale: en
   concept_id: 2139
   date_created: 2007-05-12 10:47:50 +02:00
-concept_name_04074: 
+concept_name_04074:
   name: NUMBER OF HOSPITALIZATIONS IN PAST YEAR
   voided: 0
   uuid: e0ffbbac-df1a-11de-a277-0026181bb84d
@@ -107501,3 +107517,147 @@ concept_name_010622:
   locale: en
   concept_id: "7759"
   date_created: 2011-04-03 23:24:15 +02:00
+concept_name_010854:
+  name: ABACAVIR LAMIVUDINE LOPINAVIR AND RITONAVIR
+  voided: 0
+  uuid: 9ef3e500-53ce-11e1-ab03-544249e32ba2
+  creator: "1"
+  concept_name_type: FULLY_SPECIFIED
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "10854"
+  locale: en
+  concept_id: "7921"
+  date_created: 2011-06-30 23:24:15 +02:00
+concept_name_010855:
+  name: ABC/3TC+LPV/r
+  voided: 0
+  concept_name_type: SHORT
+  uuid: 9ef3e5aa-53ce-11e1-ab03-544249e32ba2
+  creator: "1"
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "10855"
+  locale: en
+  concept_id: "7921"
+  date_created: 2011-06-30 23:24:15 +02:00
+concept_name_010858:
+  name: TDF/3TC+LPV/r
+  voided: 0
+  uuid: 9ef3e7bc-53ce-11e1-ab03-544249e32ba2
+  creator: "1"
+  concept_name_type: SHORT
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "10858"
+  locale: en
+  concept_id: "7923"
+  date_created: 2011-06-30 23:24:15 +02:00
+concept_name_010859:
+  name: TENOFAVIR LAMIVUDINE LOPINAVIR AND RITONAVIR
+  voided: "0"
+  concept_name_type: FULLY_SPECIFIED
+  uuid: 9ef3e866-53ce-11e1-ab03-544249e32ba2
+  creator: "1"
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "10859"
+  locale: en
+  concept_id: "7923"
+  date_created: 2011-06-30 19:57:25 +02:00
+concept_name_010947:
+  name: Stavudine Lamivudine + Stavudine Lamivudine Nevirapine (Starter pack)
+  voided: "0"
+  concept_name_type: FULLY_SPECIFIED
+  uuid: 9ef42948-53ce-11e1-ab03-544249e32ba2
+  creator: "1"
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "10947"
+  locale: en
+  concept_id: "7993"
+  date_created: 2011-08-15 11:21:12 +02:00
+concept_name_010948:
+  name: d4T/3TC + d4T/3TC/NVP (Starter pack)
+  voided: "0"
+  concept_name_type: SHORT
+  uuid: 9ef42a06-53ce-11e1-ab03-544249e32ba2
+  creator: "1"
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "10948"
+  locale: en
+  concept_id: "7993"
+  date_created: 2011-08-15 11:24:42 +02:00
+concept_name_011326:
+  name: TDF/3TC+NVP (Starter pack)
+  voided: "0"
+  concept_name_type: SHORT
+  uuid: 9efadf04-53ce-11e1-ab03-544249e32ba2
+  creator: "1"
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "11326"
+  locale: en
+  concept_id: "8257"
+  date_created: 2011-11-17 17:25:25 +02:00
+concept_name_011327:
+  name: Tenofovir Lamivudine Nevirapine (Starter pack)
+  voided: "0"
+  concept_name_type: FULLY_SPECIFIED
+  uuid: 9efadfae-53ce-11e1-ab03-544249e32ba2
+  creator: "1"
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "11327"
+  locale: en
+  concept_id: "8257"
+  date_created: 2011-11-17 17:25:25 +02:00
+concept_name_011324:
+  name: Zidovudine lamivudine  + Zidovudine lamivudine nevirapine (Starter pack)
+  voided: "0"
+  concept_name_type: FULLY_SPECIFIED
+  uuid: 9efadda6-53ce-11e1-ab03-544249e32ba2
+  creator: "1"
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "11324"
+  locale: en
+  concept_id: "8256"
+  date_created: 2011-11-17 17:24:04
+concept_name_011325:
+  name: AZT/3TC + AZT/3TC/NVP (Starter pack)
+  voided: "0"
+  concept_name_type: SHORT
+  uuid: 9efade50-53ce-11e1-ab03-544249e32ba2
+  creator: "1"
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "11325"
+  locale: en
+  concept_id: "8256"
+  date_created: 2011-11-17 17:24:04
+concept_name_011329:
+  name: Unspecified Staging Conditions
+  voided: 1
+  concept_name_type: FULLY_SPECIFIED
+  uuid: 9efae062-53ce-25il-ab03-544249e32ba2
+  creator: "1"
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "11329"
+  locale_preferred: "0"
+  locale: en
+  concept_id: "8258"
+  date_created: 2011-11-18 12:03:18
