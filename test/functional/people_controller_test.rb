@@ -69,21 +69,21 @@ class PeopleControllerTest < ActionController::TestCase
 
     should "lookup demographics by posting a national id and return full demographic data" do
       logged_in_as :mikmck, :registration do
-        get :demographics, {:patient => { :identifiers => {"National id" => "P1701210013" }}}
+        get :demographics, {:id => patient(:evan).patient_id, :patient => { :identifiers => {"National id" => "P1701210013" }}}
         assert_response :success
       end  
     end
 
     should "lookup demographics by posting a national id that has no associated record and send them to the search page" do
       logged_in_as :mikmck, :registration do
-        get :demographics, {:person => {:patient => { :identifiers => {"National id" => "P1666666666" }}}}
+        get :demographics, {:id => patient(:evan).patient_id, :person => {:patient => { :identifiers => {"National id" => "P1666666666" }}}}
         assert_response :success
       end  
     end
 
     should "lookup people by posting a family name, first name and gender and return full demographic data" do
       logged_in_as :mikmck, :registration do
-        get :demographics, {:person => {:gender => "M", :names => {:given_name => "Evan", :family_name => "Waters"}}}
+        get :demographics, {:id => patient(:evan).patient_id, :person => {:gender => "M", :names => {:given_name => "Evan", :family_name => "Waters"}}}
         assert_response :success
       end  
     end
@@ -151,9 +151,9 @@ class PeopleControllerTest < ActionController::TestCase
 
     should "select a person" do
       logged_in_as :mikmck, :registration do      
-        get :select, {:person => person(:evan).person_id}
+        get :select, {:person => {:id => person(:evan).person_id}}
         assert_response :redirect
-        get :select, {:person => 0, :given_name => 'Dennis', :family_name => 'Rodman', :gender => 'U'}
+        get :select, {:person => {:id => person(:evan).person_id}, :given_name => 'Dennis', :family_name => 'Rodman', :gender => 'U'}
         assert_response :redirect
       end  
     end

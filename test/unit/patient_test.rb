@@ -16,7 +16,7 @@ class PatientTest < ActiveSupport::TestCase
     
     should "not include voided identifiers in the list of patient identifiers" do
       PatientIdentifier.find(:first).void
-      assert_equal patient(:evan).patient_identifiers.count, 2
+      assert_equal patient(:evan).patient_identifiers.count, 3
     end
     
     should "refer to the person" do
