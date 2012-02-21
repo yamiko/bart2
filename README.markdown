@@ -1,5 +1,4 @@
-Mateme is a simple patient registration application written in Ruby on Rails
-and is intended as a web front end for OpenMRS. 
+BART is an ART application written in Ruby on Rails and is intended as a web front end for OpenMRS for supporting Malawi's ART system. 
 
 OpenMRS® is a community-developed, open-source, enterprise electronic medical 
 record system framework. We've come together to specifically respond to those 
@@ -11,8 +10,7 @@ base that equals or surpasses proprietary equivalents. You are welcome to come
 participate in the community, whether by implementing our software, or 
 contributing your efforts to our mission!
 
-Mateme was built by Baobab Health and Partners in Health in
-Malawi, Africa. It is licensed under the Mozilla Public License.
+BART was developed by Baobab Health in Malawi, Africa. It is licensed under the GNU Lesser General Public License.
 
 Getting Started:
 

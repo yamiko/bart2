@@ -1,4 +1,5 @@
 evan_identifier:
+  patient_identifier_id: 1
   patient_id: 1
   identifier: P1701210013
   identifier_type: 3
@@ -12,6 +13,7 @@ evan_identifier:
   void_reason: 
   uuid: 1ff26ffa-268f-102d-a2b3-16da04859145
 evan_arv_number:
+  patient_identifier_id: 2
   patient_id: 1
   identifier: ARV-311
   identifier_type: 4
@@ -25,6 +27,7 @@ evan_arv_number:
   void_reason: 
   uuid: 1ff34876-268f-102d-a2b3-16da04859145
 evan_pre_art_number:
+  patient_identifier_id: 3
   patient_id: 1
   identifier: PART-311
   identifier_type: 5
@@ -38,6 +41,7 @@ evan_pre_art_number:
   void_reason: 
   uuid: 1ff3583e-268f-102d-a2b3-16da04859145
 evan_filing_number:
+  patient_identifier_id: 4
   patient_id: 1
   identifier: FN3300001
   identifier_type: 11
