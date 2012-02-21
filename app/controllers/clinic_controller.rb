@@ -120,7 +120,8 @@ class ClinicController < ApplicationController
     @reports = [
       ["Cohort","/cohort_tool/cohort_menu"],
       ["Supervision","/clinic/supervision_tab"],
-      ["Data Cleaning Tools", "/clinic/data_cleaning_tab"]
+      ["Data Cleaning Tools", "/clinic/data_cleaning_tab"],
+      ["View appointments","/report/select_date"]
     ]
 
     @reports = [

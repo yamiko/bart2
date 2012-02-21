@@ -489,6 +489,14 @@ class ReportController < ApplicationController
     appointments
   end
 
-
+  def select_date
+    render :layout => 'menu'
+  end
   
+  def set_appointments
+    @select_date = params[:user_selected_date].to_date
+    @patients = Report.set_appointments(@select_date)
+    render :layout => 'menu'
+  end
+
 end
