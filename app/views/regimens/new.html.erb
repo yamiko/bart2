@@ -316,54 +316,53 @@
     }
 
     function existingRegimen() {
-      return false;
-      /*hasReasonForART() == true && 
+      return hasReasonForART() == true && 
       current_regimens_for_programs[$("patient_program").value] != null 
-      && $("prescribe_arvs").value == "YES"*/
+      && $("prescribe_arvs").value == "YES";
     }
 </script>
 
 <form id='regimen_form' action="/regimens/create" method='post'>
  
-  <%= hidden_field_tag :patient_id, @patient.id %>
+	<%= hidden_field_tag :patient_id, @patient.id %>
 
 	<!-- TB regimen -->
-  <%if User.current_user.activities.include?('Manage Lab Orders') or User.current_user.activities.include?('Manage Lab Results') or
-       User.current_user.activities.include?('Manage Sputum Submissions') or User.current_user.activities.include?('Manage TB Clinic Visits') or
-       User.current_user.activities.include?('Manage TB Reception Visits') or User.current_user.activities.include?('Manage TB Registration Visits') or
-       User.current_user.activities.include?('Manage HIV Status Visits') %>
+	<% if User.current_user.activities.include?('Manage Lab Orders') or User.current_user.activities.include?('Manage Lab Results') or
+		   User.current_user.activities.include?('Manage Sputum Submissions') or User.current_user.activities.include?('Manage TB Clinic Visits') or
+		   User.current_user.activities.include?('Manage TB Reception Visits') or User.current_user.activities.include?('Manage TB Registration Visits') or
+		   User.current_user.activities.include?('Manage HIV Status Visits') %>
 
-    <% if (@family_planning_methods.length != 0) || ( @patient_bean.sex == 'Female' && @patient_bean.age > 14 ) %>
-            <%= text_field_tag :task_name, nil,
+		<% if (@family_planning_methods.length != 0) || ( @patient_bean.sex == 'Female' && @patient_bean.age > 14 ) %>
+			<%= text_field_tag :task_name, nil,
                 {   :tt_onLoad => "showResults();",
                     :optional => "true",
                     :tt_pageStyleClass => "NoControls",
                     :helpText => '' } %>
-    <% end %>
+		<% end %>
   <% end %>
 	
-  <%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
-      {:optional => false,
-       :id => 'prescribe_tb_drugs',
-       :condition => 'isRegisteredForTB() == true',
-       :helpText => "Prescribe TB Regimen?" } %>
+	<%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
+	{	:optional => false,
+		:id => 'prescribe_tb_drugs',
+		:condition => 'isRegisteredForTB() == true',
+		:helpText => "Prescribe TB Regimen?" } %>
 
-  <% unless @tb_programs.uniq.count == 1 %>
-  	<%= select_tag :tb_patient_program, options_for_select(@tb_programs.map{|program| [program.program.name, program.patient_program_id] if PatientProgram.find(program.patient_program_id).date_completed == nil}), {
-    :textCase => "upper", 
-     :condition => '$("prescribe_tb_drugs").value == "YES"',
-   :allowFreeText => 'false',
-    :helpText => "Prescribe regimen for which TB program?"}%>
-  <%else%>
-    <%= hidden_field_tag(:tb_patient_program, @tb_programs.first.patient_program_id) %>
-  <%end%>
+	<% unless @tb_programs.uniq.count == 1 %>
+		<%= select_tag :tb_patient_program, options_for_select(@tb_programs.map{|program| [program.program.name, program.patient_program_id] if PatientProgram.find(program.patient_program_id).date_completed == nil}), 
+			{	:textCase => "upper", 
+				:condition => '$("prescribe_tb_drugs").value == "YES"',
+				:allowFreeText => 'false',
+				:helpText => "Prescribe regimen for which TB program?" } %>
+	<%else%>
+		<%= hidden_field_tag(:tb_patient_program, @tb_programs.first.patient_program_id) %>
+	<%end%>
 
-<%= select_tag :tb_continue_existing_regimen, options_for_select([['',''],['Yes','YES'],['No','NO']], ''), {
-    :textCase => "upper", 
-    :allowFreeText => 'false',
-    :condition => 'current_regimens_for_programs[$("tb_patient_program").value] != null && $("prescribe_tb_drugs").value == "YES"',
-    :tt_onLoad => '$("infoBar"+tstCurrentPage).innerHTML = current_regimen_names_for_programs[$("tb_patient_program").value]',
-    :helpText => "Continue current TB regimen?"}%>
+	<%= select_tag :tb_continue_existing_regimen, options_for_select([['',''],['Yes','YES'],['No','NO']], ''), 
+		{	:textCase => "upper", 
+			:allowFreeText => 'false',
+			:condition => 'current_regimens_for_programs[$("tb_patient_program").value] != null && $("prescribe_tb_drugs").value == "YES"',
+			:tt_onLoad => '$("infoBar"+tstCurrentPage).innerHTML = current_regimen_names_for_programs[$("tb_patient_program").value]',
+			:helpText => "Continue current TB regimen?" } %>
 
 	<%	initial_regimen_help_text = "Select TB regimen" 
 		if @transfer_out_patient 
@@ -386,20 +385,20 @@
 			:condition => '$("prescribe_tb_drugs").value == "YES"',
 			:helpText => "Select formulations and doses" } %>
 
-  <% optionsString = "<option>" "" "</option>"
-     durations = ['1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months']
-     durations.each do |duration|
-       if duration.match(/week/i)
-        days = (((duration.to_i)*7))
-       elsif duration.match(/month/i)
-        days = (((duration.to_i)* 28))
-       end
-       optionsString += "<option value = '" + days.to_s + "'>" + duration + "</option>"
-     end
-  %>
-  <%= select_tag :tb_duration, optionsString, { 
-	:condition => '$("prescribe_tb_drugs").value == "YES"',	
-	:helpText => 'Duration' } %> 
+	<% optionsString = "<option>" "" "</option>"
+		 durations = ['1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months']
+		 durations.each do |duration|
+			if duration.match(/week/i)
+				days = (((duration.to_i)*7))
+			elsif duration.match(/month/i)
+				days = (((duration.to_i)* 28))
+			end
+			optionsString += "<option value = '" + days.to_s + "'>" + duration + "</option>"
+		 end
+	%>
+	<%= select_tag :tb_duration, optionsString, 
+		{	:condition => '$("prescribe_tb_drugs").value == "YES"',	
+			:helpText => 'Duration' } %> 
 
 	<% if @transfer_out_patient %>
 		<%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
@@ -509,8 +508,7 @@
   <% if @patient_bean.age >= 14 %>
 	
 	  <%= touch_numeric_tag "CONDOMS", @patient, nil,
-		{	:optional => false,
-			:max => '100',
+		{	:max => '100',
 			:condition => 'hasARTVisit() == true;',
 			:helpText => 'Number of condoms given' 
 		} %>
@@ -584,14 +582,13 @@
         end
   end%>
 
-<% session_date = session[:datetime].to_date rescue nil                       
-    if session_date %>
+	<% if @retrospective %>
 
-    <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
-<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
-    <% else %>
-      <%= hidden_field_tag "filter[provider]", nil %>
-    <%end%>
+		<p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
+		<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+	<% else %>
+		<%= hidden_field_tag "filter[provider]", nil %>
+	<%end%>
 </form>
 
 <div id = "previous_drugs_dispensed">

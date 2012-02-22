@@ -1,6 +1,13 @@
 class RegimensController < ApplicationController
 
 	def new
+
+		if session[:datetime]
+			@retrospective = true 
+		else
+			@retrospective = false
+		end
+
 		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
 		@patient_bean = PatientService.get_patient(@patient.person)
 		@programs = @patient.patient_programs.all
