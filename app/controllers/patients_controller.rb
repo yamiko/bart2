@@ -818,7 +818,8 @@ class PatientsController < ApplicationController
     (observations || []).map do |adh|
       adherence = adh.value_numeric ||= adh.value_text
       if (adherence.to_f >= 95 || adherence.to_f <= 105)
-        alerts << "Adherence: #{adh.order.drug_order.drug.name} (#{adh.value_numeric}%)"
+        drug_name = adh.order.drug_order.drug.concept.shortname rescue adh.order.drug_order.drug.name
+        alerts << "Adherence: #{drug_name} (#{adh.value_numeric}%)"
       end
     end 
 
