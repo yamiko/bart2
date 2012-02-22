@@ -1569,7 +1569,8 @@ class PatientsController < ApplicationController
           when "DRUGS GIVEN"
             concept_name = obs.concept.fullname rescue []
             next unless concept_name.upcase == 'AMOUNT DISPENSED' 
-            drug = Drug.find(obs.value_drug)
+            drug = Drug.find(obs.value_drug) rescue nil
+            next if drug.blank?
             drug_name = drug.concept.shortname rescue drug.name
             if drug_name.match(/Cotrimoxazole/i)
               patient_visits[visit_date].cpt += obs.value_numeric unless patient_visits[visit_date].cpt.blank?
@@ -1600,7 +1601,8 @@ class PatientsController < ApplicationController
           when "PILLS BROUGHT"
             concept_name = obs.concept.fullname rescue []
             next unless concept_name.upcase == 'AMOUNT OF DRUG BROUGHT TO CLINIC' 
-            drug = Drug.find(obs.order.drug_order.drug_inventory_id)
+            drug = Drug.find(obs.order.drug_order.drug_inventory_id) rescue nil
+            next if drug.blank?
             drug_name = drug.concept.shortname rescue drug.name
             patient_visits[visit_date].pills = [] if patient_visits[visit_date].pills.blank?
             patient_visits[visit_date].pills << [drug_name,obs.value_numeric] rescue []
