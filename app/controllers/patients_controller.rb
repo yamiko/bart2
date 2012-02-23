@@ -1556,8 +1556,8 @@ class PatientsController < ApplicationController
             concept_name = obs.concept.fullname.upcase rescue []
             next unless concept_name == 'RESPONSIBLE PERSON PRESENT' or concept_name == 'PATIENT PRESENT FOR CONSULTATION'
             patient_visits[visit_date].visit_by = '' if patient_visits[visit_date].visit_by.blank?
-            patient_visits[visit_date].visit_by+= "P" if concept_name == 'PATIENT PRESENT FOR CONSULTATION' and obs.value_coded == yes.concept_id
-            patient_visits[visit_date].visit_by+= "G" if concept_name == 'RESPONSIBLE PERSON PRESENT' and !obs.value_text.blank?
+            patient_visits[visit_date].visit_by+= "P" if obs.to_s.squish.match(/Patient present for consultation: Yes/i)
+            patient_visits[visit_date].visit_by+= "G" if obs.to_s.squish.match(/Responsible person present: Yes/i)
           when "TB STATUS"
             concept_name = obs.concept.fullname rescue []
             next unless concept_name.upcase == 'TB STATUS' 

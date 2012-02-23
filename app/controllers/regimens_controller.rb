@@ -375,8 +375,14 @@ class RegimensController < ApplicationController
 	end
 
 	def formulations
-		@patient = Patient.find(params[:patient_id] || session[:patient_id]) 
-    render :text => formulation(@patient,params[:id]).to_json
+    @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
+    @criteria = Regimen.criteria(PatientService.get_patient_attribute_value(@patient, "current_weight")).all(:conditions => {:concept_id => params[:id]}, :include => :regimen_drug_orders)
+    @options = @criteria.map do | r |
+      r.regimen_drug_orders.map do | order |
+        [order.drug.name , order.dose, order.frequency , order.units , r.id ]
+      end
+    end
+    render :text => @options.to_json 
 	end
 
 	# Look up likely durations for the regimen
