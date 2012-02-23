@@ -64,13 +64,13 @@
   }
 
   #previous_drugs_dispensed {
-    bottom: 310px;
+    bottom: 380px;
     font-size: 20px;
     left: 25px;
     position: absolute;
     z-index: 600;
     border-radius: 10px 10px 10px 10px;
-    width: 93%;
+    width: 95%;
     display: none;
   }  
 
@@ -266,27 +266,19 @@
     }
 
     function showDrugs() {
-      var reg_id = current_regimens_for_programs[$("patient_program").value];
-      new Ajax.Request("/regimens/formulations?patient_id=<%=@patient.id %>&id=" + reg_id ,{method:'get',onSuccess: function(transport){
-      formulations = JSON.parse(transport.responseText) || "";                  
-      if(formulations.length > 0 && formulations != "[[[]]]" && formulations != "[]"){
-        formulations = formulations[0]                                          
-        prescription_container = $("previous_drugs_dispensed");                      
-        html = "<table>"                                                        
-        html += "<tr><th>Drug name</th><th>Dose</th><th>Units</th><th>Daily dose</th></tr>" 
-        for (i = 0 ; i < formulations.length ; i++) {                           
-          data = formulations[i]                                                
-          regimen_id = data[4]                                                  
-          html += "<tr><td>" + data[0] + "</td>"                                
-          html += "<td style='text-align:center;'>" + data[1] + "</td>"                                    
-          html += "<td>" + data[3] + "</td>"                                    
-          html += "<td>" + data[2] + "</td></tr>"                               
-        }                                                                       
-        html += "</table>"                                                      
-        prescription_container.innerHTML = html       
-        prescription_container.style.display = "inline";                          
-      }                                                                         
-    }});
+      var prescription_container = $("previous_drugs_dispensed");                      
+      var html = "<table>"                                                          
+      html += "<tr><th>Drug name</th><th>Dose</th><th>Units</th><th>Daily dose</th></tr>" 
+      <% (@regimen_formulations || []).each do |data| %>     
+        regimen_id = <%= data[4]%>                                                  
+        html += "<tr><td>" + "<%=data[0]%>" + "</td>"                                
+        html += "<td style='text-align:center;'>" + "<%=data[1]%>" + "</td>"                                    
+        html += "<td>" + "<%=data[3]%>" + "</td>"                                    
+        html += "<td>" + "<%=data[2]%>" + "</td></tr>"                               
+      <%end%>                                                                       
+      html += "</table>"                                                        
+      prescription_container.innerHTML = html                                   
+      prescription_container.style.display = "inline";
     }
 
     function setAttributes() {

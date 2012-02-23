@@ -23,6 +23,11 @@ class RegimensController < ApplicationController
 		@tb_programs = @patient.patient_programs.in_uncompleted_programs(['TB PROGRAM', 'MDR-TB PROGRAM'])
 		
 		@current_regimens_for_programs = current_regimens_for_programs
+    @regimen_formulations = []
+    (@current_regimens_for_programs || {}).each do |patient_program_id , regimen_id|
+      next unless PatientProgram.find(patient_program_id).program.name.match(/HIV PROGRAM/i)
+      @regimen_formulations = formulation(@patient,regimen_id)
+    end
 		@current_regimen_names_for_programs = current_regimen_names_for_programs
 		
 		@current_hiv_program_state = PatientProgram.find(:first, :joins => :location, :conditions => ["program_id = ? AND location.location_id = ? AND date_completed IS NULL", Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id, Location.current_health_center]).patient_states.current.first.program_workflow_state.concept.fullname rescue ''		
@@ -370,14 +375,8 @@ class RegimensController < ApplicationController
 	end
 
 	def formulations
-		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
-		@criteria = Regimen.criteria(PatientService.get_patient_attribute_value(@patient, "current_weight")).all(:conditions => {:concept_id => params[:id]}, :include => :regimen_drug_orders)
-		@options = @criteria.map do | r | 
-			r.regimen_drug_orders.map do | order |
-				[order.drug.name , order.dose, order.frequency , order.units , r.id ]
-			end
-		end
-		render :text => @options.to_json    
+		@patient = Patient.find(params[:patient_id] || session[:patient_id]) 
+    render :text => formulation(@patient,params[:id]).to_json
 	end
 
 	# Look up likely durations for the regimen
@@ -469,6 +468,21 @@ class RegimensController < ApplicationController
       PatientProgram.update_all "date_completed = '#{date_completed.strftime('%Y-%m-%d %H:%M:%S')}'",
                                  "patient_program_id = #{patient_program.patient_program_id}"
     end
-end
+  end
+  
+  protected
+
+
+	def formulation(patient,regimen_id)
+		criteria = Regimen.criteria(PatientService.get_patient_attribute_value(patient, "current_weight")).all(:conditions => {:concept_id => regimen_id}, :include => :regimen_drug_orders)
+		options = []
+    criteria.map do | r | 
+			r.regimen_drug_orders.map do | order |
+				options << [order.drug.name , order.dose, order.frequency , order.units , r.id ]
+			end
+		end
+		return options  
+	end
+
 
 end
