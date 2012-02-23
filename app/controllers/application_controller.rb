@@ -1427,7 +1427,7 @@ class ApplicationController < ActionController::Base
     art_initial = Encounter.find(:first,:conditions =>["patient_id = ? 
                   AND encounter_type = ?",patient.id,
                   EncounterType.find_by_name("ART_INITIAL").id],
-                  :order =>'encounter_datetime DESC',:limit => 1)
+                  :order =>'encounter_datetime DESC,date_created DESC')
 
     return true if art_initial.blank?
 
