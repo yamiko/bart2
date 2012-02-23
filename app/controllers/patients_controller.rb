@@ -2561,19 +2561,4 @@ class PatientsController < ApplicationController
     render :text => "Next appointment: #{date.strftime('%d %B %Y')} (#{count})"
   end 
 
-  private
-
-   def latest_state(patient_obj,visit_date)                                             
-     program_id = Program.find_by_name('HIV PROGRAM').id                        
-     patient_state = PatientState.find(:first,                                  
-       :joins => "INNER JOIN patient_program p                   
-       ON p.patient_program_id = patient_state.patient_program_id",
-       :conditions =>["patient_state.voided = 0 AND p.voided = 0 
-       AND p.program_id = ? AND start_date <= ? AND p.patient_id =?",
-       program_id,visit_date.to_date,patient_obj.id],        
-       :order => "patient_state_id DESC")                        
-                                                                                
-     return if patient_state.blank?                                             
-     ConceptName.find_by_concept_id(patient_state.program_workflow_state.concept_id).name
-  end 
 end

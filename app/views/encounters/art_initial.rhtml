@@ -463,8 +463,7 @@
 </script>
 <%#= raise @patient.person.birthdate.day.to_s %>
 <%# if @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM') %>
-<% art_initial = @patient.encounters.find_last_by_encounter_type(EncounterType.find_by_name('ART_INITIAL').id) rescue nil
- unless art_initial.blank? %>
+<% unless @require_art_initial %>
 	<div class="inputPage NoKeyboard" id="page" style="display: block;">
 		<div id="trigger"></div>
 		<div id="infoBar" class="infoBarClass"></div>

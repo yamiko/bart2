@@ -841,14 +841,15 @@ class ApplicationController < ActionController::Base
       return task
     end
 
-    if User.current_user.activities.include?('Manage Lab Orders') or User.current_user.activities.include?('Manage Lab Results') or
-       User.current_user.activities.include?('Manage Sputum Submissions') or User.current_user.activities.include?('Manage TB Clinic Visits') or
-       User.current_user.activities.include?('Manage TB Reception Visits') or User.current_user.activities.include?('Manage TB Registration Visits') or
-       User.current_user.activities.include?('Manage HIV Status Visits') 
+    current_user_activities = User.current_user.activities
+    if current_user_activities.include?('Manage Lab Orders') or current_user_activities.include?('Manage Lab Results') or
+       current_user_activities.include?('Manage Sputum Submissions') or current_user_activities.include?('Manage TB Clinic Visits') or
+       current_user_activities.include?('Manage TB Reception Visits') or current_user_activities.include?('Manage TB Registration Visits') or
+       current_user_activities.include?('Manage HIV Status Visits') 
          return tb_next_form(location , patient , session_date)
     end
     
-    if User.current_user.activities.blank?
+    if current_user_activities.blank?
       task.encounter_type = "NO TASKS SELECTED"
       task.url = "/patients/show/#{patient.id}"
       return task
@@ -1008,14 +1009,16 @@ class ApplicationController < ActionController::Base
             return task
           end
         when 'ART_INITIAL'
-          encounter_art_initial = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
-                                         patient.id,EncounterType.find_by_name(type).id],
-                                         :order =>'encounter_datetime DESC',:limit => 1)
+          #encounter_art_initial = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
+           #                              patient.id,EncounterType.find_by_name(type).id],
+            #                             :order =>'encounter_datetime DESC',:limit => 1)
 
-          if encounter_art_initial.blank? and user_selected_activities.match(/Manage HIV first visits/i)
+          art_initial = require_art_initial(patient)
+
+          if art_initial and user_selected_activities.match(/Manage HIV first visits/i)
             task.url = "/encounters/new/art_initial?show&patient_id=#{patient.id}"
             return task
-          elsif encounter_art_initial.blank? and not user_selected_activities.match(/Manage HIV first visits/i)
+          elsif art_initial and not user_selected_activities.match(/Manage HIV first visits/i)
             task.url = "/patients/show/#{patient.id}"
             return task
           end
@@ -1403,6 +1406,42 @@ class ApplicationController < ActionController::Base
     user_roles = UserRole.find(:all,:conditions =>["user_id = ?", User.current_user.id]).collect{|r|r.role}
     RoleRole.find(:all,:conditions => ["child_role IN (?)", user_roles]).collect{|r|user_roles << r.parent_role}
     return user_roles.uniq
+  end
+
+  def latest_state(patient_obj,visit_date)                                     
+     program_id = Program.find_by_name('HIV PROGRAM').id                        
+     patient_state = PatientState.find(:first,                                  
+       :joins => "INNER JOIN patient_program p                                  
+       ON p.patient_program_id = patient_state.patient_program_id",             
+       :conditions =>["patient_state.voided = 0 AND p.voided = 0                
+       AND p.program_id = ? AND start_date <= ? AND p.patient_id =?",           
+       program_id,visit_date.to_date,patient_obj.id],                           
+       :order => "patient_state_id DESC")                                       
+                                                                                
+     return if patient_state.blank?                                             
+     ConceptName.find_by_concept_id(patient_state.program_workflow_state.concept_id).name
+  end
+  
+  def require_art_initial(patient_obj = nil)
+    patient = patient_obj || find_patient
+    art_initial = Encounter.find(:first,:conditions =>["patient_id = ? 
+                  AND encounter_type = ?",patient.id,
+                  EncounterType.find_by_name("ART_INITIAL").id],
+                  :order =>'encounter_datetime DESC',:limit => 1)
+
+    return true if art_initial.blank?
+
+    current_outcome = latest_state(patient,Date.today) || ""
+    
+    if current_outcome.match(/Transferred out/i)
+      arvs_given_before = false
+      PatientService.drug_given_before(patient,Date.today).each do |order|
+        next unless MedicationService.arv(order.drug_order.drug)
+        arvs_given_before = true                                              
+      end
+      return true unless arvs_given_before 
+    end
+    return false
   end
 
 private

@@ -759,6 +759,8 @@ class EncountersController < ApplicationController
 			@arv_drugs = @arv_drugs.sort {|a,b| a.to_s.downcase <=> b.to_s.downcase}
 			@arv_drugs = @arv_drugs + other
 
+      @require_art_initial = require_art_initial
+
 			#raise @arv_drugs.to_yaml
 			#raise drugs.to_yaml
 		end
