@@ -293,4 +293,18 @@ module ApplicationHelper
     return return_date
   end
 
+  def current_program_location                                                  
+    current_user_activities = User.current_user.activities                      
+    if Location.current_location.name.downcase == 'outpatient'                  
+      return "OPD"                                                              
+    elsif current_user_activities.include?('Manage Lab Orders') or current_user_activities.include?('Manage Lab Results') or
+       current_user_activities.include?('Manage Sputum Submissions') or current_user_activities.include?('Manage TB Clinic Visits') or
+       current_user_activities.include?('Manage TB Reception Visits') or current_user_activities.include?('Manage TB Registration Visits') or
+       current_user_activities.include?('Manage HIV Status Visits')             
+       return 'TB program'                                                      
+    else #if current_user_activities                                            
+       return 'HIV program'                                                     
+    end                                                                         
+  end
+
 end
