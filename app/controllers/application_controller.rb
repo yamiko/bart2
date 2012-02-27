@@ -1429,14 +1429,12 @@ class ApplicationController < ActionController::Base
     return true if art_initial.blank?
 
     current_outcome = latest_state(patient,Date.today) || ""
+    on_art_before = has_patient_been_on_art_before(patient)
     
     if current_outcome.match(/Transferred out/i)
-      arvs_given_before = false
-      PatientService.drug_given_before(patient,Date.today).each do |order|
-        next unless MedicationService.arv(order.drug_order.drug)
-        arvs_given_before = true                                              
-      end
-      return true unless arvs_given_before 
+      return on_art_before ? false : true
+    # else
+    #  return on_art_before ? false : true
     end
     return false
   end
@@ -1461,4 +1459,18 @@ private
     @patient = Patient.find(params[:patient_id] || session[:patient_id] || params[:id]) rescue nil
   end
 
+  def has_patient_been_on_art_before(patient)
+    patient_states = PatientProgram.find(:first, :joins => :location, 
+      :conditions => ["program_id = ? AND location.location_id = ? 
+      AND date_completed IS NULL AND patient_id = ?",      
+      Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id, 
+      Location.current_health_center,patient.id]).patient_states rescue []
+    (patient_states || []).each do |state|
+      if state.program_workflow_state.concept.fullname.match(/antiretrovirals/i)
+        return true
+        break
+      end
+    end
+    return false
+  end
 end
