@@ -31,7 +31,8 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
   var clinic_days = "<%= get_global_property_value('clinic.days') || 'Monday,Tuesday,Wednesday,Thursday,Friday' %>";
   var peads_clinic_days = "<%= get_global_property_value('peads.clinic.days') rescue '' %>";
   var patient_age = <%= @patient_bean.age %>;
-  var booked_dates = null
+  var booked_dates = null;
+  var number_of_suggested_booked_dates_tried = 0;
 
   var setDate = null;
   var setNextAppointmentDate = null;
@@ -100,6 +101,7 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
   function handleAppointments(visit_date) {
     suggest_date = new Date(visit_date.getFullYear(),visit_date.getMonth(),visit_date.getDate() + number_of_days_to_add)
     skip = true
+
     while (skip) {
       for (i = 0 ; i < clinic_days.length ; i++) {
         if (clinic_days[i] == dateFormat(suggest_date,'dddd')){
@@ -110,6 +112,14 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
       if (skip)
         suggest_date = new Date(suggest_date.getFullYear(),suggest_date.getMonth(),suggest_date.getDate() - 1)
 
+  
+      number_of_suggested_booked_dates_tried++
+      /*if the number of tries have reached five times,we assign the original 
+      suggested return date */
+      if (number_of_suggested_booked_dates_tried > 4 && booked_dates.length > 0) {
+         return returnOriginalSuggesteddate(suggest_date); 
+         break;
+      }
 
       if (skip == false){
         below_limit = isBelowLimit(suggest_date);
@@ -122,6 +132,39 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
       }
     }
     return suggest_date
+  }
+
+
+  function returnOriginalSuggesteddate(suggested_date) {
+    var suggest_original_date = null;
+    var second_biggest_date_available = null;
+
+    for(var i = 0; i < booked_dates.length ; i++){
+      var sdate = new Date(booked_dates[i].split(":")[0]);
+      if(sdate >= suggested_date) {
+        second_biggest_date_available = suggested_date;
+        suggest_original_date = sdate;
+        suggested_date = sdate;
+      }  
+    }
+
+
+    /* beacuse of the two day buffer rule, we give the patient the second higest
+    available date */
+    var suggested_new_date = null;
+
+    for(var i = 0; i < booked_dates.length ; i++){
+      var sdate = new Date(booked_dates[i].split(":")[0]);
+      if(sdate < suggest_original_date) {
+        if(sdate >= second_biggest_date_available && !isHoliday(sdate)) {
+          suggested_new_date = sdate;
+          second_biggest_date_available = sdate;
+        }  
+      }  
+    }
+
+    showMessage("All available days this calender week are fully booked");
+    return second_biggest_date_available;
   }
 
   function dateCreate(date_str){
@@ -166,7 +209,7 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
 
       visit_date = assignCloseToExpireDate(visit_date,auto_expire_date); //make sure the next appoint date is close to
       visit_date = handleAppointments(visit_date) //make sure that the date does not fall on a holiday/non-clinic day
-      setDate = handleAppointments(visit_date);
+      setDate = visit_date //handleAppointments(visit_date);
       $('backButton').style.cssText = "display: none;";
     }
   }
@@ -227,6 +270,7 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
     try{
       suggest_date_limit = dates[suggest_date];
     }catch(e){ suggest_date_limit = 0; }
+
 
     if (suggest_date_limit > clinic_appointment_limit)
       return false
