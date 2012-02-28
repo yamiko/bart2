@@ -19,4 +19,8 @@ global_property_00003:
   description: site prefix code
   property_value: "MPC"
   uuid: aa319e50-178b-11e1-9603-544249e32ba2
-
+global_property_00004: 
+  property: current_health_center_id
+  description: current health centres id
+  property_value: 700
+  uuid: c6223d20-a31b-11e0-bcd1-544249e32ba2

@@ -2,7 +2,8 @@ require File.dirname(__FILE__) + '/../test_helper'
 
 class PatientTest < ActiveSupport::TestCase
   fixtures :patient, :patient_identifier, :person_name, :person,
-           :encounter, :encounter_type, :concept, :concept_name, :obs
+           :encounter, :encounter_type, :concept, :concept_name, :obs, :location,
+           :global_property
 
   context "Patients" do
     should "be valid" do
@@ -55,7 +56,7 @@ class PatientTest < ActiveSupport::TestCase
       PatientIdentifier.find(:first).void
       t = PatientIdentifierType.find_by_name("National id")
       patient(:evan).patient_identifiers.create(:identifier =>  "P123456789012", :identifier_type => t.id)
-      assert_equal PatientService.get_national_id_with_dashes(patient(:evan)), "P1234-5678-9012"
+      assert_equal PatientService.get_national_id_with_dashes(patient(:evan)), "P1700-0000-0013"
     end
 
     should "print the national id label" do

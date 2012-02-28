@@ -1,7 +1,8 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
 class EncounterTest < ActiveSupport::TestCase 
-  fixtures :encounter, :encounter_type, :concept, :concept_name, :obs
+  fixtures	:encounter, :encounter_type, :concept, :concept_name, :obs,
+  					:location,	:global_property
   
   context "Encounters" do
     should "be valid" do
