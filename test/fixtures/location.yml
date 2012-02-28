@@ -524,3 +524,53 @@ location_00002:
   description: Neno District Hospital, formerly Neno Rural Hospital (ID=750)
   retired: false
   date_created: 2007-11-30 02:23:00 +02:00
+location_00721: 
+  region: 
+  name: Registration
+  address1: ""
+  township_division: 
+  state_province:
+  retire_reason: 
+  latitude: ""
+  address2: ""
+  subregion: 
+  retired_by: 
+  location_type_id: 
+  country: ""
+  city_village:
+  postal_code: ""
+  creator: 1
+  uuid: 4e864dbe-5c94-11e1-a8bb-544249e32ba2
+  date_retired: 
+  location_id: 721
+  county_district: 
+  neighborhood_cell: 
+  longitude: ""
+  description: Workstation Location
+  retired: false
+  date_created: 2011-07-25 14:22:18 +02:00
+location_00700: 
+  region: 
+  name: Martin Preuss Centre
+  address1: ""
+  township_division: 
+  state_province: 
+  retire_reason: 
+  latitude: ""
+  address2: ""
+  subregion: 
+  retired_by: 
+  location_type_id: 
+  country: ""
+  city_village: Lilongwe
+  postal_code: ""
+  creator: 1
+  uuid: 4e8632b6-5c94-11e1-a8bb-544249e32ba2
+  date_retired: 
+  location_id: 700
+  county_district: Malawi
+  neighborhood_cell: 
+  longitude: ""
+  description: arv_code MPC
+  retired: false
+  date_created: 2011-07-25 14:16:52 +02:00

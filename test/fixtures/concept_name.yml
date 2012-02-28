@@ -107661,3 +107661,45 @@ concept_name_011329:
   locale: en
   concept_id: "8258"
   date_created: 2011-11-18 12:03:18
+concept_name_011338:
+  name: Presumed Severe HIV
+  voided: 1
+  concept_name_type: FULLY_SPECIFIED
+  uuid: 4cdceedc-5c94-11e1-a8bb-544249e32ba2
+  creator: "1"
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "11338"
+  locale_preferred: "0"
+  locale: en
+  concept_id: "8263"
+  date_created: 2011-11-25 12:03:18
+concept_name_011338:
+  name: ""
+  voided: 1
+  concept_name_type: SHORT
+  uuid: 4cdcef86-5c94-11e1-a8bb-544249e32ba2
+  creator: "1"
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "11339"
+  locale_preferred: "0"
+  locale: en
+  concept_id: "8264"
+  date_created: 2011-11-25 12:03:18
+concept_name_011340:
+  name: ""
+  voided: 1
+  concept_name_type: FULLY_SPECIFIED
+  uuid: 4cdcf03a-5c94-11e1-a8bb-544249e32ba2
+  creator: "1"
+  voided_by: 
+  void_reason: 
+  date_voided: 
+  concept_name_id: "11340"
+  locale_preferred: "0"
+  locale: en
+  concept_id: "8264"
+  date_created: 2011-11-25 12:03:18

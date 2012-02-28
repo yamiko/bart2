@@ -1,7 +1,8 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
 class OpenmrsTest < ActiveSupport::TestCase
-  fixtures :patient_identifier_type, :person, :patient, :patient_identifier
+  fixtures :patient_identifier_type, :person, :patient, :patient_identifier,
+  				 :location
 
   context "OpenMRS modules" do    
     setup do
@@ -20,7 +21,7 @@ class OpenmrsTest < ActiveSupport::TestCase
     should "set the creator, date created and the location before creating" do 
       p = PatientIdentifier.create(:identifier => 'foo', 
         :identifier_type => PatientIdentifierType[:unknown_id])
-      assert_equal p.location_id, Location.current_location.id
+      assert_equal p.location_id.to_s, Location.current_location.site_id
       assert_equal p.creator, User.current_user.id
       assert_equal p.date_created, Time.now
     end

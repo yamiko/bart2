@@ -1,8 +1,8 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
 class DrugOrderTest < ActiveSupport::TestCase 
-  fixtures :drug_order, :patient, :concept, :drug, :encounter, :encounter_type
-  
+  fixtures	:drug_order, :patient, :concept, :drug, :encounter, :encounter_type,
+  					:location,	:global_property
 
   context "Drug orders" do
     should "be valid" do
