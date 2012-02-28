@@ -27,7 +27,7 @@
 
 
 var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_id %>";
-  var number_of_days_to_add = <%= @number_of_days_to_add_to_next_appointment_date %>;
+  var number_of_days_to_add = 0 //<%= @number_of_days_to_add_to_next_appointment_date %>;
   var clinic_days = "<%= get_global_property_value('clinic.days') || 'Monday,Tuesday,Wednesday,Thursday,Friday' %>";
   var peads_clinic_days = "<%= get_global_property_value('peads.clinic.days') rescue '' %>";
   var patient_age = <%= @patient_bean.age %>;
@@ -37,9 +37,11 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
   var setDate = null;
   var setNextAppointmentDate = null;
   var sessionDate = new Date("<%=session[:datetime].to_date rescue Date.today %>");
-  <% dispensed_date = session[:datetime].to_date rescue Date.today %>
+  <% dispensed_date = session[:datetime].to_date rescue Date.today 
+     suggested_date = suggested_return_date(@patient,dispensed_date)
+  %>
   try {
-    var suggestedReturnDate = new Date("<%=suggested_return_date(@patient,dispensed_date)%>");
+    var suggestedReturnDate = new Date("<%=suggested_date%>");
   }catch(e){
     var suggestedReturnDate = null;
   }
@@ -49,7 +51,8 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
 
     unless params[:end_date].blank?
       limit = get_global_property_value('clinic.appointment.limit') rescue 0
-      dates = Property.clinic_appointment_limit(params[:end_date].to_date)
+      end_date = suggested_date.to_date rescue params[:end_date].to_date 
+      dates = Property.clinic_appointment_limit(end_date)
       (dates || {}).map do | date , number |
         booked_dates+= ",#{date}:#{number}" unless booked_dates.blank?
         booked_dates = "#{date}:#{number}" if booked_dates.blank?
@@ -147,10 +150,12 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
         suggested_date = sdate;
       }  
     }
+    showMessage("All available days this calender week are fully booked");
+    return suggest_original_date;
 
-
+/*
     /* beacuse of the two day buffer rule, we give the patient the second higest
-    available date */
+    available date 
     var suggested_new_date = null;
 
     for(var i = 0; i < booked_dates.length ; i++){
@@ -164,7 +169,7 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
     }
 
     showMessage("All available days this calender week are fully booked");
-    return second_biggest_date_available;
+    return second_biggest_date_available;*/
   }
 
   function dateCreate(date_str){
@@ -197,13 +202,20 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
     if (start_date == '' && end_date == ''){
       visit_date = dateCreate('<%=session[:datetime].to_date rescue Date.today %>')
       auto_expire_date = addDays(visit_date,parseInt($('time_until_next_visit').value));
+      if(suggestedReturnDate)
+        auto_expire_date = suggestedReturnDate;
+
       week = (parseInt((auto_expire_date - visit_date) / (7 * 24 * 60 * 60 * 1000))) 
       visit_date.setDate(visit_date.getDate() + (7 * week));
       visit_date = assignCloseToExpireDate(visit_date,auto_expire_date); //make sure the next appoint date is close to
       setDate = handleAppointments(visit_date);
     }else{
       visit_date = dateCreate(start_date)
-      auto_expire_date = dateCreate(end_date)
+      if(suggestedReturnDate) {
+        auto_expire_date = suggestedReturnDate;
+      }else{
+        auto_expire_date = dateCreate(end_date)
+      }
       week = parseInt((auto_expire_date - visit_date) / (7 * 24 * 60 * 60 * 1000))
       visit_date.setDate(visit_date.getDate() + (7 * week));
 
@@ -215,15 +227,13 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
   }
   
   function assignCloseToExpireDate(set_date,auto_expire_date) {
-    if (suggestedReturnDate)
-      auto_expire_date = suggestedReturnDate;
-
     if (set_date < auto_expire_date){
       while (set_date < auto_expire_date) {
-        set_date = new Date(set_date.getFullYear(),set_date.getMonth(),set_date.getDate() + 1)
+        if(set_date < auto_expire_date)
+          set_date = new Date(set_date.getFullYear(),set_date.getMonth(),set_date.getDate() + 1)
       }
-      /*/Give the patient a 2 day buffer
-      set_date = new Date(set_date.getFullYear(),set_date.getMonth(),set_date.getDate() - 2)*/
+      /*/Give the patient a 2 day buffer*/
+      set_date = new Date(set_date.getFullYear(),set_date.getMonth(),set_date.getDate() - 1)
     }
     return set_date
   }

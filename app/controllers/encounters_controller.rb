@@ -530,7 +530,9 @@ class EncountersController < ApplicationController
 		@art_patient = PatientService.art_patient?(@patient)
 		@recent_lab_results = patient_recent_lab_results(@patient.id)
 		if (params[:encounter_type].upcase rescue '') == 'APPOINTMENT'
-			@number_of_days_to_add_to_next_appointment_date = number_of_days_to_add_to_next_appointment_date(@patient, session[:datetime] || Date.today)
+      #for now we disable this because we are already checking for this
+      #in the browser - the method is suggested_return_date
+			#@number_of_days_to_add_to_next_appointment_date = number_of_days_to_add_to_next_appointment_date(@patient, session[:datetime] || Date.today)
 		end
 		@drug_given_before = PatientService.drug_given_before(@patient, session[:datetime])
 
