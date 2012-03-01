@@ -39,7 +39,11 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
   var sessionDate = new Date("<%=session[:datetime].to_date rescue Date.today %>");
   <% dispensed_date = session[:datetime].to_date rescue Date.today 
      suggested_date = suggested_return_date(@patient,dispensed_date)
+     if not params[:end_date].blank? and suggested_date.blank?
+       suggested_date = params[:end_date]
+     end
   %>
+  
   try {
     var suggestedReturnDate = new Date("<%=suggested_date%>");
   }catch(e){
