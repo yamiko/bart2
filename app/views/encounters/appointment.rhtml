@@ -49,9 +49,9 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
     
     limit = 0 ; booked_dates = ''
 
-    unless params[:end_date].blank?
+    unless suggested_date.blank?
       limit = get_global_property_value('clinic.appointment.limit') rescue 0
-      end_date = suggested_date.to_date rescue params[:end_date].to_date 
+      end_date = suggested_date.to_date 
       dates = Property.clinic_appointment_limit(end_date)
       (dates || {}).map do | date , number |
         booked_dates+= ",#{date}:#{number}" unless booked_dates.blank?
@@ -62,7 +62,7 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
 
   var clinic_appointment_limit = <%= limit.to_i %>;
 
-  <%if limit.to_i > 0 and not booked_dates.blank?  %>
+  <%if limit.to_i >= 0 and not booked_dates.blank?  %>
     booked_dates = "<%= booked_dates %>"
   <%end%>
 
@@ -88,7 +88,6 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
   var holidays = []
 
   for(var i = 0 ; i < set_holidays.length ; i++){
-  	//alert(clinic_holidays);
     holidays.push(dateCreate(set_holidays[i]));
   }
  
@@ -282,7 +281,7 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
     }catch(e){ suggest_date_limit = 0; }
 
 
-    if (suggest_date_limit > clinic_appointment_limit)
+    if (suggest_date_limit >= clinic_appointment_limit)
       return false
 
     return true

@@ -267,11 +267,13 @@ module ApplicationHelper
       next unless MedicationService.arv(drug)
       if drugs_given[drug.name].blank? 
         drugs_given[drug.name] = {:quantity => order.drug_order.quantity ,
-                               :dose => order.drug_order.equivalent_daily_dose 
+                               :dose => order.drug_order.equivalent_daily_dose,
+                               :auto_expire_date => order.auto_expire_date 
                               }
       else
         drugs_given[drug.name] = {:quantity => order.drug_order.quantity + drugs_given[drug.name][:quantity],
-                               :dose => order.drug_order.equivalent_daily_dose 
+                               :dose => order.drug_order.equivalent_daily_dose,
+                               :auto_expire_date => order.auto_expire_date 
                               }
       end
     end rescue {}
@@ -279,14 +281,22 @@ module ApplicationHelper
     return if drugs_given.blank?
 
     min_pills_given_per_drug = 0
+    auto_expire_date = nil
     return_date = nil 
     (drugs_given || {}).each do |name,values|
       if ((values[:quantity] <= min_pills_given_per_drug) || min_pills_given_per_drug == 0)
         min_pills_given_per_drug = values[:quantity] 
         return_date = dispensed_date + (values[:quantity]/values[:dose]).days
+        auto_expire_date = values[:auto_expire_date].to_date rescue dispensed_date
       end
     end
    
+    #here we check if the prescription period is is inline with what was dispensed
+    #if not we go with the date when the actual drugs will run out
+    if auto_expire_date <= return_date
+      return_date = auto_expire_date
+    end unless auto_expire_date.blank?
+
     #if the suggested_return_date is available we add a two day buffer by subtracting
     #two days to the suggested_return_date
     return_date -= 2.day if return_date 
