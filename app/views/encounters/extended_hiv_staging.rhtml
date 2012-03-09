@@ -648,7 +648,7 @@
 						:helpText => staging_condition } %>
 			<% end %>
 
-			<label for='new_cd4_count_available'>CD4 count available?</label>
+			<label for='new_cd4_count_available'>Recent CD4 count results available?</label>
 			<%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), 
 				:id => 'new_cd4_count_available', 
 				:tt_onLoad => "$('nextButton').style.display = 'inline';setTimeout('cssText();',1);",
