@@ -23,9 +23,13 @@
     top: 60px; 
   }  
 
-#qwerty {
-  display: none;
-}
+	#qwerty {
+		display: none;
+	}
+
+	.unknownButton .numericKeyboard #char, #decimal, #slash, #star, #plus, #date, #minus, #comma, #percent {
+				display: none;
+		  }
 </style>
 
 <%ask_pills_remaining_at_home =  CoreService.get_global_property_value("ask.pills.remaining.at.home").to_s == "true" rescue false %>
@@ -91,19 +95,37 @@
 	<% PatientService.drug_given_before(@patient, session_date.to_date).uniq.each do |order| 
        next unless MedicationService.arv(order.drug_order.drug)
   %>
-		<%= touch_numeric_tag "AMOUNT OF DRUG BROUGHT TO CLINIC", @patient, nil,
-			{	:id        => "amount_brought_#{order.order_id}",
-				:units     => "#{order.drug_order.units}",
-				:order_id  => "#{order.order_id}",
-				:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} brought to clinic"} %>
+  	<% if @retrospective %>
+			<%= touch_numeric_tag "AMOUNT OF DRUG BROUGHT TO CLINIC", @patient, nil,
+				{	:id        => "amount_brought_#{order.order_id}",
+					:units     => "#{order.drug_order.units}",
+					:order_id  => "#{order.order_id}",
+					:tt_pageStyleClass => "unknownButton",
+					:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} brought to clinic"} %>
 
-    <%if  ask_pills_remaining_at_home %>
-		<%= touch_numeric_tag "AMOUNT OF DRUG REMAINING AT HOME", @patient, nil,
-			{	:id        => "amount_other_#{order.order_id}",
-				:units     => "#{order.drug_order.units}",
-				:order_id  => "#{order.order_id}",
-				:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} <span style='color:red;'>left at home</span>" } %>
-    <%end%>
+		  <%if  ask_pills_remaining_at_home %>
+			<%= touch_numeric_tag "AMOUNT OF DRUG REMAINING AT HOME", @patient, nil,
+				{	:id        => "amount_other_#{order.order_id}",
+					:units     => "#{order.drug_order.units}",
+					:order_id  => "#{order.order_id}",
+					:tt_pageStyleClass => "unknownButton",
+					:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} <span style='color:red;'>left at home</span>" } %>
+		  <%end%>
+		<% else %>
+			<%= touch_numeric_tag "AMOUNT OF DRUG BROUGHT TO CLINIC", @patient, nil,
+				{	:id        => "amount_brought_#{order.order_id}",
+					:units     => "#{order.drug_order.units}",
+					:order_id  => "#{order.order_id}",
+					:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} brought to clinic"} %>
+
+		  <%if  ask_pills_remaining_at_home %>
+			<%= touch_numeric_tag "AMOUNT OF DRUG REMAINING AT HOME", @patient, nil,
+				{	:id        => "amount_other_#{order.order_id}",
+					:units     => "#{order.drug_order.units}",
+					:order_id  => "#{order.order_id}",
+					:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} <span style='color:red;'>left at home</span>" } %>
+		  <%end%>
+		<% end %>
       
 		<%= touch_hidden_tag "WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER", @patient, nil,
 			{	:id          => "adherence_#{order.order_id}",

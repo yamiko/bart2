@@ -93,6 +93,10 @@
   #tt_page_duration_of_art_drugs .options {  height: 90%; }                         
                                                                                 
   #tt_page_duration_of_art_drugs .inputFrameClass {  height: 86%; }
+  
+  .unknownButton .numericKeyboard #char, #decimal, #slash, #star, #plus, #date, #minus, #comma, #percent {
+			display: none;
+    }
                                                                                 
 </style>
 
@@ -503,12 +507,20 @@
 
 
   <% if @patient_bean.age >= 14 %>
-	
-	  <%= touch_numeric_tag "CONDOMS", @patient, nil,
-		{	:max => '100',
-			:condition => 'hasARTVisit() == true;',
-			:helpText => 'Number of condoms given' 
-		} %>
+		<% if @retrospective %>
+			<%= touch_numeric_tag "CONDOMS", @patient, nil,
+					{	:max => '100',
+						:condition => 'hasARTVisit() == true;',
+						:tt_pageStyleClass => "unknownButton",
+						:helpText => 'Number of condoms given' 
+					} %>
+		<% else %>
+			<%= touch_numeric_tag "CONDOMS", @patient, nil,
+					{	:max => '100',
+						:condition => 'hasARTVisit() == true;',
+						:helpText => 'Number of condoms given' 
+					} %>
+		<% end %>
 
  <% end %>
 
@@ -570,7 +582,6 @@
                 <%= hidden_field_tag "transfer_data[]encounter[patient_id]", @patient.id %>    
                 <%= hidden_field_tag "transfer_data[]encounter[encounter_datetime]", DateTime.now() %>
                      
-
                 <%= hidden_field_tag "transfer_data[]observations[][patient_id]", @patient.id  %>  
                 <%= hidden_field_tag "transfer_data[]observations[][concept_name]", "TRANSFER WITHIN RESPONSIBILITY" %>
                 <%= hidden_field_tag "transfer_data[]observations[][obs_datetime]", DateTime.now() %>
