@@ -592,6 +592,14 @@ class PatientsController < ApplicationController
 	start_date = session_date.strftime('%Y-%m-%d 00:00:00')
 	end_date = session_date.strftime('%Y-%m-%d 23:59:59')
     @encounters = Encounter.find(:all, 	:conditions => [" patient_id = ? AND encounter_datetime >= ? AND encounter_datetime <= ?", @patient.id, start_date, end_date]) 
+    
+    @creator_name = {}
+    @encounters.each do |encounter|
+    	id = encounter.creator
+			user_name = Person.find(id).names.first
+			@creator_name[id] = '(' + user_name.given_name.first + '. ' + user_name.family_name + ')'
+    end
+    
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
     @alerts = alerts(@patient, session_date) rescue nil

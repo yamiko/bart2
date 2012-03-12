@@ -123,6 +123,7 @@
 				{	:id        => "amount_other_#{order.order_id}",
 					:units     => "#{order.drug_order.units}",
 					:order_id  => "#{order.order_id}",
+					:tt_pageStyleClass => "unknownButton",
 					:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} <span style='color:red;'>left at home</span>" } %>
 		  <%end%>
 		<% end %>
