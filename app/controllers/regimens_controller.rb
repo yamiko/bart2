@@ -255,12 +255,22 @@ class RegimensController < ApplicationController
 			# Need to write an obs for the regimen they are on, note that this is ARV
 			# Specific at the moment and will likely need to have some kind of lookup
 			# or be made generic
+			selected_regimen = Regimen.find(params[:regimen])
+ 
+			obs = Observation.create(
+				:concept_name => "REGIMEN CATEGORY",
+				:person_id => @patient.person.person_id,
+				:encounter_id => encounter.encounter_id,
+				:value_text => selected_regimen.regimen_index,
+				:obs_datetime => start_date) if prescribe_arvs
+
 			obs = Observation.create(
 				:concept_name => "WHAT TYPE OF ANTIRETROVIRAL REGIMEN",
 				:person_id => @patient.person.person_id,
 				:encounter_id => encounter.encounter_id,
 				:value_coded => params[:regimen_concept_id],
 				:obs_datetime => start_date) if prescribe_arvs
+
 			orders.each do |order|
 				# Reduce buffer from 2 to 1 for starter packs
 				if order.regimen.concept.shortname.upcase.match(/STARTER PACK/i) and !reduced
