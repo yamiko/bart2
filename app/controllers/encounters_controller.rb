@@ -202,6 +202,11 @@ class EncountersController < ApplicationController
           observation['value_text'] = Location.find(observation['value_coded_or_text']).name.to_s rescue ""
           observation['value_coded_or_text'] = ""
         end
+        if observation['concept_name'].upcase == 'CD4 PERCENT LOCATION'
+          observation['value_numeric'] = observation['value_coded_or_text'] rescue nil
+          observation['value_text'] = Location.find(observation['value_coded_or_text']).name.to_s rescue ""
+          observation['value_coded_or_text'] = ""
+        end
 
         observations << observation
       end
