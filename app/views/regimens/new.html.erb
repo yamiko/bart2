@@ -1,3 +1,5 @@
+<script>
+</script>
 <style type="text/css">
   table {
     -moz-user-select:none;
@@ -316,10 +318,20 @@
     }
 
     function existingRegimen() {
-		return false;
+      return false;
       return hasReasonForART() == true && 
       current_regimens_for_programs[$("patient_program").value] != null 
       && $("prescribe_arvs").value == "YES";
+    }
+
+    function continueRegimen() {
+			var existingRegimen = "";
+			if ($("continue_existing_regimen").value == "NO"){
+				existingRegimen = 'true'
+			}else{
+				existingRegimen = 'false'
+			}
+			return existingRegimen;
     }
 </script>
 
@@ -449,10 +461,12 @@
   <%= select_tag :continue_existing_regimen, options_for_select([['',''],['Yes','YES'],['No','NO']], ''), {
     :textCase => "upper", 
     :allowFreeText => 'false',
-    :condition => 'existingRegimen();',
-    :tt_onLoad => 'showDrugs();setAttributes();',
-    :tt_onUnLoad => 'resetAttributes();',
     :id => "continue_existing_regimen",
+    :tt_onLoad => 'showDrugs();setAttributes();',
+    :validationCode => "continueRegimen() != 'true';",
+    :validationMessage => "Patient is starting a new regimen",
+    :tt_onUnLoad => 'resetAttributes();',
+    :condition => 'existingRegimen();',
     :helpText => "Continue current ART drugs?"}%>
 
   <%= select_tag :regimen_concept_id, nil, {
@@ -469,6 +483,7 @@
     :tt_onLoad => "set_regimen_concept_id_for_regimen($('patient_program').value, $('regimen_concept_id').value);buildPrescriptionPage($('continue_existing_regimen').value,$('patient_program').value,$('regimen_concept_id').value,'prescription_container');",
     :condition => 'hasReasonForART() == true && $("prescribe_arvs").value == "YES" && $("continue_existing_regimen").value !="YES"',
     :helpText => "Select formulations and doses"}%>
+
   <%#= text_field_tag :duration, nil, {
 		:ajaxURL => "",
 		:field_type => 'number',
