@@ -102,7 +102,8 @@
 			{	:id        => "amount_other_#{order.order_id}",
 				:units     => "#{order.drug_order.units}",
 				:order_id  => "#{order.order_id}",
-				:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} <span style='color:red;'>left at home</span>" } %>
+				:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} <span style='color:red;'>left at home</span>",
+				:tt_pageStyleClass => 'NumbersWithUnknown' } %>
     <%end%>
       
 		<%= touch_hidden_tag "WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER", @patient, nil,
