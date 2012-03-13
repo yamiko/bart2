@@ -875,15 +875,11 @@ class EncountersController < ApplicationController
 		@encounter = Encounter.find(params[:id], :include => [:observations])
     observations = []
 		@encounter.observations.map do |obs|
-			if 	ConceptName.find_by_concept_id(obs.concept_id).name.include?("Workstation location")
+			if ConceptName.find_by_concept_id(obs.concept_id).name.match(/location/)
+				obs.value_numeric = ""
 				observations << obs.to_s
-		  else
-				if ConceptName.find_by_concept_id(obs.concept_id).name.match(/location/)
-					obs.value_numeric = ""
-					observations << obs.to_s
-				else
-					observations << obs.to_s
-				end
+			else
+				observations << obs.to_s
 		  end
     end
 
