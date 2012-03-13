@@ -873,6 +873,20 @@ class EncountersController < ApplicationController
 	def observations
 		# We could eventually include more here, maybe using a scope with includes
 		@encounter = Encounter.find(params[:id], :include => [:observations])
+    observations = []
+		@encounter.observations.map do |obs|
+			if 	ConceptName.find_by_concept_id(obs.concept_id).name.include?("Workstation location")
+				observations << obs.to_s
+		  else
+				if ConceptName.find_by_concept_id(obs.concept_id).name.match(/location/)
+					obs.value_numeric = ""
+					observations << obs.to_s
+				else
+					observations << obs.to_s
+				end
+		  end
+    end
+
 		render :layout => false
 	end
 
