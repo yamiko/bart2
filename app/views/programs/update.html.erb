@@ -106,7 +106,7 @@
        :condition => "current_state_input_box.value.toUpperCase() == 'PATIENT TRANSFERRED OUT'",
        :allowFreeText => true } %>
 
-  <%= touch_yes_no_unknown_tag "TRANSFER WITHIN RESPONSIBILITY", @patient, nil,
+  <%#= touch_yes_no_unknown_tag "TRANSFER WITHIN RESPONSIBILITY", @patient, nil,
       {:id => "transfer_within_responsibility",
        :optional => false,
        :condition => "current_state_input_box.value.toUpperCase() == 'PATIENT TRANSFERRED OUT'",
