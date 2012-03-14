@@ -4,7 +4,6 @@ class PatientsController < ApplicationController
   def show
     session[:mastercard_ids] = []
     session_date = session[:datetime].to_date rescue Date.today
-
 		@patient_bean = PatientService.get_patient(@patient.person)
 		@encounters = @patient.encounters.find_by_date(session_date)
 		@diabetes_number = DiabetesService.diabetes_number(@patient)
@@ -422,9 +421,7 @@ class PatientsController < ApplicationController
   
   def assigned_arv_number
     assigned_arv_number = PatientIdentifier.find(:all,:conditions => ["voided = 0 AND identifier_type = ?",
-        PatientIdentifierType.find_by_name("ARV Number").id]).collect{|i|
-      i.identifier.gsub(PatientIdentifier.site_prefix,'').strip.to_i
-    } rescue nil
+        PatientIdentifierType.find_by_name("ARV Number").id]).collect{|i| i.identifier.gsub("#{PatientIdentifier.site_prefix}-ARV-",'').strip.to_i} rescue nil
     render :text => assigned_arv_number.sort.to_json rescue nil 
   end
 
