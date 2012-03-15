@@ -104,12 +104,19 @@
 					:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} brought to clinic"} %>
 
 		  <%if  ask_pills_remaining_at_home %>
-			<%= touch_numeric_tag "AMOUNT OF DRUG REMAINING AT HOME", @patient, nil,
-				{	:id        => "amount_other_#{order.order_id}",
-					:units     => "#{order.drug_order.units}",
-					:order_id  => "#{order.order_id}",
-					:tt_pageStyleClass => "unknownButton",
-					:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} <span style='color:red;'>left at home</span>" } %>
+				<%= touch_text_field_tag "AMOUNT OF DRUG REMAINING AT HOME", @patient, nil,
+					{	:id        => "amount_other_#{order.order_id}",
+						:units     => "#{order.drug_order.units}",
+						:field_type=> "number",
+						:order_id  => "#{order.order_id}",
+						:tt_pageStyleClass => "unknownButton",
+						:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} <span style='color:red;'>left at home</span>" } %>
+		  <% else %>
+		  	<%= touch_hidden_tag "AMOUNT OF DRUG REMAINING AT HOME", @patient, nil,
+					{	:id        => "amount_other_#{order.order_id}",
+						:units     => "#{order.drug_order.units}",
+						:order_id  => "#{order.order_id}",
+						:tt_pageStyleClass => "NoControls"} %>
 		  <%end%>
 		<% else %>
 			<%= touch_numeric_tag "AMOUNT OF DRUG BROUGHT TO CLINIC", @patient, nil,
@@ -119,12 +126,19 @@
 					:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} brought to clinic"} %>
 
 		  <%if  ask_pills_remaining_at_home %>
-			<%= touch_numeric_tag "AMOUNT OF DRUG REMAINING AT HOME", @patient, nil,
+				<%= touch_text_field_tag "AMOUNT OF DRUG REMAINING AT HOME", @patient, nil,
 				{	:id        => "amount_other_#{order.order_id}",
+					:field_type=> "number",
 					:units     => "#{order.drug_order.units}",
 					:order_id  => "#{order.order_id}",
 					:tt_pageStyleClass => "unknownButton",
 					:helpText  => "Total #{order.drug_order.units} of #{order.drug_order.drug.name} <span style='color:red;'>left at home</span>" } %>
+			<% else %>
+				<%= touch_hidden_tag "AMOUNT OF DRUG REMAINING AT HOME", @patient, nil,
+					{	:id        => "amount_other_#{order.order_id}",
+						:units     => "#{order.drug_order.units}",
+						:order_id  => "#{order.order_id}",
+						:tt_pageStyleClass => "NoControls"} %>		
 		  <%end%>
 		<% end %>
       
@@ -159,14 +173,28 @@
 		  var summary = new Array;
 
        var summary = "<div class='summary' style='height:670px'>";
-		   
+		   var amount_brought = 0;
+		   var amount_others = 0;
+
 		   //for (var i=0; i <  drug_names.length; i++){
        for(i in drug_names){
+          if ($("amount_brought_" + i).value == "Unknown"){
+          	amount_brought = 0;
+          } else {
+          	amount_brought = $("amount_brought_" + i).value;
+          }
+
+          if ($("amount_other_" + i).value == "Unknown" || $("amount_other_" + i).value == ""){
+          	amount_others = 0;
+          } else {
+          	amount_others = $("amount_other_" + i).value;
+          }
+          
           <% if ask_pills_remaining_at_home %>
-		        amount_remaining = parseFloat($("amount_brought_" + i).value);
-		        amount_remaining += parseFloat($("amount_other_" + i).value);
+		        amount_remaining = parseFloat(amount_brought);
+		        amount_remaining += parseFloat(amount_others);
 		      <%else%>
-		        amount_remaining = parseFloat($("amount_brought_" + i).value);
+		        amount_remaining = parseFloat(amount_brought);
 		      <%end%>
 
 		      var days_overdue_for_visit = since(auto_expire_date[i]);
@@ -220,10 +248,6 @@
 
 	</script>
 
-
-
-
-
   <%
 
     date = session[:datetime].to_date rescue Date.today                           
@@ -273,12 +297,6 @@
         :condition => "$('refer_to_clinician').value == 'NO'" ,                 
         :helpText => "Is patient allergic to sulphur" } %>                      
   <%end unless refer_to_clinician_already_asked %> 
-
-
-
-
-
-
 
 
   <% session_date = session[:datetime].to_date rescue nil                       
