@@ -9,6 +9,8 @@ development:
  use.user.selected.activities: yes
  filing.number.prefix: FN101,FN102
  auto_set_appointment: true
+ tranfer.within.responsibility: false
+ show.confirmation: false
 
 test: &TEST
  create_from_remote: no
