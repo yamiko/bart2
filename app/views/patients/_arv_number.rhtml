@@ -7,7 +7,7 @@
   var assigned_arv_number = []
   
   function arv_number(){
-    suggest_arv_number = "<%= get_global_property_value('suggest_arv_number') rescue 'true' %>"
+    suggest_arv_number = "<%=GlobalProperty.find_by_property('suggest_arv_number').property_value rescue 'true' %>"
     inputElement = $('tt_page_art_number').getElementsByTagName("input")[0]
     prefix = document.createElement("span")
     style = document.createAttribute("style")
@@ -29,13 +29,16 @@
 
   function validNumber(){
     selected_number = parseFloat(($('tt_page_art_number').getElementsByTagName("input")[0].value))
+		var status = "";
 
     for(i = 0 ; i < assigned_arv_number.length ; i++){
       if(assigned_arv_number[i] == selected_number){
-        return false
+        status = 'false';
+      } else {
+					status = 'true';
       }
     }
-    return true
+    return status;
   }
 
   function loadAssignedNumbers(){
@@ -54,7 +57,7 @@
      :optional => false,
      :tt_onLoad => "press('num');arv_number();loadAssignedNumbers()",
      :tt_pageStyleClass => "Numeric NumbersOnly",
-     :validationJS =>"validNumber()",
+     :validationCode =>"validNumber() == 'true'",
      :validationMessage => "ARV number already exist",
      :helpText => "ART number" } %>
 
