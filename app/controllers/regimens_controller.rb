@@ -255,7 +255,7 @@ class RegimensController < ApplicationController
 			# Need to write an obs for the regimen they are on, note that this is ARV
 			# Specific at the moment and will likely need to have some kind of lookup
 			# or be made generic
-			selected_regimen = Regimen.find(params[:regimen])
+			selected_regimen = Regimen.find(params[:regimen]) if prescribe_arvs
  
 			obs = Observation.create(
 				:concept_name => "REGIMEN CATEGORY",
