@@ -345,7 +345,9 @@
       } else {
         if ($('pregnant') && $('pregnant').value == "YES" && $('cd4_count_less_than_350').value == "YES") {
           reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 350";
-        } else if (whoStage == 2 && lymphocyteCount < 1200) {
+        } else if (whoStage == 1 && lymphocyteCount < 1200 && lymphocyteCount != null) {
+          reasonForArtEligibility = "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 1";              
+        } else if (whoStage == 2 && lymphocyteCount < 1200 && lymphocyteCount != null) {
           reasonForArtEligibility = "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2";              
         } else if ($('pregnant') && $('pregnant').value == "YES") {
           reasonForArtEligibility = "PATIENT PREGNANT";              
@@ -392,7 +394,7 @@
           reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 750";
         } else if ($('cd4_count_less_than_350') && $('cd4_count_less_than_350').value == "YES" && (whoStage) <= 2) {
           reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 350";
-        } else if (lymphocyteCount && (lymphocyteCount < lymphocyteThresholds[age])) {
+        } else if (lymphocyteCount && (lymphocyteCount < lymphocyteThresholds[age]) && lymphocyteCount != null) {
           reasonForArtEligibility = "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2";              
         } else if ($('pregnant') && $('pregnant').value == "YES") {
           reasonForArtEligibility = "PATIENT PREGNANT";              
