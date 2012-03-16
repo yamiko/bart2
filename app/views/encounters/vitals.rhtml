@@ -25,7 +25,7 @@
     .medHeightForAge {color:black;background:yellow;}
     .goodHeightForAge {color:black;}
 
-    #tt_page_summary_ .inputFrameClass { height:84%; }
+    #tt_page_summary .inputFrameClass { height:84%; }
 
     #qwerty{ display:none; }
     
@@ -134,192 +134,142 @@
     displayText += "</div>";
  }
  
-  </script>
-  <form action="/encounters/create/vitals">
+</script>
+
+<form action="/encounters/create/vitals">
     <%= hidden_field_tag "encounter[encounter_type_name]", "VITALS" %>
     <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
     <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
     <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
-    <% if ask_temperature %>
-      <label for="temperature">Temperature (C)</label>
-        <%= text_field_tag "observations[][value_numeric]", nil,
-          {:id => "temperature",
-           :field_type => 'number',
-           :helptext =>"Temperature",
-           :allowFreeText => 'true',
-           :min => 20,
-           :max => 45,
-           :units => 'Celcuis',  
-           :validationRule => "([0-9]+\\.[0-9])|Unknown$",
-           :validationMessage => "You must enter a decimal between 0 and 9 (for example: 36<b>.6</b>)",
-           :tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal"} %>
-        <%= hidden_field_tag("observations[][concept_name]", "TEMPERATURE (C)") %>
-        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-        <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-    <% end %>  
+	<% if ask_temperature %>
+		<label for="temperature">Temperature (C)</label>
+		<%= touch_text_field_tag "TEMPERATURE (C)", @patient, nil,
+			{	:id => "temperature",
+				:field_type => "number",
+				:allowFreeText => 'true',
+				:min => 20,
+				:max => 45,
+				:units => 'Celcuis',  
+				:validationRule => "([0-9]+\\.[0-9])|Unknown$",
+				:validationMessage => "You must enter a decimal between 0 and 9 (for example: 36<b>.6</b>)",
+				:tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal",
+				:helpText => "Temperature (C)" } %>
+	<% end %>  
 		
-		<% if @retrospective %>
-		  <label for='weight'>Weight (Kg)</label>
-		    <%= text_field_tag "observations[][value_numeric]", nil,
-		      {	:id => "weight",
-						:tt_onLoad => "$('clearButton').style.display = 'inline';",
-		       	:field_type => 'number',
-		       	:min => number_with_precision(@min_weight, :precision => 1),
-		      	 :max => number_with_precision(@max_weight, :precision => 1),
-		       	:absoluteMin => 0,
-		       	:absoluteMax => 250,
-		       	:units => 'kg',
-		       	:validationRule => "([0-9]+\\.[0-9])|Unknown$",
-		       	:validationMessage => "You must enter a decimal between 0 and 9 (for example: 54<b>.6</b>)",
-		       	:tt_pageStyleClass => "unknownButton"} %>
-		    <%= hidden_field_tag("observations[][concept_name]", "WEIGHT (KG)") %>
-		    <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-		    <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+	<% if @retrospective %>
+		<%= touch_text_field_tag "WEIGHT (KG)", @patient, nil,
+			{	:id => "weight",
+				:field_type => "number",
+				:tt_onLoad => "$('clearButton').style.display = 'inline';",
+				:min => number_with_precision(@min_weight, :precision => 1),
+				:max => number_with_precision(@max_weight, :precision => 1),
+				:absoluteMin => 0,
+				:absoluteMax => 250,
+				:units => 'kg',
+				:validationRule => "([0-9]+\\.[0-9])|Unknown$",
+				:validationMessage => "You must enter a decimal between 0 and 9 (for example: 54<b>.6</b>)",
+				:tt_pageStyleClass => "unknownButton",
+				:helpText => "Weight (Kg)" } %>
+
+
+		<% if @patient_bean.age > 18 and not @current_height == 0 %>
+			<%= touch_hidden_tag "HEIGHT (CM)", @patient, @current_height %>
+		<% else %>
+			<%= touch_text_field_tag "HEIGHT (CM)", @patient, nil,
+				{	:id => "height",
+					:field_type => "number",
+					:tt_onLoad => "$('clearButton').style.display = 'inline';",
+				   	:min => number_with_precision(@min_height, :precision => 1),
+				   	:max => number_with_precision(@max_height, :precision => 1),
+				   	:absoluteMin => 10,
+				   	:absoluteMax => 228,
+				   	:units => 'cm',
+				   	:validationRule => "^([0-9]+)|Unknown$",
+				   	:validationMessage => "You must enter numbers only (for example 157)",
+				   	:tt_pageStyleClass => "unknownButton",
+					:helpText => "Height (cm)" } %>
+		<% end %>
+	<% else %>
+	    <%= touch_text_field_tag "WEIGHT (KG)", @patient, nil,
+			{	:id => "weight",
+				:field_type => "number",
+				:tt_onLoad => "$('clearButton').style.display = 'inline';",
+				:min => number_with_precision(@min_weight, :precision => 1),
+				:max => number_with_precision(@max_weight, :precision => 1),
+				:absoluteMin => 0,
+				:absoluteMax => 250,
+				:units => 'kg',
+				:validationRule => "([0-9]+\\.[0-9])|Unknown$",
+				:validationMessage => "You must enter a decimal between 0 and 9 (for example: 54<b>.6</b>)",
+		       	:tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal",
+				:helpText => "Weight (Kg)" } %>
 		
-		  <% if @patient_bean.age > 18 and not @current_height == 0 %>
-		    <%= hidden_field_tag "observations[][value_numeric]",@current_height %>
-		    <%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>
-		    <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-		    <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-		  <% else %>
-		  <label for='height'>Height (cm)</label>
-		    <%= text_field_tag "observations[][value_numeric]", nil,
-		      {	:id => "height",
-		       	:field_type => 'number',
-						:tt_onLoad => "$('clearButton').style.display = 'inline';",
-		       	:min => number_with_precision(@min_height, :precision => 1),
-		       	:max => number_with_precision(@max_height, :precision => 1),
-		       	:absoluteMin => 10,
-		       	:absoluteMax => 228,
-		       	:units => 'cm',
-		       	:validationRule => "^([0-9]+)|Unknown$",
-		       	:validationMessage => "You must enter numbers only (for example 157)",
-		       	:tt_pageStyleClass => "unknownButton"} %>
-		    <%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>
-		    <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-		    <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-		  <% end %>
-		 <% else %>
-		 	<label for='weight'>Weight (Kg)</label>
-		    <%= text_field_tag "observations[][value_numeric]", nil,
-		      {	:id => "weight",
-						:tt_onLoad => "$('clearButton').style.display = 'inline';",
-		       	:field_type => 'number',
-		       	:min => number_with_precision(@min_weight, :precision => 1),
-		      	 :max => number_with_precision(@max_weight, :precision => 1),
-		       	:absoluteMin => 0,
-		       	:absoluteMax => 250,
-		       	:units => 'kg',
-		       	:validationRule => "([0-9]+\\.[0-9])|Unknown$",
-		       	:validationMessage => "You must enter a decimal between 0 and 9 (for example: 54<b>.6</b>)",
-		       	:tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal"} %>
-		    <%= hidden_field_tag("observations[][concept_name]", "WEIGHT (KG)") %>
-		    <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-		    <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-		
-		  <% if @patient_bean.age > 18 and not @current_height == 0 %>
-		    <%= hidden_field_tag "observations[][value_numeric]",@current_height %>
-		    <%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>
-		    <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-		    <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-		  <% else %>
-		  	<label for='height'>Height (cm)</label>
-		    <%= text_field_tag "observations[][value_numeric]", nil,
-		      {	:id => "height",
-		       	:field_type => 'number',
-						:tt_onLoad => "$('clearButton').style.display = 'inline';",
-		       	:min => number_with_precision(@min_height, :precision => 1),
-		       	:max => number_with_precision(@max_height, :precision => 1),
-		       	:absoluteMin => 10,
-		       	:absoluteMax => 228,
-		       	:units => 'cm',
-		       	:validationRule => "^([0-9]+)|Unknown$",
-		       	:validationMessage => "You must enter numbers only (for example 157)",
-		       	:tt_pageStyleClass => "Numeric NumbersOnly"} %>
-		    <%= hidden_field_tag("observations[][concept_name]", "HEIGHT (CM)") %>
-		    <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-		    <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-		 	<% end %>
-		 <% end %>
+		<% if @patient_bean.age > 18 and not @current_height == 0 %>
+			<%= touch_hidden_tag "HEIGHT (CM)", @patient, @current_height %>
+		<% else %>
+			<%= touch_text_field_tag "HEIGHT (CM)", @patient, nil,
+				{	:id => "height",
+					:field_type => "number",
+					:tt_onLoad => "$('clearButton').style.display = 'inline';",
+				   	:min => number_with_precision(@min_height, :precision => 1),
+				   	:max => number_with_precision(@max_height, :precision => 1),
+				   	:absoluteMin => 10,
+				   	:absoluteMax => 228,
+				   	:units => 'cm',
+				   	:validationRule => "^([0-9]+)|Unknown$",
+				   	:validationMessage => "You must enter numbers only (for example 157)",
+					:tt_pageStyleClass => "Numeric NumbersOnly",
+					:helpText => "Height (cm)" } %>
+		<% end %>
+	<% end %>
 
-    <% if ask_blood_pressure %>
+	<% if ask_blood_pressure %>
+        <%= touch_text_field_tag "SYSTOLIC BLOOD PRESSURE (?/Y)", @patient, nil,
+			{	:id => "systolic_blood_pressure",
+				:field_type => "number",
+				:helpText => "Systolic blood pressure (?/Y)",
+				:absoluteMin => 80,
+				:absoluteMax => 180,
+				:validationRule => "^([0-9]+)|Unknown$",
+				:validationMessage => "You must enter numbers only (for example 157)",
+				:tt_pageStyleClass => "Numeric NumbersOnly" } %>
 
-      <label for='systolic_blood_pressure'>SYSTOLIC BLOOD PRESSURE(?/Y)</label>
-        <%= text_field_tag "observations[][value_numeric]", nil,
-          {:id => "systolic_blood_pressure",
-           :field_type => 'number',
-           # :min => number_with_precision(@min_height, :precision => 1),
-           # :max => number_with_precision(@max_height, :precision => 1),
-           :absoluteMin => 80,
-           :absoluteMax => 180,
-           # :units => 'cm',
-           :validationRule => "^([0-9]+)|Unknown$",
-           :validationMessage => "You must enter numbers only (for example 157)",
-           :tt_pageStyleClass => "Numeric NumbersOnly"} %>
-        <%= hidden_field_tag("observations[][concept_name]", "SYSTOLIC BLOOD PRESSURE (?/Y)") %>
-        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-        <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 
-      <label for='diastolic_blood_pressure'>DIASTOLIC BLOOD PRESSURE (X/?)</label>
-        <%= text_field_tag "observations[][value_numeric]", nil,
-          {:id => "diastolic_blood_pressure",
-           :field_type => 'number',
-           # :min => number_with_precision(@min_height, :precision => 1),
-           # :max => number_with_precision(@max_height, :precision => 1),
-           :absoluteMin => 50,
-			:tt_onLoad => "$('clearButton').style.display = 'inline';",
-          :absoluteMax => 110,
-           # :units => 'cm',
-           :validationRule => "^([0-9]+)|Unknown$",
-           :validationMessage => "You must enter numbers only (for example 157)",
-           :tt_pageStyleClass => "Numeric NumbersOnly"} %>
-        <%= hidden_field_tag("observations[][concept_name]", "DIASTOLIC BLOOD PRESSURE (X/?)") %>
-        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-        <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+		<%= touch_text_field_tag "DIASTOLIC BLOOD PRESSURE (X/?)", @patient, nil,
+			{	:id => "diastolic_blood_pressure",
+				:field_type => "number",
+				:helpText => "Diastolic blood pressure (X/?)",
+				:absoluteMin => 50,
+				:tt_onLoad => "$('clearButton').style.display = 'inline';",
+				:absoluteMax => 110,
+				:validationRule => "^([0-9]+)|Unknown$",
+				:validationMessage => "You must enter numbers only (for example 157)",
+				:tt_pageStyleClass => "Numeric NumbersOnly"} %>
+	<% end %>
 
-      <% end %>
-
-      <% if @patient_bean.age > 14 %>
-
-        <%= hidden_field_tag("observations[][value_numeric]", nil, {:id => 'bmi'}) %>
-        <%= hidden_field_tag("observations[][concept_name]", "BODY MASS INDEX, MEASURED") %>
-        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-        <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-
-      <% else %> 
-        
-        <%= hidden_field_tag("observations[][value_numeric]", nil, {:id => 'weight_for_height'}) %>
-        <%= hidden_field_tag("observations[][concept_name]", "WT FOR HT") %>
-        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-        <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+	<% if @patient_bean.age > 14 %>
+		<%= touch_hidden_tag "BODY MASS INDEX, MEASURED", @patient, nil, { :id => 'bmi' } %>
+	<% else %> 
+        <%= touch_hidden_tag "WT FOR HT", @patient, nil, {:id => 'weight_for_height'} %>
+        <%= touch_hidden_tag "WT FOR AGE", @patient, nil, {:id => 'weight_for_age'} %>
+        <%= touch_hidden_tag "HT FOR AGE", @patient, nil, {:id => 'height_for_age'} %>
+	<% end %>
     
-        <%= hidden_field_tag("observations[][value_numeric]", nil, {:id => 'weight_for_age'}) %>
-        <%= hidden_field_tag("observations[][concept_name]", "WT FOR AGE") %>
-        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-        <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-    
-        <%= hidden_field_tag("observations[][value_numeric]", nil, {:id => 'height_for_age'}) %>
-        <%= hidden_field_tag("observations[][concept_name]", "HT FOR AGE") %>
-        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-        <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-
-      <% end %>
-    
-    <label for='showSummary'>Summary </label>
     <%= text_field_tag :showSummary, nil, 
-		{ 
-			:tt_onLoad => "$('clearButton').style.display = 'none';growthIndicators()", 
+		{	:tt_onLoad => "$('clearButton').style.display = 'none';growthIndicators()", 
 			:tt_onUnLoad => "$('clearButton').style.display = 'inline';", 
+			:helpText => "Summary",
 			:optional => "true", 
 			:tt_pageStyleClass => "NoControls" } %>
-    <% session_date = session[:datetime].to_date rescue nil                       
-    if session_date %>
 
-    <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
-<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+	<% if @retrospective %>
+		<%= text_field "filter" , 'provider', 
+			{	:helpText => 'Staff who provided the information (Provider)', 
+				:ajaxURL => '/user/username?username=' } %>
     <% else %>
-      <%= hidden_field_tag "filter[provider]", nil %>
+		<%= hidden_field_tag "filter[provider]", nil %>
     <%end%>
-   <%= submit_tag "Finish" %>    
-  </form>
+
+	<%= submit_tag "Finish" %>    
+</form>

@@ -496,15 +496,15 @@
 		:tt_pageStyleClass => "NumbersOnlyWithDecimal"}%>
 
 	<!-- CPT & IPT-->
-  <% if @alergic_to_suphur == true %>
-    <%= touch_hidden_tag "Prescribe cotramoxazole", @patient, "NO", :id => "cpt_given" %>
-  <% else %>
-    <%= touch_yes_no_tag "Prescribe cotramoxazole", @patient, nil,
-        {:id => 'cpt_given',
-         :allowFreeText => 'false',
-		     :condition => 'prescribeAntiretroviralDrugs() == true',
-         :helpText => "Prescribe CPT" } %>
-  <% end %>
+	<% if @alergic_to_suphur == true %>
+    	<%= touch_hidden_tag "Prescribe cotramoxazole", @patient, "NO", :id => "cpt_given" %>
+	<% else %>
+		<%= touch_yes_no_tag "Prescribe cotramoxazole", @patient, nil,
+			{	:id => 'cpt_given',
+				:allowFreeText => 'false',
+				:condition => 'prescribeAntiretroviralDrugs() == true',
+		     	:helpText => "Prescribe CPT" } %>
+	<% end %>
 
   <% if @patient_bean.age >= 2 && !@current_hiv_program_state.match(/On antiretrovirals/i) && !@current_hiv_program_state.match(/Patient transferred in/i) %>
 		<%= touch_yes_no_tag "ISONIAZID", @patient, nil,
