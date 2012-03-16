@@ -200,15 +200,15 @@ class PeopleController < ApplicationController
  
   def create
    
-    tb_session = false
-    if current_program_location == "TB program"
-      tb_session = true
+    hiv_session = false
+    if current_program_location == "HIV program"
+      hiv_session = true
     end
     
     person = PatientService.create_patient_from_dde(params) if create_from_dde_server
 
     unless person.blank?
-      if use_filing_number and not tb_session and current_program_location == 'HIV program'
+      if use_filing_number and hiv_session
         PatientService.set_patient_filing_number(person.patient) 
         archived_patient = PatientService.patient_to_be_archived(person.patient)
         message = PatientService.patient_printing_message(person.patient,archived_patient,creating_new_patient = true)
@@ -249,7 +249,7 @@ class PeopleController < ApplicationController
       else
 
 
-        if use_filing_number and not tb_session
+        if use_filing_number and hiv_session
           PatientService.set_patient_filing_number(person.patient) 
           archived_patient = PatientService.patient_to_be_archived(person.patient)
           message = PatientService.patient_printing_message(person.patient,archived_patient,creating_new_patient = true)
