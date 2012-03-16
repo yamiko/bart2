@@ -593,7 +593,7 @@ class PatientsController < ApplicationController
     @creator_name = {}
     @encounters.each do |encounter|
     	id = encounter.creator
-			user_name = Person.find(id).names.first
+			user_name = User.find(id).person.names.first
 			@creator_name[id] = '(' + user_name.given_name.first + '. ' + user_name.family_name + ')'
     end
     
