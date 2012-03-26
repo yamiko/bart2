@@ -318,7 +318,6 @@
     }
 
     function existingRegimen() {
-      return false;
       return hasReasonForART() == true && 
       current_regimens_for_programs[$("patient_program").value] != null 
       && $("prescribe_arvs").value == "YES";
