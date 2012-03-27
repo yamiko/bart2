@@ -1,44 +1,47 @@
 class ApplicationController < ActionController::Base
-  include AuthenticatedSystem
-	  Mastercard
-    PatientIdentifierType
-    PatientIdentifier
-    PersonAttribute
-    PersonAttributeType
-    WeightHeight
-    CohortTool
-    Encounter
-    EncounterType
-    Location
-    DrugOrder
-    User
-    Task
-    GlobalProperty
-    Person
-    Regimen
-    Relationship
-    ConceptName
-    Concept
-	Settings
-  require "fastercsv"
+		Mastercard
+		PatientIdentifierType
+		PatientIdentifier
+		PersonAttribute
+		PersonAttributeType
+		WeightHeight
+		CohortTool
+		Encounter
+		EncounterType
+		Location
+		DrugOrder
+		User
+		Task
+		GlobalProperty
+		Person
+		Regimen
+		Relationship
+		ConceptName
+		Concept
+		Settings
+	require "fastercsv"
 
-  helper :all
-  helper_method :next_task
-  filter_parameter_logging :password
-  before_filter :login_required, :except => ['login', 'logout','remote_demographics',
-                                              'create_remote', 'mastercard_printable']
-  before_filter :location_required, :except => ['login', 'logout', 'location',
-                                                'demographics','create_remote',
-                                                 'mastercard_printable',
-                                                'remote_demographics']
+	helper :all
+	helper_method :next_task
+	filter_parameter_logging :password
+	before_filter :authenticate_user!, :except => ['login', 'logout','remote_demographics',
+		                                      'create_remote', 'mastercard_printable']
+
+    before_filter :set_current_user, :except => ['login', 'logout','remote_demographics',
+		                                      'create_remote', 'mastercard_printable']
+
+	before_filter :location_required, :except => ['login', 'logout', 'location',
+		                                        'demographics','create_remote',
+		                                         'mastercard_printable',
+		                                        'remote_demographics']
   
-  def rescue_action_in_public(exception)
-    @message = exception.message
-    @backtrace = exception.backtrace.join("\n") unless exception.nil?
-    logger.info @message
-    logger.info @backtrace
-    render :file => "#{RAILS_ROOT}/app/views/errors/error.rhtml", :layout=> false, :status => 404
-  end if RAILS_ENV == 'development' || RAILS_ENV == 'test'
+	def rescue_action_in_public(exception)
+		@message = exception.message
+		@backtrace = exception.backtrace.join("\n") unless exception.nil?
+		logger.info @message
+		logger.info @backtrace
+		render :file => "#{RAILS_ROOT}/app/views/errors/error.rhtml", :layout=> false, :status => 404
+	end if RAILS_ENV == 'development' || RAILS_ENV == 'test'
 
   def rescue_action(exception)
     @message = exception.message
@@ -169,7 +172,7 @@ class ApplicationController < ActionController::Base
                       'TB CLINIC VISIT','ART_INITIAL','VITALS','HIV STAGING',
                       'ART VISIT','ART ADHERENCE','TREATMENT','DISPENSING'
                      ] 
-    user_selected_activities = User.current_user.activities.collect{|a| a.upcase }.join(',') rescue []
+    user_selected_activities = current_user.activities.collect{|a| a.upcase }.join(',') rescue []
     if user_selected_activities.blank? or tb_encounters.blank?
       task.url = "/patients/show/#{patient.id}"
       return task
@@ -841,7 +844,7 @@ class ApplicationController < ActionController::Base
       return task
     end
 
-    current_user_activities = User.current_user.activities
+    current_user_activities = current_user.activities
     if current_program_location == "TB program"
       return tb_next_form(location , patient , session_date)
     end
@@ -881,7 +884,7 @@ class ApplicationController < ActionController::Base
 
     encounters = encounters_sequentially.split(',')
 
-    user_selected_activities = User.current_user.activities.collect{|a| a.upcase }.join(',') rescue []
+    user_selected_activities = current_user.activities.collect{|a| a.upcase }.join(',') rescue []
     if encounters.blank? or user_selected_activities.blank?
       task.url = "/patients/show/#{patient.id}"
       return task
@@ -1400,7 +1403,7 @@ class ApplicationController < ActionController::Base
   end
     
   def current_user_roles
-    user_roles = UserRole.find(:all,:conditions =>["user_id = ?", User.current_user.id]).collect{|r|r.role}
+    user_roles = UserRole.find(:all,:conditions =>["user_id = ?", current_user.id]).collect{|r|r.role}
     RoleRole.find(:all,:conditions => ["child_role IN (?)", user_roles]).collect{|r|user_roles << r.parent_role}
     return user_roles.uniq
   end
@@ -1440,7 +1443,7 @@ class ApplicationController < ActionController::Base
   end
 
   def current_program_location
-    current_user_activities = User.current_user.activities
+    current_user_activities = current_user.activities
     if Location.current_location.name.downcase == 'outpatient'
       return "OPD"
     elsif current_user_activities.include?('Manage Lab Orders') or current_user_activities.include?('Manage Lab Results') or
@@ -1452,6 +1455,71 @@ class ApplicationController < ActionController::Base
        return 'HIV program'
     end
   end
+
+    def location_required
+      if not located? and params[:location]
+        location = Location.find(params[:location]) rescue nil
+        self.current_location = location if location
+      end
+      located? || location_denied
+    end
+
+    def located?
+      
+      self.current_location
+    end
+
+    # Redirect as appropriate when an access request fails.
+    #
+    # The default action is to redirect to the location screen.
+    def location_denied
+      respond_to do |format|
+        format.html do
+          store_location
+          redirect_to '/location'
+        end
+      end
+    end
+
+    # Store the URI of the current request in the session.
+    #
+    # We can return to this location by calling #redirect_back_or_default.
+    def store_location
+      session[:return_to] = request.request_uri
+    end
+
+    # Redirect to the URI stored by the most recent store_location call or
+    # to the passed default.  Set an appropriately modified
+    #   after_filter :store_location, :only => [:index, :new, :show, :edit]
+    # for any controller you want to be bounce-backable.
+    def redirect_back_or_default(default)
+      redirect_to(session[:return_to] || default)
+      session[:return_to] = nil
+    end
+
+    # Accesses the current user from the session.
+    # Future calls avoid the database because nil is not equal to false.
+    def current_location
+      @current_location ||= location_from_session unless @current_location == false
+      Location.current_location = @current_location unless @current_location == false
+      @current_location
+    end
+
+    # Store the given location id in the session.
+    def current_location=(new_location)
+      session[:location_id] = new_location ? new_location.id : nil
+      @current_location = new_location || false
+    end
+
+    # Called from #current_location.  First attempt to get the location id stored in the session.
+    def location_from_session
+      self.current_location = Location.find_by_location_id(session[:location_id]) if session[:location_id]
+    end
+
+    def set_current_user
+      User.current = current_user
+    end
+
 
 private
 

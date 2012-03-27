@@ -7,7 +7,7 @@
 z    <script type="text/javascript" language="javascript" src="/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js" defer="true"></script>
     <script language="javascript">
       tstUserKeyboardPref = "<%=preferred_user_keyboard%>"
-      tstUsername = "<%= User.current_user.username unless User.current_user.nil? %>";
+      tstUsername = "<%= current_user.username unless current_user.nil? %>";
       tstCurrentDate = "<%= Time.now.strftime("%Y-%m-%d") %>";
     </script>
     <%#= stylesheet_link_tag "mateme" %>
@@ -33,6 +33,9 @@ z    <script type="text/javascript" language="javascript" src="/touchscreentoolk
         <% end %>
         <% unless flash[:error].nil? %>
           <p id="flash_error" style="color: red"><%= flash[:error] %></p>
+        <% end %>
+        <% unless flash[:error].nil? %>
+          <p id="flash_alert" style="color: green"><%= flash[:alert] %></p>
         <% end %>
         <%= yield %>  
         <div id="footer">
