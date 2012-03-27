@@ -246,7 +246,7 @@ module ApplicationHelper
   def preferred_user_keyboard
     UserProperty.find(:first,
       :conditions =>["property = ? AND user_id = ?",'preferred.keyboard', 
-      User.current_user.id]).property_value rescue 'abc'
+      current_user.id]).property_value rescue 'abc'
   end
 
   def create_from_dde_server                                                    
@@ -254,7 +254,7 @@ module ApplicationHelper
   end 
 
   def current_user_roles                                                        
-    user_roles = UserRole.find(:all,:conditions =>["user_id = ?", User.current_user.id]).collect{|r|r.role}
+    user_roles = UserRole.find(:all,:conditions =>["user_id = ?", current_user.id]).collect{|r|r.role}
     RoleRole.find(:all,:conditions => ["child_role IN (?)", user_roles]).collect{|r|user_roles << r.parent_role}
     return user_roles.uniq
   end
@@ -304,7 +304,7 @@ module ApplicationHelper
   end
 
   def current_program_location                                                  
-    current_user_activities = User.current_user.activities                      
+    current_user_activities = current_user.activities                      
     if Location.current_location.name.downcase == 'outpatient'                  
       return "OPD"                                                              
     elsif current_user_activities.include?('Manage Lab Orders') or current_user_activities.include?('Manage Lab Results') or

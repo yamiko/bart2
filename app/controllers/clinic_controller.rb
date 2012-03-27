@@ -93,7 +93,7 @@ class ClinicController < ApplicationController
       :conditions => ['encounter_datetime BETWEEN ? AND ? AND encounter.creator = ?',
                       Date.today.strftime('%Y-%m-%d 00:00:00'),
                       Date.today.strftime('%Y-%m-%d 23:59:59'),
-                      User.current_user.user_id])
+                      current_user.user_id])
     @today = Encounter.statistics(@types,
       :conditions => ['encounter_datetime BETWEEN ? AND ?',
                       Date.today.strftime('%Y-%m-%d 00:00:00'),
@@ -177,7 +177,7 @@ class ClinicController < ApplicationController
                   ['/clinic/location_management_tab','Location Management'],
                   ['/people/tranfer_patient_in','Transfer Patient in']
                 ]
-    if User.current_user.admin?
+    if current_user.admin?
       @reports << ['/clinic/management_tab','Drug Management']
     end
     @landing_dashboard = 'clinic_administration'
@@ -212,7 +212,7 @@ class ClinicController < ApplicationController
     @reports =  [
                   ['/location/new?act=print','Print location']
                 ]
-    if User.current_user.admin?
+    if current_user.admin?
       @reports << ['/location/new?act=create','Add location']
       @reports << ['/location/new?act=delete','Delete location']
     end
@@ -235,7 +235,7 @@ class ClinicController < ApplicationController
     #only applicable in the sputum submission area
     enc_date = session[:datetime].to_date rescue Date.today
     @types = ['LAB ORDERS', 'SPUTUM SUBMISSION', 'LAB RESULTS', 'GIVE LAB RESULTS']
-    @me = Encounter.statistics(@types, :conditions => ['DATE(encounter_datetime) = ? AND encounter.creator = ?', enc_date, User.current_user.user_id])
+    @me = Encounter.statistics(@types, :conditions => ['DATE(encounter_datetime) = ? AND encounter.creator = ?', enc_date, current_user.user_id])
     @today = Encounter.statistics(@types, :conditions => ['DATE(encounter_datetime) = ?', enc_date])
     @user = User.find(session[:user_id]).name rescue ""
 

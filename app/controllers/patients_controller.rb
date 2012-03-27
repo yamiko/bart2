@@ -48,7 +48,7 @@ class PatientsController < ApplicationController
       :conditions =>["patient_id = ? AND encounter_type IN (?) AND DATE(encounter_datetime) = ?",
         params[:id],encounter_types,session_date],
       :group => 'encounter_type').collect do |rec| 
-        if User.current_user.user_roles.map{|r|r.role}.join(',').match(/Registration|Clerk/i)
+        if current_user.user_roles.map{|r|r.role}.join(',').match(/Registration|Clerk/i)
           next unless rec.observations[0].to_s.match(/Workstation location:   Outpatient/i)
         end
         [ rec.encounter_id , rec.encounter_type_name , rec.c ] 
@@ -174,7 +174,7 @@ class PatientsController < ApplicationController
     end 
 
     if use_user_selected_activities
-      @links << ["Change User Activities","/user/activities/#{User.current_user.id}?patient_id=#{patient.id}"]
+      @links << ["Change User Activities","/user/activities/#{current_user.id}?patient_id=#{patient.id}"]
     end
       
     if show_lab_results
@@ -1834,7 +1834,7 @@ class PatientsController < ApplicationController
         identifier.voided = 1
         identifier.void_reason = "given another number"
         identifier.date_voided  = Time.now()
-        identifier.voided_by = User.current_user.id
+        identifier.voided_by = current_user.id
         identifier.save
       }
 
@@ -1960,7 +1960,7 @@ class PatientsController < ApplicationController
         current_archive_filing_numbers.each do | filing_number |
           filing_number.voided = 1
           filing_number.void_reason = "patient assign new active filing number"
-          filing_number.voided_by = User.current_user.id
+          filing_number.voided_by = current_user.id
           filing_number.date_voided = Time.now()
           filing_number.save
         end
@@ -1979,7 +1979,7 @@ class PatientsController < ApplicationController
         current_active_filing_numbers.each do | filing_number |
           filing_number.voided = 1
           filing_number.void_reason = "Archived - filing number given to:#{self.id}"
-          filing_number.voided_by = User.current_user.id
+          filing_number.voided_by = current_user.id
           filing_number.date_voided = Time.now()
           filing_number.save
         end

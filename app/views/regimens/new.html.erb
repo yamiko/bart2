@@ -339,10 +339,10 @@
 	<%= hidden_field_tag :patient_id, @patient.id %>
 
 	<!-- TB regimen -->
-	<% if User.current_user.activities.include?('Manage Lab Orders') or User.current_user.activities.include?('Manage Lab Results') or
-		   User.current_user.activities.include?('Manage Sputum Submissions') or User.current_user.activities.include?('Manage TB Clinic Visits') or
-		   User.current_user.activities.include?('Manage TB Reception Visits') or User.current_user.activities.include?('Manage TB Registration Visits') or
-		   User.current_user.activities.include?('Manage HIV Status Visits') %>
+	<% if current_user.activities.include?('Manage Lab Orders') or current_user.activities.include?('Manage Lab Results') or
+		   current_user.activities.include?('Manage Sputum Submissions') or current_user.activities.include?('Manage TB Clinic Visits') or
+		   current_user.activities.include?('Manage TB Reception Visits') or current_user.activities.include?('Manage TB Registration Visits') or
+		   current_user.activities.include?('Manage HIV Status Visits') %>
 
 		<% if (@family_planning_methods.length != 0) || ( @patient_bean.sex == 'Female' && @patient_bean.age > 14 ) %>
 			<%= text_field_tag :task_name, nil,
@@ -591,7 +591,7 @@
                 <%= hidden_field_tag "transfer_data[]patient_id", @patient.id %>
                 <%= hidden_field_tag "transfer_data[]location", Location.current_health_center.id %>
 
-                <%= hidden_field_tag "transfer_data[]encounter[provider_id]", session[:user_id] %>
+                <%= hidden_field_tag "transfer_data[]encounter[provider_id]", current_user.user_id %>
                 <%= hidden_field_tag "transfer_data[]encounter[encounter_type_name]", "TRANSFER OUT" %>
                 <%= hidden_field_tag "transfer_data[]encounter[patient_id]", @patient.id %>    
                 <%= hidden_field_tag "transfer_data[]encounter[encounter_datetime]", DateTime.now() %>

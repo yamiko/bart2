@@ -28,8 +28,8 @@ class PeopleController < ApplicationController
 			"birth_year"=> params[:patient_year] }
 
 		#raise person_params.to_yaml
-		if User.current_user.blank?
-			User.current_user = User.find(1)
+		if current_user.blank?
+			current_user = User.find(1)
 		end rescue []
 
 		if Location.current_location.blank?
