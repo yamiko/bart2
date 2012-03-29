@@ -1,5 +1,26 @@
+<% 
+  host = request.url.to_s.gsub(/http\:\/\//,"")   
+  host = host[0, host.index("/")]
+  
+  src = request.referrer.to_s.gsub(/http\:\/\//,"")   
+  src = src[0, src.index("/")]
+  
+  next_url_host = "#{src}"
+  
+  url = request.referrer
+%>
+<script type="text/javascript" language="javascript">
+  <!--
+  tt_cancel_show = "<%= (!request.referrer.blank? ? (src != host ? "#{url}" : 
+      "/patients/show/#{@patient.patient_id}") : 
+    "/patients/show/#{@patient.patient_id}") %>";
+  tt_cancel_destination = "<%= (!request.referrer.blank? ? (src != host ? "#{url}" : 
+      "/patients/show/#{@patient.patient_id}") : 
+    "/patients/show/#{@patient.patient_id}") %>";
+   //-->
+</script>
 <script type="text/javascript">
-  tt_cancel_destination = '/patients/show/<%= @patient.id %>';
+  // tt_cancel_destination = '/patients/show/<%= @patient.id %>';
 </script>
 
 <div style="padding: 15px;">
