@@ -1,15 +1,17 @@
 class GenericSingleSignOnController < ApplicationController
 
 	def get_token
-		user = User.authenticate(params[:login], params[:password])
-		sign_in(:user, user)
-		authenticate_user!
+		user = User.authenticate(params[:login], params[:password]) rescue nil
+		sign_in(:user, user) if user
+		authenticate_user! if user
 		user_token = nil
-		if user_signed_in?
+		if !user.blank?
 			current_user.reset_authentication_token
 			user_token = current_user.authentication_token
+			render :json => {:auth_token => current_user.authentication_token }.to_json, :status => :ok
+		else
+			render :json => {:auth_token => '' }.to_json, :status => :false
 		end
-		return user_token
 	end
 
 	def single_sign_in
