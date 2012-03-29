@@ -8,8 +8,8 @@ class SessionsController < ApplicationController
 
 	def create
 		user = User.authenticate(params[:login], params[:password])
-		sign_in(:user, user)
-		authenticate_user!
+		sign_in(:user, user) if user
+		authenticate_user! if user
 
 		if user_signed_in?
 			current_user.reset_authentication_token
