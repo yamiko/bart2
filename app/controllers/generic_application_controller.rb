@@ -33,7 +33,7 @@ class GenericApplicationController < ActionController::Base
 	before_filter :location_required, :except => ['login', 'logout', 'location',
 		                                        'demographics','create_remote',
 		                                         'mastercard_printable',
-		                                        'remote_demographics']
+		                                        'remote_demographics', 'get_token', 'single_sign_in']
   
 	def rescue_action_in_public(exception)
 		@message = exception.message

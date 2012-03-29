@@ -60,7 +60,7 @@ class SessionsController < ApplicationController
 	end
 
 	def destroy
-		sign_out(current_user)
+		sign_out(current_user) if !current_user.blank?
 		self.current_location = nil
 		flash[:notice] = "You have been logged out."
 		redirect_back_or_default('/')
