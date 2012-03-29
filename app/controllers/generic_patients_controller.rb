@@ -1,38 +1,45 @@
 class GenericPatientsController < ApplicationController
-  before_filter :find_patient, :except => [:void]
+	before_filter :find_patient, :except => [:void]
   
-  def show
-    session[:mastercard_ids] = []
-    session_date = session[:datetime].to_date rescue Date.today
+	def show
+		return_uri = session[:return_uri]
+		if !return_uri.blank?
+    		redirect_to return_uri.to_s
+    		return
+		end
+		session[:mastercard_ids] = []
+		session_date = session[:datetime].to_date rescue Date.today
 		@patient_bean = PatientService.get_patient(@patient.person)
 		@encounters = @patient.encounters.find_by_date(session_date)
 		@diabetes_number = DiabetesService.diabetes_number(@patient)
-    @prescriptions = @patient.orders.unfinished.prescriptions.all
-    @programs = @patient.patient_programs.all
-    @alerts = alerts(@patient, session_date) rescue nil
-    @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
-    @restricted.each do |restriction|    
-      @encounters = restriction.filter_encounters(@encounters)
-      @prescriptions = restriction.filter_orders(@prescriptions)
-      @programs = restriction.filter_programs(@programs)
-    end
-
-    @date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
-
-     @location = Location.find(session[:location_id]).name rescue ""
-     if @location.downcase == "outpatient" || params[:source]== 'opd'
-        render :template => 'dashboards/opdtreatment_dashboard', :layout => false
-     else
-        @task = main_next_task(Location.current_location,@patient,session_date)
-        @hiv_status = PatientService.patient_hiv_status(@patient)
-        @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
-		if  !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.upcase == 'NONE'
-			@reason_for_art_eligibility = nil				
+		@prescriptions = @patient.orders.unfinished.prescriptions.all
+		@programs = @patient.patient_programs.all
+		@alerts = alerts(@patient, session_date) rescue nil
+		@restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
+		@restricted.each do |restriction|    
+			@encounters = restriction.filter_encounters(@encounters)
+			@prescriptions = restriction.filter_orders(@prescriptions)
+			@programs = restriction.filter_programs(@programs)
 		end
-        @arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
-        render :template => 'patients/index', :layout => false
-     end
-  end
+
+		@date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
+
+		@location = Location.find(session[:location_id]).name rescue ""
+	
+
+		if @location.downcase == "outpatient" || params[:source]== 'opd'
+			render :template => 'dashboards/opdtreatment_dashboard', :layout => false
+		else
+			@task = main_next_task(Location.current_location,@patient,session_date)
+			@hiv_status = PatientService.patient_hiv_status(@patient)
+			@reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
+			if  !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.upcase == 'NONE'
+				@reason_for_art_eligibility = nil				
+			end
+			@arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
+			render :template => 'patients/index', :layout => false
+		end
+	end
 
   def opdcard
     @patient = Patient.find(params[:id])
