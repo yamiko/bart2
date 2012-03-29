@@ -1,4 +1,25 @@
 <%= javascript_include_tag "dateformat" %>
+<% 
+  host = request.url.to_s.gsub(/http\:\/\//,"")   
+  host = host[0, host.index("/")]
+  
+  src = request.referrer.to_s.gsub(/http\:\/\//,"")   
+  src = src[0, src.index("/")]
+  
+  next_url_host = "#{src}"
+
+  url = request.referrer
+%>
+<script type="text/javascript" language="javascript">
+  <!--
+  tt_cancel_show = "<%= (!request.referrer.blank? ? (src != host ? "#{url}" : 
+      "/patients/show/#{@patient.patient_id}") : 
+    "/patients/show/#{@patient.patient_id}") %>";
+  tt_cancel_destination = "<%= (!request.referrer.blank? ? (src != host ? "#{url}" : 
+      "/patients/show/#{@patient.patient_id}") : 
+    "/patients/show/#{@patient.patient_id}") %>";
+   //-->
+</script>
 <style>
 	.summary div {
 	padding-left:25px;
@@ -307,4 +328,6 @@
     <% else %>
       <%= hidden_field_tag "filter[provider]", nil %>
     <%end%>
+    
+    <%= hidden_field_tag "next_url_root", "#{next_url_host}" %>
 </form>

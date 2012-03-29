@@ -1,7 +1,10 @@
 class EncountersController < ApplicationController
   def create(params=params, session=session)
-    #raise params.to_yaml
-    
+    # raise params.to_yaml
+    # Link to assist in redirecting to external applications
+    host = request.url.to_s.gsub(/http\:\/\//,"")   
+    host = host[0, host.index("/")]
+  
     if params[:change_appointment_date] == "true"
       session_date = session[:datetime].to_date rescue Date.today
       type = EncounterType.find_by_name("APPOINTMENT")                            
@@ -418,9 +421,15 @@ class EncountersController < ApplicationController
       # redirect_to next_task(@patient)
     # end
 
+    # Check if called by external app and redirect back
+    if (params[:next_url_root] != host)
+      redirect_to "http://#{params[:next_url_root]}/patients/show/#{@patient.id}" and return
+    end
+    
     # Go to the next task in the workflow (or dashboard)
     # only redirect to next task if location parameter has not been provided
 
+    
     unless params[:location]
     #find a way of printing the lab_orders labels
      if params['encounter']['encounter_type_name'] == "LAB ORDERS"
