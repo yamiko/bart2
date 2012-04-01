@@ -1434,6 +1434,7 @@ class GenericPatientsController < ApplicationController
       treatment_encounter.observations.map{|obs|
         next if not obs.concept_id == amount_dispensed_concept_id
         drug = Drug.find(obs.value_drug) if obs.value_numeric > 0
+		next if obs.value_numeric <= 0
         drug_concept_id = drug.concept.concept_id
         regimens.map do | regimen_type , concept_ids |
           if regimen_type == 'FIRST LINE ANTIRETROVIRAL REGIMEN' and concept_ids.include?(drug_concept_id)
