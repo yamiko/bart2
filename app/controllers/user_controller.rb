@@ -1,3 +1,3 @@
-class UserController < GenericRelationshipsController
+class UserController < GenericUserController
 
 end
