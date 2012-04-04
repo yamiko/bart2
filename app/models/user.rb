@@ -27,7 +27,11 @@ class User < ActiveRecord::Base
 	has_many :user_roles, :foreign_key => :user_id, :dependent => :delete_all # no default scope
 	#has_many :names, :class_name => 'PersonName', :foreign_key => :person_id, :dependent => :destroy, :order => 'person_name.preferred DESC', :conditions => {:voided =>  0}
 
-
+  def set_password
+    # We expect that the default OpenMRS interface is used to create users
+    self.password = encrypt(self.plain_password, self.salt) if self.plain_password
+  end
+  
 	has_one :activities_property,
 		  :class_name => 'UserProperty',
 		  :foreign_key => :user_id,
@@ -114,7 +118,7 @@ class User < ActiveRecord::Base
 	def before_create
 		super
 		self.salt = User.random_string(10) if !self.salt?
-		self.password = User.encrypt(self.password,self.salt)
+		self.password = User.encrypt(password, salt) if plain_password
 	end
  
 	def self.random_string(len)
