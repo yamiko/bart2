@@ -29,7 +29,9 @@ class GenericPeopleController < ApplicationController
 
 		#raise person_params.to_yaml
 		if current_user.blank?
-			current_user = User.find(1)
+		  user = User.authenticate('admin', 'test')
+		  sign_in(:user, user) if !user.blank?
+      set_current_user		  
 		end rescue []
 
 		if Location.current_location.blank?
