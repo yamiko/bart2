@@ -23,7 +23,7 @@ class EncountersController < ApplicationController
       end
     end
 
-    if params['encounter']['encounter_type_name'] == 'ART_INITIAL'
+    if params['encounter']['encounter_type_name'] == 'HIV_CLINIC_REGISTRATION'
 
       has_tranfer_letter = false
       (params["observations"]).each do |ob|
@@ -214,27 +214,27 @@ class EncountersController < ApplicationController
     end
 
     if params['encounter']['encounter_type_name'].upcase == 'ART ADHERENCE'
-      previous_art_visit_observations = []
+      previous_hiv_clinic_consultation_observations = []
       art_adherence_observations = []
       (params[:observations] || []).each do |observation|
         if observation['concept_name'].upcase == 'REFER TO ART CLINICIAN'
-          previous_art_visit_observations << observation
+          previous_hiv_clinic_consultation_observations << observation
         elsif observation['concept_name'].upcase == 'PRESCRIBE DRUGS'
-          previous_art_visit_observations << observation
+          previous_hiv_clinic_consultation_observations << observation
         elsif observation['concept_name'].upcase == 'ALLERGIC TO SULPHUR'
-          previous_art_visit_observations << observation
+          previous_hiv_clinic_consultation_observations << observation
         else
           art_adherence_observations << observation
         end
       end
 
-      unless previous_art_visit_observations.blank?
+      unless previous_hiv_clinic_consultation_observations.blank?
         #if "REFER TO ART CLINICIAN","PRESCRIBE DRUGS" and "ALLERGIC TO SULPHUR" has
-        #already been asked during ART visit - we append the observations to the latest 
-        #ART visit encounter done on that day
+        #already been asked during HIV CLINIC CONSULTATION - we append the observations to the latest 
+        #HIV CLINIC CONSULTATION encounter done on that day
 
         session_date = session[:datetime].to_date rescue Date.today
-        encounter_type = EncounterType.find_by_name("ART visit")
+        encounter_type = EncounterType.find_by_name("HIV CLINIC CONSULTATION")
         encounter = Encounter.find(:first,:order =>"encounter_datetime DESC,date_created DESC",
           :conditions =>["encounter_type=? AND patient_id=? AND encounter_datetime >= ?
           AND encounter_datetime <= ?",encounter_type.id,params['encounter']['patient_id'],
@@ -252,7 +252,7 @@ class EncountersController < ApplicationController
           encounter.provider_id = user_person_id
           encounter.save   
         end 
-        params[:observations] = previous_art_visit_observations
+        params[:observations] = previous_hiv_clinic_consultation_observations
         create_obs(encounter , params)
       end
 
@@ -478,7 +478,7 @@ class EncountersController < ApplicationController
             @phone_numbers = PatientService.phone_numbers(Person.find(params[:patient_id]))
         end
        
-        if 'ART_VISIT' == (params[:encounter_type].upcase rescue '') || 'ART_ADHERENCE' == (params[:encounter_type].upcase rescue '')
+        if 'HIV_CLINIC_CONSULTATION' == (params[:encounter_type].upcase rescue '') || 'ART_ADHERENCE' == (params[:encounter_type].upcase rescue '')
             session_date = session[:datetime].to_date rescue Date.today
 
             @allergic_to_sulphur = Observation.find(Observation.find(:first,                   
@@ -566,7 +566,7 @@ class EncountersController < ApplicationController
 		@sputum_orders = Hash.new()
 		@sputum_submission_waiting_results = Hash.new()
 		@sputum_results_not_given = Hash.new()
-		@art_first_visit = is_first_art_visit(@patient.id)
+		@art_first_visit = is_first_hiv_clinic_consultation(@patient.id)
 		@tb_first_registration = is_first_tb_registration(@patient.id)
 		@tb_programs_state = uncompleted_tb_programs_status(@patient)
 		@had_tb_treatment_before = ever_received_tb_treatment(@patient.id)
@@ -649,10 +649,10 @@ class EncountersController < ApplicationController
 
 		end
 
-        if  ['ART_VISIT', 'TB_VISIT', 'HIV_STAGING'].include?((params[:encounter_type].upcase rescue ''))
+        if  ['HIV_CLINIC_CONSULTATION', 'TB_VISIT', 'HIV_STAGING'].include?((params[:encounter_type].upcase rescue ''))
 			@local_tb_dot_sites_tag = tb_dot_sites_tag 
 			for encounter in @current_encounters.reverse do
-				if encounter.name.humanize.include?('Hiv staging') || encounter.name.humanize.include?('Tb visit') || encounter.name.humanize.include?('Art visit') 
+				if encounter.name.humanize.include?('Hiv staging') || encounter.name.humanize.include?('Tb visit') || encounter.name.humanize.include?('Hiv clinic consultation') 
 					encounter = Encounter.find(encounter.id, :include => [:observations])
 					for obs in encounter.observations do
 						if obs.concept_id == ConceptName.find_by_name("IS PATIENT PREGNANT?").concept_id
@@ -664,7 +664,7 @@ class EncountersController < ApplicationController
 						end
 					end
 
-					if encounter.name.humanize.include?('Tb visit') || encounter.name.humanize.include?('Art visit')
+					if encounter.name.humanize.include?('Tb visit') || encounter.name.humanize.include?('Hiv clinic consultation')
 						encounter = Encounter.find(encounter.id, :include => [:observations])
 						for obs in encounter.observations do
 							if obs.concept_id == ConceptName.find_by_name("CURRENTLY USING FAMILY PLANNING METHOD").concept_id
@@ -680,7 +680,7 @@ class EncountersController < ApplicationController
 			end
         end
 
-		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' or (params[:encounter_type].upcase rescue '') == 'ART_INITIAL'
+		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' or (params[:encounter_type].upcase rescue '') == 'HIV_CLINIC_REGISTRATION'
 			if @patient_bean.age > 14 
 				@who_stage_i = concept_set('WHO STAGE I ADULT AND PEDS') + concept_set('WHO STAGE I ADULT')
 				@who_stage_ii = concept_set('WHO STAGE II ADULT AND PEDS') + concept_set('WHO STAGE II ADULT')
@@ -751,7 +751,7 @@ class EncountersController < ApplicationController
 		end
 
 		@arv_drugs = nil
-		if (params[:encounter_type].upcase rescue '') == 'ART_INITIAL'
+		if (params[:encounter_type].upcase rescue '') == 'HIV_CLINIC_REGISTRATION'
 			other = []
 
 			@arv_drugs = MedicationService.arv_drugs.collect { | drug | 
@@ -767,7 +767,7 @@ class EncountersController < ApplicationController
 			@arv_drugs = @arv_drugs.sort {|a,b| a.to_s.downcase <=> b.to_s.downcase}
 			@arv_drugs = @arv_drugs + other
 
-      @require_art_initial = require_art_initial
+      @require_hiv_clinic_registration = require_hiv_clinic_registration
 
 			#raise @arv_drugs.to_yaml
 			#raise drugs.to_yaml
@@ -961,10 +961,10 @@ class EncountersController < ApplicationController
 		render :template => 'dashboards/treatment_dashboard', :layout => false
 	end
 
-	def is_first_art_visit(patient_id)
+	def is_first_hiv_clinic_consultation(patient_id)
 		session_date = session[:datetime].to_date rescue Date.today
 		art_encounter = Encounter.find(:first,:conditions =>["voided = 0 AND patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) < ?",
-				patient_id, EncounterType.find_by_name('ART_INITIAL').id, session_date ]) rescue nil
+				patient_id, EncounterType.find_by_name('HIV CLINIC REGISTRATION').id, session_date ]) rescue nil
 		return true if art_encounter.nil?
 		return false
 	end

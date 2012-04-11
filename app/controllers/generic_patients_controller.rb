@@ -806,7 +806,7 @@ class GenericPatientsController < ApplicationController
 
     encounter_dates = Encounter.find_by_sql("SELECT * FROM encounter WHERE patient_id = #{patient.id} AND encounter_type IN (" +
         ("SELECT encounter_type_id FROM encounter_type WHERE name IN ('VITALS', 'TREATMENT', " +
-          "'HIV RECEPTION', 'HIV STAGING', 'ART VISIT', 'DISPENSING')") + ")").collect{|e|
+          "'HIV RECEPTION', 'HIV STAGING', 'HIV CLINIC CONSULTATION', 'DISPENSING')") + ")").collect{|e|
       e.encounter_datetime.strftime("%Y-%m-%d")
     }.uniq
 
@@ -1356,7 +1356,7 @@ class GenericPatientsController < ApplicationController
         next if encounter.name.upcase == "REGISTRATION"
         next if encounter.name.upcase == "HIV REGISTRATION"
         next if encounter.name.upcase == "HIV STAGING"
-        next if encounter.name.upcase == "ART VISIT"
+        next if encounter.name.upcase == "HIV CLINIC CONSULTATION"
         next if encounter.name.upcase == "VITALS"
         next if encounter.name.upcase == "ART ADHERENCE"
         encounter.to_s.split("<b>").each do |string|
@@ -1499,10 +1499,10 @@ class GenericPatientsController < ApplicationController
           (!visits.tb_within_last_two_yrs.nil? ? (visits.tb_within_last_two_yrs.upcase == "YES" ? 
               "Last 2yrs" : "Never/ >2yrs") : "Never/ >2yrs"))
 
-    art_initial = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
-        EncounterType.find_by_name("ART_INITIAL").id,patient_obj.id])
+    hiv_clinic_registration = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("HIV CLINIC REGISTRATION").id,patient_obj.id])
 
-    (art_initial.observations).map do | obs |
+    (hiv_clinic_registration.observations).map do | obs |
       concept_name = obs.to_s.split(':')[0].strip rescue nil
       next if concept_name.blank?
       case concept_name
@@ -1810,10 +1810,10 @@ class GenericPatientsController < ApplicationController
   end
   
   def seen_by(patient,date = Date.today)
-    provider = patient.encounters.find_by_date(date).collect{|e| next unless e.name == 'ART VISIT' ; [e.name,e.creator]}.compact 
+    provider = patient.encounters.find_by_date(date).collect{|e| next unless e.name == 'HIV CLINIC CONSULTATION' ; [e.name,e.creator]}.compact 
     provider_username = "#{'Seen by: ' + User.find(provider[0].last).username}" unless provider.blank?
     if provider_username.blank? 
-      clinic_encounters = ["ART VISIT","HIV STAGING","ART ADHERENCE","TREATMENT",'DISPENSION','HIV RECEPTION']
+      clinic_encounters = ["HIV CLINIC CONSULTATION","HIV STAGING","ART ADHERENCE","TREATMENT",'DISPENSION','HIV RECEPTION']
       encounter_type_ids = EncounterType.find(:all,:conditions =>["name IN (?)",clinic_encounters]).collect{| e | e.id }
       encounter = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type In (?)",
                   patient.id,encounter_type_ids],:order => "encounter_datetime DESC")
@@ -1937,7 +1937,7 @@ class GenericPatientsController < ApplicationController
 
       next_filing_number = PatientIdentifier.next_filing_number('Filing number')
       if (next_filing_number[5..-1].to_i >= global_property_value.to_i)
-        encounter_type_name = ['REGISTRATION','VITALS','ART_INITIAL','ART VISIT',
+        encounter_type_name = ['REGISTRATION','VITALS','HIV CLINIC REGISTRATION','HIV CLINIC CONSULTATION',
           'TREATMENT','HIV RECEPTION','HIV STAGING','DISPENSING','APPOINTMENT']
         encounter_type_ids = EncounterType.find(:all,:conditions => ["name IN (?)",encounter_type_name]).map{|n|n.id}
 
