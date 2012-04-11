@@ -10,6 +10,7 @@ class GenericPatientsController < ApplicationController
 		session[:mastercard_ids] = []
 		session_date = session[:datetime].to_date rescue Date.today
 		@patient_bean = PatientService.get_patient(@patient.person)
+		#raise mastercard_visit_label(Patient.find_by_patient_id(@patient_bean.patient_id),date = Date.today).to_yaml
 		@encounters = @patient.encounters.find_by_date(session_date)
 		@diabetes_number = DiabetesService.diabetes_number(@patient)
 		@prescriptions = @patient.orders.unfinished.prescriptions.all
@@ -1685,9 +1686,10 @@ class GenericPatientsController < ApplicationController
   def mastercard_visit_label(patient,date = Date.today)
   	patient_bean = PatientService.get_patient(patient.person)
     visit = visits(patient,date)[date] rescue {}
+
     return if visit.blank? 
     visit_data = mastercard_visit_data(visit)
-
+#raise visit_data.to_yaml
     arv_number = patient_bean.arv_number || patient_bean.national_id
     pill_count = visit.pills.collect{|c|c.join(",")}.join(' ') rescue nil
 
@@ -1774,9 +1776,8 @@ class GenericPatientsController < ApplicationController
   def mastercard_visit_data(visit)
     return if visit.blank?
     data = {}
-
     data["outcome"] = visit.outcome rescue nil
-    if visit.appointment_date and (data["outcome"].match(/ON ANTIRETROVIRALS/i) || data["outcome"].blank?)
+    if visit.appointment_date and (data["outcome"].match(/ON ANTIRETROVIRALS/i) || data["outcome"].match(/Pre-ART/i) || data["outcome"].blank?)
       data["outcome"] = "Next: #{visit.appointment_date.strftime('%b %d %Y')}" 
     else
       data["outcome_date"] = "#{visit.date_of_outcome.to_date.strftime('%b %d %Y')}" if visit.date_of_outcome
