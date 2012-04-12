@@ -524,18 +524,18 @@ class GenericPatientsController < ApplicationController
     if @patient
       t1 = Thread.new{
         Kernel.system "htmldoc --webpage --landscape --linkstyle plain --left 1cm --right 1cm --top 1cm --bottom 1cm -f /tmp/output-" +
-          session[:user_id].to_s + ".pdf http://" + request.env["HTTP_HOST"] + "\"/patients/mastercard_printable?patient_id=" +
+          current_user.user_id.to_s + ".pdf http://" + request.env["HTTP_HOST"] + "\"/patients/mastercard_printable?patient_id=" +
           @patient.id.to_s + "\"\n"
       }
 
       t2 = Thread.new{
         sleep(5)
-        Kernel.system "lpr /tmp/output-" + session[:user_id].to_s + ".pdf\n"
+        Kernel.system "lpr /tmp/output-" + current_user.user_id.to_s + ".pdf\n"
       }
 
       t3 = Thread.new{
         sleep(10)
-        Kernel.system "rm /tmp/output-" + session[:user_id].to_s + ".pdf\n"
+        Kernel.system "rm /tmp/output-" + current_user.user_id.to_s + ".pdf\n"
       }
 
     end
@@ -2012,7 +2012,7 @@ class GenericPatientsController < ApplicationController
     @doctor     = false
     @registration_clerk  = false
 
-    @user = User.find(session[:user_id])
+    @user = User.find(current_user.user_id)
     @user_privilege = @user.user_roles.collect{|x|x.role}
 
     if @user_privilege.first.downcase.include?("superuser")
@@ -2102,7 +2102,7 @@ class GenericPatientsController < ApplicationController
     @doctor     = false
     @registration_clerk  = false
 
-    @user = User.find(session[:user_id])
+    @user = User.find(current_user.user_id)
     @user_privilege = @user.user_roles.collect{|x|x.role}
 
     if @user_privilege.first.downcase.include?("superuser")
@@ -2407,7 +2407,7 @@ class GenericPatientsController < ApplicationController
 
               if o.value_datetime.to_date == params[:appointmentDate].to_date
                 o.update_attributes(:voided => 1, :date_voided => Time.now.to_date,
-                :voided_by => session[:user_id], :void_reason => reason)
+                :voided_by => current_user.user_id, :void_reason => reason)
 
                 @voided = true
               end
@@ -2415,7 +2415,7 @@ class GenericPatientsController < ApplicationController
             
             if @voided == true
               encounter.update_attributes(:voided => 1, :date_voided => Time.now.to_date,
-                :voided_by => session[:user_id], :void_reason => reason)
+                :voided_by => current_user.user_id, :void_reason => reason)
             end
           end
           
@@ -2550,7 +2550,7 @@ class GenericPatientsController < ApplicationController
   end
   
   def complications_label
-    print_string = DiabetesService.complications_label(@patient, session[:user_id]) #rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a visit label for that patient")
+    print_string = DiabetesService.complications_label(@patient, current_user.user_id) #rescue (raise "Unable to find patient (#{params[:patient_id]}) or generate a visit label for that patient")
     send_data(print_string,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", :disposition => "inline")
   end
   

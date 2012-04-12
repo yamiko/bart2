@@ -181,7 +181,7 @@ class GenericRegimensController < ApplicationController
 			user_person_id = current_user.person_id
 		end
 
-		user_person_id = user_person_id rescue User.find_by_user_id(session[:user_id]).person_id
+		user_person_id = user_person_id rescue User.find_by_user_id(current_user.user_id).person_id
 
 		encounter = PatientService.current_treatment_encounter(@patient, session_date, user_person_id)
 		start_date = session[:datetime] || Time.now
