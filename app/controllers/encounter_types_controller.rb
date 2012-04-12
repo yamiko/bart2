@@ -1,4 +1,4 @@
-class EncounterTypesController < ApplicationController
+class EncounterTypesController < GenericEncounterTypesController
 
   def index
     role_privileges = RolePrivilege.find(:all,:conditions => ["role IN (?)", current_user_roles])

@@ -291,14 +291,9 @@ class EncountersController < GenericEncountersController
 					['Tuberculosis (PTB or EPTB) within the last 2 years', 'Tuberculosis (PTB or EPTB) within the last 2 years']]
 				@who_stage_iii = @who_stage_iii - tb_hiv_exclusions
 			end
+
   			
-			@confirmatory_hiv_test_type = Observation.question("CONFIRMATORY HIV TEST TYPE").first(:conditions => {:person_id => @patient.person}, :include => :answer_concept_name).answer_concept_name.name rescue 'UNKNOWN'
-			#raise concept_set('WHO Stage defining conditions not explicitly asked adult').to_yaml
-			#raise CoreService.get_global_property_value('use.extended.staging.questions').to_s
-			#raise @not_explicitly_asked.to_yaml
-			#raise concept_set('PRESUMED SEVERE HIV CRITERIA IN INFANTS').to_yaml
-      #@who_stage_iv = @who_stage_iv.flatten.uniq
-      
+			@confirmatory_hiv_test_type = @patient.person.observations.question("CONFIRMATORY HIV TEST TYPE").last.answer_concept_name.name
 		end
 
 		@arv_drugs = nil
