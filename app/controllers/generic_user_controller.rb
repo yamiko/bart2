@@ -130,7 +130,7 @@ class GenericUserController < ApplicationController
       redirect_to :action => 'new'
       return
     end
-    if (params[:user][:password] != params[:user_confirm][:password])
+    if (params[:user][:plain_password] != params[:user_confirm][:password])
       flash[:notice] = 'Password Mismatch'
       redirect_to :action => 'new'
       return
@@ -142,11 +142,13 @@ class GenericUserController < ApplicationController
       @user_admin_role = params[:user_role_admin][:role]
       @user_name = params[:user][:username]
     end
-
+	
+	params[:user][:password] = params[:user][:plain_password]
+	params[:user][:plain_password] = nil
     person = Person.create()
     person.names.create(params[:person_name])
     params[:user][:user_id] = nil
-    @user = User.new(params[:user])
+    @user = RawUser.new(params[:user])
     @user.person_id = person.id
     if @user.save
      # if params[:user_role_admin][:role] == "Yes"  
@@ -164,7 +166,6 @@ class GenericUserController < ApplicationController
         user_role.user_id = @user.user_id
         user_role.save
      # end
-      @user.update_attributes(params[:user])
       flash[:notice] = 'User was successfully created.'
       redirect_to :action => 'show'
     else
@@ -211,7 +212,7 @@ class GenericUserController < ApplicationController
 
   def destroy
    unless request.get?
-   @user = User.find(params[:id])
+   @user = RawUser.find(params[:id])
     if @user.update_attributes(:voided => 1, :void_reason => params[:user][:void_reason],:voided_by => session[:user_id],:date_voided => Time.now.to_s)
       flash[:notice]='User has successfully been removed.'
       redirect_to :action => 'voided_list'
@@ -264,14 +265,16 @@ class GenericUserController < ApplicationController
   end
 
   def change_password
-    @user = User.find(params[:id])
+    @user = RawUser.find(params[:id])
 
     unless request.get? 
-      if (params[:user][:password] != params[:user_confirm][:password])
+      if (params[:user][:plain_password] != params[:user_confirm][:password])
         flash[:notice] = 'Password Mismatch'
         redirect_to :action => 'new'
         return
       else
+		params[:user][:password] = params[:user][:plain_password]
+		params[:user][:plain_password] = nil
         if @user.update_attributes(params[:user])
           flash[:notice] = "Password successfully changed"
           redirect_to :action => "show",:id => @user.id

@@ -6,9 +6,9 @@ class GenericClinicController < ApplicationController
 
     @date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
 
-    @user = User.find(session[:user_id]).name rescue ""
+    @user = current_user.name rescue ""
 
-    @roles = User.find(session[:user_id]).user_roles.collect{|r| r.role} rescue []
+    @roles = current_user.user_roles.collect{|r| r.role} rescue []
 
     render :template => 'clinic/index', :layout => false
   end

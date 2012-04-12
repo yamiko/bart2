@@ -1229,10 +1229,10 @@ class EncountersController < ApplicationController
       'source_of_referral' => [
         ['',''],
         ['Walk in', 'Walk in'],
-        ['Healthy Facility', 'Healthy Facility'],
         ['Index Patient', 'Index Patient'],
         ['HTC', 'HTC clinic'],
-        ['ART', 'ART'],
+        ['ART', 'ART Clinic'],
+        ['OPD', 'OPD'],
         ['PMTCT', 'PMTCT'],
         ['Private practitioner', 'Private practitioner'],
         ['Sputum collection point', 'Sputum collection point'],
