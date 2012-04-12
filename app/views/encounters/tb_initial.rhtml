@@ -98,7 +98,7 @@
      <%reason_for_clinic_visit = 'Smear +ve'%>
   <%end%>
   
-  <%= touch_hidden_tag("REASON FOR CLINICAL VISIT", @patient.id, "#{reason_for_clinic_visit}", {:id => "reason_for_clinic_visit"}) %>
+  <%= touch_hidden_tag("REASON FOR CLINICAL VISIT", @patient, "#{reason_for_clinic_visit}", {:id => "reason_for_clinic_visit"}) %>
 
   <%  if @cell_number.to_i != 0 %>
 
