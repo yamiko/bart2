@@ -293,7 +293,7 @@ class EncountersController < GenericEncountersController
 			end
 
   			
-			@confirmatory_hiv_test_type = @patient.person.observations.question("CONFIRMATORY HIV TEST TYPE").last.answer_concept_name.name
+			@confirmatory_hiv_test_type = @patient.person.observations.question("CONFIRMATORY HIV TEST TYPE").last.answer_concept_name.name rescue 'UNKNOWN'
 		end
 
 		@arv_drugs = nil

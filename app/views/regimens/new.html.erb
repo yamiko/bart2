@@ -517,7 +517,7 @@
 
   <%= select_tag :duration, optionsString, { 
 	:condition => '$("prescribe_arvs").value == "YES" || $("cpt_given").value == "YES" || $("ipt_given").value == "YES"',	
-	:helpText => 'Duration of ART drugs' } %> 
+	:helpText => 'Duration of prescribed drugs' } %> 
 
 
   <% if @patient_bean.age >= 14 %>
