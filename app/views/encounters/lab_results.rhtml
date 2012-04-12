@@ -19,6 +19,10 @@
   .tt_controls_sputum_microscopy_month .keyboard{ display:none; }
   #tt_page_sputum_microscopy_month .options{height:550px;}
   #tt_page_sputum_microscopy_month .options li{font-size:30px;}
+  
+  .alert {
+    background: orange;
+  }
 </style>
 
 <script>
@@ -88,12 +92,15 @@
 
   function summary() {
     results = '<ul>';
+    attrs = '';
     for(i = 0 ; i < result_filed_ids.length ; i++) {
       if ($(result_filed_ids[i]).value != 'NEGATIVE') {
         tb_status =  'Confirmed TB NOT on treatment'
+        attrs = " class='alert'"
       }
       var specimen = $(specimen_field_ids[i]).value
-      results += '<li><b>' + acc_numbers[specimen] + " Results (Accession number: " + specimen + ") : </b>" + $(result_filed_ids[i]).options[$(result_filed_ids[i]).selectedIndex].text  + '</li>'
+      results += '<li><b>' + acc_numbers[specimen] + " Results (Accession number: " + specimen + ") : </b>" +
+                 '<span '+ attrs + '>' + $(result_filed_ids[i]).options[$(result_filed_ids[i]).selectedIndex].text  + '</span></li>'
     }
     results += '</ul>';
 
