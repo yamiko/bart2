@@ -33,10 +33,7 @@ class User < ActiveRecord::Base
 	def set_password
 		# We expect that the default OpenMRS interface is used to create users
 		#self.password = self.encrypted_password
-		raise self.to_yaml
-		#raise self[:plain_password].to_yaml		
-		#raise encrypted_password.to_yaml
-		#self.password = encrypt(self.plain_password, self.salt) if self.plain_password
+		self.password = encrypt(self.plain_password, self.salt) if self.plain_password
 	end
   
 	has_one :activities_property,
