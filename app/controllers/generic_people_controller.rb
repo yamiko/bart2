@@ -245,6 +245,14 @@ class GenericPeopleController < ApplicationController
     end
 
     if params[:person][:patient] && success
+		  	if !params[:identifier].empty?	
+					patient_identifier = PatientIdentifier.new
+					patient_identifier.type = PatientIdentifierType.find_by_name("National id")
+					patient_identifier.identifier = params[:identifier]
+					patient_identifier.patient = person.patient
+					patient_identifier.save!
+				end
+
       PatientService.patient_national_id_label(person.patient)
       unless (params[:relation].blank?)
         redirect_to search_complete_url(person.id, params[:relation]) and return

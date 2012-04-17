@@ -25,154 +25,18 @@
 
 <script>
 
-
 var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_id %>";
-  var number_of_days_to_add = 0 //<%= @number_of_days_to_add_to_next_appointment_date %>;
-  var clinic_days = "<%= get_global_property_value('clinic.days') || 'Monday,Tuesday,Wednesday,Thursday,Friday' %>";
-  var peads_clinic_days = "<%= get_global_property_value('peads.clinic.days') rescue '' %>";
-  var patient_age = <%= @patient_bean.age %>;
-  var booked_dates = null;
-  var number_of_suggested_booked_dates_tried = 0;
-
-  var setDate = null;
+	
+  var setDate = dateCreate('<%= @suggested_appointment_date %>');
   var setNextAppointmentDate = null;
-  var sessionDate = new Date("<%=session[:datetime].to_date rescue Date.today %>");
-  <% dispensed_date = session[:datetime].to_date rescue Date.today 
-     suggested_date = suggested_return_date(@patient,dispensed_date)
-     if not params[:end_date].blank? and suggested_date.blank?
-       suggested_date = params[:end_date]
-     end
-  %>
+  var sessionDate = dateCreate('<%= @todays_date %>');
+
+  var clinic_appointment_limit = <%= @limit.to_i %>;
   
   try {
-    var suggestedReturnDate = new Date("<%=suggested_date%>");
+    var suggestedReturnDate = new Date("<%=@suggested_date%>");
   }catch(e){
     var suggestedReturnDate = null;
-  }
-  <%
-    
-    limit = 0 ; booked_dates = ''
-
-    unless suggested_date.blank?
-      limit = get_global_property_value('clinic.appointment.limit') rescue 0
-      end_date = suggested_date.to_date 
-      dates = Property.clinic_appointment_limit(end_date)
-      (dates || {}).map do | date , number |
-        booked_dates+= ",#{date}:#{number}" unless booked_dates.blank?
-        booked_dates = "#{date}:#{number}" if booked_dates.blank?
-      end
-    end
-  %>
-
-  var clinic_appointment_limit = <%= limit.to_i %>;
-
-  <%if limit.to_i >= 0 and not booked_dates.blank?  %>
-    booked_dates = "<%= booked_dates %>"
-  <%end%>
-
-  if (booked_dates != null)
-    booked_dates = booked_dates.split(',');
-
-  clinic_days = clinic_days.split(',');
-  /*if the patient is a child (age 14 or less) and the peads clinic days are set - we
-    use the peads clinic days to set the next appointment date
-  */
-  if (patient_age <= 14 && peads_clinic_days != '')
-    clinic_days = peads_clinic_days.split(',');
-
-  <%
-    clinic_holidays = get_global_property_value('clinic.holidays') || '1900-12-25,1900-03-03'
-    clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',')
-  %>
-
-  try{
-    set_holidays = ('<%= clinic_holidays %>').split(','); 
-  }catch(e){ var set_holidays = [] } 
-
-  var holidays = []
-
-  for(var i = 0 ; i < set_holidays.length ; i++){
-    holidays.push(dateCreate(set_holidays[i]));
-  }
- 
-  function isHoliday(suggest_date) {
-    holiday = false; 
-    for (i = 0 ; i < holidays.length ; i++) {
-      if (dateFormat(holidays[i],'mmmm d') == dateFormat(suggest_date,'mmmm d'))
-        holiday = true;
-    }
-    return holiday
-  }
-
-  function handleAppointments(visit_date) {
-    suggest_date = new Date(visit_date.getFullYear(),visit_date.getMonth(),visit_date.getDate() + number_of_days_to_add)
-    skip = true
-
-    while (skip) {
-      for (i = 0 ; i < clinic_days.length ; i++) {
-        if (clinic_days[i] == dateFormat(suggest_date,'dddd')){
-          skip = isHoliday(suggest_date);
-          break
-        }
-      }
-      if (skip)
-        suggest_date = new Date(suggest_date.getFullYear(),suggest_date.getMonth(),suggest_date.getDate() - 1)
-
-  
-      number_of_suggested_booked_dates_tried++
-      /*if the number of tries have reached five times,we assign the original 
-      suggested return date */
-      if (number_of_suggested_booked_dates_tried > 4 && booked_dates.length > 0) {
-         return returnOriginalSuggesteddate(suggest_date); 
-         break;
-      }
-
-      if (skip == false){
-        below_limit = isBelowLimit(suggest_date);
-        if (below_limit == false) {
-          suggest_date = new Date(suggest_date.getFullYear(),suggest_date.getMonth(),suggest_date.getDate() - 1)
-          skip = true
-        } else { 
-          return suggest_date
-        }
-      }
-    }
-    return suggest_date
-  }
-
-
-  function returnOriginalSuggesteddate(suggested_date) {
-    var suggest_original_date = null;
-    var second_biggest_date_available = null;
-
-    for(var i = 0; i < booked_dates.length ; i++){
-      var sdate = new Date(booked_dates[i].split(":")[0]);
-      if(sdate >= suggested_date) {
-        second_biggest_date_available = suggested_date;
-        suggest_original_date = sdate;
-        suggested_date = sdate;
-      }  
-    }
-    showMessage("All available days this calender week are fully booked");
-    return suggest_original_date;
-
-/*
-    /* beacuse of the two day buffer rule, we give the patient the second higest
-    available date 
-    var suggested_new_date = null;
-
-    for(var i = 0; i < booked_dates.length ; i++){
-      var sdate = new Date(booked_dates[i].split(":")[0]);
-      if(sdate < suggest_original_date) {
-        if(sdate >= second_biggest_date_available && !isHoliday(sdate)) {
-          suggested_new_date = sdate;
-          second_biggest_date_available = sdate;
-        }  
-      }  
-    }
-
-    showMessage("All available days this calender week are fully booked");
-    return second_biggest_date_available;*/
   }
 
   function dateCreate(date_str){
@@ -180,9 +44,9 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
       return
 
     intyear = 0 ; intmonth = 0 ; intday = 0;
-    intyear = parseInt(date_str.substring(0,4))
-    intmonth = (parseInt(date_str.substring(5,7)) - 1)
-    intday = (parseInt(date_str.substring(8,10)))
+    intyear = parseInt(date_str.substring(0,4));
+    intmonth = (parseInt(date_str.substring(5,7)) - 1);
+    intday = (parseInt(date_str.substring(8,10)));
 
     if (intmonth == -1)
       intmonth = (parseInt(date_str.substring(5,7).substring(1,2)) - 1)
@@ -191,54 +55,6 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
       intday = parseInt(date_str.substring(8,10).substring(1,2))
 
     return new Date(intyear,intmonth,intday)
-  }
-  
-  function addDays(passedDate , weeks) {
-    var passed = passedDate;
-    for (i = 0; i < (weeks*7); i++) {
-      passed = new Date(passed.getFullYear(),passed.getMonth(),passed.getDate() + 1);
-    }
-    return passed;
-  }
-
-  function calculate_dates(start_date,end_date) {
-    if (start_date == '' && end_date == ''){
-      visit_date = dateCreate('<%=session[:datetime].to_date rescue Date.today %>')
-      auto_expire_date = addDays(visit_date,parseInt($('time_until_next_visit').value));
-      if(suggestedReturnDate)
-        auto_expire_date = suggestedReturnDate;
-
-      week = (parseInt((auto_expire_date - visit_date) / (7 * 24 * 60 * 60 * 1000))) 
-      visit_date.setDate(visit_date.getDate() + (7 * week));
-      visit_date = assignCloseToExpireDate(visit_date,auto_expire_date); //make sure the next appoint date is close to
-      setDate = handleAppointments(visit_date);
-    }else{
-      visit_date = dateCreate(start_date)
-      if(suggestedReturnDate) {
-        auto_expire_date = suggestedReturnDate;
-      }else{
-        auto_expire_date = dateCreate(end_date)
-      }
-      week = parseInt((auto_expire_date - visit_date) / (7 * 24 * 60 * 60 * 1000))
-      visit_date.setDate(visit_date.getDate() + (7 * week));
-
-      visit_date = assignCloseToExpireDate(visit_date,auto_expire_date); //make sure the next appoint date is close to
-      visit_date = handleAppointments(visit_date) //make sure that the date does not fall on a holiday/non-clinic day
-      setDate = visit_date //handleAppointments(visit_date);
-      $('backButton').style.cssText = "display: none;";
-    }
-  }
-  
-  function assignCloseToExpireDate(set_date,auto_expire_date) {
-    if (set_date < auto_expire_date){
-      while (set_date < auto_expire_date) {
-        if(set_date < auto_expire_date)
-          set_date = new Date(set_date.getFullYear(),set_date.getMonth(),set_date.getDate() + 1)
-      }
-      /*/Give the patient a 2 day buffer*/
-      set_date = new Date(set_date.getFullYear(),set_date.getMonth(),set_date.getDate() - 1)
-    }
-    return set_date
   }
 
   function showDate() {
@@ -269,33 +85,9 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
     }
   }
 
-
-  function isBelowLimit(suggest_date) {
-    if (booked_dates == null || booked_dates == '' || clinic_appointment_limit <= 0)
-      return true;
-    
-    dates = {}
-
-    for (i = 0 ; i < booked_dates.length ; i++) {
-      dates[dateCreate(booked_dates[i].split(':')[0])] = booked_dates[i].split(':')[1]
-    }
-
-    try{
-      suggest_date_limit = dates[suggest_date];
-    }catch(e){ suggest_date_limit = 0; }
-
-
-    if (suggest_date_limit >= clinic_appointment_limit)
-      return false
-
-    return true
-  }
-
   function hideInfo() {
     $('information').style.display = 'none';
   }
-
-
 
  function cssText() {
    document.getElementById('clearButton').style.display = "none";                           
@@ -392,30 +184,33 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
     <%= hidden_field_tag "encounter[patient_id]", @patient.id rescue 24 %>                
     <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>     
     <%= hidden_field_tag "encounter[provider_id]", current_user.user_id %>         
-                                                                                
-    <label for='time_until_next_visit'>Time Until Next Appointment</label>      
-    <%= select_tag("time_until_next_visit",                                     
-              options_for_select([["2 weeks", 2],                               
-                                   ["1 month", 4],                              
-                                   ["2 months", 8],                             
-                                   ["4 months", 16],                            
-                                   ["5 months", 20],                            
-                                   ["6 months", 24]]),                          
-             {:helpText => 'Time Until Next Appointment',                       
-             :tt_onLoad => "calculateGivenRange('#{params[:start_date]}','#{params[:end_date]}')"}) %>
 
+		<% if params[:select_date].to_s.upcase != 'NO' %>
+		  <label for='time_until_next_visit'>Time Until Next Appointment</label>      
+		  <%= select_tag("time_until_next_visit",                                     
+		            options_for_select([["2 weeks", 14],                               
+		                                 ["1 month", 28],                              
+		                                 ["2 months", 2*28],                             
+		                                 ["4 months", 4*28],                            
+		                                 ["5 months", 5*28],                            
+		                                 ["6 months", 6*28]]),                          
+		           {:helpText => 'Time Until Next Appointment',                       
+		           :tt_onLoad => "calculateGivenRange('#{params[:start_date]}','#{params[:end_date]}')",
+		           :tt_onUnLoad => "setDate.setDate(sessionDate.getDate()+parseInt($('time_until_next_visit').options[$('time_until_next_visit').selectedIndex].value));"}) %>
+		<% end %>
+		
 <label for='next_appointment_date'>Next Appointment Date</label>            
 <%= hidden_field_tag("observations[][concept_name]", "RETURN VISIT DATE") %>
 <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>          
 <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 <%= text_field_tag "observations[][value_datetime]", (Time.now + 1.month).year, 
-    { :tt_onLoad => "calculate_dates('#{params[:start_date]}','#{params[:end_date]}');chart();cssText();moveToSetMonth();finishButtonAttributes();",
+    { :tt_onLoad => "$('backButton').style.cssText = 'display: none';chart();cssText();moveToSetMonth();finishButtonAttributes();",
       :tt_pageStyleClass => "NoControls",
       :id => "appointment_date" ,
       :helpText =>"Next appointment date:",                                                 
     } %>
 
-<% session_date = session[:datetime].to_date rescue nil                     
+<% session_date = session[:datetime].to_date rescue nil
 if session_date %>                                                          
   <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
   <%= text_field "filter" , 'provider', 

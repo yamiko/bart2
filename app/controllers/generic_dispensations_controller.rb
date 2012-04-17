@@ -95,9 +95,8 @@ class GenericDispensationsController < ApplicationController
           	if (CoreService.get_global_property_value('auto_set_appointment') rescue false) 
 		          start_date , end_date = DrugOrder.prescription_dates(@patient,session_date.to_date)
 		          redirect_to :controller => 'encounters',:action => 'new',
-		            :start_date => start_date,
 		            :patient_id => @patient.id,:id =>"show",:encounter_type => "appointment" ,
-		            :end_date => end_date
+		            :select_date => 'NO'
 		        else
             	redirect_to "/patients/treatment_dashboard?id=#{@patient.patient_id}&dispensed_order_id=#{@order_id}"	        	
 						end
