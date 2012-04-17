@@ -6,9 +6,9 @@ class GenericClinicController < ApplicationController
 
     @date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
 
-    @user = User.find(session[:user_id]).name rescue ""
+    @user = current_user.name rescue ""
 
-    @roles = User.find(session[:user_id]).user_roles.collect{|r| r.role} rescue []
+    @roles = current_user.user_roles.collect{|r| r.role} rescue []
 
     render :template => 'clinic/index', :layout => false
   end
@@ -107,7 +107,7 @@ class GenericClinicController < ApplicationController
       @ever = Encounter.statistics(@types)
     end
 
-    @user = User.find(session[:user_id]).person.name rescue ""
+    @user = User.find(current_user.user_id).person.name rescue ""
 
     if simple_overview
         render :template => 'clinic/overview_simple.rhtml' , :layout => false
@@ -237,7 +237,7 @@ class GenericClinicController < ApplicationController
     @types = ['LAB ORDERS', 'SPUTUM SUBMISSION', 'LAB RESULTS', 'GIVE LAB RESULTS']
     @me = Encounter.statistics(@types, :conditions => ['DATE(encounter_datetime) = ? AND encounter.creator = ?', enc_date, current_user.user_id])
     @today = Encounter.statistics(@types, :conditions => ['DATE(encounter_datetime) = ?', enc_date])
-    @user = User.find(session[:user_id]).name rescue ""
+    @user = User.find(current_user.user_id).name rescue ""
 
     render :template => 'clinic/lab_tab.rhtml' , :layout => false
   end

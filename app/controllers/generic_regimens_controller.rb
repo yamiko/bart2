@@ -35,17 +35,17 @@ class GenericRegimensController < ApplicationController
 
 		session_date = session[:datetime].to_date rescue Date.today
 
-		pre_art_visit = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
+		pre_hiv_clinic_consultation = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
 		    :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
 		    session_date.to_date, @patient.id, EncounterType.find_by_name('PART_FOLLOWUP').id])
 
-		art_visit = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
+		hiv_clinic_consultation = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
             :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
-            session_date.to_date, @patient.id, EncounterType.find_by_name('ART VISIT').id])
-		@art_visit = false
+            session_date.to_date, @patient.id, EncounterType.find_by_name('HIV CLINIC CONSULTATION').id])
+		@hiv_clinic_consultation = false
 
-		if ((not pre_art_visit.blank?) or (not art_visit.blank?))
-			@art_visit = true		
+		if ((not pre_hiv_clinic_consultation.blank?) or (not hiv_clinic_consultation.blank?))
+			@hiv_clinic_consultation = true		
 		end
 
 		treatment_obs = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
@@ -88,7 +88,7 @@ class GenericRegimensController < ApplicationController
 		sulphur_allergy_obs = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
 			:conditions => ["patient_id = ? AND encounter_type IN (?) AND DATE(encounter_datetime) = ?",
 			@patient.id, EncounterType.find(:all,:select => 'encounter_type_id', 
-      :conditions => ["name IN (?)",["ART VISIT", "TB VISIT"]]),session_date.to_date]).observations rescue []
+      :conditions => ["name IN (?)",["HIV CLINIC CONSULTATION", "TB VISIT"]]),session_date.to_date]).observations rescue []
 
 		@alergic_to_suphur = false
 		(sulphur_allergy_obs || []).each do | obs |
@@ -97,14 +97,14 @@ class GenericRegimensController < ApplicationController
 			end
 		end
 
-		art_visit_obs = Encounter.find(:first,
+		hiv_clinic_consultation_obs = Encounter.find(:first,
       :order => "encounter_datetime DESC,date_created DESC",
 			:conditions => ["patient_id = ? AND encounter_type IN (?) AND DATE(encounter_datetime) = ?",
 			@patient.id, EncounterType.find(:all,:select => 'encounter_type_id', 
-      :conditions => ["name IN (?)",["ART VISIT"]]),session_date.to_date]).observations rescue []
+      :conditions => ["name IN (?)",["HIV CLINIC CONSULTATION"]]),session_date.to_date]).observations rescue []
 
 		@prescribe_art_drugs = false
-		(art_visit_obs || []).each do | obs |
+		(hiv_clinic_consultation_obs || []).each do | obs |
 			if obs.concept_id == (Concept.find_by_name('Prescribe drugs').concept_id rescue nil)
 				@prescribe_art_drugs = true if Concept.find(obs.value_coded).fullname.upcase == 'YES' and !arvs_prescribed
 			end
@@ -117,7 +117,7 @@ class GenericRegimensController < ApplicationController
 
         for encounter in current_encounters.reverse do
 
-            if encounter.name.humanize.include?('Hiv staging') || encounter.name.humanize.include?('Tb visit') || encounter.name.humanize.include?('Art visit') 
+            if encounter.name.humanize.include?('Hiv staging') || encounter.name.humanize.include?('Tb visit') || encounter.name.humanize.include?('Hiv clinic consultation') 
              
                 encounter = Encounter.find(encounter.id, :include => [:observations])
 
@@ -127,7 +127,7 @@ class GenericRegimensController < ApplicationController
                     end                    
                 end
 
-                if encounter.name.humanize.include?('Tb visit') || encounter.name.humanize.include?('Art visit')
+                if encounter.name.humanize.include?('Tb visit') || encounter.name.humanize.include?('Hiv clinic consultation')
 
                     encounter = Encounter.find(encounter.id, :include => [:observations])
                     for obs in encounter.observations do
@@ -181,7 +181,7 @@ class GenericRegimensController < ApplicationController
 			user_person_id = current_user.person_id
 		end
 
-		user_person_id = user_person_id rescue User.find_by_user_id(session[:user_id]).person_id
+		user_person_id = user_person_id rescue User.find_by_user_id(current_user.user_id).person_id
 
 		encounter = PatientService.current_treatment_encounter(@patient, session_date, user_person_id)
 		start_date = session[:datetime] || Time.now

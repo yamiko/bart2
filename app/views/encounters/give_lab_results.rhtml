@@ -1,3 +1,8 @@
+<style type="text/css">
+  .alert {
+    background: orange;
+  }
+</style>
 <script>
     var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
 
@@ -6,6 +11,7 @@
         var resultString = '';
 
         resultString = '<ul>'
+        attrs = '';
 
         <% recent_lab_results = nil%>
         <% if !@recent_lab_results.nil? %>
@@ -23,7 +29,14 @@
                     elsif observation.concept_id == ConceptName.find_by_name("TB status").concept_id
                         "<li> <b>#{observation.to_s(['FULLY_SPECIFIED', 'order']).to_s.split(':')[0]}</b> : #{observation.to_s(['FULLY_SPECIFIED', 'order']).to_s.split(':')[1]} </li>"
                     else
-                        "<li> <b>#{observation.to_s(['short', 'order']).to_s.split(':')[0]}</b> : #{observation.to_s(['short', 'order']).to_s.split(':')[1]} </li>"
+                        lab_result_value = observation.to_s(['short', 'order']).to_s.split(':')[1]
+                        if ['scanty', '1+', '2+', '3+'].include?(lab_result_value.downcase.strip)
+                          attrs = 'class="alert"'
+                        else
+                          attrs = ""
+                        end
+                        
+                        "<li> <b>#{observation.to_s(['short', 'order']).to_s.split(':')[0]}</b> : <span #{attrs}>#{observation.to_s(['short', 'order']).to_s.split(':')[1]}</span> </li>"
                     end
                 end
             end
@@ -86,7 +99,7 @@
         <%= hidden_field_tag "encounter[encounter_type_name]", "GIVE LAB RESULTS" %>
         <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
         <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
-        <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
+        <%= hidden_field_tag "encounter[provider_id]", current_user.user_id %>
 
         <%= text_field_tag :task_name, nil,
             {   :tt_onLoad => "showResults();",

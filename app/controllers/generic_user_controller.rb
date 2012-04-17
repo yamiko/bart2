@@ -2,13 +2,13 @@ class GenericUserController < ApplicationController
 
   def login
     if request.get?
-      session[:user_id]=nil
+      current_user.user_id=nil
     else
       @user=User.new(params[:user])
       logged_in_user=@user.try_to_login
       if logged_in_user
         reset_session
-        session[:user_id] = logged_in_user.user_id
+        current_user.user_id = logged_in_user.user_id
         session[:ip_address] = request.env['REMOTE_ADDR']         
         location = Location.find(params[:location]) rescue nil        
         location = Location.find_by_name(params[:location_name]) rescue nil unless params[:location_name].blank?
@@ -85,7 +85,7 @@ class GenericUserController < ApplicationController
   end
 
   def index
-    @user=User.find(session[:user_id])
+    @user=User.find(current_user.user_id)
     @firstname=@user.first_name
     @secondName=@user.last_name
        
@@ -130,7 +130,7 @@ class GenericUserController < ApplicationController
       redirect_to :action => 'new'
       return
     end
-    if (params[:user][:password] != params[:user_confirm][:password])
+    if (params[:user][:plain_password] != params[:user_confirm][:password])
       flash[:notice] = 'Password Mismatch'
       redirect_to :action => 'new'
       return
@@ -142,11 +142,13 @@ class GenericUserController < ApplicationController
       @user_admin_role = params[:user_role_admin][:role]
       @user_name = params[:user][:username]
     end
-
+	
+	params[:user][:password] = params[:user][:plain_password]
+	params[:user][:plain_password] = nil
     person = Person.create()
     person.names.create(params[:person_name])
     params[:user][:user_id] = nil
-    @user = User.new(params[:user])
+    @user = RawUser.new(params[:user])
     @user.person_id = person.id
     if @user.save
      # if params[:user_role_admin][:role] == "Yes"  
@@ -164,7 +166,6 @@ class GenericUserController < ApplicationController
         user_role.user_id = @user.user_id
         user_role.save
      # end
-      @user.update_attributes(params[:user])
       flash[:notice] = 'User was successfully created.'
       redirect_to :action => 'show'
     else
@@ -211,8 +212,8 @@ class GenericUserController < ApplicationController
 
   def destroy
    unless request.get?
-   @user = User.find(params[:id])
-    if @user.update_attributes(:voided => 1, :void_reason => params[:user][:void_reason],:voided_by => session[:user_id],:date_voided => Time.now.to_s)
+   @user = RawUser.find(params[:id])
+    if @user.update_attributes(:voided => 1, :void_reason => params[:user][:void_reason],:voided_by => current_user.user_id,:date_voided => Time.now.to_s)
       flash[:notice]='User has successfully been removed.'
       redirect_to :action => 'voided_list'
     else
@@ -264,14 +265,16 @@ class GenericUserController < ApplicationController
   end
 
   def change_password
-    @user = User.find(params[:id])
+    @user = RawUser.find(params[:id])
 
     unless request.get? 
-      if (params[:user][:password] != params[:user_confirm][:password])
+      if (params[:user][:plain_password] != params[:user_confirm][:password])
         flash[:notice] = 'Password Mismatch'
         redirect_to :action => 'new'
         return
       else
+		params[:user][:password] = params[:user][:plain_password]
+		params[:user][:plain_password] = nil
         if @user.update_attributes(params[:user])
           flash[:notice] = "Password successfully changed"
           redirect_to :action => "show",:id => @user.id

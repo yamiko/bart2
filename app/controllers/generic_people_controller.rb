@@ -402,7 +402,7 @@ class GenericPeopleController < ApplicationController
     result_hash = {}
 
     if PatientService.art_patient?(patient)
-      clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",'ART ADHERENCE','DISPENSING','ART_INITIAL']
+      clinic_encounters = ["APPOINTMENT","HIV CLINIC CONSULTATION","VITALS","HIV STAGING",'ART ADHERENCE','DISPENSING','HIV CLINIC REGISTRATION']
       clinic_encounter_ids = EncounterType.find(:all,:conditions => ["name IN (?)",clinic_encounters]).collect{| e | e.id }
       first_encounter_date = patient.encounters.find(:first,
         :order => 'encounter_datetime',
@@ -455,7 +455,7 @@ class GenericPeopleController < ApplicationController
     result_hash = {}
     
     if PatientService.art_patient?(patient)
-      clinic_encounters = ["APPOINTMENT","ART VISIT","VITALS","HIV STAGING",'ART ADHERENCE','DISPENSING','ART_INITIAL']
+      clinic_encounters = ["APPOINTMENT","HIV CLINIC CONSULTATION","VITALS","HIV STAGING",'ART ADHERENCE','DISPENSING','HIV CLINIC REGISTRATION']
       clinic_encounter_ids = EncounterType.find(:all,:conditions => ["name IN (?)",clinic_encounters]).collect{| e | e.id }
       first_encounter_date = patient.encounters.find(:first, 
         :order => 'encounter_datetime',

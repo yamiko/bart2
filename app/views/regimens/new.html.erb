@@ -111,7 +111,7 @@
   var reason_for_art = "<%= @reason_for_art_eligibility %>";
   var prescribeTBDrugs = "<%= @prescribe_tb_drugs %>";
   var prescribeARTDrugs = "<%= @prescribe_art_drugs %>";
-  var artVisit = "<%= @art_visit %>";
+  var artVisit = "<%= @hiv_clinic_consultation %>";
   var regimen_id = null; 
   var tb_regimen_id = null; 
 
@@ -517,7 +517,7 @@
 
   <%= select_tag :duration, optionsString, { 
 	:condition => '$("prescribe_arvs").value == "YES" || $("cpt_given").value == "YES" || $("ipt_given").value == "YES"',	
-	:helpText => 'Duration of ART drugs' } %> 
+	:helpText => 'Duration of prescribed drugs' } %> 
 
 
   <% if @patient_bean.age >= 14 %>

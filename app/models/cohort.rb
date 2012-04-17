@@ -628,7 +628,7 @@ class Cohort
     tb_status_hash = {} ; status = []
     tb_status_hash['TB STATUS'] = {'Unknown' => 0,'Suspected' => 0,'Not Suspected' => 0,'On Treatment' => 0,'Not on treatment' => 0} 
     tb_status_concept_id = ConceptName.find_by_name('TB STATUS').concept_id
-    art_visit_encounter_id = EncounterType.find_by_name('ART VISIT').id
+    hiv_clinic_consultation_encounter_id = EncounterType.find_by_name('HIV CLINIC CONSULTATION').id
 
     status = PatientState.find_by_sql("SELECT * FROM (
                           SELECT e.patient_id,n.name tbstatus,obs_datetime,e.encounter_datetime,s.state
@@ -643,7 +643,7 @@ class Cohort
                           AND (patient_start_date(e.patient_id) >= '#{@@first_registration_date}'
                           AND patient_start_date(e.patient_id) <= '#{@end_date}')
                           AND obs.concept_id = #{tb_status_concept_id}
-                          AND e.encounter_type = #{art_visit_encounter_id}
+                          AND e.encounter_type = #{hiv_clinic_consultation_encounter_id}
                           AND p.program_id = #{@@program_id}
                           ORDER BY e.encounter_datetime DESC, patient_state_id DESC , start_date DESC) K
                           GROUP BY K.patient_id
@@ -669,7 +669,7 @@ class Cohort
     tb_status_hash = {} ; status = []
     tb_status_hash['TB STATUS'] = {'Unknown' => 0,'Suspected' => 0,'Not Suspected' => 0,'On Treatment' => 0,'Not on treatment' => 0} 
     tb_status_concept_id = ConceptName.find_by_name('TB STATUS').concept_id
-    art_visit_encounter_id = EncounterType.find_by_name('ART VISIT').id
+    hiv_clinic_consultation_encounter_id = EncounterType.find_by_name('HIV CLINIC CONSULTATION').id
 
     status = PatientState.find_by_sql("SELECT * FROM (
                           SELECT e.patient_id,n.name tbstatus,obs_datetime,e.encounter_datetime,s.state
@@ -684,7 +684,7 @@ class Cohort
                           AND (patient_start_date(e.patient_id) >= '#{@@first_registration_date}'
                           AND patient_start_date(e.patient_id) <= '#{@end_date}')
                           AND obs.concept_id = #{tb_status_concept_id}
-                          AND e.encounter_type = #{art_visit_encounter_id}
+                          AND e.encounter_type = #{hiv_clinic_consultation_encounter_id}
                           AND p.program_id = #{@@program_id}
                           ORDER BY e.encounter_datetime DESC, patient_state_id DESC , start_date DESC) K
                           GROUP BY K.patient_id
@@ -697,7 +697,7 @@ class Cohort
                               ConceptName.find_by_name('SKIN RASH').concept_id,
                               ConceptName.find_by_name('JAUNDICE').concept_id]
 
-    encounter_type = EncounterType.find_by_name('ART VISIT')
+    encounter_type = EncounterType.find_by_name('HIV CLINIC CONSULTATION')
     concept_id = ConceptName.find_by_name('SYMPTOM PRESENT').concept_id
 
     encounter_ids = Encounter.find(:all,:conditions => ["encounter_type = ? 

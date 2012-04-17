@@ -5,7 +5,7 @@
            select(:user, :username, @username,{},{:include_blank => true ,:textCase => "lower" ,:validationRule =>"\\w{6}\\w*" ,:validationMessage => "Username must be at least SIX characters long"})%>
   <%when "change_password"%>
       <p><label for="user_password">Password</label><br/>
-      <%= password_field 'user', 'password', :xhelpText => 'Password' ,:textCase =>"lower", :validationRule => "\\w{4}\\w*", :validationMessage => "Password less than six characters", :value =>"", :minlength => 6 %></p>
+      <%= password_field 'user', 'plain_password', :xhelpText => 'Password' ,:textCase =>"lower", :validationRule => "\\w{4}\\w*", :validationMessage => "Password less than six characters", :value =>"", :minlength => 6 %></p>
 
       <p><label for="user_confirm_password">Re-enter Password</label><br/>
       <%= password_field 'user_confirm', 'password', :xhelpText => 'Password',:textCase =>"lower",:validationRule =>"\\w{4}\\w*", :validationMessage =>"Password less than FOUR characters." %></p>
@@ -55,7 +55,7 @@
       <%= text_field 'user', 'username', :xhelpText => 'Username',:textCase => "lower",:value => @user_name,:tt_onload =>"$('touchscreenInput5').value = ($('user_first_name').value.substring(0,3)+$('user_last_name').value.substring(0,3)).toLowerCase()" ,:validationRule =>"\\w{6}\\w*" ,:validationMessage => "Username must have at least SIX letters" ,:textCase => "lower"%></p>
 
       <p><label for="user_password">Password</label><br/>
-      <%= password_field 'user', 'password', :xhelpText => 'Password', :minlength => 6 ,:textCase =>"lower", :validationRule => "\\w{4}\\w*", :validationMessage => "Password less than six characters" %></p>
+      <%= password_field 'user', 'plain_password', :xhelpText => 'Password', :minlength => 6 ,:textCase =>"lower", :validationRule => "\\w{4}\\w*", :validationMessage => "Password less than six characters" %></p>
 
       <p><label for="user_confirm_password">Re-enter Password</label><br/>
       <%= password_field 'user_confirm', 'password', :xhelpText => 'Password',:textCase =>"lower",:validationRule =>"\\w{4}\\w*", :validationMessage =>"Password less than FOUR characters." %></p>
