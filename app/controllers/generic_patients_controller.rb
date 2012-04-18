@@ -273,11 +273,16 @@ class GenericPatientsController < ApplicationController
   end
 
   def print_lab_orders
-    print_and_redirect("/patients/lab_orders_label/?patient_id=#{@patient.id}", next_task(@patient))
+    patient_id = params[:patient_id]
+    patient = Patient.find(patient_id)
+
+    print_and_redirect("/patients/lab_orders_label/?patient_id=#{patient.id}", next_task(patient))
   end
 
   def lab_orders_label
-    label_commands = patient_lab_orders_label(@patient.id)
+    patient = Patient.find(params[:patient_id])
+    label_commands = patient_lab_orders_label(patient.id)
+
     send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbs", :disposition => "inline")
   end
 
@@ -1289,14 +1294,16 @@ class GenericPatientsController < ApplicationController
 
   def patient_lab_orders_label(patient_id)
     patient = Patient.find(patient_id)
+    patient_bean = PatientService.get_patient(patient.person)
+    
     lab_orders = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("LAB ORDERS").id,patient.id]).observations
       labels = []
       i = 0
-
+      
       while i <= lab_orders.size do
         accession_number = "#{lab_orders[i].accession_number rescue nil}"
-		patient_national_id_with_dashes = PatientService.get_national_id_with_dashes(patient) 
+		patient_national_id_with_dashes = PatientService.get_national_id_with_dashes(patient)
         if accession_number != ""
           label = 'label' + i.to_s
           label = ZebraPrinter::Label.new(500,165)
@@ -1305,7 +1312,7 @@ class GenericPatientsController < ApplicationController
           label.font_vertical_multiplier = 1
           label.left_margin = 300
           label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
-          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
+          label.draw_multi_text("#{patient_bean.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
           label.draw_multi_text("#{lab_orders[i].name rescue nil} - #{accession_number rescue nil}")
           label.draw_multi_text("#{lab_orders[i].obs_datetime.strftime("%d-%b-%Y %H:%M")}")
           labels << label
