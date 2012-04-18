@@ -589,7 +589,7 @@ def return_original_suggested_date(suggested_date, booked_dates)
 end
 
   def is_below_limit(recommended_date, bookings)
-    clinic_appointment_limit = CoreService.get_global_property_value('clinic.appointment.limit') rescue 0
+    clinic_appointment_limit = CoreService.get_global_property_value('clinic.appointment.limit').to_i rescue 0
 		clinic_appointment_limit = 0 if clinic_appointment_limit.blank?
 		within_limit = true
 		
