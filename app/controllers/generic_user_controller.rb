@@ -161,6 +161,7 @@ class GenericUserController < ApplicationController
        # user_role.save
       #}
       #else
+		@user.update_attributes(params[:user])
         user_role = UserRole.new
         user_role.role = Role.find_by_role(params[:user_role][:role_id])
         user_role.user_id = @user.user_id
