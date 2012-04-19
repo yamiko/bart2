@@ -90,7 +90,9 @@ class EncountersController < GenericEncountersController
 		
 		if (params[:encounter_type].upcase rescue '') == 'APPOINTMENT'
 			@todays_date = session_date
+			logger.info('========================== Suggesting appointment date =================================== @ '  + Time.now.to_s)
 			@suggested_appointment_date = suggest_appointment_date
+			logger.info('========================== Completed suggesting appointment date =================================== @ '  + Time.now.to_s)
 		end
     
 		@drug_given_before = PatientService.drug_given_before(@patient, session[:datetime])
