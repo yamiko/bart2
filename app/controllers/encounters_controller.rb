@@ -692,7 +692,15 @@ end
     session_date = dispensed_date.to_date
     
 		orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o| !MedicationService.arv(o.drug_order.drug) }
-    auto_expire_date = orders_made.sort_by(&:auto_expire_date).first.auto_expire_date.to_date
+
+		auto_expire_date = Date.today + 2.days
+		
+		if orders_made.blank?
+			orders_made = PatientService.drugs_given_on(patient, session_date)
+			auto_expire_date = orders_made.sort_by(&:auto_expire_date).first.auto_expire_date.to_date if !orders_made.blank?
+		else
+			auto_expire_date = orders_made.sort_by(&:auto_expire_date).first.auto_expire_date.to_date
+		end
 
 		orders_made.each do |order|
 				     amounts_dispensed = Observation.all(:conditions => ['concept_id = ? AND order_id = ?', 

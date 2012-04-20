@@ -9,7 +9,7 @@ development:
  use.user.selected.activities: yes
  filing.number.prefix: FN101,FN102
  auto_set_appointment: true
- show.patient.confirmation: true
+ show.patient.confirmation: yes
 
 test: &TEST
  create_from_remote: no
