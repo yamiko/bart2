@@ -30,9 +30,7 @@ class GenericRegimensController < ApplicationController
     end
 		@current_regimen_names_for_programs = current_regimen_names_for_programs
 		
-		@current_hiv_program_state = PatientProgram.find(:first, :joins => :location, :conditions => ["program_id = ? AND location.location_id = ? AND date_completed IS NULL", Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id, Location.current_health_center]).patient_states.current.first.program_workflow_state.concept.fullname rescue ''		
-
-
+		@current_hiv_program_state = PatientProgram.find(:first, :joins => :location, :conditions => ["patient_id = ? AND program_id = ? AND location.location_id = ? AND date_completed IS NULL", @patient.id, Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id, Location.current_health_center]).patient_states.current.first.program_workflow_state.concept.fullname rescue ''		
 		session_date = session[:datetime].to_date rescue Date.today
 
 		pre_hiv_clinic_consultation = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
