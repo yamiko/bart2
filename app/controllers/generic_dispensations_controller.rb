@@ -160,7 +160,9 @@ class GenericDispensationsController < ApplicationController
 		#return unless dispense_finish
 		#return if dispensed_drugs_inventory_ids.blank?
 
-		regimen_drug_order = ActiveRecord::Base.connection.select_all <<EOF
+		return_text = ''
+		if !dispensed_drugs_inventory_ids.blank?
+			regimen_drug_order = ActiveRecord::Base.connection.select_all <<EOF
 SELECT r.regimen_id , r.concept_id ,
 (SELECT COUNT(t3.regimen_id) FROM regimen_drug_order t3
 WHERE t3.regimen_id = t.regimen_id GROUP BY t3.regimen_id) as c
@@ -177,8 +179,6 @@ HAVING count(x.drug_inventory_id) = c
 LIMIT 1)
 EOF
 
-		return_text = ''
-		if !dispensed_drugs_inventory_ids.blank?
 			regimen_prescribed = regimen_drug_order.first['concept_id'].to_i rescue ConceptName.find_by_name('UNKNOWN ANTIRETROVIRAL DRUG').concept_id
 
 
