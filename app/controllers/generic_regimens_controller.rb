@@ -366,10 +366,9 @@ class GenericRegimensController < ApplicationController
 		patient_program = PatientProgram.find(params[:id])
 		@options = []
 		render :layout => false and return unless patient_program
-
-		regimen_concepts = patient_program.regimens(PatientService.get_patient_attribute_value(patient_program.patient, "current_weight")).uniq
-		@options = MedicationService.regimen_options(regimen_concepts, params[:patient_age].to_i)
-		#raise @options.to_yaml
+		current_weight = PatientService.get_patient_attribute_value(patient_program.patient, "current_weight")
+		#regimen_concepts = patient_program.regimens(current_weight).uniq
+		@options = MedicationService.regimen_options(current_weight, patient_program.program)
 		render :layout => false
 	end
 

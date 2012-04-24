@@ -752,9 +752,10 @@ class ApplicationController < GenericApplicationController
 	end
     
     encounters.each do | type |
+		type =type.squish
       encounter_available = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                                      patient.id,EncounterType.find_by_name(type).id,session_date],
-                                     :order =>'encounter_datetime DESC,date_created DESC',:limit => 1) rescue (raise type.to_s)
+                                     :order =>'encounter_datetime DESC,date_created DESC',:limit => 1) 
       reception = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
                         patient.id,session_date,EncounterType.find_by_name('HIV RECEPTION').id]).observations.collect{| r | r.to_s}.join(',') rescue ''
         
