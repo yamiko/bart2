@@ -2,32 +2,32 @@ class Cohort
 	
 	attr :cohort
 	attr_accessor :start_date, :end_date, :cohort
-  #attr_accessible :cohort
-  
-  @@first_registration_date = nil
-  @@program_id = nil
-  
-  # Initialize class
-  def initialize(start_date, end_date)
-    @start_date = start_date #"#{start_date} 00:00:00"
-    @end_date = "#{end_date} 23:59:59"
-		
-    @@first_registration_date = PatientProgram.find(
-      :first,
-      :conditions =>["program_id = ? AND voided = 0",1],
-      :order => 'date_enrolled ASC'
-    ).date_enrolled.to_date rescue nil
+	#attr_accessible :cohort
 
-    @@program_id = Program.find_by_name('HIV PROGRAM').program_id
-  end
+	@@first_registration_date = nil
+	@@program_id = nil
+  
+	# Initialize class
+	def initialize(start_date, end_date)
+		@start_date = start_date #"#{start_date} 00:00:00"
+		@end_date = "#{end_date} 23:59:59"
+	
+		@@first_registration_date = PatientProgram.find(
+		  :first,
+		  :conditions =>["program_id = ? AND voided = 0",1],
+		  :order => 'date_enrolled ASC'
+		).date_enrolled.to_date rescue nil
 
-  # Get patients reinitiated on art count
-  def patients_reinitiated_on_art_ever
-    Observation.find(:all, :joins => [:encounter], :conditions => ["concept_id = ? AND value_coded IN (?) AND encounter.voided = 0 \
-        AND DATE_FORMAT(obs_datetime, '%Y-%m-%d') <= ?", ConceptName.find_by_name("EVER RECEIVED ART").concept_id,
-        ConceptName.find(:all, :conditions => ["name = 'YES'"]).collect{|c| c.concept_id},
-        @end_date.to_date.strftime("%Y-%m-%d")]).length rescue 0
-  end
+		@@program_id = Program.find_by_name('HIV PROGRAM').program_id
+	end
+
+	# Get patients reinitiated on art count
+	def patients_reinitiated_on_art_ever
+		Observation.find(:all, :joins => [:encounter], :conditions => ["concept_id = ? AND value_coded IN (?) AND encounter.voided = 0 \
+			AND DATE_FORMAT(obs_datetime, '%Y-%m-%d') <= ?", ConceptName.find_by_name("EVER RECEIVED ART").concept_id,
+			ConceptName.find(:all, :conditions => ["name = 'YES'"]).collect{|c| c.concept_id},
+			@end_date.to_date.strftime("%Y-%m-%d")]).length rescue 0
+	end
 
   def patients_reinitiated_on_arts
     Observation.find(:all, :joins => [:encounter], :conditions => ["concept_id = ? AND value_coded IN (?) AND encounter.voided = 0 \
@@ -85,18 +85,20 @@ class Cohort
                       on_art_concept_name.map{|c|c.concept_id}]
     ).program_workflow_state_id
 		
-		PatientProgram.find_by_sql("SELECT p.patient_id, IFNULL(MIN(o.value_datetime), MIN(s.start_date)), MIN(o.value_datetime) AS original_start_date FROM patient_program p
-					LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
-					LEFT JOIN clinic_registration_encounter e ON p.patient_id = e.patient_id
-					LEFT JOIN start_date_observation o ON o.encounter_id = e.encounter_id
-				 	WHERE p.voided = 0
-				  AND s.voided = 0
-				  AND program_id = #{@@program_id}
-				  AND s.state = #{state}
-				  AND s.start_date >= '#{start_date}'
-				  AND s.start_date <= '#{end_date}'
-					GROUP BY p.patient_id
-					HAVING original_start_date IS NULL")
+	PatientProgram.find_by_sql("SELECT p.patient_id, IFNULL(MIN(o.value_datetime), MIN(s.start_date)), MIN(s.start_date) AS earliest_start_date, MIN(o.value_datetime) AS original_start_date
+		FROM patient_program p
+			LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
+			LEFT JOIN clinic_registration_encounter e ON p.patient_id = e.patient_id
+			LEFT JOIN start_date_observation o ON o.encounter_id = e.encounter_id
+		WHERE p.voided = 0
+			AND s.voided = 0
+			AND program_id = #{@@program_id}
+			AND s.state = #{state}
+		GROUP BY p.patient_id
+		HAVING 
+			earliest_start_date >= '#{start_date}'
+			AND earliest_start_date <= '#{end_date}'
+			AND	original_start_date IS NULL")
 =begin    
     PatientProgram.find_by_sql("SELECT patient_id FROM patient_program p
                                 INNER JOIN patient_state s USING (patient_program_id)

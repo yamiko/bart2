@@ -1361,7 +1361,7 @@ class CohortToolController < GenericCohortToolController
     @quarter = params[:quarter]
     start_date,end_date = Report.generate_cohort_date_range(@quarter)
     cohort = Cohort.new(start_date,end_date)
-    raise cohort.patients_initiated_on_art_first_time.length.to_yaml
+    #raise cohort.patients_initiated_on_art_first_time.length.to_yaml
    	logger.info("cohort")
     @cohort = cohort.report(logger)
     #raise @cohort.to_yaml
