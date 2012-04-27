@@ -150,6 +150,13 @@
 				:order_id    => "#{order.order_id}",
 				:tt_pageStyleClass => "NoControls"} %>
 				
+		<%= touch_hidden_tag "MISSED HIV DRUG CONSTRUCT", @patient, nil,
+			{	:id          => "doses_missed_#{order.order_id}",
+				:helpText    => "Amount of Doses Missed #{order.drug_order.drug.name}",
+				:optional    => "true",
+				:order_id    => "#{order.order_id}",
+				:tt_pageStyleClass => "NoControls"} %>
+				
 			<script>
         drug_names['<%=order.order_id%>'] = "<%=order.drug_order.drug.name %>";
         daily_consumption['<%=order.order_id%>'] = "<%=order.drug_order.equivalent_daily_dose %>";
@@ -219,14 +226,23 @@
 
 		      summary += "<div><span class='title'></span><span class='title'>"+drug_name+"</span></div>"
 			    summary += "<div><span >Last visit date:&nbsp;</span><span class='value'>"+dateFormat(last_visit_date,"dddd, mmmm dS, yyyy")+"</span></div>"
-			    if (doses_missed >= 0) summary += "<div><span class='value'>Doses unaccounted for:&nbsp;</span><span class='value'>"+doses_missed+"</span></div>"
-			    if (doses_missed < 0) summary += "<div><span>Doses missed:&nbsp;</span><span class='value'>"+(-doses_missed)+"</span></div>"
+			    if (doses_missed >= 0){
+			     summary += "<div><span class='value'>Doses unaccounted for:&nbsp;</span><span class='value'>"+doses_missed+"</span></div>"
+			     	document.getElementById("doses_missed_" + i).value = doses_missed;
+			     }
+			     
+			    if (doses_missed < 0) {
+			    	summary += "<div><span>Doses missed:&nbsp;</span><span class='value'>"+(-doses_missed)+"</span></div>"
+			    	document.getElementById("doses_missed_" + i).value = (-doses_missed);
+			    }
 			    summary += "<div><span>Tablets given last time:&nbsp;</span><span class='value'>"+(amount_given_last_time[i])+"</span></div>"
 			    summary += "<div><span>Daily consumption:&nbsp;</span><span class='value'>"+(daily_consumption[i])+"</span></div>"
 			    if (expected_amount_remaining >= 0) summary += "<div><span >Expected tablets remaining:&nbsp;</span><span class='value'>"+expected_amount_remaining+"</span></div>"
 			    if (expected_amount_remaining < 0 && days_overdue_for_visit > 0) summary += "<div><span>Days overdue for visit:&nbsp;</span><span class='value'>"+days_overdue_for_visit+"</span></div>"
 			    summary += "<div><span>Actual tablets remaining:&nbsp;</span><span class='value'>"+amount_remaining+"</span></div>"
-			
+
+			    document.getElementById("doses_missed_" + i).value = doses_missed;
+
 			    summary += "<div class='value'><span>Percentage of doses taken:&nbsp;</span><span class='value'>"+ adherence +"%</span></div>"
 			    if (adherence < 95 || adherence > 105) summary += "<div class='" + warning + "'><span style='color:red' class='recommendation'>Patient needs counseling</span></div><br /><br />"
 			    
@@ -246,7 +262,6 @@
 			var months = new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
 			return ""+date.getDate()+"-"+months[date.getMonth()]+"-"+date.getFullYear();
 		}
-
 	</script>
 
   <%
