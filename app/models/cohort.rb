@@ -650,6 +650,13 @@ raise cohort_report.to_yaml
     #pmtct_concept_id = ConceptName.find_by_name("REFERRED BY PMTCT").concept_id
     yes_concept_id = ConceptName.find_by_name("YES").concept_id
 
+		on_art_concept_name = ConceptName.find_all_by_name('On antiretrovirals')
+		
+		state = ProgramWorkflowState.find(
+			:first,
+			:conditions => ["concept_id IN (?)",
+			on_art_concept_name.map{|c|c.concept_id}]
+		).program_workflow_state_id    
 =begin
 
     PatientProgram.find_by_sql("SELECT patient_id,date_enrolled,obs.concept_id FROM obs 
@@ -673,7 +680,8 @@ raise cohort_report.to_yaml
 						 WHERE p.program_id = 1
 						 AND o.obs_datetime >= '#{start_date}'
 						 AND o.obs_datetime <= '#{end_date}' 
-						 AND o.value_coded = #{yes_concept_id}  
+						 AND o.value_coded = #{yes_concept_id}
+						 AND s.state = #{state} 
 						 GROUP BY patient_id")
   end
 
