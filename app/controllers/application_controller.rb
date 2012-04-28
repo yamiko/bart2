@@ -750,7 +750,7 @@ class ApplicationController < GenericApplicationController
 	if !reason_for_art.nil? && reason_for_art.upcase == 'NONE'
 		reason_for_art = nil				
 	end
-    
+	 #raise encounters.to_yaml
     encounters.each do | type |
 		type =type.squish
       encounter_available = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
@@ -812,7 +812,6 @@ class ApplicationController < GenericApplicationController
               end if not PatientService.drug_given_before(patient,session_date).blank?
             end
           end if refer_to_clinician 
-
 
           
           if not encounter_available.blank? and refer_to_clinician 
@@ -1151,8 +1150,6 @@ class ApplicationController < GenericApplicationController
     elsif hiv_reception.blank? and task.encounter_type == art_encounters[1]
       return task
     end
-
-
 
     reception = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
                         patient.id,session_date,EncounterType.find_by_name(art_encounters[1]).id]).collect{|r|r.to_s}.join(',') rescue ''

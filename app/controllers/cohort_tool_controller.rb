@@ -1361,8 +1361,11 @@ class CohortToolController < GenericCohortToolController
     @quarter = params[:quarter]
     start_date,end_date = Report.generate_cohort_date_range(@quarter)
     cohort = Cohort.new(start_date,end_date)
-    @cohort = cohort.report
-    @survival_analysis = SurvivalAnalysis.report(cohort)
+    #raise cohort.patients_initiated_on_art_first_time.length.to_yaml
+   	logger.info("cohort")
+    @cohort = cohort.report(logger)
+    #raise @cohort.to_yaml
+    #@survival_analysis = SurvivalAnalysis.report(cohort)
     render :layout => 'cohort'
   end
 
