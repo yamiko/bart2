@@ -24,10 +24,7 @@ class Cohort
 	def report(logger)
 		return {} if @@first_registration_date.blank?
 		cohort_report = {}
-
-		#my_result = PatientProgram.find_by_sql ("SELECT * FROM person p LEFT JOIN earliest_start_date e ON p.person_id = e.patient_id WHERE dead = 1")
-		#raise my_result.count(":condition => creator = 138").to_yaml
-
+		
 =begin
 					cohort_report['Total registered'] = self.total_registered(@@first_registration_date).length
 					cohort_report['Newly total registered'] = self.total_registered.length
@@ -299,31 +296,31 @@ class Cohort
 			begin
 				logger.info("alive_on_art " + Time.now.to_s)
 				cohort_report['Total alive and on ART'] = self.total_alive_and_on_art.length
-				cohort_report['Died total'] = self.total_number_of_dead_patients
+				cohort_report['Died total'] = self.total_number_of_dead_patients.length
 
 				logger.info("death_dates " + Time.now.to_s)
-				death_dates_array = self.death_dates
-				cohort_report['Died within the 1st month after ART initiation'] = death_dates_array[0].length
-				cohort_report['Died within the 2nd month after ART initiation'] = death_dates_array[1].length
-				cohort_report['Died within the 3rd month after ART initiation'] = death_dates_array[2].length
-				cohort_report['Died after the end of the 3rd month after ART initiation'] = death_dates_array[3].length
-				
+				# death_dates_array = self.death_dates
+				cohort_report['Died within the 1st month after ART initiation'] = self.total_number_of_died_within_range(0, 29).length
+				cohort_report['Died within the 2nd month after ART initiation'] = self.total_number_of_died_within_range(29, 57).length
+				cohort_report['Died within the 3rd month after ART initiation'] = self.total_number_of_died_within_range(57, 85).length
+				cohort_report['Died after the end of the 3rd month after ART initiation'] = self.total_number_of_died_within_range(85, 1000000).length
+=begin			
 				death_dates_array = self.death_dates(@@first_registration_date,@end_date)
 				cohort_report['Total Died within the 1st month after ART initiation'] = death_dates_array[0].length
 				cohort_report['Total Died within the 2nd month after ART initiation'] = death_dates_array[1].length
 				cohort_report['Total Died within the 3rd month after ART initiation'] = death_dates_array[2].length
 				cohort_report['Total Died after the end of the 3rd month after ART initiation'] = death_dates_array[3].length
-
+=end
 				logger.info("txfrd_out " + Time.now.to_s)
-				cohort_report['Transferred out'] = self.transferred_out_patients
+				cohort_report['Transferred out'] = self.transferred_out_patients.length
 				
 				logger.info("stopped_arvs " + Time.now.to_s)
-				cohort_report['Stopped taking ARVs'] = self.art_stopped_patients
+				cohort_report['Stopped taking ARVs'] = self.art_stopped_patients.length
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
 		end
-
+=begin
 		threads.each do |thread|
 			thread.join
 			if thread[:exception]
@@ -333,9 +330,7 @@ class Cohort
 			end
 		end
 		
-		raise cohort_report.to_yaml
-
-=begin		  
+		raise cohort_report.to_yaml		  
 =end	  
 
 =begin
@@ -357,6 +352,7 @@ class Cohort
 		  end
 		end
 
+=end
 		threads << Thread.new do
 			begin
 				logger.info("regimens " + Time.now.to_s)
@@ -366,7 +362,6 @@ class Cohort
 		  end
 		end
 
-=end
 
 		threads.each do |thread|
 			thread.join
@@ -727,6 +722,71 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 		  ORDER BY K.patient_state_id DESC, K.start_date DESC")
 	end
 
+	def died_total
+		self.outcomes_total('PATIENT DIED')
+	end
+  
+	def total_number_of_dead_patients
+		PatientProgram.find_by_sql("SELECT * FROM person p LEFT JOIN earliest_start_date e ON p.person_id = e.patient_id 
+										WHERE dead = 1
+											AND earliest_start_date <=  '#{@end_date}'")
+	end
+
+	def total_number_of_died_within_range(min_days = 0, max_days = 0)
+		PatientProgram.find_by_sql("SELECT person_id, birthdate, death_date, earliest_start_date, DATEDIFF(death_date, earliest_start_date) AS days 
+										FROM person p 
+											LEFT JOIN earliest_start_date e ON p.person_id = e.patient_id
+										WHERE dead = 1
+											AND earliest_start_date <=  '#{@end_date}'
+										HAVING days >= #{min_days}
+										AND days < #{max_days}")
+	end
+
+	def transferred_out_patients
+		#self.outcomes_total('PATIENT TRANSFERRED OUT').length
+		PatientProgram.find_by_sql("SELECT patient_id, current_state_for_program(patient_id, 1, '#{@end_date}') AS state FROM earliest_start_date 
+										WHERE earliest_start_date <=  '#{@end_date}'
+										HAVING state = 2")
+	end
+
+	def art_defaulted_patients
+		self.outcomes_total('DEFAULTED').length
+	end
+
+	def art_stopped_patients
+		PatientProgram.find_by_sql("SELECT patient_id, current_state_for_program(patient_id, 1, '#{@end_date}') AS state FROM earliest_start_date 
+										WHERE earliest_start_date <=  '#{@end_date}'
+										HAVING state = 6")
+	end
+
+  def outcomes_total(outcome)
+    on_art_concept_name = ConceptName.find_all_by_name(outcome)
+    state = ProgramWorkflowState.find(
+      :first,
+      :conditions => ["concept_id IN (?)",
+                      on_art_concept_name.map{|c|c.concept_id}]
+    ).program_workflow_state_id
+
+    PatientState.find_by_sql("SELECT * FROM (
+        SELECT s.patient_program_id, patient_id, patient_state_id, start_date,
+               n.name name, state, p.date_enrolled AND date_enrolled
+        FROM patient_state s
+        LEFT JOIN patient_program p ON p.patient_program_id = s.patient_program_id
+        LEFT JOIN program_workflow pw ON pw.program_id = p.program_id
+        LEFT JOIN program_workflow_state w ON w.program_workflow_id = pw.program_workflow_id
+        AND w.program_workflow_state_id = s.state
+        LEFT JOIN concept_name n ON w.concept_id = n.concept_id
+        WHERE p.voided = 0 AND s.voided = 0
+        AND (s.start_date >= '#{@@first_registration_date}'
+        AND s.start_date <= '#{@end_date}')
+        AND p.program_id = #{@@program_id}
+        ORDER BY patient_state_id DESC, start_date DESC
+      ) K
+      GROUP BY K.patient_id HAVING (state = #{state})
+      ORDER BY K.patient_state_id DESC, K.start_date DESC")
+  end
+
+
 	def death_dates(start_date = @start_date, end_date = @end_date)
 		start_date_death_date = [] 
 
@@ -948,26 +1008,11 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
   end
 
 
-  def art_defaulted_patients
-    self.outcomes_total('DEFAULTED').length
-  end
 
-  def art_stopped_patients
-    self.outcomes_total('TREATMENT STOPPED').length
-  end
 
-  def transferred_out_patients
-    self.outcomes_total('PATIENT TRANSFERRED OUT').length
-  end
 
-  def died_total
-    self.outcomes_total('PATIENT DIED')
-    
-  end
-  
-  def total_number_of_dead_patients
-    self.outcomes_total('PATIENT DIED').length
-  end
+
+
 
 
 
@@ -1031,32 +1076,6 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 		return counter
 	end
 
-  def outcomes_total(outcome)
-    on_art_concept_name = ConceptName.find_all_by_name(outcome)
-    state = ProgramWorkflowState.find(
-      :first,
-      :conditions => ["concept_id IN (?)",
-                      on_art_concept_name.map{|c|c.concept_id}]
-    ).program_workflow_state_id
-
-    PatientState.find_by_sql("SELECT * FROM (
-        SELECT s.patient_program_id, patient_id,patient_state_id,start_date,
-               n.name name,state,p.date_enrolled date_enrolled
-        FROM patient_state s
-        LEFT JOIN patient_program p ON p.patient_program_id = s.patient_program_id
-        LEFT JOIN program_workflow pw ON pw.program_id = p.program_id
-        LEFT JOIN program_workflow_state w ON w.program_workflow_id = pw.program_workflow_id
-        AND w.program_workflow_state_id = s.state
-        LEFT JOIN concept_name n ON w.concept_id = n.concept_id
-        WHERE p.voided = 0 AND s.voided = 0
-        AND (s.start_date >= '#{@@first_registration_date}'
-        AND s.start_date <= '#{@end_date}')
-        AND p.program_id = #{@@program_id}
-        ORDER BY patient_state_id DESC, start_date DESC
-      ) K
-      GROUP BY K.patient_id HAVING (state = #{state})
-      ORDER BY K.patient_state_id DESC, K.start_date DESC")
-  end
 
   def kaposis_sarcoma(start_date = @start_date, end_date = @end_date)
     tb_concept_id = ConceptName.find_by_name("KAPOSIS SARCOMA").concept_id
