@@ -6,7 +6,7 @@ set :keep_releases, 3
 set :scm, :git
 set :deploy_via, :remote_cache
 set :deploy_to, "/var/www/#{application}"
-set :branch, "master"
+set :branch, "bart2"
 set :user, "deploy"
 set :runner, "deploy"
 set :use_sudo, :true
