@@ -12,5 +12,4 @@ INNER JOIN patient_state ps ON pp.patient_program_id = ps.patient_program_id
     AND DATE(obs1.obs_datetime) = DATE(ps.start_date)
 WHERE 7 NOT IN (SELECT state FROM patient_state ps1 WHERE ps1.patient_program_id = pp.patient_program_id 
                 AND DATE(ps1.start_date) =  DATE(obs1.obs_datetime))
-GROUP BY pp.patient_id, DATE(obs1.obs_datetime)
-HAVING count(ps.state) > 1)
+GROUP BY pp.patient_id, DATE(obs1.obs_datetime))
