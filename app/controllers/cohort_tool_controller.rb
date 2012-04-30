@@ -610,7 +610,7 @@ class CohortToolController < GenericCohortToolController
     cohort = Cohort.new(start_date,end_date)
 
     @first_registration_date = cohort.first_registration_date
-
+=begin
     #populating start regimens
     regimens = []
     regimens = cohort.regimens_with_patient_ids(@first_registration_date)
@@ -849,17 +849,22 @@ class CohortToolController < GenericCohortToolController
         @total_after_third_month << patient
       end
     end
-
+=end
     #populating the @report with patient's details on each and every link
     case params[:field]
       when 'newly_total_registered' then
         newly_registered_patients = []
 
         newly_registered_patients = cohort.total_registered
-        
-        newly_registered_patients.each do |patient_id|
-          patient = Patient.find_by_patient_id(patient_id.patient_id)
-          @report << PatientService.get_patient(patient.person) 
+		counter = 0
+
+		@current_page = newly_registered_patients.paginate(:page => params[:page], :per_page => 20)
+
+        @current_page.each do |patient_id|
+          #patient = Patient.find_by_patient_id(patient_id.patient_id)
+            @report << PatientService.get_patient(patient_id.patient.person) 
+			#counter = counter + 1
+			#break if counter >= 10	
         end
       when 'total_registered' then
         total_registered_patients = []
@@ -1349,7 +1354,7 @@ class CohortToolController < GenericCohortToolController
       else
     end
 
-    render :layout => 'report'
+    render :layout => 'patient_list'
   end
 
   def include_url_params_for_back_button
