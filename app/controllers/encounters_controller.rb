@@ -90,21 +90,13 @@ class EncountersController < GenericEncountersController
 		
 		if (params[:encounter_type].upcase rescue '') == 'APPOINTMENT'
 			@todays_date = session_date
+			logger.info('========================== Suggesting appointment date =================================== @ '  + Time.now.to_s)
 			@suggested_appointment_date = suggest_appointment_date
+			logger.info('========================== Completed suggesting appointment date =================================== @ '  + Time.now.to_s)
 		end
     
 		@drug_given_before = PatientService.drug_given_before(@patient, session[:datetime])
 
-		use_regimen_short_names = CoreService.get_global_property_value("use_regimen_short_names") rescue "false"
-		show_other_regimen = ("show_other_regimen") rescue 'false'
-
-		@answer_array = arv_regimen_answers(:patient => @patient,
-			:use_short_names    => use_regimen_short_names == "true",
-			:show_other_regimen => show_other_regimen      == "true")
-
-		hiv_program = Program.find_by_name('HIV Program')
-		@answer_array = MedicationService.regimen_options(hiv_program.regimens, @patient_bean.age)
-		@answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 
 		@hiv_status = PatientService.patient_hiv_status(@patient)
 		@hiv_test_date = PatientService.hiv_test_date(@patient.id)
@@ -302,6 +294,20 @@ class EncountersController < GenericEncountersController
 		if (params[:encounter_type].upcase rescue '') == 'HIV_CLINIC_REGISTRATION'
 			other = []
 
+=begin
+			use_regimen_short_names = CoreService.get_global_property_value("use_regimen_short_names") rescue "false"
+			show_other_regimen = ("show_other_regimen") rescue 'false'
+
+			@answer_array = arv_regimen_answers(:patient => @patient,
+				:use_short_names    => use_regimen_short_names == "true",
+				:show_other_regimen => show_other_regimen      == "true")
+
+			hiv_program = Program.find_by_name('HIV Program')
+			current_weight = PatientService.get_patient_attribute_value(@patient, "current_weight")
+			@answer_array = MedicationService.regimen_options(current_weight, hiv_program)
+			@answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
+=end
+
 			@arv_drugs = MedicationService.arv_drugs.collect { | drug | 
 				if (CoreService.get_global_property_value('use_regimen_short_names').to_s == "true" rescue false)					
 					other << [drug.concept.shortname, drug.concept.shortname] if (drug.concept.shortname.upcase.include?('OTHER') || drug.concept.shortname.upcase.include?('UNKNOWN'))
@@ -315,11 +321,9 @@ class EncountersController < GenericEncountersController
 			@arv_drugs = @arv_drugs.sort {|a,b| a.to_s.downcase <=> b.to_s.downcase}
 			@arv_drugs = @arv_drugs + other
 
-      @require_hiv_clinic_registration = require_hiv_clinic_registration
-
-			#raise @arv_drugs.to_yaml
-			#raise drugs.to_yaml
+			@require_hiv_clinic_registration = require_hiv_clinic_registration
 		end
+
 		redirect_to "/" and return unless @patient
 
 		redirect_to next_task(@patient) and return unless params[:encounter_type]
@@ -690,7 +694,15 @@ end
     session_date = dispensed_date.to_date
     
 		orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o| !MedicationService.arv(o.drug_order.drug) }
-    auto_expire_date = orders_made.sort_by(&:auto_expire_date).first.auto_expire_date.to_date
+
+		auto_expire_date = Date.today + 2.days
+		
+		if orders_made.blank?
+			orders_made = PatientService.drugs_given_on(patient, session_date)
+			auto_expire_date = orders_made.sort_by(&:auto_expire_date).first.auto_expire_date.to_date if !orders_made.blank?
+		else
+			auto_expire_date = orders_made.sort_by(&:auto_expire_date).first.auto_expire_date.to_date
+		end
 
 		orders_made.each do |order|
 				     amounts_dispensed = Observation.all(:conditions => ['concept_id = ? AND order_id = ?', 
