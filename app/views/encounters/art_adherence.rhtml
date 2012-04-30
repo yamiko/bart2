@@ -211,6 +211,8 @@
 			    var num_days = since(last_visit_date);
 			    var expected_amount_remaining = parseFloat(amount_given_last_time[i] - (num_days * daily_consumption[i]));
 
+					expected_amount_remaining = expected_amount_remaining.toFixed(2);
+
           if(expected_amount_remaining == amount_remaining) {
             doses_missed = 0;
           }else{
