@@ -25,15 +25,6 @@ class Cohort
   def report(logger)
     return {} if @@first_registration_date.blank?
     cohort_report = {}
-=begin
-    cohort_report['Total registrated'] = self.total_registered(@@first_registration_date).length
-	  cohort_report['Newly total registrated'] = self.total_registered.length
-		cohort_report['Total transferred in patients'] = self.transferred_in_patients(@@first_registration_date).length
-						cohort_report['Newly transferred in patients'] = self.transferred_in_patients.length
-					logger.info("transfered_in " + Time.now.to_s)
-				raise "#{cohort_report['Newly total registrated']}, #{cohort_report['Newly transferred in patients']}"
-#=end		
-  raise self.total_registered_by_gender_age(start_date,end_date,'F').length.to_yaml				
 		threads = []
 		threads << Thread.new do
 				begin
@@ -246,168 +237,7 @@ class Cohort
 
     self.cohort = cohort_report
     self.cohort
-=end
-    return {} if @@first_registration_date.blank?
-    cohort_report = {}
-    
-    logger.info("start_registration " + Time.now.to_s)
-    cohort_report['Total registrated'] = self.total_registered(@@first_registration_date).length
-    cohort_report['Newly total registrated'] = self.total_registered.length
-    cohort_report['Total transferred in patients'] = self.transferred_in_patients(@@first_registration_date).length
-    cohort_report['Newly transferred in patients'] = self.transferred_in_patients.length
 
-    cohort_report['Newly registrated male'] = self.total_registered_by_gender_age(@start_date,@end_date,'M').length
-    cohort_report['Total registrated male'] = self.total_registered_by_gender_age(@@first_registration_date,@end_date,'M').length
-
-    cohort_report['Newly registrated women (non-pregnant)'] = self.non_pregnant_women(@start_date,@end_date).length
-    cohort_report['Total registrated women (non-pregnant)'] = self.non_pregnant_women(@@first_registration_date,@end_date).length
-
-    cohort_report['Newly registrated women (pregnant)'] = self.pregnant_women(@start_date,@end_date).length
-    cohort_report['Total registrated women (pregnant)'] = self.pregnant_women(@@first_registration_date,@end_date).length
-
-    cohort_report['Newly registrated infants'] = self.total_registered_by_gender_age(@start_date,@end_date,nil,0,1.5).length
-    cohort_report['Total registrated infants'] = self.total_registered_by_gender_age(@@first_registration_date,@start_date,nil,0,1.5).length
-
-    cohort_report['Newly registrated children'] = self.total_registered_by_gender_age(@start_date,@end_date,nil,1.5,14).length
-    cohort_report['Total registrated children'] = self.total_registered_by_gender_age(@@first_registration_date,@start_date,nil,1.5,14).length
-
-    cohort_report['Newly registrated adults'] = self.total_registered_by_gender_age(@start_date,@end_date,nil,14,300).length
-    cohort_report['Total registrated adults'] = self.total_registered_by_gender_age(@@first_registration_date,@start_date,nil,14,300).length
-    
-    logger.info("reinitiated_on_art " + Time.now.to_s)    
-    cohort_report['Patients reinitiated on ART'] = self.patients_reinitiated_on_art.length
-    cohort_report['Total Patients reinitiated on ART'] = self.patients_reinitiated_on_art(@@first_registration_date).length
-    logger.info("initiated_on_art " + Time.now.to_s)  
-    cohort_report['Patients initiated on ART'] = self.patients_initiated_on_art_first_time.length
-    cohort_report['Total Patients initiated on ART'] = self.patients_initiated_on_art_first_time(@@first_registration_date).length
-
-raise cohort_report.to_yaml
-    logger.info("start_reason " + Time.now.to_s)
-    cohort_report['Presumed severe HIV disease in infants'] = 0
-    cohort_report['Confirmed HIV infection in infants (PCR)'] = 0
-    cohort_report['WHO stage 1 or 2, CD4 below threshold'] = 0
-    cohort_report['WHO stage 2, total lymphocytes'] = 0
-    cohort_report['Unknown reason'] = 0
-    cohort_report['WHO stage 3'] = 0
-    cohort_report['WHO stage 4'] = 0
-    cohort_report['Patient pregnant'] = 0
-    cohort_report['Patient breastfeeding'] = 0
-    cohort_report['HIV infected'] = 0
-
-    ( self.start_reason || [] ).each do | reason | 
-      if reason.name.match(/Presumed/i)
-        cohort_report['Presumed severe HIV disease in infants'] += 1
-      elsif reason.name.match(/Confirmed/i)
-        cohort_report['Confirmed HIV infection in infants (PCR)'] += 1
-      elsif reason.name[0..11].strip.upcase == 'WHO STAGE I' or reason.name.match(/CD/i)
-        cohort_report['WHO stage 1 or 2, CD4 below threshold'] += 1
-      elsif reason.name[0..12].strip.upcase == 'WHO STAGE II' or reason.name.match(/lymphocytes/i) or reason.name.match(/LYMPHOCYTE/i)
-        cohort_report['WHO stage 2, total lymphocytes'] += 1
-      elsif reason.name[0..13].strip.upcase == 'WHO STAGE III'
-        cohort_report['WHO stage 3'] += 1
-      elsif reason.name[0..11].strip.upcase == 'WHO STAGE IV'
-        cohort_report['WHO stage 4'] += 1
-      elsif reason.name.strip.humanize == 'Patient pregnant'
-        cohort_report['Patient pregnant'] += 1
-      elsif reason.name.match(/Breastfeeding/i)
-        cohort_report['Patient breastfeeding'] += 1
-      elsif reason.name.strip.upcase == 'HIV INFECTED'
-        cohort_report['HIV infected'] += 1
-      else 
-        cohort_report['Unknown reason'] += 1
-      end
-    end
-    
-    cohort_report['Total Presumed severe HIV disease in infants'] = 0
-    cohort_report['Total Confirmed HIV infection in infants (PCR)'] = 0
-    cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] = 0
-    cohort_report['Total WHO stage 2, total lymphocytes'] = 0
-    cohort_report['Total Unknown reason'] = 0
-    cohort_report['Total WHO stage 3'] = 0
-    cohort_report['Total WHO stage 4'] = 0
-    cohort_report['Total Patient pregnant'] = 0
-    cohort_report['Total Patient breastfeeding'] = 0
-    cohort_report['Total HIV infected'] = 0
-
-    ( self.start_reason(@@first_registration_date,@end_date) || [] ).each do | reason | 
-      if reason.name.match(/Presumed/i)
-        cohort_report['Total Presumed severe HIV disease in infants'] += 1
-      elsif reason.name.match(/Confirmed/i)
-        cohort_report['Total Confirmed HIV infection in infants (PCR)'] += 1
-      elsif reason.name[0..11].strip.upcase == 'WHO STAGE I' or reason.name.match(/CD/i)
-        cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] += 1
-      elsif reason.name[0..12].strip.upcase == 'WHO STAGE II' or reason.name.match(/lymphocytes/i) or reason.name.match(/LYMPHOCYTE/i)
-        cohort_report['Total WHO stage 2, total lymphocytes'] += 1
-      elsif reason.name[0..13].strip.upcase == 'WHO STAGE III'
-        cohort_report['Total WHO stage 3'] += 1
-      elsif reason.name[0..11].strip.upcase == 'WHO STAGE IV'
-        cohort_report['Total WHO stage 4'] += 1
-      elsif reason.name.strip.humanize == 'Patient pregnant'
-        cohort_report['Total Patient pregnant'] += 1
-      elsif reason.name.match(/Breastfeeding/i)
-        cohort_report['Total Patient breastfeeding'] += 1
-      elsif reason.name.strip.upcase == 'HIV INFECTED'
-        cohort_report['Total HIV infected'] += 1
-      else 
-        cohort_report['Total Unknown reason'] += 1
-      end
-    end
-
-		logger.info("tb_within_last_year " + Time.now.to_s)
-    cohort_report['TB within the last 2 years'] = self.tb_within_the_last_2_yrs.length
-    cohort_report['Total TB within the last 2 years'] = self.tb_within_the_last_2_yrs(@@first_registration_date,@end_date).length
-
-    logger.info("current_episode_of_tb " + Time.now.to_s)
-    cohort_report['Current episode of TB'] = self.current_espisode_of_tb.length
-    cohort_report['Total Current episode of TB'] = self.current_espisode_of_tb(@@first_registration_date,@end_date).length
-
-    logger.info("ks " + Time.now.to_s)
-    cohort_report['Kaposis Sarcoma'] = self.kaposis_sarcoma.length
-    cohort_report['Total Kaposis Sarcoma'] = self.kaposis_sarcoma(@@first_registration_date,@end_date).length
-
-    logger.info("no_tb " + Time.now.to_s)
-    cohort_report['No TB'] = (cohort_report['Newly total registrated'] - (cohort_report['Current episode of TB'] + cohort_report['TB within the last 2 years']))
-    cohort_report['Total No TB'] = (cohort_report['Total registrated'] - (cohort_report['Total Current episode of TB'] + cohort_report['Total TB within the last 2 years']))
-
-    logger.info("alive_on_art " + Time.now.to_s)
-    cohort_report['Total alive and on ART'] = self.total_alive_and_on_art.length
-    cohort_report['Died total'] = self.total_number_of_dead_patients
-
-    logger.info("death_dates " + Time.now.to_s)
-    death_dates_array = self.death_dates
-    cohort_report['Died within the 1st month after ART initiation'] = death_dates_array[0].length
-    cohort_report['Died within the 2nd month after ART initiation'] = death_dates_array[1].length
-    cohort_report['Died within the 3rd month after ART initiation'] = death_dates_array[2].length
-    cohort_report['Died after the end of the 3rd month after ART initiation'] = death_dates_array[3].length
-    
-    death_dates_array = self.death_dates(@@first_registration_date,@end_date)
-    cohort_report['Total Died within the 1st month after ART initiation'] = death_dates_array[0].length
-    cohort_report['Total Died within the 2nd month after ART initiation'] = death_dates_array[1].length
-    cohort_report['Total Died within the 3rd month after ART initiation'] = death_dates_array[2].length
-    cohort_report['Total Died after the end of the 3rd month after ART initiation'] = death_dates_array[3].length
-
-    logger.info("txfrd_out " + Time.now.to_s)
-    cohort_report['Transferred out'] = self.transferred_out_patients
-    
-    logger.info("stopped_arvs " + Time.now.to_s)
-    cohort_report['Stopped taking ARVs'] = self.art_stopped_patients
-    
-    logger.info("defaulted " + Time.now.to_s)    
-    cohort_report['Defaulted'] = self.art_defaulted_patients
-
-		logger.info("tb_status " + Time.now.to_s)
-    tb_status_outcomes = self.tb_status
-    cohort_report['TB suspected'] = tb_status_outcomes['TB STATUS']['Suspected']
-    cohort_report['TB not suspected'] = tb_status_outcomes['TB STATUS']['Not Suspected']
-    cohort_report['TB confirmed not treatment'] = tb_status_outcomes['TB STATUS']['Not on treatment']
-    cohort_report['TB confirmed on treatment'] = tb_status_outcomes['TB STATUS']['On Treatment']
-    cohort_report['TB Unknown'] = tb_status_outcomes['TB STATUS']['Unknown']
-
-    logger.info("regimens " + Time.now.to_s)
-    cohort_report['Regimens'] = self.regimens(@@first_registration_date)
-    
-   
-    cohort_report
   end
 
 	def total_registered(start_date = @start_date, end_date = @end_date)
@@ -548,6 +378,7 @@ raise cohort_report.to_yaml
 
   end
 
+
 	def transferred_in_patients(start_date = @start_date, end_date = @end_date)
     #ever_received_concept_id = ConceptName.find_by_name("EVER RECEIVED ART").concept_id
     #ever_registered_at_a_clinic = Concept.find_by_name("EVER REGISTERED AT ART CLINIC").concept_id
@@ -555,7 +386,10 @@ raise cohort_report.to_yaml
     #yes_concept_id = ConceptName.find_by_name("YES").concept_id
 
 =begin
-    PatientProgram.find_by_sql("SELECT p.patient_id FROM patient_program p
+    PatientProgram.find_by_sql("SELECT 
+                                patient_id ,obs_datetime visit_date,value_coded,obs.concept_id concept_id  
+                                FROM obs 
+                                INNER JOIN patient_program p ON p.patient_id = obs.person_id
                                 INNER JOIN patient_state s ON p.patient_program_id = s.patient_program_id
                                 INNER JOIN obs ON obs.person_id = p.patient_id 
                                 WHERE p.voided = 0
@@ -988,8 +822,6 @@ raise cohort_report.to_yaml
     end
     tb_status_hash
   end
-
-
 
 	# Get patients reinitiated on art count
 	def patients_reinitiated_on_art_ever

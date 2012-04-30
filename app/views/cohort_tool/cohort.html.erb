@@ -78,8 +78,6 @@
   <td><%= link_to @cohort['Total registrated'], "/cohort_tool/list_patients_details?field=total_registered&quarter=#{@quarter}" -%></td>
 </tr>
 
-
-
 <tr class = 'row_break'>
   <td>&nbsp;</td>
   <td>&nbsp;</td>
@@ -382,6 +380,7 @@
   <td style="text-align:left;border-width:1px 0px 0px 1px">d4T/3TC/NVP</font></td>
   <td style="border-width:1px 0px 0px 1px">1A<br />1P</td>
   <td style="border-width:1px 0px 0px 1px">
+   <%#= raise @cohort.to_yaml %>
     <%= link_to @cohort['Regimens']['A1'] || '0', "/cohort_tool/list_patients_details?field=ARV_regimen_1A&quarter=#{@quarter}" -%>
 <br />
     <%= link_to @cohort['Regimens']['P1'] || '0', "/cohort_tool/list_patients_details?field=ARV_regimen_1P&quarter=#{@quarter}" -%>
@@ -587,8 +586,6 @@
 <% end rescue nil%>
 </table>
 </div>
-
-
 
 </body>
 </html>

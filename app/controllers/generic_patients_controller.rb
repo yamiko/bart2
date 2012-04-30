@@ -11,6 +11,7 @@ class GenericPatientsController < ApplicationController
 		session_date = session[:datetime].to_date rescue Date.today
 		@patient_bean = PatientService.get_patient(@patient.person)
 		#raise mastercard_visit_label(Patient.find_by_patient_id(@patient_bean.patient_id),date = Date.today).to_yaml
+		#raise mastercard_demographics(@patient).to_yaml
 		@encounters = @patient.encounters.find_by_date(session_date)
 		@diabetes_number = DiabetesService.diabetes_number(@patient)
 		@prescriptions = @patient.orders.unfinished.prescriptions.all
@@ -1399,7 +1400,8 @@ class GenericPatientsController < ApplicationController
     visits.hiv_test_date = patient_obj.person.observations.recent(1).question("Confirmatory HIV test date").all rescue nil
     visits.hiv_test_date = visits.hiv_test_date.to_s.split(':')[1].strip rescue nil
     visits.hiv_test_location = patient_obj.person.observations.recent(1).question("Confirmatory HIV test location").all rescue nil
-    visits.hiv_test_location = visits.hiv_test_location.to_s.split(':')[1].strip rescue nil
+    location_name = Location.find_by_location_id(visits.hiv_test_location.to_s.split(':')[1].strip).name
+    visits.hiv_test_location = location_name rescue nil
     visits.guardian = art_guardian(patient_obj) rescue nil
     visits.reason_for_art_eligibility = PatientService.reason_for_art_eligibility(patient_obj)
     visits.transfer_in = PatientService.is_transfer_in(patient_obj) rescue nil #pb: bug-2677 Made this to use the newly created patient model method 'transfer_in?'
@@ -1490,19 +1492,18 @@ class GenericPatientsController < ApplicationController
       concept_name = obs.to_s.split(':')[0].strip rescue nil
       next if concept_name.blank?
       case concept_name
-      when 'CD4 COUNT DATETIME'
+      when 'Cd4 count datetime'
         visits.cd4_count_date = obs.value_datetime.to_date
-      when 'CD4 COUNT'
-        visits.cd4_count = obs.value_numeric
+      when 'CD4 count'
+        visits.cd4_count = obs.value_numeric.to_i
       when 'IS PATIENT PREGNANT?'
         visits.pregnant = obs.to_s.split(':')[1] rescue nil
       when 'LYMPHOCYTE COUNT'
-        visits.tlc = obs.value_numeric
+        visits.tlc = obs.answer_string
       when 'LYMPHOCYTE COUNT DATETIME'
         visits.tlc_date = obs.value_datetime.to_date
       end
     end rescue []
-
     visits.tb_status_at_initiation = (!visits.tb_status.nil? ? "Curr" :
           (!visits.tb_within_last_two_yrs.nil? ? (visits.tb_within_last_two_yrs.upcase == "YES" ? 
               "Last 2yrs" : "Never/ >2yrs") : "Never/ >2yrs"))
