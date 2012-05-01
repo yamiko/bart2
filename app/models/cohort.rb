@@ -373,14 +373,14 @@ class Cohort
 		threads = []
 		threads << Thread.new do
 			begin
-		    cohort_report['Total patients with side effects'] = self.patients_with_side_effects.length
+		    	cohort_report['Total patients with side effects'] = self.patients_with_side_effects.length
 
 				logger.info("current_episode_of_tb " + Time.now.to_s)
 				cohort_report['Current episode of TB'] = self.current_episode_of_tb.length
 				cohort_report['Total Current episode of TB'] = self.current_episode_of_tb(@@first_registration_date, @end_date).length
-		  rescue Exception => e
-		    Thread.current[:exception] = e
-		  end
+			rescue Exception => e
+				Thread.current[:exception] = e
+			end
 		end
 
 		threads << Thread.new do
