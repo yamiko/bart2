@@ -212,7 +212,12 @@ class Cohort
 				cohort_report['Patient breastfeeding'] = 0
 				cohort_report['HIV infected'] = 0
 
-				( self.start_reason || [] ).each do | reason | 
+        total_for_start_reason = 0
+
+				( self.start_reason || [] ).each do | reason |
+
+          total_for_start_reason += 1
+
 				  if reason.name.match(/Presumed/i)
 				    cohort_report['Presumed severe HIV disease in infants'] += 1
 				  elsif reason.name.match(/Confirmed/i)
@@ -235,6 +240,8 @@ class Cohort
 				    cohort_report['Unknown reason'] += 1
 				  end
 				end
+
+        cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason)
 				
 				cohort_report['Total Presumed severe HIV disease in infants'] = 0
 				cohort_report['Total Confirmed HIV infection in infants (PCR)'] = 0
@@ -247,6 +254,8 @@ class Cohort
 				cohort_report['Total Patient breastfeeding'] = 0
 				cohort_report['Total HIV infected'] = 0
 
+        total_for_start_reason = 0
+        
 				( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | reason | 
 				  if reason.name.match(/Presumed/i)
 				    cohort_report['Total Presumed severe HIV disease in infants'] += 1
@@ -270,6 +279,9 @@ class Cohort
 				    cohort_report['Total Unknown reason'] += 1
 				  end
 				end
+
+        cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason)
+
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
@@ -578,7 +590,8 @@ PatientProgram.find_by_sql("SELECT patient_id,program_id,count(*) FROM patient_p
 				WHERE earliest_start_date >= '#{start_date}'
 					AND earliest_start_date <= '#{end_date}'
 					AND DATEDIFF(o.obs_datetime, earliest_start_date) <= 30
-					AND DATEDIFF(o.obs_datetime, earliest_start_date) > -1")
+					AND DATEDIFF(o.obs_datetime, earliest_start_date) > -1
+        GROUP BY patient_id")
 
 
 =begin
