@@ -1,7 +1,8 @@
 class Cohort
 	
 	attr :cohort
-	attr_accessor :start_date, :end_date, :cohort
+	attr_accessor :start_date, :end_date, :cohort, :patients_alive_and_on_art
+
 	#attr_accessible :cohort
 
 	@@first_registration_date = nil
@@ -303,7 +304,8 @@ class Cohort
 		threads << Thread.new do
 			begin
 				logger.info("alive_on_art " + Time.now.to_s)
-				cohort_report['Total alive and on ART'] = self.total_alive_and_on_art.length
+        @patients_alive_and_on_art = self.total_alive_and_on_art
+				cohort_report['Total alive and on ART'] = @patients_alive_and_on_art.length
 				cohort_report['Died total'] = self.total_number_of_dead_patients.length
 
 				logger.info("death_dates " + Time.now.to_s)
@@ -369,6 +371,7 @@ class Cohort
 		  end
 		end
 
+    cohort_report['Total patients with side effects'] = self.patients_with_side_effects.length
 
 		threads.each do |thread|				
 			thread.join
@@ -1176,7 +1179,8 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
                           AND s.start_date <= '#{end_date}')
                           AND obs.concept_id = #{tb_status_concept_id}
                           AND e.encounter_type = #{hiv_clinic_consultation_encounter_id}
-                          AND p.program_id = #{@@program_id}
+                          AND p.program_id = #
+{@@program_id}
                           ORDER BY e.encounter_datetime DESC, patient_state_id DESC , start_date DESC) K
                           GROUP BY K.patient_id
                           ORDER BY K.encounter_datetime DESC , K.obs_datetime DESC")
@@ -1208,6 +1212,51 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
                      AND value_coded IN (#{side_effect_concept_ids.join(',')})",concept_id],
                      :group =>'person_id').length
   end
+
+  def patients_with_side_effects(start_date = @start_date, end_date = @end_date)
+		side_effect_concept_ids =[ConceptName.find_by_name('PERIPHERAL NEUROPATHY').concept_id,
+                              ConceptName.find_by_name('HEPATITIS').concept_id,
+                              ConceptName.find_by_name('SKIN RASH').concept_id,
+                              ConceptName.find_by_name('JAUNDICE').concept_id]
+
+    hiv_clinic_consultation_encounter_id = EncounterType.find_by_name('HIV CLINIC CONSULTATION').id
+    symptom_present_concept_id = ConceptName.find_by_name('SYMPTOM PRESENT').concept_id
+
+		on_art_concept_name = ConceptName.find_all_by_name('On antiretrovirals')
+
+    patient_ids = @patients_alive_and_on_art.map(&:patient_id)
+
+		state = ProgramWorkflowState.find(
+			:first,
+			:conditions => ["concept_id IN (?)",
+				on_art_concept_name.map{|c|c.concept_id}]
+			).program_workflow_state_id
+
+		PatientState.find_by_sql("SELECT e1.patient_id AS patient_id,
+                              DATE(MAX(e1.encounter_datetime)) AS latest_visit_date,
+                              e1.encounter_datetime
+                              FROM encounter e1
+                                  INNER JOIN obs o
+                                      ON e1.encounter_id = o.encounter_id
+                                      AND o.concept_id = #{symptom_present_concept_id} AND o.voided = 0
+                              WHERE e1.encounter_type = #{hiv_clinic_consultation_encounter_id}
+                                  AND e1.voided = 0
+                                  AND o.value_coded IN (#{side_effect_concept_ids.join(',')})
+                                  AND e1.patient_id IN (#{patient_ids.join(',')})
+                              GROUP BY e1.patient_id
+                              HAVING DATE(e1.encounter_datetime) = latest_visit_date")
+=begin
+PatientProgram.find_by_sql("SELECT patient_id FROM patient_program p
+	                        INNER JOIN patient_state s USING (patient_program_id)
+	                        WHERE p.voided = 0
+	                        AND s.voided = 0
+	                        AND program_id = #{@@program_id}
+	                        AND s.state = #{state}
+	                        AND patient_start_date(patient_id) >= '#{start_date}'
+	                        AND patient_start_date(patient_id) <= '#{end_date}'
+	                        GROUP BY patient_id ORDER BY date_enrolled")#.length rescue 0
+=end
+	end
 
   private
 
