@@ -65,15 +65,7 @@ class Cohort
 		raise cohort_report.to_yaml
 =end				
 		threads = []
-		threads << Thread.new do
-			begin
-				logger.info("current_episode_of_tb " + Time.now.to_s)
-				cohort_report['Current episode of TB'] = self.current_episode_of_tb.length
-				cohort_report['Total Current episode of TB'] = self.current_episode_of_tb(@@first_registration_date, @end_date).length
-		  rescue Exception => e
-		    Thread.current[:exception] = e
-		  end
-		end
+
 
 
 		threads << Thread.new do
@@ -289,20 +281,6 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-				logger.info("tb_within_last_year " + Time.now.to_s)
-				cohort_report['TB within the last 2 years'] = self.tb_within_the_last_2_yrs.length
-				cohort_report['Total TB within the last 2 years'] = self.tb_within_the_last_2_yrs(@@first_registration_date, @end_date).length
-
-				logger.info("ks " + Time.now.to_s)
-				cohort_report['Kaposis Sarcoma'] = self.kaposis_sarcoma.length
-				cohort_report['Total Kaposis Sarcoma'] = self.kaposis_sarcoma(@@first_registration_date,@end_date).length
-		  rescue Exception => e
-		    Thread.current[:exception] = e
-		  end
-		end
-
-		threads << Thread.new do
-			begin
 				logger.info("alive_on_art " + Time.now.to_s)
         @patients_alive_and_on_art = self.total_alive_and_on_art
 				cohort_report['Total alive and on ART'] = @patients_alive_and_on_art.length
@@ -371,7 +349,6 @@ class Cohort
 		  end
 		end
 
-    cohort_report['Total patients with side effects'] = self.patients_with_side_effects.length
 
 		threads.each do |thread|				
 			thread.join
@@ -381,6 +358,43 @@ class Cohort
 				 raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
+		
+		threads = []
+		threads << Thread.new do
+			begin
+		    cohort_report['Total patients with side effects'] = self.patients_with_side_effects.length
+
+				logger.info("current_episode_of_tb " + Time.now.to_s)
+				cohort_report['Current episode of TB'] = self.current_episode_of_tb.length
+				cohort_report['Total Current episode of TB'] = self.current_episode_of_tb(@@first_registration_date, @end_date).length
+		  rescue Exception => e
+		    Thread.current[:exception] = e
+		  end
+		end
+
+		threads << Thread.new do
+			begin
+				logger.info("tb_within_last_year " + Time.now.to_s)
+				cohort_report['TB within the last 2 years'] = self.tb_within_the_last_2_yrs.length
+				cohort_report['Total TB within the last 2 years'] = self.tb_within_the_last_2_yrs(@@first_registration_date, @end_date).length
+
+				logger.info("ks " + Time.now.to_s)
+				cohort_report['Kaposis Sarcoma'] = self.kaposis_sarcoma.length
+				cohort_report['Total Kaposis Sarcoma'] = self.kaposis_sarcoma(@@first_registration_date,@end_date).length
+		  rescue Exception => e
+		    Thread.current[:exception] = e
+		  end
+		end
+
+		threads.each do |thread|				
+			thread.join
+			if thread[:exception]
+				 # log it somehow, or even re-raise it if you
+				 # really want, it's got it's original backtrace.
+				 raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+			end
+		end
+
 		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (cohort_report['Current episode of TB'] + cohort_report['TB within the last 2 years']))
 		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (cohort_report['Total Current episode of TB'] + cohort_report['Total TB within the last 2 years']))
 
@@ -811,6 +825,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 		tb_status_hash['TB STATUS']['Suspected'] = []
 		tb_status_hash['TB STATUS']['On Treatment'] = []
 		tb_status_hash['TB STATUS']['Not on treatment'] = []
+		tb_status_hash['TB STATUS']['Unknown'] = []
 
 		( states || [] ).each do | patient_id, state |
 			if state == tb_not_suspected_id
