@@ -24,7 +24,7 @@ class Cohort
 	def report(logger)
 		return {} if @@first_registration_date.blank?
 		cohort_report = {}
-		
+	#	raise self.patients_with_start_cause(@start_date, @end_date, tb_concept_id = ConceptName.find_by_name("PULMONARY TUBERCULOSIS WITHIN THE LAST 2 YEARS").concept_id).to_yaml
 =begin
 					cohort_report['Total registered'] = self.total_registered(@@first_registration_date).length
 					cohort_report['Newly total registered'] = self.total_registered.length
@@ -65,6 +65,17 @@ class Cohort
 =end				
 		threads = []
 		threads << Thread.new do
+			begin
+				logger.info("current_episode_of_tb " + Time.now.to_s)
+				cohort_report['Current episode of TB'] = self.current_episode_of_tb.length
+				cohort_report['Total Current episode of TB'] = self.current_episode_of_tb(@@first_registration_date, @end_date).length
+		  rescue Exception => e
+		    Thread.current[:exception] = e
+		  end
+		end
+
+
+		threads << Thread.new do
 				begin
 					cohort_report['Total registered'] = self.total_registered(@@first_registration_date).length
 					cohort_report['Newly total registered'] = self.total_registered.length
@@ -115,8 +126,8 @@ class Cohort
 		threads << Thread.new do
 				begin
 					logger.info("children " + Time.now.to_s)
-					cohort_report['Newly registered children'] = self.total_registered_by_gender_age(@start_date,@end_date,nil,1.5,14).length
-					cohort_report['Total registered children'] = self.total_registered_by_gender_age(@@first_registration_date,@start_date, nil, 730, 5110).length
+					cohort_report['Newly registered children'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 730, 5110).length
+					cohort_report['Total registered children'] = self.total_registered_by_gender_age(@@first_registration_date, @start_date, nil, 730, 5110).length
 				rescue Exception => e
 						Thread.current[:exception] = e
 				end
@@ -186,6 +197,7 @@ class Cohort
 				end
 		end
 =end
+		
 		threads << Thread.new do
 			begin
 				logger.info("reinitiated_on_art " + Time.now.to_s)    
@@ -280,10 +292,6 @@ class Cohort
 				cohort_report['TB within the last 2 years'] = self.tb_within_the_last_2_yrs.length
 				cohort_report['Total TB within the last 2 years'] = self.tb_within_the_last_2_yrs(@@first_registration_date, @end_date).length
 
-				logger.info("current_episode_of_tb " + Time.now.to_s)
-				cohort_report['Current episode of TB'] = self.current_espisode_of_tb.length
-				cohort_report['Total Current episode of TB'] = self.current_espisode_of_tb(@@first_registration_date,@end_date).length
-
 				logger.info("ks " + Time.now.to_s)
 				cohort_report['Kaposis Sarcoma'] = self.kaposis_sarcoma.length
 				cohort_report['Total Kaposis Sarcoma'] = self.kaposis_sarcoma(@@first_registration_date,@end_date).length
@@ -333,26 +341,25 @@ class Cohort
 		raise cohort_report.to_yaml		  
 =end	  
 
-=begin
+
 
 		threads << Thread.new do
-		  begin
+			begin
 				logger.info("defaulted " + Time.now.to_s)    
 				cohort_report['Defaulted'] = self.art_defaulted_patients
 
 				logger.info("tb_status " + Time.now.to_s)
 				tb_status_outcomes = self.tb_status
-				cohort_report['TB suspected'] = tb_status_outcomes['TB STATUS']['Suspected']
-				cohort_report['TB not suspected'] = tb_status_outcomes['TB STATUS']['Not Suspected']
-				cohort_report['TB confirmed not treatment'] = tb_status_outcomes['TB STATUS']['Not on treatment']
-				cohort_report['TB confirmed on treatment'] = tb_status_outcomes['TB STATUS']['On Treatment']
-				cohort_report['TB Unknown'] = tb_status_outcomes['TB STATUS']['Unknown']
+				cohort_report['TB suspected'] = tb_status_outcomes['TB STATUS']['Suspected'].length
+				cohort_report['TB not suspected'] = tb_status_outcomes['TB STATUS']['Not Suspected'].length
+				cohort_report['TB confirmed not treatment'] = tb_status_outcomes['TB STATUS']['Not on treatment'].length
+				cohort_report['TB confirmed on treatment'] = tb_status_outcomes['TB STATUS']['On Treatment'].length
+				cohort_report['TB Unknown'] = tb_status_outcomes['TB STATUS']['Unknown'].length
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
 		end
 
-=end
 		threads << Thread.new do
 			begin
 				logger.info("regimens " + Time.now.to_s)
@@ -363,12 +370,12 @@ class Cohort
 		end
 
 
-		threads.each do |thread|
+		threads.each do |thread|				
 			thread.join
 			if thread[:exception]
 				 # log it somehow, or even re-raise it if you
 				 # really want, it's got it's original backtrace.
-				 raise thread[:exception].backtrace.to_yaml
+				 raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (cohort_report['Current episode of TB'] + cohort_report['TB within the last 2 years']))
@@ -759,6 +766,65 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 										HAVING state = 6")
 	end
 
+	def tb_status
+		tb_status_hash = {} ; status = []
+		tb_status_hash['TB STATUS'] = {'Unknown' => 0,'Suspected' => 0,'Not Suspected' => 0,'On Treatment' => 0,'Not on treatment' => 0} 
+		tb_status_concept_id = ConceptName.find_by_name('TB STATUS').concept_id
+		hiv_clinic_consultation_encounter_id = EncounterType.find_by_name('HIV CLINIC CONSULTATION').id
+=begin
+    status = PatientState.find_by_sql("SELECT * FROM (
+                          SELECT e.patient_id,n.name tbstatus,obs_datetime,e.encounter_datetime,s.state
+                          FROM patient_state s
+                          LEFT JOIN patient_program p ON p.patient_program_id = s.patient_program_id   
+                          
+                          LEFT JOIN encounter e ON e.patient_id = p.patient_id
+                          
+                          LEFT JOIN obs ON obs.encounter_id = e.encounter_id
+                          LEFT JOIN concept_name n ON obs.value_coded = n.concept_id
+                          WHERE p.voided = 0
+                          AND s.voided = 0
+                          AND obs.obs_datetime = e.encounter_datetime
+                          AND (s.start_date >= '#{start_date}'
+                          AND s.start_date <= '#{end_date}')
+                          AND obs.concept_id = #{tb_status_concept_id}
+                          AND e.encounter_type = #{hiv_clinic_consultation_encounter_id}
+                          AND p.program_id = #{@@program_id}
+                          ORDER BY e.encounter_datetime DESC, patient_state_id DESC , start_date DESC) K
+                          GROUP BY K.patient_id
+                          ORDER BY K.encounter_datetime DESC , K.obs_datetime DESC")
+=end      
+		states = Hash.new()                    
+		status = PatientState.find_by_sql("SELECT e.patient_id, current_value_for_obs(e.patient_id, #{hiv_clinic_consultation_encounter_id}, #{tb_status_concept_id}, '#{end_date}') AS obs_value 
+												FROM earliest_start_date e
+												WHERE earliest_start_date <= '#{end_date}'").map{ |state| states[state.patient_id] = state.obs_value }
+
+ 
+		tb_not_suspected_id = ConceptName.find_by_name('TB NOT SUSPECTED').concept_id
+		tb_suspected_id = ConceptName.find_by_name('TB SUSPECTED').concept_id
+		tb_confirmed_on_treatment_id = ConceptName.find_by_name('CONFIRMED TB ON TREATMENT').concept_id
+		tb_confirmed_not_on_treatment_id = ConceptName.find_by_name('CONFIRMED TB NOT ON TREATMENT').concept_id
+
+		tb_status_hash['TB STATUS']['Not Suspected'] = []
+		tb_status_hash['TB STATUS']['Suspected'] = []
+		tb_status_hash['TB STATUS']['On Treatment'] = []
+		tb_status_hash['TB STATUS']['Not on treatment'] = []
+
+		( states || [] ).each do | patient_id, state |
+			if state == tb_not_suspected_id
+				tb_status_hash['TB STATUS']['Not Suspected'] << patient_id
+			elsif state == tb_suspected_id
+				tb_status_hash['TB STATUS']['Suspected'] << patient_id
+			elsif state == tb_confirmed_on_treatment_id
+				tb_status_hash['TB STATUS']['On Treatment'] << patient_id
+			elsif state == tb_confirmed_not_on_treatment_id
+				tb_status_hash['TB STATUS']['Not on treatment'] << patient_id
+			else
+				tb_status_hash['TB STATUS']['Unknown'] << patient_id
+			end
+		end
+		tb_status_hash
+	end
+
   def outcomes_total(outcome)
     on_art_concept_name = ConceptName.find_all_by_name(outcome)
     state = ProgramWorkflowState.find(
@@ -786,7 +852,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
       ORDER BY K.patient_state_id DESC, K.start_date DESC")
   end
 
-
+=begin
 	def death_dates(start_date = @start_date, end_date = @end_date)
 		start_date_death_date = [] 
 
@@ -809,7 +875,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 		end
 		[first_month, second_month, third_month, after_third_month]
 	end
-
+=end
 
 	# Get patients reinitiated on art count
 	def patients_reinitiated_on_art_ever
@@ -1079,75 +1145,16 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 
   def kaposis_sarcoma(start_date = @start_date, end_date = @end_date)
     tb_concept_id = ConceptName.find_by_name("KAPOSIS SARCOMA").concept_id
-    self.patients_with_start_cause(start_date,end_date,tb_concept_id)
+    self.patients_with_start_cause(start_date, end_date, tb_concept_id)
   end
 
-  def current_espisode_of_tb(start_date = @start_date, end_date = @end_date)
+  def current_episode_of_tb(start_date = @start_date, end_date = @end_date)
     tb_concept_id = ConceptName.find_by_name("EXTRAPULMONARY TUBERCULOSIS (EPTB)").concept_id
-    self.patients_with_start_cause(start_date,end_date,tb_concept_id)
+    self.patients_with_start_cause(start_date, end_date, tb_concept_id)
   end
 
 
 
-  def tb_status
-    tb_status_hash = {} ; status = []
-    tb_status_hash['TB STATUS'] = {'Unknown' => 0,'Suspected' => 0,'Not Suspected' => 0,'On Treatment' => 0,'Not on treatment' => 0} 
-    tb_status_concept_id = ConceptName.find_by_name('TB STATUS').concept_id
-    hiv_clinic_consultation_encounter_id = EncounterType.find_by_name('HIV CLINIC CONSULTATION').id
-=begin
-    status = PatientState.find_by_sql("SELECT * FROM (
-                          SELECT e.patient_id,n.name tbstatus,obs_datetime,e.encounter_datetime,s.state
-                          FROM patient_state s
-                          LEFT JOIN patient_program p ON p.patient_program_id = s.patient_program_id   
-                          
-                          LEFT JOIN encounter e ON e.patient_id = p.patient_id
-                          
-                          LEFT JOIN obs ON obs.encounter_id = e.encounter_id
-                          LEFT JOIN concept_name n ON obs.value_coded = n.concept_id
-                          WHERE p.voided = 0
-                          AND s.voided = 0
-                          AND obs.obs_datetime = e.encounter_datetime
-                          AND (s.start_date >= '#{start_date}'
-                          AND s.start_date <= '#{end_date}')
-                          AND obs.concept_id = #{tb_status_concept_id}
-                          AND e.encounter_type = #{hiv_clinic_consultation_encounter_id}
-                          AND p.program_id = #{@@program_id}
-                          ORDER BY e.encounter_datetime DESC, patient_state_id DESC , start_date DESC) K
-                          GROUP BY K.patient_id
-                          ORDER BY K.encounter_datetime DESC , K.obs_datetime DESC")
-=end                          
-				           status = PatientState.find_by_sql("SELECT e.patient_id,n.name tbstatus,obs.obs_datetime,e.encounter_datetime,s.state
-														 FROM patient_state s
-														 LEFT JOIN patient_program p ON p.patient_program_id = s.patient_program_id 
-														 LEFT JOIN clinic_consultation_encounter e ON e.patient_id = p.patient_id
-														 LEFT JOIN tb_status_observations obs ON obs.encounter_id = e.encounter_id
-														 LEFT JOIN concept_name n ON obs.value_coded = n.concept_id
-														 WHERE p.voided = 0
-														 AND s.voided = 0
-														 AND obs.obs_datetime = e.encounter_datetime
-														 AND (s.start_date >= '#{@@first_registration_date}'
-														 AND s.start_date <= '#{@end_date}')
-														 AND obs.concept_id = #{tb_status_concept_id}
-														 AND e.encounter_type = #{hiv_clinic_consultation_encounter_id}
-														 AND p.program_id = #{@@program_id}
-														 GROUP By obs.person_id
-														 ORDER BY e.encounter_datetime DESC, patient_state_id DESC , start_date DESC") .map(&:tbstatus)
-
-    ( status || [] ).each do | state |
-      if state == 'TB NOT SUSPECTED' or state == 'noSusp' or state == 'noSup' or state == 'TB not suspected' or state == 'TB NOT suspected' or state == 'Nosup'
-        tb_status_hash['TB STATUS']['Not Suspected'] += 1
-      elsif state == 'TB SUSPECTED' or state == 'susp' or state == 'sup' or state == 'TB suspected' or state == 'Tb suspected'
-        tb_status_hash['TB STATUS']['Suspected'] += 1
-      elsif state == 'RX' or state == 'CONFIRMED TB ON TREATMENT' or state == 'Rx' or state == 'CONFIRMED TB ON TREATMENT' or state == 'Confirmed TB on treatment' or state == 'Confirmed TB on treatment' or state == 'Norx'
-        tb_status_hash['TB STATUS']['On Treatment'] += 1
-      elsif state == 'noRX' or state == 'CONFIRMED TB NOT ON TREATMENT' or state =='Confirmed TB not on treatment' or state == 'Confirmed TB NOT on treatment'
-        tb_status_hash['TB STATUS']['Not on treatment'] += 1
-      else
-        tb_status_hash['TB STATUS']['Unknown'] += 1
-      end
-    end
-    tb_status_hash
-  end
   
   def tb_status_with_patient_ids
     tb_status_hash = {} ; status = []
@@ -1174,22 +1181,9 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
                           GROUP BY K.patient_id
                           ORDER BY K.encounter_datetime DESC , K.obs_datetime DESC")
 =end
-		status = PatientState.find_by_sql("SELECT e.patient_id,n.name tbstatus,obs.obs_datetime,e.encounter_datetime,s.state
-																			 FROM patient_state s
-																			 LEFT JOIN patient_program p ON p.patient_program_id = s.patient_program_id 
-																			 LEFT JOIN clinic_consultation_encounter e ON e.patient_id = p.patient_id
-																			 LEFT JOIN tb_status_observations obs ON obs.encounter_id = e.encounter_id
-																			 LEFT JOIN concept_name n ON obs.value_coded = n.concept_id
-																			 WHERE p.voided = 0
-																			 AND s.voided = 0
-																			 AND obs.obs_datetime = e.encounter_datetime
-																			 AND (s.start_date >= '#{@@first_registration_date}'
-																			 AND s.start_date <= '#{@end_date}')
-																			 AND obs.concept_id = #{tb_status_concept_id}
-																			 AND e.encounter_type = #{hiv_clinic_consultation_encounter_id}
-																			 AND p.program_id = #{@@program_id}
-																			 GROUP By obs.person_id
-	 ORDER BY e.encounter_datetime DESC, patient_state_id DESC , start_date DESC")  
+		status = PatientProgram.find_by_sql("SELECT e.patient_id, current_value_for_obs(e.patient_id, #{hiv_clinic_consultation_encounter_id}, #{tb_status_concept_id}, '#{end_date}') AS obs_value 
+												FROM earliest_start_date e
+												WHERE earliest_start_date <= '#{end_date}'")
   end
 
   def side_effect_patients(start_date = @start_date, end_date = @end_date)
