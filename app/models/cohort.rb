@@ -712,6 +712,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 	end
 
 	def total_alive_and_on_art
+=begin
 		on_art_concept_name = ConceptName.find_all_by_name('On antiretrovirals')
 		state = ProgramWorkflowState.find(
 		  :first,
@@ -736,6 +737,11 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 		  ) K
 		  GROUP BY K.patient_id HAVING (state = #{state})
 		  ORDER BY K.patient_state_id DESC, K.start_date DESC")
+=end
+    
+    PatientProgram.find_by_sql("SELECT patient_id, current_state_for_program(patient_id, 1, '#{@end_date}') AS state FROM earliest_start_date
+										WHERE earliest_start_date <=  '#{@end_date}'
+										HAVING state = 7")
 	end
 
 	def died_total
@@ -743,9 +749,14 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 	end
   
 	def total_number_of_dead_patients
-		PatientProgram.find_by_sql("SELECT * FROM person p LEFT JOIN earliest_start_date e ON p.person_id = e.patient_id 
+
+		PatientProgram.find_by_sql("SELECT * FROM person p LEFT JOIN earliest_start_date e ON p.person_id = e.patient_id
 										WHERE dead = 1
 											AND earliest_start_date <=  '#{@end_date}'")
+    
+    #PatientProgram.find_by_sql("SELECT patient_id, current_state_for_program(patient_id, 1, '#{@end_date}') AS state FROM earliest_start_date
+		#								WHERE earliest_start_date <=  '#{@end_date}'
+		#								HAVING state = 3")
 	end
 
 	def total_number_of_died_within_range(min_days = 0, max_days = 0)
