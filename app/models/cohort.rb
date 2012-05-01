@@ -25,6 +25,10 @@ class Cohort
 	def report(logger)
 		return {} if @@first_registration_date.blank?
 		cohort_report = {}
+    
+    total_for_start_reason_quarterly = 0
+    total_for_start_reason_cumulative = 0
+
 	#	raise self.patients_with_start_cause(@start_date, @end_date, tb_concept_id = ConceptName.find_by_name("PULMONARY TUBERCULOSIS WITHIN THE LAST 2 YEARS").concept_id).to_yaml
 =begin
 					cohort_report['Total registered'] = self.total_registered(@@first_registration_date).length
@@ -216,11 +220,9 @@ class Cohort
 				cohort_report['Patient breastfeeding'] = 0
 				cohort_report['HIV infected'] = 0
 
-        total_for_start_reason = 0
+ 				( self.start_reason || [] ).each do | reason |
 
-				( self.start_reason || [] ).each do | reason |
-
-          total_for_start_reason += 1
+          total_for_start_reason_quarterly += 1
 
 				  if reason.name.match(/Presumed/i)
 				    cohort_report['Presumed severe HIV disease in infants'] += 1
@@ -244,9 +246,7 @@ class Cohort
 				    cohort_report['Unknown reason'] += 1
 				  end
 				end
-
-        cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason)
-				
+	
 				cohort_report['Total Presumed severe HIV disease in infants'] = 0
 				cohort_report['Total Confirmed HIV infection in infants (PCR)'] = 0
 				cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] = 0
@@ -257,10 +257,11 @@ class Cohort
 				cohort_report['Total Patient pregnant'] = 0
 				cohort_report['Total Patient breastfeeding'] = 0
 				cohort_report['Total HIV infected'] = 0
+  
+				( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | reason |
 
-        total_for_start_reason = 0
-        
-				( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | reason | 
+          total_for_start_reason_cumulative += 1
+
 				  if reason.name.match(/Presumed/i)
 				    cohort_report['Total Presumed severe HIV disease in infants'] += 1
 				  elsif reason.name.match(/Confirmed/i)
@@ -283,8 +284,6 @@ class Cohort
 				    cohort_report['Total Unknown reason'] += 1
 				  end
 				end
-
-        cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason)
 
 		  rescue Exception => e
 		    Thread.current[:exception] = e
@@ -409,6 +408,10 @@ class Cohort
 
 		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (cohort_report['Current episode of TB'] + cohort_report['TB within the last 2 years']))
 		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (cohort_report['Total Current episode of TB'] + cohort_report['Total TB within the last 2 years']))
+
+    cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_quarterly)
+    cohort_report['Total Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_cumulative)
+
 
 		self.cohort = cohort_report
 		self.cohort
