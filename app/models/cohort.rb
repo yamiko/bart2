@@ -984,6 +984,8 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
   def regimens(start_date = @start_date, end_date = @end_date)
     regimens = []
     regimen_hash = {}
+    @patients_alive_and_on_art ||= self.total_alive_and_on_art
+    patient_ids = @patients_alive_and_on_art.map(&:patient_id)
 
     regimem_given_concept = ConceptName.find_by_name('ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT')
 =begin
@@ -1000,6 +1002,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
                                 ORDER BY obs.obs_datetime DESC")
 =end
 
+
 		PatientProgram.find_by_sql("SELECT patient_id , obs.value_coded regimen_id, obs.value_text regimen ,
 																	 age(LEFT(person.birthdate,10),LEFT(obs.obs_datetime,10),
 																	 LEFT(person.date_created,10),person.birthdate_estimated) person_age_at_drug_dispension 
@@ -1008,7 +1011,8 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 																	 LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
 																	 LEFT JOIN person ON person.person_id = p.patient_id
 																	 WHERE p.program_id = #{@@program_id} AND obs.concept_id = #{regimem_given_concept.concept_id}
-																	 AND s.start_date >= '#{start_date}' AND s.start_date <= '#{end_date}' 
+																	 AND s.start_date >= '#{start_date}' AND s.start_date <= '#{end_date}'
+																	 AND p.patient_id IN (#{patient_ids.join(',')})
 																	 GROUP BY patient_id 
 																	 ORDER BY obs.obs_datetime DESC ").each do | value | 
                                   regimens << [value.regimen_id, 
