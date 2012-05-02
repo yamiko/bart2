@@ -222,8 +222,8 @@ class Cohort
 
  				( self.start_reason || [] ).each do | reason |
 
-          total_for_start_reason_quarterly += 1
-
+#					total_for_start_reason_quarterly += 1
+					reason = '' if reason.blank?
 				  if reason.name.match(/Presumed/i)
 				    cohort_report['Presumed severe HIV disease in infants'] += 1
 				  elsif reason.name.match(/Confirmed/i)
@@ -260,7 +260,8 @@ class Cohort
   
 				( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | reason |
 
-          total_for_start_reason_cumulative += 1
+#          total_for_start_reason_cumulative += 1
+					reason = '' if reason.blank?
 
 				  if reason.name.match(/Presumed/i)
 				    cohort_report['Total Presumed severe HIV disease in infants'] += 1
@@ -409,9 +410,14 @@ class Cohort
 		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (cohort_report['Current episode of TB'] + cohort_report['TB within the last 2 years']))
 		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (cohort_report['Total Current episode of TB'] + cohort_report['Total TB within the last 2 years']))
 
-    cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_quarterly)
-    cohort_report['Total Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_cumulative)
-
+#cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_quarterly)
+#cohort_report['Total Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_cumulative)
+    cohort_report['Unknown outcomes'] = cohort_report['Total registered'] -
+                                        (cohort_report['Total alive and on ART'] +
+                                          cohort_report['Defaulted'] +
+                                          cohort_report['Died total'] +
+                                          cohort_report['Stopped taking ARVs'] +
+                                          cohort_report['Transferred out'])
 
 		self.cohort = cohort_report
 		self.cohort
@@ -659,21 +665,13 @@ PatientProgram.find_by_sql("SELECT patient_id,program_id,count(*) FROM patient_p
 																 GROUP BY patient_id")
 =end
 
-		PatientProgram.find_by_sql("SELECT p.patient_id, name, date_enrolled, MIN(s.start_date) AS earliest_start_date 
-			FROM patient_program p LEFT JOIN obs ON p.patient_id = obs.person_id
-				LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
-				LEFT JOIN clinic_registration_encounter e ON p.patient_id = e.patient_id AND e.voided = 0
-				LEFT JOIN concept_name n ON n.concept_id = obs.value_coded AND n.concept_name_type = 'FULLY_SPECIFIED' AND n.voided = 0
-			WHERE p.voided = 0
-				AND s.voided = 0
-				AND program_id = #{@@program_id}
-				AND s.state = 7
-				AND obs.concept_id = #{reason_concept_id}
-				AND n.name != ''
-				GROUP BY p.patient_id, n.name
-			HAVING 
-				earliest_start_date >= '#{start_date}'
-				AND earliest_start_date <= '#{end_date}'")
+		PatientProgram.find_by_sql("SELECT e.patient_id, name FROM earliest_start_date e
+											LEFT JOIN obs o ON e.patient_id = o.person_id AND o.concept_id = #{reason_concept_id} AND o.voided = 0
+											LEFT JOIN concept_name n ON n.concept_id = o.value_coded AND n.concept_name_type = 'FULLY_SPECIFIED' AND n.voided = 0
+										WHERE earliest_start_date >= '#{start_date}'
+											AND earliest_start_date <= '#{end_date}'
+										GROUP BY e.patient_id")
+
 
 =begin
     PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
