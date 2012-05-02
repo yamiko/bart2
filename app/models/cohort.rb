@@ -25,9 +25,52 @@ class Cohort
 	def report(logger)
 		return {} if @@first_registration_date.blank?
 		cohort_report = {}
-    
-    total_for_start_reason_quarterly = 0
-    total_for_start_reason_cumulative = 0
+	
+
+				cohort_report['Total Presumed severe HIV disease in infants'] = 0
+				cohort_report['Total Confirmed HIV infection in infants (PCR)'] = 0
+				cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] = 0
+				cohort_report['Total WHO stage 2, total lymphocytes'] = 0
+				cohort_report['Total Unknown reason'] = 0
+				cohort_report['Total WHO stage 3'] = 0
+				cohort_report['Total WHO stage 4'] = 0
+				cohort_report['Total Patient pregnant'] = 0
+				cohort_report['Total Patient breastfeeding'] = 0
+				cohort_report['Total HIV infected'] = 0
+  
+				( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | collection_reason |
+
+#          total_for_start_reason_cumulative += 1
+					reason = ''
+					if !collection_reason.name.blank?
+						reason = collection_reason.name
+					end
+
+				  if reason.match(/Presumed/i)
+				    cohort_report['Total Presumed severe HIV disease in infants'] += 1
+				  elsif reason.match(/Confirmed/i)
+				    cohort_report['Total Confirmed HIV infection in infants (PCR)'] += 1
+				  elsif reason[0..11].strip.upcase == 'WHO STAGE I' or reason.match(/CD/i)
+				    cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] += 1
+				  elsif reason[0..12].strip.upcase == 'WHO STAGE II' or reason.match(/lymphocytes/i) or reason.match(/LYMPHOCYTE/i)
+				    cohort_report['Total WHO stage 2, total lymphocytes'] += 1
+				  elsif reason[0..13].strip.upcase == 'WHO STAGE III'
+				    cohort_report['Total WHO stage 3'] += 1
+				  elsif reason[0..11].strip.upcase == 'WHO STAGE IV'
+				    cohort_report['Total WHO stage 4'] += 1
+				  elsif reason.strip.humanize == 'Patient pregnant'
+				    cohort_report['Total Patient pregnant'] += 1
+				  elsif reason.match(/Breastfeeding/i)
+				    cohort_report['Total Patient breastfeeding'] += 1
+				  elsif reason.strip.upcase == 'HIV INFECTED'
+				    cohort_report['Total HIV infected'] += 1
+				  else 
+				    cohort_report['Total Unknown reason'] += 1
+				  end
+				end
+
+
+		#raise self.art_defaulted_patients.length.to_s
 
 	#	raise self.patients_with_start_cause(@start_date, @end_date, tb_concept_id = ConceptName.find_by_name("PULMONARY TUBERCULOSIS WITHIN THE LAST 2 YEARS").concept_id).to_yaml
 =begin
@@ -205,7 +248,58 @@ class Cohort
 				Thread.current[:exception] = e
 			end
 		end    
-   
+
+=begin   
+		threads << Thread.new do
+			begin
+
+				cohort_report['Total Presumed severe HIV disease in infants'] = 0
+				cohort_report['Total Confirmed HIV infection in infants (PCR)'] = 0
+				cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] = 0
+				cohort_report['Total WHO stage 2, total lymphocytes'] = 0
+				cohort_report['Total Unknown reason'] = 0
+				cohort_report['Total WHO stage 3'] = 0
+				cohort_report['Total WHO stage 4'] = 0
+				cohort_report['Total Patient pregnant'] = 0
+				cohort_report['Total Patient breastfeeding'] = 0
+				cohort_report['Total HIV infected'] = 0
+  
+				( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | collection_reason |
+
+#          total_for_start_reason_cumulative += 1
+					reason = ''
+					if !collection_reason.name.blank?
+						reason = collection_reason.name
+					end
+
+				  if reason.match(/Presumed/i)
+				    cohort_report['Total Presumed severe HIV disease in infants'] += 1
+				  elsif reason.match(/Confirmed/i)
+				    cohort_report['Total Confirmed HIV infection in infants (PCR)'] += 1
+				  elsif reason[0..11].strip.upcase == 'WHO STAGE I' or reason.match(/CD/i)
+				    cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] += 1
+				  elsif reason[0..12].strip.upcase == 'WHO STAGE II' or reason.match(/lymphocytes/i) or reason.match(/LYMPHOCYTE/i)
+				    cohort_report['Total WHO stage 2, total lymphocytes'] += 1
+				  elsif reason[0..13].strip.upcase == 'WHO STAGE III'
+				    cohort_report['Total WHO stage 3'] += 1
+				  elsif reason[0..11].strip.upcase == 'WHO STAGE IV'
+				    cohort_report['Total WHO stage 4'] += 1
+				  elsif reason.strip.humanize == 'Patient pregnant'
+				    cohort_report['Total Patient pregnant'] += 1
+				  elsif reason.match(/Breastfeeding/i)
+				    cohort_report['Total Patient breastfeeding'] += 1
+				  elsif reason.strip.upcase == 'HIV INFECTED'
+				    cohort_report['Total HIV infected'] += 1
+				  else 
+				    cohort_report['Total Unknown reason'] += 1
+				  end
+				end
+
+		  rescue Exception => e
+		    Thread.current[:exception] = e
+		  end
+		end
+=end
 		threads << Thread.new do
 			begin
 				logger.info("start_reason " + Time.now.to_s)
@@ -220,71 +314,37 @@ class Cohort
 				cohort_report['Patient breastfeeding'] = 0
 				cohort_report['HIV infected'] = 0
 
- 				( self.start_reason || [] ).each do | reason |
+ 				( self.start_reason || [] ).each do | collection_reason |
 
 #					total_for_start_reason_quarterly += 1
-					reason = '' if reason.blank?
-				  if reason.name.match(/Presumed/i)
+					reason = ''
+					if !collection_reason.name.blank?
+						reason = collection_reason.name
+					end
+
+				  if reason.match(/Presumed/i)
 				    cohort_report['Presumed severe HIV disease in infants'] += 1
-				  elsif reason.name.match(/Confirmed/i)
+				  elsif reason.match(/Confirmed/i)
 				    cohort_report['Confirmed HIV infection in infants (PCR)'] += 1
-				  elsif reason.name[0..11].strip.upcase == 'WHO STAGE I' or reason.name.match(/CD/i)
+				  elsif reason[0..11].strip.upcase == 'WHO STAGE I' or reason.match(/CD/i)
 				    cohort_report['WHO stage 1 or 2, CD4 below threshold'] += 1
-				  elsif reason.name[0..12].strip.upcase == 'WHO STAGE II' or reason.name.match(/lymphocytes/i) or reason.name.match(/LYMPHOCYTE/i)
+				  elsif reason[0..12].strip.upcase == 'WHO STAGE II' or reason.match(/lymphocytes/i) or reason.match(/LYMPHOCYTE/i)
 				    cohort_report['WHO stage 2, total lymphocytes'] += 1
-				  elsif reason.name[0..13].strip.upcase == 'WHO STAGE III'
+				  elsif reason[0..13].strip.upcase == 'WHO STAGE III'
 				    cohort_report['WHO stage 3'] += 1
-				  elsif reason.name[0..11].strip.upcase == 'WHO STAGE IV'
+				  elsif reason[0..11].strip.upcase == 'WHO STAGE IV'
 				    cohort_report['WHO stage 4'] += 1
-				  elsif reason.name.strip.humanize == 'Patient pregnant'
+				  elsif reason.strip.humanize == 'Patient pregnant'
 				    cohort_report['Patient pregnant'] += 1
-				  elsif reason.name.match(/Breastfeeding/i)
+				  elsif reason.match(/Breastfeeding/i)
 				    cohort_report['Patient breastfeeding'] += 1
-				  elsif reason.name.strip.upcase == 'HIV INFECTED'
+				  elsif reason.strip.upcase == 'HIV INFECTED'
 				    cohort_report['HIV infected'] += 1
 				  else 
 				    cohort_report['Unknown reason'] += 1
 				  end
 				end
 	
-				cohort_report['Total Presumed severe HIV disease in infants'] = 0
-				cohort_report['Total Confirmed HIV infection in infants (PCR)'] = 0
-				cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] = 0
-				cohort_report['Total WHO stage 2, total lymphocytes'] = 0
-				cohort_report['Total Unknown reason'] = 0
-				cohort_report['Total WHO stage 3'] = 0
-				cohort_report['Total WHO stage 4'] = 0
-				cohort_report['Total Patient pregnant'] = 0
-				cohort_report['Total Patient breastfeeding'] = 0
-				cohort_report['Total HIV infected'] = 0
-  
-				( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | reason |
-
-#          total_for_start_reason_cumulative += 1
-					reason = '' if reason.blank?
-
-				  if reason.name.match(/Presumed/i)
-				    cohort_report['Total Presumed severe HIV disease in infants'] += 1
-				  elsif reason.name.match(/Confirmed/i)
-				    cohort_report['Total Confirmed HIV infection in infants (PCR)'] += 1
-				  elsif reason.name[0..11].strip.upcase == 'WHO STAGE I' or reason.name.match(/CD/i)
-				    cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] += 1
-				  elsif reason.name[0..12].strip.upcase == 'WHO STAGE II' or reason.name.match(/lymphocytes/i) or reason.name.match(/LYMPHOCYTE/i)
-				    cohort_report['Total WHO stage 2, total lymphocytes'] += 1
-				  elsif reason.name[0..13].strip.upcase == 'WHO STAGE III'
-				    cohort_report['Total WHO stage 3'] += 1
-				  elsif reason.name[0..11].strip.upcase == 'WHO STAGE IV'
-				    cohort_report['Total WHO stage 4'] += 1
-				  elsif reason.name.strip.humanize == 'Patient pregnant'
-				    cohort_report['Total Patient pregnant'] += 1
-				  elsif reason.name.match(/Breastfeeding/i)
-				    cohort_report['Total Patient breastfeeding'] += 1
-				  elsif reason.name.strip.upcase == 'HIV INFECTED'
-				    cohort_report['Total HIV infected'] += 1
-				  else 
-				    cohort_report['Total Unknown reason'] += 1
-				  end
-				end
 
 		  rescue Exception => e
 		    Thread.current[:exception] = e
@@ -338,7 +398,7 @@ class Cohort
 		threads << Thread.new do
 			begin
 				logger.info("defaulted " + Time.now.to_s)    
-				cohort_report['Defaulted'] = self.art_defaulted_patients
+				cohort_report['Defaulted'] = self.art_defaulted_patients.length
 
 				logger.info("tb_status " + Time.now.to_s)
 				tb_status_outcomes = self.tb_status
@@ -794,7 +854,9 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 	end
 
 	def art_defaulted_patients
-		self.outcomes_total('DEFAULTED').length
+		PatientProgram.find_by_sql("SELECT patient_id, current_defaulter(patient_id, '#{@end_date}') AS def FROM earliest_start_date 
+										WHERE earliest_start_date <=  '#{@end_date}'
+										HAVING def = 1")
 	end
 
 	def art_stopped_patients
