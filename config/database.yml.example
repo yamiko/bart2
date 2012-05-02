@@ -7,9 +7,9 @@
 
 development:
   adapter: mysql
-  database: bart2_development
+  database: bart2
   username: root
-  password: password
+  password: letusout
   host: localhost
 
 test: &TEST
