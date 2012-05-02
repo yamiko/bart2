@@ -16,6 +16,7 @@
     var drug_id = encodeURIComponent($('drug_id').value); 
     $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/dispensations/quantities?formulation=" + drug_id + "&search_string=");
     listSuggestions(tstCurrentPage); 
+    //$('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', '');
   }
 </script>
 <form id='dispensation' action="/dispensations/create" method='post'>
@@ -27,8 +28,8 @@
 
   <% # Set ajaxURL in the script, but need to start it blank %>
   <%= text_field_tag :quantity, nil, { 
-    :tt_onLoad => "set_drug_for_quantity();",
-    :ajaxURL => "", 
+    #:tt_onLoad => "set_drug_for_quantity();",
+    #:ajaxURL => "", 
     :field_type => 'number',
     :units => '',
     :helpText => "Quantity",

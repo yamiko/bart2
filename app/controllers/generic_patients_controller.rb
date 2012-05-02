@@ -11,6 +11,7 @@ class GenericPatientsController < ApplicationController
 		session_date = session[:datetime].to_date rescue Date.today
 		@patient_bean = PatientService.get_patient(@patient.person)
 		#raise mastercard_visit_label(Patient.find_by_patient_id(@patient_bean.patient_id),date = Date.today).to_yaml
+		#raise mastercard_demographics(@patient).to_yaml
 		@encounters = @patient.encounters.find_by_date(session_date)
 		@diabetes_number = DiabetesService.diabetes_number(@patient)
 		@prescriptions = @patient.orders.unfinished.prescriptions.all
@@ -273,11 +274,16 @@ class GenericPatientsController < ApplicationController
   end
 
   def print_lab_orders
-    print_and_redirect("/patients/lab_orders_label/?patient_id=#{@patient.id}", next_task(@patient))
+    patient_id = params[:patient_id]
+    patient = Patient.find(patient_id)
+
+    print_and_redirect("/patients/lab_orders_label/?patient_id=#{patient.id}", next_task(patient))
   end
 
   def lab_orders_label
-    label_commands = patient_lab_orders_label(@patient.id)
+    patient = Patient.find(params[:patient_id])
+    label_commands = patient_lab_orders_label(patient.id)
+
     send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{patient.id}#{rand(10000)}.lbs", :disposition => "inline")
   end
 
@@ -1289,14 +1295,16 @@ class GenericPatientsController < ApplicationController
 
   def patient_lab_orders_label(patient_id)
     patient = Patient.find(patient_id)
+    patient_bean = PatientService.get_patient(patient.person)
+    
     lab_orders = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("LAB ORDERS").id,patient.id]).observations
       labels = []
       i = 0
-
+      
       while i <= lab_orders.size do
         accession_number = "#{lab_orders[i].accession_number rescue nil}"
-		patient_national_id_with_dashes = PatientService.get_national_id_with_dashes(patient) 
+		patient_national_id_with_dashes = PatientService.get_national_id_with_dashes(patient)
         if accession_number != ""
           label = 'label' + i.to_s
           label = ZebraPrinter::Label.new(500,165)
@@ -1305,7 +1313,7 @@ class GenericPatientsController < ApplicationController
           label.font_vertical_multiplier = 1
           label.left_margin = 300
           label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
-          label.draw_multi_text("#{patient.person.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
+          label.draw_multi_text("#{patient_bean.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
           label.draw_multi_text("#{lab_orders[i].name rescue nil} - #{accession_number rescue nil}")
           label.draw_multi_text("#{lab_orders[i].obs_datetime.strftime("%d-%b-%Y %H:%M")}")
           labels << label
@@ -1392,7 +1400,8 @@ class GenericPatientsController < ApplicationController
     visits.hiv_test_date = patient_obj.person.observations.recent(1).question("Confirmatory HIV test date").all rescue nil
     visits.hiv_test_date = visits.hiv_test_date.to_s.split(':')[1].strip rescue nil
     visits.hiv_test_location = patient_obj.person.observations.recent(1).question("Confirmatory HIV test location").all rescue nil
-    visits.hiv_test_location = visits.hiv_test_location.to_s.split(':')[1].strip rescue nil
+    location_name = Location.find_by_location_id(visits.hiv_test_location.to_s.split(':')[1].strip).name
+    visits.hiv_test_location = location_name rescue nil
     visits.guardian = art_guardian(patient_obj) rescue nil
     visits.reason_for_art_eligibility = PatientService.reason_for_art_eligibility(patient_obj)
     visits.transfer_in = PatientService.is_transfer_in(patient_obj) rescue nil #pb: bug-2677 Made this to use the newly created patient model method 'transfer_in?'
@@ -1483,19 +1492,18 @@ class GenericPatientsController < ApplicationController
       concept_name = obs.to_s.split(':')[0].strip rescue nil
       next if concept_name.blank?
       case concept_name
-      when 'CD4 COUNT DATETIME'
+      when 'Cd4 count datetime'
         visits.cd4_count_date = obs.value_datetime.to_date
-      when 'CD4 COUNT'
-        visits.cd4_count = obs.value_numeric
+      when 'CD4 count'
+        visits.cd4_count = obs.value_numeric.to_i
       when 'IS PATIENT PREGNANT?'
         visits.pregnant = obs.to_s.split(':')[1] rescue nil
       when 'LYMPHOCYTE COUNT'
-        visits.tlc = obs.value_numeric
+        visits.tlc = obs.answer_string
       when 'LYMPHOCYTE COUNT DATETIME'
         visits.tlc_date = obs.value_datetime.to_date
       end
     end rescue []
-
     visits.tb_status_at_initiation = (!visits.tb_status.nil? ? "Curr" :
           (!visits.tb_within_last_two_yrs.nil? ? (visits.tb_within_last_two_yrs.upcase == "YES" ? 
               "Last 2yrs" : "Never/ >2yrs") : "Never/ >2yrs"))

@@ -610,7 +610,7 @@ class CohortToolController < GenericCohortToolController
     cohort = Cohort.new(start_date,end_date)
 
     @first_registration_date = cohort.first_registration_date
-
+=begin
     #populating start regimens
     regimens = []
     regimens = cohort.regimens_with_patient_ids(@first_registration_date)
@@ -849,141 +849,136 @@ class CohortToolController < GenericCohortToolController
         @total_after_third_month << patient
       end
     end
-
+=end
     #populating the @report with patient's details on each and every link
     case params[:field]
       when 'newly_total_registered' then
         newly_registered_patients = []
 
         newly_registered_patients = cohort.total_registered
-        
-        newly_registered_patients.each do |patient_id|
-          patient = Patient.find_by_patient_id(patient_id.patient_id)
-          @report << PatientService.get_patient(patient.person) 
+
+		@current_page = newly_registered_patients.paginate(:page => params[:page], :per_page => 20)
+
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
         end
       when 'total_registered' then
         total_registered_patients = []
 
         total_registered_patients = cohort.total_registered(@first_registration_date)
 
-        total_registered_patients.each do |patient_id|
-          patient = Patient.find_by_patient_id(patient_id.patient_id)
-          @report << PatientService.get_patient(patient.person) 
+		@current_page = total_registered_patients.paginate(:page => params[:page], :per_page => 20)
+
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
         end
       when 'newly_registered_patients_initiated_on_art_first_time' then
         patients_initiated_on_art_first_time = []
     
         patients_initiated_on_art_first_time = cohort.patients_initiated_on_art_first_time
+
+		@current_page = patients_initiated_on_art_first_time.paginate(:page => params[:page], :per_page => 20)
         
-        patients_initiated_on_art_first_time.each do |patient_id|
-          patient = Patient.find_by_patient_id(patient_id.patient_id)
-          @report << PatientService.get_patient(patient.person) 
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
         end
       when 'total_registered_patients_initiated_on_art_first_time' then
         patients_initiated_on_art_first_time = []
 
         patients_initiated_on_art_first_time = cohort.patients_initiated_on_art_first_time(@first_registration_date)
+
+		@current_page = patients_initiated_on_art_first_time.paginate(:page => params[:page], :per_page => 20)
         
-        patients_initiated_on_art_first_time.each do |patient_id|
-          patient = Patient.find_by_patient_id(patient_id.patient_id)
-          @report << PatientService.get_patient(patient.person) 
-        end     
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
+        end
       when 'newly_registered_male_all_ages' then
         men_all_ages = []
 
         men_all_ages = cohort.total_registered_by_gender_age(start_date,end_date,"M")
-        men_all_ages.each do |patient|
-          patient_obj = Patient.find_by_patient_id(patient.patient_id)
-          @report << PatientService.get_patient(patient_obj.person) 
+
+		@current_page = men_all_ages.paginate(:page => params[:page], :per_page => 20)
+
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
         end
       when 'total_registered_male_all_ages' then
         men_all_ages = []
 
         men_all_ages = cohort.total_registered_by_gender_age(@first_registration_date,end_date,'M')
 
-        men_all_ages.each do |patient|
-          patient_obj = Patient.find_by_patient_id(patient.patient_id)
-          @report << PatientService.get_patient(patient_obj.person) 
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
         end
       when 'newly_registered_pregnant_females_all_ages' then
         pregnant_women_all_ages = []
         pregnant_women_all_ages = cohort.pregnant_women(start_date,end_date)
 
-        pregnant_women_all_ages.each do |patient_id|
-          patient = Patient.find_by_patient_id(patient_id.patient_id)
-          @report << PatientService.get_patient(patient.person) 
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
         end
       when 'total_registered_pregnant_females_all_ages' then
         pregnant_women_all_ages = []
         pregnant_women_all_ages = cohort.pregnant_women(@first_registration_date,end_date)
 
-        pregnant_women_all_ages.each do |patient_id|
-          patient = Patient.find_by_patient_id(patient_id.patient_id)
-          @report << PatientService.get_patient(patient.person) 
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
         end
       when 'newly_registered_non_pregnant_females_all_ages' then
         non_pregnant_women_all_ages = []
 
         non_pregnant_women_all_ages = cohort.non_pregnant_women(start_date,end_date)
-        non_pregnant_women_all_ages.each do |patient_id|
-          patient = Patient.find_by_patient_id(patient_id)
-          @report << PatientService.get_patient(patient.person) 
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
         end
       when 'total_registered_non_pregnant_females_all_ages' then
         non_pregnant_women_all_ages = []
 
         non_pregnant_women_all_ages = cohort.non_pregnant_women(@first_registration_date,end_date)
-        non_pregnant_women_all_ages.each do |patient_id|
-          patient = Patient.find_by_patient_id(patient_id)
-          @report << PatientService.get_patient(patient.person) 
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
         end
       when 'newly_registered_infants' then
         newly_registered_infants = []
 
         newly_registered_infants = cohort.total_registered_by_gender_age(start_date,end_date,nil,0,1.5)
-        newly_registered_infants.each do |patient|
-          patient_obj = Patient.find_by_patient_id(patient.patient_id)
-          @report << PatientService.get_patient(patient_obj.person) 
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
         end
       when 'total_registered_infants' then
         total_registered_infants = []
 
         total_registered_infants = cohort.total_registered_by_gender_age(@first_registration_date,end_date,nil,0,1.5)
-        total_registered_infants.each do |patient|
-          patient_obj = Patient.find_by_patient_id(patient.patient_id)
-          @report << PatientService.get_patient(patient_obj.person) 
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
         end
       when 'newly_registered_children' then
         newly_registered_children = []
 
         newly_registered_children = cohort.total_registered_by_gender_age(start_date,end_date,nil,1.5,14)
-        newly_registered_children.each do |patient|
-          patient_obj = Patient.find_by_patient_id(patient.patient_id)
-          @report << PatientService.get_patient(patient_obj.person) 
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
         end
       when 'total_registered_children' then
         total_registered_children = []
 
         total_registered_children = cohort.total_registered_by_gender_age(@first_registration_date,end_date,nil,1.5,14)
-        total_registered_children.each do |patient|
-          patient_obj = Patient.find_by_patient_id(patient.patient_id)
-          @report << PatientService.get_patient(patient_obj.person) 
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
         end
       when 'newly_registered_adults' then
         newly_registered_adults = []
 
         newly_registered_adults = cohort.total_registered_by_gender_age(start_date,end_date,nil,14,300)
-        newly_registered_adults.each do |patient|
-          patient_obj = Patient.find_by_patient_id(patient.patient_id)
-          @report << PatientService.get_patient(patient_obj.person) 
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
         end
       when 'total_registered_adults' then
         total_registered_adults = []
 
         total_registered_adults = cohort.total_registered_by_gender_age(start_date,end_date,nil,14,300)
-        total_registered_adults.each do |patient|
-          patient_obj = Patient.find_by_patient_id(patient.patient_id)
-          @report << PatientService.get_patient(patient_obj.person) 
+        @current_page.each do |patient_id|
+            @report << PatientService.get_patient(patient_id.patient.person) 
         end
       when 'presumed_severe_hiv_disease_in_infants' then
          @presumed_severe_HIV_disease_in_infants.each do |patient_id|
@@ -1349,7 +1344,7 @@ class CohortToolController < GenericCohortToolController
       else
     end
 
-    render :layout => 'report'
+    render :layout => 'patient_list'
   end
 
   def include_url_params_for_back_button
@@ -1360,9 +1355,12 @@ class CohortToolController < GenericCohortToolController
   def cohort
     @quarter = params[:quarter]
     start_date,end_date = Report.generate_cohort_date_range(@quarter)
-    cohort = Cohort.new(start_date,end_date)
-    @cohort = cohort.report
-    @survival_analysis = SurvivalAnalysis.report(cohort)
+    cohort = Cohort.new(start_date, end_date)
+    #raise cohort.patients_initiated_on_art_first_time.length.to_yaml
+   	logger.info("cohort")
+    @cohort = cohort.report(logger)
+    #raise @cohort.to_yaml
+    #@survival_analysis = SurvivalAnalysis.report(cohort)
     render :layout => 'cohort'
   end
 
