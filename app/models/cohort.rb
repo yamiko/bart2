@@ -412,7 +412,12 @@ class Cohort
 
 #cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_quarterly)
 #cohort_report['Total Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_cumulative)
-
+    cohort_report['Unknown outcomes'] = cohort_report['Total registered'] -
+                                        (cohort_report['Total alive and on ART'] +
+                                          cohort_report['Defaulted'] +
+                                          cohort_report['Died total'] +
+                                          cohort_report['Stopped taking ARVs'] +
+                                          cohort_report['Transferred out'])
 
 		self.cohort = cohort_report
 		self.cohort
