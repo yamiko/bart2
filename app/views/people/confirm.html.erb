@@ -37,6 +37,20 @@
     -moz-user-select:none;
   }
 
+  .transferOutMessageBar {
+    background-color: tomato;
+    font-size: 1.5em;
+    left: 270px;
+    position: absolute;
+    text-align: center;
+    top: 5px;
+    width: 500px;
+    z-index: 999;
+    display:none;
+    height:250px;
+    -moz-user-select:none;
+  }
+
   a {
     background-color: grey;
     border-bottom: 1px outset black;
@@ -91,16 +105,23 @@
   }
 
   function continueToNext(){
-    <%if @patient_bean.archived_filing_number.blank? %>
-      go();
-    <%else%>
-      messageBar = document.getElementById("messageBar");
-      messageBar.style.display = 'block';
-    <%end%>
+    <%if @patient_bean.archived_filing_number.blank? && @patient_transfered_out_state.blank? %>
+			go();
+		 <%elsif !@patient_transfered_out_state.blank? %>
+				messageBar = document.getElementById("transferOutMessageBar");
+		    messageBar.style.display = 'block';
+		 <%elsif !@patient_bean.archived_filing_number.blank? %>
+			 	messageBar = document.getElementById("messageBar");
+				messageBar.style.display = 'block';
+		<% end %>
   }
 
   function setNewFilingNumber() { 
     document.location = "/patients/set_new_filing_number/<%=@person.id%>"
+  }
+  
+  function transfredOutPatient() {
+  	document.location = "/patients/show/<%=@person.id%>"
   }
 
   function hideMessage() { 
@@ -273,5 +294,12 @@
   <br /><br />
   <button onmousedown="hideMessage();go();"><span>No</span></button>&nbsp;
   <button onmousedown="hideMessage();setNewFilingNumber();"><span>Yes</span></button>
+</div>
+
+<div id="transferOutMessageBar" class="messageBar">
+  Patient has been <br> transfered out <br /> Do you want to continue?
+  <br /><br />
+  <button onmousedown="hideMessage();go();"><span>Yes</span></button>&nbsp;
+  <button onmousedown="hideMessage();transfredOutPatient();"><span>No</span></button>
 </div>
 </body>
