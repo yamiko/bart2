@@ -418,6 +418,9 @@ class Cohort
                                           cohort_report['Died total'] +
                                           cohort_report['Stopped taking ARVs'] +
                                           cohort_report['Transferred out'])
+    
+    cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] += (cohort_report['Total alive and on ART'] -
+                                                                 cohort_report['Regimens'].values.sum)
 
 		self.cohort = cohort_report
 		self.cohort
