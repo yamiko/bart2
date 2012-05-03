@@ -128,28 +128,8 @@ class GenericPeopleController < ApplicationController
 
 		@arv_number = PatientService.get_patient_identifier(@person, 'ARV Number')
 		@patient_bean = PatientService.get_patient(@person)
-		@patient_transfered_out_state = patient_transfered_out_state(@patient_bean.patient_id)
+
 		render :layout => 'menu'
-	end
-
-	def patient_transfered_out_state(patient_id)
-		on_art_concept_name = ConceptName.find_all_by_name('PATIENT TRANSFERRED OUT')
-		program_id = Program.find_by_name('HIV PROGRAM').id
-		patient_transfered_out_state_id = ProgramWorkflowState.find(
-      :first,
-      :conditions => ["concept_id IN (?)",
-                      on_art_concept_name.map{|c|c.concept_id}]
-    ).program_workflow_state_id
-
-    patient_current_state = PatientState.find(:all,
-                                    :joins => "INNER JOIN patient_program p ON p.patient_program_id = patient_state.patient_program_id",
-                                    :conditions =>["patient_state.voided = 0 AND p.voided = 0 AND p.program_id = ? AND p.patient_id = ?",
-                                    program_id,@patient_bean.patient_id],:order => "date_created ASC").last
-
-		if patient_transfered_out_state_id == patient_current_state.state
-			return patient_current_state.state
-		end
-
 	end
 
 	def tranfer_patient_in
