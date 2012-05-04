@@ -1,22 +1,22 @@
 # production:
 #   adapter: mysql
-#   database: openmrs
+#   database: bart2_production
 #   username: root
-#   password:
+#   password: root
 #   host: localhost
 
 development:
   adapter: mysql
   database: bart2_development
   username: root
-  password: password
+  password: root
   host: localhost
 
 test: &TEST
   adapter: mysql
   database: bart2_test
   username: root
-  password: password
+  password: root
   host: localhost
 
 cucumber:
@@ -26,6 +26,6 @@ migration:
   adapter: mysql
   database: test
   username: root
-  password: password
+  password: root
   host: localhost
 
