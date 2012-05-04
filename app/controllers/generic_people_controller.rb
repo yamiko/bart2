@@ -126,12 +126,9 @@ class GenericPeopleController < ApplicationController
 		@task = main_next_task(Location.current_location, @person.patient, session_date.to_date)
 		@arv_number = PatientService.get_patient_identifier(@person, 'ARV Number')
 		@patient_bean = PatientService.get_patient(@person)
-<<<<<<< HEAD
-		render :layout => false
-=======
+                render :layout => false
 
-		render :layout => 'menu'
->>>>>>> efb4997b46f7e9dd770853df543b604a16484ffa
+		
 	end
 
 	def tranfer_patient_in
