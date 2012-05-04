@@ -120,10 +120,15 @@ class GenericPeopleController < ApplicationController
 		@found_person_id = params[:found_person_id] 
 		@relation = params[:relation]
 		@person = Person.find(@found_person_id) rescue nil
+                @current_hiv_program_state = PatientProgram.find(:first, :joins => :location, :conditions => ["program_id = ? AND patient_id = ? AND location.location_id = ?", Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id,@person.patient, Location.current_health_center]).patient_states.last.program_workflow_state.concept.fullname rescue ''
+              
+                @transferred_out = @current_hiv_program_state.upcase == "PATIENT TRANSFERRED OUT"? true : nil
 		@task = main_next_task(Location.current_location, @person.patient, session_date.to_date)
 		@arv_number = PatientService.get_patient_identifier(@person, 'ARV Number')
 		@patient_bean = PatientService.get_patient(@person)
-		render :layout => 'menu'
+                render :layout => false
+
+		
 	end
 
 	def tranfer_patient_in

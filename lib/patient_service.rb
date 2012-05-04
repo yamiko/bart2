@@ -566,6 +566,7 @@ module PatientService
     new_patient_name = new_patient_bean.name
     new_filing_number = patient_printing_filing_number_label(new_patient_bean.filing_number)
     old_archive_filing_number = patient_printing_filing_number_label(new_patient_bean.archived_filing_number)
+
     unless archived_patient.blank?
       old_active_filing_number = patient_printing_filing_number_label(old_filing_number(archived_patient))
       new_archive_filing_number = patient_printing_filing_number_label(archived_patient_bean.archived_filing_number)
@@ -575,7 +576,7 @@ module PatientService
       table = <<EOF
 <div id='patients_info_div'>
 <table id = 'filing_info'>
-<tr>
+<tr id="one">
   <th class='filing_instraction'>Filing actions required</th>
   <th class='filing_instraction'>Name</th>
   <th style="text-align:left;">Old label</th>
@@ -602,7 +603,7 @@ EOF
       table = <<EOF
 <div id='patients_info_div'>
 <table id = 'filing_info'>
-<tr>
+<tr id="two">
   <th class='filing_instraction'>Filing actions required</th>
   <th class='filing_instraction'>Name</th>
   <th>&nbsp;</th>
@@ -622,24 +623,16 @@ EOF
       table = <<EOF
 <div id='patients_info_div'>
 <table id = 'filing_info'>
-<tr>
+<tr id="three">
   <th class='filing_instraction'>Filing actions required</th>
   <th class='filing_instraction'>Name</th>
   <th style="text-align:left;">Old label</th>
   <th style="text-align:left;">New label</th>
 </tr>
-
-<tr>
-  <td style='text-align:left;'>Active → Dormant</td>
-  <td class = 'filing_instraction'>#{archived_patient_bean.name}</td>
-  <td class = 'old_label'>#{old_active_filing_number}</td>
-  <td class='new_label'>#{new_archive_filing_number}</td>
-</tr>
-
 <tr>
   <td style='text-align:left;'>Add → Active</td>
   <td class = 'filing_instraction'>#{new_patient_name}</td>
-  <td class = 'old_label'>#{old_archive_filing_number}</td>
+  <td class = 'old_label'>#{old_active_filing_number}</td>
   <td class='new_label'>#{new_filing_number}</td>
 </tr>
 </table>
@@ -649,7 +642,7 @@ EOF
       table = <<EOF
 <div id='patients_info_div'>
 <table id = 'filing_info'>
-<tr>
+<tr id="four">
   <th class='filing_instraction'>Filing actions required</th>
   <th class='filing_instraction'>Name</th>
   <th>Old label</th>
@@ -834,10 +827,14 @@ EOF
 
   def self.patient_to_be_archived(patient)
     active_identifier_type = PatientIdentifierType.find_by_name("Filing Number")
-    PatientIdentifier.find_by_sql(["
+=begin    PatientIdentifier.find_by_sql(["
       SELECT * FROM patient_identifier
       WHERE voided = 1 AND identifier_type = ? AND void_reason = ? ORDER BY date_created DESC",
         active_identifier_type.id,"Archived - filing number given to:#{patient.id}"]).first.patient rescue nil
+=end
+   
+
+   PatientIdentifier.find_by_sql(["SELECT * FROM patient_identifier WHERE voided = 1 AND identifier_type = ? AND void_reason = 'Archived'  AND patient_id = ? ORDER BY date_created DESC",active_identifier_type.id,patient.id]).first.patient rescue nil
   end
 
   def self.set_patient_filing_number(patient) #changed from set_filing_number after being moved from patient model
