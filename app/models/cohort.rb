@@ -50,13 +50,13 @@ class Cohort
 				    cohort_report['Total Presumed severe HIV disease in infants'] += 1
 				  elsif reason.match(/Confirmed/i)
 				    cohort_report['Total Confirmed HIV infection in infants (PCR)'] += 1
-				  elsif reason[0..11].strip.upcase == 'WHO STAGE I' or reason.match(/CD/i)
+				  elsif reason.match(/WHO STAGE I /i) or reason.match(/CD/i)
 				    cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] += 1
-				  elsif reason[0..12].strip.upcase == 'WHO STAGE II' or reason.match(/lymphocytes/i) or reason.match(/LYMPHOCYTE/i)
+				  elsif reason.match(/WHO STAGE II /i) or reason.match(/lymphocyte/i)
 				    cohort_report['Total WHO stage 2, total lymphocytes'] += 1
-				  elsif reason[0..13].strip.upcase == 'WHO STAGE III'
+				  elsif reason.match(/WHO STAGE III /i)
 				    cohort_report['Total WHO stage 3'] += 1
-				  elsif reason[0..11].strip.upcase == 'WHO STAGE IV'
+				  elsif reason.match(/WHO STAGE IV /i)
 				    cohort_report['Total WHO stage 4'] += 1
 				  elsif reason.strip.humanize == 'Patient pregnant'
 				    cohort_report['Total Patient pregnant'] += 1
@@ -326,13 +326,13 @@ class Cohort
 				    cohort_report['Presumed severe HIV disease in infants'] += 1
 				  elsif reason.match(/Confirmed/i)
 				    cohort_report['Confirmed HIV infection in infants (PCR)'] += 1
-				  elsif reason[0..11].strip.upcase == 'WHO STAGE I' or reason.match(/CD/i)
+				  elsif reason.match(/WHO STAGE I /i) or reason.match(/CD/i)
 				    cohort_report['WHO stage 1 or 2, CD4 below threshold'] += 1
-				  elsif reason[0..12].strip.upcase == 'WHO STAGE II' or reason.match(/lymphocytes/i) or reason.match(/LYMPHOCYTE/i)
+				  elsif reason.match(/WHO STAGE II /i) or reason.match(/lymphocyte/i)
 				    cohort_report['WHO stage 2, total lymphocytes'] += 1
-				  elsif reason[0..13].strip.upcase == 'WHO STAGE III'
+				  elsif reason.match(/WHO STAGE III /i)
 				    cohort_report['WHO stage 3'] += 1
-				  elsif reason[0..11].strip.upcase == 'WHO STAGE IV'
+				  elsif reason.match(/WHO STAGE IV /i)
 				    cohort_report['WHO stage 4'] += 1
 				  elsif reason.strip.humanize == 'Patient pregnant'
 				    cohort_report['Patient pregnant'] += 1
@@ -1509,6 +1509,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 
 		on_art_concept_name = ConceptName.find_all_by_name('On antiretrovirals')
 
+    @patients_alive_and_on_art ||= self.total_alive_and_on_art
     patient_ids = @patients_alive_and_on_art.map(&:patient_id)
 
 		state = ProgramWorkflowState.find(

@@ -12,5 +12,5 @@ gem 'json'
 gem 'settingslogic'
 gem 'rest-client'
 gem 'mysql2', '< 0.3'
-
+gem 'mechanize'
 
