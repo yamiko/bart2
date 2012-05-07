@@ -1043,7 +1043,160 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
   def first_registration_date
     @@first_registration_date
   end
+
+  def arv_regimens_1A(start_date = @start_date, end_date = @end_date)
+  	regimen_1A = []
+  	self.regimens.each do |reg_name, patient_id|
+  		if reg_name == "1A"
+  			regimen_1A << patient_id
+  		end
+  	end
+  	regimen_1A
+  end
   
+  def arv_regimens_1P(start_date = @start_date, end_date = @end_date)
+  	regimen_1P = []
+  	
+  	self.regimens.each do |reg_name, patient_id|
+  		if reg_name == "1P"
+  			regimen_1P << patient_id
+  		end
+  	end
+  	regimen_1P
+  end
+  
+	def arv_regimens_2A(start_date = @start_date, end_date = @end_date)
+  	regimen_2A = []
+  	
+  	self.regimens.each do |reg_name, patient_id|
+  		if reg_name == "2A"
+  			regimen_2A << patient_id
+  		end
+  	end
+  	regimen_2A
+  end
+  
+  def arv_regimens_2P(start_date = @start_date, end_date = @end_date)
+  	regimen_2P = []
+  	
+  	self.regimens.each do |reg_name, patient_id|
+  		if reg_name == "2P"
+  			regimen_2P << patient_id
+  		end
+  	end
+  	regimen_2P
+  end
+  
+  def arv_regimens_3A(start_date = @start_date, end_date = @end_date)
+  	regimen_3A = []
+  	
+  	self.regimens.each do |reg_name, patient_id|
+  		if reg_name == "3A"
+  			regimen_3A << patient_id
+  		end
+  	end
+  	regimen_3A
+  end
+  
+  def arv_regimens_3P(start_date = @start_date, end_date = @end_date)
+  	regimen_3P = []
+  	
+  	self.regimens.each do |reg_name, patient_id|
+  		if reg_name == "3P"
+  			regimen_3P << patient_id
+  		end
+  	end
+  	regimen_3P
+  end
+  
+  def arv_regimens_4A(start_date = @start_date, end_date = @end_date)
+  	regimen_4A = []
+  	
+  	self.regimens.each do |reg_name, patient_id|
+  		if reg_name == "4A"
+  			regimen_4A << patient_id
+  		end
+  	end
+  	regimen_4A
+  end
+  
+  def arv_regimens_4P(start_date = @start_date, end_date = @end_date)
+  	regimen_4P = []
+  	
+  	self.regimens.each do |reg_name, patient_id|
+  		if reg_name == "4P"
+  			regimen_4P << patient_id
+  		end
+  	end
+  	regimen_4P
+  end
+  
+  def arv_regimens_5A(start_date = @start_date, end_date = @end_date)
+  	regimen_5A = []
+  	
+  	self.regimens.each do |reg_name, patient_id|
+  		if reg_name == "5A"
+  			regimen_5A << patient_id
+  		end
+  	end
+  	regimen_5A
+  end
+  
+  def arv_regimens_6A(start_date = @start_date, end_date = @end_date)
+  	regimen_6A = []
+  	
+  	self.regimens.each do |reg_name, patient_id|
+  		if reg_name == "6A"
+  			regimen_6A << patient_id
+  		end
+  	end
+  	regimen_6A
+  end
+  
+  def arv_regimens_7A(start_date = @start_date, end_date = @end_date)
+  	regimen_7A = []
+  	
+  	self.regimens.each do |reg_name, patient_id|
+  		if reg_name == "7A"
+  			regimen_7A << patient_id
+  		end
+  	end
+  	regimen_7A
+  end
+  
+  def arv_regimens_8A(start_date = @start_date, end_date = @end_date)
+  	regimen_8A = []
+  	
+  	self.regimens.each do |reg_name, patient_id|
+  		if reg_name == "8A"
+  			regimen_8A << patient_id
+  		end
+  	end
+  	regimen_8A
+  end
+  
+  def arv_regimens_9P(start_date = @start_date, end_date = @end_date)
+  	regimen_9P = []
+  	
+  	self.regimens.each do |reg_name, patient_id|
+  		if reg_name == "9P"
+  			regimen_9P << patient_id
+  		end
+  	end
+  	regimen_9P
+  end
+  
+  def non_standard(start_date = @start_date, end_date = @end_date)
+  	non_standard = []
+  	
+  	self.regimens.each do |reg_name, patient_id|
+  		if reg_name == "UNKNOWN ANTIRETROVIRAL DRUG"
+  			non_standard << patient_id
+  		end
+  	end
+  	non_standard
+  end
+
   def regimens(start_date = @start_date, end_date = @end_date)
     regimens = []
     regimen_hash = {}
@@ -1051,6 +1204,42 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
     patient_ids = @patients_alive_and_on_art.map(&:patient_id)
 
     regimem_given_concept = ConceptName.find_by_name('ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT')
+
+		PatientProgram.find_by_sql("SELECT patient_id , obs.value_coded regimen_id, obs.value_text regimen,
+																	 age(LEFT(person.birthdate,10),LEFT(obs.obs_datetime,10),
+																	 LEFT(person.date_created,10),person.birthdate_estimated) person_age_at_drug_dispension 
+																	 FROM obs 
+																	 LEFT JOIN patient_program p ON p.patient_id = obs.person_id
+																	 LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
+																	 LEFT JOIN person ON person.person_id = p.patient_id
+																	 WHERE p.program_id = #{@@program_id} AND obs.concept_id = #{regimem_given_concept.concept_id}
+																	 AND s.start_date >= '#{start_date}' AND s.start_date <= '#{end_date}'
+																	 AND p.patient_id IN (#{patient_ids.join(',')})
+																	 GROUP BY patient_id 
+																	 ORDER BY obs.obs_datetime DESC ").each do | value | 
+                                  regimens << [value.regimen_id, 
+                                               value.regimen,
+                                               value.person_age_at_drug_dispension,
+                                               value.patient_id
+                                              ]
+                                end
+    regimen_category = []
+    ( regimens || [] ).each do | regimen_id, regimen , patient_age, patient_id |
+      age = patient_age.to_i 
+      regimen_name = ConceptName.find_by_concept_id(regimen_id).concept.shortname rescue nil
+      if regimen_name.blank?
+        regimen_name = ConceptName.find_by_concept_id(regimen_id).concept.fullname 
+      end
+
+      regimen_name = cohort_regimen_name(regimen_name,age)
+
+			regimen_category << [regimen_name, patient_id]
+      #if regimen_hash[regimen_name].blank?
+      #  regimen_hash[regimen_name] = 0
+      #end
+      #regimen_hash[regimen_name]+=1
+    end
+    regimen_category
 =begin
     PatientProgram.find_by_sql("SELECT patient_id , value_coded regimen_id, value_text regimen ,
                                 age(LEFT(person.birthdate,10),LEFT(obs.obs_datetime,10),
@@ -1065,39 +1254,6 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
                                 ORDER BY obs.obs_datetime DESC")
 =end
 
-
-		PatientProgram.find_by_sql("SELECT patient_id , obs.value_coded regimen_id, obs.value_text regimen ,
-																	 age(LEFT(person.birthdate,10),LEFT(obs.obs_datetime,10),
-																	 LEFT(person.date_created,10),person.birthdate_estimated) person_age_at_drug_dispension 
-																	 FROM obs 
-																	 LEFT JOIN patient_program p ON p.patient_id = obs.person_id
-																	 LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
-																	 LEFT JOIN person ON person.person_id = p.patient_id
-																	 WHERE p.program_id = #{@@program_id} AND obs.concept_id = #{regimem_given_concept.concept_id}
-																	 AND s.start_date >= '#{start_date}' AND s.start_date <= '#{end_date}'
-																	 AND p.patient_id IN (#{patient_ids.join(',')})
-																	 GROUP BY patient_id 
-																	 ORDER BY obs.obs_datetime DESC ").each do | value | 
-                                  regimens << [value.regimen_id, 
-                                               value.regimen,
-                                               value.person_age_at_drug_dispension
-                                              ]
-                                end
-    ( regimens || [] ).each do | regimen_id, regimen , patient_age |
-      age = patient_age.to_i 
-      regimen_name = ConceptName.find_by_concept_id(regimen_id).concept.shortname rescue nil
-      if regimen_name.blank?
-        regimen_name = ConceptName.find_by_concept_id(regimen_id).concept.fullname 
-      end
-
-      regimen_name = cohort_regimen_name(regimen_name,age)
-
-      if regimen_hash[regimen_name].blank?
-        regimen_hash[regimen_name] = 0
-      end
-      regimen_hash[regimen_name]+=1
-    end
-    regimen_hash
   end
   
   def regimens_with_patient_ids(start_date = @start_date, end_date = @end_date)
@@ -1185,15 +1341,6 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 
   end
 
-
-
-
-
-
-
-
-
-
 	def adherence(start_date = @start_date, end_date = @end_date)
 
 		#loop through each patient with adherence encounter
@@ -1253,7 +1400,39 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 		end
 		return counter
 	end
-
+	
+	def patients_with_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
+		#patient_ids = @patients_alive_and_on_art.map(&:patient_id)
+		doses_missed_concept = ConceptName.find_by_name("MISSED HIV DRUG CONSTRUCT").concept_id
+		
+		patients = Observation.find_by_sql("SELECT DISTINCT person_id AS person_id, earliest_start_date, obs.value_numeric FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
+					AND concept_id = #{doses_missed_concept} 
+					AND voided = 0
+					
+					AND earliest_start_date >= '#{start_date}'
+					AND earliest_start_date <= '#{end_date}'")
+		return patients
+	end
+	
+	def patients_with_0_to_6_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
+		doses_missed_0_to_6 = []
+		self.patients_with_doses_missed_at_their_last_visit.map do |doses_missed|
+			if doses_missed.value_numeric.to_i < 7
+				doses_missed_0_to_6 << doses_missed.person_id
+			end
+		end
+		return doses_missed_0_to_6
+	end
+	
+	def patients_with_7_plus_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
+		doses_missed_7_plus = []
+		self.patients_with_doses_missed_at_their_last_visit.map do |doses_missed|
+			if doses_missed.value_numeric.to_i >= 7
+				doses_missed_7_plus << doses_missed.person_id
+			end
+		end
+		return doses_missed_7_plus
+	end
 
   def kaposis_sarcoma(start_date = @start_date, end_date = @end_date)
     tb_concept_id = ConceptName.find_by_name("KAPOSIS SARCOMA").concept_id
@@ -1265,9 +1444,6 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
     self.patients_with_start_cause(start_date, end_date, tb_concept_id)
   end
 
-
-
-  
   def tb_status_with_patient_ids
     tb_status_hash = {} ; status = []
     tb_status_hash['TB STATUS'] = {'Unknown' => 0,'Suspected' => 0,'Not Suspected' => 0,'On Treatment' => 0,'Not on treatment' => 0} 
@@ -1363,7 +1539,7 @@ PatientProgram.find_by_sql("SELECT patient_id FROM patient_program p
 	                        AND s.state = #{state}
 	                        AND patient_start_date(patient_id) >= '#{start_date}'
 	                        AND patient_start_date(patient_id) <= '#{end_date}'
-	                        GROUP BY patient_id ORDER BY date_enrolled")#.length rescue 0
+	                      UNKNOWN ANTIRETROVIRAL DRUG  GROUP BY patient_id ORDER BY date_enrolled")#.length rescue 0
 =end
 	end
 
@@ -1372,38 +1548,38 @@ PatientProgram.find_by_sql("SELECT patient_id FROM patient_program p
   def cohort_regimen_name(name , age)
     case name
       when 'd4T/3TC/NVP'
-        return 'A1' if age > 14
-        return 'P1'
+        return '1A' if age > 14
+        return '1P'
       when 'd4T/3TC + d4T/3TC/NVP (Starter pack)'
-        return 'A1' if age > 14
-        return 'P1'
+        return '1A' if age > 14
+        return '1P'
       when 'AZT/3TC/NVP'
-        return 'A2' if age > 14
-        return 'P2'
+        return '2A' if age > 14
+        return '2P'
       when 'AZT/3TC + AZT/3TC/NVP (Starter pack)'
-        return 'A2' if age > 14
-        return 'P2'
+        return '2A' if age > 14
+        return '2P'
       when 'd4T/3TC/EFV'
-        return 'A3' if age > 14
-        return 'P3'
+        return '3A' if age > 14
+        return '3P'
       when 'AZT/3TC+EFV'
-        return 'A4' if age > 14
-        return 'P4'
+        return '4A' if age > 14
+        return '4P'
       when 'TDF/3TC/EFV'
-        return 'A5' if age > 14
-        return 'P5'
+        return '5A' if age > 14
+        return '5P'
       when 'TDF/3TC+NVP'
-        return 'A6' if age > 14
-        return 'P6'
+        return '6A' if age > 14
+        return '6P'
       when 'TDF/3TC+LPV/r'
-        return 'A7' if age > 14
-        return 'P7'
+        return '7A' if age > 14
+        return '7P'
       when 'AZT/3TC+LPV/r'
-        return 'A8' if age > 14
-        return 'P8'
+        return '8A' if age > 14
+        return '8P'
       when 'ABC/3TC+LPV/r'
-        return 'A9' if age > 14
-        return 'P9'
+        return '9A' if age > 14
+        return '9P'
       else
         return 'UNKNOWN ANTIRETROVIRAL DRUG'
     end
