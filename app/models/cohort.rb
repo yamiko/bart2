@@ -353,7 +353,7 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-				logger.info("defaulted " + Time.now.to_s)    
+				logger.info("defaulted " + Time.now.to_s)  
 				cohort_report['Defaulted'] = self.art_defaulted_patients.length
         
 				logger.info("alive_on_art " + Time.now.to_s)
@@ -483,6 +483,7 @@ class Cohort
 
 #cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_quarterly)
 #cohort_report['Total Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_cumulative)
+
     cohort_report['Unknown outcomes'] = cohort_report['Total registered'] -
                                         (cohort_report['Total alive and on ART'] +
                                           cohort_report['Defaulted'] +
@@ -490,10 +491,13 @@ class Cohort
                                           cohort_report['Stopped taking ARVs'] +
                                           cohort_report['Transferred out'])
     
+    total_patients_on_known_arv_drugs ||= 0
+
+    cohort_report['Regimens'].each {|key, value| total_patients_on_known_arv_drugs+=value.length}
+    
     cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] ||= 0
     
-    cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] += (cohort_report['Total alive and on ART'] -
-                                                                 cohort_report['Regimens'].values.sum)
+    cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] += (cohort_report['Total alive and on ART'] - total_patients_on_known_arv_drugs)
 
 		self.cohort = cohort_report
 		self.cohort
@@ -508,8 +512,8 @@ class Cohort
 			:conditions => ["concept_id IN (?)",
 				on_art_concept_name.map{|c|c.concept_id}]
 			).program_workflow_state_id
-	
-		PatientProgram.find_by_sql("SELECT p.patient_id, MIN(s.start_date) AS earliest_start_date
+		
+		x=PatientProgram.find_by_sql("SELECT p.patient_id, MIN(s.start_date) AS earliest_start_date
 			FROM patient_program p
 				LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
 			WHERE p.voided = 0
@@ -838,8 +842,9 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 =end
     
     @art_defaulters ||= self.art_defaulted_patients
-   	PatientProgram.find_by_sql("SELECT patient_id, current_state_for_program(patient_id, 1, '#{@end_date}') AS state FROM earliest_start_date
-										WHERE earliest_start_date <=  '#{@end_date}'
+   	PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state 
+   									FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
+										WHERE earliest_start_date <=  '#{@end_date}' AND p.dead = 0
 										HAVING state = 7").select{|t| !@art_defaulters.map{|d| d.patient_id}.include?(t.patient_id) }
 	end
 
@@ -876,8 +881,9 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 	end
 
 	def art_defaulted_patients
-		PatientProgram.find_by_sql("SELECT patient_id, current_defaulter(patient_id, '#{@end_date}') AS def FROM earliest_start_date 
-										WHERE earliest_start_date <=  '#{@end_date}'
+		PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{@end_date}') AS def 
+										FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
+										WHERE e.earliest_start_date <=  '#{@end_date}' AND p.dead=0
 										HAVING def = 1")
 	end
 
