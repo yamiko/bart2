@@ -110,7 +110,7 @@ class Cohort
 					cohort_report['Total registered adults'] = self.total_registered_by_gender_age(@@first_registration_date, @start_date, nil, 5110, 109500).length
 
 		raise cohort_report.to_yaml
-=end				
+=end
 		threads = []
 
 
@@ -353,6 +353,9 @@ class Cohort
 
 		threads << Thread.new do
 			begin
+				logger.info("defaulted " + Time.now.to_s)    
+				cohort_report['Defaulted'] = self.art_defaulted_patients.length
+        
 				logger.info("alive_on_art " + Time.now.to_s)
         @patients_alive_and_on_art = self.total_alive_and_on_art
 				cohort_report['Total alive and on ART'] = @patients_alive_and_on_art.length
@@ -397,9 +400,6 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-				logger.info("defaulted " + Time.now.to_s)    
-				cohort_report['Defaulted'] = self.art_defaulted_patients.length
-
 				logger.info("tb_status " + Time.now.to_s)
 				tb_status_outcomes = self.tb_status
 				cohort_report['TB suspected'] = tb_status_outcomes['TB STATUS']['Suspected'].length
@@ -444,6 +444,17 @@ class Cohort
 			end
 		end
 
+    threads << Thread.new do
+      begin
+        logger.info("adherence " + Time.now.to_s)
+        cohort_report['Patients with 0 - 6 doses missed at their last visit'] = self.patients_with_0_to_6_doses_missed_at_their_last_visit.length
+        cohort_report['Patients with 7+ doses missed at their last visit'] = self.patients_with_7_plus_doses_missed_at_their_last_visit.length
+
+      rescue Exception => e
+        Thread.current[:exception] = e
+      end
+    end
+
 		threads << Thread.new do
 			begin
 				logger.info("tb_within_last_year " + Time.now.to_s)
@@ -478,6 +489,8 @@ class Cohort
                                           cohort_report['Died total'] +
                                           cohort_report['Stopped taking ARVs'] +
                                           cohort_report['Transferred out'])
+    
+    cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] ||= 0
     
     cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] += (cohort_report['Total alive and on ART'] -
                                                                  cohort_report['Regimens'].values.sum)
@@ -824,9 +837,10 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 		  ORDER BY K.patient_state_id DESC, K.start_date DESC")
 =end
     
-    PatientProgram.find_by_sql("SELECT patient_id, current_state_for_program(patient_id, 1, '#{@end_date}') AS state FROM earliest_start_date
+    @art_defaulters ||= self.art_defaulted_patients
+   	PatientProgram.find_by_sql("SELECT patient_id, current_state_for_program(patient_id, 1, '#{@end_date}') AS state FROM earliest_start_date
 										WHERE earliest_start_date <=  '#{@end_date}'
-										HAVING state = 7")
+										HAVING state = 7").select{|t| !@art_defaulters.map{|d| d.patient_id}.include?(t.patient_id) }
 	end
 
 	def died_total
@@ -900,12 +914,17 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
                           GROUP BY K.patient_id
                           ORDER BY K.encounter_datetime DESC , K.obs_datetime DESC")
 =end      
-		states = Hash.new()                    
-		status = PatientState.find_by_sql("SELECT e.patient_id, current_value_for_obs(e.patient_id, #{hiv_clinic_consultation_encounter_id}, #{tb_status_concept_id}, '#{end_date}') AS obs_value 
-												FROM earliest_start_date e
-												WHERE earliest_start_date <= '#{end_date}'").map{ |state| states[state.patient_id] = state.obs_value }
+		states = Hash.new()
 
- 
+		@patients_alive_and_on_art ||= self.total_alive_and_on_art		
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art.map { |p| p.patient_id }
+		    
+		PatientState.find_by_sql(
+													"SELECT e.patient_id, current_value_for_obs(e.patient_id, #{hiv_clinic_consultation_encounter_id}, #{tb_status_concept_id}, '#{end_date}') AS obs_value 
+													FROM earliest_start_date e
+													WHERE earliest_start_date <= '#{end_date}'"
+												  ).each{ |state| states[state.patient_id] = state.obs_value if @patient_id_on_art_and_alive.include?(state.patient_id) }
+ 		
 		tb_not_suspected_id = ConceptName.find_by_name('TB NOT SUSPECTED').concept_id
 		tb_suspected_id = ConceptName.find_by_name('TB SUSPECTED').concept_id
 		tb_confirmed_on_treatment_id = ConceptName.find_by_name('CONFIRMED TB ON TREATMENT').concept_id
@@ -1044,157 +1063,18 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
     @@first_registration_date
   end
 
-  def arv_regimens_1A(start_date = @start_date, end_date = @end_date)
-  	regimen_1A = []
-  	self.regimens.each do |reg_name, patient_id|
-  		if reg_name == "1A"
-  			regimen_1A << patient_id
-  		end
-  	end
-  	regimen_1A
-  end
-  
-  def arv_regimens_1P(start_date = @start_date, end_date = @end_date)
-  	regimen_1P = []
-  	
-  	self.regimens.each do |reg_name, patient_id|
-  		if reg_name == "1P"
-  			regimen_1P << patient_id
-  		end
-  	end
-  	regimen_1P
-  end
-  
-	def arv_regimens_2A(start_date = @start_date, end_date = @end_date)
-  	regimen_2A = []
-  	
-  	self.regimens.each do |reg_name, patient_id|
-  		if reg_name == "2A"
-  			regimen_2A << patient_id
-  		end
-  	end
-  	regimen_2A
-  end
-  
-  def arv_regimens_2P(start_date = @start_date, end_date = @end_date)
-  	regimen_2P = []
-  	
-  	self.regimens.each do |reg_name, patient_id|
-  		if reg_name == "2P"
-  			regimen_2P << patient_id
-  		end
-  	end
-  	regimen_2P
-  end
-  
-  def arv_regimens_3A(start_date = @start_date, end_date = @end_date)
-  	regimen_3A = []
-  	
-  	self.regimens.each do |reg_name, patient_id|
-  		if reg_name == "3A"
-  			regimen_3A << patient_id
-  		end
-  	end
-  	regimen_3A
-  end
-  
-  def arv_regimens_3P(start_date = @start_date, end_date = @end_date)
-  	regimen_3P = []
-  	
-  	self.regimens.each do |reg_name, patient_id|
-  		if reg_name == "3P"
-  			regimen_3P << patient_id
-  		end
-  	end
-  	regimen_3P
-  end
-  
-  def arv_regimens_4A(start_date = @start_date, end_date = @end_date)
-  	regimen_4A = []
-  	
-  	self.regimens.each do |reg_name, patient_id|
-  		if reg_name == "4A"
-  			regimen_4A << patient_id
-  		end
-  	end
-  	regimen_4A
-  end
-  
-  def arv_regimens_4P(start_date = @start_date, end_date = @end_date)
-  	regimen_4P = []
-  	
-  	self.regimens.each do |reg_name, patient_id|
-  		if reg_name == "4P"
-  			regimen_4P << patient_id
-  		end
-  	end
-  	regimen_4P
-  end
-  
-  def arv_regimens_5A(start_date = @start_date, end_date = @end_date)
-  	regimen_5A = []
-  	
-  	self.regimens.each do |reg_name, patient_id|
-  		if reg_name == "5A"
-  			regimen_5A << patient_id
-  		end
-  	end
-  	regimen_5A
-  end
-  
-  def arv_regimens_6A(start_date = @start_date, end_date = @end_date)
-  	regimen_6A = []
-  	
-  	self.regimens.each do |reg_name, patient_id|
-  		if reg_name == "6A"
-  			regimen_6A << patient_id
-  		end
-  	end
-  	regimen_6A
-  end
-  
-  def arv_regimens_7A(start_date = @start_date, end_date = @end_date)
-  	regimen_7A = []
-  	
-  	self.regimens.each do |reg_name, patient_id|
-  		if reg_name == "7A"
-  			regimen_7A << patient_id
-  		end
-  	end
-  	regimen_7A
-  end
-  
-  def arv_regimens_8A(start_date = @start_date, end_date = @end_date)
-  	regimen_8A = []
-  	
-  	self.regimens.each do |reg_name, patient_id|
-  		if reg_name == "8A"
-  			regimen_8A << patient_id
-  		end
-  	end
-  	regimen_8A
-  end
-  
-  def arv_regimens_9P(start_date = @start_date, end_date = @end_date)
-  	regimen_9P = []
-  	
-  	self.regimens.each do |reg_name, patient_id|
-  		if reg_name == "9P"
-  			regimen_9P << patient_id
-  		end
-  	end
-  	regimen_9P
-  end
-  
-  def non_standard(start_date = @start_date, end_date = @end_date)
-  	non_standard = []
-  	
-  	self.regimens.each do |reg_name, patient_id|
-  		if reg_name == "UNKNOWN ANTIRETROVIRAL DRUG"
-  			non_standard << patient_id
-  		end
-  	end
-  	non_standard
+  def arv_regimens(regimen_category)
+    regimens = []
+    if regimen_category == "non-standard"
+      regimen_category = "UNKNOWN ANTIRETROVIRAL DRUG"
+    end
+
+    self.regimens.each do |reg_name, patient_id|
+      if reg_name == regimen_category
+        regimens << patient_id
+      end
+    end
+    regimens
   end
 
   def regimens(start_date = @start_date, end_date = @end_date)
@@ -1213,6 +1093,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 																	 LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
 																	 LEFT JOIN person ON person.person_id = p.patient_id
 																	 WHERE p.program_id = #{@@program_id} AND obs.concept_id = #{regimem_given_concept.concept_id}
+																	 AND obs.voided = 0
 																	 AND s.start_date >= '#{start_date}' AND s.start_date <= '#{end_date}'
 																	 AND p.patient_id IN (#{patient_ids.join(',')})
 																	 GROUP BY patient_id 
@@ -1234,12 +1115,12 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
       regimen_name = cohort_regimen_name(regimen_name,age)
 
 			regimen_category << [regimen_name, patient_id]
-      #if regimen_hash[regimen_name].blank?
-      #  regimen_hash[regimen_name] = 0
-      #end
-      #regimen_hash[regimen_name]+=1
+      
+      regimen_hash[regimen_name] ||= []
+
+      regimen_hash[regimen_name] << patient_id
     end
-    regimen_category
+    regimen_hash
 =begin
     PatientProgram.find_by_sql("SELECT patient_id , value_coded regimen_id, value_text regimen ,
                                 age(LEFT(person.birthdate,10),LEFT(obs.obs_datetime,10),
@@ -1402,7 +1283,9 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 	end
 	
 	def patients_with_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
-		#patient_ids = @patients_alive_and_on_art.map(&:patient_id)
+		@patients_alive_and_on_art ||= self.total_alive_and_on_art
+		patient_ids = @patients_alive_and_on_art.map(&:patient_id)
+
 		doses_missed_concept = ConceptName.find_by_name("MISSED HIV DRUG CONSTRUCT").concept_id
 		
 		patients = Observation.find_by_sql("SELECT DISTINCT person_id AS person_id, earliest_start_date, obs.value_numeric FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
@@ -1410,7 +1293,8 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 					AND voided = 0
 					
 					AND earliest_start_date >= '#{start_date}'
-					AND earliest_start_date <= '#{end_date}'")
+					AND earliest_start_date <= '#{end_date}'
+					AND person_id IN (#{patient_ids.join(',')})")
 		return patients
 	end
 	
