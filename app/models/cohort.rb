@@ -353,6 +353,9 @@ class Cohort
 
 		threads << Thread.new do
 			begin
+				logger.info("defaulted " + Time.now.to_s)    
+				cohort_report['Defaulted'] = self.art_defaulted_patients.length
+        
 				logger.info("alive_on_art " + Time.now.to_s)
         @patients_alive_and_on_art = self.total_alive_and_on_art
 				cohort_report['Total alive and on ART'] = @patients_alive_and_on_art.length
@@ -397,9 +400,6 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-				logger.info("defaulted " + Time.now.to_s)    
-				cohort_report['Defaulted'] = self.art_defaulted_patients.length
-
 				logger.info("tb_status " + Time.now.to_s)
 				tb_status_outcomes = self.tb_status
 				cohort_report['TB suspected'] = tb_status_outcomes['TB STATUS']['Suspected'].length
@@ -478,6 +478,8 @@ class Cohort
                                           cohort_report['Died total'] +
                                           cohort_report['Stopped taking ARVs'] +
                                           cohort_report['Transferred out'])
+    
+    cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] ||= 0
     
     cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] += (cohort_report['Total alive and on ART'] -
                                                                  cohort_report['Regimens'].values.sum)
@@ -824,9 +826,10 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 		  ORDER BY K.patient_state_id DESC, K.start_date DESC")
 =end
     
-    PatientProgram.find_by_sql("SELECT patient_id, current_state_for_program(patient_id, 1, '#{@end_date}') AS state FROM earliest_start_date
+    @art_defaulters ||= self.art_defaulted_patients
+   	PatientProgram.find_by_sql("SELECT patient_id, current_state_for_program(patient_id, 1, '#{@end_date}') AS state FROM earliest_start_date
 										WHERE earliest_start_date <=  '#{@end_date}'
-										HAVING state = 7")
+										HAVING state = 7").select{|t| !@art_defaulters.map{|d| d.patient_id}.include?(t.patient_id) }
 	end
 
 	def died_total
@@ -900,12 +903,17 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
                           GROUP BY K.patient_id
                           ORDER BY K.encounter_datetime DESC , K.obs_datetime DESC")
 =end      
-		states = Hash.new()                    
-		status = PatientState.find_by_sql("SELECT e.patient_id, current_value_for_obs(e.patient_id, #{hiv_clinic_consultation_encounter_id}, #{tb_status_concept_id}, '#{end_date}') AS obs_value 
-												FROM earliest_start_date e
-												WHERE earliest_start_date <= '#{end_date}'").map{ |state| states[state.patient_id] = state.obs_value }
+		states = Hash.new()
 
- 
+		@patients_alive_and_on_art ||= self.total_alive_and_on_art		
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art.map { |p| p.patient_id }
+		    
+		PatientState.find_by_sql(
+													"SELECT e.patient_id, current_value_for_obs(e.patient_id, #{hiv_clinic_consultation_encounter_id}, #{tb_status_concept_id}, '#{end_date}') AS obs_value 
+													FROM earliest_start_date e
+													WHERE earliest_start_date <= '#{end_date}'"
+												  ).each{ |state| states[state.patient_id] = state.obs_value if @patient_id_on_art_and_alive.include?(state.patient_id) }
+ 		
 		tb_not_suspected_id = ConceptName.find_by_name('TB NOT SUSPECTED').concept_id
 		tb_suspected_id = ConceptName.find_by_name('TB SUSPECTED').concept_id
 		tb_confirmed_on_treatment_id = ConceptName.find_by_name('CONFIRMED TB ON TREATMENT').concept_id
