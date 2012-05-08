@@ -110,7 +110,7 @@ class Cohort
 					cohort_report['Total registered adults'] = self.total_registered_by_gender_age(@@first_registration_date, @start_date, nil, 5110, 109500).length
 
 		raise cohort_report.to_yaml
-=end				
+=end
 		threads = []
 
 
@@ -1115,12 +1115,12 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
       regimen_name = cohort_regimen_name(regimen_name,age)
 
 			regimen_category << [regimen_name, patient_id]
-      #if regimen_hash[regimen_name].blank?
-      #  regimen_hash[regimen_name] = 0
-      #end
-      #regimen_hash[regimen_name]+=1
+      
+      regimen_hash[regimen_name] ||= []
+
+      regimen_hash[regimen_name] << patient_id
     end
-    regimen_category
+    regimen_hash
 =begin
     PatientProgram.find_by_sql("SELECT patient_id , value_coded regimen_id, value_text regimen ,
                                 age(LEFT(person.birthdate,10),LEFT(obs.obs_datetime,10),
