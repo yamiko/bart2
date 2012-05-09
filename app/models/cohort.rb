@@ -500,26 +500,13 @@ class Cohort
 	end
 
 	def total_registered(start_date = @start_date, end_date = @end_date)
+	  PatientProgram.find_by_sql("SELECT * FROM earliest_start_date 
+	    WHERE earliest_start_date BETWEEN '#{@start_date}' AND '#{@end_date}'")
+										
+
 		#start_date = @start_date
 		#end_date = @end_date
-		on_art_concept_name = ConceptName.find_all_by_name('On antiretrovirals')
-		state = ProgramWorkflowState.find(
-			:first,
-			:conditions => ["concept_id IN (?)",
-				on_art_concept_name.map{|c|c.concept_id}]
-			).program_workflow_state_id
-	
-		PatientProgram.find_by_sql("SELECT p.patient_id, MIN(s.start_date) AS earliest_start_date
-			FROM patient_program p
-				LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
-			WHERE p.voided = 0
-				AND s.voided = 0
-				AND program_id = #{@@program_id}
-				AND s.state = #{state}
-			GROUP BY p.patient_id
-			HAVING 
-				earliest_start_date >= '#{start_date}'
-				AND earliest_start_date <= '#{end_date}'")
+
 =begin    
 PatientProgram.find_by_sql("SELECT patient_id FROM patient_program p
 	                        INNER JOIN patient_state s USING (patient_program_id)
@@ -534,27 +521,14 @@ PatientProgram.find_by_sql("SELECT patient_id FROM patient_program p
 	end
 
 	def patients_initiated_on_art_first_time(start_date = @start_date, end_date = @end_date)
-		on_art_concept_name = ConceptName.find_all_by_name('On antiretrovirals')
-		state = ProgramWorkflowState.find(
-			:first,
-			:conditions => ["concept_id IN (?)",
-				on_art_concept_name.map{|c|c.concept_id}]
-			).program_workflow_state_id
-	
-		PatientProgram.find_by_sql("SELECT p.patient_id, MIN(s.start_date) AS earliest_start_date, MIN(o.value_datetime) AS original_start_date
-			FROM patient_program p
-				LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
-				LEFT JOIN clinic_registration_encounter e ON p.patient_id = e.patient_id
-				LEFT JOIN start_date_observation o ON o.encounter_id = e.encounter_id
-			WHERE p.voided = 0
-				AND s.voided = 0
-				AND program_id = #{@@program_id}
-				AND s.state = #{state}
-			GROUP BY p.patient_id
-			HAVING 
-				earliest_start_date >= '#{start_date}'
-				AND earliest_start_date <= '#{end_date}'
-				AND	original_start_date IS NULL")
+
+    PatientProgram.find_by_sql("SELECT esd.*,MIN(o.value_datetime) AS original_start_date
+	    FROM earliest_start_date esd
+	    LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
+			LEFT JOIN start_date_observation o ON o.encounter_id = e.encounter_id
+			GROUP BY esd.patient_id
+	    HAVING  esd.earliest_start_date BETWEEN '#{@start_date}' AND '#{@end_date}' AND original_start_date IS NULL")
+
 
 =begin    
 PatientProgram.find_by_sql("SELECT 
@@ -573,27 +547,14 @@ PatientProgram.find_by_sql("SELECT
 	end
 
 	def transferred_in_patients(start_date = @start_date, end_date = @end_date)
-		on_art_concept_name = ConceptName.find_all_by_name('On antiretrovirals')
-		state = ProgramWorkflowState.find(
-			:first,
-			:conditions => ["concept_id IN (?)",
-				on_art_concept_name.map{|c|c.concept_id}]
-			).program_workflow_state_id
 	
-		PatientProgram.find_by_sql("SELECT p.patient_id, MIN(s.start_date) AS earliest_start_date, MIN(o.value_datetime) AS original_start_date
-			FROM patient_program p
-				LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
-				LEFT JOIN clinic_registration_encounter e ON p.patient_id = e.patient_id
-				LEFT JOIN start_date_observation o ON o.encounter_id = e.encounter_id
-			WHERE p.voided = 0
-				AND s.voided = 0
-				AND program_id = #{@@program_id}
-				AND s.state = #{state}
-			GROUP BY p.patient_id
-			HAVING 
-				earliest_start_date >= '#{start_date}'
-				AND earliest_start_date <= '#{end_date}'
-				AND	original_start_date IS NOT NULL")
+	PatientProgram.find_by_sql("SELECT esd.*,MIN(o.value_datetime) AS original_start_date
+	    FROM earliest_start_date esd
+	    LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
+			LEFT JOIN start_date_observation o ON o.encounter_id = e.encounter_id
+			GROUP BY esd.patient_id
+	    HAVING  esd.earliest_start_date BETWEEN '#{@start_date}' AND '#{@end_date}' AND original_start_date IS NOT NULL")
+	
 =begin
 PatientProgram.find_by_sql("SELECT p.patient_id, IFNULL(MIN(o.value_datetime), MIN(s.start_date)), MIN(o.value_datetime) AS original_start_date FROM patient_program p
 										LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
@@ -632,12 +593,12 @@ PatientProgram.find_by_sql("SELECT p.patient_id, IFNULL(MIN(o.value_datetime), M
 		end
 =end
 		if min_age and max_age
-		  conditions = "AND DATEDIFF(date_enrolled, person.birthdate) >= #{min_age}
+		  conditions = "  DATEDIFF(date_enrolled, person.birthdate) >= #{min_age}
 				        AND DATEDIFF(date_enrolled, person.birthdate) < #{max_age}"
 		end
 
 		if sex
-		  conditions += " AND person.gender = '#{sex}'"
+		  conditions += " person.gender = '#{sex}'"
 		end
 =begin
 PatientProgram.find_by_sql("SELECT patient_id,program_id,count(*) FROM patient_program p
@@ -653,20 +614,16 @@ PatientProgram.find_by_sql("SELECT patient_id,program_id,count(*) FROM patient_p
 		                    #{conditions} GROUP BY patient_id")
 =end
 
-		PatientProgram.find_by_sql("SELECT p.patient_id, MIN(s.start_date) AS earliest_start_date
-			FROM patient_program p
-				LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
-				LEFT JOIN person ON person.person_id = p.patient_id
-			WHERE p.voided = 0
-				AND person.voided = 0
-				AND s.voided = 0
-				AND program_id = #{@@program_id}
-				AND s.state = #{state}
-				#{conditions} 
-			GROUP BY p.patient_id
-			HAVING 
-				earliest_start_date >= '#{start_date}'
-				AND earliest_start_date <= '#{end_date}'")
+
+
+    PatientProgram.find_by_sql("SELECT esd.*
+	    FROM earliest_start_date esd
+	    LEFT JOIN person ON person.person_id = esd.patient_id
+	    WHERE #{conditions}
+			GROUP BY esd.patient_id
+	    HAVING  esd.earliest_start_date BETWEEN '#{@start_date}' AND '#{@end_date}'")
+	
+
 
 =begin
 					PatientProgram.find_by_sql("SELECT p.patient_id, person.gender, program_id, IFNULL(MIN(o.value_datetime), MIN(s.start_date)), MIN(o.value_datetime) AS original_start_date, count(*) FROM patient_program p
@@ -1192,34 +1149,17 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
                       treatment_stopped.map{|c|c.concept_id}]
     ).program_workflow_state_id
     
-   	PatientProgram.find_by_sql("SELECT patient_id , value_datetime date_art_last_taken,obs_datetime visit_date,value_coded,obs.concept_id concept_id  
-                                FROM obs 
-                                LEFT JOIN patient_program p ON p.patient_id = obs.person_id
-                                LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
-                                WHERE p.program_id = #{@@program_id} 
-                                AND (obs.concept_id = #{date_art_last_taken_concept}
-                                OR obs.concept_id = #{taken_arvs_concept})
-                                AND patient_start_date(patient_id) >= '#{start_date}'
-                                AND patient_start_date(patient_id) <= '#{end_date}'
-                                GROUP BY patient_id
-                                ORDER BY obs.obs_datetime DESC").map do |ob| 
-                                	if ob.concept_id.to_s == date_art_last_taken_concept.to_s
-																		patient_program_id = PatientProgram.find_by_patient_id(ob.patient_id).patient_program_id
-																		state = PatientState.find(:all, :conditions => ["patient_program_id = #{patient_program_id} AND end_date IS NOT NULL"], :order => 'date_created ASC').last rescue 0 
-																		if !state.blank?
-																			if (state.state == "#{defaulted_state}" || state.state == "#{treatment_stopped_state}")
-																			
-																				unless 4 >= ((ob.visit_date.to_date - ob.date_art_last_taken.to_date) / 7).to_i
-																					patients << ob
-																				end
-																			end
-																		end
-																	elsif ob.value_coded.to_s == no_concept.to_s
-																	  patients << ob
-																	end
-                                end
-    return patients
+    
+    PatientProgram.find_by_sql("SELECT esd.*,MIN(o.value_datetime) AS original_start_date
+	    FROM earliest_start_date esd
+	    LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
+			LEFT JOIN start_date_observation o ON o.encounter_id = e.encounter_id
+			LEFT JOIN obs USING(obs_id)
+			WHERE ((obs.concept_id = #{date_art_last_taken_concept} AND (DATEDIFF(obs.obs_datetime,obs.value_datetime)) >= 56)OR
+(obs.concept_id = #{taken_arvs_concept} AND obs.value_coded = '#{no_concept}'))
 
+			GROUP BY esd.patient_id
+	    HAVING  esd.earliest_start_date BETWEEN '#{@start_date}' AND '#{@end_date}' AND original_start_date IS NOT NULL")
   end
 
 	def adherence(start_date = @start_date, end_date = @end_date)
