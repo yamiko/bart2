@@ -60,7 +60,7 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
 -- The date of the first On ARVs state for each patient
 CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
   VIEW `earliest_start_date` AS
-  SELECT `p`.`patient_id` AS `patient_id`,
+  SELECT `p`.`patient_id` AS `patient_id`,`p`.`date_enrolled`,
          MIN(`s`.`start_date`) AS `earliest_start_date`
   FROM ((`patient_program` `p`
   LEFT JOIN `patient_state` `s` ON((`p`.`patient_program_id` = `s`.`patient_program_id`)))
