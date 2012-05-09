@@ -349,7 +349,7 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-				logger.info("defaulted " + Time.now.to_s)    
+				logger.info("defaulted " + Time.now.to_s)  
 				cohort_report['Defaulted'] = self.art_defaulted_patients.length
         
 				logger.info("alive_on_art " + Time.now.to_s)
@@ -433,8 +433,8 @@ class Cohort
 		    	cohort_report['Total patients with side effects'] = self.patients_with_side_effects.length
 
 				logger.info("current_episode_of_tb " + Time.now.to_s)
-				cohort_report['Current episode of TB'] = self.current_episode_of_tb.length
-				cohort_report['Total Current episode of TB'] = self.current_episode_of_tb(@@first_registration_date, @end_date).length
+				cohort_report['Current episode of TB'] = self.current_episode_of_tb
+				cohort_report['Total Current episode of TB'] = self.current_episode_of_tb(@@first_registration_date, @end_date)
 			rescue Exception => e
 				Thread.current[:exception] = e
 			end
@@ -454,7 +454,7 @@ class Cohort
 		threads << Thread.new do
 			begin
 				logger.info("tb_within_last_year " + Time.now.to_s)
-				cohort_report['TB within the last 2 years'] = self.tb_within_the_last_2_yrs.length
+				cohort_report['TB within the last 2 years'] = self.tb_within_the_last_2_yrs
 				cohort_report['Total TB within the last 2 years'] = self.tb_within_the_last_2_yrs(@@first_registration_date, @end_date).length
 
 				logger.info("ks " + Time.now.to_s)
@@ -480,11 +480,21 @@ class Cohort
 		cohort_report['Newly transferred in patients'] = (cohort_report['Newly total registered'] - 
                                                       cohort_report['Patients reinitiated on ART']).length
 		
-		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (cohort_report['Current episode of TB'] + cohort_report['TB within the last 2 years']))
-		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (cohort_report['Total Current episode of TB'] + cohort_report['Total TB within the last 2 years']))
+	
+		
+		current_episode = cohort_report['Current episode of TB'].map{|p| p.patient_id} rescue []
+		total_current_episode = cohort_report['Total Current episode of TB'].map{|p| p.patient_id} rescue []
+		
+		
+		cohort_report['TB within the last 2 years'] = cohort_report['TB within the last 2 years'].delete_if{ |p| current_episode.include?(p.patient_id) } rescue []
+		cohort_report['Total TB within the last 2 years'] = cohort_report['Total TB within the last 2 years'].delete_if{ |p| current_episode.include?(p.patient_id) } rescue []		
+		
+		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (current_episode.size + cohort_report['TB within the last 2 years'].size))	
+		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (total_current_episode.size + cohort_report['Total TB within the last 2 years'].size))	
 
 #cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_quarterly)
 #cohort_report['Total Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_cumulative)
+
     cohort_report['Unknown outcomes'] = cohort_report['Total registered'] -
                                         (cohort_report['Total alive and on ART'] +
                                           cohort_report['Defaulted'] +
@@ -492,10 +502,13 @@ class Cohort
                                           cohort_report['Stopped taking ARVs'] +
                                           cohort_report['Transferred out'])
     
+    total_patients_on_known_arv_drugs ||= 0
+
+    cohort_report['Regimens'].each {|key, value| total_patients_on_known_arv_drugs+=value.length}
+    
     cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] ||= 0
     
-    cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] += (cohort_report['Total alive and on ART'] -
-                                                                 cohort_report['Regimens'].values.sum)
+    cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] += (cohort_report['Total alive and on ART'] - total_patients_on_known_arv_drugs)
 
 		self.cohort = cohort_report
 		self.cohort
@@ -508,7 +521,6 @@ class Cohort
 
 		#start_date = @start_date
 		#end_date = @end_date
-
 =begin    
 PatientProgram.find_by_sql("SELECT patient_id FROM patient_program p
 	                        INNER JOIN patient_state s USING (patient_program_id)
@@ -729,6 +741,7 @@ PatientProgram.find_by_sql("SELECT patient_id,program_id,count(*) FROM patient_p
 
 	def patients_with_start_cause(start_date = @start_date, end_date = @end_date, tb_concept_id = nil)
 		return if tb_concept_id.blank?
+		
 		cause_concept_id = ConceptName.find_by_name("WHO STG CRIT").concept_id
 =begin
 PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
@@ -797,8 +810,9 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 =end
     
     @art_defaulters ||= self.art_defaulted_patients
-   	PatientProgram.find_by_sql("SELECT patient_id, current_state_for_program(patient_id, 1, '#{@end_date}') AS state FROM earliest_start_date
-										WHERE earliest_start_date <=  '#{@end_date}'
+   	PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state 
+   									FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
+										WHERE earliest_start_date <=  '#{@end_date}' AND p.dead = 0
 										HAVING state = 7").select{|t| !@art_defaulters.map{|d| d.patient_id}.include?(t.patient_id) }
 	end
 
@@ -835,8 +849,9 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 	end
 
 	def art_defaulted_patients
-		PatientProgram.find_by_sql("SELECT patient_id, current_defaulter(patient_id, '#{@end_date}') AS def FROM earliest_start_date 
-										WHERE earliest_start_date <=  '#{@end_date}'
+		PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{@end_date}') AS def 
+										FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
+										WHERE e.earliest_start_date <=  '#{@end_date}' AND p.dead=0
 										HAVING def = 1")
 	end
 
