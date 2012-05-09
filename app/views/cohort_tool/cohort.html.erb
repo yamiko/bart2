@@ -483,7 +483,7 @@
   <td>41</td>
   <td style="text-align:left;border-width:1px 0px 1px 1px;">Total patients with side effects</td>
   <td style="border-width:1px 0px 1px 0px;">&nbsp;</td>
-  <td style="border-width:1px"><%=@cohort['Total patients with side effects']%></td>
+  <td style="border-width:1px"><%= link_to @cohort['Total patients with side effects'], "/cohort_tool/list_patients_details?field=patients_with_side_effects&quarter=#{@quarter}"%></td>
 </tr>
 
 <tr class = 'row_break'>
@@ -497,14 +497,16 @@
   <td>42</td>
   <td style="text-align:left;border-width:1px 0px 0px 1px;">Patients with 0 - 6 doses missed at their last visit (before end of quarter evaluated)</td>
   <td style="border-width:1px 0px 0px 0px;">&nbsp;</td>
-  <td style="border-width:1px 0px 0px 1px;"><%=@cohort['Patients with 0 - 6 doses missed at their last visit']%></td>
+  <td style="border-width:1px 0px 0px 1px;"><%= link_to @cohort['Patients with 0 - 6 doses missed at their last visit'], "/cohort_tool/list_patients_details?field=patients_with_0_to_6_doses_missed_at_their_last_visit&quarter=#{@quarter}" -%></td>
 </tr>
+
 <tr class = 'row_break'>
   <td>43</td>
   <td style="text-align:left;border-width:1px 0px 1px 1px;">Patients with 7+ doses missed at their last visit (before end of quarter evaluated)</td>
   <td style="border-width:1px 0px 1px 0px;">&nbsp;</td>
-  <td style="border-width:1px"><%=@cohort['Patients with 7+ doses missed at their last visit']%></td>
+  <td style="border-width:1px"><%= link_to @cohort['Patients with 7+ doses missed at their last visit'], "/cohort_tool/list_patients_details?field=patients_with_7_plus_doses_missed_at_their_last_visit?&quarter=#{@quarter}" -%></td>
 </tr>
+
 <tr class = 'row_break'>
   <td>&nbsp;</td>
   <td style="text-align:left;border-width:0px">Current TB status,any form of TB</td>
