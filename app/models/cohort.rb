@@ -437,8 +437,8 @@ class Cohort
 		    	cohort_report['Total patients with side effects'] = self.patients_with_side_effects.length
 
 				logger.info("current_episode_of_tb " + Time.now.to_s)
-				cohort_report['Current episode of TB'] = self.current_episode_of_tb.length
-				cohort_report['Total Current episode of TB'] = self.current_episode_of_tb(@@first_registration_date, @end_date).length
+				cohort_report['Current episode of TB'] = self.current_episode_of_tb
+				cohort_report['Total Current episode of TB'] = self.current_episode_of_tb(@@first_registration_date, @end_date)
 			rescue Exception => e
 				Thread.current[:exception] = e
 			end
@@ -458,7 +458,7 @@ class Cohort
 		threads << Thread.new do
 			begin
 				logger.info("tb_within_last_year " + Time.now.to_s)
-				cohort_report['TB within the last 2 years'] = self.tb_within_the_last_2_yrs.length
+				cohort_report['TB within the last 2 years'] = self.tb_within_the_last_2_yrs
 				cohort_report['Total TB within the last 2 years'] = self.tb_within_the_last_2_yrs(@@first_registration_date, @end_date).length
 
 				logger.info("ks " + Time.now.to_s)
@@ -477,9 +477,16 @@ class Cohort
 				 raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
-
-		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (cohort_report['Current episode of TB'] + cohort_report['TB within the last 2 years']))
-		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (cohort_report['Total Current episode of TB'] + cohort_report['Total TB within the last 2 years']))
+		
+		current_episode = cohort_report['Current episode of TB'].map{|p| p.patient_id} rescue []
+		total_current_episode = cohort_report['Total Current episode of TB'].map{|p| p.patient_id} rescue []
+		
+		
+		cohort_report['TB within the last 2 years'] = cohort_report['TB within the last 2 years'].delete_if{ |p| current_episode.include?(p.patient_id) } rescue []
+		cohort_report['Total TB within the last 2 years'] = cohort_report['Total TB within the last 2 years'].delete_if{ |p| current_episode.include?(p.patient_id) } rescue []		
+		
+		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (current_episode.size + cohort_report['TB within the last 2 years'].size))	
+		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (total_current_episode.size + cohort_report['Total TB within the last 2 years'].size))	
 
 #cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_quarterly)
 #cohort_report['Total Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_cumulative)
@@ -513,7 +520,7 @@ class Cohort
 				on_art_concept_name.map{|c|c.concept_id}]
 			).program_workflow_state_id
 		
-		x=PatientProgram.find_by_sql("SELECT p.patient_id, MIN(s.start_date) AS earliest_start_date
+		PatientProgram.find_by_sql("SELECT p.patient_id, MIN(s.start_date) AS earliest_start_date
 			FROM patient_program p
 				LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
 			WHERE p.voided = 0
@@ -774,6 +781,7 @@ PatientProgram.find_by_sql("SELECT patient_id,program_id,count(*) FROM patient_p
 
 	def patients_with_start_cause(start_date = @start_date, end_date = @end_date, tb_concept_id = nil)
 		return if tb_concept_id.blank?
+		
 		cause_concept_id = ConceptName.find_by_name("WHO STG CRIT").concept_id
 =begin
 PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
