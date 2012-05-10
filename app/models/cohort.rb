@@ -609,8 +609,8 @@ PatientProgram.find_by_sql("SELECT p.patient_id, IFNULL(MIN(o.value_datetime), M
 		end
 =end
 		if min_age and max_age
-		  conditions = " DATEDIFF(date_enrolled, person.birthdate) >= #{min_age}
-				        AND DATEDIFF(date_enrolled, person.birthdate) < #{max_age}"
+		  conditions = " DATEDIFF(initiation_date, person.birthdate) >= #{min_age}
+				        AND DATEDIFF(initiation_date, person.birthdate) < #{max_age}"
 		end
 
 		if sex
@@ -632,12 +632,15 @@ PatientProgram.find_by_sql("SELECT patient_id,program_id,count(*) FROM patient_p
 
 
 
-    PatientProgram.find_by_sql("SELECT esd.*
+    PatientProgram.find_by_sql(
+      "SELECT esd.*,
+        IF(ISNULL(MIN(sdo.value_datetime)), earliest_start_date, MIN(sdo.value_datetime)) AS initiation_date
 	    FROM earliest_start_date esd
-	    LEFT JOIN person ON person.person_id = esd.patient_id
+	      LEFT JOIN person ON person.person_id = esd.patient_id
+	      LEFT JOIN start_date_observation sdo ON esd.patient_id = sdo.person_id
 	    WHERE #{conditions}
 			GROUP BY esd.patient_id
-	    HAVING  esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'")
+	    HAVING  initiation_date BETWEEN '#{start_date}' AND '#{end_date}'")
 	
 
 
