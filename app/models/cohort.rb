@@ -505,8 +505,8 @@ class Cohort
                                           cohort_report['Transferred out'])
     
     total_patients_on_known_arv_drugs ||= 0
-
-    cohort_report['Regimens'].each {|key, value| total_patients_on_known_arv_drugs+=value.length}
+		valide_regimens ||= ['1A', '1P', '2A', '2P', '3A', '3P', '4A', '4P', '5A', '6A', '7A', '8A', '9P']
+    cohort_report['Regimens'].each {|key, value| total_patients_on_known_arv_drugs+=value.length if valide_regimens.include?(key)}
     
     cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] ||= 0
     
@@ -1054,7 +1054,6 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
     patient_ids = [0] if patient_ids.blank?
     
     regimem_given_concept = ConceptName.find_by_name('ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT')
-
 		PatientProgram.find_by_sql("SELECT patient_id , obs.value_coded regimen_id, obs.value_text regimen,
 																	 age(LEFT(person.birthdate,10),LEFT(obs.obs_datetime,10),
 																	 LEFT(person.date_created,10),person.birthdate_estimated) person_age_at_drug_dispension 
@@ -1072,7 +1071,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
                                                value.regimen,
                                                value.person_age_at_drug_dispension,
                                                value.patient_id
-                                              ]
+                                              ] 
                                 end
     regimen_category = []
     ( regimens || [] ).each do | regimen_id, regimen , patient_age, patient_id |
