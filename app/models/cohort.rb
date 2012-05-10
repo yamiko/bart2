@@ -761,8 +761,8 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 			Observation.find_by_sql("SELECT DISTINCT person_id AS patient_id, earliest_start_date FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
 				WHERE encounter_id IN (SELECT encounter_id FROM obs 
 						WHERE concept_id = 7563 AND value_coded != 1107	AND voided = 0) 
-					AND concept_id = #{tb_concept_id} 
-					AND voided = 0
+					AND concept_id = #{tb_concept_id}
+					AND voided = 0 AND value_coded = 1065
 					AND earliest_start_date >= '#{start_date}'
 					AND earliest_start_date <= '#{end_date}'")
 
@@ -783,7 +783,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 	end
 
 	def kaposis_sarcoma(start_date = @start_date, end_date = @end_date)
-		tb_concept_id = ConceptName.find_by_name("KAPOSIS SARCOMA").concept_id
+		concept_id = ConceptName.find_by_name("KAPOSIS SARCOMA").concept_id
 		self.patients_with_start_cause(start_date,end_date, concept_id)
 	end
 
@@ -1199,11 +1199,6 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 		end
 		return doses_missed_7_plus
 	end
-
-  def kaposis_sarcoma(start_date = @start_date, end_date = @end_date)
-    tb_concept_id = ConceptName.find_by_name("KAPOSIS SARCOMA").concept_id
-    self.patients_with_start_cause(start_date, end_date, tb_concept_id)
-  end
 
   def current_episode_of_tb(start_date = @start_date, end_date = @end_date)
     tb_concept_id = ConceptName.find_by_name("EXTRAPULMONARY TUBERCULOSIS (EPTB)").concept_id
