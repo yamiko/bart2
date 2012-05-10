@@ -61,7 +61,7 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
 CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
   VIEW `earliest_start_date` AS
   SELECT `p`.`patient_id` AS `patient_id`,`p`.`date_enrolled`,
-         MIN(`s`.`start_date`) AS `earliest_start_date`
+         MIN(`s`.`start_date`) AS `earliest_start_date`, `person`.`death_date` AS death_date
   FROM ((`patient_program` `p`
   LEFT JOIN `patient_state` `s` ON((`p`.`patient_program_id` = `s`.`patient_program_id`)))
   LEFT JOIN `person` ON((`person`.`person_id` = `p`.`patient_id`)))
@@ -408,8 +408,8 @@ BEGIN
 	SELECT state INTO @state_id FROM patient_state 
 		WHERE patient_program_id = @patient_program_id
 			AND voided = 0
-			AND start_date < my_end_date
-		ORDER BY start_date, date_created DESC LIMIT 1;
+			AND start_date <= my_end_date
+		ORDER BY start_date DESC, date_created DESC LIMIT 1;
 
 	RETURN @state_id;
 END */;;

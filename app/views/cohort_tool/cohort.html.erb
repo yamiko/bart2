@@ -173,7 +173,7 @@
 <tr class = 'row_break'>
   <td>16</td>
   <td style="text-align:left;border-width:1px 0px 0px 1px">Presumed severe HIV disease in infants</td>
-  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Total Presumed severe HIV disease in infants'], "/cohort_tool/list_patients_details?field=presumed_severe_hiv_disease_in_infants&quarter=#{@quarter}" -%></td>
+  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Presumed severe HIV disease in infants'], "/cohort_tool/list_patients_details?field=presumed_severe_hiv_disease_in_infants&quarter=#{@quarter}" -%></td>
   <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Total Presumed severe HIV disease in infants'], "/cohort_tool/list_patients_details?field=total_presumed_severe_hiv_disease_in_infants&quarter=#{@quarter}" -%></td>
 </tr>
 <tr class = 'row_break'>
@@ -252,14 +252,14 @@
 <tr class = 'row_break'>
   <td>27</td>
   <td style="text-align:left;border-width:0px 0px 0px 1px">TB within the LAST 2 yrs</td>
-  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['TB within the last 2 years'], "/cohort_tool/list_patients_details?field=TB_within_the_last_2_years&quarter=#{@quarter}" -%></td>
-  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Total TB within the last 2 years'], "/cohort_tool/list_patients_details?field=total_TB_within_the_last_2_years&quarter=#{@quarter}" -%></td>
+  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['TB within the last 2 years'].size, "/cohort_tool/list_patients_details?field=TB_within_the_last_2_years&quarter=#{@quarter}" -%></td>
+  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Total TB within the last 2 years'].size, "/cohort_tool/list_patients_details?field=total_TB_within_the_last_2_years&quarter=#{@quarter}" -%></td>
 </tr>
 <tr class = 'row_break'>
   <td>28</td>
   <td style="text-align:left;border-width:0px 0px 0px 1px">Current episode of TB</td>
-  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Current episode of TB'], "/cohort_tool/list_patients_details?field=current_episode_of_tb&quarter=#{@quarter}" -%></td>
-  <td style="border-width:1px 0px 0px 1px"><%= link_to @cohort['Total Current episode of TB'], "/cohort_tool/list_patients_details?field=total_current_episode_of_tb&quarter=#{@quarter}" -%></td>
+  <td style="border-width:1px 0px 0px 1px"><%= link_to "#{(@cohort['Current episode of TB'].length rescue 0)}", "/cohort_tool/list_patients_details?field=current_episode_of_tb&quarter=#{@quarter}" -%></td>
+  <td style="border-width:1px 0px 0px 1px"><%= link_to "#{(@cohort['Total Current episode of TB'].length rescue 0)}", "/cohort_tool/list_patients_details?field=total_current_episode_of_tb&quarter=#{@quarter}" -%></td>
 </tr>
 <tr class = 'row_break'>
   <td>29</td>
@@ -381,9 +381,9 @@
   <td style="border-width:1px 0px 0px 1px">1A<br />1P</td>
   <td style="border-width:1px 0px 0px 1px">
    <%#= raise @cohort.to_yaml %>
-    <%= link_to "#{@cohort['Regimens']['A1'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_1A&quarter=#{@quarter}" -%>
+    <%= link_to "#{@cohort['Regimens']['1A'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_1A&quarter=#{@quarter}" -%>
 <br />
-    <%= link_to "#{@cohort['Regimens']['P1'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_1P&quarter=#{@quarter}" -%>
+    <%= link_to "#{@cohort['Regimens']['1P'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_1P&quarter=#{@quarter}" -%>
 <br />
   </td>
 </tr>
@@ -392,8 +392,8 @@
   <td style="text-align:left;border-width:1px 0px 1px 1px;">AZT/3TC/NVP</td>
   <td style="border-width:1px 0px 0px 1px;">2A<br />2P</td>
   <td style="border-width:1px 0px 0px 1px">
-    <%= link_to "#{@cohort['Regimens']['A2'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_2A&quarter=#{@quarter}" -%><br />
-    <%= link_to "#{@cohort['Regimens']['P2'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_2P&quarter=#{@quarter}" -%>
+    <%= link_to "#{@cohort['Regimens']['2A'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_2A&quarter=#{@quarter}" -%><br />
+    <%= link_to "#{@cohort['Regimens']['2P'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_2P&quarter=#{@quarter}" -%>
   </td>
 </tr>
 <tr class = 'row_break'>
@@ -401,8 +401,8 @@
   <td style="border-width:0px 0px 1px 1px;text-align:left;">d4T/3TC/EFV</td>
   <td style="border-width:1px 0px 0px 1px;">3A<br />3P</td>
   <td style="border-width:1px 0px 0px 1px">
-    <%= link_to "#{@cohort['Regimens']['A3'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_3A&quarter=#{@quarter}" -%><br />
-    <%= link_to "#{@cohort['Regimens']['P3'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_3P&quarter=#{@quarter}" -%>
+    <%= link_to "#{@cohort['Regimens']['3A'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_3A&quarter=#{@quarter}" -%><br />
+    <%= link_to "#{@cohort['Regimens']['3P'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_3P&quarter=#{@quarter}" -%>
   </td>
 </tr>
 <tr class = 'row_break'>
@@ -410,8 +410,8 @@
   <td style="border-width:0px 0px 0px 1px;text-align:left;">AZT/3TC+EFV</td>
   <td style="border-width:1px 0px 1px 1px;">4A<br />4P</td>
   <td style="border-width:1px 0px 0px 1px">
-    <%= link_to "#{@cohort['Regimens']['A4'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_4A&quarter=#{@quarter}" -%><br />
-    <%= link_to "#{@cohort['Regimens']['P4'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_4P&quarter=#{@quarter}" -%>
+    <%= link_to "#{@cohort['Regimens']['4A'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_4A&quarter=#{@quarter}" -%><br />
+    <%= link_to "#{@cohort['Regimens']['4P'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_4P&quarter=#{@quarter}" -%>
   </td>
 </tr>
 <tr class = 'row_break'>
@@ -419,16 +419,16 @@
   <td style="text-align:left;border-width:1px 0px 1px 1px;">TDF/3TC/EFV</td>
   <td style="border-width:0px 0px 1px 1px;">5A<br /><!--P5--></td>
   <td style="border-width:1px 0px 0px 1px">
-    <%= link_to "#{@cohort['Regimens']['A5'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_5A&quarter=#{@quarter}" -%><br />
-    <%#=@cohort['Regimens']['P5'].length rescue '0'%>
+    <%= link_to "#{@cohort['Regimens']['5A'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_5A&quarter=#{@quarter}" -%><br />
+    <%#=@cohort['Regimens']['5P'].length rescue '0'%>
 </tr>
 <tr class = 'row_break'>
   <td>&nbsp;</td>
   <td style="text-align:left;border-width:0px 0px 0px 1px;">TDF/3TC+NVP</td>
   <td style="border-width:0px 0px 1px 1px;">6A<br /><!--P6--></td>
   <td style="border-width:1px 0px 1px 1px">
-    <%= link_to "#{ @cohort['Regimens']['A6'].length rescue '0' }", "/cohort_tool/list_patients_details?field=ARV_regimen_6A&quarter=#{@quarter}" -%><br />
-    <%#=@cohort['Regimens']['P6'].length rescue '0'%>
+    <%= link_to "#{ @cohort['Regimens']['6A'].length rescue '0' }", "/cohort_tool/list_patients_details?field=ARV_regimen_6A&quarter=#{@quarter}" -%><br />
+    <%#=@cohort['Regimens']['6P'].length rescue '0'%>
   </td>
 </tr>
 
@@ -439,8 +439,8 @@
   <td style="text-align:left;border-width:1px 0px 0px 1px;">TDF/3TC+LPV/r</td>
   <td style="border-width:0px 0px 1px 1px;">7A<br /><!--P7--></td>
   <td style="border-width:0px 0px 1px 1px">
-    <%= link_to "#{ @cohort['Regimens']['A7'].length rescue '0' }", "/cohort_tool/list_patients_details?field=ARV_regimen_7A&quarter=#{@quarter}" -%><br />
-    <%#=@cohort['Regimens']['P7'].length rescue '0'%>
+    <%= link_to "#{ @cohort['Regimens']['7A'].length rescue '0' }", "/cohort_tool/list_patients_details?field=ARV_regimen_7A&quarter=#{@quarter}" -%><br />
+    <%#=@cohort['Regimens']['7P'].length rescue '0'%>
   </td>
 </tr>
 
@@ -449,8 +449,8 @@
   <td style="text-align:left;border-width:1px 0px 0px 1px;">AZT/3TC+LPV/R</td>
   <td style="border-width:0px 0px 1px 1px;">8A<br /><!--P8--></td>
   <td style="border-width:0px 0px 1px 1px">
-    <%= link_to "#{ @cohort['Regimens']['A8'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_8A&quarter=#{@quarter}" -%><br />
-    <%#=@cohort['Regimens']['P8'].length rescue '0'%>
+    <%= link_to "#{ @cohort['Regimens']['8A'].length rescue '0'}", "/cohort_tool/list_patients_details?field=ARV_regimen_8A&quarter=#{@quarter}" -%><br />
+    <%#=@cohort['Regimens']['8P'].length rescue '0'%>
   </td>
 </tr>
 
@@ -459,8 +459,8 @@
   <td style="text-align:left;border-width:1px 0px 0px 1px;">ABC/3TC+LPV/r</td>
   <td style="border-width:0px 0px 1px 1px;"><!--A9--><br />9P</td>
   <td style="border-width:0px 0px 1px 1px">
-    <%#=@cohort['Regimens']['A9'].length rescue '0'%><br />
-    <%= link_to "#{ @cohort['Regimens']['P9'].length rescue '0' }", "/cohort_tool/list_patients_details?field=ARV_regimen_9P&quarter=#{@quarter}" -%>
+    <%#=@cohort['Regimens']['9A'].length rescue '0'%><br />
+    <%= link_to "#{ @cohort['Regimens']['9P'].length rescue '0' }", "/cohort_tool/list_patients_details?field=ARV_regimen_9P&quarter=#{@quarter}" -%>
   </td>
 </tr>
 <!-- end -->
@@ -483,7 +483,7 @@
   <td>41</td>
   <td style="text-align:left;border-width:1px 0px 1px 1px;">Total patients with side effects</td>
   <td style="border-width:1px 0px 1px 0px;">&nbsp;</td>
-  <td style="border-width:1px"><%=@cohort['Total patients with side effects']%></td>
+  <td style="border-width:1px"><%= link_to @cohort['Total patients with side effects'], "/cohort_tool/list_patients_details?field=patients_with_side_effects&quarter=#{@quarter}"%></td>
 </tr>
 
 <tr class = 'row_break'>
@@ -497,14 +497,16 @@
   <td>42</td>
   <td style="text-align:left;border-width:1px 0px 0px 1px;">Patients with 0 - 6 doses missed at their last visit (before end of quarter evaluated)</td>
   <td style="border-width:1px 0px 0px 0px;">&nbsp;</td>
-  <td style="border-width:1px 0px 0px 1px;"><%=@cohort['Patients with 0 - 6 doses missed at their last visit']%></td>
+  <td style="border-width:1px 0px 0px 1px;"><%= link_to @cohort['Patients with 0 - 6 doses missed at their last visit'], "/cohort_tool/list_patients_details?field=patients_with_0_to_6_doses_missed_at_their_last_visit&quarter=#{@quarter}" -%></td>
 </tr>
+
 <tr class = 'row_break'>
   <td>43</td>
   <td style="text-align:left;border-width:1px 0px 1px 1px;">Patients with 7+ doses missed at their last visit (before end of quarter evaluated)</td>
   <td style="border-width:1px 0px 1px 0px;">&nbsp;</td>
-  <td style="border-width:1px"><%=@cohort['Patients with 7+ doses missed at their last visit']%></td>
+  <td style="border-width:1px"><%= link_to @cohort['Patients with 7+ doses missed at their last visit'], "/cohort_tool/list_patients_details?field=patients_with_7_plus_doses_missed_at_their_last_visit?&quarter=#{@quarter}" -%></td>
 </tr>
+
 <tr class = 'row_break'>
   <td>&nbsp;</td>
   <td style="text-align:left;border-width:0px">Current TB status,any form of TB</td>
