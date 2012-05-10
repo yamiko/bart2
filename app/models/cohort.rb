@@ -477,10 +477,10 @@ class Cohort
 		end
     
     cohort_report['Total transferred in patients'] = (cohort_report['Total registered'] - 
-                                                      cohort_report['Total Patients reinitiated on ART']).length
+                                                      cohort_report['Total Patients reinitiated on ART'])
                                                       
 		cohort_report['Newly transferred in patients'] = (cohort_report['Newly total registered'] - 
-                                                      cohort_report['Patients reinitiated on ART']).length
+                                                      cohort_report['Patients reinitiated on ART'])
 		
 	
 		
