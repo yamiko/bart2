@@ -811,36 +811,44 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 		  ORDER BY K.patient_state_id DESC, K.start_date DESC")
 =end
     
-    @art_defaulters ||= self.art_defaulted_patients
+    art_defaulters = self.art_defaulted_patients
    	PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state 
-   									FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
-										WHERE earliest_start_date <=  '#{@end_date}' AND p.dead = 0
-										HAVING state = 7").select{|t| !@art_defaulters.map{|d| d.patient_id}.include?(t.patient_id) }
+   									FROM earliest_start_date e
+										WHERE earliest_start_date <=  '#{@end_date}'
+										HAVING state = 7").reject{|t| art_defaulters.map{|d| d.patient_id}.include?(t.patient_id) }
 	end
 
+=begin
 	def died_total
-		self.outcomes_total('PATIENT DIED')
+		self.outcomes_total('PATIENT DIED', @@first_registration_date, @end_date)
 	end
-  
-	def total_number_of_dead_patients
+=end
 
-		PatientProgram.find_by_sql("SELECT * FROM person p LEFT JOIN earliest_start_date e ON p.person_id = e.patient_id
-										WHERE dead = 1
-											AND earliest_start_date <=  '#{@end_date}'")
+	def total_number_of_dead_patients
+		self.outcomes_total('PATIENT DIED', @@first_registration_date, @end_date)
     
     #PatientProgram.find_by_sql("SELECT patient_id, current_state_for_program(patient_id, 1, '#{@end_date}') AS state FROM earliest_start_date
 		#								WHERE earliest_start_date <=  '#{@end_date}'
 		#								HAVING state = 3")
 	end
 
-	def total_number_of_died_within_range(min_days = 0, max_days = 0)
-		PatientProgram.find_by_sql("SELECT person_id, birthdate, death_date, earliest_start_date, DATEDIFF(death_date, earliest_start_date) AS days 
-										FROM person p 
-											LEFT JOIN earliest_start_date e ON p.person_id = e.patient_id
-										WHERE dead = 1
-											AND earliest_start_date <=  '#{@end_date}'
-										HAVING days >= #{min_days}
-										AND days < #{max_days}")
+	def total_number_of_died_within_range(min_days = 0, max_days = 0)								
+    concept_name = ConceptName.find_all_by_name("PATIENT DIED")
+    state = ProgramWorkflowState.find(
+      :first,
+      :conditions => ["concept_id IN (?)",
+                      concept_name.map{|c|c.concept_id}]
+    ).program_workflow_state_id
+    										
+   	PatientProgram.find_by_sql(
+   		"SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state, death_date,
+				IF(ISNULL(MIN(sdo.value_datetime)), earliest_start_date, MIN(sdo.value_datetime)) AS initiation_date
+			FROM earliest_start_date e
+				LEFT JOIN start_date_observation sdo ON e.patient_id = sdo.person_id
+			WHERE earliest_start_date <=  '#{@end_date}'
+			GROUP BY e.patient_id
+			HAVING state = #{state} AND 
+				DATEDIFF(death_date, initiation_date) BETWEEN #{min_days} AND #{max_days}")
 	end
 
 	def transferred_out_patients
@@ -851,7 +859,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 	end
 
 	def art_defaulted_patients
-		PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{@end_date}') AS def 
+		@art_defaulters ||= PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{@end_date}') AS def 
 										FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
 										WHERE e.earliest_start_date <=  '#{@end_date}' AND p.dead=0
 										HAVING def = 1")
@@ -928,31 +936,18 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 		tb_status_hash
 	end
 
-  def outcomes_total(outcome)
-    on_art_concept_name = ConceptName.find_all_by_name(outcome)
+  def outcomes_total(outcome, start_date=@start_date, end_date=@end_date)
+    concept_name = ConceptName.find_all_by_name(outcome)
     state = ProgramWorkflowState.find(
       :first,
       :conditions => ["concept_id IN (?)",
-                      on_art_concept_name.map{|c|c.concept_id}]
+                      concept_name.map{|c|c.concept_id}]
     ).program_workflow_state_id
 
-    PatientState.find_by_sql("SELECT * FROM (
-        SELECT s.patient_program_id, patient_id, patient_state_id, start_date,
-               n.name name, state, p.date_enrolled AND date_enrolled
-        FROM patient_state s
-        LEFT JOIN patient_program p ON p.patient_program_id = s.patient_program_id
-        LEFT JOIN program_workflow pw ON pw.program_id = p.program_id
-        LEFT JOIN program_workflow_state w ON w.program_workflow_id = pw.program_workflow_id
-        AND w.program_workflow_state_id = s.state
-        LEFT JOIN concept_name n ON w.concept_id = n.concept_id
-        WHERE p.voided = 0 AND s.voided = 0
-        AND (s.start_date >= '#{@@first_registration_date}'
-        AND s.start_date <= '#{@end_date}')
-        AND p.program_id = #{@@program_id}
-        ORDER BY patient_state_id DESC, start_date DESC
-      ) K
-      GROUP BY K.patient_id HAVING (state = #{state})
-      ORDER BY K.patient_state_id DESC, K.start_date DESC")
+ 	PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{end_date}') AS state 
+ 									FROM earliest_start_date e
+									WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
+									HAVING state = #{state}")
   end
 
 =begin
