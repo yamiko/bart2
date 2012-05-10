@@ -153,8 +153,9 @@ class Cohort
 		threads << Thread.new do
 				begin
 					logger.info("adults " + Time.now.to_s)
-					cohort_report['Newly registered adults'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 5110, 109500).length
-					cohort_report['Total registered adults'] = self.total_registered_by_gender_age(@@first_registration_date, @start_date, nil, 5110, 109500).length
+					# Adult min age = 15 yrs = (365.25 * 15) = 5478.75 == 5479 days to nearest day
+					cohort_report['Newly registered adults'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 5479, 109500).length
+					cohort_report['Total registered adults'] = self.total_registered_by_gender_age(@@first_registration_date, @start_date, nil, 5479, 109500).length
 				rescue Exception => e
 						Thread.current[:exception] = e
 				end
@@ -162,8 +163,9 @@ class Cohort
 		threads << Thread.new do
 				begin
 					logger.info("children " + Time.now.to_s)
-					cohort_report['Newly registered children'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 730, 5110).length
-					cohort_report['Total registered children'] = self.total_registered_by_gender_age(@@first_registration_date, @start_date, nil, 730, 5110).length
+					# Child min age = 2 yrs = (365.25 * 2) = 730.5 == 731 days to nearest day
+					cohort_report['Newly registered children'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 731, 5479).length
+					cohort_report['Total registered children'] = self.total_registered_by_gender_age(@@first_registration_date, @start_date, nil, 731, 5479).length
 				rescue Exception => e
 						Thread.current[:exception] = e
 				end
@@ -171,8 +173,8 @@ class Cohort
 		threads << Thread.new do
 				begin
 					logger.info("infants " + Time.now.to_s)
-					cohort_report['Newly registered infants'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 0, 730).length
-					cohort_report['Total registered infants'] = self.total_registered_by_gender_age(@@first_registration_date, @start_date, nil, 0, 730).length
+					cohort_report['Newly registered infants'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 0, 731).length
+					cohort_report['Total registered infants'] = self.total_registered_by_gender_age(@@first_registration_date, @start_date, nil, 0, 731).length
 
 				rescue Exception => e
 						Thread.current[:exception] = e
