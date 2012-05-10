@@ -49,3 +49,4 @@ end
 
 # Foreign key checks use a lot of resources but are useful during development
 ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=0") if ENV['RAILS_ENV'] != 'development'
+require 'will_paginate'
