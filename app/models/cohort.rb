@@ -155,7 +155,7 @@ class Cohort
 					logger.info("adults " + Time.now.to_s)
 					# Adult min age = 15 yrs = (365.25 * 15) = 5478.75 == 5479 days to nearest day
 					cohort_report['Newly registered adults'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 5479, 109500).length
-					cohort_report['Total registered adults'] = self.total_registered_by_gender_age(@@first_registration_date, @start_date, nil, 5479, 109500).length
+					cohort_report['Total registered adults'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 5479, 109500).length
 				rescue Exception => e
 						Thread.current[:exception] = e
 				end
@@ -165,7 +165,7 @@ class Cohort
 					logger.info("children " + Time.now.to_s)
 					# Child min age = 2 yrs = (365.25 * 2) = 730.5 == 731 days to nearest day
 					cohort_report['Newly registered children'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 731, 5479).length
-					cohort_report['Total registered children'] = self.total_registered_by_gender_age(@@first_registration_date, @start_date, nil, 731, 5479).length
+					cohort_report['Total registered children'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 731, 5479).length
 				rescue Exception => e
 						Thread.current[:exception] = e
 				end
@@ -174,7 +174,7 @@ class Cohort
 				begin
 					logger.info("infants " + Time.now.to_s)
 					cohort_report['Newly registered infants'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 0, 731).length
-					cohort_report['Total registered infants'] = self.total_registered_by_gender_age(@@first_registration_date, @start_date, nil, 0, 731).length
+					cohort_report['Total registered infants'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 0, 731).length
 
 				rescue Exception => e
 						Thread.current[:exception] = e
@@ -373,7 +373,7 @@ class Cohort
 				cohort_report['Total Died after the end of the 3rd month after ART initiation'] = death_dates_array[3].length
 =end
 				logger.info("txfrd_out " + Time.now.to_s)
-				cohort_report['Transferred out'] = self.transferred_out_patients.length
+				cohort_report['Transferred out'] = self.transferred_out_patients
 				
 				logger.info("stopped_arvs " + Time.now.to_s)
 				cohort_report['Stopped taking ARVs'] = self.art_stopped_patients.length
@@ -518,7 +518,7 @@ class Cohort
 
 	def total_registered(start_date = @start_date, end_date = @end_date)
 	  PatientProgram.find_by_sql("SELECT * FROM earliest_start_date 
-	    WHERE earliest_start_date BETWEEN '#{@start_date}' AND '#{@end_date}'")
+	    WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'")
 										
 
 		#start_date = @start_date
@@ -543,7 +543,7 @@ PatientProgram.find_by_sql("SELECT patient_id FROM patient_program p
 	    LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
 			LEFT JOIN start_date_observation o ON o.encounter_id = e.encounter_id
 			GROUP BY esd.patient_id
-	    HAVING esd.earliest_start_date BETWEEN '#{@start_date}' AND '#{@end_date}' AND
+	    HAVING esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' AND
 	           original_start_date IS NULL")
 
 
@@ -637,7 +637,7 @@ PatientProgram.find_by_sql("SELECT patient_id,program_id,count(*) FROM patient_p
 	    LEFT JOIN person ON person.person_id = esd.patient_id
 	    WHERE #{conditions}
 			GROUP BY esd.patient_id
-	    HAVING  esd.earliest_start_date BETWEEN '#{@start_date}' AND '#{@end_date}'")
+	    HAVING  esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'")
 	
 
 
@@ -852,23 +852,19 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 	end
 
 	def transferred_out_patients
-		#self.outcomes_total('PATIENT TRANSFERRED OUT').length
-		PatientProgram.find_by_sql("SELECT patient_id, current_state_for_program(patient_id, 1, '#{@end_date}') AS state FROM earliest_start_date 
-										WHERE earliest_start_date <=  '#{@end_date}'
-										HAVING state = 2")
+		self.outcomes_total('PATIENT TRANSFERRED OUT', @@first_registration_date).length
 	end
 
 	def art_defaulted_patients
-		@art_defaulters ||= PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{@end_date}') AS def 
+		@art_defaulters ||= PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{@end_date}') AS def
 										FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
 										WHERE e.earliest_start_date <=  '#{@end_date}' AND p.dead=0
-										HAVING def = 1")
+										HAVING def = 1 AND current_state_for_program(patient_id, 1, '#{@end_date}') NOT IN (6, 2, 3)")
 	end
 
 	def art_stopped_patients
-		PatientProgram.find_by_sql("SELECT patient_id, current_state_for_program(patient_id, 1, '#{@end_date}') AS state FROM earliest_start_date 
-										WHERE earliest_start_date <=  '#{@end_date}'
-										HAVING state = 6")
+				self.outcomes_total('Treatment stopped', @@first_registration_date)
+
 	end
 
 	def tb_status
@@ -983,6 +979,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 			@end_date.to_date.strftime("%Y-%m-%d")]).length rescue 0
 	end
 
+=begin
 	def patients_reinitiated_on_arts
 		Observation.find(:all, :joins => [:encounter], :conditions => ["concept_id = ? AND value_coded IN (?) AND encounter.voided = 0 \
 			AND DATE_FORMAT(obs_datetime, '%Y-%m-%d') >= ? AND DATE_FORMAT(obs_datetime, '%Y-%m-%d') <= ?",
@@ -998,6 +995,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
         ConceptName.find(:all, :conditions => ["name = 'YES'"]).collect{|c| c.concept_id},
         @start_date.to_date.strftime("%Y-%m-%d"), @end_date.to_date.strftime("%Y-%m-%d")]).map{|patient| patient.person_id}
   end
+=end
 
   def outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date, program_id = @@program_id, min_age=nil, max_age=nil,states = [])
 
@@ -1159,7 +1157,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 			         (DATEDIFF(o.obs_datetime,o.value_datetime)) >= 56) OR
              (o.concept_id = #{taken_arvs_concept} AND o.value_coded = '#{no_concept}'))
 			GROUP BY esd.patient_id
-	    HAVING esd.earliest_start_date BETWEEN '#{@start_date}' AND '#{@end_date}' AND
+	    HAVING esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' AND
 	           original_start_date IS NOT NULL")
   end
 	
