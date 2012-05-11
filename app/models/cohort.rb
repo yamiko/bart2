@@ -483,8 +483,20 @@ class Cohort
 		cohort_report['Newly transferred in patients'] = (cohort_report['Newly total registered'] - 
                                                       cohort_report['Patients reinitiated on ART'] -
                                                       cohort_report['Patients initiated on ART'])
-		
-	
+=begin                                                      
+cohort_report['New Unknown age'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, nil,nil).length
+cohort_report['Total Unknown age'] = self.total_registered_by_gender_age        (@@first_registration_date,@end_date,nil,nil,nil).length                                                  
+=end                                                     
+                                                     		
+	  cohort_report['Total Unknown age'] = cohort_report['Total registered'] - (cohort_report['Total registered adults'] +
+	                                        cohort_report['Total registered children'] +
+	                                        cohort_report['Total registered infants'])
+	  
+	  cohort_report['New Unknown age'] = cohort_report['Newly total registered']-(cohort_report['Newly registered adults'] +
+	                                        cohort_report['Newly registered children'] +
+	                                        cohort_report['Newly registered infants'])
+	                                        
+                    
 		
 		current_episode = cohort_report['Current episode of TB'].map{|p| p.patient_id} rescue []
 		total_current_episode = cohort_report['Total Current episode of TB'].map{|p| p.patient_id} rescue []
@@ -615,12 +627,12 @@ PatientProgram.find_by_sql("SELECT p.patient_id, IFNULL(MIN(o.value_datetime), M
 		end
 =end
 		if min_age and max_age
-		  conditions = " DATEDIFF(initiation_date, person.birthdate) >= #{min_age}
+		  conditions = "AND DATEDIFF(initiation_date, person.birthdate) >= #{min_age}
 				        AND DATEDIFF(initiation_date, person.birthdate) < #{max_age}"
 		end
 
 		if sex
-		  conditions += " person.gender = '#{sex}'"
+		  conditions += "AND person.gender = '#{sex}'"
 		end
 =begin
 PatientProgram.find_by_sql("SELECT patient_id,program_id,count(*) FROM patient_program p
@@ -645,7 +657,7 @@ PatientProgram.find_by_sql("SELECT patient_id,program_id,count(*) FROM patient_p
 	      LEFT JOIN person ON person.person_id = esd.patient_id
 	      LEFT JOIN start_date_observation sdo ON esd.patient_id = sdo.person_id
 			GROUP BY esd.patient_id
-	    HAVING initiation_date BETWEEN '#{start_date}' AND '#{end_date}' AND #{conditions}")
+	    HAVING initiation_date BETWEEN '#{start_date}' AND '#{end_date}' #{conditions}")
 	
 
 
