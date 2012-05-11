@@ -120,7 +120,7 @@ class Cohort
 					cohort_report['Total registered'] = self.total_registered(@@first_registration_date).length
 					cohort_report['Newly total registered'] = self.total_registered.length
 
-					logger.info("initiated_on_art " + Time.now.to_s)  
+					logger.info("initiated_on_art " + Time.now.to_s)
 					cohort_report['Patients initiated on ART'] = self.patients_initiated_on_art_first_time.length
 					cohort_report['Total Patients initiated on ART'] = self.patients_initiated_on_art_first_time(@@first_registration_date).length
 				rescue Exception => e
@@ -556,7 +556,7 @@ PatientProgram.find_by_sql("SELECT patient_id FROM patient_program p
 
 	def patients_initiated_on_art_first_time(start_date = @start_date, end_date = @end_date)
 
-    PatientProgram.find_by_sql("SELECT esd.*,MIN(o.value_datetime) AS original_start_date
+    PatientProgram.find_by_sql("SELECT esd.*,MIN(o.value_text) AS original_start_date
 	    FROM earliest_start_date esd
 	    LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
 			LEFT JOIN start_date_observation o ON o.encounter_id = e.encounter_id
@@ -1167,11 +1167,11 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 
     taken_arvs_concept = ConceptName.find_by_name('HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS').concept_id 
     
-    PatientProgram.find_by_sql("SELECT esd.*,MIN(sdo.value_datetime) AS original_start_date
+    PatientProgram.find_by_sql("SELECT esd.*,MIN(sdo.value_text) AS original_start_date
 	    FROM earliest_start_date esd
 	    LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
 			LEFT JOIN start_date_observation sdo ON sdo.encounter_id = e.encounter_id
-			LEFT JOIN obs o ON o.obs_id = sdo.obs_id
+			LEFT JOIN obs o ON o.encounter_id = sdo.encounter_id
 			WHERE ((o.concept_id = #{date_art_last_taken_concept} AND
 			         (DATEDIFF(o.obs_datetime,o.value_datetime)) >= 56) OR
              (o.concept_id = #{taken_arvs_concept} AND o.value_coded = '#{no_concept}'))
