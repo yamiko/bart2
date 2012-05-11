@@ -48,7 +48,7 @@ class Cohort
 
 				  if reason.match(/Presumed/i)
 				    cohort_report['Total Presumed severe HIV disease in infants'] += 1
-				  elsif reason.match(/Confirmed/i)
+				  elsif reason.match(/Confirmed/i) or reason.match(/HIV DNA polymerase chain reaction/i)
 				    cohort_report['Total Confirmed HIV infection in infants (PCR)'] += 1
 				  elsif reason.match(/WHO STAGE I /i) or reason.match(/CD/i)
 				    cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] += 1
@@ -322,7 +322,7 @@ class Cohort
 
 				  if reason.match(/Presumed/i)
 				    cohort_report['Presumed severe HIV disease in infants'] += 1
-				  elsif reason.match(/Confirmed/i)
+				  elsif reason.match(/Confirmed/i) or reason.match(/HIV DNA polymerase chain reaction/i)
 				    cohort_report['Confirmed HIV infection in infants (PCR)'] += 1
 				  elsif reason.match(/WHO STAGE I /i) or reason.match(/CD/i)
 				    cohort_report['WHO stage 1 or 2, CD4 below threshold'] += 1
@@ -510,7 +510,11 @@ class Cohort
 		valide_regimens ||= ['1A', '1P', '2A', '2P', '3A', '3P', '4A', '4P', '5A', '6A', '7A', '8A', '9P']
     cohort_report['Regimens'].each {|key, value| total_patients_on_known_arv_drugs+=value.length if valide_regimens.include?(key)}
     
-    cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] ||= 0
+    if cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG']
+    	cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] =cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'].length
+    else
+    	cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] 	= 0
+    end
     
     cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] += (cohort_report['Total alive and on ART'] - total_patients_on_known_arv_drugs)
 
@@ -1167,7 +1171,8 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 	def patients_with_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
 		@patients_alive_and_on_art ||= self.total_alive_and_on_art
 		patient_ids = @patients_alive_and_on_art.map(&:patient_id)
-
+    patient_ids = [0] if patient_ids.blank?
+    
 		doses_missed_concept = ConceptName.find_by_name("MISSED HIV DRUG CONSTRUCT").concept_id
 		
 		patients = Observation.find_by_sql("SELECT DISTINCT person_id AS person_id, earliest_start_date, obs.value_numeric FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
@@ -1272,6 +1277,8 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 
     @patients_alive_and_on_art ||= self.total_alive_and_on_art
     patient_ids = @patients_alive_and_on_art.map(&:patient_id)
+
+    patient_ids = [0] if patient_ids.blank?
 
 		state = ProgramWorkflowState.find(
 			:first,
