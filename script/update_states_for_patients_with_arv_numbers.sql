@@ -21,10 +21,11 @@ WHERE pp.patient_id IN (SELECT sp.main_patient FROM (
                             WHERE identifier_type=4 
                                 AND voided=0 
                                 AND patient_id NOT IN ( SELECT pp.patient_id 
-                                                        FROM bart2.patient_program pp, bart2.patient_state ps 
-                                                        WHERE pp.patient_program_id = ps.patient_program_id 
-                                                               AND ps.state =7 
-                                                               AND ps.end_date IS NULL 
+                                                        FROM bart2.patient_program pp
+                                                             INNER JOIN bart2.patient_state ps 
+                                                             ON pp.patient_program_id = ps.patient_program_id
+                                                        WHERE ps.state =7 
+                                                               -- AND ps.end_date IS NULL 
                                                                AND pp.program_id=1 
                                                                AND ps.voided=0))
                         HAVING prd.patient_id IS NOT NULL) sp
