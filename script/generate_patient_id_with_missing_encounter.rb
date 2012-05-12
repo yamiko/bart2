@@ -1,6 +1,6 @@
 def generate_ids
 	persons = Person.find_by_sql("
-		SELECT * 
+		SELECT bart1_first_visit.patient_id
 		FROM (
 			SELECT DISTINCT a.patient_id
 			FROM bart1.patient a
