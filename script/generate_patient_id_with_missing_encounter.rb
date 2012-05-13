@@ -1,5 +1,5 @@
 def generate_ids
-	persons = Person.find_by_sql("
+	missing_ids = Patient.find_by_sql("
 		SELECT bart1_first_visit.patient_id
 		FROM (
 			SELECT DISTINCT a.patient_id
@@ -23,4 +23,22 @@ def generate_ids
 			ON bart2_hiv_clinic_registration.patient_id = bart1_first_visit.patient_id
 		WHERE bart2_hiv_clinic_registration.patient_id IS NULL	
 	")
+
+	File.open('/tmp/patient_ids.txt', 'w') do |f|
+		missing_ids.each do |patient|
+			f.puts patient.patient_id
+			puts patient.patient_id
+		end
+	end
+
+	puts "*************************************"
+
+	puts "#{missing_ids.size} patient id found!"
+	puts "File location: /tmp/patient_ids.txt"
+
+	puts "*************************************"
+
+	puts "Successful"
 end
+
+generate_ids
