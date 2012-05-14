@@ -1,6 +1,6 @@
 
-@bart1_encounter_type = ARVG[0]
-@bart2_encounter_type = ARVG[1]
+@bart1_encounter_type = ARGV[0]
+@bart2_encounter_type = ARGV[1]
 
 
 def generate_ids
