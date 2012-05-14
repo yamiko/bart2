@@ -1406,7 +1406,7 @@ class GenericPatientsController < ApplicationController
     visits.hiv_test_date = patient_obj.person.observations.recent(1).question("Confirmatory HIV test date").all rescue nil
     visits.hiv_test_date = visits.hiv_test_date.to_s.split(':')[1].strip rescue nil
     visits.hiv_test_location = patient_obj.person.observations.recent(1).question("Confirmatory HIV test location").all rescue nil
-    location_name = Location.find_by_location_id(visits.hiv_test_location.to_s.split(':')[1].strip).name
+    location_name = Location.find_by_location_id(visits.hiv_test_location.to_s.split(':')[1].strip).name rescue nil
     visits.hiv_test_location = location_name rescue nil
     visits.guardian = art_guardian(patient_obj) rescue nil
     visits.reason_for_art_eligibility = PatientService.reason_for_art_eligibility(patient_obj)
