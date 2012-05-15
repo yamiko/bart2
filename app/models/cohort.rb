@@ -1059,9 +1059,12 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
       regimen_category = "UNKNOWN ANTIRETROVIRAL DRUG"
     end
 
-    self.regimens.each do |reg_name, patient_id|
+    self.regimens.each do |reg_name, patient_ids|
+
       if reg_name == regimen_category
-        regimens << patient_id
+        patient_ids.each do |patient_id|
+         regimens << patient_id
+        end
       end
     end
     regimens
