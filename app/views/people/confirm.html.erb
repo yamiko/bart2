@@ -21,7 +21,7 @@
 	
 <script>
       
-      tt_cancel_destination = "/clinic";
+   tt_cancel_destination = "/clinic";
 	<%if !@patient_bean.archived_filing_number.blank? %>
 	tt_cancel_show = "javascript:confirmAction(0)";  
 	<% elsif @transferred_out  %>
@@ -46,7 +46,7 @@
 		} else if(status == 1) {
 			confirmOperation("Patient was transferred out. Do you wish to continue?",
 			"/patients/show/<%=@person.patient.id %>");
-		} else {
+		} else if(status == 2) {
 			confirmOperation("Patient is a defaulter. Do you wish to continue?",
 			"/patients/show/<%=@person.patient.id %>");
 		}
