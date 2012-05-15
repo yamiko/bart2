@@ -1,3 +1,8 @@
+
+@bart1_encounter_type = ARGV[0]
+@bart2_encounter_type = ARGV[1]
+
+
 def generate_ids
 	missing_ids = Patient.find_by_sql("
 		SELECT bart1_first_visit.patient_id
@@ -7,7 +12,9 @@ def generate_ids
 				LEFT JOIN bart2.patient b ON a.patient_id = b.patient_id AND
 					a.voided=0 AND b.voided = 0
 				LEFT JOIN bart1.encounter e1 ON e1.patient_id = a.patient_id
-			WHERE e1.encounter_type = 1 
+				LEFT JOIN bart1.obs o1 ON e1.encounter_id = o1.encounter_id
+            AND o1.voided = 0
+			WHERE e1.encounter_type = #{@bart1_encounter_type}
 			)
 			AS bart1_first_visit
 			LEFT JOIN (
@@ -17,7 +24,9 @@ def generate_ids
 					a.voided=0 AND b.voided = 0
 				LEFT JOIN bart2.encounter e2 ON e2.patient_id = a.patient_id
 					AND e2.voided=0
-			WHERE e2.encounter_type = 53
+				LEFT JOIN bart2.obs o2 ON e2.encounter_id = o2.encounter_id
+                                        AND o2.voided = 0
+			WHERE e2.encounter_type = #{@bart2_encounter_type}
 			)
 			AS bart2_hiv_clinic_registration
 			ON bart2_hiv_clinic_registration.patient_id = bart1_first_visit.patient_id
