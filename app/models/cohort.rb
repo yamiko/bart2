@@ -1059,9 +1059,12 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
       regimen_category = "UNKNOWN ANTIRETROVIRAL DRUG"
     end
 
-    self.regimens.each do |reg_name, patient_id|
+    self.regimens.each do |reg_name, patient_ids|
+
       if reg_name == regimen_category
-        regimens << patient_id
+        patient_ids.each do |patient_id|
+         regimens << patient_id
+        end
       end
     end
     regimens
@@ -1188,7 +1191,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
     
 		doses_missed_concept = ConceptName.find_by_name("MISSED HIV DRUG CONSTRUCT").concept_id
 		
-		patients = Observation.find_by_sql("SELECT DISTINCT person_id AS person_id, earliest_start_date, obs.value_numeric FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
+		patients = Observation.find_by_sql("SELECT DISTINCT person_id AS person_id, earliest_start_date, obs.value_numeric, obs.value_text FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
 					AND concept_id = #{doses_missed_concept} 
 					AND voided = 0
 					
@@ -1201,7 +1204,8 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 	def patients_with_0_to_6_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
 		doses_missed_0_to_6 = []
 		self.patients_with_doses_missed_at_their_last_visit.map do |doses_missed|
-			if doses_missed.value_numeric.to_i < 7
+			missed_dose = doses_missed.value_text if !doses_missed.value_numeric
+			if missed_dose.to_i < 7
 				doses_missed_0_to_6 << doses_missed.person_id
 			end
 		end
@@ -1211,7 +1215,8 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 	def patients_with_7_plus_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
 		doses_missed_7_plus = []
 		self.patients_with_doses_missed_at_their_last_visit.map do |doses_missed|
-			if doses_missed.value_numeric.to_i >= 7
+			missed_dose = doses_missed.value_text if !doses_missed.value_numeric
+			if missed_dose.to_i >= 7
 				doses_missed_7_plus << doses_missed.person_id
 			end
 		end
