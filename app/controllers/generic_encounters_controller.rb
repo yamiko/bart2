@@ -264,6 +264,11 @@ class GenericEncountersController < ApplicationController
           observation['value_numeric'] = observation['value_text'] rescue nil
           observation['value_text'] =  ""
         end
+
+        if observation['concept_name'].upcase == 'MISSED HIV DRUG CONSTRUCT'
+          observation['value_numeric'] = observation['value_coded_or_text'] rescue nil
+          observation['value_coded_or_text'] = ""
+        end
         observations << observation
       end
       params[:observations] = observations unless observations.blank?
