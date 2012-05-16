@@ -1180,7 +1180,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 			LEFT JOIN start_date_observation sdo ON sdo.encounter_id = e.encounter_id
 			LEFT JOIN obs o ON o.encounter_id = sdo.encounter_id
 			WHERE ((o.concept_id = #{date_art_last_taken_concept} AND
-			         (DATEDIFF(o.obs_datetime,o.value_datetime)) >= 56) OR
+			         (DATEDIFF(o.obs_datetime,o.value_datetime)) > 60) OR
              (o.concept_id = #{taken_arvs_concept} AND o.value_coded = '#{no_concept}'))
 			GROUP BY esd.patient_id
 	    HAVING esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' AND
