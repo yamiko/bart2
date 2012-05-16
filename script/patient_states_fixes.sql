@@ -51,6 +51,8 @@ UPDATE bart2.patient_state
                     WHERE pp2.patient_program_id = bart2.patient_state.patient_program_id)
     WHERE state = 1;
 
+-- update end date for pre art state for all those on arv
+
 DROP TABLE IF EXISTS `temp_patient_list`;
 
 CREATE TABLE `temp_patient_list` (
@@ -72,6 +74,9 @@ UPDATE bart2.patient_state
     WHERE state = 1;
 
 DROP TABLE IF EXISTS `temp_patient_list`;
+-- end 
+
+-- inserting state died in patient state
 
 INSERT INTO bart2.patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
     SELECT pp.patient_program_id, 3, MIN(o.obs_datetime), 1, MIN(o.obs_datetime), (SELECT UUID())
@@ -152,7 +157,7 @@ UPDATE bart2.patient_program
                             WHERE pp.patient_program_id = bart2.patient_program.patient_program_id
                             GROUP BY pp.patient_program_id)
     WHERE program_id = 1 AND date_completed IS NULL;
-
+/*
 INSERT INTO patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
 (SELECT pp.patient_program_id, 7, DATE(obs1.obs_datetime), pp.creator, pp.date_created, (SELECT UUID())
 FROM bart2.patient_program pp
@@ -165,7 +170,7 @@ INNER JOIN (SELECT obs.person_id, MIN(obs.obs_datetime) AS obs_datetime FROM bar
         AND o.voided = 0
     GROUP BY obs.person_id) obs1 ON pp.patient_id = obs1.person_id AND pp.program_id = 1 
 GROUP BY pp.patient_id, DATE(obs1.obs_datetime));
-
+*/
 INSERT INTO patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
 SELECT t.patient_program_id, 7, MIN(DATE(obs1.obs_datetime)) AS dispensation_date, 1, MIN(DATE(obs1.obs_datetime)), (SELECT UUID())
     FROM temp_patient_list t
@@ -181,4 +186,10 @@ SELECT t.patient_program_id, 7, MIN(DATE(obs1.obs_datetime)) AS dispensation_dat
                         GROUP BY obs.person_id, DATE(obs.obs_datetime)) obs1 ON t.patient_id = obs1.person_id AND t.start_date < obs1.obs_datetime
     GROUP BY t.patient_id, t.patient_program_id, t.start_date
     HAVING dispensation_date IS NOT NULL;
- 
+
+--Create Treatment Stopped states
+INSERT INTO bart2.patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
+    SELECT pp.patient_program_id, 6, o.obs_datetime, 1, o.obs_datetime, (SELECT UUID())
+        FROM bart1.obs o LEFT JOIN bart2.patient_program pp ON o.patient_id = pp.patient_id
+        WHERE o.concept_id = 28 AND o.value_coded = 386 AND o.voided = 0 
+        GROUP BY DATE(o.obs_datetime), o.patient_id;
