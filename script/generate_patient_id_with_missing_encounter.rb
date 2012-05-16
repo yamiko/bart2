@@ -1,6 +1,7 @@
-
 @bart1_encounter_type = ARGV[0]
 @bart2_encounter_type = ARGV[1]
+@file_name = "patient_ids.txt"
+@file_name = ARGV[2] if !ARGV[2].blank?
 
 
 def generate_ids
@@ -29,11 +30,11 @@ def generate_ids
 			WHERE e2.encounter_type = #{@bart2_encounter_type}
 			)
 			AS bart2_hiv_clinic_registration
-			ON bart2_hiv_clinic_registration.patient_id = bart1_first_visit.patient_id
+			ON bart1_first_visit.patient_id = bart2_hiv_clinic_registration.patient_id
 		WHERE bart2_hiv_clinic_registration.patient_id IS NULL	
 	")
 
-	File.open('/tmp/patient_ids.txt', 'w') do |f|
+	File.open("/tmp/#{@file_name}", 'w') do |f|
 		missing_ids.each do |patient|
 			f.puts patient.patient_id
 			puts patient.patient_id
@@ -43,7 +44,7 @@ def generate_ids
 	puts "*************************************"
 
 	puts "#{missing_ids.size} patient id found!"
-	puts "File location: /tmp/patient_ids.txt"
+	puts "File location: /tmp/#{@file_name}"
 
 	puts "*************************************"
 
