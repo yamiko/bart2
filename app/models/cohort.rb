@@ -919,13 +919,16 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 
 		@patients_alive_and_on_art ||= self.total_alive_and_on_art		
 		@patient_id_on_art_and_alive = @patients_alive_and_on_art.map { |p| p.patient_id }
-		    
-		PatientState.find_by_sql(
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+
+		status = PatientState.find_by_sql(
 													"SELECT e.patient_id, current_value_for_obs(e.patient_id, #{hiv_clinic_consultation_encounter_id}, #{tb_status_concept_id}, '#{end_date}') AS obs_value 
 													FROM earliest_start_date e
-													WHERE earliest_start_date <= '#{end_date}'"
-												  ).each{ |state| states[state.patient_id] = state.obs_value if @patient_id_on_art_and_alive.include?(state.patient_id) }
- 		
+													WHERE earliest_start_date <= '#{end_date}'
+													AND e.patient_id IN (#{@patient_id_on_art_and_alive.join(',')}) ").each do |state|
+														states[state.patient_id] = state.obs_value
+												  end
+
 		tb_not_suspected_id = ConceptName.find_by_name('TB NOT SUSPECTED').concept_id
 		tb_suspected_id = ConceptName.find_by_name('TB SUSPECTED').concept_id
 		tb_confirmed_on_treatment_id = ConceptName.find_by_name('CONFIRMED TB ON TREATMENT').concept_id
@@ -938,16 +941,16 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 		tb_status_hash['TB STATUS']['Unknown'] = []
 
 		( states || [] ).each do | patient_id, state |
-			if state == tb_not_suspected_id
-				tb_status_hash['TB STATUS']['Not Suspected'] << patient_id
-			elsif state == tb_suspected_id
-				tb_status_hash['TB STATUS']['Suspected'] << patient_id
-			elsif state == tb_confirmed_on_treatment_id
-				tb_status_hash['TB STATUS']['On Treatment'] << patient_id
-			elsif state == tb_confirmed_not_on_treatment_id
-				tb_status_hash['TB STATUS']['Not on treatment'] << patient_id
+			if state.to_i == tb_not_suspected_id
+				tb_status_hash['TB STATUS']['Not Suspected'] << patient_id.to_i
+			elsif state.to_i == tb_suspected_id
+				tb_status_hash['TB STATUS']['Suspected'] << patient_id.to_i
+			elsif state.to_i == tb_confirmed_on_treatment_id.to_i
+				tb_status_hash['TB STATUS']['On Treatment'] << patient_id.to_i
+			elsif state.to_i == tb_confirmed_not_on_treatment_id
+				tb_status_hash['TB STATUS']['Not on treatment'] << patient_id.to_i
 			else
-				tb_status_hash['TB STATUS']['Unknown'] << patient_id
+				tb_status_hash['TB STATUS']['Unknown'] << patient_id.to_i
 			end
 		end
 		tb_status_hash
