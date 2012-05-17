@@ -1,22 +1,26 @@
+USE bart2;
 DELETE 
-FROM bart2.patient_state
-WHERE state = 1 AND date_created >= '2012-02-12';
+	FROM bart2.patient_state
+	WHERE state = 1 ;
 
 DELETE 
-FROM bart2.patient_state
-WHERE state = 1 AND date_created >= '0000-00-00 00:00:00';
+	FROM bart2.patient_state
+	WHERE state IN (6,2)  AND start_date <= '2012-02-12' ;
+
+UPDATE bart2.person SET death_date = NULL, dead = 0 
+	WHERE date_created <= '2012-02-12' ;
 
 DELETE 
-FROM bart2.patient_state
-WHERE state = 7;
+	FROM bart2.patient_state
+	WHERE state = 7;
 
 INSERT INTO bart2.patient_program (patient_id, program_id, date_enrolled, 
             creator, date_created, uuid, location_id)
-SELECT patient_id, 1, date_created, creator, 
-    date_created, (SELECT UUID()) AS uuid, 
-    (SELECT property_value FROM bart2.global_property WHERE property = "current_health_center_id")
-FROM bart2.patient 
-WHERE voided = 0 AND patient_id NOT IN (SELECT patient_id FROM patient_program WHERE program_id = 1 AND voided = 0); 
+	SELECT patient_id, 1, date_created, creator, 
+    		date_created, (SELECT UUID()) AS uuid, 
+    		(SELECT property_value FROM bart2.global_property WHERE property = "current_health_center_id")
+	FROM bart2.patient 
+	WHERE voided = 0 AND patient_id NOT IN (SELECT patient_id FROM patient_program WHERE program_id = 1 AND voided = 0); 
 
 INSERT INTO bart2.patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
     SELECT pp.patient_program_id, 1, pp.date_enrolled, 1, pp.date_created, (SELECT UUID())
@@ -28,7 +32,7 @@ INSERT INTO bart2.patient_state (patient_program_id, state, start_date, creator,
 
 
 INSERT INTO patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
-(SELECT pp.patient_program_id, 7, DATE(obs1.obs_datetime), pp.creator, pp.date_created, (SELECT UUID())
+(SELECT pp.patient_program_id, 7, DATE(obs1.obs_datetime), pp.creator, obs1.obs_datetime, (SELECT UUID())
 FROM bart2.patient_program pp
 INNER JOIN (SELECT obs.person_id, MIN(obs.obs_datetime) AS obs_datetime FROM bart2.drug_order d
     LEFT JOIN bart2.orders o ON d.order_id = o.order_id
@@ -216,3 +220,7 @@ UPDATE bart2.patient_state
                         WHERE pp.patient_program_id = bart2.patient_state.patient_program_id
                         GROUP BY pp.patient_program_id)
     WHERE state = 7 AND end_date IS NULL;
+
+UPDATE bart2.patient_program
+    SET date_completed = (NULL)
+    WHERE current_state_for_program(patient_id, 1, '2012-02-12') = 7;
