@@ -547,26 +547,27 @@ module PatientService
     appointments
   end
   
-
-
   def self.get_patient_identifier(patient, identifier_type)
-    patient_identifier_type_id = PatientIdentifierType.find_by_name(identifier_type).patient_identifier_type_id rescue nil
+    patient_identifier_type_id = PatientIdentifierType.find_by_name(identifier_type).patient_identifier_type_id rescue nil   
     patient_identifier = PatientIdentifier.find(:first, :select => "identifier",
       :conditions  =>["patient_id = ? and identifier_type = ?", patient.id, patient_identifier_type_id],
       :order => "date_created DESC" ).identifier rescue nil
-    return patient_identifier
+      return patient_identifier      
   end
 
   def self.patient_printing_message(new_patient , archived_patient , creating_new_filing_number_for_patient = false)
     arv_code = Location.current_arv_code
-    
     new_patient_bean = get_patient(new_patient.person)
     archived_patient_bean = get_patient(archived_patient.person) rescue nil
     
     new_patient_name = new_patient_bean.name
     new_filing_number = patient_printing_filing_number_label(new_patient_bean.filing_number)
-    old_archive_filing_number = patient_printing_filing_number_label(new_patient_bean.archived_filing_number)
-
+    inactive_identifier = PatientIdentifier.inactive(:first,:order => 'date_created DESC',
+                           :conditions => ['identifier_type = ? AND patient_id = ?',PatientIdentifierType.
+                           find_by_name("Archived filing number").patient_identifier_type_id,
+                            archived_patient.person.id]).identifier
+    old_archive_filing_number = patient_printing_filing_number_label(inactive_identifier)
+    
     unless archived_patient.blank?
       old_active_filing_number = patient_printing_filing_number_label(old_filing_number(archived_patient))
       new_archive_filing_number = patient_printing_filing_number_label(archived_patient_bean.archived_filing_number)
@@ -576,7 +577,7 @@ module PatientService
       table = <<EOF
 <div id='patients_info_div'>
 <table id = 'filing_info'>
-<tr id="one">
+<tr>
   <th class='filing_instraction'>Filing actions required</th>
   <th class='filing_instraction'>Name</th>
   <th style="text-align:left;">Old label</th>
@@ -603,7 +604,7 @@ EOF
       table = <<EOF
 <div id='patients_info_div'>
 <table id = 'filing_info'>
-<tr id="two">
+<tr>
   <th class='filing_instraction'>Filing actions required</th>
   <th class='filing_instraction'>Name</th>
   <th>&nbsp;</th>
@@ -623,7 +624,7 @@ EOF
       table = <<EOF
 <div id='patients_info_div'>
 <table id = 'filing_info'>
-<tr id="three">
+<tr>
   <th class='filing_instraction'>Filing actions required</th>
   <th class='filing_instraction'>Name</th>
   <th style="text-align:left;">Old label</th>
@@ -632,7 +633,7 @@ EOF
 <tr>
   <td style='text-align:left;'>Add → Active</td>
   <td class = 'filing_instraction'>#{new_patient_name}</td>
-  <td class = 'old_label'>#{old_active_filing_number}</td>
+  <td class = 'old_label'>#{old_archive_filing_number}</td>
   <td class='new_label'>#{new_filing_number}</td>
 </tr>
 </table>
@@ -642,7 +643,7 @@ EOF
       table = <<EOF
 <div id='patients_info_div'>
 <table id = 'filing_info'>
-<tr id="four">
+<tr>
   <th class='filing_instraction'>Filing actions required</th>
   <th class='filing_instraction'>Name</th>
   <th>Old label</th>
@@ -779,7 +780,7 @@ EOF
     patient.mothers_surname = person.names.first.family_name2
     patient.eid_number = get_patient_identifier(person.patient, 'EID Number') rescue nil
     patient.pre_art_number = get_patient_identifier(person.patient, 'Pre ART Number (Old format)') rescue nil
-    patient.archived_filing_number = get_patient_identifier(person.patient, 'Archived filing number')rescue nil
+    patient.archived_filing_number = get_patient_identifier(person.patient, 'Archived filing number') rescue nil
     patient.filing_number = get_patient_identifier(person.patient, 'Filing Number')
     patient.occupation = get_attribute(person, 'Occupation')
     patient.cell_phone_number = get_attribute(person, 'Cell phone number')
@@ -787,6 +788,7 @@ EOF
     patient.home_phone_number = get_attribute(person, 'Home phone number')
     patient.guardian = art_guardian(person.patient) rescue nil 
     patient
+    
   end
   
   def self.art_guardian(patient)

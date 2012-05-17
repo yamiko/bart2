@@ -494,7 +494,6 @@ class GenericPatientsController < ApplicationController
   def set_new_filing_number
     patient = Patient.find(params[:id])
     set_new_patient_filing_number(patient)
-
     archived_patient = PatientService.patient_to_be_archived(patient)
     message = PatientService.patient_printing_message(patient, archived_patient)
     unless message.blank?
