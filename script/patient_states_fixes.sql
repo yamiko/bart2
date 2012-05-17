@@ -193,3 +193,26 @@ INSERT INTO bart2.patient_state (patient_program_id, state, start_date, creator,
         FROM bart1.obs o LEFT JOIN bart2.patient_program pp ON o.patient_id = pp.patient_id
         WHERE o.concept_id = 28 AND o.value_coded = 386 AND o.voided = 0 
         GROUP BY DATE(o.obs_datetime), o.patient_id;
+        
+DROP TABLE IF EXISTS `temp_patient_list`;
+
+CREATE TABLE `temp_patient_list` (
+  `patient_program_id` int(11) NOT NULL DEFAULT '0',
+  `patient_id` int(11) NOT NULL DEFAULT '0',
+  `start_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  KEY (`patient_program_id`),
+  KEY (`patient_id`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+INSERT INTO temp_patient_list (patient_program_id, patient_id, start_date)
+SELECT ps.patient_program_id, pp.patient_id, ps.start_date
+    FROM patient_state ps LEFT JOIN patient_program pp ON ps.patient_program_id = pp.patient_program_id
+    WHERE state = 6 ;
+
+UPDATE bart2.patient_state
+    SET end_date = (SELECT MIN(start_date)
+                        FROM temp_patient_list pp
+                        WHERE pp.patient_program_id = bart2.patient_state.patient_program_id
+                        GROUP BY pp.patient_program_id)
+    WHERE state = 7 AND end_date IS NULL;
