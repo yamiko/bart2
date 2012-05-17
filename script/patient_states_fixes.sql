@@ -224,3 +224,4 @@ UPDATE bart2.patient_state
 UPDATE bart2.patient_program
     SET date_completed = (NULL)
     WHERE current_state_for_program(patient_id, 1, '2012-02-12') = 7;
+
