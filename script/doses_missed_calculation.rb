@@ -6,7 +6,7 @@ def doses_missed
 	pills_left_ids = [ConceptName.find_by_name("AMOUNT OF DRUG BROUGHT TO CLINIC").concept_id,
 	ConceptName.find_by_name("AMOUNT OF DRUG REMAINING AT HOME").concept_id]
 		
-	encounters = Encounter.find(:all, :conditions => ["encounter_type = #{art_adherence}"], :limit=> 100)#
+	encounters = Encounter.find(:all, :conditions => ["encounter_type = #{art_adherence}"])#
 
 	progress = encounters.length
 
