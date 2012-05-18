@@ -69,6 +69,44 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
         (`s`.`state` = 7))
   GROUP BY `p`.`patient_id`;
 
+-- 7937 = Ever registered at ART clinic
+CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
+  VIEW `ever_registered_obs` AS
+  SELECT `obs`.`obs_id` AS `obs_id`,
+         `obs`.`person_id` AS `person_id`,
+         `obs`.`concept_id` AS `concept_id`,
+         `obs`.`encounter_id` AS `encounter_id`,
+         `obs`.`order_id` AS `order_id`,
+         `obs`.`obs_datetime` AS `obs_datetime`,
+         `obs`.`location_id` AS `location_id`,
+         `obs`.`obs_group_id` AS `obs_group_id`,
+         `obs`.`accession_number` AS `accession_number`,
+         `obs`.`value_group_id` AS `value_group_id`,
+         `obs`.`value_boolean` AS `value_boolean`,
+         `obs`.`value_coded` AS `value_coded`,
+         `obs`.`value_coded_name_id` AS `value_coded_name_id`,
+         `obs`.`value_drug` AS `value_drug`,
+         `obs`.`value_datetime` AS `value_datetime`,
+         `obs`.`value_numeric` AS `value_numeric`,
+         `obs`.`value_modifier` AS `value_modifier`,
+         `obs`.`value_text` AS `value_text`,
+         `obs`.`date_started` AS `date_started`,
+         `obs`.`date_stopped` AS `date_stopped`,
+         `obs`.`comments` AS `comments`,
+         `obs`.`creator` AS `creator`,
+         `obs`.`date_created` AS `date_created`,
+         `obs`.`voided` AS `voided`,
+         `obs`.`voided_by` AS `voided_by`,
+         `obs`.`date_voided` AS `date_voided`,
+         `obs`.`void_reason` AS `void_reason`,
+         `obs`.`value_complex` AS `value_complex`,
+         `obs`.`uuid` AS `uuid`
+  FROM `obs`
+  WHERE ((`obs`.`concept_id` = 7937) AND (`obs`.`voided` = 0));
+
+--  AND
+--         (`obs`.`value_coded` = 1065)
+
 CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
   VIEW `patient_pregnant_obs` AS
   SELECT `obs`.`obs_id` AS `obs_id`,
@@ -101,7 +139,8 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
          `obs`.`value_complex` AS `value_complex`,
          `obs`.`uuid` AS `uuid` 
   FROM `obs`
-  WHERE ((`obs`.`concept_id` = 6131) AND (`obs`.`value_coded` = 1065) AND
+  WHERE ((`obs`.`concept_id` IN (6131,1755)) AND
+         (`obs`.`value_coded` = 1065) AND
          (`obs`.`voided` = 0));
 
 CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
