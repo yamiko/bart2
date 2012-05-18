@@ -556,6 +556,20 @@ PatientProgram.find_by_sql("SELECT patient_id FROM patient_program p
 
 	def patients_initiated_on_art_first_time(start_date = @start_date, end_date = @end_date)
 
+    # Some patients have Ever registered at ART clinic = Yes but without any
+    # original start date
+    #
+    # 7937 = Ever registered at ART clinic
+    # 1065 = Yes
+    PatientProgram.find_by_sql("SELECT esd.*
+      FROM earliest_start_date esd
+      LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
+      LEFT JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
+      WHERE esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' AND
+              (ero.value_coded IS NOT NULL AND ero.value_coded != 1065)
+      GROUP BY esd.patient_id")
+
+=begin
     PatientProgram.find_by_sql("SELECT esd.*,MIN(o.value_text) AS original_start_date
 	    FROM earliest_start_date esd
 	    LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
@@ -563,7 +577,7 @@ PatientProgram.find_by_sql("SELECT patient_id FROM patient_program p
 			GROUP BY esd.patient_id
 	    HAVING esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' AND
 	           original_start_date IS NULL")
-
+=end
 
 =begin    
 PatientProgram.find_by_sql("SELECT 
@@ -759,11 +773,13 @@ PatientProgram.find_by_sql("SELECT patient_id,program_id,count(*) FROM patient_p
 
 	def tb_within_the_last_2_yrs(start_date = @start_date, end_date = @end_date)
 		tb_concept_id = ConceptName.find_by_name("PULMONARY TUBERCULOSIS WITHIN THE LAST 2 YEARS").concept_id
-		self.patients_with_start_cause(start_date, end_date, tb_concept_id)
+		self.patients_with_start_cause(start_date, end_date, [tb_concept_id, 2624])
 	end
 
 	def patients_with_start_cause(start_date = @start_date, end_date = @end_date, tb_concept_id = nil)
 		return if tb_concept_id.blank?
+		
+		tb_concept_id = [tb_concept_id] if tb_concept_id.class != Array
 		
 		cause_concept_id = ConceptName.find_by_name("WHO STG CRIT").concept_id
 =begin
@@ -778,7 +794,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 			Observation.find_by_sql("SELECT DISTINCT person_id AS patient_id, earliest_start_date FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
 				WHERE encounter_id IN (SELECT encounter_id FROM obs 
 						WHERE concept_id = 7563 AND value_coded != 1107	AND voided = 0) 
-					AND concept_id = #{tb_concept_id}
+					AND concept_id IN (#{tb_concept_id.join(',')})
 					AND voided = 0 AND value_coded = 1065
 					AND earliest_start_date >= '#{start_date}'
 					AND earliest_start_date <= '#{end_date}'")
@@ -1169,11 +1185,30 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
   def patients_reinitiated_on_art(start_date = @start_date, end_date = @end_date)
     patients = []
     
+    yes_concept = ConceptName.find_by_name('YES').concept_id
 		no_concept = ConceptName.find_by_name('NO').concept_id
     date_art_last_taken_concept = ConceptName.find_by_name('DATE ART LAST TAKEN').concept_id
 
     taken_arvs_concept = ConceptName.find_by_name('HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS').concept_id 
     
+    PatientProgram.find_by_sql("SELECT esd.*
+      FROM earliest_start_date esd
+      LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
+      LEFT JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
+      LEFT JOIN obs o ON o.encounter_id = e.encounter_id AND
+                         o.concept_id IN (#{date_art_last_taken_concept},#{taken_arvs_concept})
+      WHERE (ero.value_coded IS NOT NULL AND ero.value_coded = 1065)
+            AND
+             ((o.concept_id = #{date_art_last_taken_concept} AND
+               (DATEDIFF(o.obs_datetime,o.value_datetime)) > 60) OR
+             (o.concept_id = #{taken_arvs_concept} AND
+              (o.value_coded IS NOT NULL AND o.value_coded = #{no_concept})
+              ))
+            AND
+            esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
+      GROUP BY esd.patient_id")
+
+=begin
     PatientProgram.find_by_sql("SELECT esd.*,MIN(sdo.value_text) AS original_start_date
 	    FROM earliest_start_date esd
 	    LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
@@ -1185,6 +1220,7 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 			GROUP BY esd.patient_id
 	    HAVING esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' AND
 	           original_start_date IS NOT NULL")
+=end	           
   end
 	
 	def patients_with_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
@@ -1226,9 +1262,11 @@ PatientProgram.find_by_sql("SELECT patient_id,name,date_enrolled FROM obs
 		return doses_missed_7_plus
 	end
 
+  # EXTRAPULMONARY TUBERCULOSIS (EPTB) and Pulmonary TB (Concept Id 42)
+  # 8206 
   def current_episode_of_tb(start_date = @start_date, end_date = @end_date)
     tb_concept_id = ConceptName.find_by_name("EXTRAPULMONARY TUBERCULOSIS (EPTB)").concept_id
-    self.patients_with_start_cause(start_date, end_date, tb_concept_id)
+    self.patients_with_start_cause(start_date, end_date, [tb_concept_id, 42, 8206])
   end
 
   def tb_status_with_patient_ids
