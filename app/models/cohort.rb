@@ -1021,12 +1021,14 @@ class Cohort
 
   def side_effect_patients(start_date = @start_date, end_date = @end_date)
     side_effect_concept_ids =[ConceptName.find_by_name('PERIPHERAL NEUROPATHY').concept_id,
+                              ConceptName.find_by_name('LEG PAIN / NUMBNESS').concept_id,
                               ConceptName.find_by_name('HEPATITIS').concept_id,
                               ConceptName.find_by_name('SKIN RASH').concept_id,
                               ConceptName.find_by_name('JAUNDICE').concept_id]
 
     encounter_type = EncounterType.find_by_name('HIV CLINIC CONSULTATION')
-    concept_id = ConceptName.find_by_name('SYMPTOM PRESENT').concept_id
+    concept_ids = [ConceptName.find_by_name('SYMPTOM PRESENT').concept_id,
+                   ConceptName.find_by_name('DRUG INDUCED').concept_id]
 
     encounter_ids = Encounter.find(:all,:conditions => ["encounter_type = ? 
                     AND (patient_start_date(patient_id) >= '#{start_date}'
@@ -1037,8 +1039,9 @@ class Cohort
 
     Observation.find(:all,
                      :conditions => ["encounter_id IN (#{encounter_ids.join(',')})
-                     AND concept_id = ? 
-                     AND value_coded IN (#{side_effect_concept_ids.join(',')})",concept_id],
+                     AND concept_id IN (?)
+                     AND value_coded IN (#{side_effect_concept_ids.join(',')})",
+                     concept_ids],
                      :group =>'person_id').length
   end
 
