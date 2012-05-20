@@ -1341,6 +1341,27 @@ class CohortToolController < GenericCohortToolController
           patient_obj = Patient.find_by_patient_id(patient.patient_id)
           @report << PatientService.get_patient(patient_obj.person)
         end
+      when 'patients_with_side_effects' then
+        patients_with_side_effects = cohort.patients_with_side_effects(@first_registration_date)
+
+        patients_with_side_effects.each do |patient|
+          patient_obj = Patient.find_by_patient_id(patient.patient_id)
+          @report << PatientService.get_patient(patient_obj.person)
+        end
+      when 'patients_with_0_to_6_doses_missed_at_their_last_visit' then
+        patients_with_0_to_6_doses_missed = cohort.patients_with_0_to_6_doses_missed_at_their_last_visit
+
+        patients_with_0_to_6_doses_missed.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person)
+        end
+      when 'patients_with_7_plus_doses_missed_at_their_last_visit' then
+        patients_with_7_plus_doses_missed = cohort.patients_with_7_plus_doses_missed_at_their_last_visit
+
+        patients_with_7_plus_doses_missed.each do |patient_id|
+          patient_obj = Patient.find_by_patient_id(patient_id)
+          @report << PatientService.get_patient(patient_obj.person)
+        end
       else
     end
 
@@ -1356,10 +1377,8 @@ class CohortToolController < GenericCohortToolController
     @quarter = params[:quarter]
     start_date,end_date = Report.generate_cohort_date_range(@quarter)
     cohort = Cohort.new(start_date, end_date)
-    #raise cohort.patients_initiated_on_art_first_time.length.to_yaml
    	logger.info("cohort")
     @cohort = cohort.report(logger)
-    #raise @cohort.to_yaml
     #@survival_analysis = SurvivalAnalysis.report(cohort)
     render :layout => 'cohort'
   end

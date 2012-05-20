@@ -672,9 +672,9 @@ end
 		
 		#if the patient is a child (age 14 or less) and the peads clinic days are set - we
 		#use the peads clinic days to set the next appointment date		
-		peads_clinic_days = CoreService.get_global_property_value('peads.clinic.days') rescue []
+		peads_clinic_days = CoreService.get_global_property_value('peads.clinic.days')
 				
-		if (@patient_bean.age <= 14 && peads_clinic_days.size != 0)
+		if (@patient_bean.age <= 14 && !peads_clinic_days.blank?)
 			clinic_days = peads_clinic_days
 		else
 			clinic_days = CoreService.get_global_property_value('clinic.days') || 'Monday,Tuesday,Wednesday,Thursday,Friday'		

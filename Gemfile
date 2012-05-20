@@ -20,6 +20,6 @@ gem 'mechanize'
 =======
 gem 'rest-client'
 gem 'mysql2', '< 0.3'
-
+gem 'mechanize'
 
 >>>>>>> 2113370a4c39ee0f411b9dd45ba283dbf61377cd

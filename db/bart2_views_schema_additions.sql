@@ -13,22 +13,256 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+-- Non-voided HIV Clinic Consultation encounters
+CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
+  VIEW `clinic_consultation_encounter` AS
+  SELECT `encounter`.`encounter_id` AS `encounter_id`,
+         `encounter`.`encounter_type` AS `encounter_type`,
+         `encounter`.`patient_id` AS `patient_id`,
+         `encounter`.`provider_id` AS `provider_id`,
+         `encounter`.`location_id` AS `location_id`,
+         `encounter`.`form_id` AS `form_id`,
+         `encounter`.`encounter_datetime` AS `encounter_datetime`,
+         `encounter`.`creator` AS `creator`,
+         `encounter`.`date_created` AS `date_created`,
+         `encounter`.`voided` AS `voided`,
+         `encounter`.`voided_by` AS `voided_by`,
+         `encounter`.`date_voided` AS `date_voided`,
+         `encounter`.`void_reason` AS `void_reason`,
+         `encounter`.`uuid` AS `uuid`,
+         `encounter`.`changed_by` AS `changed_by`,
+         `encounter`.`date_changed` AS `date_changed`
+  FROM `encounter`
+  WHERE (`encounter`.`encounter_type` = 53 AND `encounter`.`voided` = 0);
 
-CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW `clinic_consultation_encounter` AS select `encounter`.`encounter_id` AS `encounter_id`,`encounter`.`encounter_type` AS `encounter_type`,`encounter`.`patient_id` AS `patient_id`,`encounter`.`provider_id` AS `provider_id`,`encounter`.`location_id` AS `location_id`,`encounter`.`form_id` AS `form_id`,`encounter`.`encounter_datetime` AS `encounter_datetime`,`encounter`.`creator` AS `creator`,`encounter`.`date_created` AS `date_created`,`encounter`.`voided` AS `voided`,`encounter`.`voided_by` AS `voided_by`,`encounter`.`date_voided` AS `date_voided`,`encounter`.`void_reason` AS `void_reason`,`encounter`.`uuid` AS `uuid`,`encounter`.`changed_by` AS `changed_by`,`encounter`.`date_changed` AS `date_changed` from `encounter` where (`encounter`.`encounter_type` = 53);
+-- Non-voided HIV Clinic Registration encounters
+CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
+  VIEW `clinic_registration_encounter` AS 
+  SELECT `encounter`.`encounter_id` AS `encounter_id`,
+         `encounter`.`encounter_type` AS `encounter_type`,
+         `encounter`.`patient_id` AS `patient_id`,
+         `encounter`.`provider_id` AS `provider_id`,
+         `encounter`.`location_id` AS `location_id`,
+         `encounter`.`form_id` AS `form_id`,
+         `encounter`.`encounter_datetime` AS `encounter_datetime`,
+         `encounter`.`creator` AS `creator`,
+         `encounter`.`date_created` AS `date_created`,
+         `encounter`.`voided` AS `voided`,
+         `encounter`.`voided_by` AS `voided_by`,
+         `encounter`.`date_voided` AS `date_voided`,
+         `encounter`.`void_reason` AS `void_reason`,
+         `encounter`.`uuid` AS `uuid`,
+         `encounter`.`changed_by` AS `changed_by`,
+         `encounter`.`date_changed` AS `date_changed`
+  FROM `encounter`
+  WHERE (`encounter`.`encounter_type` = 9 AND `encounter`.`voided` = 0);
 
-CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW `clinic_registration_encounter` AS select `encounter`.`encounter_id` AS `encounter_id`,`encounter`.`encounter_type` AS `encounter_type`,`encounter`.`patient_id` AS `patient_id`,`encounter`.`provider_id` AS `provider_id`,`encounter`.`location_id` AS `location_id`,`encounter`.`form_id` AS `form_id`,`encounter`.`encounter_datetime` AS `encounter_datetime`,`encounter`.`creator` AS `creator`,`encounter`.`date_created` AS `date_created`,`encounter`.`voided` AS `voided`,`encounter`.`voided_by` AS `voided_by`,`encounter`.`date_voided` AS `date_voided`,`encounter`.`void_reason` AS `void_reason`,`encounter`.`uuid` AS `uuid`,`encounter`.`changed_by` AS `changed_by`,`encounter`.`date_changed` AS `date_changed` from `encounter` where (`encounter`.`encounter_type` = 9);
+-- The date of the first On ARVs state for each patient
+CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
+  VIEW `earliest_start_date` AS
+  SELECT `p`.`patient_id` AS `patient_id`,`p`.`date_enrolled`,
+         MIN(`s`.`start_date`) AS `earliest_start_date`, `person`.`death_date` AS death_date
+  FROM ((`patient_program` `p`
+  LEFT JOIN `patient_state` `s` ON((`p`.`patient_program_id` = `s`.`patient_program_id`)))
+  LEFT JOIN `person` ON((`person`.`person_id` = `p`.`patient_id`)))
+  WHERE ((`p`.`voided` = 0) AND (`s`.`voided` = 0) AND (`p`.`program_id` = 1) AND
+        (`s`.`state` = 7))
+  GROUP BY `p`.`patient_id`;
 
-CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW `earliest_start_date` AS select `p`.`patient_id` AS `patient_id`,min(`s`.`start_date`) AS `earliest_start_date` from ((`patient_program` `p` left join `patient_state` `s` on((`p`.`patient_program_id` = `s`.`patient_program_id`))) left join `person` on((`person`.`person_id` = `p`.`patient_id`))) where ((`p`.`voided` = 0) and (`s`.`voided` = 0) and (`p`.`program_id` = 1) and (`s`.`state` = 7)) group by `p`.`patient_id`;
+-- 7937 = Ever registered at ART clinic
+CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
+  VIEW `ever_registered_obs` AS
+  SELECT `obs`.`obs_id` AS `obs_id`,
+         `obs`.`person_id` AS `person_id`,
+         `obs`.`concept_id` AS `concept_id`,
+         `obs`.`encounter_id` AS `encounter_id`,
+         `obs`.`order_id` AS `order_id`,
+         `obs`.`obs_datetime` AS `obs_datetime`,
+         `obs`.`location_id` AS `location_id`,
+         `obs`.`obs_group_id` AS `obs_group_id`,
+         `obs`.`accession_number` AS `accession_number`,
+         `obs`.`value_group_id` AS `value_group_id`,
+         `obs`.`value_boolean` AS `value_boolean`,
+         `obs`.`value_coded` AS `value_coded`,
+         `obs`.`value_coded_name_id` AS `value_coded_name_id`,
+         `obs`.`value_drug` AS `value_drug`,
+         `obs`.`value_datetime` AS `value_datetime`,
+         `obs`.`value_numeric` AS `value_numeric`,
+         `obs`.`value_modifier` AS `value_modifier`,
+         `obs`.`value_text` AS `value_text`,
+         `obs`.`date_started` AS `date_started`,
+         `obs`.`date_stopped` AS `date_stopped`,
+         `obs`.`comments` AS `comments`,
+         `obs`.`creator` AS `creator`,
+         `obs`.`date_created` AS `date_created`,
+         `obs`.`voided` AS `voided`,
+         `obs`.`voided_by` AS `voided_by`,
+         `obs`.`date_voided` AS `date_voided`,
+         `obs`.`void_reason` AS `void_reason`,
+         `obs`.`value_complex` AS `value_complex`,
+         `obs`.`uuid` AS `uuid`
+  FROM `obs`
+  WHERE ((`obs`.`concept_id` = 7937) AND (`obs`.`voided` = 0));
 
-CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW `patient_pregnant_obs` AS select `obs`.`obs_id` AS `obs_id`,`obs`.`person_id` AS `person_id`,`obs`.`concept_id` AS `concept_id`,`obs`.`encounter_id` AS `encounter_id`,`obs`.`order_id` AS `order_id`,`obs`.`obs_datetime` AS `obs_datetime`,`obs`.`location_id` AS `location_id`,`obs`.`obs_group_id` AS `obs_group_id`,`obs`.`accession_number` AS `accession_number`,`obs`.`value_group_id` AS `value_group_id`,`obs`.`value_boolean` AS `value_boolean`,`obs`.`value_coded` AS `value_coded`,`obs`.`value_coded_name_id` AS `value_coded_name_id`,`obs`.`value_drug` AS `value_drug`,`obs`.`value_datetime` AS `value_datetime`,`obs`.`value_numeric` AS `value_numeric`,`obs`.`value_modifier` AS `value_modifier`,`obs`.`value_text` AS `value_text`,`obs`.`date_started` AS `date_started`,`obs`.`date_stopped` AS `date_stopped`,`obs`.`comments` AS `comments`,`obs`.`creator` AS `creator`,`obs`.`date_created` AS `date_created`,`obs`.`voided` AS `voided`,`obs`.`voided_by` AS `voided_by`,`obs`.`date_voided` AS `date_voided`,`obs`.`void_reason` AS `void_reason`,`obs`.`value_complex` AS `value_complex`,`obs`.`uuid` AS `uuid` from `obs` where ((`obs`.`concept_id` = 6131) and (`obs`.`value_coded` = 1065));
+--  AND
+--         (`obs`.`value_coded` = 1065)
 
-CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW `patient_state_on_arvs` AS select `patient_state`.`patient_state_id` AS `patient_state_id`,`patient_state`.`patient_program_id` AS `patient_program_id`,`patient_state`.`state` AS `state`,`patient_state`.`start_date` AS `start_date`,`patient_state`.`end_date` AS `end_date`,`patient_state`.`creator` AS `creator`,`patient_state`.`date_created` AS `date_created`,`patient_state`.`changed_by` AS `changed_by`,`patient_state`.`date_changed` AS `date_changed`,`patient_state`.`voided` AS `voided`,`patient_state`.`voided_by` AS `voided_by`,`patient_state`.`date_voided` AS `date_voided`,`patient_state`.`void_reason` AS `void_reason`,`patient_state`.`uuid` AS `uuid` from `patient_state` where (`patient_state`.`state` = 7);
+CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
+  VIEW `patient_pregnant_obs` AS
+  SELECT `obs`.`obs_id` AS `obs_id`,
+         `obs`.`person_id` AS `person_id`,
+         `obs`.`concept_id` AS `concept_id`,
+         `obs`.`encounter_id` AS `encounter_id`,
+         `obs`.`order_id` AS `order_id`,
+         `obs`.`obs_datetime` AS `obs_datetime`,
+         `obs`.`location_id` AS `location_id`,
+         `obs`.`obs_group_id` AS `obs_group_id`,
+         `obs`.`accession_number` AS `accession_number`,
+         `obs`.`value_group_id` AS `value_group_id`,
+         `obs`.`value_boolean` AS `value_boolean`,
+         `obs`.`value_coded` AS `value_coded`,
+         `obs`.`value_coded_name_id` AS `value_coded_name_id`,
+         `obs`.`value_drug` AS `value_drug`,
+         `obs`.`value_datetime` AS `value_datetime`,
+         `obs`.`value_numeric` AS `value_numeric`,
+         `obs`.`value_modifier` AS `value_modifier`,
+         `obs`.`value_text` AS `value_text`,
+         `obs`.`date_started` AS `date_started`,
+         `obs`.`date_stopped` AS `date_stopped`,
+         `obs`.`comments` AS `comments`,
+         `obs`.`creator` AS `creator`,
+         `obs`.`date_created` AS `date_created`,
+         `obs`.`voided` AS `voided`,
+         `obs`.`voided_by` AS `voided_by`,
+         `obs`.`date_voided` AS `date_voided`,
+         `obs`.`void_reason` AS `void_reason`,
+         `obs`.`value_complex` AS `value_complex`,
+         `obs`.`uuid` AS `uuid` 
+  FROM `obs`
+  WHERE ((`obs`.`concept_id` IN (6131,1755)) AND
+         (`obs`.`value_coded` = 1065) AND
+         (`obs`.`voided` = 0));
 
-CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW `regimen_observation` AS select `obs`.`obs_id` AS `obs_id`,`obs`.`person_id` AS `person_id`,`obs`.`concept_id` AS `concept_id`,`obs`.`encounter_id` AS `encounter_id`,`obs`.`order_id` AS `order_id`,`obs`.`obs_datetime` AS `obs_datetime`,`obs`.`location_id` AS `location_id`,`obs`.`obs_group_id` AS `obs_group_id`,`obs`.`accession_number` AS `accession_number`,`obs`.`value_group_id` AS `value_group_id`,`obs`.`value_boolean` AS `value_boolean`,`obs`.`value_coded` AS `value_coded`,`obs`.`value_coded_name_id` AS `value_coded_name_id`,`obs`.`value_drug` AS `value_drug`,`obs`.`value_datetime` AS `value_datetime`,`obs`.`value_numeric` AS `value_numeric`,`obs`.`value_modifier` AS `value_modifier`,`obs`.`value_text` AS `value_text`,`obs`.`date_started` AS `date_started`,`obs`.`date_stopped` AS `date_stopped`,`obs`.`comments` AS `comments`,`obs`.`creator` AS `creator`,`obs`.`date_created` AS `date_created`,`obs`.`voided` AS `voided`,`obs`.`voided_by` AS `voided_by`,`obs`.`date_voided` AS `date_voided`,`obs`.`void_reason` AS `void_reason`,`obs`.`value_complex` AS `value_complex`,`obs`.`uuid` AS `uuid` from `obs` where (`obs`.`concept_id` = 2559);
+CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
+  VIEW `patient_state_on_arvs` AS
+  SELECT `patient_state`.`patient_state_id` AS `patient_state_id`,
+         `patient_state`.`patient_program_id` AS `patient_program_id`,
+         `patient_state`.`state` AS `state`,
+         `patient_state`.`start_date` AS `start_date`,
+         `patient_state`.`end_date` AS `end_date`,
+         `patient_state`.`creator` AS `creator`,
+         `patient_state`.`date_created` AS `date_created`,
+         `patient_state`.`changed_by` AS `changed_by`,
+         `patient_state`.`date_changed` AS `date_changed`,
+         `patient_state`.`voided` AS `voided`,
+         `patient_state`.`voided_by` AS `voided_by`,
+         `patient_state`.`date_voided` AS `date_voided`,
+         `patient_state`.`void_reason` AS `void_reason`,
+         `patient_state`.`uuid` AS `uuid`
+  FROM `patient_state`
+  WHERE (`patient_state`.`state` = 7 AND `patient_state`.`voided` = 0);
 
-CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW `start_date_observation` AS select `obs`.`obs_id` AS `obs_id`,`obs`.`person_id` AS `person_id`,`obs`.`concept_id` AS `concept_id`,`obs`.`encounter_id` AS `encounter_id`,`obs`.`order_id` AS `order_id`,`obs`.`obs_datetime` AS `obs_datetime`,`obs`.`location_id` AS `location_id`,`obs`.`obs_group_id` AS `obs_group_id`,`obs`.`accession_number` AS `accession_number`,`obs`.`value_group_id` AS `value_group_id`,`obs`.`value_boolean` AS `value_boolean`,`obs`.`value_coded` AS `value_coded`,`obs`.`value_coded_name_id` AS `value_coded_name_id`,`obs`.`value_drug` AS `value_drug`,`obs`.`value_datetime` AS `value_datetime`,`obs`.`value_numeric` AS `value_numeric`,`obs`.`value_modifier` AS `value_modifier`,`obs`.`value_text` AS `value_text`,`obs`.`date_started` AS `date_started`,`obs`.`date_stopped` AS `date_stopped`,`obs`.`comments` AS `comments`,`obs`.`creator` AS `creator`,`obs`.`date_created` AS `date_created`,`obs`.`voided` AS `voided`,`obs`.`voided_by` AS `voided_by`,`obs`.`date_voided` AS `date_voided`,`obs`.`void_reason` AS `void_reason`,`obs`.`value_complex` AS `value_complex`,`obs`.`uuid` AS `uuid` from `obs` where (`obs`.`concept_id` = 2516);
+CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
+  VIEW `regimen_observation` AS
+  SELECT `obs`.`obs_id` AS `obs_id`,
+         `obs`.`person_id` AS `person_id`,
+         `obs`.`concept_id` AS `concept_id`,
+         `obs`.`encounter_id` AS `encounter_id`,
+         `obs`.`order_id` AS `order_id`,
+         `obs`.`obs_datetime` AS `obs_datetime`,
+         `obs`.`location_id` AS `location_id`,
+         `obs`.`obs_group_id` AS `obs_group_id`,
+         `obs`.`accession_number` AS `accession_number`,
+         `obs`.`value_group_id` AS `value_group_id`,
+         `obs`.`value_boolean` AS `value_boolean`,
+         `obs`.`value_coded` AS `value_coded`,
+         `obs`.`value_coded_name_id` AS `value_coded_name_id`,
+         `obs`.`value_drug` AS `value_drug`,
+         `obs`.`value_datetime` AS `value_datetime`,
+         `obs`.`value_numeric` AS `value_numeric`,
+         `obs`.`value_modifier` AS `value_modifier`,
+         `obs`.`value_text` AS `value_text`,
+         `obs`.`date_started` AS `date_started`,
+         `obs`.`date_stopped` AS `date_stopped`,
+         `obs`.`comments` AS `comments`,
+         `obs`.`creator` AS `creator`,
+         `obs`.`date_created` AS `date_created`,
+         `obs`.`voided` AS `voided`,
+         `obs`.`voided_by` AS `voided_by`,
+         `obs`.`date_voided` AS `date_voided`,
+         `obs`.`void_reason` AS `void_reason`,
+         `obs`.`value_complex` AS `value_complex`,
+         `obs`.`uuid` AS `uuid`
+  FROM `obs`
+  WHERE ((`obs`.`concept_id` = 2559) AND (`obs`.`voided` = 0));
 
-CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW `tb_status_observations` AS select `obs`.`obs_id` AS `obs_id`,`obs`.`person_id` AS `person_id`,`obs`.`concept_id` AS `concept_id`,`obs`.`encounter_id` AS `encounter_id`,`obs`.`order_id` AS `order_id`,`obs`.`obs_datetime` AS `obs_datetime`,`obs`.`location_id` AS `location_id`,`obs`.`obs_group_id` AS `obs_group_id`,`obs`.`accession_number` AS `accession_number`,`obs`.`value_group_id` AS `value_group_id`,`obs`.`value_boolean` AS `value_boolean`,`obs`.`value_coded` AS `value_coded`,`obs`.`value_coded_name_id` AS `value_coded_name_id`,`obs`.`value_drug` AS `value_drug`,`obs`.`value_datetime` AS `value_datetime`,`obs`.`value_numeric` AS `value_numeric`,`obs`.`value_modifier` AS `value_modifier`,`obs`.`value_text` AS `value_text`,`obs`.`date_started` AS `date_started`,`obs`.`date_stopped` AS `date_stopped`,`obs`.`comments` AS `comments`,`obs`.`creator` AS `creator`,`obs`.`date_created` AS `date_created`,`obs`.`voided` AS `voided`,`obs`.`voided_by` AS `voided_by`,`obs`.`date_voided` AS `date_voided`,`obs`.`void_reason` AS `void_reason`,`obs`.`value_complex` AS `value_complex`,`obs`.`uuid` AS `uuid` from `obs` where ((`obs`.`concept_id` = 7459) and (`obs`.`voided` = 0));
+CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER 
+  VIEW `start_date_observation` AS 
+  SELECT `obs`.`obs_id` AS `obs_id`,
+         `obs`.`person_id` AS `person_id`,
+         `obs`.`concept_id` AS `concept_id`,
+         `obs`.`encounter_id` AS `encounter_id`,
+         `obs`.`order_id` AS `order_id`,
+         `obs`.`obs_datetime` AS `obs_datetime`,
+         `obs`.`location_id` AS `location_id`,
+         `obs`.`obs_group_id` AS `obs_group_id`,
+         `obs`.`accession_number` AS `accession_number`,
+         `obs`.`value_group_id` AS `value_group_id`,
+         `obs`.`value_boolean` AS `value_boolean`,
+         `obs`.`value_coded` AS `value_coded`,
+         `obs`.`value_coded_name_id` AS `value_coded_name_id`,
+         `obs`.`value_drug` AS `value_drug`,
+         `obs`.`value_datetime` AS `value_datetime`,
+         `obs`.`value_numeric` AS `value_numeric`,
+         `obs`.`value_modifier` AS `value_modifier`,
+         `obs`.`value_text` AS `value_text`,
+         `obs`.`date_started` AS `date_started`,
+         `obs`.`date_stopped` AS `date_stopped`,
+         `obs`.`comments` AS `comments`,
+         `obs`.`creator` AS `creator`,
+         `obs`.`date_created` AS `date_created`,
+         `obs`.`voided` AS `voided`,
+         `obs`.`voided_by` AS `voided_by`,
+         `obs`.`date_voided` AS `date_voided`,
+         `obs`.`void_reason` AS `void_reason`,
+         `obs`.`value_complex` AS `value_complex`,
+         `obs`.`uuid` AS `uuid` 
+  FROM `obs` 
+  WHERE ((`obs`.`concept_id` = 2516) AND (`obs`.`voided` = 0));
+
+CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
+  VIEW `tb_status_observations` AS
+  SELECT `obs`.`obs_id` AS `obs_id`,
+         `obs`.`person_id` AS `person_id`,
+         `obs`.`concept_id` AS `concept_id`,
+         `obs`.`encounter_id` AS `encounter_id`,
+         `obs`.`order_id` AS `order_id`,
+         `obs`.`obs_datetime` AS `obs_datetime`,
+         `obs`.`location_id` AS `location_id`,
+         `obs`.`obs_group_id` AS `obs_group_id`,
+         `obs`.`accession_number` AS `accession_number`,
+         `obs`.`value_group_id` AS `value_group_id`,
+         `obs`.`value_boolean` AS `value_boolean`,
+         `obs`.`value_coded` AS `value_coded`,
+         `obs`.`value_coded_name_id` AS `value_coded_name_id`,
+         `obs`.`value_drug` AS `value_drug`,
+         `obs`.`value_datetime` AS `value_datetime`,
+         `obs`.`value_numeric` AS `value_numeric`,
+         `obs`.`value_modifier` AS `value_modifier`,
+         `obs`.`value_text` AS `value_text`,
+         `obs`.`date_started` AS `date_started`,
+         `obs`.`date_stopped` AS `date_stopped`,
+         `obs`.`comments` AS `comments`,
+         `obs`.`creator` AS `creator`,
+         `obs`.`date_created` AS `date_created`,
+         `obs`.`voided` AS `voided`,
+         `obs`.`voided_by` AS `voided_by`,
+         `obs`.`date_voided` AS `date_voided`,
+         `obs`.`void_reason` AS `void_reason`,
+         `obs`.`value_complex` AS `value_complex`,
+         `obs`.`uuid` AS `uuid` 
+  FROM `obs` 
+  WHERE ((`obs`.`concept_id` = 7459) and (`obs`.`voided` = 0));
 
 --
 -- Dumping routines for database 'bart2'
@@ -56,13 +290,13 @@ DECLARE year_when_patient_created INT;
 DECLARE cur_month INT;
 DECLARE cur_year INT;
 
-set birth_month = (select MONTH(FROM_DAYS(TO_DAYS(birthdate))));
-set birth_day = (select DAY(FROM_DAYS(TO_DAYS(birthdate))));
+set birth_month = (SELECT MONTH(FROM_DAYS(TO_DAYS(birthdate))));
+set birth_day = (SELECT DAY(FROM_DAYS(TO_DAYS(birthdate))));
 
-set cur_month = (select MONTH(CURDATE()));
-set cur_year = (select YEAR(CURDATE()));
+set cur_month = (SELECT MONTH(CURDATE()));
+set cur_year = (SELECT YEAR(CURDATE()));
 
-set year_when_patient_created = (select YEAR(FROM_DAYS(TO_DAYS(date_created))));
+set year_when_patient_created = (SELECT YEAR(FROM_DAYS(TO_DAYS(date_created))));
 
 set n =  (SELECT DATE_FORMAT(FROM_DAYS(TO_DAYS(visit_date)-TO_DAYS(DATE(birthdate))), '%Y')+0);
 
@@ -213,8 +447,8 @@ BEGIN
 	SELECT state INTO @state_id FROM patient_state 
 		WHERE patient_program_id = @patient_program_id
 			AND voided = 0
-			AND start_date < my_end_date
-		ORDER BY start_date, date_created DESC LIMIT 1;
+			AND start_date <= my_end_date
+		ORDER BY start_date DESC, date_created DESC LIMIT 1;
 
 	RETURN @state_id;
 END */;;
