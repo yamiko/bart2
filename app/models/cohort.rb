@@ -813,58 +813,25 @@ class Cohort
     @patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
     patient_ids = @patients_alive_and_on_art.map(&:patient_id)
     patient_ids = [0] if patient_ids.blank?
-    
-    regimem_given_concept = ConceptName.find_by_name('ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT')
-		PatientProgram.find_by_sql("SELECT patient_id , obs.value_coded regimen_id, obs.value_text regimen,
-																	 age(LEFT(person.birthdate,10),LEFT(obs.obs_datetime,10),
-																	 LEFT(person.date_created,10),person.birthdate_estimated) person_age_at_drug_dispension 
-																	 FROM obs 
-																	 LEFT JOIN patient_program p ON p.patient_id = obs.person_id
-																	 LEFT JOIN patient_state s ON p.patient_program_id = s.patient_program_id
-																	 LEFT JOIN person ON person.person_id = p.patient_id
-																	 WHERE p.program_id = #{@@program_id} AND obs.concept_id = #{regimem_given_concept.concept_id}
-																	 AND obs.voided = 0
-																	 AND s.start_date >= '#{start_date}' AND s.start_date <= '#{end_date}'
-																	 AND p.patient_id IN (#{patient_ids.join(',')})
-																	 GROUP BY patient_id 
-																	 ORDER BY obs.obs_datetime DESC ").each do | value | 
-                                  regimens << [value.regimen_id, 
-                                               value.regimen,
-                                               value.person_age_at_drug_dispension,
-                                               value.patient_id
-                                              ] 
-                                end
-    regimen_category = []
-    ( regimens || [] ).each do | regimen_id, regimen , patient_age, patient_id |
-      age = patient_age.to_i 
-      regimen_name = ConceptName.find_by_concept_id(regimen_id).concept.shortname rescue nil
-      if regimen_name.blank?
-        regimen_name = ConceptName.find_by_concept_id(regimen_id).concept.fullname 
-      end
 
-      regimen_name = cohort_regimen_name(regimen_name,age)
+	dispensing_encounter_id = EncounterType.find_by_name("DISPENSING").id
+	regimen_category = ConceptName.find_by_name("REGIMEN CATEGORY").first.id
 
-			regimen_category << [regimen_name, patient_id]
-      
-      regimen_hash[regimen_name] ||= []
+	PatientProgram.find_by_sql("SELECT e.patient_id, current_text_for_obs(e.patient_id, #{dispensing_encounter_id}, #{regimen_category}, '#{end_date}') AS regimen_category 
+ 										FROM earliest_start_date e
+										WHERE patient_id IN(#{patient_ids.join(',')})
+										").each do | value | 
 
-      regimen_hash[regimen_name] << patient_id
-    end
+											if value.regimen_category.blank?
+												regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] ||= []
+												regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] << value.patient_id
+											else
+												regimen_hash[value.regimen_category] ||= []
+												regimen_hash[value.regimen_category] << value.patient_id
+											end
+		                                end
+
     regimen_hash
-=begin
-    PatientProgram.find_by_sql("SELECT patient_id , value_coded regimen_id, value_text regimen ,
-                                age(LEFT(person.birthdate,10),LEFT(obs.obs_datetime,10),
-                                LEFT(person.date_created,10),person.birthdate_estimated) person_age_at_drug_dispension  
-                                FROM obs 
-                                INNER JOIN patient_program p ON p.patient_id = obs.person_id
-                                INNER JOIN patient_state s ON p.patient_program_id = s.patient_program_id
-                                INNER JOIN person ON person.person_id = p.patient_id
-                                WHERE p.program_id = #{end_date} AND obs.concept_id = #{regimem_given_concept.concept_id}
-                                AND patient_start_date(patient_id) >= '#{start_date}' AND patient_start_date(patient_id) <= '#{end_date}' 
-                                GROUP BY patient_id 
-                                ORDER BY obs.obs_datetime DESC")
-=end
-
   end
   
   def regimens_with_patient_ids(start_date = @start_date, end_date = @end_date)
