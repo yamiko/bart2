@@ -62,35 +62,31 @@ class GenericDispensationsController < ApplicationController
 
 				drug = Drug.find(params[:drug_id])
 
-				dose = nil
-				frequency = nil
-				prn = nil
-				instructions = nil
-				equivalent_daily_dose = nil
+        dose = 1
+        frequency = 'TWICE A DAY (BD)'
+        prn = 0
+        instructions = "#{drug.name}"
+        equivalent_daily_dose = 2
 				start_date = session_date
 				duration = 0
 
-				if estimate
-					dose = 1
-					frequency = 'TWICE A DAY (BD)'
-					prn = 0
-					instructions = "#{drug.name}"
-					equivalent_daily_dose = 2
-				else
-					regimen = Regimen.find(:first, :joins => 'regimen_drug_order' , 
-												:conditions => ['min_weight <= #{current_weight} AND max_weight > {current_weight} 
-													AND program_id = 1 AND drug_inventory_id = ?', params[:drug_id]]).each do | value | 
-									dose = value.dose
-									frequency = value.frequency
-									prn = value.prn
-									instructions = "#{drug.name}: #{value.instructions}"
-									equivalent_daily_dose = value.equivalent_daily_dose
-								end
+				if !estimate
+						regimen = Regimen.find(:first, :select => "regimen.*, regimen_drug_order.*", :joins => 'LEFT JOIN regimen_drug_order ON regimen.regimen_id = regimen_drug_order.regimen_id' ,
+												:conditions => ['min_weight <= ? AND max_weight > ?
+													AND program_id = 1 AND drug_inventory_id = ?', current_weight, current_weight, params[:drug_id]])
+          if !regimen.blank?
+            dose = regimen.dose
+            frequency = regimen.frequency
+            prn = regimen.prn
+            instructions = "#{drug.name}: #{regimen.instructions}"
+            equivalent_daily_dose = regimen.equivalent_daily_dose
+          end
+							
 				end
 
-				duration = 	params[:quantity]/equivalent_daily_dose
+				duration = params[:quantity].to_i / equivalent_daily_dose.to_i
 
-				auto_expire_date = start_date + duration.to_i.days rescue Time.now + duration.to_i.days
+				auto_expire_date = start_date + duration.to_i.days rescue start_date.to_date + duration.to_i.days
 
 				DrugOrder.write_order(
 					treatment_encounter, 
