@@ -1,16 +1,16 @@
 class GenericDispensationsController < ApplicationController
-  def new
-    @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
+	def new
+		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
 
-    #@prescriptions = @patient.orders.current.prescriptions.all
-    type = EncounterType.find_by_name('TREATMENT')
-    session_date = session[:datetime].to_date rescue Date.today
-    @prescriptions = Order.find(:all,
-                     :joins => "INNER JOIN encounter e USING (encounter_id)", 
-                     :conditions => ["encounter_type = ? AND e.patient_id = ? AND DATE(encounter_datetime) = ?",
-                     type.id,@patient.id,session_date]) 
-    @options = @prescriptions.map{|presc| [presc.drug_order.drug.name, presc.drug_order.drug_inventory_id]}
-  end
+		#@prescriptions = @patient.orders.current.prescriptions.all
+		type = EncounterType.find_by_name('TREATMENT')
+		session_date = session[:datetime].to_date rescue Date.today
+		@prescriptions = Order.find(:all,
+					     :joins => "INNER JOIN encounter e USING (encounter_id)", 
+					     :conditions => ["encounter_type = ? AND e.patient_id = ? AND DATE(encounter_datetime) = ?",
+					     type.id,@patient.id,session_date]) 
+		@options = @prescriptions.map{|presc| [presc.drug_order.drug.name, presc.drug_order.drug_inventory_id]}
+	end
 
   def create
     if (params[:identifier])
@@ -48,18 +48,77 @@ class GenericDispensationsController < ApplicationController
              params[:drug_id]]).order rescue []
 
     # Do we have an order for the specified drug?
-    if @order.blank?
-      if params[:location]
-        @order_id = ''
-        @drug_value = params[:drug_id]
-      else
-        flash[:error] = "There is no prescription for #{@drug.name}"
-        redirect_to "/patients/treatment_dashboard/#{@patient.patient_id}" and return
-      end
-    else
-      @order_id = @order.order_id
-      @drug_value = @order.drug_order.drug_inventory_id
-    end
+		if @order.blank?
+			if params[:location]
+				obs = nil
+
+				treatment_encounter = PatientService.current_treatment_encounter(@patient, session_date, user_person_id)
+				current_weight = PatientService.get_patient_attribute_value(@patient, "current_weight")
+
+				estimate = false				
+				if current_weight.blank?
+					estimate = true
+				end
+
+				drug = Drug.find(params[:drug_id])
+
+				dose = nil
+				frequency = nil
+				prn = nil
+				instructions = nil
+				equivalent_daily_dose = nil
+				start_date = session_date
+				duration = 0
+
+				if estimate
+					dose = 1
+					frequency = 'TWICE A DAY (BD)'
+					prn = 0
+					instructions = "#{drug.name}"
+					equivalent_daily_dose = 2
+				else
+					regimen = Regimen.find(:first, :joins => 'regimen_drug_order' , 
+												:conditions => ['min_weight <= #{current_weight} AND max_weight > {current_weight} 
+													AND program_id = 1 AND drug_inventory_id = ?', params[:drug_id]]).each do | value | 
+									dose = value.dose
+									frequency = value.frequency
+									prn = value.prn
+									instructions = "#{drug.name}: #{value.instructions}"
+									equivalent_daily_dose = value.equivalent_daily_dose
+								end
+				end
+
+				duration = 	params[:quantity]/equivalent_daily_dose
+
+				auto_expire_date = start_date + duration.to_i.days rescue Time.now + duration.to_i.days
+
+				DrugOrder.write_order(
+					treatment_encounter, 
+					@patient, 
+					obs, 
+					drug, 
+					start_date, 
+					auto_expire_date, 
+					dose, 
+					frequency, 
+					prn, 
+					instructions,
+					equivalent_daily_dose)   
+
+				@order = PatientService.current_treatment_encounter( @patient, session_date, user_person_id).drug_orders.find(:first,:conditions => ['drug_order.drug_inventory_id = ?', 
+					params[:drug_id]]).order rescue []
+				
+				@order_id = @order.order_id
+				@drug_value = params[:drug_id]
+			else
+				flash[:error] = "There is no prescription for #{@drug.name}"
+				redirect_to "/patients/treatment_dashboard/#{@patient.patient_id}" and return
+			end
+		else
+			@order_id = @order.order_id
+			@drug_value = @order.drug_order.drug_inventory_id
+		end
+
     #assign the order_id and  drug_inventory_id
     # Try to dispense the drug
       

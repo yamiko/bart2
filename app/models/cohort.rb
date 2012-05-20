@@ -394,7 +394,7 @@ class Cohort
                                           cohort_report['Died total'] +
                                           cohort_report['Stopped taking ARVs'] +
                                           cohort_report['Transferred out'])
-    
+=begin  
     total_patients_on_known_arv_drugs ||= 0
 		valide_regimens ||= ['1A', '1P', '2A', '2P', '3A', '3P', '4A', '4P', '5A', '6A', '7A', '8A', '9P']
     cohort_report['Regimens'].each {|key, value| total_patients_on_known_arv_drugs+=value.length if valide_regimens.include?(key)}
@@ -406,7 +406,7 @@ class Cohort
     end
     
     cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] += (cohort_report['Total alive and on ART'] - total_patients_on_known_arv_drugs)
-
+=end
 
 		self.cohort = cohort_report
 		self.cohort
@@ -789,6 +789,7 @@ class Cohort
     @@first_registration_date
   end
 
+
   def arv_regimens(regimen_category)
     regimens = []
     if regimen_category == "non-standard"
@@ -833,7 +834,8 @@ class Cohort
 
     regimen_hash
   end
-  
+
+=begin  
   def regimens_with_patient_ids(start_date = @start_date, end_date = @end_date)
     regimens = []
     regimen_hash = {}
@@ -866,6 +868,8 @@ class Cohort
 		                              end
                                 end
   end
+=end
+
 
   def patients_reinitiated_on_art(start_date = @start_date, end_date = @end_date)
     patients = []
