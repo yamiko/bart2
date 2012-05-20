@@ -1013,17 +1013,19 @@ class Cohort
                      AND concept_id IN (?)
                      AND value_coded IN (#{side_effect_concept_ids.join(',')})",
                      concept_ids],
-                     :group =>'person_id').length
+                     :group =>'person_id')
   end
 
   def patients_with_side_effects(start_date = @start_date, end_date = @end_date)
 		side_effect_concept_ids =[ConceptName.find_by_name('PERIPHERAL NEUROPATHY').concept_id,
+                              ConceptName.find_by_name('LEG PAIN / NUMBNESS').concept_id,
                               ConceptName.find_by_name('HEPATITIS').concept_id,
                               ConceptName.find_by_name('SKIN RASH').concept_id,
                               ConceptName.find_by_name('JAUNDICE').concept_id]
 
     hiv_clinic_consultation_encounter_id = EncounterType.find_by_name('HIV CLINIC CONSULTATION').id
-    symptom_present_concept_id = ConceptName.find_by_name('SYMPTOM PRESENT').concept_id
+    concept_ids = [ConceptName.find_by_name('SYMPTOM PRESENT').concept_id,
+                   ConceptName.find_by_name('DRUG INDUCED').concept_id]
 
 		on_art_concept_name = ConceptName.find_all_by_name('On antiretrovirals')
 
@@ -1044,7 +1046,7 @@ class Cohort
                               FROM encounter e1
                                   INNER JOIN obs o
                                       ON e1.encounter_id = o.encounter_id
-                                      AND o.concept_id = #{symptom_present_concept_id} AND o.voided = 0
+                                      AND o.concept_id IN (#{concept_ids.join(',')}) AND o.voided = 0
                               WHERE e1.encounter_type = #{hiv_clinic_consultation_encounter_id}
                                   AND e1.voided = 0
                                   AND o.value_coded IN (#{side_effect_concept_ids.join(',')})
