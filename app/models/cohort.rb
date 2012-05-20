@@ -949,7 +949,9 @@ class Cohort
     
 		doses_missed_concept = ConceptName.find_by_name("MISSED HIV DRUG CONSTRUCT").concept_id
 		
-		patients = Observation.find_by_sql("SELECT DISTINCT person_id AS person_id, earliest_start_date, obs.value_numeric, obs.value_text FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
+		patients = Observation.find_by_sql("SELECT DISTINCT person_id AS person_id, 
+          earliest_start_date, obs.value_numeric, obs.value_text 
+          FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
 					AND concept_id = #{doses_missed_concept} 
 					AND voided = 0
 					
