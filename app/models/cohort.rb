@@ -1,6 +1,6 @@
 class Cohort
 	
-	attr :cohort
+	attr :cohort, :art_defaulters
 	attr_accessor :start_date, :end_date, :cohort, :patients_alive_and_on_art
 
 	#attr_accessible :cohort
@@ -68,7 +68,15 @@ class Cohort
 				  end
 				end
 
+    # calculate defaulters before starting different threads
+    # We need total alive and on art to use for filter patients under secondary
+    # outcomes (e.g. regimens, tb status, side effects)
+    
+    logger.info("defaulted " + Time.now.to_s)  
+    @art_defaulters ||= self.art_defaulted_patients
 
+    logger.info("alive_on_art " + Time.now.to_s)
+    @patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
 		threads = []
 
 
@@ -217,15 +225,7 @@ class Cohort
 		end
 		threads << Thread.new do
 			begin
-				logger.info("defaulted " + Time.now.to_s)  
-
-				defaulted_patients = self.art_defaulted_patients
-
-				cohort_report['Defaulted'] = defaulted_patients.length
-
-				logger.info("alive_on_art " + Time.now.to_s)
-        		@patients_alive_and_on_art = self.total_alive_and_on_art(defaulted_patients)
-
+				cohort_report['Defaulted'] = @art_defaulters.length
 				cohort_report['Total alive and on ART'] = @patients_alive_and_on_art.length
 				cohort_report['Died total'] = self.total_number_of_dead_patients.length
 
@@ -536,7 +536,7 @@ class Cohort
 		self.patients_with_start_cause(start_date,end_date, concept_id)
 	end
 
-	def total_alive_and_on_art(defaulted_patients = [])
+	def total_alive_and_on_art(defaulted_patients = self.art_defaulted_patients)
 =begin
 		on_art_concept_name = ConceptName.find_all_by_name('On antiretrovirals')
 		state = ProgramWorkflowState.find(
@@ -649,7 +649,8 @@ class Cohort
 =end      
 		states = Hash.new()
 
-		@patients_alive_and_on_art ||= self.total_alive_and_on_art		
+    @art_defaulters ||= self.art_defaulted_patients
+		@patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
 		@patient_id_on_art_and_alive = @patients_alive_and_on_art.map { |p| p.patient_id }
 		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
 
@@ -808,7 +809,8 @@ class Cohort
   def regimens(start_date = @start_date, end_date = @end_date)
     regimens = []
     regimen_hash = {}
-    @patients_alive_and_on_art ||= self.total_alive_and_on_art
+    @art_defaulters ||= self.art_defaulted_patients
+    @patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
     patient_ids = @patients_alive_and_on_art.map(&:patient_id)
     patient_ids = [0] if patient_ids.blank?
     
@@ -940,7 +942,8 @@ class Cohort
   end
 	
 	def patients_with_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
-		@patients_alive_and_on_art ||= self.total_alive_and_on_art
+		@art_defaulters ||= self.art_defaulted_patients
+		@patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
 		patient_ids = @patients_alive_and_on_art.map(&:patient_id)
     patient_ids = [0] if patient_ids.blank?
     
@@ -1018,12 +1021,14 @@ class Cohort
 
   def side_effect_patients(start_date = @start_date, end_date = @end_date)
     side_effect_concept_ids =[ConceptName.find_by_name('PERIPHERAL NEUROPATHY').concept_id,
+                              ConceptName.find_by_name('LEG PAIN / NUMBNESS').concept_id,
                               ConceptName.find_by_name('HEPATITIS').concept_id,
                               ConceptName.find_by_name('SKIN RASH').concept_id,
                               ConceptName.find_by_name('JAUNDICE').concept_id]
 
     encounter_type = EncounterType.find_by_name('HIV CLINIC CONSULTATION')
-    concept_id = ConceptName.find_by_name('SYMPTOM PRESENT').concept_id
+    concept_ids = [ConceptName.find_by_name('SYMPTOM PRESENT').concept_id,
+                   ConceptName.find_by_name('DRUG INDUCED').concept_id]
 
     encounter_ids = Encounter.find(:all,:conditions => ["encounter_type = ? 
                     AND (patient_start_date(patient_id) >= '#{start_date}'
@@ -1034,8 +1039,9 @@ class Cohort
 
     Observation.find(:all,
                      :conditions => ["encounter_id IN (#{encounter_ids.join(',')})
-                     AND concept_id = ? 
-                     AND value_coded IN (#{side_effect_concept_ids.join(',')})",concept_id],
+                     AND concept_id IN (?)
+                     AND value_coded IN (#{side_effect_concept_ids.join(',')})",
+                     concept_ids],
                      :group =>'person_id').length
   end
 
