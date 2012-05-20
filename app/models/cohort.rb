@@ -816,7 +816,7 @@ class Cohort
     patient_ids = [0] if patient_ids.blank?
 
 	dispensing_encounter_id = EncounterType.find_by_name("DISPENSING").id
-	regimen_category = ConceptName.find_by_name("REGIMEN CATEGORY").first.id
+	regimen_category = ConceptName.find_by_name("REGIMEN CATEGORY").id
 
 	PatientProgram.find_by_sql("SELECT e.patient_id, current_text_for_obs(e.patient_id, #{dispensing_encounter_id}, #{regimen_category}, '#{end_date}') AS regimen_category 
  										FROM earliest_start_date e
