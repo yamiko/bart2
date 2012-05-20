@@ -816,7 +816,7 @@ class Cohort
     patient_ids = [0] if patient_ids.blank?
 
 	dispensing_encounter_id = EncounterType.find_by_name("DISPENSING").id
-	regimen_category = ConceptName.find_by_name("REGIMEN CATEGORY").first.id
+	regimen_category = ConceptName.find_by_name("REGIMEN CATEGORY").id
 
 	PatientProgram.find_by_sql("SELECT e.patient_id, current_text_for_obs(e.patient_id, #{dispensing_encounter_id}, #{regimen_category}, '#{end_date}') AS regimen_category 
  										FROM earliest_start_date e
@@ -932,7 +932,54 @@ class Cohort
 		return patients
 	end
 	
+	def patients_not_adherent_at_their_last_visit(start_date = @start_date, end_date = @end_date)
+		@art_defaulters ||= self.art_defaulted_patients
+		@patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
+		patient_ids = @patients_alive_and_on_art.map(&:patient_id)
+    patient_ids = [0] if patient_ids.blank?
+   
+		art_adherence_concept = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
+		art_adherence_encounter = EncounterType.find_by_name("ART ADHERENCE").id
+
+		patients = Observation.find_by_sql("SELECT DISTINCT person_id AS person_id, 
+          earliest_start_date, obs.value_numeric, obs.value_text 
+          FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
+					AND concept_id = #{art_adherence_concept} 
+					AND voided = 0 
+          AND current_text_for_obs(obs.person_id,#{art_adherence_encounter},
+          #{art_adherence_concept},'#{end_date}') NOT BETWEEN 95 AND 105  
+					
+					AND earliest_start_date >= '#{start_date}'
+					AND earliest_start_date <= '#{end_date}'
+					AND person_id IN (#{patient_ids.join(',')})")
+		return patients
+	end
+	
+	def patients_adherent_at_their_last_visit(start_date = @start_date, end_date = @end_date)
+		@art_defaulters ||= self.art_defaulted_patients
+		@patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
+		patient_ids = @patients_alive_and_on_art.map(&:patient_id)
+    patient_ids = [0] if patient_ids.blank?
+   
+		art_adherence_concept = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
+		art_adherence_encounter = EncounterType.find_by_name("ART ADHERENCE").id
+
+		patients = Observation.find_by_sql("SELECT DISTINCT person_id AS person_id, 
+          earliest_start_date, obs.value_numeric, obs.value_text 
+          FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
+					AND concept_id = #{art_adherence_concept} 
+					AND voided = 0 
+          AND current_text_for_obs(obs.person_id,#{art_adherence_encounter},
+          #{art_adherence_concept},'#{end_date}') BETWEEN 95 AND 105  
+					
+					AND earliest_start_date >= '#{start_date}'
+					AND earliest_start_date <= '#{end_date}'
+					AND person_id IN (#{patient_ids.join(',')})")
+		return patients
+	end
+	
 	def patients_with_0_to_6_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
+    return patients_adherent_at_their_last_visit
 		doses_missed_0_to_6 = []
 		self.patients_with_doses_missed_at_their_last_visit.map do |doses_missed|
 			missed_dose = doses_missed.value_text if !doses_missed.value_numeric
@@ -944,6 +991,7 @@ class Cohort
 	end
 	
 	def patients_with_7_plus_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
+    return patients_not_adherent_at_their_last_visit
 		doses_missed_7_plus = []
 		self.patients_with_doses_missed_at_their_last_visit.map do |doses_missed|
 			missed_dose = doses_missed.value_text if !doses_missed.value_numeric

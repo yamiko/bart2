@@ -363,7 +363,7 @@ DELIMITER ;
 
 DROP FUNCTION IF EXISTS `current_defaulter`;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_defaulter`(my_patient_id INT, my_end_date DATE) RETURNS int(1)
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_defaulter`(my_patient_id INT, my_end_date DATETIME) RETURNS int(1)
 BEGIN
 	DECLARE done INT DEFAULT FALSE;
   	DECLARE my_start_date, my_expiry_date, my_obs_datetime DATE;
@@ -375,13 +375,13 @@ BEGIN
     						LEFT JOIN obs ON d.order_id = obs.order_id
     					WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug WHERE concept_id IN (SELECT concept_id FROM concept_set WHERE concept_set = 1085)) 
         					AND quantity > 0
-        					AND obs.voided = 0
-						AND obs.person_id = my_patient_id;
+       						AND obs.concept_id = 2834
+                  AND obs.voided = 0
+						      AND obs.person_id = my_patient_id;
 
   	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-  	SELECT MAX(obs.obs_datetime) INTO @obs_datetime FROM drug_order d
-    						LEFT JOIN orders o ON d.order_id = o.order_id
+  	SELECT MAX(obs.obs_datetime) INTO @obs_datetime FROM drug_order d    						LEFT JOIN orders o ON d.order_id = o.order_id
     						LEFT JOIN obs ON d.order_id = obs.order_id
     					WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug WHERE concept_id IN (SELECT concept_id FROM concept_set WHERE concept_set = 1085)) 
         					AND quantity > 0
@@ -437,7 +437,7 @@ DELIMITER ;
 
 DROP FUNCTION IF EXISTS `current_state_for_program`;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_state_for_program`(my_patient_id INT, my_program_id INT, my_end_date DATE) RETURNS int(11)
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_state_for_program`(my_patient_id INT, my_program_id INT, my_end_date DATETIME) RETURNS int(11)
 BEGIN
 	SELECT  patient_program_id INTO @patient_program_id FROM patient_program 
 			WHERE patient_id = my_patient_id 
@@ -468,7 +468,7 @@ DELIMITER ;
 
 DROP FUNCTION IF EXISTS `current_text_for_obs`;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_text_for_obs`(my_patient_id INT, my_encounter_type_id INT, my_concept_id INT, my_end_date DATE) RETURNS VARCHAR(255)
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_text_for_obs`(my_patient_id INT, my_encounter_type_id INT, my_concept_id INT, my_end_date DATETIME) RETURNS VARCHAR(255)
 BEGIN
 
 	SELECT encounter_id INTO @encounter_id FROM encounter 
@@ -519,7 +519,7 @@ DELIMITER ;
 
 DROP FUNCTION IF EXISTS `current_value_for_obs`;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_value_for_obs`(my_patient_id INT, my_encounter_type_id INT, my_concept_id INT, my_end_date DATE) RETURNS int(11)
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_value_for_obs`(my_patient_id INT, my_encounter_type_id INT, my_concept_id INT, my_end_date DATETIME) RETURNS int(11)
 BEGIN
 
 	SELECT encounter_id INTO @encounter_id FROM encounter 
