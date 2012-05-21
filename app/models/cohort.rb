@@ -340,8 +340,9 @@ class Cohort
 		threads << Thread.new do
 			begin
 				logger.info("tb_within_last_year " + Time.now.to_s)
+				# these 2 are counted after threads. Don't append .length here
 				cohort_report['TB within the last 2 years'] = self.tb_within_the_last_2_yrs
-				cohort_report['Total TB within the last 2 years'] = self.tb_within_the_last_2_yrs(@@first_registration_date, @end_date).length
+				cohort_report['Total TB within the last 2 years'] = self.tb_within_the_last_2_yrs(@@first_registration_date, @end_date)
 
 				logger.info("ks " + Time.now.to_s)
 				cohort_report['Kaposis Sarcoma'] = self.kaposis_sarcoma.length
@@ -808,29 +809,31 @@ class Cohort
   end
 
   def regimens(start_date = @start_date, end_date = @end_date)
-    regimens = []
     regimen_hash = {}
     @art_defaulters ||= self.art_defaulted_patients
     @patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
     patient_ids = @patients_alive_and_on_art.map(&:patient_id)
     patient_ids = [0] if patient_ids.blank?
 
-	dispensing_encounter_id = EncounterType.find_by_name("DISPENSING").id
-	regimen_category = ConceptName.find_by_name("REGIMEN CATEGORY").id
+    dispensing_encounter_id = EncounterType.find_by_name("DISPENSING").id
+    regimen_category = ConceptName.find_by_name("REGIMEN CATEGORY").concept_id
 
-	PatientProgram.find_by_sql("SELECT e.patient_id, current_text_for_obs(e.patient_id, #{dispensing_encounter_id}, #{regimen_category}, '#{end_date}') AS regimen_category 
- 										FROM earliest_start_date e
-										WHERE patient_id IN(#{patient_ids.join(',')})
-										").each do | value | 
-
-											if value.regimen_category.blank?
-												regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] ||= []
-												regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] << value.patient_id
-											else
-												regimen_hash[value.regimen_category] ||= []
-												regimen_hash[value.regimen_category] << value.patient_id
-											end
-		                                end
+    PatientProgram.find_by_sql(
+      "SELECT e.patient_id,
+              current_text_for_obs(e.patient_id, #{dispensing_encounter_id}, #{regimen_category}, '#{end_date}') AS regimen_category 
+      FROM earliest_start_date e
+      WHERE patient_id IN(#{patient_ids.join(',')}) AND
+            earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
+      ").each do | value |
+  
+        if value.regimen_category.blank?
+          regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] ||= []
+          regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] << value.patient_id
+        else
+          regimen_hash[value.regimen_category] ||= []
+          regimen_hash[value.regimen_category] << value.patient_id
+        end
+      end
 
     regimen_hash
   end
