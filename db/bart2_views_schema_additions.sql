@@ -376,6 +376,7 @@ BEGIN
        						AND obs.concept_id = 2834
                   			AND obs.voided = 0
 						    AND obs.person_id = my_patient_id
+							AND obs.obs_datetime <= my_end_date
 						HAVING obs.obs_datetime BETWEEN latest_date AND CONCAT(latest_date, ' 23:59:59') LIMIT 1;
 
   	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
