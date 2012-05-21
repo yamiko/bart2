@@ -432,7 +432,8 @@ class Cohort
     
     PatientProgram.find_by_sql("SELECT esd.*
       FROM earliest_start_date esd
-      LEFT JOIN ever_registered_obs AS ero ON esd.patient_id = ero.person_id
+      LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
+      LEFT JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
       WHERE esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' AND
               (ero.obs_id IS NULL)
       GROUP BY esd.patient_id")
