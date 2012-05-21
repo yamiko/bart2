@@ -340,8 +340,9 @@ class Cohort
 		threads << Thread.new do
 			begin
 				logger.info("tb_within_last_year " + Time.now.to_s)
+				# these 2 are counted after threads. Don't append .length here
 				cohort_report['TB within the last 2 years'] = self.tb_within_the_last_2_yrs
-				cohort_report['Total TB within the last 2 years'] = self.tb_within_the_last_2_yrs(@@first_registration_date, @end_date).length
+				cohort_report['Total TB within the last 2 years'] = self.tb_within_the_last_2_yrs(@@first_registration_date, @end_date)
 
 				logger.info("ks " + Time.now.to_s)
 				cohort_report['Kaposis Sarcoma'] = self.kaposis_sarcoma.length
