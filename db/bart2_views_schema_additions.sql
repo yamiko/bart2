@@ -367,6 +367,8 @@ BEGIN
   	DECLARE my_start_date, my_expiry_date, my_obs_datetime, my_latest_date, my_earliest_expiry_date DATETIME;
   	DECLARE my_daily_dose, my_quantity INT;
 	DECLARE flag INT;
+	
+	SET @earliest_expiry_date = NULL;
 
   	SELECT o.start_date, d.equivalent_daily_dose daily_dose, d.quantity, obs.obs_datetime, DATE(MAX(obs.obs_datetime)) AS latest_date, MIN(ADDDATE(o.start_date, (d.quantity/d.equivalent_daily_dose))) AS earliest_expiry_date 
 		INTO @start_date, @daily_dose, @quantity, @obs_datetime, @latest_date, @earliest_expiry_date
