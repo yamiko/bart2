@@ -361,39 +361,61 @@ DELIMITER ;
 
 DROP FUNCTION IF EXISTS `current_defaulter`;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_defaulter`(my_patient_id INT, my_end_date DATETIME) RETURNS int(1)
+/*!50003 CREATE*/ /*!50020 DEFINER=`bart2`@`%`*/ /*!50003 FUNCTION `current_defaulter`(my_patient_id INT, my_end_date DATE) RETURNS int(1)
 BEGIN
-	DECLARE done INT DEFAULT FALSE;
-  	DECLARE my_start_date, my_expiry_date, my_obs_datetime, my_latest_date, my_earliest_expiry_date DATETIME;
-  	DECLARE my_daily_dose, my_quantity INT;
-	DECLARE flag INT;
-	
-	SET @earliest_expiry_date = NULL;
+DECLARE done INT DEFAULT FALSE;
+DECLARE my_start_date, my_expiry_date, my_obs_datetime DATE;
+DECLARE my_daily_dose, my_quantity INT;
+DECLARE flag INT;
 
-  	SELECT o.start_date, d.equivalent_daily_dose daily_dose, d.quantity, obs.obs_datetime, DATE(MAX(obs.obs_datetime)) AS latest_date, MIN(ADDDATE(o.start_date, (d.quantity/d.equivalent_daily_dose))) AS earliest_expiry_date 
-		INTO @start_date, @daily_dose, @quantity, @obs_datetime, @latest_date, @earliest_expiry_date
-		FROM drug_order d
-    						LEFT JOIN orders o ON d.order_id = o.order_id
-    						LEFT JOIN obs ON d.order_id = obs.order_id
-    					WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug WHERE concept_id IN (SELECT concept_id FROM concept_set WHERE concept_set = 1085)) 
-        					AND quantity > 0
-       						AND obs.concept_id = 2834
-                  			AND obs.voided = 0
-						    AND obs.person_id = my_patient_id
-							AND obs.obs_datetime <= my_end_date
-						HAVING obs.obs_datetime BETWEEN latest_date AND CONCAT(latest_date, ' 23:59:59') LIMIT 1;
+DECLARE cur1 CURSOR FOR SELECT o.start_date, d.equivalent_daily_dose daily_dose, d.quantity, obs.obs_datetime FROM drug_order d
+LEFT JOIN orders o ON d.order_id = o.order_id
+LEFT JOIN obs ON d.order_id = obs.order_id
+WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug WHERE concept_id IN (SELECT concept_id FROM concept_set WHERE concept_set = 1085))
+AND quantity > 0
+AND obs.voided = 0
+AND obs.person_id = my_patient_id;
 
-	SET flag = 0;
+DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-	SELECT current_state_for_program(person_id, 1, my_end_date), dead INTO @current_state, @dead FROM person WHERE person_id = my_patient_id;
+SELECT MAX(obs.obs_datetime) INTO @obs_datetime FROM drug_order d
+LEFT JOIN orders o ON d.order_id = o.order_id
+LEFT JOIN obs ON d.order_id = obs.order_id
+WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug WHERE concept_id IN (SELECT concept_id FROM concept_set WHERE concept_set = 1085))
+AND quantity > 0
+AND obs.voided = 0
+AND obs.person_id = my_patient_id
+AND obs.obs_datetime <= my_end_date
+GROUP BY obs.person_id;
 
-	IF @current_state != 6 AND @current_state != 2 AND @current_state != 3 AND @dead = 0 AND @earliest_expiry_date IS NOT NULL THEN 
-		IF DATEDIFF(my_end_date, @earliest_expiry_date) > 56 THEN
-			SET flag = 1;
-		END IF;
-	END IF;
- 
-	RETURN flag;
+
+
+OPEN cur1;
+read_loop: LOOP
+FETCH cur1 INTO my_start_date, my_daily_dose, my_quantity, my_obs_datetime;
+IF done THEN
+CLOSE cur1;
+LEAVE read_loop;
+END IF;
+IF DATE(my_obs_datetime) = DATE(@obs_datetime) THEN
+SET @expiry_date = ADDDATE(my_start_date, (my_quantity/my_daily_dose));
+
+IF my_expiry_date IS NULL THEN
+SET my_expiry_date = @expiry_date;
+END IF;
+
+IF @expiry_date < my_expiry_date THEN
+SET my_expiry_date = @expiry_date;
+END IF;
+END IF;
+END LOOP;
+
+SET flag = 0;
+
+IF DATEDIFF(my_end_date, my_expiry_date) > 56 THEN
+SET flag = 1;
+END IF;
+RETURN flag;
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
