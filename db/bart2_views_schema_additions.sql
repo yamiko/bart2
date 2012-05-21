@@ -381,7 +381,7 @@ BEGIN
 
 	SET flag = 0;
 
-	SELECT current_state_for_program(patient_id, 1, my_end_date), dead INTO @current_state, @dead FROM person WHERE person_id = my_patient_id;
+	SELECT current_state_for_program(person_id, 1, my_end_date), dead INTO @current_state, @dead FROM person WHERE person_id = my_patient_id;
 
 	IF @current_state != 6 AND @current_state != 2 AND @current_state != 3 AND @dead = 0 THEN 
 
