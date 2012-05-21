@@ -364,7 +364,7 @@ DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_defaulter`(my_patient_id INT, my_end_date DATETIME) RETURNS int(1)
 BEGIN
 	DECLARE done INT DEFAULT FALSE;
-  	DECLARE my_start_date, my_expiry_date, my_obs_datetime DATE;
+  	DECLARE my_start_date, my_expiry_date, my_obs_datetime, my_latest_date DATETIME;
   	DECLARE my_daily_dose, my_quantity INT;
 	DECLARE flag INT;
 
