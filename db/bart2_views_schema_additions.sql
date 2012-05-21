@@ -379,42 +379,48 @@ BEGIN
 
   	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-  	SELECT MAX(obs.obs_datetime) INTO @obs_datetime FROM drug_order d    						LEFT JOIN orders o ON d.order_id = o.order_id
-    						LEFT JOIN obs ON d.order_id = obs.order_id
-    					WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug WHERE concept_id IN (SELECT concept_id FROM concept_set WHERE concept_set = 1085)) 
-        					AND quantity > 0
-        					AND obs.voided = 0
-						AND obs.person_id = my_patient_id
-						AND obs.obs_datetime <= my_end_date
-					GROUP BY obs.person_id;
-
-
-
-  	OPEN cur1;
-	read_loop: LOOP
-		FETCH cur1 INTO  my_start_date, my_daily_dose, my_quantity, my_obs_datetime;
-		IF done THEN
-			CLOSE cur1;
-			LEAVE read_loop;
-    		END IF;
-    		
-		IF DATE(my_obs_datetime) = DATE(@obs_datetime) THEN
-			SET @expiry_date = ADDDATE(my_start_date, (my_quantity/my_daily_dose));
-
-			IF my_expiry_date IS NULL THEN
-				SET my_expiry_date = @expiry_date;
-			END IF;
-
- 			IF  @expiry_date < my_expiry_date THEN
-				SET my_expiry_date = @expiry_date;      
-    			END IF;
-		END IF;
-	END LOOP;
-
 	SET flag = 0;
 
-	IF DATEDIFF(my_end_date, my_expiry_date) > 56 THEN
-		SET flag = 1;
+	SELECT current_state_for_program(my_patient_id, 1, my_end_date) INTO @current_state;
+	SELECT dead INTO @dead FROM person WHERE person_id = my_patient_id;
+
+	IF @current_state != 6 AND @current_state != 2 AND @current_state != 3 AND @dead = 0 THEN 
+	  	SELECT MAX(obs.obs_datetime) INTO @obs_datetime FROM drug_order d    						LEFT JOIN orders o ON d.order_id = o.order_id
+								LEFT JOIN obs ON d.order_id = obs.order_id
+							WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug WHERE concept_id IN (SELECT concept_id FROM concept_set WHERE concept_set = 1085)) 
+		    					AND quantity > 0
+		    					AND obs.voided = 0
+							AND obs.person_id = my_patient_id
+							AND obs.obs_datetime <= my_end_date
+						GROUP BY obs.person_id;
+
+
+
+	  	OPEN cur1;
+		read_loop: LOOP
+			FETCH cur1 INTO  my_start_date, my_daily_dose, my_quantity, my_obs_datetime;
+			IF done THEN
+				CLOSE cur1;
+				LEAVE read_loop;
+				END IF;
+				
+			IF DATE(my_obs_datetime) = DATE(@obs_datetime) THEN
+				SET @expiry_date = ADDDATE(my_start_date, (my_quantity/my_daily_dose));
+
+				IF my_expiry_date IS NULL THEN
+					SET my_expiry_date = @expiry_date;
+				END IF;
+
+	 			IF  @expiry_date < my_expiry_date THEN
+					SET my_expiry_date = @expiry_date;      
+					END IF;
+			END IF;
+		END LOOP;
+
+
+		IF DATEDIFF(my_end_date, my_expiry_date) > 56 THEN
+			SET flag = 1;
+		END IF;
 	END IF;
  
 	RETURN flag;
