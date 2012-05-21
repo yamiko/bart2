@@ -364,11 +364,11 @@ DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_defaulter`(my_patient_id INT, my_end_date DATETIME) RETURNS int(1)
 BEGIN
 	DECLARE done INT DEFAULT FALSE;
-  	DECLARE my_start_date, my_expiry_date, my_obs_datetime, my_latest_date DATETIME;
+  	DECLARE my_start_date, my_expiry_date, my_obs_datetime, my_latest_date, my_earliest_expiry_date DATETIME;
   	DECLARE my_daily_dose, my_quantity INT;
 	DECLARE flag INT;
 
-  	DECLARE cur1 CURSOR FOR SELECT o.start_date, d.equivalent_daily_dose daily_dose, d.quantity, obs.obs_datetime, DATE(MAX(obs.obs_datetime)) AS latest_date FROM drug_order d
+  	DECLARE cur1 CURSOR FOR SELECT o.start_date, d.equivalent_daily_dose daily_dose, d.quantity, obs.obs_datetime, DATE(MAX(obs.obs_datetime)) AS latest_date, MIN(ADDDATE(o.start_date, (d.quantity/d.equivalent_daily_dose))) AS earliest_expiry_date FROM drug_order d
     						LEFT JOIN orders o ON d.order_id = o.order_id
     						LEFT JOIN obs ON d.order_id = obs.order_id
     					WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug WHERE concept_id IN (SELECT concept_id FROM concept_set WHERE concept_set = 1085)) 
@@ -376,7 +376,7 @@ BEGIN
        						AND obs.concept_id = 2834
                   			AND obs.voided = 0
 						    AND obs.person_id = my_patient_id
-						HAVING obs.obs_datetime BETWEEN latest_date AND CONCAT(latest_date, ' 23:59:59');
+						HAVING obs.obs_datetime BETWEEN latest_date AND CONCAT(latest_date, ' 23:59:59') LIMIT 1;
 
   	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
@@ -388,25 +388,16 @@ BEGIN
 
 	  	OPEN cur1;
 		read_loop: LOOP
-			FETCH cur1 INTO  my_start_date, my_daily_dose, my_quantity, my_obs_datetime, my_latest_date;
+			FETCH cur1 INTO  my_start_date, my_daily_dose, my_quantity, my_obs_datetime, my_latest_date, my_earliest_expiry_date;
 			IF done THEN
 				CLOSE cur1;
 				LEAVE read_loop;
 			END IF;
 				
-			SET @expiry_date = ADDDATE(my_start_date, (my_quantity/my_daily_dose));
-
-			IF my_expiry_date IS NULL THEN
-				SET my_expiry_date = @expiry_date;
-			END IF;
-
- 			IF  @expiry_date < my_expiry_date THEN
-				SET my_expiry_date = @expiry_date;      
-			END IF;
 		END LOOP;
 
 
-		IF DATEDIFF(my_end_date, my_expiry_date) > 56 THEN
+		IF DATEDIFF(my_end_date, my_earliest_expiry_date) > 56 THEN
 			SET flag = 1;
 		END IF;
 	END IF;
