@@ -102,10 +102,8 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
          `obs`.`value_complex` AS `value_complex`,
          `obs`.`uuid` AS `uuid`
   FROM `obs`
-  WHERE ((`obs`.`concept_id` = 7937) AND (`obs`.`voided` = 0));
-
---  AND
---         (`obs`.`value_coded` = 1065)
+  WHERE ((`obs`.`concept_id` = 7937) AND (`obs`.`voided` = 0))
+  AND (`obs`.`value_coded` = 1065);
 
 CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
   VIEW `patient_pregnant_obs` AS
