@@ -361,10 +361,10 @@ DELIMITER ;
 
 DROP FUNCTION IF EXISTS `current_defaulter`;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50020 DEFINER=`bart2`@`%`*/ /*!50003 FUNCTION `current_defaulter`(my_patient_id INT, my_end_date DATE) RETURNS int(1)
+/*!50003 CREATE*/ /*!50020 DEFINER=`bart2`@`%`*/ /*!50003 FUNCTION `current_defaulter`(my_patient_id INT, my_end_date DATETIME) RETURNS int(1)
 BEGIN
 DECLARE done INT DEFAULT FALSE;
-DECLARE my_start_date, my_expiry_date, my_obs_datetime DATE;
+DECLARE my_start_date, my_expiry_date, my_obs_datetime DATETIME;
 DECLARE my_daily_dose, my_quantity INT;
 DECLARE flag INT;
 
@@ -374,6 +374,8 @@ LEFT JOIN obs ON d.order_id = obs.order_id
 WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug WHERE concept_id IN (SELECT concept_id FROM concept_set WHERE concept_set = 1085))
 AND quantity > 0
 AND obs.voided = 0
+AND obs.obs_datetime <= my_end_date
+AND obs.concept_id = 2834
 AND obs.person_id = my_patient_id;
 
 DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
