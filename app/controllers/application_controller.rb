@@ -755,7 +755,10 @@ class ApplicationController < GenericApplicationController
 		type =type.squish
       encounter_available = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                                      patient.id,EncounterType.find_by_name(type).id,session_date],
-                                     :order =>'encounter_datetime DESC,date_created DESC',:limit => 1) 
+                                     :order =>'encounter_datetime DESC,date_created DESC',:limit => 1) rescue nil
+      
+      # next if encounter_available.nil?
+      
       reception = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
                         patient.id,session_date,EncounterType.find_by_name('HIV RECEPTION').id]).observations.collect{| r | r.to_s}.join(',') rescue ''
         
@@ -849,7 +852,7 @@ class ApplicationController < GenericApplicationController
           encounter_hiv_clinic_registration = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
                                          patient.id,EncounterType.find_by_name('HIV CLINIC REGISTRATION').id],
                                          :order =>'encounter_datetime DESC',:limit => 1)
-          transfer_in = encounter_hiv_clinic_registration.observations.collect{|r|r.to_s.strip.upcase}.include?('HAS TRANSFER LETTER: YES'.upcase)
+          transfer_in = encounter_hiv_clinic_registration.observations.collect{|r|r.to_s.strip.upcase}.include?('HAS TRANSFER LETTER: YES'.upcase) rescue []
           hiv_staging = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
                         patient.id,EncounterType.find_by_name('HIV STAGING').id],:order => "encounter_datetime DESC")
           

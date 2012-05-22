@@ -469,7 +469,7 @@
   <td>40</td>
   <td style="text-align:left;border-width:1px 0px 1px 1px;">Non-standard</td>
   <td style="border-width:0px 0px 1px 1px;">(Patients on any other regimens)</td>
-  <td style="border-width:0px 1px 1px 1px;"><%= link_to "#{@cohort['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] rescue '0'}", "/cohort_tool/list_patients_details?field=patients_on_any_other_regimens&quarter=#{@quarter}" -%></td>
+  <td style="border-width:0px 1px 1px 1px;"><%= link_to "#{@cohort['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'].length rescue '0'}", "/cohort_tool/list_patients_details?field=patients_on_any_other_regimens&quarter=#{@quarter}" -%></td>
 </tr>
 
 <tr class = 'row_break'>

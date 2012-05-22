@@ -1,16 +1,16 @@
 class GenericDispensationsController < ApplicationController
-  def new
-    @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
+	def new
+		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
 
-    #@prescriptions = @patient.orders.current.prescriptions.all
-    type = EncounterType.find_by_name('TREATMENT')
-    session_date = session[:datetime].to_date rescue Date.today
-    @prescriptions = Order.find(:all,
-                     :joins => "INNER JOIN encounter e USING (encounter_id)", 
-                     :conditions => ["encounter_type = ? AND e.patient_id = ? AND DATE(encounter_datetime) = ?",
-                     type.id,@patient.id,session_date]) 
-    @options = @prescriptions.map{|presc| [presc.drug_order.drug.name, presc.drug_order.drug_inventory_id]}
-  end
+		#@prescriptions = @patient.orders.current.prescriptions.all
+		type = EncounterType.find_by_name('TREATMENT')
+		session_date = session[:datetime].to_date rescue Date.today
+		@prescriptions = Order.find(:all,
+					     :joins => "INNER JOIN encounter e USING (encounter_id)", 
+					     :conditions => ["encounter_type = ? AND e.patient_id = ? AND DATE(encounter_datetime) = ?",
+					     type.id,@patient.id,session_date]) 
+		@options = @prescriptions.map{|presc| [presc.drug_order.drug.name, presc.drug_order.drug_inventory_id]}
+	end
 
   def create
     if (params[:identifier])
@@ -48,18 +48,73 @@ class GenericDispensationsController < ApplicationController
              params[:drug_id]]).order rescue []
 
     # Do we have an order for the specified drug?
-    if @order.blank?
-      if params[:location]
-        @order_id = ''
-        @drug_value = params[:drug_id]
-      else
-        flash[:error] = "There is no prescription for #{@drug.name}"
-        redirect_to "/patients/treatment_dashboard/#{@patient.patient_id}" and return
-      end
-    else
-      @order_id = @order.order_id
-      @drug_value = @order.drug_order.drug_inventory_id
-    end
+		if @order.blank?
+			if params[:location]
+				obs = nil
+
+				treatment_encounter = PatientService.current_treatment_encounter(@patient, session_date, user_person_id)
+				current_weight = PatientService.get_patient_attribute_value(@patient, "current_weight")
+
+				estimate = false				
+				if current_weight.blank?
+					estimate = true
+				end
+
+				drug = Drug.find(params[:drug_id])
+
+        dose = 1
+        frequency = 'TWICE A DAY (BD)'
+        prn = 0
+        instructions = "#{drug.name}"
+        equivalent_daily_dose = 2
+				start_date = session_date
+				duration = 0
+
+				if !estimate
+						regimen = Regimen.find(:first, :select => "regimen.*, regimen_drug_order.*", :joins => 'LEFT JOIN regimen_drug_order ON regimen.regimen_id = regimen_drug_order.regimen_id' ,
+												:conditions => ['min_weight <= ? AND max_weight > ?
+													AND program_id = 1 AND drug_inventory_id = ?', current_weight, current_weight, params[:drug_id]])
+          if !regimen.blank?
+            dose = regimen.dose
+            frequency = regimen.frequency
+            prn = regimen.prn
+            instructions = "#{drug.name}: #{regimen.instructions}"
+            equivalent_daily_dose = regimen.equivalent_daily_dose
+          end
+							
+				end
+
+				duration = params[:quantity].to_i / equivalent_daily_dose.to_i
+
+				auto_expire_date = start_date + duration.to_i.days rescue start_date.to_date + duration.to_i.days
+
+				DrugOrder.write_order(
+					treatment_encounter, 
+					@patient, 
+					obs, 
+					drug, 
+					start_date, 
+					auto_expire_date, 
+					dose, 
+					frequency, 
+					prn, 
+					instructions,
+					equivalent_daily_dose)   
+
+				@order = PatientService.current_treatment_encounter( @patient, session_date, user_person_id).drug_orders.find(:first,:conditions => ['drug_order.drug_inventory_id = ?', 
+					params[:drug_id]]).order rescue []
+				
+				@order_id = @order.order_id
+				@drug_value = params[:drug_id]
+			else
+				flash[:error] = "There is no prescription for #{@drug.name}"
+				redirect_to "/patients/treatment_dashboard/#{@patient.patient_id}" and return
+			end
+		else
+			@order_id = @order.order_id
+			@drug_value = @order.drug_order.drug_inventory_id
+		end
+
     #assign the order_id and  drug_inventory_id
     # Try to dispense the drug
       
@@ -149,7 +204,10 @@ class GenericDispensationsController < ApplicationController
 
 		prescription.orders.each do | order |
 		  next if not MedicationService.arv(order.drug_order.drug)
-		  dispensed_drugs_inventory_ids << order.drug_order.drug.id if order.drug_order.quantity > 0
+		  
+		  if order.drug_order.quantity and order.drug_order.quantity > 0
+		    dispensed_drugs_inventory_ids << order.drug_order.drug.id
+		  end
 =begin		
 		  if (order.drug_order.amount_needed > 0)
 			dispense_finish = false
@@ -182,26 +240,31 @@ EOF
 			regimen_prescribed = regimen_drug_order.first['concept_id'].to_i rescue ConceptName.find_by_name('UNKNOWN ANTIRETROVIRAL DRUG').concept_id
 
 
-			if (Observation.find(:first,:conditions => ["person_id = ? AND encounter_id = ? AND concept_id = ?",
-					patient.id,encounter.id,ConceptName.find_by_name('ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT').concept_id])).blank?
+#			if (Observation.find(:first,:conditions => ["person_id = ? AND encounter_id = ? AND concept_id = ?",
+#					patient.id,encounter.id,ConceptName.find_by_name('ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT').concept_id])).blank?
 
-				regimen_value_text = Concept.find(regimen_prescribed).shortname rescue nil
-				if regimen_value_text.blank?
-					regimen_value_text = ConceptName.find_by_concept_id(regimen_prescribed).name rescue nil
-				end
-		
-				return if regimen_value_text.blank?
-				return_text = regimen_value_text
+			regimen_value_text = Concept.find(regimen_prescribed).shortname rescue nil
+			if regimen_value_text.blank?
+				regimen_value_text = ConceptName.find_by_concept_id(regimen_prescribed).name rescue nil
+			end
+	
+			return if regimen_value_text.blank?
+			return_text = regimen_value_text
 
-				selected_regimen = Regimen.find(regimen_drug_order.first['regimen_id'].to_i) rescue nil
+			selected_regimen = Regimen.find(regimen_drug_order.first['regimen_id'].to_i) rescue nil
 
+      regimen_category_id = ConceptName.find_by_name('REGIMEN CATEGORY').concept_id
+      if encounter.observations.find_by_concept_id(regimen_category_id).blank?
 				obs = Observation.create(
 					:concept_name => "REGIMEN CATEGORY",
 					:person_id => patient.id,
 					:encounter_id => encounter.id,
 					:value_text => selected_regimen.regimen_index,
 					:obs_datetime => encounter.encounter_datetime) if !selected_regimen.blank?
-
+			end
+			
+      regimens_received_id = ConceptName.find_by_name('ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT').concept_id
+      if encounter.observations.find_by_concept_id(regimens_received_id).blank?
 				obs = Observation.new(
 					:concept_name => "ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT",
 					:person_id => patient.id,
@@ -209,8 +272,9 @@ EOF
 					:value_coded => regimen_prescribed,
 					:obs_datetime => encounter.encounter_datetime)
 
-			  	obs.save
+        obs.save
 			end
+			
 		end
 		return return_text
 	end
