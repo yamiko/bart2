@@ -3,7 +3,7 @@ USE bart2;
 
 DELETE FROM patient_state 
 	WHERE patient_program_id IN(SELECT patient_program_id FROM patient_program 
-	WHERE state = 118 AND program_id = 1);
+	WHERE AND program_id = 1) AND state = 118;
 
 DROP TABLE IF EXISTS `temp_patient_list`;
 
@@ -100,7 +100,8 @@ GROUP BY pp.patient_id, DATE(obs1.obs_datetime));
 UPDATE bart2.patient_program
     SET date_enrolled = (SELECT MIN(start_date)
                             FROM bart2.patient_state ps2 
-                            WHERE ps2.patient_program_id = bart2.patient_program.patient_program_id);
+                            WHERE ps2.patient_program_id = bart2.patient_program.patient_program_id)
+    WHERE program_id = 1;
 
 UPDATE bart2.patient_state 
     SET start_date = (SELECT date_enrolled
@@ -137,7 +138,7 @@ DROP TABLE IF EXISTS `temp_patient_list`;
 
 INSERT INTO bart2.patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
     SELECT pp.patient_program_id, 3, MIN(o.obs_datetime), 1, NOW(), (SELECT UUID())
-        FROM bart1.obs o LEFT JOIN bart2.patient_program pp ON o.patient_id = pp.patient_id
+        FROM bart1.obs o LEFT JOIN bart2.patient_program pp ON o.patient_id = pp.patient_id AND pp.program_id = 1
         WHERE o.concept_id = 28 AND o.value_coded = 322 AND o.voided = 0
         GROUP BY o.patient_id;
 
@@ -181,7 +182,7 @@ DROP TABLE IF EXISTS `temp_patient_list`;
 
 INSERT INTO bart2.patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
     SELECT pp.patient_program_id, 2, o.obs_datetime, 1, NOW(), (SELECT UUID())
-        FROM bart1.obs o LEFT JOIN bart2.patient_program pp ON o.patient_id = pp.patient_id
+        FROM bart1.obs o LEFT JOIN bart2.patient_program pp ON o.patient_id = pp.patient_id AND pp.program_id = 1
         WHERE o.concept_id = 28 AND o.value_coded IN (374, 383, 325) AND o.voided = 0 
         GROUP BY DATE(o.obs_datetime), o.patient_id;
 
@@ -198,7 +199,7 @@ CREATE TABLE `temp_patient_list` (
 
 INSERT INTO temp_patient_list (patient_program_id, patient_id, start_date)
 SELECT ps.patient_program_id, pp.patient_id, ps.start_date
-    FROM patient_state ps LEFT JOIN patient_program pp ON ps.patient_program_id = pp.patient_program_id
+    FROM patient_state ps LEFT JOIN patient_program pp ON ps.patient_program_id = pp.patient_program_id AND pp.program_id = 1
     WHERE state = 2;
 
 UPDATE bart2.patient_state
@@ -247,7 +248,7 @@ SELECT t.patient_program_id, 7, MIN(DATE(obs1.obs_datetime)) AS dispensation_dat
 --Create Treatment Stopped states
 INSERT INTO bart2.patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
     SELECT pp.patient_program_id, 6, o.obs_datetime, 1, NOW(), (SELECT UUID())
-        FROM bart1.obs o LEFT JOIN bart2.patient_program pp ON o.patient_id = pp.patient_id
+        FROM bart1.obs o LEFT JOIN bart2.patient_program pp ON o.patient_id = pp.patient_id AND pp.program_id = 1
         WHERE o.concept_id = 28 AND o.value_coded = 386 AND o.voided = 0 
         GROUP BY DATE(o.obs_datetime), o.patient_id;
         
