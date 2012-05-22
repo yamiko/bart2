@@ -2,6 +2,7 @@
 def doses_missed
 
 	#loop through each patient with adherence encounter
+	missed_hiv_drug_construct_id = ConceptName.find_by_name("MISSED HIV DRUG CONSTRUCT").concept_id
 	art_adherence = EncounterType.find_by_name('ART ADHERENCE').id
 	pills_left_ids = [ConceptName.find_by_name("AMOUNT OF DRUG BROUGHT TO CLINIC").concept_id,
 	ConceptName.find_by_name("AMOUNT OF DRUG REMAINING AT HOME").concept_id]
@@ -52,14 +53,14 @@ def doses_missed
 			observation = Observation.new
 			observation.person_id = adherence.patient_id
 			observation.encounter_id = adherence.encounter_id
-			observation.concept_id = ConceptName.find_by_name("MISSED HIV DRUG CONSTRUCT").concept_id
+			observation.concept_id = missed_hiv_drug_construct_id
 			observation.obs_datetime = adherence.encounter_datetime
 			observation.value_numeric = doses_missed.to_i
 			observation.order_id = order.order_id
 			observation.location_id = adherence.location_id
 			if observation.save
 				counter += 1
-
+			end
 		end
 	
 	#Display progress bar
