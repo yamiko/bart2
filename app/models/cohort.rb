@@ -429,12 +429,13 @@ class Cohort
     #
     # 7937 = Ever registered at ART clinic
     # 1065 = Yes
+    
     PatientProgram.find_by_sql("SELECT esd.*
       FROM earliest_start_date esd
       LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
       LEFT JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
       WHERE esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' AND
-              (ero.value_coded IS NOT NULL AND ero.value_coded != 1065)
+              (ero.obs_id IS NULL)
       GROUP BY esd.patient_id")
 
 =begin
@@ -450,10 +451,11 @@ class Cohort
 	end
 
 	def transferred_in_patients(start_date = @start_date, end_date = @end_date)
-	 
 
-    self.total_registered(start_date, end_date).map(&:patient_id) - (self.patients_reinitiated_on_art(start_date, end_date).map(&:patient_id) + self.patients_initiated_on_art_first_time(start_date, end_date).map(&:patient_id))
-      
+    self.total_registered(start_date, end_date).map(&:patient_id) - (
+      self.patients_reinitiated_on_art(start_date, end_date).map(&:patient_id) +
+      self.patients_initiated_on_art_first_time(start_date, end_date).map(&:patient_id))
+    
 	end
 
 	def total_registered_by_gender_age(start_date = @start_date, end_date = @end_date, sex = nil, min_age = nil, max_age = nil)
@@ -886,33 +888,18 @@ class Cohort
     PatientProgram.find_by_sql("SELECT esd.*
       FROM earliest_start_date esd
       LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
-      LEFT JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
+      INNER JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
       LEFT JOIN obs o ON o.encounter_id = e.encounter_id AND
                          o.concept_id IN (#{date_art_last_taken_concept},#{taken_arvs_concept})
-      WHERE (ero.value_coded IS NOT NULL AND ero.value_coded = 1065)
-            AND
-             ((o.concept_id = #{date_art_last_taken_concept} AND
+      WHERE  ((o.concept_id = #{date_art_last_taken_concept} AND
                (DATEDIFF(o.obs_datetime,o.value_datetime)) > 60) OR
              (o.concept_id = #{taken_arvs_concept} AND
-              (o.value_coded IS NOT NULL AND o.value_coded = #{no_concept})
+              (o.value_coded = #{no_concept})
               ))
             AND
             esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
       GROUP BY esd.patient_id")
-
-=begin
-    PatientProgram.find_by_sql("SELECT esd.*,MIN(sdo.value_text) AS original_start_date
-	    FROM earliest_start_date esd
-	    LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
-			LEFT JOIN start_date_observation sdo ON sdo.encounter_id = e.encounter_id
-			LEFT JOIN obs o ON o.encounter_id = sdo.encounter_id
-			WHERE ((o.concept_id = #{date_art_last_taken_concept} AND
-			         (DATEDIFF(o.obs_datetime,o.value_datetime)) > 60) OR
-             (o.concept_id = #{taken_arvs_concept} AND o.value_coded = '#{no_concept}'))
-			GROUP BY esd.patient_id
-	    HAVING esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' AND
-	           original_start_date IS NOT NULL")
-=end	           
+           
   end
 	
 	def patients_with_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
