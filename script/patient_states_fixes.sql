@@ -2,8 +2,8 @@
 USE bart2;
 
 DELETE FROM patient_state 
-	WHERE patient_program_id IN(SELECT patient_program_id FROM patient_program 
-	WHERE AND program_id = 1) AND state = 118;
+	WHERE patient_program_id IN (SELECT patient_program_id FROM patient_program 
+	WHERE program_id = 1) AND state = 118;
 
 DROP TABLE IF EXISTS `temp_patient_list`;
 
