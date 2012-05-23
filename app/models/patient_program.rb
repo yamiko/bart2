@@ -5,7 +5,7 @@ class PatientProgram < ActiveRecord::Base
   belongs_to :patient, :conditions => {:voided => 0}
   belongs_to :program, :conditions => {:retired => 0}
   belongs_to :location, :conditions => {:retired => 0}
-  has_many :patient_states, :class_name => 'PatientState', :conditions => {:voided => 0}, :dependent => :destroy
+  has_many :patient_states, :class_name => 'PatientState', :conditions => {:voided => 0}, :order => 'start_date, date_created', :dependent => :destroy
 
   named_scope :current, :conditions => ['date_enrolled < NOW() AND (date_completed IS NULL OR date_completed > NOW())']
   named_scope :local, lambda{|| {:conditions => ['location_id IN (?)',  Location.current_health_center.children.map{|l|l.id} + [Location.current_health_center.id] ]}}
