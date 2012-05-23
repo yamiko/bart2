@@ -16,8 +16,6 @@ dispensations = Encounter.find(
                   encounter.voided = 0',
                   encounter_type_id])
   
-raise dispensations.length.to_s
-
 dispensations.each do |dispensation|
   treatment_obs = dispensation.observations.first(
                     :conditions => ['obs.order_id IS NOT NULL'],
