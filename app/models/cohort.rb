@@ -451,11 +451,28 @@ class Cohort
 	end
 
 	def transferred_in_patients(start_date = @start_date, end_date = @end_date)
-
-    self.total_registered(start_date, end_date).map(&:patient_id) - (
+=begin
+      self.total_registered(start_date, end_date).map(&:patient_id) - (
       self.patients_reinitiated_on_art(start_date, end_date).map(&:patient_id) +
       self.patients_initiated_on_art_first_time(start_date, end_date).map(&:patient_id))
+=end
+    no_concept_id = ConceptName.find_by_name("NO").concept_id
+    art_last_taken_concept_id = ConceptName.find_by_name("Date ART last taken").concept_id
+    taken_art_last_two_months_id = ConceptName.find_by_name("Has the patient taken ART in the last two months").concept_id
     
+    PatientProgram.find_by_sql("SELECT esd.*
+     		FROM earliest_start_date esd
+     		INNER JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
+     		INNER JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
+    		LEFT JOIN (SELECT * FROM obs o 
+    		           WHERE ((o.concept_id = #{art_last_taken_concept_id} AND
+                      (DATEDIFF(o.obs_datetime,o.value_datetime)) > 60) OR
+                      (o.concept_id = #{taken_art_last_two_months_id} AND 
+                      (o.value_coded = #{no_concept_id})))) AS 
+                      ro ON e.encounter_id = ro.encounter_id
+            WHERE esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' AND
+                      ro.obs_id IS NULL
+            GROUP BY esd.patient_id")
 	end
 
 	def total_registered_by_gender_age(start_date = @start_date, end_date = @end_date, sex = nil, min_age = nil, max_age = nil)
@@ -877,8 +894,13 @@ class Cohort
 
 
   def patients_reinitiated_on_art(start_date = @start_date, end_date = @end_date)
-    patients = []
     
+=begin
+      self.total_registered(start_date, end_date).map(&:patient_id) - (
+      self.transferred_in_patients(start_date, end_date).map(&:patient_id) +
+      self.patients_initiated_on_art_first_time(start_date, end_date).map(&:patient_id))
+=end
+
     yes_concept = ConceptName.find_by_name('YES').concept_id
 		no_concept = ConceptName.find_by_name('NO').concept_id
     date_art_last_taken_concept = ConceptName.find_by_name('DATE ART LAST TAKEN').concept_id
