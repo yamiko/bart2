@@ -44,6 +44,10 @@ DELETE FROM patient_program
 	WHERE patient_program_id IN (SELECT patient_program_id FROM temp_patient_list2); 
 
 DELETE FROM patient_program 
+	WHERE voided = 1
+	AND program_id = 1;
+	
+DELETE FROM patient_program 
 	WHERE date_enrolled IS NULL AND program_id = 1; 
 
 DELETE FROM patient_state 
@@ -138,7 +142,7 @@ DROP TABLE IF EXISTS `temp_patient_list`;
 
 INSERT INTO bart2.patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
     SELECT pp.patient_program_id, 3, MIN(o.obs_datetime), 1, NOW(), (SELECT UUID())
-        FROM bart1.obs o LEFT JOIN bart2.patient_program pp ON o.patient_id = pp.patient_id AND pp.program_id = 1
+        FROM mpc_bart1_data.obs o LEFT JOIN bart2.patient_program pp ON o.patient_id = pp.patient_id AND pp.program_id = 1
         WHERE o.concept_id = 28 AND o.value_coded = 322 AND o.voided = 0
         GROUP BY o.patient_id;
 
@@ -182,8 +186,9 @@ DROP TABLE IF EXISTS `temp_patient_list`;
 
 INSERT INTO bart2.patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
     SELECT pp.patient_program_id, 2, o.obs_datetime, 1, NOW(), (SELECT UUID())
-        FROM bart1.obs o LEFT JOIN bart2.patient_program pp ON o.patient_id = pp.patient_id AND pp.program_id = 1
-        WHERE o.concept_id = 28 AND o.value_coded IN (374, 383, 325) AND o.voided = 0 
+        FROM mpc_bart1_data.obs o LEFT JOIN bart2.patient_program pp ON o.patient_id = pp.patient_id AND pp.program_id = 1
+        WHERE (o.concept_id = 28 AND o.value_coded IN (374, 383, 325) AND o.voided = 0) 
+        OR (o.concept_id = 372 AND o.value_coded = 325 AND o.voided = 0)
         GROUP BY DATE(o.obs_datetime), o.patient_id;
 
 DROP TABLE IF EXISTS `temp_patient_list`;
@@ -236,8 +241,9 @@ SELECT t.patient_program_id, 7, MIN(DATE(obs1.obs_datetime)) AS dispensation_dat
 --Create Treatment Stopped states
 INSERT INTO bart2.patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
     SELECT pp.patient_program_id, 6, o.obs_datetime, 1, NOW(), (SELECT UUID())
-        FROM bart1.obs o LEFT JOIN bart2.patient_program pp ON o.patient_id = pp.patient_id AND pp.program_id = 1
-        WHERE o.concept_id = 28 AND o.value_coded = 386 AND o.voided = 0 
+        FROM mpc_bart1_data.obs o LEFT JOIN bart2.patient_program pp ON o.patient_id = pp.patient_id AND pp.program_id = 1
+        WHERE (o.concept_id = 28 AND o.value_coded = 386 AND o.voided = 0) 
+        OR (o.concept_id = 367 AND o.value_coded = 4 AND o.voided = 0)
         GROUP BY DATE(o.obs_datetime), o.patient_id;
         
 DROP TABLE IF EXISTS `temp_patient_list`;
