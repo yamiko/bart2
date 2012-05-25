@@ -270,7 +270,7 @@ class Cohort
 			begin
 				
 				logger.info("txfrd_out " + Time.now.to_s)
-				cohort_report['Transferred out'] = self.transferred_out_patients
+				cohort_report['Transferred out'] = self.transferred_out_patients.length
 				
 				logger.info("stopped_arvs " + Time.now.to_s)
 				cohort_report['Stopped taking ARVs'] = self.art_stopped_patients.length
@@ -625,7 +625,7 @@ class Cohort
 	end
 
 	def transferred_out_patients
-		self.outcomes_total('PATIENT TRANSFERRED OUT', @@first_registration_date).length
+		self.outcomes_total('PATIENT TRANSFERRED OUT', @@first_registration_date)
 	end
 
 	def art_defaulted_patients
