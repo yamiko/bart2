@@ -47,13 +47,11 @@ INSERT INTO temp_obs (obs_id, obs_datetime, old_value_coded, new_value_coded, va
 UPDATE bart2.obs o
 SET value_coded =   (SELECT new_value_coded 
                     FROM temp_obs 
-                    WHERE obs_id = o.obs_id AND  obs_datetime = o.obs_datetime),
+                    WHERE obs_id = o.obs_id AND obs_datetime = o.obs_datetime),
     value_coded_name_id =  (SELECT value_coded_name_id 
                             FROM temp_obs 
-                            WHERE obs_id = o.obs_id AND  obs_datetime = o.obs_datetime)
-WHERE o.obs_is IN (SELECT obs_id 
-                   FROM temp_obs 
-                   WHERE obs_id = o.obs_id AND  obs_datetime = o.obs_datetime);
+                            WHERE obs_id = o.obs_id AND obs_datetime = o.obs_datetime)
+WHERE o.obs_id IN (SELECT obs_id FROM temp_obs);
 
 -- DROP TABLE IF EXISTS `temp_obs`;
 
