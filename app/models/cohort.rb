@@ -991,7 +991,7 @@ class Cohort
 	end
 	
 	def patients_with_0_to_6_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
-    #return patients_adherent_at_their_last_visit
+    return patients_adherent_at_their_last_visit
 		doses_missed_0_to_6 = []
 		self.patients_with_doses_missed_at_their_last_visit.map do |doses_missed|
 			missed_dose = doses_missed.value_text if !doses_missed.value_numeric
@@ -1003,7 +1003,7 @@ class Cohort
 	end
 	
 	def patients_with_7_plus_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
-    #return patients_not_adherent_at_their_last_visit
+    return patients_not_adherent_at_their_last_visit
 		doses_missed_7_plus = []
 		self.patients_with_doses_missed_at_their_last_visit.map do |doses_missed|
 			missed_dose = doses_missed.value_text if !doses_missed.value_numeric

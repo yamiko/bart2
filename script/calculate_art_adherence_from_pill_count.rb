@@ -11,7 +11,7 @@
       WHERE obs.voided = 0 AND obs.concept_id IN 
       (SELECT concept_id FROM concept_name 
       WHERE name IN('Amount of drug brought to clinic','AMOUNT OF DRUG REMAINING AT HOME'))
-      GROUP BY obs.person_id,d.drug_inventory_id,obs_datetime LIMIT 5000,150000")    
+      GROUP BY obs.person_id,d.drug_inventory_id,obs_datetime")    
     
 
     puts "looping through #{count = records.length} records ...."
