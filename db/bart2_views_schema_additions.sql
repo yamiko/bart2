@@ -390,7 +390,7 @@ BEGIN
 			AND d.quantity > 0
 			AND o.voided = 0
 			AND o.start_date <= my_end_date
-			AND o.patient_id = my_patient_id;
+			AND o.patient_id = my_patient_id
 		GROUP BY o.patient_id;
 
 
