@@ -83,9 +83,7 @@ INSERT INTO mpc_bart2_data.patient_state (patient_program_id, state, start_date,
     SELECT pp.patient_program_id, 1, pp.date_enrolled, 1, NOW(), (SELECT UUID())
     FROM  mpc_bart2_data.patient p
         LEFT JOIN mpc_bart2_data.patient_program pp ON p.patient_id = pp.patient_id AND pp.program_id = 1 AND pp.voided = 0
-        LEFT JOIN mpc_bart2_data.patient_state ps ON pp.patient_program_id = ps.patient_program_id AND ps.voided = 0
-    WHERE ps.patient_state_id IS NULL
-        AND p.voided = 0;
+    WHERE p.voided = 0;
 
 
 INSERT INTO patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
@@ -292,3 +290,5 @@ UPDATE mpc_bart2_data.patient_program
     SET date_completed = (NULL)
     WHERE current_state_for_program(patient_id, 1, '2012-02-12') = 7;
 
+DELETE FROM patient_program 
+	WHERE date_enrolled IS NULL AND program_id = 1;
