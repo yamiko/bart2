@@ -41,10 +41,10 @@ class Cohort
 		threads << Thread.new do
 				begin
 					cohort_report['Total registered'] = self.total_registered(@@first_registration_date)
-					cohort_report['Newly total registered'] = self.total_registered.length
+					cohort_report['Newly total registered'] = self.total_registered
 
 					logger.info("initiated_on_art " + Time.now.to_s)
-					cohort_report['Patients initiated on ART'] = self.patients_initiated_on_art_first_time.length
+					cohort_report['Patients initiated on ART'] = self.patients_initiated_on_art_first_time
 					cohort_report['Total Patients initiated on ART'] = self.patients_initiated_on_art_first_time(@@first_registration_date)
 				rescue Exception => e
 						Thread.current[:exception] = e
@@ -183,9 +183,9 @@ class Cohort
 		end
 		threads << Thread.new do
 			begin
-				cohort_report['Defaulted'] = @art_defaulters.length
-				cohort_report['Total alive and on ART'] = @patients_alive_and_on_art.length
-				cohort_report['Died total'] = self.total_number_of_dead_patients.length
+				cohort_report['Defaulted'] = @art_defaulters
+				cohort_report['Total alive and on ART'] = @patients_alive_and_on_art
+				cohort_report['Died total'] = self.total_number_of_dead_patients
 
 		  rescue Exception => e
 		    Thread.current[:exception] = e
@@ -228,10 +228,10 @@ class Cohort
 			begin
 				
 				logger.info("txfrd_out " + Time.now.to_s)
-				cohort_report['Transferred out'] = self.transferred_out_patients.length
+				cohort_report['Transferred out'] = self.transferred_out_patients
 				
 				logger.info("stopped_arvs " + Time.now.to_s)
-				cohort_report['Stopped taking ARVs'] = self.art_stopped_patients.length
+				cohort_report['Stopped taking ARVs'] = self.art_stopped_patients
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
@@ -241,11 +241,11 @@ class Cohort
 			begin
 				logger.info("tb_status " + Time.now.to_s)
 				tb_status_outcomes = self.tb_status
-				cohort_report['TB suspected'] = tb_status_outcomes['TB STATUS']['Suspected'].length
-				cohort_report['TB not suspected'] = tb_status_outcomes['TB STATUS']['Not Suspected'].length
-				cohort_report['TB confirmed not treatment'] = tb_status_outcomes['TB STATUS']['Not on treatment'].length
-				cohort_report['TB confirmed on treatment'] = tb_status_outcomes['TB STATUS']['On Treatment'].length
-				cohort_report['TB Unknown'] = tb_status_outcomes['TB STATUS']['Unknown'].length
+				cohort_report['TB suspected'] = tb_status_outcomes['TB STATUS']['Suspected']
+				cohort_report['TB not suspected'] = tb_status_outcomes['TB STATUS']['Not Suspected']
+				cohort_report['TB confirmed not treatment'] = tb_status_outcomes['TB STATUS']['Not on treatment']
+				cohort_report['TB confirmed on treatment'] = tb_status_outcomes['TB STATUS']['On Treatment']
+				cohort_report['TB Unknown'] = tb_status_outcomes['TB STATUS']['Unknown']
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
@@ -274,7 +274,7 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-		    	cohort_report['Total patients with side effects'] = self.patients_with_side_effects.length
+		    	cohort_report['Total patients with side effects'] = self.patients_with_side_effects
 
 				logger.info("current_episode_of_tb " + Time.now.to_s)
 				cohort_report['Current episode of TB'] = self.current_episode_of_tb
@@ -287,8 +287,8 @@ class Cohort
     threads << Thread.new do
       begin
         logger.info("adherence " + Time.now.to_s)
-        cohort_report['Patients with 0 - 6 doses missed at their last visit'] = self.patients_with_0_to_6_doses_missed_at_their_last_visit.length
-        cohort_report['Patients with 7+ doses missed at their last visit'] = self.patients_with_7_plus_doses_missed_at_their_last_visit.length
+        cohort_report['Patients with 0 - 6 doses missed at their last visit'] = self.patients_with_0_to_6_doses_missed_at_their_last_visit
+        cohort_report['Patients with 7+ doses missed at their last visit'] = self.patients_with_7_plus_doses_missed_at_their_last_visit
 
       rescue Exception => e
         Thread.current[:exception] = e
@@ -303,7 +303,7 @@ class Cohort
 				cohort_report['Total TB within the last 2 years'] = self.tb_within_the_last_2_yrs(@@first_registration_date, @end_date)
 
 				logger.info("ks " + Time.now.to_s)
-				cohort_report['Kaposis Sarcoma'] = self.kaposis_sarcoma.length
+				cohort_report['Kaposis Sarcoma'] = self.kaposis_sarcoma
 				cohort_report['Total Kaposis Sarcoma'] = self.kaposis_sarcoma(@@first_registration_date,@end_date)
 		  rescue Exception => e
 		    Thread.current[:exception] = e
@@ -513,19 +513,20 @@ class Cohort
 	def patients_with_start_cause(start_date = @start_date, end_date = @end_date, concept_id = nil)
 		patients = []
 
-		return patients if a concept_id.blank?
+		if !concept_id.blank?
 
-		tb_concept_id = [tb_concept_id] if tb_concept_id.class != Array
+			concept_id = [concept_id] if concept_id.class != Array
 		
-		cause_concept_id = ConceptName.find_by_name("WHO STG CRIT").concept_id
-			Observation.find_by_sql("SELECT DISTINCT person_id AS patient_id, earliest_start_date FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
-				WHERE encounter_id IN (SELECT encounter_id FROM obs 
-						WHERE concept_id = 7563 AND value_coded != 1107	AND voided = 0) 
-					AND concept_id IN (#{tb_concept_id.join(',')})
-					AND voided = 0 AND value_coded = 1065
-					AND earliest_start_date >= '#{start_date}'
-					AND earliest_start_date <= '#{end_date}'").each do | patient | 
-			patients << patient.patient_id
+			cause_concept_id = ConceptName.find_by_name("WHO STG CRIT").concept_id
+				Observation.find_by_sql("SELECT DISTINCT person_id AS patient_id, earliest_start_date FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
+					WHERE encounter_id IN (SELECT encounter_id FROM obs 
+							WHERE concept_id = 7563 AND value_coded != 1107	AND voided = 0) 
+						AND concept_id IN (#{concept_id.join(',')})
+						AND voided = 0 AND value_coded = 1065
+						AND earliest_start_date >= '#{start_date}'
+						AND earliest_start_date <= '#{end_date}'").each do | patient | 
+				patients << patient.patient_id
+			end
 		end
         return patients   
 
