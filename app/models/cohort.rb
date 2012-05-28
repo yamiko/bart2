@@ -41,10 +41,10 @@ class Cohort
 		threads << Thread.new do
 				begin
 					cohort_report['Total registered'] = self.total_registered(@@first_registration_date)
-					cohort_report['Newly total registered'] = self.total_registered.length
+					cohort_report['Newly total registered'] = self.total_registered
 
 					logger.info("initiated_on_art " + Time.now.to_s)
-					cohort_report['Patients initiated on ART'] = self.patients_initiated_on_art_first_time.length
+					cohort_report['Patients initiated on ART'] = self.patients_initiated_on_art_first_time
 					cohort_report['Total Patients initiated on ART'] = self.patients_initiated_on_art_first_time(@@first_registration_date)
 				rescue Exception => e
 						Thread.current[:exception] = e
@@ -287,8 +287,8 @@ class Cohort
     threads << Thread.new do
       begin
         logger.info("adherence " + Time.now.to_s)
-        cohort_report['Patients with 0 - 6 doses missed at their last visit'] = self.patients_with_0_to_6_doses_missed_at_their_last_visit.length
-        cohort_report['Patients with 7+ doses missed at their last visit'] = self.patients_with_7_plus_doses_missed_at_their_last_visit.length
+        cohort_report['Patients with 0 - 6 doses missed at their last visit'] = self.patients_with_0_to_6_doses_missed_at_their_last_visit
+        cohort_report['Patients with 7+ doses missed at their last visit'] = self.patients_with_7_plus_doses_missed_at_their_last_visit
 
       rescue Exception => e
         Thread.current[:exception] = e
@@ -303,7 +303,7 @@ class Cohort
 				cohort_report['Total TB within the last 2 years'] = self.tb_within_the_last_2_yrs(@@first_registration_date, @end_date)
 
 				logger.info("ks " + Time.now.to_s)
-				cohort_report['Kaposis Sarcoma'] = self.kaposis_sarcoma.length
+				cohort_report['Kaposis Sarcoma'] = self.kaposis_sarcoma
 				cohort_report['Total Kaposis Sarcoma'] = self.kaposis_sarcoma(@@first_registration_date,@end_date)
 		  rescue Exception => e
 		    Thread.current[:exception] = e
