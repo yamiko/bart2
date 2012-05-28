@@ -513,19 +513,20 @@ class Cohort
 	def patients_with_start_cause(start_date = @start_date, end_date = @end_date, concept_id = nil)
 		patients = []
 
-		return patients if concept_id.blank?
+		if !concept_id.blank?
 
-		tb_concept_id = [tb_concept_id] if tb_concept_id.class != Array
+			concept_id = [concept_id] if concept_id.class != Array
 		
-		cause_concept_id = ConceptName.find_by_name("WHO STG CRIT").concept_id
-			Observation.find_by_sql("SELECT DISTINCT person_id AS patient_id, earliest_start_date FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
-				WHERE encounter_id IN (SELECT encounter_id FROM obs 
-						WHERE concept_id = 7563 AND value_coded != 1107	AND voided = 0) 
-					AND concept_id IN (#{tb_concept_id.join(',')})
-					AND voided = 0 AND value_coded = 1065
-					AND earliest_start_date >= '#{start_date}'
-					AND earliest_start_date <= '#{end_date}'").each do | patient | 
-			patients << patient.patient_id
+			cause_concept_id = ConceptName.find_by_name("WHO STG CRIT").concept_id
+				Observation.find_by_sql("SELECT DISTINCT person_id AS patient_id, earliest_start_date FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
+					WHERE encounter_id IN (SELECT encounter_id FROM obs 
+							WHERE concept_id = 7563 AND value_coded != 1107	AND voided = 0) 
+						AND concept_id IN (#{concept_id.join(',')})
+						AND voided = 0 AND value_coded = 1065
+						AND earliest_start_date >= '#{start_date}'
+						AND earliest_start_date <= '#{end_date}'").each do | patient | 
+				patients << patient.patient_id
+			end
 		end
         return patients   
 
