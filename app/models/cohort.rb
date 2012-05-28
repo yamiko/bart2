@@ -183,9 +183,9 @@ class Cohort
 		end
 		threads << Thread.new do
 			begin
-				cohort_report['Defaulted'] = @art_defaulters.length
-				cohort_report['Total alive and on ART'] = @patients_alive_and_on_art.length
-				cohort_report['Died total'] = self.total_number_of_dead_patients.length
+				cohort_report['Defaulted'] = @art_defaulters
+				cohort_report['Total alive and on ART'] = @patients_alive_and_on_art
+				cohort_report['Died total'] = self.total_number_of_dead_patients
 
 		  rescue Exception => e
 		    Thread.current[:exception] = e
@@ -228,10 +228,10 @@ class Cohort
 			begin
 				
 				logger.info("txfrd_out " + Time.now.to_s)
-				cohort_report['Transferred out'] = self.transferred_out_patients.length
+				cohort_report['Transferred out'] = self.transferred_out_patients
 				
 				logger.info("stopped_arvs " + Time.now.to_s)
-				cohort_report['Stopped taking ARVs'] = self.art_stopped_patients.length
+				cohort_report['Stopped taking ARVs'] = self.art_stopped_patients
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
@@ -241,11 +241,11 @@ class Cohort
 			begin
 				logger.info("tb_status " + Time.now.to_s)
 				tb_status_outcomes = self.tb_status
-				cohort_report['TB suspected'] = tb_status_outcomes['TB STATUS']['Suspected'].length
-				cohort_report['TB not suspected'] = tb_status_outcomes['TB STATUS']['Not Suspected'].length
-				cohort_report['TB confirmed not treatment'] = tb_status_outcomes['TB STATUS']['Not on treatment'].length
-				cohort_report['TB confirmed on treatment'] = tb_status_outcomes['TB STATUS']['On Treatment'].length
-				cohort_report['TB Unknown'] = tb_status_outcomes['TB STATUS']['Unknown'].length
+				cohort_report['TB suspected'] = tb_status_outcomes['TB STATUS']['Suspected']
+				cohort_report['TB not suspected'] = tb_status_outcomes['TB STATUS']['Not Suspected']
+				cohort_report['TB confirmed not treatment'] = tb_status_outcomes['TB STATUS']['Not on treatment']
+				cohort_report['TB confirmed on treatment'] = tb_status_outcomes['TB STATUS']['On Treatment']
+				cohort_report['TB Unknown'] = tb_status_outcomes['TB STATUS']['Unknown']
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
@@ -274,7 +274,7 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-		    	cohort_report['Total patients with side effects'] = self.patients_with_side_effects.length
+		    	cohort_report['Total patients with side effects'] = self.patients_with_side_effects
 
 				logger.info("current_episode_of_tb " + Time.now.to_s)
 				cohort_report['Current episode of TB'] = self.current_episode_of_tb
@@ -513,7 +513,7 @@ class Cohort
 	def patients_with_start_cause(start_date = @start_date, end_date = @end_date, concept_id = nil)
 		patients = []
 
-		return patients if a concept_id.blank?
+		return patients if concept_id.blank?
 
 		tb_concept_id = [tb_concept_id] if tb_concept_id.class != Array
 		
