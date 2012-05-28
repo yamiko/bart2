@@ -367,7 +367,7 @@ DELIMITER ;
 
 DROP FUNCTION IF EXISTS `current_defaulter`;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50020 DEFINER=`bart2`@`%`*/ /*!50003 FUNCTION `current_defaulter`(my_patient_id INT, my_end_date DATETIME) RETURNS int(1)
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_defaulter`(my_patient_id INT, my_end_date DATETIME) RETURNS int(1)
 BEGIN
 	DECLARE done INT DEFAULT FALSE;
 	DECLARE my_start_date, my_expiry_date, my_obs_datetime DATETIME;
@@ -390,7 +390,7 @@ BEGIN
 			AND d.quantity > 0
 			AND o.voided = 0
 			AND o.start_date <= my_end_date
-			AND o.patient_id = my_patient_id;
+			AND o.patient_id = my_patient_id
 		GROUP BY o.patient_id;
 
 
