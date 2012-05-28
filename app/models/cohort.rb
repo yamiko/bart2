@@ -830,7 +830,7 @@ class Cohort
     regimen_hash = {}
     @art_defaulters ||= self.art_defaulted_patients
     @patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
-    patient_ids = @patients_alive_and_on_art.map(&:patient_id)
+    patient_ids = @patients_alive_and_on_art
     patient_ids = [0] if patient_ids.blank?
 
     dispensing_encounter_id = EncounterType.find_by_name("DISPENSING").id
@@ -928,7 +928,7 @@ class Cohort
 	def patients_with_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
 		@art_defaulters ||= self.art_defaulted_patients
 		@patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
-		patient_ids = @patients_alive_and_on_art.map(&:patient_id)
+		patient_ids = @patients_alive_and_on_art
     patient_ids = [0] if patient_ids.blank?
     
 		doses_missed_concept = ConceptName.find_by_name("MISSED HIV DRUG CONSTRUCT").concept_id
@@ -948,7 +948,7 @@ class Cohort
 	def patients_not_adherent_at_their_last_visit(start_date = @start_date, end_date = @end_date)
 		@art_defaulters ||= self.art_defaulted_patients
 		@patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
-		patient_ids = @patients_alive_and_on_art.map(&:patient_id)
+		patient_ids = @patients_alive_and_on_art
     patient_ids = [0] if patient_ids.blank?
    
 		art_adherence_concept = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
@@ -971,7 +971,7 @@ class Cohort
 	def patients_adherent_at_their_last_visit(start_date = @start_date, end_date = @end_date)
 		@art_defaulters ||= self.art_defaulted_patients
 		@patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
-		patient_ids = @patients_alive_and_on_art.map(&:patient_id)
+		patient_ids = @patients_alive_and_on_art
     patient_ids = [0] if patient_ids.blank?
    
 		art_adherence_concept = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
@@ -1093,7 +1093,7 @@ class Cohort
 		on_art_concept_name = ConceptName.find_all_by_name('On antiretrovirals')
 
     @patients_alive_and_on_art ||= self.total_alive_and_on_art
-    patient_ids = @patients_alive_and_on_art.map(&:patient_id)
+    patient_ids = @patients_alive_and_on_art
 
     patient_ids = [0] if patient_ids.blank?
 
