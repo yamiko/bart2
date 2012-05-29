@@ -5,7 +5,9 @@ failure = File.open("failure_id.DAT", 'w')
 
 puts "00.00%  [#{'-'*100}]"
 
-obs=Observation.find(:all, :conditions=>["concept_id IN (6131, 1755, 1547, 507, 7752, 7937) AND value_text IS NOT NULL"])
+obs=Observation.find(:all,
+                     :conditions => ["concept_id IN (?) AND value_text IS NOT NULL",
+                                     [6131, 1755, 1547, 507, 7752, 7937, 42, 2624]])
 
 total=Hash.new(0)
 progress = obs.length
