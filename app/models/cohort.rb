@@ -334,15 +334,15 @@ class Cohort
 	                                        cohort_report['Newly registered children'] +
 	                                        cohort_report['Newly registered infants'])
 	                                        
-		current_episode = cohort_report['Current episode of TB'].map{|p| p.patient_id} rescue []
-		total_current_episode = cohort_report['Total Current episode of TB'].map{|p| p.patient_id} rescue []
+		current_episode = cohort_report['Current episode of TB']
+		total_current_episode = cohort_report['Total Current episode of TB']
 		
 		
-		cohort_report['TB within the last 2 years'] = cohort_report['TB within the last 2 years'].delete_if{ |p| current_episode.include?(p.patient_id) } rescue []
-		cohort_report['Total TB within the last 2 years'] = cohort_report['Total TB within the last 2 years'].delete_if{ |p| current_episode.include?(p.patient_id) } rescue []		
+		cohort_report['TB within the last 2 years'] = cohort_report['TB within the last 2 years'] - current_episode
+		cohort_report['Total TB within the last 2 years'] = cohort_report['Total TB within the last 2 years'] - current_episode		
 		
-		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (current_episode.size + cohort_report['TB within the last 2 years'].size))	
-		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (total_current_episode.size + cohort_report['Total TB within the last 2 years'].size))	
+		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (current_episode + cohort_report['TB within the last 2 years']))	
+		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (total_current_episode + cohort_report['Total TB within the last 2 years']))	
 
 		#cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_quarterly)
 		#cohort_report['Total Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_cumulative)
