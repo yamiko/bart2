@@ -37,6 +37,52 @@ class Cohort
     @patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
 		threads = []
 
+		threads << Thread.new do
+				begin
+					cohort_report['Total Presumed severe HIV disease in infants'] = []
+					cohort_report['Total Confirmed HIV infection in infants (PCR)'] = []
+					cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] = []
+					cohort_report['Total WHO stage 2, total lymphocytes'] = []
+					cohort_report['Total Unknown reason'] = []
+					cohort_report['Total WHO stage 3'] = []
+					cohort_report['Total WHO stage 4'] = []
+					cohort_report['Total Patient pregnant'] = []
+					cohort_report['Total Patient breastfeeding'] = []
+					cohort_report['Total HIV infected'] = []
+
+					( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | collection_reason |
+
+						reason = ''
+						if !collection_reason.name.blank?
+							reason = collection_reason.name
+						end
+
+						if reason.match(/Presumed/i)
+							cohort_report['Total Presumed severe HIV disease in infants'] << collection_reason.patient_id
+						elsif reason.match(/Confirmed/i) or reason.match(/HIV DNA polymerase chain reaction/i)
+							cohort_report['Total Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
+						elsif reason.match(/WHO STAGE I /i) or reason.match(/CD/i)
+							cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+						elsif reason.match(/WHO STAGE II /i) or reason.match(/lymphocyte/i)
+							cohort_report['Total WHO stage 2, total lymphocytes'] << collection_reason.patient_id
+						elsif reason.match(/WHO STAGE III /i)
+							cohort_report['Total WHO stage 3'] << collection_reason.patient_id
+						elsif reason.match(/WHO STAGE IV /i)
+							cohort_report['Total WHO stage 4'] << collection_reason.patient_id
+						elsif reason.strip.humanize == 'Patient pregnant'
+							cohort_report['Total Patient pregnant'] << collection_reason.patient_id
+						elsif reason.match(/Breastfeeding/i)
+							cohort_report['Total Patient breastfeeding'] << collection_reason.patient_id
+						elsif reason.strip.upcase == 'HIV INFECTED'
+							cohort_report['Total HIV infected'] << collection_reason.patient_id
+						else 
+							cohort_report['Total Unknown reason'] << collection_reason.patient_id
+						end
+					end
+				rescue Exception => e
+					Thread.current[:exception] = e
+				end
+		end
 
 		threads << Thread.new do
 				begin
@@ -47,7 +93,7 @@ class Cohort
 					cohort_report['Patients initiated on ART'] = self.patients_initiated_on_art_first_time
 					cohort_report['Total Patients initiated on ART'] = self.patients_initiated_on_art_first_time(@@first_registration_date)
 				rescue Exception => e
-						Thread.current[:exception] = e
+					Thread.current[:exception] = e
 				end
 		end
 
@@ -61,7 +107,7 @@ class Cohort
 					cohort_report['Newly registered women (non-pregnant)'] = self.non_pregnant_women(@start_date, @end_date)
 					cohort_report['Total registered women (non-pregnant)'] = self.non_pregnant_women(@@first_registration_date, @end_date)
 				rescue Exception => e
-						Thread.current[:exception] = e
+					Thread.current[:exception] = e
 				end
 		end
 
@@ -72,7 +118,7 @@ class Cohort
 					cohort_report['Total registered women (pregnant)'] = self.pregnant_women(@@first_registration_date, @end_date)
 
 				rescue Exception => e
-						Thread.current[:exception] = e
+					Thread.current[:exception] = e
 				end
 		end
 
@@ -82,7 +128,7 @@ class Cohort
 					cohort_report['Newly registered adults'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 5479, 109500)
 					cohort_report['Total registered adults'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 5479, 109500)
 				rescue Exception => e
-						Thread.current[:exception] = e
+					Thread.current[:exception] = e
 				end
 		end
 
@@ -93,7 +139,7 @@ class Cohort
 					cohort_report['Newly registered children'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 731, 5479)
 					cohort_report['Total registered children'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 731, 5479)
 				rescue Exception => e
-						Thread.current[:exception] = e
+					Thread.current[:exception] = e
 				end
 		end
 
@@ -104,7 +150,7 @@ class Cohort
 					cohort_report['Total registered infants'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 0, 731)
 
 				rescue Exception => e
-						Thread.current[:exception] = e
+					Thread.current[:exception] = e
 				end
 		end
 
@@ -177,9 +223,9 @@ class Cohort
 				end
 	
 
-		  rescue Exception => e
-		    Thread.current[:exception] = e
-		  end
+			rescue Exception => e
+				Thread.current[:exception] = e
+			end
 		end
 		threads << Thread.new do
 			begin
@@ -284,16 +330,15 @@ class Cohort
 			end
 		end
 
-    threads << Thread.new do
-      begin
-        logger.info("adherence " + Time.now.to_s)
-        cohort_report['Patients with 0 - 6 doses missed at their last visit'] = self.patients_with_0_to_6_doses_missed_at_their_last_visit
-        cohort_report['Patients with 7+ doses missed at their last visit'] = self.patients_with_7_plus_doses_missed_at_their_last_visit
-
-      rescue Exception => e
-        Thread.current[:exception] = e
-      end
-    end
+		threads << Thread.new do
+			begin
+				logger.info("adherence " + Time.now.to_s)
+				cohort_report['Patients with 0 - 6 doses missed at their last visit'] = self.patients_with_0_to_6_doses_missed_at_their_last_visit
+				cohort_report['Patients with 7+ doses missed at their last visit'] = self.patients_with_7_plus_doses_missed_at_their_last_visit
+			rescue Exception => e
+				Thread.current[:exception] = e
+			end
+		end
 
 		threads << Thread.new do
 			begin
@@ -326,13 +371,13 @@ class Cohort
                                                       cohort_report['Patients reinitiated on ART'] -
                                                       cohort_report['Patients initiated on ART'])
                                                      		
-	  cohort_report['Total Unknown age'] = cohort_report['Total registered'] - (cohort_report['Total registered adults'] +
-	                                        cohort_report['Total registered children'] +
-	                                        cohort_report['Total registered infants'])
-	  
-	  cohort_report['New Unknown age'] = cohort_report['Newly total registered']-(cohort_report['Newly registered adults'] +
-	                                        cohort_report['Newly registered children'] +
-	                                        cohort_report['Newly registered infants'])
+		cohort_report['Total Unknown age'] = cohort_report['Total registered'] - (cohort_report['Total registered adults'] +
+				                            cohort_report['Total registered children'] +
+				                            cohort_report['Total registered infants'])
+
+		cohort_report['New Unknown age'] = cohort_report['Newly total registered']-(cohort_report['Newly registered adults'] +
+				                            cohort_report['Newly registered children'] +
+				                            cohort_report['Newly registered infants'])
 	                                        
 		current_episode = cohort_report['Current episode of TB']
 		total_current_episode = cohort_report['Total Current episode of TB']
@@ -347,26 +392,12 @@ class Cohort
 		#cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_quarterly)
 		#cohort_report['Total Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_cumulative)
 
-    cohort_report['Unknown outcomes'] = cohort_report['Total registered'] -
-                                        (cohort_report['Total alive and on ART'] +
-                                          cohort_report['Defaulted'] +
-                                          cohort_report['Died total'] +
-                                          cohort_report['Stopped taking ARVs'] +
-                                          cohort_report['Transferred out'])
-=begin  
-    total_patients_on_known_arv_drugs ||= 0
-		valide_regimens ||= ['1A', '1P', '2A', '2P', '3A', '3P', '4A', '4P', '5A', '6A', '7A', '8A', '9P']
-    cohort_report['Regimens'].each {|key, value| total_patients_on_known_arv_drugs+=value.length if valide_regimens.include?(key)}
-    
-    if cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG']
-    	cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] =cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'].length
-    else
-    	cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] 	= 0
-    end
-    
-    cohort_report['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] += (cohort_report['Total alive and on ART'] - total_patients_on_known_arv_drugs)
-=end
-
+		cohort_report['Unknown outcomes'] = cohort_report['Total registered'] -
+				                            (cohort_report['Total alive and on ART'] +
+				                              cohort_report['Defaulted'] +
+				                              cohort_report['Died total'] +
+				                              cohort_report['Stopped taking ARVs'] +
+				                              cohort_report['Transferred out'])
 		self.cohort = cohort_report
 		self.cohort
 	end
@@ -566,13 +597,19 @@ class Cohort
 =end
     
     	patients = []
-   		PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state 
-   									FROM earliest_start_date e
-										WHERE earliest_start_date <=  '#{@end_date}'
-										HAVING state = 7").reject{|t| defaulted_patients.include?(t.patient_id) }.each do | patient | 
-			patients << patient.patient_id
-		end
-        return patients   
+		  if @total_alive_and_on_art.blank?
+		 		PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state 
+		 									FROM earliest_start_date e
+											WHERE earliest_start_date <=  '#{@end_date}'
+											HAVING state = 7").reject{|t| defaulted_patients.include?(t.patient_id) }.each do | patient | 
+					patients << patient.patient_id
+				end
+				@total_alive_and_on_art = patients
+			else
+				patients = @total_alive_and_on_art
+			end
+
+			return patients  
 	end
 
 =begin
@@ -619,14 +656,21 @@ class Cohort
 
 	def art_defaulted_patients
 		patients = []
-		@art_defaulters ||= PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{@end_date}') AS def
-										FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
-										WHERE e.earliest_start_date <=  '#{@end_date}' AND p.dead=0
-										HAVING def = 1 AND current_state_for_program(patient_id, 1, '#{@end_date}') NOT IN (6, 2, 3)").each do | patient | 
-			patients << patient.patient_id
-		end
-        return patients   
+		if @art_defaulters.blank?
+			@art_defaulters ||= PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{@end_date}') AS def
+											FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
+											WHERE e.earliest_start_date <=  '#{@end_date}' AND p.dead=0
+											HAVING def = 1 AND current_state_for_program(patient_id, 1, '#{@end_date}') NOT IN (6, 2, 3)").each do | patient | 
+				patients << patient.patient_id
+			end
+			@art_defaulters = patients
+		else
+     patients = @art_defaulters
+    end
+    
+		return patients 
 	end
+
 
 	def art_stopped_patients
 				self.outcomes_total('Treatment stopped', @@first_registration_date)
