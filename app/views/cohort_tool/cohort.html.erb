@@ -74,7 +74,7 @@
 		border-left:0px;
 		margin-top:2px;
 		border-style:solid;
-		width:45%;
+		width:40%;
 		height:100%;
 		padding-left:10px;  	
   }
@@ -91,7 +91,7 @@
 		margin-top:2px;
 		margin-top:2px;
 		border-style:solid;
-		width:45%;
+		width:41%;
 		height:100%;
 		padding-right:10px; 
   }
@@ -143,6 +143,11 @@
 	  width:68px;
 	  padding-left:5px;
 	}
+	
+	td.bg {
+   background-color:lightgrey;
+   -moz-user-select:none;
+   }
 		
 </style>
 
@@ -157,11 +162,11 @@
 <table class='dataTable' cellspacing='0'>
 <thead>
 <tr>
-  <th width="30px">&nbsp;</th>
-  <th style = "text-align:left;">Patient's registration details</th>
-  <th width="30%">Newly registered in quarter <br /> <span class="clinic_own_data" >Clinic own data*</span> <span class="checked_data" >Checked data<span></th>
-  <th width="10px">&nbsp;</th>
-  <th width="30%">Cumulative ever registered <br />  <span class="clinic_own_data">Clinic own data*</span> <span class="checked_data"  >Checked data<span></th>
+  <td width="30px" class="bg">&nbsp;</td>
+  <td style = "text-align:left;" class="bg">Patient's registration details</td>
+  <td width="20%" class="bg">Newly registered <br />in quarter<br /><span class="clinic_own_data" >Clinic <br /> own<br /> data*</span> <span class="checked_data" >Checked<br /> data<span></td>
+  <td width="10px" class="bg" >&nbsp;</td>
+  <td width="20%" class="bg" >Cumulative <br /> ever registered <br />  <span class="clinic_own_data">Clinic <br /> own<br /> data*</span> <span class="checked_data"  >Checked<br /> data<span></td>
 </tr>
 </thead>
 <tbody>
