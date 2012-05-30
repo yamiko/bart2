@@ -597,13 +597,19 @@ class Cohort
 =end
     
     	patients = []
-   		PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state 
-   									FROM earliest_start_date e
-										WHERE earliest_start_date <=  '#{@end_date}'
-										HAVING state = 7").reject{|t| defaulted_patients.include?(t.patient_id) }.each do | patient | 
-			patients << patient.patient_id
-		end
-        return patients   
+		  if @total_alive_and_on_art.blank?
+		 		PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state 
+		 									FROM earliest_start_date e
+											WHERE earliest_start_date <=  '#{@end_date}'
+											HAVING state = 7").reject{|t| defaulted_patients.include?(t.patient_id) }.each do | patient | 
+					patients << patient.patient_id
+				end
+				@total_alive_and_on_art = patients
+			else
+				patients = @total_alive_and_on_art
+			end
+
+			return patients  
 	end
 
 =begin
@@ -650,14 +656,21 @@ class Cohort
 
 	def art_defaulted_patients
 		patients = []
-		@art_defaulters ||= PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{@end_date}') AS def
-										FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
-										WHERE e.earliest_start_date <=  '#{@end_date}' AND p.dead=0
-										HAVING def = 1 AND current_state_for_program(patient_id, 1, '#{@end_date}') NOT IN (6, 2, 3)").each do | patient | 
-			patients << patient.patient_id
-		end
-        return patients   
+		if @art_defaulters.blank?
+			@art_defaulters ||= PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{@end_date}') AS def
+											FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
+											WHERE e.earliest_start_date <=  '#{@end_date}' AND p.dead=0
+											HAVING def = 1 AND current_state_for_program(patient_id, 1, '#{@end_date}') NOT IN (6, 2, 3)").each do | patient | 
+				patients << patient.patient_id
+			end
+			@art_defaulters = patients
+		else
+     patients = @art_defaulters
+    end
+    
+		return patients 
 	end
+
 
 	def art_stopped_patients
 				self.outcomes_total('Treatment stopped', @@first_registration_date)
