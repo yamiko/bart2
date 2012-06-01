@@ -1257,30 +1257,39 @@ class ApplicationController < GenericApplicationController
        :conditions =>["patient_state.voided = 0 AND p.voided = 0                
        AND p.program_id = ? AND start_date <= ? AND p.patient_id =?",           
        program_id,visit_date.to_date,patient_obj.id],                           
-       :order => "patient_state_id DESC")                                       
+       :order => "start_date DESC, date_created DESC")                                       
                                                                                 
      return if patient_state.blank?                                             
      ConceptName.find_by_concept_id(patient_state.program_workflow_state.concept_id).name
   end
   
-  def require_hiv_clinic_registration(patient_obj = nil)
-    patient = patient_obj || find_patient
-    hiv_clinic_registration = Encounter.find(:first,:conditions =>["patient_id = ? 
-                  AND encounter_type = ?",patient.id,
-                  EncounterType.find_by_name("HIV CLINIC REGISTRATION").id],
-                  :order =>'encounter_datetime DESC,date_created DESC')
+	def require_hiv_clinic_registration(patient_obj = nil)
+		require_registration = false
+		patient = patient_obj || find_patient
 
-    return true if hiv_clinic_registration.blank?
+		hiv_clinic_registration = Encounter.find(:first,:conditions =>["patient_id = ? 
+		              AND encounter_type = ?",patient.id,
+		              EncounterType.find_by_name("HIV CLINIC REGISTRATION").id],
+		              :order =>'encounter_datetime DESC,date_created DESC')
 
-    current_outcome = latest_state(patient,Date.today) || ""
-    on_art_before = has_patient_been_on_art_before(patient)
-    
-    if current_outcome.match(/Transferred out/i)
-      return on_art_before ? false : true
-    # else
-    #  return on_art_before ? false : true
-    end
-    return false
-  end
+		require_registration = true if hiv_clinic_registration.blank?
+	
+		if !require_registration
+			session_date = session[:datetime].to_date rescue Date.today
+
+			current_outcome = latest_state(patient, session_date) || ""
+
+			on_art_before = has_patient_been_on_art_before(patient)
+
+			if current_outcome.match(/Transferred out/i)
+				if on_art_before
+					require_registration = false
+				else
+					require_registration = true
+				end
+			end
+		end
+		return require_registration
+	end
 
 end
