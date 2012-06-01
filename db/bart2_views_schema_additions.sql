@@ -443,6 +443,7 @@ DROP FUNCTION IF EXISTS `current_state_for_program`;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_state_for_program`(my_patient_id INT, my_program_id INT, my_end_date DATETIME) RETURNS int(11)
 BEGIN
+  SET @state_id = NULL;
 	SELECT  patient_program_id INTO @patient_program_id FROM patient_program 
 			WHERE patient_id = my_patient_id 
 				AND program_id = my_program_id 
@@ -474,7 +475,7 @@ DROP FUNCTION IF EXISTS `current_text_for_obs`;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_text_for_obs`(my_patient_id INT, my_encounter_type_id INT, my_concept_id INT, my_end_date DATETIME) RETURNS VARCHAR(255)
 BEGIN
-
+  SET @obs_value = NULL;
 	SELECT encounter_id INTO @encounter_id FROM encounter 
 		WHERE encounter_type = my_encounter_type_id 
 			AND voided = 0
@@ -525,7 +526,7 @@ DROP FUNCTION IF EXISTS `current_value_for_obs`;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_value_for_obs`(my_patient_id INT, my_encounter_type_id INT, my_concept_id INT, my_end_date DATETIME) RETURNS int(11)
 BEGIN
-
+  SET @obs_value_coded = NULL;
 	SELECT encounter_id INTO @encounter_id FROM encounter 
 		WHERE encounter_type = my_encounter_type_id 
 			AND voided = 0
