@@ -565,7 +565,7 @@ module PatientService
     inactive_identifier = PatientIdentifier.inactive(:first,:order => 'date_created DESC',
                            :conditions => ['identifier_type = ? AND patient_id = ?',PatientIdentifierType.
                            find_by_name("Archived filing number").patient_identifier_type_id,
-                            archived_patient.person.id]).identifier
+                            archived_patient.person.id]).identifier rescue nil
     old_archive_filing_number = patient_printing_filing_number_label(inactive_identifier)
     
     unless archived_patient.blank?
