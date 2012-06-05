@@ -573,7 +573,7 @@ BEGIN
 			AND encounter_datetime <= ADDDATE(DATE(my_earliest_start_date), 1) 
 		ORDER BY encounter_datetime DESC LIMIT 1;
 
-	IF my_encounter_id = NULL
+	IF my_encounter_id IS NULL THEN
 		SELECT encounter_id INTO my_encounter_id FROM encounter 
 			WHERE encounter_type = my_encounter_type_id 
 				AND voided = 0
