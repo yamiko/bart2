@@ -549,7 +549,7 @@ class Cohort
 			concept_ids = [concept_ids] if concept_ids.class != Array
       
       concept_ids.each do | concept |
-        Observation.find_by_sql("SELECT DISTINCT patient_id, earliest_start_date, current_value_for_obs_at_initiation(patient_id, 52, '#{concept}', '#{end_date}') AS obs_value FROM earliest_start_date e  
+        Observation.find_by_sql("SELECT DISTINCT patient_id, earliest_start_date, current_value_for_obs_at_initiation(patient_id, earliest_start_date, 52, '#{concept}', '#{end_date}') AS obs_value FROM earliest_start_date e  
               WHERE earliest_start_date >= '#{start_date}'
               AND earliest_start_date <= '#{end_date}'
               HAVING obs_value = 1065").each do | patient | 
