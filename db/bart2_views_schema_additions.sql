@@ -558,19 +558,15 @@ DELIMITER ;
 
 DROP FUNCTION IF EXISTS `current_value_for_obs_at_initiation`;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_value_for_obs_at_initiation`(my_patient_id INT, my_encounter_type_id INT, my_concept_id INT, my_end_date DATETIME) RETURNS int(11)
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_value_for_obs_at_initiation`(my_patient_id INT, my_earliest_start_date DATETIME, my_encounter_type_id INT, my_concept_id INT, my_end_date DATETIME) RETURNS int(11)
 BEGIN
-	DECLARE my_earliest_start_date DATETIME;
 	DECLARE obs_value_coded, my_encounter_id INT;
-
-	SELECT earliest_start_date INTO my_earliest_start_date FROM earliest_start_date 
-		WHERE patient_id = my_patient_id;
 
 	SELECT encounter_id INTO my_encounter_id FROM encounter 
 		WHERE encounter_type = my_encounter_type_id 
 			AND voided = 0
 			AND patient_id = my_patient_id 
-			AND encounter_datetime <= ADDDATE(DATE(my_earliest_start_date), 1) 
+			AND encounter_datetime <= ADDDATE(DATE(my_earliest_start_date), 1)
 		ORDER BY encounter_datetime DESC LIMIT 1;
 
 	IF my_encounter_id IS NULL THEN
@@ -579,7 +575,8 @@ BEGIN
 				AND voided = 0
 				AND patient_id = my_patient_id 
 				AND encounter_datetime <= my_end_date 
-			ORDER BY encounter_datetime DESC LIMIT 1;
+                AND encounter_datetime >= ADDDATE(DATE(my_earliest_start_date), 1)
+			ORDER BY encounter_datetime LIMIT 1;
 	END IF;
 
 	SELECT value_coded INTO obs_value_coded FROM obs
