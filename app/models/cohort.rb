@@ -240,7 +240,7 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-				cohort_report['Died within the 1st month after ART initiation'] = self.total_number_of_died_within_range(0, 29)
+				cohort_report['Died within the 1st month after ART initiation'] = self.total_number_of_died_within_range(0, 30.4375)
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
@@ -248,7 +248,7 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-				cohort_report['Died within the 2nd month after ART initiation'] = self.total_number_of_died_within_range(29, 57)
+				cohort_report['Died within the 2nd month after ART initiation'] = self.total_number_of_died_within_range(30.4375, 60.875)
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
@@ -256,7 +256,7 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-				cohort_report['Died within the 3rd month after ART initiation'] = self.total_number_of_died_within_range(57, 85)
+				cohort_report['Died within the 3rd month after ART initiation'] = self.total_number_of_died_within_range(60.875, 91.3125)
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
@@ -264,7 +264,7 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-				cohort_report['Died after the end of the 3rd month after ART initiation'] = self.total_number_of_died_within_range(85, 1000000)
+				cohort_report['Died after the end of the 3rd month after ART initiation'] = self.total_number_of_died_within_range(91.3125, 1000000)
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
