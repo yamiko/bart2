@@ -240,7 +240,7 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-				cohort_report['Died within the 1st month after ART initiation'] = self.total_number_of_died_within_range(0, 29)
+				cohort_report['Died within the 1st month after ART initiation'] = self.total_number_of_died_within_range(0, 30.4375)
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
@@ -248,7 +248,7 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-				cohort_report['Died within the 2nd month after ART initiation'] = self.total_number_of_died_within_range(29, 57)
+				cohort_report['Died within the 2nd month after ART initiation'] = self.total_number_of_died_within_range(30.4375, 60.875)
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
@@ -256,7 +256,7 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-				cohort_report['Died within the 3rd month after ART initiation'] = self.total_number_of_died_within_range(57, 85)
+				cohort_report['Died within the 3rd month after ART initiation'] = self.total_number_of_died_within_range(60.875, 91.3125)
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
@@ -264,7 +264,7 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-				cohort_report['Died after the end of the 3rd month after ART initiation'] = self.total_number_of_died_within_range(85, 1000000)
+				cohort_report['Died after the end of the 3rd month after ART initiation'] = self.total_number_of_died_within_range(91.3125, 1000000)
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
@@ -541,25 +541,24 @@ class Cohort
 		self.patients_with_start_cause(start_date, end_date, [tb_concept_id, 2624])
 	end
 
-	def patients_with_start_cause(start_date = @start_date, end_date = @end_date, concept_id = nil)
+	def patients_with_start_cause(start_date = @start_date, end_date = @end_date, concept_ids = nil)
 		patients = []
 
-		if !concept_id.blank?
+		if !concept_ids.blank?
 
-			concept_id = [concept_id] if concept_id.class != Array
-		
-			cause_concept_id = ConceptName.find_by_name("WHO STG CRIT").concept_id
-				Observation.find_by_sql("SELECT DISTINCT person_id AS patient_id, earliest_start_date FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
-					WHERE encounter_id IN (SELECT encounter_id FROM obs 
-							WHERE concept_id = 7563 AND value_coded != 1107	AND voided = 0) 
-						AND concept_id IN (#{concept_id.join(',')})
-						AND voided = 0 AND value_coded = 1065
-						AND earliest_start_date >= '#{start_date}'
-						AND earliest_start_date <= '#{end_date}'").each do | patient | 
-				patients << patient.patient_id
-			end
+			concept_ids = [concept_ids] if concept_ids.class != Array
+      
+      concept_ids.each do | concept |
+        Observation.find_by_sql("SELECT DISTINCT patient_id, earliest_start_date, current_value_for_obs_at_initiation(patient_id, earliest_start_date, 52, '#{concept}', '#{end_date}') AS obs_value FROM earliest_start_date e  
+              WHERE earliest_start_date >= '#{start_date}'
+              AND earliest_start_date <= '#{end_date}'
+              HAVING obs_value = 1065").each do | patient | 
+          patients << patient.patient_id
+        end
+      end
 		end
-        return patients   
+    patients = patients.uniq
+    return patients   
 
 	end
 
