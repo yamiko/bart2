@@ -707,7 +707,8 @@ end
 		end
 
 		orders_made.each do |order|
-
+			#there is need to add pills that are left home as this is mainly for pills brought to the clinic
+			
 			previous_orders =	Observation.find_by_sql("SELECT dg.drug_inventory_id, dg.equivalent_daily_dose, o.order_id, o.concept_id, o.value_numeric FROM encounter e
 																										INNER JOIN obs o ON o.encounter_id = e.encounter_id
 																										INNER JOIN drug_order dg ON o.order_id = dg.order_id 
