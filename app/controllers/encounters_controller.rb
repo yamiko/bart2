@@ -692,11 +692,13 @@ end
 	
   def prescription_expiry_date(patient, dispensed_date)
     session_date = dispensed_date.to_date
-    
+
 		orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o| !MedicationService.arv(o.drug_order.drug) }
 
+    art_adherence_encounter_id = EncounterType.find_by_name('ART ADHERENCE').encounter_type_id
+
 		auto_expire_date = Date.today + 2.days
-		
+
 		if orders_made.blank?
 			orders_made = PatientService.drugs_given_on(patient, session_date)
 			auto_expire_date = orders_made.sort_by(&:auto_expire_date).first.auto_expire_date.to_date if !orders_made.blank?
@@ -705,13 +707,35 @@ end
 		end
 
 		orders_made.each do |order|
-				     amounts_dispensed = Observation.all(:conditions => ['concept_id = ? AND order_id = ?', 
-				                         ConceptName.find_by_name("AMOUNT DISPENSED").concept_id , order.id])
-				     total_dispensed = amounts_dispensed.sum{|amount| amount.value_numeric}
-				     prescription_duration = (total_dispensed/order.drug_order.equivalent_daily_dose).to_i
-				     expire_date = order.start_date.to_date + prescription_duration.days
 
-						 auto_expire_date = expire_date  if expire_date  < auto_expire_date
+			previous_orders =	Observation.find_by_sql("SELECT dg.drug_inventory_id, dg.equivalent_daily_dose, o.order_id, o.concept_id, o.value_numeric FROM encounter e
+																										INNER JOIN obs o ON o.encounter_id = e.encounter_id
+																										INNER JOIN drug_order dg ON o.order_id = dg.order_id 
+																								  WHERE encounter_type = #{art_adherence_encounter_id}
+																								  AND o.voided = 0
+																								  AND e.voided = 0
+																									AND o.concept_id IN (2540) ")
+
+			drug_inventory_id = ""
+			pills_missed_duration = ""
+
+			drug_inventory_id = DrugOrder.find_by_order_id(order.id).drug_inventory_id
+
+			previous_orders.each do |previous_order|
+				if previous_order.drug_inventory_id = drug_inventory_id
+					pills_missed_duration  = (previous_order.value_numeric.to_i/previous_order.equivalent_daily_dose.to_i)
+				end
+			end
+
+			amounts_dispensed = Observation.all(:conditions => ['concept_id = ? AND order_id = ?',
+ConceptName.find_by_name("AMOUNT DISPENSED").concept_id , order.id])
+			total_dispensed = amounts_dispensed.sum{|amount| amount.value_numeric}
+			prescription_duration =  (total_dispensed/order.drug_order.equivalent_daily_dose).to_i
+
+			expire_date = order.start_date.to_date + prescription_duration.days + pills_missed_duration.days
+
+			auto_expire_date = expire_date  if expire_date  > auto_expire_date
+
 		end
 		
 		return auto_expire_date - 2.days
