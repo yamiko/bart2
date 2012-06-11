@@ -126,6 +126,15 @@ class GenericDispensationsController < ApplicationController
       :value_drug => @drug_value,
       :value_numeric => params[:quantity],
       :obs_datetime => session_date || Time.now())
+
+    if params[:voided]
+      obs.voided = 1
+      obs.voided_by = params[:voided_by]
+      obs.date_voided = params[:date_voided]
+      obs.void_reason = params[:void_reason]
+      obs.save
+    end
+
     if obs.save
       @patient.patient_programs.find_last_by_program_id(Program.find_by_name("HIV PROGRAM")).transition(
                :state => "On antiretrovirals",:start_date => session_date || Time.now()) if MedicationService.arv(@drug) rescue nil
