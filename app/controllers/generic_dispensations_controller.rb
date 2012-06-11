@@ -127,11 +127,11 @@ class GenericDispensationsController < ApplicationController
       :value_numeric => params[:quantity],
       :obs_datetime => session_date || Time.now())
 
-    if params[:voided]
+    if params[:encounter][:voided]
       obs.voided = 1
-      obs.voided_by = params[:voided_by]
-      obs.date_voided = params[:date_voided]
-      obs.void_reason = params[:void_reason]
+      obs.voided_by = params[:encounter][:voided_by]
+      obs.date_voided = params[:encounter][:date_voided]
+      obs.void_reason = params[:encounter][:void_reason]
       obs.save
     end
 
