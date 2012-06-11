@@ -222,12 +222,12 @@ class GenericClinicController < ApplicationController
 
   def management_tab
     @reports = [
-      ["New stock","delivery"],
-      ["Edit stock","edit_stock"],
-      ["Print Barcode","print_barcode"],
-      ["Expiring drugs","date_select"],
-      ["Removed from shelves","date_select"],
-      ["Stock report","date_select"]
+      ["Enter receipts<br />(from warehouse)","delivery"],
+      ["Enter verified stock count<br />(supervision)","delivery?id=verification"],
+      ["Print<br />Barcode","print_barcode"],
+      ["Expiring<br />drugs","date_select"],
+      ["Enter drug relocation<br />(in or out) / disposal","edit_stock"],
+      ["Stock<br />report","date_select"]
     ]
     render :layout => false
   end
