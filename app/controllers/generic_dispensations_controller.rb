@@ -13,9 +13,6 @@ class GenericDispensationsController < ApplicationController
 	end
 
   def create
-  	order_id = nil
-  	obs_id = nil
-  	
     if (params[:identifier])
       params[:drug_id] = params[:identifier].match(/^\d+/).to_s
       params[:quantity] = params[:identifier].match(/\d+$/).to_s
@@ -158,7 +155,7 @@ class GenericDispensationsController < ApplicationController
             	redirect_to "/patients/treatment_dashboard?id=#{@patient.patient_id}&dispensed_order_id=#{@order_id}"	        	
 						end
           else
-
+=begin
 						if params[:voided]
 							drug_order = DrugOrder.find(@order.order_id)
 							drug_order.quantity -= obs.value_numeric
@@ -176,7 +173,7 @@ class GenericDispensationsController < ApplicationController
 							@order.void_reason = params[:void_reason]
 							@order.save
 						end
-
+=end
             render :text => 'complete' and return
           end
         else
