@@ -367,7 +367,7 @@ DELIMITER ;
 
 DROP FUNCTION IF EXISTS `current_defaulter`;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50020 DEFINER=`bart2`@`%`*/ /*!50003 FUNCTION `current_defaulter`(my_patient_id INT, my_end_date DATETIME) RETURNS int(1)
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_defaulter`(my_patient_id INT, my_end_date DATETIME) RETURNS int(1)
 BEGIN
 	DECLARE done INT DEFAULT FALSE;
 	DECLARE my_start_date, my_expiry_date, my_obs_datetime DATETIME;
@@ -390,7 +390,7 @@ BEGIN
 			AND d.quantity > 0
 			AND o.voided = 0
 			AND o.start_date <= my_end_date
-			AND o.patient_id = my_patient_id;
+			AND o.patient_id = my_patient_id
 		GROUP BY o.patient_id;
 
 
@@ -443,6 +443,7 @@ DROP FUNCTION IF EXISTS `current_state_for_program`;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_state_for_program`(my_patient_id INT, my_program_id INT, my_end_date DATETIME) RETURNS int(11)
 BEGIN
+  SET @state_id = NULL;
 	SELECT  patient_program_id INTO @patient_program_id FROM patient_program 
 			WHERE patient_id = my_patient_id 
 				AND program_id = my_program_id 
@@ -474,7 +475,7 @@ DROP FUNCTION IF EXISTS `current_text_for_obs`;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_text_for_obs`(my_patient_id INT, my_encounter_type_id INT, my_concept_id INT, my_end_date DATETIME) RETURNS VARCHAR(255)
 BEGIN
-
+  SET @obs_value = NULL;
 	SELECT encounter_id INTO @encounter_id FROM encounter 
 		WHERE encounter_type = my_encounter_type_id 
 			AND voided = 0
@@ -525,7 +526,7 @@ DROP FUNCTION IF EXISTS `current_value_for_obs`;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_value_for_obs`(my_patient_id INT, my_encounter_type_id INT, my_concept_id INT, my_end_date DATETIME) RETURNS int(11)
 BEGIN
-
+  SET @obs_value_coded = NULL;
 	SELECT encounter_id INTO @encounter_id FROM encounter 
 		WHERE encounter_type = my_encounter_type_id 
 			AND voided = 0
@@ -540,6 +541,51 @@ BEGIN
 				AND voided = 0 LIMIT 1;
 
 	RETURN @obs_value_coded;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+
+DROP FUNCTION IF EXISTS `current_value_for_obs_at_initiation`;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_value_for_obs_at_initiation`(my_patient_id INT, my_earliest_start_date DATETIME, my_encounter_type_id INT, my_concept_id INT, my_end_date DATETIME) RETURNS int(11)
+BEGIN
+	DECLARE obs_value_coded, my_encounter_id INT;
+
+	SELECT encounter_id INTO my_encounter_id FROM encounter 
+		WHERE encounter_type = my_encounter_type_id 
+			AND voided = 0
+			AND patient_id = my_patient_id 
+			AND encounter_datetime <= ADDDATE(DATE(my_earliest_start_date), 1)
+		ORDER BY encounter_datetime DESC LIMIT 1;
+
+	IF my_encounter_id IS NULL THEN
+		SELECT encounter_id INTO my_encounter_id FROM encounter 
+			WHERE encounter_type = my_encounter_type_id 
+				AND voided = 0
+				AND patient_id = my_patient_id 
+				AND encounter_datetime <= my_end_date 
+                AND encounter_datetime >= ADDDATE(DATE(my_earliest_start_date), 1)
+			ORDER BY encounter_datetime LIMIT 1;
+	END IF;
+
+	SELECT value_coded INTO obs_value_coded FROM obs
+			WHERE encounter_id = my_encounter_id
+				AND voided = 0 
+				AND concept_id = my_concept_id 
+				AND voided = 0 LIMIT 1;
+
+	RETURN obs_value_coded;
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;

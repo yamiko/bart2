@@ -236,17 +236,16 @@ private
   end
 
   def has_patient_been_on_art_before(patient)
-    patient_states = PatientProgram.find(:first, :joins => :location, 
-      :conditions => ["program_id = ? AND location.location_id = ? 
-      AND date_completed IS NULL AND patient_id = ?",      
+	on_art = false
+    patient_states = PatientProgram.find(:first, :conditions => ["program_id = ? AND location_id = ? AND patient_id = ?",      
       Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id, 
       Location.current_health_center,patient.id]).patient_states rescue []
+
     (patient_states || []).each do |state|
       if state.program_workflow_state.concept.fullname.match(/antiretrovirals/i)
-        return true
-        break
+        on_art = true
       end
     end
-    return false
+    return on_art
   end
 end

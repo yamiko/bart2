@@ -1,5 +1,6 @@
 class GenericClinicController < ApplicationController
   def index
+  	session[:cohort] = nil
     @facility = Location.current_health_center.name rescue ''
 
     @location = Location.find(session[:location_id]).name rescue ""
