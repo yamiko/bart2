@@ -13,9 +13,6 @@ class GenericDispensationsController < ApplicationController
 	end
 
   def create
-  	order_id = nil
-  	obs_id = nil
-  	
     if (params[:identifier])
       params[:drug_id] = params[:identifier].match(/^\d+/).to_s
       params[:quantity] = params[:identifier].match(/\d+$/).to_s
@@ -129,69 +126,55 @@ class GenericDispensationsController < ApplicationController
       :value_drug => @drug_value,
       :value_numeric => params[:quantity],
       :obs_datetime => session_date || Time.now())
-    if obs.save
-      @patient.patient_programs.find_last_by_program_id(Program.find_by_name("HIV PROGRAM")).transition(
-               :state => "On antiretrovirals",:start_date => session_date || Time.now()) if MedicationService.arv(@drug) rescue nil
 
-      @patient.patient_programs.find_last_by_program_id(Program.find_by_name("DIABETES PROGRAM")).transition(
-               :state => "On treatment",:start_date => session_date || Time.now()) if MedicationService.diabetes_medication(@drug) rescue nil
-               
-			@tb_programs = @patient.patient_programs.in_uncompleted_programs(['TB PROGRAM', 'MDR-TB PROGRAM'])
+    obs.save
 
-      if !@tb_programs.blank?
-        @patient.patient_programs.find_last_by_program_id(Program.find_by_name("TB PROGRAM")).transition(
-               :state => "Currently in treatment",:start_date => session_date || Time.now()) if   MedicationService.tb_medication(@drug)
+    if !params[:encounter].blank?
+      if params[:encounter][:voided]
+        obs.voided = params[:encounter][:voided]
+        obs.voided_by = params[:encounter][:voided_by]
+        obs.date_voided = params[:encounter][:date_voided]
+        obs.void_reason = params[:encounter][:void_reason]
+        obs.save
       end
+    end
 
-      unless @order.blank?
-        @order.drug_order.total_drug_supply(@patient, @encounter, session_date.to_date)
-        #checks if the prescription is satisfied
-        complete = dispensation_complete(@patient, @encounter, PatientService.current_treatment_encounter(@patient, session_date, user_person_id))
-        if complete
-          unless params[:location]
-          	if (CoreService.get_global_property_value('auto_set_appointment') rescue false) 
-		          start_date , end_date = DrugOrder.prescription_dates(@patient,session_date.to_date)
-		          redirect_to :controller => 'encounters',:action => 'new',
-		            :patient_id => @patient.id,:id =>"show",:encounter_type => "appointment" ,
-		            :select_date => 'NO'
-		        else
-            	redirect_to "/patients/treatment_dashboard?id=#{@patient.patient_id}&dispensed_order_id=#{@order_id}"	        	
-						end
-          else
+    @patient.patient_programs.find_last_by_program_id(Program.find_by_name("HIV PROGRAM")).transition(
+             :state => "On antiretrovirals",:start_date => session_date || Time.now()) if MedicationService.arv(@drug) rescue nil
 
-						if params[:voided]
-							drug_order = DrugOrder.find(@order.order_id)
-							drug_order.quantity -= obs.value_numeric
-							drug_order.save
+    @patient.patient_programs.find_last_by_program_id(Program.find_by_name("DIABETES PROGRAM")).transition(
+             :state => "On treatment",:start_date => session_date || Time.now()) if MedicationService.diabetes_medication(@drug) rescue nil
 
-							obs.voided = 1
-							obs.voided_by = params[:voided_by]
-							obs.date_voided = params[:date_voided]
-							obs.void_reason = params[:void_reason]
-							obs.save
+    @tb_programs = @patient.patient_programs.in_uncompleted_programs(['TB PROGRAM', 'MDR-TB PROGRAM'])
 
-							@order.voided = 1
-							@order.voided_by = params[:voided_by]
-							@order.date_voided = params[:date_voided]
-							@order.void_reason = params[:void_reason]
-							@order.save
-						end
+    if !@tb_programs.blank?
+      @patient.patient_programs.find_last_by_program_id(Program.find_by_name("TB PROGRAM")).transition(
+             :state => "Currently in treatment",:start_date => session_date || Time.now()) if   MedicationService.tb_medication(@drug)
+    end
 
-            render :text => 'complete' and return
-          end
+    @order.drug_order.total_drug_supply(@patient, @encounter, session_date.to_date)
+    
+    #checks if the prescription is satisfied
+    complete = dispensation_complete(@patient, @encounter, PatientService.current_treatment_encounter(@patient, session_date, user_person_id))
+    if complete
+      unless params[:location]
+        if (CoreService.get_global_property_value('auto_set_appointment') rescue false)
+          start_date, end_date = DrugOrder.prescription_dates(@patient,session_date.to_date)
+          redirect_to :controller => 'encounters',:action => 'new',
+            :patient_id => @patient.id,:id =>"show",:encounter_type => "appointment" ,
+            :select_date => 'NO'
         else
-          unless params[:location]
-            redirect_to "/patients/treatment_dashboard?id=#{@patient.patient_id}&dispensed_order_id=#{@order_id}"
-          else
-            render :text => 'complete' and return
-          end
+          redirect_to "/patients/treatment_dashboard?id=#{@patient.patient_id}&dispensed_order_id=#{@order_id}"
         end
       else
         render :text => 'complete' and return
       end
     else
-      flash[:error] = "Could not dispense the drug for the prescription"
-      redirect_to "/patients/treatment_dashboard/#{@patient.patient_id}"
+      unless params[:location]
+        redirect_to "/patients/treatment_dashboard?id=#{@patient.patient_id}&dispensed_order_id=#{@order_id}"
+      else
+        render :text => 'complete' and return
+      end
     end
   end  
   
