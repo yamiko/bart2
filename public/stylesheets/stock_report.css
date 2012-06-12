@@ -70,17 +70,17 @@ table{
   width:300px;
 }
 
-span {
+/*span {
   left:0;
   position:absolute;
   right:13px;
   text-align:left;
   top:120px;
   width:312px;
-}
+} */
 
 .keypadbutton{
-  width:55px;
+  /*width:55px;*/
 }
 
 .inner-data {
@@ -88,5 +88,5 @@ span {
 }
 
 #btnNext {
- width: 350px;
+ /*width: 350px;*/
 }

@@ -221,6 +221,13 @@
           }          
 
           var adherence = Math.round(100*(amount_given_last_time[i] - amount_remaining) / (amount_given_last_time[i] - expected_amount_remaining))
+
+
+          if (adherence > 100){                                           
+            adherence = 100 - (adherence - 100)                           
+          }  
+
+
           $('adherence_'+i).value = adherence;
 
 			    var drug_name = drug_names[i];
