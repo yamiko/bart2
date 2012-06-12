@@ -371,10 +371,10 @@ DELIMITER ;;
 BEGIN
 	DECLARE done INT DEFAULT FALSE;
 	DECLARE my_start_date, my_expiry_date, my_obs_datetime DATETIME;
-	DECLARE my_daily_dose, my_quantity INT;
-	DECLARE flag INT;
+	DECLARE my_daily_dose, my_quantity, my_pill_count, my_total_text, my_total_numeric DECIMAL;
+	DECLARE my_drug_id, flag INT;
 
-	DECLARE cur1 CURSOR FOR SELECT o.start_date, d.equivalent_daily_dose daily_dose, d.quantity, o.start_date FROM drug_order d
+	DECLARE cur1 CURSOR FOR SELECT d.drug_inventory_id, o.start_date, d.equivalent_daily_dose daily_dose, d.quantity, o.start_date FROM drug_order d
 		INNER JOIN arv_drug ad ON d.drug_inventory_id = ad.drug_id		
 		INNER JOIN orders o ON d.order_id = o.order_id
 			AND d.quantity > 0
@@ -393,14 +393,12 @@ BEGIN
 			AND o.patient_id = my_patient_id
 		GROUP BY o.patient_id;
 
-
-
 	OPEN cur1;
 
 	SET flag = 0;
 
 	read_loop: LOOP
-		FETCH cur1 INTO my_start_date, my_daily_dose, my_quantity, my_obs_datetime;
+		FETCH cur1 INTO my_drug_id, my_start_date, my_daily_dose, my_quantity, my_obs_datetime;
 
 		IF done THEN
 			CLOSE cur1;
@@ -408,7 +406,10 @@ BEGIN
 		END IF;
 
 		IF DATE(my_obs_datetime) = DATE(@obs_datetime) THEN
-			SET @expiry_date = ADDDATE(my_start_date, (my_quantity/my_daily_dose));
+
+            SET my_pill_count = drug_pill_count(my_patient_id, my_drug_id, my_obs_datetime);
+
+            SET @expiry_date = ADDDATE(my_start_date, ((my_quantity + my_pill_count)/my_daily_dose));
 
 			IF my_expiry_date IS NULL THEN
 				SET my_expiry_date = @expiry_date;
@@ -416,14 +417,75 @@ BEGIN
 
 			IF @expiry_date < my_expiry_date THEN
 				SET my_expiry_date = @expiry_date;
-				END IF;
-				END IF;
-			END LOOP;
+            END IF;
+        END IF;
+    END LOOP;
 
-			IF DATEDIFF(my_end_date, my_expiry_date) > 56 THEN
-				SET flag = 1;
-			END IF;
+    IF DATEDIFF(my_end_date, my_expiry_date) > 56 THEN
+        SET flag = 1;
+    END IF;
+
 	RETURN flag;
+END */;;
+DELIMITER ;
+
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+
+DROP FUNCTION IF EXISTS `drug_pill_count`;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `drug_pill_count`(my_patient_id INT, my_drug_id INT, my_date DATE) RETURNS DECIMAL
+BEGIN
+	DECLARE done INT DEFAULT FALSE;
+	DECLARE my_pill_count, my_total_text, my_total_numeric DECIMAL;
+
+	DECLARE cur1 CURSOR FOR SELECT SUM(ob.value_numeric), SUM(CAST(ob.value_text AS DECIMAL)) FROM obs ob
+                        INNER JOIN drug_order do ON ob.order_id = do.order_id
+                        INNER JOIN orders o ON do.order_id = o.order_id
+                    WHERE ob.person_id = my_patient_id 
+                        AND ob.concept_id = 2540 
+                        AND ob.voided = 0
+                        AND o.voided = 0
+                        AND do.drug_inventory_id = my_drug_id
+                        AND DATE(ob.obs_datetime) = my_date
+                    GROUP BY ob.person_id;
+
+	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+	OPEN cur1;
+
+	SET my_pill_count = 0;
+
+	read_loop: LOOP
+		FETCH cur1 INTO my_total_numeric, my_total_text;
+
+		IF done THEN
+			CLOSE cur1;
+			LEAVE read_loop;
+		END IF;
+
+        IF my_total_numeric IS NULL THEN
+            SET my_total_numeric = 0;
+        END IF;
+
+        IF my_total_text IS NULL THEN
+            SET my_total_text = 0;
+        END IF;
+
+        SET my_pill_count = my_total_numeric + my_total_text;
+    END LOOP;
+
+	RETURN my_pill_count;
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
