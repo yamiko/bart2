@@ -610,41 +610,40 @@ end
 	return within_limit
  end
 
- def suggested_date(prescription_expiry_date, holidays, bookings, clinic_days)
-    number_of_suggested_booked_dates_tried = 0
-    
-    skip = true
-    recommended_date = prescription_expiry_date
+	def suggested_date(prescription_expiry_date, holidays, bookings, clinic_days)
+		number_of_suggested_booked_dates_tried = 0
+
+		skip = true
+		recommended_date = prescription_expiry_date
 		nearest_clinic_day = nil
     
-    while skip
-      
-      clinic_days.each do |d|
-        if (d.to_s.upcase == recommended_date.strftime('%A').to_s.upcase)
-        	nearest_clinic_day = recommended_date if nearest_clinic_day.blank?
-          skip = is_holiday(recommended_date, holidays);
-          break
-        end
-      end
+		while skip
+			clinic_days.each do |d|
+			if (d.to_s.upcase == recommended_date.strftime('%A').to_s.upcase)
+				nearest_clinic_day = recommended_date if nearest_clinic_day.blank?
+				skip = is_holiday(recommended_date, holidays)
+				break
+			end
+		end
 
 
-      if (skip)
-        recommended_date = recommended_date - 1.day
-      else
-        below_limit = is_below_limit(recommended_date, bookings)
-        if (below_limit == false)
-          recommended_date = recommended_date - 1.day
-          skip = true
-        end
-      end
+		if (skip)
+			recommended_date = recommended_date - 1.day
+		else
+			below_limit = is_below_limit(recommended_date, bookings)
+			if (below_limit == false)
+				recommended_date = recommended_date - 1.day
+				skip = true
+			end
+		end
 
-      number_of_suggested_booked_dates_tried += 1
-      total_booked_dates = booked_dates.length rescue 0
+		number_of_suggested_booked_dates_tried += 1
+		total_booked_dates = booked_dates.length rescue 0
 
-      test = (number_of_suggested_booked_dates_tried > 4 && total_booked_dates > 0)
-      if test
-        recommended_date = nearest_clinic_day
-      end
+		test = (number_of_suggested_booked_dates_tried > 4 && total_booked_dates > 0)
+		if test
+			recommended_date = nearest_clinic_day
+		end
     end
 
     return recommended_date

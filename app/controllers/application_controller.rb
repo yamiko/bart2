@@ -754,7 +754,7 @@ class ApplicationController < GenericApplicationController
     encounters.each do | type |
 		type =type.squish
       encounter_available = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
-                                     patient.id,EncounterType.find_by_name(type).id,session_date],
+                                     patient.id,EncounterType.find_by_name(type).id, session_date],
                                      :order =>'encounter_datetime DESC,date_created DESC',:limit => 1) rescue nil
       
       # next if encounter_available.nil?
@@ -783,8 +783,8 @@ class ApplicationController < GenericApplicationController
           
           #if a nurse has refered a patient to a doctor/clinic 
           concept_id = ConceptName.find_by_name("Refer to ART clinician").concept_id
-          ob = Observation.find(:first,:conditions =>["person_id=? AND concept_id =?",
-              patient.id,concept_id],:order =>"obs_datetime DESC,date_created DESC")
+          ob = Observation.find(:first,:conditions =>["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",
+              patient.id, concept_id, session_date, session_date.to_s + ' 23:59:59'],:order =>"obs_datetime DESC, date_created DESC")
 
           refer_to_clinician = ob.to_s.squish.upcase == 'Refer to ART clinician: yes'.upcase
 
