@@ -610,41 +610,40 @@ end
 	return within_limit
  end
 
- def suggested_date(prescription_expiry_date, holidays, bookings, clinic_days)
-    number_of_suggested_booked_dates_tried = 0
-    
-    skip = true
-    recommended_date = prescription_expiry_date
+	def suggested_date(prescription_expiry_date, holidays, bookings, clinic_days)
+		number_of_suggested_booked_dates_tried = 0
+
+		skip = true
+		recommended_date = prescription_expiry_date
 		nearest_clinic_day = nil
     
-    while skip
-      
-      clinic_days.each do |d|
-        if (d.to_s.upcase == recommended_date.strftime('%A').to_s.upcase)
-        	nearest_clinic_day = recommended_date if nearest_clinic_day.blank?
-          skip = is_holiday(recommended_date, holidays);
-          break
-        end
-      end
+		while skip
+			clinic_days.each do |d|
+			if (d.to_s.upcase == recommended_date.strftime('%A').to_s.upcase)
+				nearest_clinic_day = recommended_date if nearest_clinic_day.blank?
+				skip = is_holiday(recommended_date, holidays)
+				break
+			end
+		end
 
 
-      if (skip)
-        recommended_date = recommended_date - 1.day
-      else
-        below_limit = is_below_limit(recommended_date, bookings)
-        if (below_limit == false)
-          recommended_date = recommended_date - 1.day
-          skip = true
-        end
-      end
+		if (skip)
+			recommended_date = recommended_date - 1.day
+		else
+			below_limit = is_below_limit(recommended_date, bookings)
+			if (below_limit == false)
+				recommended_date = recommended_date - 1.day
+				skip = true
+			end
+		end
 
-      number_of_suggested_booked_dates_tried += 1
-      total_booked_dates = booked_dates.length rescue 0
+		number_of_suggested_booked_dates_tried += 1
+		total_booked_dates = booked_dates.length rescue 0
 
-      test = (number_of_suggested_booked_dates_tried > 4 && total_booked_dates > 0)
-      if test
-        recommended_date = nearest_clinic_day
-      end
+		test = (number_of_suggested_booked_dates_tried > 4 && total_booked_dates > 0)
+		if test
+			recommended_date = nearest_clinic_day
+		end
     end
 
     return recommended_date
@@ -690,15 +689,13 @@ end
 		return suggested_date(prescription_expiry_date ,clinic_holidays, bookings, clinic_days)
 	end
 	
-  def prescription_expiry_date(patient, dispensed_date)
-    session_date = dispensed_date.to_date
-
+	def prescription_expiry_date(patient, dispensed_date)
+    	session_date = dispensed_date.to_date
+    
 		orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o| !MedicationService.arv(o.drug_order.drug) }
 
-    art_adherence_encounter_id = EncounterType.find_by_name('ART ADHERENCE').encounter_type_id
-
 		auto_expire_date = Date.today + 2.days
-
+		
 		if orders_made.blank?
 			orders_made = PatientService.drugs_given_on(patient, session_date)
 			auto_expire_date = orders_made.sort_by(&:auto_expire_date).first.auto_expire_date.to_date if !orders_made.blank?
@@ -707,36 +704,22 @@ end
 		end
 
 		orders_made.each do |order|
-			#there is need to add pills that are left home as this is mainly for pills brought to the clinic
-			
-			previous_orders =	Observation.find_by_sql("SELECT dg.drug_inventory_id, dg.equivalent_daily_dose, o.order_id, o.concept_id, o.value_numeric FROM encounter e
-																										INNER JOIN obs o ON o.encounter_id = e.encounter_id
-																										INNER JOIN drug_order dg ON o.order_id = dg.order_id 
-																								  WHERE encounter_type = #{art_adherence_encounter_id}
-																								  AND o.voided = 0
-																								  AND e.voided = 0
-																									AND o.concept_id IN (2540) ")
-
-			drug_inventory_id = ""
-			pills_missed_duration = ""
-
-			drug_inventory_id = DrugOrder.find_by_order_id(order.id).drug_inventory_id
-
-			previous_orders.each do |previous_order|
-				if previous_order.drug_inventory_id = drug_inventory_id
-					pills_missed_duration  = (previous_order.value_numeric.to_i/previous_order.equivalent_daily_dose.to_i)
-				end
-			end
-
-			amounts_dispensed = Observation.all(:conditions => ['concept_id = ? AND order_id = ?',
-ConceptName.find_by_name("AMOUNT DISPENSED").concept_id , order.id])
+			amounts_dispensed = Observation.all(:conditions => ['concept_id = ? AND order_id = ?', 
+						     ConceptName.find_by_name("AMOUNT DISPENSED").concept_id , order.id])
 			total_dispensed = amounts_dispensed.sum{|amount| amount.value_numeric}
-			prescription_duration =  (total_dispensed/order.drug_order.equivalent_daily_dose).to_i
+			
+			amounts_brought_to_clinic = Observation.all( :joins => 'INNER JOIN drug_order USING (order_id)', 
+				:conditions => ['obs.concept_id = ? AND drug_order.drug_inventory_id = ? AND obs.obs_datetime >= ? AND obs.obs_datetime <= ?', 
+						     ConceptName.find_by_name("AMOUNT OF DRUG BROUGHT TO CLINIC").concept_id , order.drug_order.drug_inventory_id, session_date.to_date, session_date.to_date.to_s + ' 23:59:59'])
 
-			expire_date = order.start_date.to_date + prescription_duration.days + pills_missed_duration.days
+			total_brought_to_clinic = amounts_brought_to_clinic.sum{|amount| amount.value_numeric}
+
+			total_brought_to_clinic = total_brought_to_clinic + amounts_brought_to_clinic.sum{|amount| (amount.value_text.to_f rescue 0)}
+
+			prescription_duration = ((total_dispensed + total_brought_to_clinic)/order.drug_order.equivalent_daily_dose).to_i
+			expire_date = order.start_date.to_date + prescription_duration.days
 
 			auto_expire_date = expire_date  if expire_date  > auto_expire_date
-
 		end
 		
 		return auto_expire_date - 2.days
