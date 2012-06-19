@@ -224,7 +224,11 @@
 
 
           if (adherence > 100){                                           
-            adherence = 100 - (adherence - 100)                           
+            adherence = 100 - (adherence - 100);
+          }  
+
+          if (adherence < 0){                                           
+            adherence = 0;
           }  
 
 
