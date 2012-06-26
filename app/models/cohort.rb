@@ -1141,8 +1141,8 @@ class Cohort
     side_effects_patients = Encounter.find_by_sql("SELECT e.patient_id FROM encounter e
                                                     INNER JOIN obs o ON o.encounter_id = e.encounter_id
                                                     WHERE e.encounter_type = #{hiv_clinic_consultation_encounter_id}
-                                                    AND e.patient_id IN(#{patient_ids.join(',')})
-                                                    AND o.value_coded IN (#{side_effect_concept_ids.join(',')}
+                                                    AND e.patient_id IN (#{patient_ids.join(',')})
+                                                    AND o.value_coded IN (#{side_effect_concept_ids.join(',')})
                                                     AND o.concept_id = #{drug_induced_side_effect_id}
                                                     AND o.voided = 0
                                                     AND e.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
