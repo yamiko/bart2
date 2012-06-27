@@ -13,7 +13,7 @@ def compare_encounters(bart1_encounter_type_id, bart2_encounter_type_id)
 		Encounter.find_by_sql("
 		SELECT b1e.encounter_id, b1e.patient_id, b1e.encounter_datetime,
 						b1e.encounter_type
-			FROM bart1.encounter b1e LEFT JOIN bart2.encounter b2e ON b2e.encounter_type = #{bart2_encounter_type_id}
+			FROM mpc_bart1_data.encounter b1e LEFT JOIN mpc_bart2_data.encounter b2e ON b2e.encounter_type = #{bart2_encounter_type_id}
 									AND b1e.patient_id = b2e.patient_id AND
 									b1e.encounter_datetime = b2e.encounter_datetime
 			WHERE b1e.encounter_type = #{bart1_encounter_type_id}
