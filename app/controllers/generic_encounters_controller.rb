@@ -1289,7 +1289,25 @@ class GenericEncountersController < ApplicationController
       
 			extracted_value_numerics = observation[:value_numeric]
 			extracted_value_coded_or_text = observation[:value_coded_or_text]
-
+      
+      #TODO : Added this block with Yam, but it needs some testing.
+      if params[:location]
+        if encounter.encounter_type == EncounterType.find_by_name("ART ADHERENCE").id
+          if observation[:order_id].blank? && observation[:concept_name] == "AMOUNT OF DRUG BROUGHT TO CLINIC"
+            order_id = Order.find(:first,
+                                  :select => "orders.order_id",
+                                  :joins => "INNER JOIN drug_order USING (order_id)",
+                                  :conditions => ["orders.patient_id = ? AND drug_order.drug_inventory_id = ? 
+                                                  AND orders.start_date < ?", encounter.patient_id, 
+                                                  observation[:value_drug], DATE(encounter.encounter_datetime)],
+                                  :order => "orders.start_date DESC").order_id rescue nil
+            if !order_id.blank?
+              observation[:order_id] = order_id
+            end
+          end
+        end
+      end
+      
 			if observation[:value_coded_or_text_multiple] && observation[:value_coded_or_text_multiple].is_a?(Array) && !observation[:value_coded_or_text_multiple].blank?
 				values = observation.delete(:value_coded_or_text_multiple)
 				values.each do |value| 
