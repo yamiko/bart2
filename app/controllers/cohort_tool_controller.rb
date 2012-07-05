@@ -602,6 +602,7 @@ class CohortToolController < GenericCohortToolController
   end
 
   def list_patients_details
+  
   	@report_url = "/cohort_tool/cohort?quarter=#{@quarter}"
     @report = []
     @quarter = params[:quarter]
@@ -620,12 +621,74 @@ class CohortToolController < GenericCohortToolController
 		@current_page = []
 		
 		if !data.nil?
-			@current_page = data.paginate(:page => params[:page], :per_page => 10)
+			@current_page = data.paginate(:page => params[:page], :per_page => 15)
 		end
 
 		@current_page.each do |patient_id|
 			patient = Patient.find(patient_id)
 			@report << PatientService.get_patient(patient.person) 
+			
+			#find start reason
+			session[:cohort]["start_reason"] = {} if session[:cohort]["start_reason"].blank?
+			
+			if !session[:cohort]["start_reason"][patient_id.to_s].blank?
+					#we already have the start reason  for the patient therefore no need for searching
+							
+			elsif session[:cohort]['Total Confirmed HIV infection in infants (PCR)'].include?(patient_id)
+					session[:cohort]["start_reason"][patient_id.to_s]	= 'Confirmed HIV infection in infants (PCR)'
+					
+			elsif session[:cohort]['Total Presumed severe HIV disease in infants'].include?(patient_id)
+					session[:cohort]["start_reason"][patient_id.to_s]	= 'Presumed severe HIV disease in infants'
+						
+			elsif session[:cohort]['Total WHO stage 1 or 2, CD4 below threshold'].include?(patient_id)
+					session[:cohort]["start_reason"][patient_id.to_s]	= 'WHO stage 1 or 2, CD4 below threshold'
+					
+			elsif session[:cohort]['Total WHO stage 2, total lymphocytes'].include?(patient_id)
+					session[:cohort]["start_reason"][patient_id.to_s]	= 'WHO stage 2, total lymphocytes'
+						
+			elsif session[:cohort]['Total Patient breastfeeding'].include?(patient_id)
+					session[:cohort]["start_reason"][patient_id.to_s]	= 'Patient breastfeeding'	
+					
+			elsif session[:cohort]['Total Patient pregnant'].include?(patient_id)
+					session[:cohort]["start_reason"][patient_id.to_s]	= 'Patient pregnant'	
+					
+			elsif session[:cohort]['Total Unknown reason'].include?(patient_id)
+					session[:cohort]["start_reason"][patient_id.to_s]	= 'Unknown reason'
+						
+			elsif session[:cohort]['Total WHO stage 4'].include?(patient_id)
+					session[:cohort]["start_reason"][patient_id.to_s]	= 'WHO stage 4'
+						
+			elsif session[:cohort]['Total HIV infected'].include?(patient_id)
+					session[:cohort]["start_reason"][patient_id.to_s]	= 'HIV infected'
+					
+			elsif session[:cohort]['Total WHO stage 3'].include?(patient_id)
+					session[:cohort]["start_reason"][patient_id.to_s]	= 'WHO stage 3'	
+			end
+			
+			#find patient outcome
+			session[:cohort]["outcomes"] = {} if session[:cohort]["outcomes"].blank?
+
+			if !session[:cohort]["outcomes"][patient_id.to_s].blank?
+					#we already have the outcome for the patient therefore no need for searching
+												
+			elsif session[:cohort]['Defaulted'].include?(patient_id)
+					session[:cohort]["outcomes"][patient_id.to_s]	= 'Defaulted'
+					
+			elsif session[:cohort]['Total alive and on ART'].include?(patient_id)
+					session[:cohort]["outcomes"][patient_id.to_s]	= 'Total alive and on ART'
+					
+			elsif session[:cohort]['Died total'].include?(patient_id)
+					session[:cohort]["outcomes"][patient_id.to_s]	= 'Patient died'
+
+			elsif session[:cohort]['Stopped taking ARVs'].include?(patient_id)
+					session[:cohort]["outcomes"][patient_id.to_s]	= 'Stopped taking ARVs'	
+					
+			elsif session[:cohort]['Unknown outcomes'].include?(patient_id)
+					session[:cohort]["outcomes"][patient_id.to_s]	= 'Unknown outcome'
+
+			elsif session[:cohort]['Transferred out'].include?(patient_id)
+					session[:cohort]["outcomes"][patient_id.to_s]	= 'Transferred out'
+			end								
 		end
 		
 		render :layout => 'patient_list'
