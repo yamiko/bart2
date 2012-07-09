@@ -3,6 +3,7 @@ production:
  use.user.selected.activities: yes
  filing.number.prefix: FN101,FN102
  auto_set_appointment: true
+ records_per_page : 15
 
 development:
  create_from_remote: no
@@ -10,6 +11,7 @@ development:
  filing.number.prefix: FN101,FN102
  auto_set_appointment: true
  show.patient.confirmation: true
+ records_per_page : 15
 
 test: &TEST
  create_from_remote: no
