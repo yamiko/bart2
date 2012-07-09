@@ -675,7 +675,7 @@ class CohortToolController < GenericCohortToolController
 					session[:cohort]["outcomes"][patient_id.to_s]	= 'Defaulted'
 					
 			elsif session[:cohort]['Total alive and on ART'].include?(patient_id)
-					session[:cohort]["outcomes"][patient_id.to_s]	= 'Total alive and on ART'
+					session[:cohort]["outcomes"][patient_id.to_s]	= 'Alive and on ART'
 					
 			elsif session[:cohort]['Died total'].include?(patient_id)
 					session[:cohort]["outcomes"][patient_id.to_s]	= 'Patient died'
