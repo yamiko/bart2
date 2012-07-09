@@ -607,19 +607,29 @@ class CohortToolController < GenericCohortToolController
     @report = []
     @quarter = params[:quarter]
     
+    
+    
 		key = session[:cohort].keys.sort.select { |k|
 						k.humanize.upcase == params[:field].humanize.upcase
 					}.first.to_s
-
+		
+		session[:cohort]["sorted"]={} if session[:cohort]["sorted"].blank?
+		
 		if params[:field] == "regimens"
 			type=params[:type].humanize.upcase
+			session[:cohort][key][type].sort!{ |a,b| PatientService.get_patient(Person.find(a)).arv_number.to_s <=>
+																		PatientService.get_patient(Person.find(b)).arv_number.to_s } if session[:cohort]["sorted"]["#{type}"].blank?
 			data=session[:cohort][key][type]
+			session[:cohort]["sorted"]["#{type}"] = true
 		else
+			session[:cohort][key].sort!{ |a,b| PatientService.get_patient(Person.find(a)).arv_number.to_s <=>
+																		PatientService.get_patient(Person.find(b)).arv_number.to_s } if session[:cohort]["sorted"]["#{key}"].blank?
 			data=session[:cohort][key]
+			session[:cohort]["sorted"]["#{key}"] = true
 		end
 		
 		@current_page = []
-		
+		 
 		if !data.nil?
 			@current_page = data.paginate(:page => params[:page], :per_page => 15)
 		end
