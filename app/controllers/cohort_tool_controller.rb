@@ -607,21 +607,32 @@ class CohortToolController < GenericCohortToolController
     @report = []
     @quarter = params[:quarter]
     
+    
+    
 		key = session[:cohort].keys.sort.select { |k|
 						k.humanize.upcase == params[:field].humanize.upcase
 					}.first.to_s
-
+		
+		session[:cohort]["sorted"]={} if session[:cohort]["sorted"].blank?
+		
 		if params[:field] == "regimens"
 			type=params[:type].humanize.upcase
+			session[:cohort][key][type].sort!{ |a,b| PatientService.get_patient(Person.find(a)).arv_number.to_s <=>
+																		PatientService.get_patient(Person.find(b)).arv_number.to_s } if session[:cohort]["sorted"]["#{type}"].blank?
 			data=session[:cohort][key][type]
+			session[:cohort]["sorted"]["#{type}"] = true
 		else
+			session[:cohort][key].sort!{ |a,b| PatientService.get_patient(Person.find(a)).arv_number.to_s <=>
+																		PatientService.get_patient(Person.find(b)).arv_number.to_s } if session[:cohort]["sorted"]["#{key}"].blank?
 			data=session[:cohort][key]
+			session[:cohort]["sorted"]["#{key}"] = true
 		end
 		
+		records_per_page = CoreService.get_global_property_value('records_per_page') rescue 15
 		@current_page = []
-		
+		 
 		if !data.nil?
-			@current_page = data.paginate(:page => params[:page], :per_page => 15)
+			@current_page = data.paginate(:page => params[:page], :per_page => records_per_page.to_i)
 		end
 
 		@current_page.each do |patient_id|
@@ -675,7 +686,7 @@ class CohortToolController < GenericCohortToolController
 					session[:cohort]["outcomes"][patient_id.to_s]	= 'Defaulted'
 					
 			elsif session[:cohort]['Total alive and on ART'].include?(patient_id)
-					session[:cohort]["outcomes"][patient_id.to_s]	= 'Total alive and on ART'
+					session[:cohort]["outcomes"][patient_id.to_s]	= 'Alive and on ART'
 					
 			elsif session[:cohort]['Died total'].include?(patient_id)
 					session[:cohort]["outcomes"][patient_id.to_s]	= 'Patient died'
