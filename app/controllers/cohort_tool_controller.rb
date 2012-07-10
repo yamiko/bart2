@@ -607,6 +607,10 @@ class CohortToolController < GenericCohortToolController
     @report = []
     @quarter = params[:quarter]
     
+    sort_value = CoreService.get_global_property_value("debugger_sorting_attribute") rescue "arv_number"
+    
+    data_type = "to_s"
+    data_type = "to_i" if ["age", "person_id", "patient_id"].include?(sort_value)
     
     
 		key = session[:cohort].keys.sort.select { |k|
@@ -615,15 +619,22 @@ class CohortToolController < GenericCohortToolController
 		
 		session[:cohort]["sorted"]={} if session[:cohort]["sorted"].blank?
 		
-		if params[:field] == "regimens"
+		if params[:field] == "regimens"	
 			type=params[:type].humanize.upcase
-			session[:cohort][key][type].sort!{ |a,b| PatientService.get_patient(Person.find(a)).arv_number.to_s <=>
-																		PatientService.get_patient(Person.find(b)).arv_number.to_s } if session[:cohort]["sorted"]["#{type}"].blank?
+			
+			session[:cohort][key][type].sort! do |a,b|
+				PatientService.get_patient(Person.find(a)).send(sort_value).send(data_type) <=>
+				PatientService.get_patient(Person.find(b)).send(sort_value).send(data_type)
+			end if session[:cohort]["sorted"]["#{type}"].blank?
+																		
 			data=session[:cohort][key][type]
-			session[:cohort]["sorted"]["#{type}"] = true
+			session[:cohort]["sorted"]["#{type}"] = true			
 		else
-			session[:cohort][key].sort!{ |a,b| PatientService.get_patient(Person.find(a)).arv_number.to_s <=>
-																		PatientService.get_patient(Person.find(b)).arv_number.to_s } if session[:cohort]["sorted"]["#{key}"].blank?
+			session[:cohort][key].sort! do |a,b|
+				PatientService.get_patient(Person.find(a)).send(sort_value).send(data_type) <=>
+				PatientService.get_patient(Person.find(b)).send(sort_value).send(data_type)
+			end if session[:cohort]["sorted"]["#{key}"].blank?
+			
 			data=session[:cohort][key]
 			session[:cohort]["sorted"]["#{key}"] = true
 		end

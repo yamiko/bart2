@@ -32,11 +32,7 @@
 	          <th>ID</th>
 	          <th>ARV Number</th>
 	          <th>Name</th>
-	          <!-- th>National ID</th -->
-	          <!-- th>Gender</th -->
 	          <th>Age</th>
-	          <!-- th>DOB</th -->
-	          <!-- th>Phone Number</th -->
 	          <th>Date Started</th>
 	          <th>Start Reason</th>
 	          <th>Outcome Status</th>
@@ -59,30 +55,11 @@
                                  :arv_start_number => "#{params[:arv_start_number]}",:arv_end_number => "#{params[:arv_end_number]}"}%></td>
                 <td align='center'><%= data_row.arv_number %></td>
                 <td><%= data_row.name %></td>
-                <!-- td align='center'><%= data_row.national_id_with_dashes %></td -->
-                <!-- td align='center'><%= data_row.sex %></td -->
                 <% if data_row.age > 0 %>
                   <td align='center'><%= data_row.age %></td>
                 <% else %>
                   <td align='center'><%= data_row.age_in_months %> Months</td>
-                <% end %>
-                <!-- td align='center'><%= data_row.birth_date %></td -->    
-                <%
-                  #phone_numbers = ""
-                  #patients_phone_numbers = []
-                
-                  #patients_phone_numbers = PatientService.phone_numbers(Person.find_by_person_id(data_row.person_id))
-                  #patients_phone_numbers.each do |phone_number|
-                  #  phone_numbers += '<span class="phone_number">' + phone_number.to_s + '</span>' + "<br />" if !phone_number.to_s.blank?
-                	#end
-                %>
-                <!-- td align='left'>
-                  Cell phone number: <%# PatientService.get_attribute(Person.find_by_person_id(data_row.person_id), 'Cell phone number') rescue nil %><br />
-                  Ground number: <%# PatientService.get_attribute(Person.find_by_person_id(data_row.person_id), 'Home phone number') rescue nil
-                  #%>
-                
-                </td -->
-
+                <% end %> 
                 <td align='center'><%= PatientService.patient_art_start_date(data_row.patient_id) %></td>
                 <td><%= "#{session[:cohort]["start_reason"][data_row.patient_id	.to_s]}" %></td>
                 <td><%= "#{session[:cohort]["outcomes"][data_row.patient_id	.to_s]}" %></td>
