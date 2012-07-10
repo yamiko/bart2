@@ -381,15 +381,12 @@ class Cohort
 
 		current_episode = cohort_report['Current episode of TB']
 		total_current_episode = cohort_report['Total Current episode of TB']
-		
-		tb_within_two_yrs = cohort_report['TB within the last 2 years']
-		total_tb_within_two_yrs =cohort_report['Total TB within the last 2 years']
 
-		cohort_report['TB within the last 2 years'] = tb_within_two_yrs - current_episode
-		cohort_report['Total TB within the last 2 years'] = total_tb_within_two_yrs - current_episode
+		cohort_report['TB within the last 2 years'] = cohort_report['TB within the last 2 years'] - current_episode
+		cohort_report['Total TB within the last 2 years'] = cohort_report['Total TB within the last 2 years'] - current_episode
 		
-		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (current_episode + total_current_episode))
-		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (total_current_episode + total_tb_within_two_yrs))
+		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (current_episode + cohort_report['TB within the last 2 years']))
+		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (total_current_episode + cohort_report['Total TB within the last 2 years']))
 
 		#cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_quarterly)
 		#cohort_report['Total Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_cumulative)
@@ -556,14 +553,14 @@ class Cohort
               WHERE earliest_start_date >= '#{start_date}'
               AND earliest_start_date <= '#{end_date}'
               HAVING obs_value = 1065").each do | patient | 
-          patients << patient.patient_id
+          patients << patient.patient_id.to_i
         end
 
         Observation.find_by_sql("SELECT DISTINCT patient_id, earliest_start_date, current_value_for_obs_at_initiation(patient_id, earliest_start_date, 52, '#{who_stg_crit_concept_id}', '#{end_date}') AS obs_value FROM earliest_start_date e  
               WHERE earliest_start_date >= '#{start_date}'
               AND earliest_start_date <= '#{end_date}'
               HAVING obs_value = '#{concept}'").each do | patient |
-          patients << patient.patient_id
+          patients << patient.patient_id.to_i
         end
       end
 
