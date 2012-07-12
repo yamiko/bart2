@@ -690,8 +690,8 @@ end
 		return suggested_date(prescription_expiry_date ,clinic_holidays, bookings, clinic_days)
 	end
 	
-  def prescription_expiry_date(patient, dispensed_date)
-    session_date = dispensed_date.to_date
+	def prescription_expiry_date(patient, dispensed_date)
+    	session_date = dispensed_date.to_date
     
 		orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o| !MedicationService.arv(o.drug_order.drug) }
 
@@ -705,13 +705,22 @@ end
 		end
 
 		orders_made.each do |order|
-				     amounts_dispensed = Observation.all(:conditions => ['concept_id = ? AND order_id = ?', 
-				                         ConceptName.find_by_name("AMOUNT DISPENSED").concept_id , order.id])
-				     total_dispensed = amounts_dispensed.sum{|amount| amount.value_numeric}
-				     prescription_duration = (total_dispensed/order.drug_order.equivalent_daily_dose).to_i
-				     expire_date = order.start_date.to_date + prescription_duration.days
+			amounts_dispensed = Observation.all(:conditions => ['concept_id = ? AND order_id = ?', 
+						     ConceptName.find_by_name("AMOUNT DISPENSED").concept_id , order.id])
+			total_dispensed = amounts_dispensed.sum{|amount| amount.value_numeric}
+			
+			amounts_brought_to_clinic = Observation.all( :joins => 'INNER JOIN drug_order USING (order_id)', 
+				:conditions => ['obs.concept_id = ? AND drug_order.drug_inventory_id = ? AND obs.obs_datetime >= ? AND obs.obs_datetime <= ?', 
+						     ConceptName.find_by_name("AMOUNT OF DRUG BROUGHT TO CLINIC").concept_id , order.drug_order.drug_inventory_id, session_date.to_date, session_date.to_date.to_s + ' 23:59:59'])
 
-						 auto_expire_date = expire_date  if expire_date  < auto_expire_date
+			total_brought_to_clinic = amounts_brought_to_clinic.sum{|amount| amount.value_numeric}
+
+			total_brought_to_clinic = total_brought_to_clinic + amounts_brought_to_clinic.sum{|amount| (amount.value_text.to_f rescue 0)}
+
+			prescription_duration = ((total_dispensed + total_brought_to_clinic)/order.drug_order.equivalent_daily_dose).to_i
+			expire_date = order.start_date.to_date + prescription_duration.days
+
+			auto_expire_date = expire_date  if expire_date  > auto_expire_date
 		end
 		
 		return auto_expire_date - 2.days
