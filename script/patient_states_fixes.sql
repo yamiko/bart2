@@ -183,7 +183,7 @@ UPDATE person
 
 DROP TABLE IF EXISTS `temp_patient_list`;
 
---Create Treatment Stopped states
+-- Create Treatment Stopped states
 INSERT INTO mpc_bart2_data.patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
     SELECT pp.patient_program_id, 6, o.obs_datetime, 1, NOW(), (SELECT UUID())
         FROM mpc_bart1_data.obs o LEFT JOIN mpc_bart2_data.patient_program pp ON o.patient_id = pp.patient_id AND pp.program_id = 1
