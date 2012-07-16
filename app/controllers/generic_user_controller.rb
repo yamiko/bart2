@@ -405,9 +405,9 @@ class GenericUserController < ApplicationController
   
 	def set_user_role
     # Don't show tasks that have been disabled
-    @user_id = params[:user_id]
+    @user = User.find(params[:user_id])
     @role=Role.find(:all).map(&:role)
-    @user_roles = UserRole.find(:all,:conditions =>["user_id = ?", @user_id]).map(&:role)
+    @user_roles = UserRole.find(:all,:conditions =>["user_id = ?", @user.user_id]).map(&:role)
   end
 
 	def set_role_role
