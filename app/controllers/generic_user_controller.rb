@@ -405,8 +405,9 @@ class GenericUserController < ApplicationController
   
 	def set_user_role
     # Don't show tasks that have been disabled
+    @user = User.find(params[:user_id])
     @role=Role.find(:all).map(&:role)
-    @user_roles = UserRole.find(:all,:conditions =>["user_id = ?", current_user.id]).map(&:role)
+    @user_roles = UserRole.find(:all,:conditions =>["user_id = ?", @user.user_id]).map(&:role)
   end
 
 	def set_role_role
@@ -414,23 +415,24 @@ class GenericUserController < ApplicationController
 	end
 	
   def change_role
+  	@user_id = params[:id]
   	new_roles = []
   	
   	new_roles = params[:user][:activities] if !params[:user][:activities].blank?
-  	current_roles = UserRole.find(:all,:conditions =>["user_id = ?", current_user.id]).map(&:role)
+  	current_roles = UserRole.find(:all,:conditions =>["user_id = ?", @user_id]).map(&:role)
 
   	removed_roles = current_roles - new_roles
   	new_roles -= current_roles
   	
   	new_roles.each do |r|
   		new_role = UserRole.new
-  		new_role.user_id = current_user.id
+  		new_role.user_id = @user_id
   		new_role.role = r
   		new_role.save
   	end
   	
   	removed_roles.each do |r|
-  		UserRole.delete_all(["user_id = ? AND role = ?", current_user.id, r])
+  		UserRole.delete_all(["user_id = ? AND role = ?", @user_id, r])
   	end
 		redirect_to '/clinic' and return
   end
@@ -463,5 +465,9 @@ class GenericUserController < ApplicationController
   		RoleRole.delete_all(["parent_role = ? AND child_role = ?", selected_role, r])
   	end
 		redirect_to '/clinic' and return
+  end
+  
+  def users
+  		@users = User.find(:all)
   end
 end
