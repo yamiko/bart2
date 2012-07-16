@@ -1359,5 +1359,33 @@ EOF
     id = self.get_national_id(patient, force)
     id[0..4] + "-" + id[5..8] + "-" + id[9..-1] rescue id
   end
+  
+  # Move orders, observations and encounters to new patient and 
+  # void names, addresses, attributes and identifiers of the old patient
+  def self.merge_patients(old_patient, new_patient)
+
+    old_patient.orders.each do |o|
+      o.patient = new_patient
+      o.save
+    end
+    
+    old_patient.person.observations.each do |obs|
+      obs.person_id = new_patient.person.person_id
+      obs.save
+    end
+    
+    old_patient.encounters.each do |o|
+      o.patient = new_patient
+      o.save
+    end
+    
+    void_reason = "Patient merged with #{new_patient.patient_id}"
+    old_patient.person.addresses.each { |pa|           pa.void(void_reason) }
+    old_patient.person.names.each { |pn|               pn.void(void_reason) }
+    old_patient.person.person_attributes.each { |pa|   pa.void(void_reason) }
+    old_patient.patient_identifiers.each { |pi|        pi.void(void_reason) }
+    old_patient.patient_programs.each { |pp|           pp.void(void_reason) }
+    
+  end
 
 end
