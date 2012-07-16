@@ -3,13 +3,13 @@
 </script>
 
 <style>
-  #tt_page_select_user_roles .options { height: 506px; }
+		.options { height: 506px; }
 </style>
 
 
-<form method = 'post' action = "/user/change_role/<%=@user_id%>">
+<form method = 'post' action = "/user/change_role/<%=@user.user_id%>">
   <%= select_tag 'user[activities][]',
       options_for_select(@role, @user_roles),
-      :helpText => "Select user roles",
+      :helpText => "Assign role(s) to #{@user.username.humanize}",
       :multiple =>  true %>
 </form>

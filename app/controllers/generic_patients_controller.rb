@@ -2669,6 +2669,29 @@ class GenericPatientsController < ApplicationController
     count = count.values unless count.blank?
     count = '0' if count.blank?
     render :text => "Next appointment: #{date.strftime('%d %B %Y')} (#{count})"
-  end 
+  end
+  
+  def merge
+    old_patient_id = params[:old_id]
+    new_patient_id = params[:new_id]
+    
+    old_patient = Patient.find old_patient_id
+    new_patient = Patient.find new_patient_id
+    
+    raise "Old patient does not exist" unless old_patient
+    raise "New patient does not exist" unless new_patient
+    
+    PatientService.merge_patients(old_patient, new_patient)
+    
+    # void patient
+    patient = old_patient.person
+    patient.void("Merged with patient #{new_patient_id}")
+    
+    # void person
+    person = old_patient.person
+    person.void("Merged with person #{new_patient_id}")
+    
+    render :text => 'Done'
+  end
 
 end
