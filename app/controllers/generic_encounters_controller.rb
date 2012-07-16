@@ -1349,13 +1349,15 @@ class GenericEncountersController < ApplicationController
       #TODO : Added this block with Yam, but it needs some testing.
       if params[:location]
         if encounter.encounter_type == EncounterType.find_by_name("ART ADHERENCE").id
-          if observation[:order_id].blank? && observation[:concept_name] == "AMOUNT OF DRUG BROUGHT TO CLINIC"
+          passed_concept_id = Concept.find_by_name(observation[:concept_name]).concept_id rescue -1
+          obs_concept_id = Concept.find_by_name("AMOUNT OF DRUG BROUGHT TO CLINIC").concept_id rescue -1
+          if observation[:order_id].blank? && passed_concept_id == obs_concept_id
             order_id = Order.find(:first,
                                   :select => "orders.order_id",
                                   :joins => "INNER JOIN drug_order USING (order_id)",
                                   :conditions => ["orders.patient_id = ? AND drug_order.drug_inventory_id = ? 
                                                   AND orders.start_date < ?", encounter.patient_id, 
-                                                  observation[:value_drug], DATE(encounter.encounter_datetime)],
+                                                  observation[:value_drug], encounter.encounter_datetime.to_date],
                                   :order => "orders.start_date DESC").order_id rescue nil
             if !order_id.blank?
               observation[:order_id] = order_id
