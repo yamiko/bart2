@@ -12,6 +12,7 @@ class Cohort
 	def initialize(start_date, end_date)
 		@start_date = start_date #"#{start_date} 00:00:00"
 		@end_date = "#{end_date} 23:59:59"
+		@patient_earliest_start_date = {}
 
 		@@first_registration_date = PatientProgram.find(
 		  :first,
@@ -397,6 +398,8 @@ class Cohort
 				                              cohort_report['Died total'] +
 				                              cohort_report['Stopped taking ARVs'] +
 				                              cohort_report['Transferred out'])
+		
+		cohort_report['Earliest_start_dates'] = @patient_earliest_start_date
 		self.cohort = cohort_report
 		self.cohort
 	end
@@ -404,7 +407,8 @@ class Cohort
 	def total_registered(start_date = @start_date, end_date = @end_date)
 		patients = []
 	  PatientProgram.find_by_sql("SELECT * FROM earliest_start_date 
-	    WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'").each do | patient | 
+	    WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'").each do | patient |
+	    @patient_earliest_start_date[patient.patient_id]= patient.earliest_start_date
 			patients << patient.patient_id
 		end
         return patients   

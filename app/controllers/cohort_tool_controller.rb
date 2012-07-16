@@ -684,7 +684,7 @@ class CohortToolController < GenericCohortToolController
 					session[:cohort]["start_reason"][patient_id.to_s]	= 'HIV infected'
 					
 			elsif session[:cohort]['Total WHO stage 3'].include?(patient_id)
-					session[:cohort]["start_reason"][patient_id.to_s]	= 'WHO stage 3'	
+					session[:cohort]["start_reason"][patient_id.to_s]	= 'WHO stage 3'
 			end
 			
 			#find patient outcome

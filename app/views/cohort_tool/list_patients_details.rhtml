@@ -33,7 +33,7 @@
 	          <th>ARV Number</th>
 	          <th>Name</th>
 	          <th>Age</th>
-	          <th>Date Started</th>
+	          <th>Earliest Start Date</th>
 	          <th>Start Reason</th>
 	          <th>Outcome Status</th>
 	      </tr>
@@ -60,9 +60,9 @@
                 <% else %>
                   <td align='center'><%= data_row.age_in_months %> Months</td>
                 <% end %> 
-                <td align='center'><%= PatientService.patient_art_start_date(data_row.patient_id) %></td>
+                <td align='center'><%= session[:cohort]["Earliest_start_dates"][data_row.patient_id] %></td>
                 <td><%= "#{session[:cohort]["start_reason"][data_row.patient_id	.to_s]}" %></td>
-                <td><%= "#{session[:cohort]["outcomes"][data_row.patient_id	.to_s]}" %></td>
+                <td><%= "#{session[:cohort]["outcomes"][data_row.patient_id.to_s]}" %></td>
                 
             </tr>
         <%end%>
