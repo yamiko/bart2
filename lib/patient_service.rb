@@ -1363,7 +1363,6 @@ EOF
   # Move orders, observations and encounters to new patient and 
   # void names, addresses, attributes and identifiers of the old patient
   def self.merge_patients(old_patient, new_patient)
-
     old_patient.orders.each do |o|
       o.patient = new_patient
       o.save
@@ -1385,7 +1384,6 @@ EOF
     old_patient.person.person_attributes.each { |pa|   pa.void(void_reason) }
     old_patient.patient_identifiers.each { |pi|        pi.void(void_reason) }
     old_patient.patient_programs.each { |pp|           pp.void(void_reason) }
-    
   end
 
 end
