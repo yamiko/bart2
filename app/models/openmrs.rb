@@ -43,6 +43,9 @@ module Openmrs
   def before_save
     super
     self.changed_by = User.current.id if self.attributes.has_key?("changed_by") and User.current != nil
+
+    self.changed_by = User.first if self.attributes.has_key?("changed_by") and User.current.nil?
+    
     self.date_changed = Time.now if self.attributes.has_key?("date_changed")
   end
 
