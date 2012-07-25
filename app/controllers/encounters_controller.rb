@@ -135,10 +135,11 @@ class EncountersController < GenericEncountersController
     	@tb_symptoms = []
 
 		if (params[:encounter_type].upcase rescue '') == 'TB_INITIAL'
+			current_weight = PatientService.get_patient_attribute_value(@patient, "current_weight", session_date)
 			tb_program = Program.find_by_name('TB Program')
-			@tb_regimen_array = MedicationService.regimen_options(tb_program.regimens, @patient_bean.age)
+			@tb_regimen_array = MedicationService.regimen_options(current_weight, tb_program)
 			tb_program = Program.find_by_name('MDR-TB Program')
-			@tb_regimen_array += MedicationService.regimen_options(tb_program.regimens, @patient_bean.age)
+			@tb_regimen_array += MedicationService.regimen_options(current_weight, tb_program)
 			@tb_regimen_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 		end
 
