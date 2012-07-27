@@ -385,7 +385,7 @@ class Cohort
 		total_current_episode = cohort_report['Total Current episode of TB']
 
 		cohort_report['TB within the last 2 years'] = cohort_report['TB within the last 2 years'] - current_episode
-		cohort_report['Total TB within the last 2 years'] = cohort_report['Total TB within the last 2 years'] - current_episode
+		cohort_report['Total TB within the last 2 years'] = cohort_report['Total TB within the last 2 years'] - total_current_episode
 		
 		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (current_episode + cohort_report['TB within the last 2 years']))
 		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (total_current_episode + cohort_report['Total TB within the last 2 years']))
