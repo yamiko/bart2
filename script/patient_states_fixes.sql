@@ -183,6 +183,57 @@ UPDATE person
 
 DROP TABLE IF EXISTS `temp_patient_list`;
 
+-- Create Treatment Stopped states
+INSERT INTO mpc_bart2_data.patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
+    SELECT pp.patient_program_id, 6, o.obs_datetime, 1, NOW(), (SELECT UUID())
+        FROM mpc_bart1_data.obs o LEFT JOIN mpc_bart2_data.patient_program pp ON o.patient_id = pp.patient_id AND pp.program_id = 1
+        WHERE (o.concept_id = 28 AND o.value_coded = 386 AND o.voided = 0) 
+        OR (o.concept_id = 367 AND o.value_coded = 4 AND o.voided = 0)
+        GROUP BY DATE(o.obs_datetime), o.patient_id;
+        
+DROP TABLE IF EXISTS `temp_patient_list`;
+
+CREATE TABLE `temp_patient_list` (
+  `patient_program_id` int(11) NOT NULL DEFAULT '0',
+  `patient_id` int(11) NOT NULL DEFAULT '0',
+  `start_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  KEY (`patient_program_id`),
+  KEY (`patient_id`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+INSERT INTO temp_patient_list (patient_program_id, patient_id, start_date)
+SELECT ps.patient_program_id, pp.patient_id, ps.start_date
+    FROM patient_state ps LEFT JOIN patient_program pp ON ps.patient_program_id = pp.patient_program_id
+    WHERE state = 6 ;
+
+UPDATE mpc_bart2_data.patient_state
+    SET end_date = (SELECT MIN(start_date)
+                        FROM temp_patient_list pp
+                        WHERE pp.patient_program_id = mpc_bart2_data.patient_state.patient_program_id
+                        GROUP BY pp.patient_program_id)
+    WHERE state = 7 AND end_date IS NULL;
+    
+INSERT INTO patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
+SELECT t.patient_program_id, 7, MIN(DATE(obs1.obs_datetime)) AS dispensation_date, 1, ADDTIME(NOW(), -2000), (SELECT UUID())
+    FROM temp_patient_list t
+        LEFT JOIN (SELECT obs.person_id, DATE(obs.obs_datetime) AS obs_datetime 
+                        FROM mpc_bart2_data.drug_order d 
+                            LEFT JOIN mpc_bart2_data.orders o ON d.order_id = o.order_id
+                            LEFT JOIN mpc_bart2_data.obs ON d.order_id = obs.order_id
+                        WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug WHERE concept_id IN (SELECT concept_id FROM concept_set WHERE concept_set = 1085)) 
+                            AND quantity > 0
+                            AND obs.voided = 0
+                            AND o.voided = 0
+                            -- AND o.obs_datetime > 
+                        GROUP BY obs.person_id, DATE(obs.obs_datetime)) obs1 ON t.patient_id = obs1.person_id AND t.start_date < DATE(obs1.obs_datetime)
+    GROUP BY t.patient_id, t.patient_program_id, t.start_date
+    HAVING dispensation_date IS NOT NULL;    
+
+UPDATE mpc_bart2_data.patient_program
+    SET date_completed = (NULL)
+    WHERE current_state_for_program(patient_id, 1, '2012-02-12') = 7;
+
 -- Create Transfer Out states
 
 INSERT INTO mpc_bart2_data.patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
@@ -238,57 +289,6 @@ SELECT t.patient_program_id, 7, MIN(DATE(obs1.obs_datetime)) AS dispensation_dat
                         GROUP BY obs.person_id, DATE(obs.obs_datetime)) obs1 ON t.patient_id = obs1.person_id AND t.start_date < DATE(obs1.obs_datetime)
     GROUP BY t.patient_id, t.patient_program_id, t.start_date
     HAVING dispensation_date IS NOT NULL;
-
---Create Treatment Stopped states
-INSERT INTO mpc_bart2_data.patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
-    SELECT pp.patient_program_id, 6, o.obs_datetime, 1, NOW(), (SELECT UUID())
-        FROM mpc_bart1_data.obs o LEFT JOIN mpc_bart2_data.patient_program pp ON o.patient_id = pp.patient_id AND pp.program_id = 1
-        WHERE (o.concept_id = 28 AND o.value_coded = 386 AND o.voided = 0) 
-        OR (o.concept_id = 367 AND o.value_coded = 4 AND o.voided = 0)
-        GROUP BY DATE(o.obs_datetime), o.patient_id;
-        
-DROP TABLE IF EXISTS `temp_patient_list`;
-
-CREATE TABLE `temp_patient_list` (
-  `patient_program_id` int(11) NOT NULL DEFAULT '0',
-  `patient_id` int(11) NOT NULL DEFAULT '0',
-  `start_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  KEY (`patient_program_id`),
-  KEY (`patient_id`)
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-INSERT INTO temp_patient_list (patient_program_id, patient_id, start_date)
-SELECT ps.patient_program_id, pp.patient_id, ps.start_date
-    FROM patient_state ps LEFT JOIN patient_program pp ON ps.patient_program_id = pp.patient_program_id
-    WHERE state = 6 ;
-
-UPDATE mpc_bart2_data.patient_state
-    SET end_date = (SELECT MIN(start_date)
-                        FROM temp_patient_list pp
-                        WHERE pp.patient_program_id = mpc_bart2_data.patient_state.patient_program_id
-                        GROUP BY pp.patient_program_id)
-    WHERE state = 7 AND end_date IS NULL;
-    
-INSERT INTO patient_state (patient_program_id, state, start_date, creator, date_created, uuid)
-SELECT t.patient_program_id, 7, MIN(DATE(obs1.obs_datetime)) AS dispensation_date, 1, ADDTIME(NOW(), -2000), (SELECT UUID())
-    FROM temp_patient_list t
-        LEFT JOIN (SELECT obs.person_id, DATE(obs.obs_datetime) AS obs_datetime 
-                        FROM mpc_bart2_data.drug_order d 
-                            LEFT JOIN mpc_bart2_data.orders o ON d.order_id = o.order_id
-                            LEFT JOIN mpc_bart2_data.obs ON d.order_id = obs.order_id
-                        WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug WHERE concept_id IN (SELECT concept_id FROM concept_set WHERE concept_set = 1085)) 
-                            AND quantity > 0
-                            AND obs.voided = 0
-                            AND o.voided = 0
-                            -- AND o.obs_datetime > 
-                        GROUP BY obs.person_id, DATE(obs.obs_datetime)) obs1 ON t.patient_id = obs1.person_id AND t.start_date < DATE(obs1.obs_datetime)
-    GROUP BY t.patient_id, t.patient_program_id, t.start_date
-    HAVING dispensation_date IS NOT NULL;    
-
-UPDATE mpc_bart2_data.patient_program
-    SET date_completed = (NULL)
-    WHERE current_state_for_program(patient_id, 1, '2012-02-12') = 7;
 
 DELETE FROM patient_program 
 	WHERE date_enrolled IS NULL AND program_id = 1;

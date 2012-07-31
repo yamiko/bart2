@@ -176,6 +176,10 @@
 		<% if @patient_bean.age > 18 and not @current_height == 0 %>
 			<%= touch_hidden_tag "HEIGHT (CM)", @patient, @current_height %>
 		<% else %>
+			<% if @patient_bean.age > 18 %>			
+				<%= hidden_field_tag "recalculate_bmi", true %>
+			<% end %>
+			
 			<%= touch_text_field_tag "HEIGHT (CM)", @patient, nil,
 				{	:id => "height",
 					:field_type => "number",

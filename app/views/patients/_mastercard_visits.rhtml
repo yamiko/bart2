@@ -135,7 +135,7 @@ background-position: 0% -30px;
     
    %>
     <tr>
-      <td><a href='/patients/visit?date=<%=date%>&patient_id=<%=@patient_id%>' class='rounded' style='text-decoration:none;'><span><%=date.to_date.strftime('%d-%b-%Y')%></span></a></td>
+      <td><a href='/patients/specific_patient_visit_date_label?session_dateT=<%=date%>&patient_id=<%=@patient_id%>' class='rounded' style='text-decoration:none;'><span><%=date.to_date.strftime('%d-%b-%Y')%></span></a></td>
       <td><%= data.weight || '&nbsp;'%></td>
       <td><%= data.height || '&nbsp;'%></td>
       <td><%= data.bmi || '&nbsp;'%></td>
