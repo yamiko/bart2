@@ -1320,7 +1320,6 @@ class GenericPatientsController < ApplicationController
 
     return label.print(1)
 
-=begin
     #this is the part that prints a 2D barcode
     demographics_str << "Name: #{demographics.name}"
     demographics_str << "DOB: #{patient_bean.birth_date}"
@@ -1382,7 +1381,6 @@ class GenericPatientsController < ApplicationController
     label = ZebraPrinter::StandardLabel.new
     label.draw_2D_barcode(80,20,'P',700,600,'x2','y7','l100','r100','f0','s5',"#{demographics_str.join(',').gsub('/','')}")
     label.print(1)
-=end
   end
 =end
 
