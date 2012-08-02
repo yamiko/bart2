@@ -689,10 +689,7 @@ EOF
   end
 
   def self.patient_art_start_date(patient_id)
-    date = ActiveRecord::Base.connection.select_value <<EOF
-SELECT patient_start_date(#{patient_id})
-EOF
-    return date.to_date rescue nil
+    self.date_antiretrovirals_started(Patient.find(patient_id))
   end
 
   def self.prescribe_arv_this_visit(patient, date = Date.today)
@@ -1384,6 +1381,22 @@ EOF
     old_patient.person.person_attributes.each { |pa|   pa.void(void_reason) }
     old_patient.patient_identifiers.each { |pi|        pi.void(void_reason) }
     old_patient.patient_programs.each { |pp|           pp.void(void_reason) }
+  end
+
+  def self.date_antiretrovirals_started(patient)
+    start_date = ActiveRecord::Base.connection.select_value <<EOF                   
+SELECT earliest_start_date FROM earliest_start_date 
+WHERE patient_id = #{patient.id} LIMIT 1
+EOF
+     return start_date.to_date unless start_date.blank?
+     concept_id = ConceptName.find_by_name('Date antiretrovirals started').concept_id    
+ 
+    start_date = ActiveRecord::Base.connection.select_value <<EOF                   
+SELECT value_text FROM start_date_observation 
+WHERE person_id = #{patient.id} AND concept_id = #{concept_id} LIMIT 1
+EOF
+
+     return start_date.to_date rescue nil
   end
 
 end

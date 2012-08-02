@@ -91,6 +91,7 @@ class Cohort
 					cohort_report['Newly total registered'] = self.total_registered
 
 					logger.info("initiated_on_art " + Time.now.to_s)
+
 					cohort_report['Patients initiated on ART'] = self.patients_initiated_on_art_first_time
 					cohort_report['Total Patients initiated on ART'] = self.patients_initiated_on_art_first_time(@@first_registration_date)
 				rescue Exception => e
@@ -384,7 +385,7 @@ class Cohort
 		total_current_episode = cohort_report['Total Current episode of TB']
 
 		cohort_report['TB within the last 2 years'] = cohort_report['TB within the last 2 years'] - current_episode
-		cohort_report['Total TB within the last 2 years'] = cohort_report['Total TB within the last 2 years'] - current_episode
+		cohort_report['Total TB within the last 2 years'] = cohort_report['Total TB within the last 2 years'] - total_current_episode
 		
 		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (current_episode + cohort_report['TB within the last 2 years']))
 		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (total_current_episode + cohort_report['Total TB within the last 2 years']))
@@ -425,6 +426,9 @@ class Cohort
     #
     # 7937 = Ever registered at ART clinic
     # 1065 = Yes
+    #TODO remove reinitiated patients after threads in report method
+    patients_reinitiated_on_arvs = []
+    patients_reinitiated_on_arvs = self.patients_reinitiated_on_art(start_date = @start_date, end_date = @end_date)
     patients = []
     PatientProgram.find_by_sql("SELECT esd.*
       FROM earliest_start_date esd
@@ -435,7 +439,8 @@ class Cohort
       GROUP BY esd.patient_id").each do | patient | 
 			patients << patient.patient_id
 		end
-        return patients   
+    patients -= patients_reinitiated_on_arvs
+    return patients
 
 =begin
     PatientProgram.find_by_sql("SELECT esd.*,MIN(o.value_text) AS original_start_date
@@ -684,7 +689,7 @@ class Cohort
 
 
 	def art_stopped_patients
-				self.outcomes_total('Treatment stopped', @@first_registration_date)
+		self.outcomes_total('Treatment stopped', @@first_registration_date)
 
 	end
 
