@@ -18,19 +18,20 @@ class GenericSingleSignOnController < ApplicationController
 	def single_sign_in
 
 		if params["return_uri"].blank?
-			session["return_uri"] = '/'
+			session[:return_uri] = '/'
 		else
-			session["return_uri"] = params["return_uri"]
+			session[:return_uri] = params["return_uri"]
 		end
 
 		self.current_location = (Location.find(params["current_location"].to_i) rescue nil)
-
-		if self.current_location.blank?
+    
+		if self.current_location.blank? || self.current_location.nil?      
 			location_required
 		elsif params["destination_uri"].blank?
-			redirect_to '/'
+			redirect_to '/' + "?location=#{params["current_location"]}"  and return
 		else
-			redirect_to params["destination_uri"]
+			redirect_to params["destination_uri"] + (!params["destination_uri"].index("?").nil? ?
+          "&location=#{params["current_location"]}" : "") and return
 		end
 		return
 	end
