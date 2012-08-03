@@ -91,9 +91,11 @@ class Cohort
 					cohort_report['Newly total registered'] = self.total_registered
 
 					logger.info("initiated_on_art " + Time.now.to_s)
-
-					cohort_report['Patients initiated on ART'] = self.patients_initiated_on_art_first_time
-					cohort_report['Total Patients initiated on ART'] = self.patients_initiated_on_art_first_time(@@first_registration_date)
+					cohort_report['Patients reinitiated on ART'] = self.patients_reinitiated_on_art
+					cohort_report['Total Patients reinitiated on ART'] = self.patients_reinitiated_on_art(@@first_registration_date)
+					
+					cohort_report['Patients initiated on ART'] = self.patients_initiated_on_art_first_time - cohort_report['Patients reinitiated on ART']
+					cohort_report['Total Patients initiated on ART'] = self.patients_initiated_on_art_first_time(@@first_registration_date) - cohort_report['Total Patients reinitiated on ART']
 				rescue Exception => e
 					Thread.current[:exception] = e
 				end
@@ -155,7 +157,7 @@ class Cohort
 					Thread.current[:exception] = e
 				end
 		end
-
+=begin
 		threads << Thread.new do
 			begin
 				logger.info("reinitiated_on_art " + Time.now.to_s)    
@@ -166,7 +168,7 @@ class Cohort
 				Thread.current[:exception] = e
 			end
 		end    
-
+=end
 		# Run the threads up to this point
 		threads.each do |thread|				
 			thread.join
@@ -400,6 +402,14 @@ class Cohort
 				                              cohort_report['Stopped taking ARVs'] +
 				                              cohort_report['Transferred out'])
 		
+		patients_with_0_6_doses_missed = []; patients_with_7_doses_missed = []
+		
+		patients_with_0_6_doses_missed = cohort_report['Patients with 0 - 6 doses missed at their last visit'].map{|person| person.person_id}
+		patients_with_7_doses_missed = cohort_report['Patients with 7+ doses missed at their last visit'].map{|person| person.person_id}
+		
+		cohort_report['Unknown adherence'] = (cohort_report['Total alive and on ART'] -
+																					patients_with_0_6_doses_missed - patients_with_7_doses_missed)
+		
 		cohort_report['Earliest_start_dates'] = @patient_earliest_start_date
 		self.cohort = cohort_report
 		self.cohort
@@ -428,7 +438,7 @@ class Cohort
     # 1065 = Yes
     #TODO remove reinitiated patients after threads in report method
     patients_reinitiated_on_arvs = []
-    patients_reinitiated_on_arvs = self.patients_reinitiated_on_art(start_date = @start_date, end_date = @end_date)
+    patients_reinitiated_on_arvs = self.patients_reinitiated_on_art#(start_date = @start_date, end_date = @end_date)
     patients = []
     PatientProgram.find_by_sql("SELECT esd.*
       FROM earliest_start_date esd
@@ -1016,12 +1026,11 @@ class Cohort
 		art_adherence_encounter = EncounterType.find_by_name("ART ADHERENCE").id
 
 		patients = Observation.find_by_sql("SELECT DISTINCT person_id AS person_id, 
-          earliest_start_date, obs.value_numeric, obs.value_text 
+          earliest_start_date, current_text_for_obs(obs.person_id,#{art_adherence_encounter},#{art_adherence_concept},'#{end_date}') AS current_text 
           FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
 					AND concept_id = #{art_adherence_concept} 
 					AND voided = 0 
-          AND current_text_for_obs(obs.person_id,#{art_adherence_encounter},
-          #{art_adherence_concept},'#{end_date}') NOT BETWEEN 95 AND 105  
+          AND current_text_for_obs(obs.person_id,#{art_adherence_encounter},#{art_adherence_concept},'#{end_date}') NOT BETWEEN 95 AND 105  
 					
 					AND earliest_start_date >= '#{start_date}'
 					AND earliest_start_date <= '#{end_date}'
@@ -1039,7 +1048,7 @@ class Cohort
 		art_adherence_encounter = EncounterType.find_by_name("ART ADHERENCE").id
 
 		patients = Observation.find_by_sql("SELECT DISTINCT person_id AS person_id, 
-          earliest_start_date, obs.value_numeric, obs.value_text 
+          earliest_start_date, current_text_for_obs(obs.person_id,#{art_adherence_encounter},#{art_adherence_concept},'#{end_date}')
           FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
 					AND concept_id = #{art_adherence_concept} 
 					AND voided = 0 
