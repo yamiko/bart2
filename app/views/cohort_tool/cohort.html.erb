@@ -744,6 +744,14 @@
 </tr>
 
 <tr class = 'row_break'>
+  <td>72</td>
+  <td style="text-align:left;border-width:0px 0px 1px 1px;">Unknown adherence</td>
+  <td style="border-width:0px 0px 1px 0px;">&nbsp;</td>
+  <td style="border-width:0px 0px 1px 0px;">&nbsp;</td>
+  <td class="right_bottom_left" ><%= link_to "#{@cohort['Unknown adherence'].length rescue 0}", "/cohort_tool/list_patients_details?field=patients_with_7%2B_doses_missed_at_their_last_visit&quarter=#{@quarter}" -%></td>
+</tr>
+
+<tr class = 'row_break'>
   <td>&nbsp;</td>
   <td style="text-align:left;border-width:0px">Current TB status,any form of TB</td>
   <td>&nbsp;</td>
