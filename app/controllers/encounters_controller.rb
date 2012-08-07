@@ -611,11 +611,11 @@ end
 	return within_limit
  end
 
-	def suggested_date(prescription_expiry_date, holidays, bookings, clinic_days)
+	def suggested_date(expiry_date, holidays, bookings, clinic_days)
 		number_of_suggested_booked_dates_tried = 0
 
 		skip = true
-		recommended_date = prescription_expiry_date
+		recommended_date = expiry_date
 		nearest_clinic_day = nil
     
 		while skip
@@ -668,7 +668,7 @@ end
 		#@number_of_days_to_add_to_next_appointment_date = number_of_days_to_add_to_next_appointment_date(@patient, session[:datetime] || Date.today)
 
 		dispensed_date = session[:datetime].to_date rescue Date.today
-		prescription_expiry_date = prescription_expiry_date(@patient, dispensed_date)
+		expiry_date = prescription_expiry_date(@patient, dispensed_date)
 		
 		#if the patient is a child (age 14 or less) and the peads clinic days are set - we
 		#use the peads clinic days to set the next appointment date		
@@ -681,13 +681,13 @@ end
 		end
 		clinic_days = clinic_days.split(',')		
 
-		bookings = bookings_within_range(prescription_expiry_date)
+		bookings = bookings_within_range(expiry_date)
 		clinic_holidays = CoreService.get_global_property_value('clinic.holidays') || '1900-12-25,1900-03-03'
 		clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',').split(',') rescue []
 		
 		limit = CoreService.get_global_property_value('clinic.appointment.limit') rescue 0
 
-		return suggested_date(prescription_expiry_date ,clinic_holidays, bookings, clinic_days)
+		return suggested_date(expiry_date ,clinic_holidays, bookings, clinic_days)
 	end
 	
 	def prescription_expiry_date(patient, dispensed_date)
@@ -709,9 +709,12 @@ end
 						     ConceptName.find_by_name("AMOUNT DISPENSED").concept_id , order.id])
 			total_dispensed = amounts_dispensed.sum{|amount| amount.value_numeric}
 			
-			amounts_brought_to_clinic = Observation.all( :joins => 'INNER JOIN drug_order USING (order_id)', 
-				:conditions => ['obs.concept_id = ? AND drug_order.drug_inventory_id = ? AND obs.obs_datetime >= ? AND obs.obs_datetime <= ?', 
-						     ConceptName.find_by_name("AMOUNT OF DRUG BROUGHT TO CLINIC").concept_id , order.drug_order.drug_inventory_id, session_date.to_date, session_date.to_date.to_s + ' 23:59:59'])
+			amounts_brought_to_clinic = Observation.all(:joins => 'INNER JOIN drug_order USING (order_id)', 
+				:conditions => ['obs.concept_id = ? AND drug_order.drug_inventory_id = ? 
+        AND obs.obs_datetime >= ? AND obs.obs_datetime <= ? AND person_id = ?', 
+				ConceptName.find_by_name("AMOUNT OF DRUG BROUGHT TO CLINIC").concept_id , 
+        order.drug_order.drug_inventory_id, session_date.to_date, 
+        session_date.to_date.to_s + ' 23:59:59',patient.person.id])
 
 			total_brought_to_clinic = amounts_brought_to_clinic.sum{|amount| amount.value_numeric}
 
