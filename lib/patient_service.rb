@@ -1384,19 +1384,19 @@ EOF
   end
 
   def self.date_antiretrovirals_started(patient)
-    start_date = ActiveRecord::Base.connection.select_value <<EOF                   
-SELECT earliest_start_date FROM earliest_start_date 
-WHERE patient_id = #{patient.id} LIMIT 1
-EOF
-     return start_date.to_date unless start_date.blank?
-     concept_id = ConceptName.find_by_name('Date antiretrovirals started').concept_id    
  
-    start_date = ActiveRecord::Base.connection.select_value <<EOF                   
-SELECT value_text FROM start_date_observation 
-WHERE person_id = #{patient.id} AND concept_id = #{concept_id} LIMIT 1
-EOF
+    concept_id = ConceptName.find_by_name('Date antiretrovirals started').concept_id  
+    start_date = ActiveRecord::Base.connection.select_value "          
+			SELECT value_text FROM start_date_observation 
+			WHERE person_id = #{patient.id} AND concept_id = #{concept_id} LIMIT 1"
 
-     return start_date.to_date rescue nil
+    if start_date.blank?  
+		  start_date = ActiveRecord::Base.connection.select_value "                 
+				SELECT earliest_start_date FROM earliest_start_date 
+				WHERE patient_id = #{patient.id} LIMIT 1"
+		end
+    
+    start_date.to_date rescue nil
   end
 
 end
