@@ -11,7 +11,7 @@ development:
  use.user.selected.activities: yes
  filing.number.prefix: FN101,FN102
  auto_set_appointment: true
- show.patient.confirmation: true
+ show.patient.confirmation: false
  records_per_page: 15
  debugger_sorting_attribute: arv_number
 

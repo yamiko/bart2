@@ -37,8 +37,8 @@
 				tt_cancel_show = "javascript:confirmAction(1)";  
 				<% elsif @defaulted  %>
 				tt_cancel_show = "javascript:confirmAction(2)";
-			<% else %>  
-				tt_cancel_show = "/patients/show/<%=@person.patient.id %>";
+			<% else %> 
+				tt_cancel_show = "/people/select?person[id]=<%=@person.patient.id %>";
 			<% end %>
 
 			function changeAttributes(){
