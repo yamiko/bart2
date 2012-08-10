@@ -6,7 +6,9 @@ class GenericSingleSignOnController < ApplicationController
 		authenticate_user! if user
 		user_token = nil
 		if !user.blank?
-			current_user.reset_authentication_token if current_user.authentication_token.blank?
+			if current_user.authentication_token.blank?
+				current_user.reset_authentication_token 
+			end
 			user_token = current_user.authentication_token
 			current_user.save!
 			render :json => {:auth_token => current_user.authentication_token }.to_json, :status => :ok
@@ -23,7 +25,7 @@ class GenericSingleSignOnController < ApplicationController
 		end
 
 		if !params[:current_time].blank?
-			session[:datetime] = params[:current_time].to_time rescue
+			session[:datetime] = params[:current_time].to_time
 		end
 
 		self.current_location = (Location.find(params[:current_location].to_i) rescue nil)
@@ -35,6 +37,7 @@ class GenericSingleSignOnController < ApplicationController
 		else
 			redirect_to params[:destination_uri]
 		end
+
 		return
 	end
 
