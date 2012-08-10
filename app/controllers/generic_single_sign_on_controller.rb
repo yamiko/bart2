@@ -23,6 +23,8 @@ class GenericSingleSignOnController < ApplicationController
 			session[:return_uri] = params["return_uri"]
 		end
 
+    session[:datetime] = params["current_time"].to_time rescue Time.now
+
 		self.current_location = (Location.find(params["current_location"].to_i) rescue nil)
     
 		if self.current_location.blank? || self.current_location.nil?      
