@@ -1114,63 +1114,69 @@ end
       #create observations for the just created encounter
       create_obs(encounter , params)
 
-		if !params[:recalculate_bmi].blank? && params[:recalculate_bmi] == "true"
-				weight = 0
-				height = 0
+			if !params[:recalculate_bmi].blank? && params[:recalculate_bmi] == "true"
+					weight = 0
+					height = 0
 
-				weight_concept_id  = ConceptName.find_by_name("Weight (kg)").concept_id
-				height_concept_id  = ConceptName.find_by_name("Height (cm)").concept_id
-				bmi_concept_id = ConceptName.find_by_name("Body mass index, measured").concept_id
-				work_station_concept_id = ConceptName.find_by_name("Workstation location").concept_id
+					weight_concept_id  = ConceptName.find_by_name("Weight (kg)").concept_id
+					height_concept_id  = ConceptName.find_by_name("Height (cm)").concept_id
+					bmi_concept_id = ConceptName.find_by_name("Body mass index, measured").concept_id
+					work_station_concept_id = ConceptName.find_by_name("Workstation location").concept_id
 				
-				vitals_encounter_id = EncounterType.find_by_name("VITALS").encounter_type_id
-				enc = Encounter.find(:all, :conditions => ["encounter_type = ? AND patient_id = ?
-											AND voided=0", vitals_encounter_id, @patient.id])
+					vitals_encounter_id = EncounterType.find_by_name("VITALS").encounter_type_id
+					enc = Encounter.find(:all, :conditions => ["encounter_type = ? AND patient_id = ?
+												AND voided=0", vitals_encounter_id, @patient.id])
 
-				encounter.observations.each do |o|
-							height = o.answer_string.squish if o.concept_id == height_concept_id 
-				end
+					encounter.observations.each do |o|
+								height = o.answer_string.squish if o.concept_id == height_concept_id 
+					end
 								
-				enc.each do |e|
-						obs_created = false
-						weight = nil
+					enc.each do |e|
+							obs_created = false
+							weight = nil
 						
-						e.observations.each do |o|
-							next if o.concept_id == work_station_concept_id
+							e.observations.each do |o|
+								next if o.concept_id == work_station_concept_id
 							
-							if o.concept_id == weight_concept_id
-								weight = o.answer_string.squish.to_i
-							elsif o.concept_id == height_concept_id || o.concept_id == bmi_concept_id
-								o.voided = 1
-								o.date_voided = Time.now
-								o.voided_by = encounter.creator
-								o.void_reason = "Back data entry recalculation"
-								o.save
+								if o.concept_id == weight_concept_id
+									weight = o.answer_string.squish.to_i
+								elsif o.concept_id == height_concept_id || o.concept_id == bmi_concept_id
+									o.voided = 1
+									o.date_voided = Time.now
+									o.voided_by = encounter.creator
+									o.void_reason = "Back data entry recalculation"
+									o.save
+								end
 							end
-						end
 
-						bmi = (weight.to_f/(height.to_f*height.to_f)*10000).round(1) rescue "NaN"
-				
-						height_obs = Observation.new(
-							:concept_name => "Height (cm)",
-							:person_id => @patient.id,
-							:encounter_id => e.id,
-							:value_numeric => height,
-							:obs_datetime => e.encounter_datetime)
+							bmi = (weight.to_f/(height.to_f*height.to_f)*10000).round(1) rescue "Unknown"
 
-						height_obs.save
+							field = :value_numeric
+							field = :value_text and height = 'Unknown' if height == 'Unknown' || height.to_i == 0
+
+							height_obs = Observation.new(
+								:concept_name => "Height (cm)",
+								:person_id => @patient.id,
+								:encounter_id => e.id,
+								field => height,
+								:obs_datetime => e.encounter_datetime)
+
+							height_obs.save
 						
-						bmi_obs = Observation.new(
-							:concept_name => "Body mass index, measured",
-							:person_id => @patient.id,
-							:encounter_id => e.id,
-							:value_numeric => bmi,
-							:obs_datetime => e.encounter_datetime)
+							field = :value_numeric
+							field = :value_text and bmi = 'Unknown' if bmi == 'Unknown' || bmi.to_i == 0
+												
+							bmi_obs = Observation.new(
+								:concept_name => "Body mass index, measured",
+								:person_id => @patient.id,
+								:encounter_id => e.id,
+								field => bmi,
+								:obs_datetime => e.encounter_datetime)
 
-						bmi_obs.save
-				end
-		end
-
+							bmi_obs.save
+					end
+			end
+			
       # Program handling
       date_enrolled = params[:programs][0]['date_enrolled'].to_time rescue nil
       date_enrolled = session[:datetime] || Time.now() if date_enrolled.blank?
