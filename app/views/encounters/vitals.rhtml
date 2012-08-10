@@ -158,7 +158,7 @@
 	<% end %>  
 		
 	<% if @retrospective %>
-		<%= touch_text_field_tag "WEIGHT (KG)", @patient, nil,
+		<%= touch_numeric_tag "WEIGHT (KG)", @patient, nil,
 			{	:id => "weight",
 				:field_type => "number",
 				:tt_onLoad => "$('clearButton').style.display = 'inline';",
@@ -180,7 +180,7 @@
 				<%= hidden_field_tag "recalculate_bmi", true %>
 			<% end %>
 			
-			<%= touch_text_field_tag "HEIGHT (CM)", @patient, nil,
+			<%= touch_numeric_tag "HEIGHT (CM)", @patient, nil,
 				{	:id => "height",
 					:field_type => "number",
 					:tt_onLoad => "$('clearButton').style.display = 'inline';",
@@ -195,7 +195,7 @@
 					:helpText => "Height (cm)" } %>
 		<% end %>
 	<% else %>
-	    <%= touch_text_field_tag "WEIGHT (KG)", @patient, nil,
+	    <%= touch_numeric_tag "WEIGHT (KG)", @patient, nil,
 			{	:id => "weight",
 				:field_type => "number",
 				:tt_onLoad => "$('clearButton').style.display = 'inline';",
@@ -212,7 +212,7 @@
 		<% if @patient_bean.age > 18 and not @current_height == 0 %>
 			<%= touch_hidden_tag "HEIGHT (CM)", @patient, @current_height %>
 		<% else %>
-			<%= touch_text_field_tag "HEIGHT (CM)", @patient, nil,
+			<%= touch_numeric_tag "HEIGHT (CM)", @patient, nil,
 				{	:id => "height",
 					:field_type => "number",
 					:tt_onLoad => "$('clearButton').style.display = 'inline';",
@@ -253,7 +253,7 @@
 	<% end %>
 
 	<% if @patient_bean.age > 14 %>
-		<%= touch_hidden_tag "BODY MASS INDEX, MEASURED", @patient, nil, { :id => 'bmi' } %>
+		<%= touch_hidden_tag "BODY MASS INDEX, MEASURED", @patient, nil, { :id => 'bmi' , :kind => "value_numeric"} %>
 	<% else %> 
         <%= touch_hidden_tag "WT FOR HT", @patient, nil, {:id => 'weight_for_height'} %>
         <%= touch_hidden_tag "WT FOR AGE", @patient, nil, {:id => 'weight_for_age'} %>
