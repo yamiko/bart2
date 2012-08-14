@@ -26,9 +26,9 @@
       }})
     }
   }
-
+/*
   function validNumber(){
-    selected_number = parseFloat(($('tt_page_art_number').getElementsByTagName("input")[0].value))
+    var selected_number = parseFloat(($('tt_page_art_number').getElementsByTagName("input")[0].value))
 		var status = "";
 
     for(i = 0 ; i < assigned_arv_number.length ; i++){
@@ -39,6 +39,17 @@
       }
     }
     return status;
+  }
+*/
+  function validNumber(){
+    selected_number = parseFloat(($('tt_page_art_number').getElementsByTagName("input")[0].value))
+
+    for(i = 0 ; i < assigned_arv_number.length ; i++){
+      if(assigned_arv_number[i] == selected_number){
+        return false
+      }
+    }
+    return true
   }
 
   function loadAssignedNumbers(){
@@ -51,13 +62,12 @@
     }})
   }
 </script>
-<%#= raise "this is: #{site_prefix} " %>
+
 <%= touch_identifier_tag @patient, "ARV Number", nil,
     {:id => "art_number",
      :optional => false,
      :tt_onLoad => "press('num');arv_number();loadAssignedNumbers()",
      :tt_pageStyleClass => "Numeric NumbersOnly",
-     :validationCode =>"validNumber() == 'true'",
+     :validationJS =>"validNumber()",
      :validationMessage => "ARV number already exist",
      :helpText => "ART number" } %>
-
