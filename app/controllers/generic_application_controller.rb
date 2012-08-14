@@ -35,7 +35,7 @@ class GenericApplicationController < ActionController::Base
 	before_filter :location_required, :except => ['login', 'logout', 'location',
 		                                        'demographics','create_remote',
 		                                         'mastercard_printable',
-		                                        'remote_demographics', 'get_token', 'single_sign_in',
+		                                        'remote_demographics', 'get_token',
                                             'cohort']
   
 	def rescue_action_in_public(exception)
@@ -167,16 +167,21 @@ class GenericApplicationController < ActionController::Base
     end
   end
 
-    def location_required
-      if not located? and params[:location]
-        location = Location.find(params[:location]) rescue nil
-        self.current_location = location if location
-      end
-      located? || location_denied
-    end
+	def location_required
+		if not located? and params[:location]
+			location = Location.find(params[:location]) rescue nil
+			self.current_location = location if location
+		end
+
+		if not located? and session[:sso_location]
+			location = Location.find(session[:sso_location]) rescue nil
+			self.current_location = location if location
+		end
+		
+		located? || location_denied
+	end
 
     def located?
-      
       self.current_location
     end
 

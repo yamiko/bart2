@@ -28,14 +28,15 @@ class GenericSingleSignOnController < ApplicationController
 			session[:datetime] = params[:current_time].to_time
 		end
 
-		self.current_location = (Location.find(params[:current_location].to_i) rescue nil)
-    
+		session[:location_id] = params[:location] if params[:location]
+		session[:sso_location] = params[:location] if params[:location]
+
 		if self.current_location.blank?
 			location_required
 		elsif params[:destination_uri].blank?
 			redirect_to '/' 
 		else
-			redirect_to params[:destination_uri]
+			redirect_to params[:destination_uri] 
 		end
 
 		return
