@@ -1,4 +1,4 @@
-<% art_start_date = PatientService.date_antiretrovirals_started(@patient) %>
+<% art_start_date = PatientService.date_antiretrovirals_started(@patient) rescue nil%>
 <html>
   <head>
     <title>Patient Dashboard</title>
