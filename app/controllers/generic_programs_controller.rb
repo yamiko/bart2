@@ -101,7 +101,7 @@ class GenericProgramsController < ApplicationController
 
   def update
     flash[:error] = nil
-
+    
     if request.method == :post
       patient_program = PatientProgram.find(params[:patient_program_id])
       #we don't want to have more than one open states - so we have to close the current active on before opening/creating a new one
@@ -146,6 +146,8 @@ class GenericProgramsController < ApplicationController
         end  
 
         updated_state = patient_state.program_workflow_state.concept.fullname
+        
+        create_exit_from_care_encounter(params) #create an encounter with associated observations for exit from care states
 
 		#disabled redirection during import in the code below
 		# Changed the terminal state conditions from hardcoded ones to terminal indicator from the updated state object
@@ -211,6 +213,7 @@ class GenericProgramsController < ApplicationController
             render :text => "import suceeded" and return
         end
       end
+      
     else
       patient_program = PatientProgram.find(params[:id])
       unless patient_program.date_completed.blank?
@@ -246,6 +249,7 @@ class GenericProgramsController < ApplicationController
         @invalid_date_ranges = closed_states.join(',')
       end
     end
+    
   end
 
   # Looks for the most commonly used element in the database and sorts the results based on the first part of the string
@@ -271,4 +275,38 @@ class GenericProgramsController < ApplicationController
        "%#{search}%"])).uniq
   end
 
+  def create_exit_from_care_encounter(given_params)
+    states_to_create_encounter_for = []
+    concept_set("EXIT FROM CARE").each{|concept| states_to_create_encounter_for << concept.uniq.to_s}
+ 
+    current_state = ProgramWorkflowState.find(given_params[:current_state]).concept.fullname
+
+    if states_to_create_encounter_for.include? current_state
+      new_encounter = {"encounter_datetime"=> params[:encounter][:encounter_datetime],
+                       "encounter_type_name"=>"EXIT FROM CARE",
+                       "patient_id"=> params[:patient_id],
+                       "provider_id"=>params[:encounter][:provider_id]}
+      
+      encounter = Encounter.new(new_encounter)
+      encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
+      encounter.save
+
+      reason_obs = {} 
+      reason_obs[:concept_name] = 'REASON FOR EXITING CARE'
+      reason_obs[:encounter_id] = encounter.id
+      reason_obs[:obs_datetime] = encounter.encounter_datetime || Time.now()
+      reason_obs[:person_id] ||= encounter.patient_id
+      reason_obs['value_coded_or_text'] = current_state
+      Observation.create(reason_obs)
+      
+      date_obs = {} 
+      date_obs[:concept_name] = 'DATE OF EXITING CARE'
+      date_obs[:encounter_id] = encounter.id
+      date_obs[:obs_datetime] = encounter.encounter_datetime || Time.now()
+      date_obs[:person_id] ||= encounter.patient_id
+      date_obs['value_datetime'] = given_params[:current_date]
+      Observation.create(date_obs)
+    end
+  end
+  
 end
