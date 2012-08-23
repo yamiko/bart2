@@ -12,7 +12,7 @@ ActionController::Routing::Routes.draw do |map|
 	map.resources :dispensations, :collection => {:quantities => :get}
 	map.resources :barcodes, :collection => {:label => :get}
 	map.resources :relationships, :collection => {:search => :get}
-	map.resources :programs, :collection => {:locations => :get, :workflows => :get, :states => :get}
+	map.resources :programs, :collection => {:exitcarestates => :get,:exitcare => :get, :locations => :get, :workflows => :get, :states => :get}
 	map.resources :encounter_types
 	map.resources :single_sign_on, :collection => {:get_token => [:get, :post], :single_sign_in => [:get, :post]}
 	map.connect ':controller/:action/:id.:format'
