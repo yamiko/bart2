@@ -54,7 +54,7 @@ class ProgramsController < GenericProgramsController
       state.void if program_states_to_void.include? state.state
     end
  
-    pre_art_state_exists == true if current_patient_program.patient_states.map(&:state).include? pre_art_state
+    pre_art_state_exists = true if current_patient_program.patient_states.map(&:state).include? pre_art_state
     # create pre ART state for the program
     if ! pre_art_state_exists == true
         initial_patient_state = current_patient_program.patient_states.build(
@@ -69,29 +69,28 @@ class ProgramsController < GenericProgramsController
     
     date_of_first_dispensation = PatientService.date_of_first_dispensation(patient)
     if ! date_of_first_dispensation.nil?
-
-      on_arv_patient_state = current_patient_program.patient_states.build(
+      on_arv_state = current_patient_program.patient_states.build(
         :state => 7, #TODO find a better way of getting the this state rather than hard coding
         :start_date => date_of_first_dispensation,
         :creator => User.current.user_id) #TODO use the date obtained from the check above
-      on_arv_patient_state.save
+      on_arv_state.save
       
       # update the start date of the pre ART state from
       if ! initial_patient_state.nil?
         initial_patient_state[:start_date] = date_of_first_dispensation
         initial_patient_state.save
       end
-      patient_on_arvs == true
+      patient_on_arvs = true
     end
     # set patient deathdate and dead pointer to nil
        
-    patient.person[:death_date] = null
+    patient.person[:death_date] = "NULL"
     patient.person[:dead] = 0
     patient.person.save
     
     exit_from_care_encounter_type = EncounterType.find_by_name("Exit from care").id
     exit_from_care_encounter = Encounter.find(:all, 
-                                              :conditions => ["encounter_type = ? AND patient_id = ?", 
+                                              :conditions => ["encounter_type = ? AND patient_id = ? AND voided = 0", 
                                                 exit_from_care_encounter_type, patient.patient_id]
                                               )
     
@@ -104,10 +103,10 @@ class ProgramsController < GenericProgramsController
       exit_from_care_date = ''
       
       encounter.observations.each do |obs|  #loop through the observations to get the individual values of the exit from care observation
-        if obs.concept_id == reason_for_exit
+        if obs.concept_id == reason_for_exiting_care
           exit_from_care_type = ConceptName.find_by_concept_name_id(obs.value_coded_name_id).name
         elsif obs.concept_id == date_of_exiting_care
-          exit_crom_care_date = obs.value_datetime
+          exit_from_care_date = obs.value_datetime
         end
       end #end of obs loop
       
@@ -137,8 +136,7 @@ class ProgramsController < GenericProgramsController
           :state => 6, #TODO find a better way of getting the this state rather than hard coding
           :start_date => exit_from_care_date,
           :creator => User.current.user_id)
-        stopped_patient_state.save 
-      
+        stopped_patient_state.save      
       end 
       
       #update the end date for the patient program    
@@ -146,11 +144,12 @@ class ProgramsController < GenericProgramsController
       current_patient_program.save
       
       #check for dispensation after the exit from care state
-      next_dispensation_date = PatientService.date_dispensation_date_after(patient, exit_from_care_date)
-      
+
+      next_dispensation_date = PatientService.date_dispensation_date_after(patient, exit_from_care_date.to_date)
+
       if ! next_dispensation_date.nil?
         #reset the end date of the program
-        current_patient_program.date_completed = null
+        current_patient_program.date_completed = 'NULL'
         current_patient_program.save
         
         #create On ARVs state
@@ -165,5 +164,162 @@ class ProgramsController < GenericProgramsController
     end #end of encounters loop
     
   end 
+  
+  def exitcare
+
+      @patient = Patient.find(params[:patient_id])
+      hiv_program_id = Program.find_by_name("HIV PROGRAM").id
+      patient_program = PatientProgram.find(:all,
+                       :conditions => ["patient_id = ? and program_id = ?",
+                         params[:patient_id], hiv_program_id]).first rescue nil
+                           
+      @patient_program_id = patient_program.patient_program_id
+      program_workflow = ProgramWorkflow.all(:conditions => ['program_id = ?', patient_program.program_id], :include => :concept)
+      @program_workflow_id = program_workflow.first.program_workflow_id
+      #@states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ?', @program_workflow_id], :include => :concept)
+      @states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ?', @program_workflow_id], :include => :concept)
+      @names = @states.map{|state|
+        concept = state.concept
+        next if concept.blank?
+        concept.fullname 
+      }
+
+      @names = @names.compact unless @names.blank?
+      @program_date_completed = patient_program.date_completed.to_date rescue nil
+      @program_name = patient_program.program.name
+
+  end
+  
+  def exitcarestates
+    required_states = []
+    concept_set("EXIT FROM CARE").each{|concept| required_states << concept.uniq.to_s}
+    
+    @states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ?', params[:workflow]], :include => :concept)
+    
+    @names = @states.map{|state|
+      next if ! required_states.include? state.concept.fullname
+      name = state.concept.concept_names.typed("SHORT").first.name rescue state.concept.fullname
+      next if name.blank? 
+      "<li value='#{state.id}'>#{name}</li>" unless name == params[:current_state]
+    }
+    render :text => @names.join('')  
+  end
+  
+ def update_exitcare
+
+      patient_program = PatientProgram.find(params[:patient_program_id])
+      #we don't want to have more than one open states - so we have to close the current active on before opening/creating a new one
+
+      current_active_state = patient_program.patient_states.last
+      current_active_state.end_date = params[:current_date].to_date
+
+       # set current location via params if given
+      Location.current_location = Location.find(params[:location]) if params[:location]
+
+      patient_state = patient_program.patient_states.build(
+        :state => params[:current_state],
+        :start_date => params[:current_date])
+      if patient_state.save
+        # Close and save current_active_state if a new state has been created
+       current_active_state.save
+
+        if patient_state.program_workflow_state.concept.fullname.upcase == 'PATIENT TRANSFERRED OUT' 
+          encounter = Encounter.new(params[:encounter])
+          encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
+          encounter.save
+
+          (params[:observations] || [] ).each do |observation|
+            #for now i do this
+            obs = {}
+            obs[:concept_name] = observation[:concept_name] 
+            obs[:value_coded_or_text] = observation[:value_coded_or_text] 
+            obs[:encounter_id] = encounter.id
+            obs[:obs_datetime] = encounter.encounter_datetime || Time.now()
+            obs[:person_id] ||= encounter.patient_id  
+            Observation.create(obs)
+          end
+
+          observation = {} 
+          observation[:concept_name] = 'TRANSFER OUT TO'
+          observation[:encounter_id] = encounter.id
+          observation[:obs_datetime] = encounter.encounter_datetime || Time.now()
+          observation[:person_id] ||= encounter.patient_id
+          #observation[:value_text] = params[:transfer_out_location_id]
+          observation['value_text'] = Location.find(params[:transfer_out_location_id]).name.to_s rescue ""
+          Observation.create(observation)
+        end  
+
+        updated_state = patient_state.program_workflow_state.concept.fullname
+        
+                     
+    #disabled redirection during import in the code below
+    # Changed the terminal state conditions from hardcoded ones to terminal indicator from the updated state object
+        if patient_state.program_workflow_state.terminal == 1
+          #the following code updates the person table to died yes if the state is Died/Death
+          if updated_state.match(/DIED/i)
+            person = patient_program.patient.person
+            person.dead = 1
+            unless params[:current_date].blank?
+              person.death_date = params[:current_date].to_date
+            end
+            person.save
+
+            #updates the state of all patient_programs to patient died and save the
+            #end_date of the last active state.
+            current_programs = PatientProgram.find(:all,:conditions => ["patient_id = ?",@patient.id])
+            current_programs.each do |program|
+              if patient_program.to_s != program.to_s
+                current_active_state = program.patient_states.last
+                current_active_state.end_date = params[:current_date].to_date
+
+                Location.current_location = Location.find(params[:location]) if params[:location]
+
+                patient_state = program.patient_states.build(
+                    :state => params[:current_state],
+                    :start_date => params[:current_date])
+                if patient_state.save
+                  current_active_state.save
+
+              # date_completed = session[:datetime].to_time rescue Time.now()
+                date_completed = params[:current_date].to_date rescue Time.now()
+                PatientProgram.update_all "date_completed = '#{date_completed.strftime('%Y-%m-%d %H:%M:%S')}'",
+                                       "patient_program_id = #{program.patient_program_id}"
+                end
+             end
+            end
+          end
+
+          # date_completed = session[:datetime].to_time rescue Time.now()
+          date_completed = params[:current_date].to_date rescue Time.now()
+          PatientProgram.update_all "date_completed = '#{date_completed.strftime('%Y-%m-%d %H:%M:%S')}'",
+                                     "patient_program_id = #{patient_program.patient_program_id}"
+        else
+          person = patient_program.patient.person
+          person.dead = 0
+          person.save
+          date_completed = nil
+          PatientProgram.update_all "date_completed = NULL",
+                                     "patient_program_id = #{patient_program.patient_program_id}"
+        end
+        
+        create_exit_from_care_encounter(params)
+     
+        redirect_to :controller => :patients, :action => :exitcare_dashboard, :id => params[:patient_id]
+        
+      else
+        redirect_to :controller => :patients, :action => :exitcare_dashboard, :id => params[:patient_id],:error => "Unable to update state"     
+      end   
+  end
+  
+  def void_exitcare
+    hiv_program_id = Program.find_by_name("HIV PROGRAM").id
+    patient_program = PatientProgram.find(:all,
+                     :conditions => ["patient_id = ? AND program_id = ? AND voided = 0",
+                       params[:patient_id], hiv_program_id]).first rescue nil
+    if ! patient_program.nil?
+      rebuild_program_states(patient_program.patient_program_id, params[:patient_id])
+    end
+    
+  end
 
 end
