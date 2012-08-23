@@ -24,12 +24,8 @@ class GenericSingleSignOnController < ApplicationController
 			session[:return_uri] = params[:return_uri]
 		end
 
-		if !params[:current_time].blank? and !params[:current_time].nil?
-			session[:datetime] = params[:current_time].to_time rescue nil
-      
-      if session[:datetime].to_date == Date.today.to_date
-         session.delete(:datetime)
-      end
+		if !params[:current_time].blank?
+			session[:datetime] = params[:current_time].to_time
 		end
 
 		session[:location_id] = params[:location] if params[:location]
