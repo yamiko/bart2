@@ -497,7 +497,7 @@ class GenericEncountersController < ApplicationController
      else
       if params['encounter']['encounter_type_name'].to_s.upcase == "APPOINTMENT" && !params[:report_url].nil? && !params[:report_url].match(/report/).nil?
          redirect_to  params[:report_url].to_s and return
-      elsif params['encounter']['encounter_type_name'].upcase == 'APPOINTMENT' && !session[:datetime]
+      elsif params['encounter']['encounter_type_name'].upcase == 'APPOINTMENT'
         print_and_redirect("/patients/dashboard_print_visit/#{params[:encounter]['patient_id']}","/patients/show/#{params[:encounter]['patient_id']}")
         return
       end
