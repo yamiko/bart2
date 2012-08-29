@@ -42,14 +42,13 @@
                 <li class="data <%= cycle('even', 'odd') %>" encounter="<%= encounter.id %>">
                   <div class="void"><img src="/images/cancel_flat_small.png"/></div>
                   <% if encounter.name.humanize.include?('Hiv') %>
-                    <div class="encounter"><%=(h encounter.name.humanize).gsub('Hiv','HIV').gsub('Tb','TB') %> on <%=h encounter.encounter_datetime.to_date %> by <%=@creator_name[encounter.creator]%></div>
+                    <div class="encounter"><%=h encounter.encounter_datetime.to_date %> by <%=@creator_name[encounter.creator]%></div>
                   <% else %>
-                    <div class="encounter"><%=(h encounter.name.humanize).gsub('Art','ART').gsub('hiv','HIV').gsub('Tb','TB') %> on <%=h encounter.encounter_datetime.to_date %> by <%=@creator_name[encounter.creator]%></div>
+                    <div class="encounter"><%=h encounter.encounter_datetime.to_date %> by <%=@creator_name[encounter.creator]%></div>
                   <% end %>
                 </li>
               <% end %>
             </ul>
-            <button id="add" class="silver" style="margin-top:10px;"><span>Exit Care</span></button>
           </div>
           <div style="display: table-cell; width: 50%; padding: 10px;">
             <ul id="observations" class="list" style="height: 210px; border-radius: 15px;">

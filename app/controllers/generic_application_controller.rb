@@ -37,6 +37,8 @@ class GenericApplicationController < ActionController::Base
 		                                         'mastercard_printable',
 		                                        'remote_demographics', 'get_token',
                                             'cohort']
+
+	before_filter :set_return_uri
   
 	def rescue_action_in_public(exception)
 		@message = exception.message
@@ -177,8 +179,14 @@ class GenericApplicationController < ActionController::Base
 			location = Location.find(session[:sso_location]) rescue nil
 			self.current_location = location if location
 		end
-		
+
 		located? || location_denied
+	end
+
+	def set_return_uri
+		if params[:return_uri]
+			session[:return_uri] = params[:return_uri]
+		end
 	end
 
     def located?

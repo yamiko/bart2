@@ -28,18 +28,22 @@ class GenericSingleSignOnController < ApplicationController
 			session[:datetime] = params[:current_time].to_time
 		end
 
+				
 		session[:location_id] = params[:location] if params[:location]
-		session[:sso_location] = params[:location] if params[:location]
-
-		if self.current_location.blank?
-			location_required
-		elsif params[:destination_uri].blank?
+		session[:ssolocation] = params[:location] if params[:location]
+		
+		logger.info(session.to_s) if session[:sso_location]
+		if params[:destination_uri].blank?
 			redirect_to '/' 
 		else
-			redirect_to params[:destination_uri] 
+			redirect_to "/single_sign_on/load_page?return_uri=#{params[:return_uri]}&location=#{params[:location]}&destination_uri=#{params[:destination_uri]}" 
 		end
 
 		return
+	end
+
+	def load_page
+		redirect_to params[:destination_uri]
 	end
 
 end

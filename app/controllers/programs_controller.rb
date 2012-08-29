@@ -7,7 +7,7 @@ class ProgramsController < GenericProgramsController
 		current_state = given_params[:current_state]
 
 		if states_to_create_encounter_for.include? current_state
-			new_encounter = {"encounter_datetime"=> params[:encounter][:encounter_datetime],
+			new_encounter = {"encounter_datetime"=> given_params[:current_date],
 						   "encounter_type_name"=>"EXIT FROM CARE",
 						   "patient_id"=> params[:patient_id],
 						   "provider_id"=>params[:encounter][:provider_id]}
