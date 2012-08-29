@@ -5,9 +5,10 @@ class PatientsController < GenericPatientsController
     @patient_bean = PatientService.get_patient(@patient.person)
     @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
     @arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
-  
+	@exit_states = concept_set("EXIT FROM CARE").flatten.uniq!
     render :template => 'dashboards/exitcare_dashboard.rhtml', :layout => false
   end
+
   def exitcare
     @programs = @patient.patient_programs.all
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })

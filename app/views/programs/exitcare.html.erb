@@ -5,56 +5,49 @@
 </style>
 
 <script>
-  var tt_cancel_destination = "/patients/exitcare_dashboard/<%= @patient.patient_id %>"
- 
-  var current_state_input_box = null
-  function set_workflow_for_states() {
-    var workflow_id = <%= @program_workflow_id %>
-    var current_state = '<%=@current_state%>'
-    $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/programs/exitcarestates?workflow=" + workflow_id + "&current_state=" + current_state);
-    current_state_input_box = $('touchscreenInput'+tstCurrentPage)
-    listSuggestions(tstCurrentPage); 
-  }
+	var tt_cancel_destination = "/patients/exitcare_dashboard/<%= @patient.patient_id %>"
+	var current_exit_from_care_state = "<%= @exit_from_care_state %>";
+	var current_state_input_box = null
 
-  function validProgram(){
-    selected_state = ($('tt_page_new_state').getElementsByTagName("input")[0].value)
-    if(program_date_completed != ""){return false}
-    return true
-  } 
+	function validProgram(){
+		selected_state = ($('tt_page_new_state').getElementsByTagName("input")[0].value)
+		if(program_date_completed != ""){return false}
+		return true
+	} 
 
-  function validStartDate(){
-    closed_states = '<%= @invalid_date_ranges %>'
-    set_start_date = dateCreate($('tt_page_new_state_start_date').getElementsByTagName("input")[0].value)
-    
-    if (closed_states == '')
-      return true
-    
-    dates = closed_states.split(',')
-    return_str = true
-    for (i = 0 ; i < dates.length ; i++) {
-      start_date = dateCreate(dates[i].split(':')[0])
-      end_date = dateCreate(dates[i].split(':')[1])
-      if (set_start_date >= start_date && set_start_date < end_date)
-        return_str = false
-      
-    }
-    return return_str
-  } 
+	function validStartDate(){
+		closed_states = '<%= @invalid_date_ranges %>'
+		set_start_date = dateCreate($('tt_page_new_state_start_date').getElementsByTagName("input")[0].value)
 
-  function dateCreate(date_str){
-    intyear = 0 ; intmonth = 0 ; intday = 0;
-    intyear = parseInt(date_str.substring(0,4))
-    intmonth = (parseInt(date_str.substring(5,7)) - 1)
-    intday = (parseInt(date_str.substring(8,10)))
+		if (closed_states == '')
+		  return true
 
-    if (intmonth == -1)
-      intmonth = (parseInt(date_str.substring(5,7).substring(1,2)) - 1)
+		dates = closed_states.split(',')
+		return_str = true
+		for (i = 0 ; i < dates.length ; i++) {
+		  start_date = dateCreate(dates[i].split(':')[0])
+		  end_date = dateCreate(dates[i].split(':')[1])
+		  if (set_start_date >= start_date && set_start_date < end_date)
+			return_str = false
+		  
+		}
+		return return_str
+	} 
 
-    if (intday == 0)
-      intday = parseInt(date_str.substring(8,10).substring(1,2))
+	function dateCreate(date_str){
+		intyear = 0 ; intmonth = 0 ; intday = 0;
+		intyear = parseInt(date_str.substring(0,4))
+		intmonth = (parseInt(date_str.substring(5,7)) - 1)
+		intday = (parseInt(date_str.substring(8,10)))
 
-    return new Date(intyear,intmonth,intday)
-  }
+		if (intmonth == -1)
+		  intmonth = (parseInt(date_str.substring(5,7).substring(1,2)) - 1)
+
+		if (intday == 0)
+		  intday = parseInt(date_str.substring(8,10).substring(1,2))
+
+		return new Date(intyear,intmonth,intday)
+	}
 
 
 </script>
@@ -63,7 +56,7 @@
   <%= hidden_field_tag :patient_program_id, @patient_program_id %>
   <%= hidden_field_tag :location_id, Location.current_health_center.id %>
 
-  <%= select_tag 'current_state', params[:current_state],
+  <!--%= select_tag 'current_state', params[:current_state],
       {:id => 'initial_state',
        :field_type => 'alpha',
        :helpText => "New outcome",
@@ -71,7 +64,9 @@
        :ajaxURL => "",
        :validationJS =>"validProgram()",
        :validationMessage => "#{@program_name}<br/>is closed<br/>Closed on: #{@program_date_completed}",
-       :allowFreeText => false } %>
+       :allowFreeText => false } %-->
+
+	<%= hidden_field_tag :current_state, @exit_from_care_state %>
 
   <% initial_date = "#{session[:datetime].strftime('%Y-%m-%d')}" rescue "#{(Date.today).strftime('%Y-%m-%d')}"%>
 
@@ -91,7 +86,7 @@
     }
 
     function changeNextButtonCaption(){
-      if(current_state_input_box.value != 'PATIENT TRANSFERRED OUT'){
+      if(current_exit_from_care_state != 'PATIENT TRANSFERRED OUT'){
         $('nextButton').innerHTML = "<span>Finish</span>"
       }
     }
@@ -102,13 +97,13 @@
        :field_type => 'alpha',
        :helpText => "Transfer out to location",
        :ajaxURL => '/programs/locations?q=',
-       :condition => "current_state_input_box.value.toUpperCase() == 'PATIENT TRANSFERRED OUT'",
+       :condition => "current_exit_from_care_state.toUpperCase() == 'PATIENT TRANSFERRED OUT'",
        :allowFreeText => true } %>
 
   <%#= touch_yes_no_unknown_tag "TRANSFER WITHIN RESPONSIBILITY", @patient, nil,
       {:id => "transfer_within_responsibility",
        :optional => false,
-       :condition => "current_state_input_box.value.toUpperCase() == 'PATIENT TRANSFERRED OUT'",
+       :condition => "current_exit_from_care_state == 'PATIENT TRANSFERRED OUT'",
        :helpText => "Transfer within responsibility (e.g. District)" } %>
 
 

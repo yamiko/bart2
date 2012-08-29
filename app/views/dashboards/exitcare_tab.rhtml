@@ -33,12 +33,11 @@
 </script>
   <div id="encounters" style="border: 1px solid #eee; padding: 10px; border-radius: 15px;">
     <% current_day = session[:datetime].strftime('%Y-%m-%d') rescue 'Today'%>
-    <h2 style="margin: 0px;">Exit care encounters list</h2>
     
     <div  style="display: table; width: 99%;">
       <div  style="display: table-row;">
         <div style="display: table-cell; width: 50%; padding: 10px; vertical-align: top;">
-          <ul class="list" style="clear:both; height: 210px;">
+          <ul class="list" style="clear:both; height: 210px; border-radius: 15px;">
             <% for encounter in @encounters.reverse do %>
                 <li class="data <%= cycle('even', 'odd') %>" encounter="<%= encounter.id %>">
                   <div class="void"><img src="/images/cancel_flat_small.png"/></div>
@@ -53,7 +52,7 @@
             <button id="add" class="silver" style="margin-top:10px;"><span>Exit Care</span></button>
           </div>
           <div style="display: table-cell; width: 50%; padding: 10px;">
-            <ul id="observations" class="list" style="height: 210px; ">
+            <ul id="observations" class="list" style="height: 210px; border-radius: 15px;">
             </ul>
           </div>
         </div>

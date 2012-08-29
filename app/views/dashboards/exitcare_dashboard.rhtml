@@ -77,10 +77,13 @@
                <% end %>
             </div>
             <select id="tabs">
-              <option value='/patients/exitcare_history?patient_id=<%= @patient.id %>'>Exit care</option>
+              <option value='/patients/exitcare_history?patient_id=<%= @patient.id %>'>History</option>
             </select>
-            <select id="links">
-            </select>
+			<select id="links">
+				<% for exit_state in @exit_states do %>
+					<option value='/programs/exitcare?patient_id=<%= @patient.id -%>&exit_state=<%= exit_state%>'><%= exit_state%></option>
+				<% end %>
+			</select>
             <tr>
               <td align='center'>
                 <input type='submit' value='Finish' />
