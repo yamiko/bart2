@@ -68,9 +68,7 @@
   <% else %>
     <%= touch_hidden_tag("GUARDIAN PRESENT", @patient, "Yes", {:id=>"guardian_present"}) %>
   <% end %>
-
   <% session[:guardian_added] = nil %>
-  
   <label for='patient_present'>Patient Present (<%=@patient_bean.name%>)</label>
     <%= select_tag "observations[][value_coded_or_text]", options_for_select([['Yes','YES'],['No','NO']]), 
       {:id => 'patient_present',
@@ -79,7 +77,7 @@
     <%= hidden_field_tag("observations[][value_text]", nil) %>
     <%= hidden_field_tag("observations[][concept_name]", "PATIENT PRESENT") %>
     <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-    <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %> 
+    <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>  
   <%if @given_arvs_before and @patient_bean.arv_number.blank?
       show_arv_number = get_global_property_value('show_arv_number') rescue 'true'
       unless show_arv_number == 'false'
@@ -88,7 +86,8 @@
     <% end %>
   <% end %>
 
-  <% if session_date %>
+  <% session_date = session[:datetime].to_date rescue nil
+    if session_date %>
 
     <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
 <%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
