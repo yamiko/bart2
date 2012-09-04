@@ -19,7 +19,7 @@ class PatientsController < GenericPatientsController
   end
   def exitcare_history
     @patient = Patient.find(params[:patient_id])
-    encounter_type = EncounterType.find_by_name("EXIT FROM CARE").id
+    encounter_type = EncounterType.find_by_name("EXIT FROM HIV CARE").id
 
     @encounters = Encounter.find(:all,  
                   :conditions => [" patient_id = ? AND encounter_type = ?", 

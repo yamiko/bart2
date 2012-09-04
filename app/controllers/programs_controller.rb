@@ -8,7 +8,7 @@ class ProgramsController < GenericProgramsController
 
 		if states_to_create_encounter_for.include? current_state
 			new_encounter = {"encounter_datetime"=> given_params[:current_date],
-						   "encounter_type_name"=>"EXIT FROM CARE",
+						   "encounter_type_name"=>"EXIT FROM HIV CARE",
 						   "patient_id"=> params[:patient_id],
 						   "provider_id"=>params[:encounter][:provider_id]}
 
@@ -97,7 +97,7 @@ class ProgramsController < GenericProgramsController
     patient.person[:dead] = 0
     patient.person.save
     
-    exit_from_care_encounter_type = EncounterType.find_by_name("Exit from care").id
+    exit_from_care_encounter_type = EncounterType.find_by_name("EXIT FROM HIV CARE").id
     exit_from_care_encounter = Encounter.find(:all, 
                                               :conditions => ["encounter_type = ? AND patient_id = ? AND voided = 0", 
                                                 exit_from_care_encounter_type, patient.patient_id]
