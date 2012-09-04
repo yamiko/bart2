@@ -63,7 +63,8 @@ module PatientService
             "cell_phone_number" => params["person"]["cell_phone_number"] },
           "patient"=> 
             {"identifiers"=> 
-              {"diabetes_number"=>""}}, 
+              {"diabetes_number"=>"",
+              "national_id" => params["identifier"]}}, 
           "gender"=> person_params["gender"], 
           "birthdate"=> birthdate, 
           "birthdate_estimated"=> birthdate_estimated , 
@@ -1076,6 +1077,14 @@ EOF
        "t_a"=>""},
        "relation"=>""
       }
+
+      passed_national_id = (passed["person"]["patient"]["identifiers"]["National id"])
+
+      unless passed_national_id.blank?
+        patient = PatientIdentifier.find(:first,
+          :conditions =>["voided = 0 AND identifier = ?",passed_national_id]).patient rescue nil
+        return [patient.person] unless patient.blank?
+      end
 
       return [self.create_from_form(passed["person"])]
     end
