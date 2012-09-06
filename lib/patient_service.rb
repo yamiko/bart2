@@ -1363,6 +1363,11 @@ EOF
 
   def self.get_national_id_with_dashes(patient, force = true)
     id = self.get_national_id(patient, force)
+    if id.length == 6
+      return id[0..2] + "-" + id[3..-1]
+    elsif id.length == 9
+      return id[0..2] + "-" + id[3..5] + "-" + id[6..-1] rescue id
+    end rescue nil
     id[0..4] + "-" + id[5..8] + "-" + id[9..-1] rescue id
   end
   
@@ -1406,6 +1411,20 @@ EOF
 		end
     
     start_date.to_date rescue nil
+  end
+
+  def self.latest_state(patient_obj,visit_date) 
+    program_id = Program.find_by_name('HIV PROGRAM').id
+    patient_state = PatientState.find(:first,                                  
+      :joins => "INNER JOIN patient_program p                                  
+      ON p.patient_program_id = patient_state.patient_program_id",             
+      :conditions =>["patient_state.voided = 0 AND p.voided = 0                
+      AND p.program_id = ? AND start_date <= ? AND p.patient_id = ?",           
+      program_id,visit_date.to_date,patient_obj.id],                           
+      :order => "start_date DESC, date_created DESC")                          
+                                                                                
+    return if patient_state.blank?                                             
+    ConceptName.find_by_concept_id(patient_state.program_workflow_state.concept_id).name
   end
 
 end

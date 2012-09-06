@@ -842,7 +842,8 @@ class GenericPatientsController < ApplicationController
 
     type = EncounterType.find_by_name("DISPENSING")
     patient.encounters.find_last_by_encounter_type(type.id, :order => "encounter_datetime").observations.each do | obs |
-      next if obs.order.blank? and obs.order.auto_expire_date.blank?
+      next if obs.order.blank?
+      next if obs.order.auto_expire_date.blank?
       alerts << "Auto expire date: #{obs.order.drug_order.drug.name} #{obs.order.auto_expire_date.to_date.strftime('%d-%b-%Y')}"
     end rescue []
 
