@@ -101,8 +101,9 @@ class GenericProgramsController < ApplicationController
 
   def update
     flash[:error] = nil
-
+    
     if request.method == :post
+
       patient_program = PatientProgram.find(params[:patient_program_id])
       #we don't want to have more than one open states - so we have to close the current active on before opening/creating a new one
 
@@ -146,7 +147,8 @@ class GenericProgramsController < ApplicationController
         end  
 
         updated_state = patient_state.program_workflow_state.concept.fullname
-
+        
+                     
 		#disabled redirection during import in the code below
 		# Changed the terminal state conditions from hardcoded ones to terminal indicator from the updated state object
         if patient_state.program_workflow_state.terminal == 1
@@ -211,6 +213,7 @@ class GenericProgramsController < ApplicationController
             render :text => "import suceeded" and return
         end
       end
+      
     else
       patient_program = PatientProgram.find(params[:id])
       unless patient_program.date_completed.blank?
@@ -246,6 +249,7 @@ class GenericProgramsController < ApplicationController
         @invalid_date_ranges = closed_states.join(',')
       end
     end
+    
   end
 
   # Looks for the most commonly used element in the database and sorts the results based on the first part of the string

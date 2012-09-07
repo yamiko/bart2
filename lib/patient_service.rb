@@ -1400,17 +1400,34 @@ EOF
   def self.date_antiretrovirals_started(patient)
  
     concept_id = ConceptName.find_by_name('Date antiretrovirals started').concept_id  
-    start_date = ActiveRecord::Base.connection.select_value "          
-			SELECT value_text FROM start_date_observation 
-			WHERE person_id = #{patient.id} AND concept_id = #{concept_id} LIMIT 1"
 
-    if start_date.blank?  
-		  start_date = ActiveRecord::Base.connection.select_value "                 
-				SELECT earliest_start_date FROM earliest_start_date 
-				WHERE patient_id = #{patient.id} LIMIT 1"
-		end
-    
+    start_date = ActiveRecord::Base.connection.select_value "
+      SELECT earliest_start_date FROM earliest_start_date
+      WHERE patient_id = #{patient.id} LIMIT 1"
+
     start_date.to_date rescue nil
+  end
+  
+  def self.date_dispensation_date_after(patient, date_after)
+    
+    arv_concept = ConceptName.find_by_name("ANTIRETROVIRAL DRUGS").concept_id
+    
+    start_date = ActiveRecord::Base.connection.select_value "
+    SELECT DATE(obs.obs_datetime) AS obs_datetime 
+    FROM drug_order d 
+        LEFT JOIN orders o ON d.order_id = o.order_id
+        LEFT JOIN obs ON d.order_id = obs.order_id
+    WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug WHERE concept_id IN (SELECT concept_id FROM concept_set WHERE concept_set = #{arv_concept})) 
+        AND quantity > 0
+        AND obs.voided = 0
+        AND o.voided = 0
+        AND obs.person_id = #{patient.id}
+        AND DATE(obs.obs_datetime) > #{date_after}
+    ORDER BY obs.obs_datetime ASC
+    LIMIT 1
+    "
+    start_date.to_date rescue nil
+    
   end
 
   def self.latest_state(patient_obj,visit_date) 
@@ -1427,4 +1444,25 @@ EOF
     ConceptName.find_by_concept_id(patient_state.program_workflow_state.concept_id).name
   end
 
+  def self.date_of_first_dispensation(patient)
+    
+    arv_concept = ConceptName.find_by_name("ANTIRETROVIRAL DRUGS").concept_id
+    
+    start_date = ActiveRecord::Base.connection.select_value "
+    SELECT DATE(obs.obs_datetime) AS obs_datetime 
+    FROM drug_order d 
+        LEFT JOIN orders o ON d.order_id = o.order_id
+        LEFT JOIN obs ON d.order_id = obs.order_id
+    WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug WHERE concept_id IN (SELECT concept_id FROM concept_set WHERE concept_set = #{arv_concept})) 
+        AND quantity > 0
+        AND obs.voided = 0
+        AND o.voided = 0
+        AND obs.person_id = #{patient.id}
+    ORDER BY obs.obs_datetime ASC
+    LIMIT 1
+    "
+    start_date.to_date rescue nil
+    
+  end
+  
 end
