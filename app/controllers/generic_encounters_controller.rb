@@ -627,7 +627,11 @@ class GenericEncountersController < ApplicationController
 
 	def observations
 		# We could eventually include more here, maybe using a scope with includes
-		@encounter = Encounter.find(params[:id], :include => [:observations])
+		if !params[:id].blank? && params[:id].upcase != "UNDEFINED"
+			@encounter = Encounter.find(params[:id], :include => [:observations])
+		else
+			@encounter = Encounter.new
+		end			
     observations = []
 		@encounter.observations.map do |obs|
 			if ConceptName.find_by_concept_id(obs.concept_id).name.match(/location/)

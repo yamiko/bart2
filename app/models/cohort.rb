@@ -337,8 +337,8 @@ class Cohort
 		threads << Thread.new do
 			begin
 				logger.info("adherence " + Time.now.to_s)
-				cohort_report['Patients with 0 - 6 doses missed at their last visit'] = self.patients_with_0_to_6_doses_missed_at_their_last_visit
-				cohort_report['Patients with 7+ doses missed at their last visit'] = self.patients_with_7_plus_doses_missed_at_their_last_visit
+				cohort_report['Patients with 0 - 6 doses missed at their last visit'] = self.patients_with_0_to_6_doses_missed_at_their_last_visit(@@first_registration_date, @end_date)
+				cohort_report['Patients with 7+ doses missed at their last visit'] = self.patients_with_7_plus_doses_missed_at_their_last_visit(@@first_registration_date, @end_date)
 			rescue Exception => e
 				Thread.current[:exception] = e
 			end
@@ -873,12 +873,10 @@ class Cohort
         states << [state.patient_id , state.name]
       end
   end
-
   
   def first_registration_date
     @@first_registration_date
   end
-
 
   def arv_regimens(regimen_category)
     regimens = []
@@ -1062,7 +1060,9 @@ class Cohort
 	end
 	
 	def patients_with_0_to_6_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
-    return patients_adherent_at_their_last_visit
+
+    return patients_adherent_at_their_last_visit(start_date,end_date)
+=begin
 		doses_missed_0_to_6 = []
 		self.patients_with_doses_missed_at_their_last_visit.map do |doses_missed|
 			missed_dose = doses_missed.value_text if !doses_missed.value_numeric
@@ -1071,10 +1071,12 @@ class Cohort
 			end
 		end
 		return doses_missed_0_to_6
+=end
 	end
 	
 	def patients_with_7_plus_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
-    return patients_not_adherent_at_their_last_visit
+    return patients_not_adherent_at_their_last_visit(start_date,end_date)
+=begin
 		doses_missed_7_plus = []
 		self.patients_with_doses_missed_at_their_last_visit.map do |doses_missed|
 			missed_dose = doses_missed.value_text if !doses_missed.value_numeric
@@ -1083,6 +1085,7 @@ class Cohort
 			end
 		end
 		return doses_missed_7_plus
+=end
 	end
 
   # EXTRAPULMONARY TUBERCULOSIS (EPTB) and Pulmonary TB (Concept Id 42)

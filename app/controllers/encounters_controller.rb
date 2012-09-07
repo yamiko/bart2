@@ -1,6 +1,5 @@
 class EncountersController < GenericEncountersController
 	def new
-	
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today

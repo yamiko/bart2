@@ -26,8 +26,11 @@
 <script>
 
 var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_id %>";
-	
-  var setDate = dateCreate('<%= @suggested_appointment_date %>');
+  <% if params[:select_date].to_s.upcase != 'NO' %>
+  	var setDate = dateCreate('<%= @todays_date %>');
+  <% else %>
+  	var setDate = dateCreate('<%= @suggested_appointment_date %>');
+  <% end %>
   var setNextAppointmentDate = null;
   var sessionDate = dateCreate('<%= @todays_date %>');
   

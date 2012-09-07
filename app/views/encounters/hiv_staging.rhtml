@@ -89,37 +89,50 @@
     }
   }
 
-	function updateCD4Count() {
-		var cd4_available = $('new_cd4_count_available').value == 'YES';
-		var cd4_count = cd4_available ? $('cd4_count').value : null;
-    
-		try { 
+  function updateCD4Count() {
+    var cd4_available = $('new_cd4_count_available').value == 'YES';
+    var cd4_count = cd4_available ? $('cd4_count').value : null;
+	var cd4_count_modifier = '';
+	
+    try { 
       cd4_count_numeric = parseInt(cd4_count.match(/[0-9](.*)/i)[0]); 
     } catch(e) { cd4_count_numeric = null; }
 
-		if (cd4_count_numeric == null || ''+cd4_count_numeric == 'NaN') {
-			try {
-        var matches = cd4_count.match(/^(>|<|=)([0-9\.]+)$/);
-				cd4_count_modifier = matches[1]; 
-				cd4_count_estimate = parseInt(matches[2]);
-				cd4_count_numeric = cd4_count_estimate;
-				if (cd4_count_modifier == '<') cd4_count_numeric -= 1;
-				if (cd4_count_modifier == '>') cd4_count_numeric += 1;
-			} catch(e) {
-				cd4_count_modifier = null; 
-				cd4_count_estimate = null;
-				cd4_count_numeric = null;
-			}
-		}
+    if (cd4_count_numeric == null || ''+cd4_count_numeric == 'NaN') {
+      try {
+        var matches = cd4_count.match(/^(\<|\>)([0-9\.]+)$/)
+        cd4_count_modifier = matches[1]; 
+        cd4_count_estimate = parseInt(matches[2]);
+        cd4_count_numeric = cd4_count_estimate;
+        if (cd4_count_modifier == '<') cd4_count_numeric -= 1;
+        if (cd4_count_modifier == '>') cd4_count_numeric += 1;
+      } catch(e) {
+        cd4_count_modifier = null; 
+        cd4_count_estimate = null;
+        cd4_count_numeric = null;
+      }
+    } else {
+        var matches = cd4_count.match(/^(=|\<|\>)([0-9\.]+)$/)
+        cd4_count_modifier = matches[1];
+    }
 
-		if (cd4_count_numeric == null || '' + cd4_count_numeric == 'NaN') {
-			$('cd4_count_less_than_250').value = "UNKNOWN";
-			$('cd4_count_less_than_350').value = "UNKNOWN";
-		} else {
-			$('cd4_count_less_than_250').value = (cd4_count_numeric <= 250) ? "YES" : "NO";
-			$('cd4_count_less_than_350').value = (cd4_count_numeric <= 350) ? "YES" : "NO";
-		}    
-	}
+    if (cd4_count_numeric == null || ''+cd4_count_numeric == 'NaN') {
+      $('cd4_count_less_than_250').value = "UNKNOWN";
+      $('cd4_count_less_than_350').value = "UNKNOWN";
+    } else {
+    	if(cd4_count_numeric <= 250 && cd4_count_modifier != ">") {	
+  			$('cd4_count_less_than_250').value = "YES";
+ 		} else {
+  			$('cd4_count_less_than_250').value = "NO";
+ 		}
+
+    	if(cd4_count_numeric <= 350 && cd4_count_modifier != ">") {	
+			$('cd4_count_less_than_350').value = "YES";
+ 		} else {
+			$('cd4_count_less_than_350').value = "NO";
+ 		}
+    }    
+  }
 
 	function updateCD4Percent() {
 		var cd4_percent_available = $('new_cd4_percent_available').value == 'YES';
