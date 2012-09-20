@@ -18,7 +18,8 @@ class EncountersController < GenericEncountersController
 
       (bart_activities).each do |activity|
         if not current_user_activities.include?(activity.upcase)
-          user_property.property_value += ",#{activity}"
+          user_property.property_value += ",#{activity}" unless user_property.activities.blank?
+          user_property.property_value = activity if user_property.activities.blank?
           user_property.save 
         end
       end
