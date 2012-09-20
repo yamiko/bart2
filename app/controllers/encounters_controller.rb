@@ -14,11 +14,11 @@ class EncountersController < GenericEncountersController
       current_user.activities.each{|a| current_user_activities << a.upcase }
 
       user_property = UserProperty.find(:first,
-        :conditions =>["property = 'Activities' AND user_id = ?",current_user.id)
+        :conditions =>["property = 'Activities' AND user_id = ?",current_user.id])
 
       (bart_activities).each do |activity|
         if not current_user_activities.include?(activity.upcase)
-          user_property.property += ",#{activity}"
+          user_property.property_value += ",#{activity}"
           user_property.save 
         end
       end
