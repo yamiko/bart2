@@ -8,6 +8,7 @@ ActionController::Routing::Routes.draw do |map|
 	map.logout '/logout', :controller => 'sessions', :action => 'destroy'
 	map.location '/location', :controller => 'sessions', :action => 'location'
 	map.encounter '/encounters/new/:encounter_type', :controller => 'encounters', :action => 'new'  
+	map.encounter '/encounters/new/:encounter_type/:id', :controller => 'encounters', :action => 'new'  
 	map.resource :session
 	map.resources :dispensations, :collection => {:quantities => :get}
 	map.resources :barcodes, :collection => {:label => :get}
