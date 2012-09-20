@@ -1,8 +1,29 @@
 class EncountersController < GenericEncountersController
 	def new
-		@patient = Patient.find(params[:patient_id] || session[:patient_id])
+		@patient = Patient.find(params[:patient_id] || session[:patient_id] || params[:id])
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
+
+
+    if (params[:from_anc] == 'true')
+      bart_activities = ['Manage Vitals','Manage HIV clinic consultations',
+        'Manage ART adherence','Manage HIV staging visits','Manage HIV first visits',
+        'Manage HIV reception visits','Manage drug dispensations','Manage prescription']
+
+      current_user_activities = []
+      current_user.activities.each{|a| current_user_activities << a.upcase }
+
+      user_property = UserProperty.find(:first,
+        :conditions =>["property = 'Activities' AND user_id = ?",current_user.id)
+
+      (bart_activities).each do |activity|
+        if not current_user_activities.include?(activity.upcase)
+          user_property.property += ",#{activity}"
+          user_property.save 
+        end
+      end
+    end
+
 
 		if session[:datetime]
 			@retrospective = true 
