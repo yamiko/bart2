@@ -64,7 +64,7 @@ module PatientService
           "patient"=> 
             {"identifiers"=> 
               {"diabetes_number"=>"",
-              "national_id" => params["identifier"]}}, 
+              "old_identification_number" => params["identifier"]}}, 
           "gender"=> person_params["gender"], 
           "birthdate"=> birthdate, 
           "birthdate_estimated"=> birthdate_estimated , 
