@@ -607,7 +607,6 @@ class GenericPeopleController < ApplicationController
       "&family_name=#{params[:family_name]}&gender=#{params[:gender]}"
     
     result = RestClient.get(url)
-    
     render :text => result, :layout => false
   end
 
