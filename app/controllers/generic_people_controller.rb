@@ -616,7 +616,14 @@ class GenericPeopleController < ApplicationController
 		@patient_bean = PatientService.get_patient(@person)
 		render :layout => 'menu'
   end
-  
+
+  def demographics_remote
+    identifier = params[:person][:patient][:identifiers]["national_id"] 
+    people = PatientService.search_by_identifier(identifier)
+    render :text => PatientService.remote_demographics(people.first).to_json rescue nil
+    return
+  end
+
 private
   
 	def search_complete_url(found_person_id, primary_person_id)

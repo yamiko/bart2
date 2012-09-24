@@ -313,12 +313,12 @@ module PatientService
     # Can't return multiple results because there will be redundant data from sites
 
     if server_port.blank?
-      uri = "http://#{login.first}:#{password.first}@#{server_address}/people/demographics"                          
+      uri = "http://#{login.first}:#{password.first}@#{server_address}/people/demographics_remote"                          
     else
-      uri = "http://#{login.first}:#{password.first}@#{server_address}:#{server_port}/people/demographics"                          
+      uri = "http://#{login.first}:#{password.first}@#{server_address}:#{server_port}/people/demographics_remote"                          
     end
 
-    output = RestClient.post(uri,known_demographics)      
+    output = RestClient.get(uri,known_demographics)      
 
     results = []
     results.push output if output and output.match(/person/)
@@ -341,7 +341,7 @@ module PatientService
   end
   
   def self.find_remote_person_by_identifier(identifier)
-    known_demographics = {:person => {:patient => { :identifiers => {"National id" => identifier }}}}
+    known_demographics = {:person => {:patient => { :identifiers => {"national_id" => identifier }}}}
     find_remote_person(known_demographics)
   end
   
@@ -1057,6 +1057,7 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
       id.patient.person
     } unless identifier.blank? rescue nil
     return people unless people.blank?
+
     create_from_dde_server = CoreService.get_global_property_value('create.from.dde.server').to_s == "true" rescue false
     if create_from_dde_server 
       dde_server = GlobalProperty.find_by_property("dde_server_ip").property_value rescue ""
