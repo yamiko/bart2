@@ -490,7 +490,7 @@ class GenericReportController < ApplicationController
   end
 
   def select_date
-    render :layout => 'menu'
+    render :layout => 'report'
   end
   
   def set_appointments

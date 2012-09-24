@@ -30,7 +30,7 @@ class GenericPatientsController < ApplicationController
 		if @location.downcase == "outpatient" || params[:source]== 'opd'
 			render :template => 'dashboards/opdtreatment_dashboard', :layout => false
 		else
-			@task = main_next_task(Location.current_location,@patient,session_date)
+			@task = main_next_task(Location.current_location, @patient, session_date)
 			@hiv_status = PatientService.patient_hiv_status(@patient)
 			@reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
 			if  !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.upcase == 'NONE'

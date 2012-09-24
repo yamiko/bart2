@@ -165,7 +165,7 @@ class GenericPeopleController < ApplicationController
                                      AS defaulter 
                                      FROM patient_program LIMIT 1")[0].defaulter rescue 0
     	@defaulted = "#{defaulter}" == "0" ? nil : true     
-    	@task = next_task(@person.patient)
+		@task = main_next_task(Location.current_location, @person.patient, session_date)		
 		@arv_number = PatientService.get_patient_identifier(@person, 'ARV Number')
 		@patient_bean = PatientService.get_patient(@person)                                                             
     	render :layout => false	
