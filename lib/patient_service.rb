@@ -318,7 +318,7 @@ module PatientService
       uri = "http://#{login.first}:#{password.first}@#{server_address}:#{server_port}/people/demographics_remote"                          
     end
 
-    output = RestClient.get(uri,known_demographics)      
+    output = RestClient.post(uri,known_demographics)      
 
     results = []
     results.push output if output and output.match(/person/)

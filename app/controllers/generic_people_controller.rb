@@ -620,6 +620,7 @@ class GenericPeopleController < ApplicationController
   def demographics_remote
     identifier = params[:person][:patient][:identifiers]["national_id"] 
     people = PatientService.search_by_identifier(identifier)
+    render :text => "" and return if people.blank?
     render :text => PatientService.remote_demographics(people.first).to_json rescue nil
     return
   end
