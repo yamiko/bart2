@@ -290,8 +290,8 @@ class GenericUserController < ApplicationController
 
   def activities
     # Don't show tasks that have been disabled
-    user_roles = UserRole.find(:all,:conditions =>["user_id = ?", current_user.id]).collect{|r|r.role}
-    role_privileges = RolePrivilege.find(:all,:conditions => ["role IN (?)", user_roles])
+    #user_roles = UserRole.find(:all,:conditions =>["user_id = ?", current_user.id]).collect{|r|r.role}
+    role_privileges = RolePrivilege.find(:all,:conditions => ["role IN (?)", current_user_roles])
     @privileges = Privilege.find(:all,:conditions => ["privilege IN (?)", role_privileges.collect{|r|r.privilege}])
 
     #raise @privileges.to_yaml

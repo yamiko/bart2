@@ -30,7 +30,7 @@ class GenericPatientsController < ApplicationController
 		if @location.downcase == "outpatient" || params[:source]== 'opd'
 			render :template => 'dashboards/opdtreatment_dashboard', :layout => false
 		else
-			@task = main_next_task(Location.current_location,@patient,session_date)
+			@task = main_next_task(Location.current_location, @patient, session_date)
 			@hiv_status = PatientService.patient_hiv_status(@patient)
 			@reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
 			if  !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.upcase == 'NONE'
@@ -1263,7 +1263,8 @@ class GenericPatientsController < ApplicationController
     unless demographics.cd4_count_date.blank?
       first_cd4_count_date = "CD count date #{demographics.cd4_count_date.strftime('%d-%b-%Y')}"
     end
-    label.draw_multi_text("Current Status", {:font_reverse => true})
+    # renamed current status to Initial height/weight as per minimum requirements
+    label.draw_multi_text("Initial Height/Weight", {:font_reverse => true})
     label.draw_multi_text("#{init_ht} #{init_wt}", {:font_reverse => false})
     label.draw_multi_text("#{first_cd4_count}", {:font_reverse => false})
     label.draw_multi_text("#{first_cd4_count_date}", {:font_reverse => false})
