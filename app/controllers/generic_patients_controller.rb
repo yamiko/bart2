@@ -1263,7 +1263,8 @@ class GenericPatientsController < ApplicationController
     unless demographics.cd4_count_date.blank?
       first_cd4_count_date = "CD count date #{demographics.cd4_count_date.strftime('%d-%b-%Y')}"
     end
-    label.draw_multi_text("Current Status", {:font_reverse => true})
+    # renamed current status to Initial height/weight as per minimum requirements
+    label.draw_multi_text("Initial Height/Weight", {:font_reverse => true})
     label.draw_multi_text("#{init_ht} #{init_wt}", {:font_reverse => false})
     label.draw_multi_text("#{first_cd4_count}", {:font_reverse => false})
     label.draw_multi_text("#{first_cd4_count_date}", {:font_reverse => false})
