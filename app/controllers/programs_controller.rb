@@ -76,7 +76,7 @@ class ProgramsController < GenericProgramsController
     # create on ART state if the patient has any art dispensation
     #TODO check if the patient has any art dispensation, and get the date of the earliest start date
     
-    date_of_first_dispensation = PatientService.date_of_first_dispensation(patient)
+    date_of_first_dispensation = PatientService.date_of_first_dispensation(patient) rescue nil
     if ! date_of_first_dispensation.nil?
       on_arv_state = current_patient_program.patient_states.build(
         :state => 7, #TODO find a better way of getting the this state rather than hard coding
@@ -302,9 +302,13 @@ class ProgramsController < GenericProgramsController
         end
         
         create_exit_from_care_encounter(params)
-     
-        redirect_to :controller => :patients, :action => :exitcare_dashboard, :id => params[:patient_id]
-        
+	#print the transfer out label if patient was transfered out
+	if patient_state.program_workflow_state.concept.fullname.upcase == 'PATIENT TRANSFERRED OUT' 
+		print_and_redirect("/patients/transfer_out_label?patient_id=#{params[:patient_id]}", "/patients/exitcare_dashboard/#{params[:patient_id]}") 
+	else
+		redirect_to :controller => :patients, :action => :exitcare_dashboard, :id => params[:patient_id]	
+	end
+
       else
         redirect_to :controller => :patients, :action => :exitcare_dashboard, :id => params[:patient_id],:error => "Unable to update state"     
       end   
