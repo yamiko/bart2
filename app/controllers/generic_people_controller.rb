@@ -607,7 +607,6 @@ class GenericPeopleController < ApplicationController
       "&family_name=#{params[:family_name]}&gender=#{params[:gender]}"
     
     result = RestClient.get(url)
-    
     render :text => result, :layout => false
   end
 
@@ -616,7 +615,15 @@ class GenericPeopleController < ApplicationController
 		@patient_bean = PatientService.get_patient(@person)
 		render :layout => 'menu'
   end
-  
+
+  def demographics_remote
+    identifier = params[:person][:patient][:identifiers]["national_id"] 
+    people = PatientService.search_by_identifier(identifier)
+    render :text => "" and return if people.blank?
+    render :text => PatientService.remote_demographics(people.first).to_json rescue nil
+    return
+  end
+
 private
   
 	def search_complete_url(found_person_id, primary_person_id)
