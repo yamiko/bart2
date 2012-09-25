@@ -38,7 +38,7 @@
 				<% elsif @defaulted  %>
 				tt_cancel_show = "javascript:confirmAction(2)";
 			<% else %> 
-				tt_cancel_show = "<%=@task%>";
+				tt_cancel_show = "<%=@task.url%>";
 			<% end %>
 
 			function changeAttributes(){

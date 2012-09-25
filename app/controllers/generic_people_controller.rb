@@ -12,20 +12,6 @@ class GenericPeopleController < ApplicationController
 	end
 
 	def create_remote
-		person_params = {"occupation"=> params[:occupation],
-			"age_estimate"=> params['patient_age']['age_estimate'],
-			"cell_phone_number"=> params['cell_phone']['identifier'],
-			"birth_month"=> params[:patient_month],
-			"addresses"=>{ "address2" => params['p_address']['identifier'],
-						"address1" => params['p_address']['identifier'],
-			"city_village"=> params['patientaddress']['city_village'],
-			"county_district"=> params[:birthplace] },
-			"gender" => params['patient']['gender'],
-			"birth_day" => params[:patient_day],
-			"names"=> {"family_name2"=>"Unknown",
-			"family_name"=> params['patient_name']['family_name'],
-			"given_name"=> params['patient_name']['given_name'] },
-			"birth_year"=> params[:patient_year] }
 
 		#raise person_params.to_yaml
 		if current_user.blank?
@@ -38,13 +24,62 @@ class GenericPeopleController < ApplicationController
 			Location.current_location = Location.find(CoreService.get_global_property_value('current_health_center_id'))
 		end rescue []
 
-		person = PatientService.create_from_form(person_params)
-		if person
-			patient = Patient.new()
-			patient.patient_id = person.id
-			patient.save
-			PatientService.patient_national_id_label(patient)
-		end
+    if create_from_dde_server                                                
+      
+      passed_params = {"region" => "" ,
+     "person"=>{"occupation"=> params["occupation"] ,
+     "age_estimate"=> params["patient_age"]["age_estimate"] ,
+     "cell_phone_number"=> params["cell_phone"]["identifier"] ,
+     "birth_month"=> params["patient_month"],
+     "addresses"=>{"address1"=> "",
+     "address2"=>  "",
+     "city_village"=>  params["patientaddress"]["city_village"] ,
+     "county_district"=> params["patient"]["birthplace"] },
+     "gender"=>  params["patient"]["gender"],
+     "patient"=>"",
+     "birth_day"=>  params["patient_day"] ,
+     "home_phone_number"=> params["home_phone"]["identifier"] ,
+     "names"=>{"family_name"=> params["patient_name"]["family_name"],
+     "given_name"=> params["patient_name"]["given_name"],
+     "middle_name"=> params["patient_name"]["middle_name"] },
+     "birth_year"=> params["patient_year"] },
+     "filter_district"=> params["patient"]["birthplace"] ,
+     "filter"=>{"region"=> "" ,
+     "t_a"=> params["current_ta"]["identifier"] ,
+     "t_a_a"=>""},
+     "relation"=>"",
+     "p"=>{"'address2_a'"=>"",
+     "addresses"=>{"county_district_a"=>"",
+     "city_village_a"=>""}},
+     "identifier"=>""}  
+             
+      person = PatientService.create_patient_from_dde(passed_params) 
+    else
+      person_params = {"occupation"=> params[:occupation],
+        "age_estimate"=> params['patient_age']['age_estimate'],
+        "cell_phone_number"=> params['cell_phone']['identifier'],
+        "birth_month"=> params[:patient_month],
+        "addresses"=>{ "address2" => params['p_address']['identifier'],
+              "address1" => params['p_address']['identifier'],
+        "city_village"=> params['patientaddress']['city_village'],
+        "county_district"=> params[:birthplace] },
+        "gender" => params['patient']['gender'],
+        "birth_day" => params[:patient_day],
+        "names"=> {"family_name2"=>"Unknown",
+        "family_name"=> params['patient_name']['family_name'],
+        "given_name"=> params['patient_name']['given_name'] },
+        "birth_year"=> params[:patient_year] }
+
+      person = PatientService.create_from_form(person_params)
+
+      if person
+        patient = Patient.new()
+        patient.patient_id = person.id
+        patient.save
+        PatientService.patient_national_id_label(patient)
+      end
+    end
+
 		render :text => PatientService.remote_demographics(person).to_json
 	end
 
@@ -130,7 +165,7 @@ class GenericPeopleController < ApplicationController
                                      AS defaulter 
                                      FROM patient_program LIMIT 1")[0].defaulter rescue 0
     	@defaulted = "#{defaulter}" == "0" ? nil : true     
-    	@task = next_task(@person.patient)
+		@task = main_next_task(Location.current_location, @person.patient, session_date)		
 		@arv_number = PatientService.get_patient_identifier(@person, 'ARV Number')
 		@patient_bean = PatientService.get_patient(@person)                                                             
     	render :layout => false	
@@ -572,7 +607,6 @@ class GenericPeopleController < ApplicationController
       "&family_name=#{params[:family_name]}&gender=#{params[:gender]}"
     
     result = RestClient.get(url)
-    
     render :text => result, :layout => false
   end
 
@@ -581,7 +615,15 @@ class GenericPeopleController < ApplicationController
 		@patient_bean = PatientService.get_patient(@person)
 		render :layout => 'menu'
   end
-  
+
+  def demographics_remote
+    identifier = params[:person][:patient][:identifiers]["national_id"] 
+    people = PatientService.search_by_identifier(identifier)
+    render :text => "" and return if people.blank?
+    render :text => PatientService.remote_demographics(people.first).to_json rescue nil
+    return
+  end
+
 private
   
 	def search_complete_url(found_person_id, primary_person_id)
