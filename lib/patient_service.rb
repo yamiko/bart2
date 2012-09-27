@@ -1505,7 +1505,10 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
     concept_id = ConceptName.find_by_name('Date antiretrovirals started').concept_id  
 
     start_date = ActiveRecord::Base.connection.select_value "
-      SELECT earliest_start_date FROM earliest_start_date
+      SELECT IF(ISNULL(MIN(sdo.value_datetime)), earliest_start_date,
+        MIN(sdo.value_datetime)) AS initiation_date
+      FROM earliest_start_date esd
+        LEFT JOIN start_date_observation sdo ON esd.patient_id = sdo.person_id
       WHERE patient_id = #{patient.id} LIMIT 1"
 
     start_date.to_date rescue nil

@@ -587,7 +587,7 @@
         :condition => '$("year_started_art").value.toUpperCase() == "UNKNOWN" && showARTstartDate();',
         :ttMatchFromBeginning => "true")%> 
 
-      <%= touch_hidden_tag "Drug start date", @patient, "", :id => "drug_start_date" %>
+      <%= touch_hidden_tag "Drug start date", @patient, "", :id => "drug_start_date", :value_datetime => true %>
 
 		<%= select_tag "month_started_art", month_name_options, 
 			{	:helpText => 'Month started ART', 
