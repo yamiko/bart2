@@ -606,7 +606,7 @@
         :tt_onUnLoad => "setUnkownStage();",
 				:validationMessage => 'Please enter a valid date'%>
 
-		<%= touch_hidden_tag "Date antiretrovirals started", @patient, "", :id => "date_started_art" %>
+		<%= touch_hidden_tag "Date antiretrovirals started", @patient, "", :id => "date_started_art" :value_datetime => true %>
 
 		<%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, options_for_select(@who_stage_i),
 			{	:id => "stage_1_conditions",                                         
