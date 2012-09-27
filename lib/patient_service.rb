@@ -1139,11 +1139,13 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
   end
   
   def self.search_by_identifier(identifier)
-    people = PatientIdentifier.find_all_by_identifier(identifier).map{|id| 
+    identifier_without_dashes = identifier.gsub("-","").strip
+    people = PatientIdentifier.find(:all ,
+    :conditions =>["identifier = ? OR identifier =?", identifier,identifier_without_dashes]).map{|id|
       id.patient.person
     } unless identifier.blank? rescue nil
     return people unless people.blank?
-
+    
     create_from_dde_server = CoreService.get_global_property_value('create.from.dde.server').to_s == "true" rescue false
     if create_from_dde_server 
       dde_server = GlobalProperty.find_by_property("dde_server_ip").property_value rescue ""
@@ -1501,8 +1503,8 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
   end
 
   def self.date_antiretrovirals_started(patient)
- 
-    concept_id = ConceptName.find_by_name('Date antiretrovirals started').concept_id  
+
+    concept_id = ConceptName.find_by_name('Date antiretrovirals started').concept_id
 
     start_date = ActiveRecord::Base.connection.select_value "
       SELECT IF(ISNULL(MIN(sdo.value_datetime)), earliest_start_date,
@@ -1513,6 +1515,7 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
 
     start_date.to_date rescue nil
   end
+  
   
   def self.date_dispensation_date_after(patient, date_after)
     
