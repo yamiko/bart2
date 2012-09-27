@@ -587,7 +587,7 @@
         :condition => '$("year_started_art").value.toUpperCase() == "UNKNOWN" && showARTstartDate();',
         :ttMatchFromBeginning => "true")%> 
 
-      <%= touch_hidden_tag "Drug start date", @patient, "", :id => "drug_start_date" %>
+      <%= touch_hidden_tag "Drug start date", @patient, "", :id => "drug_start_date", :value_datetime => true %>
 
 		<%= select_tag "month_started_art", month_name_options, 
 			{	:helpText => 'Month started ART', 
@@ -606,7 +606,7 @@
         :tt_onUnLoad => "setUnkownStage();",
 				:validationMessage => 'Please enter a valid date'%>
 
-		<%= touch_hidden_tag "Date antiretrovirals started", @patient, "", :id => "date_started_art" %>
+		<%= touch_hidden_tag "Date antiretrovirals started", @patient, "", :id => "date_started_art", :value_datetime => true %>
 
 		<%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, options_for_select(@who_stage_i),
 			{	:id => "stage_1_conditions",                                         
