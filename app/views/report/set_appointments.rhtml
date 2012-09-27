@@ -137,7 +137,7 @@ function dataT(){
   <td class='<%="color_#{color}" %>' onclick=''><%=patient[:first_name] || '&nbsp;'%></td>
   <td class='<%="color_#{color}" %>' onclick=''><%=patient[:last_name] || '&nbsp;'%></td>
   <td class='<%="color_#{color}" %>' onclick=''><%=patient[:gender] || '&nbsp;'%></td>
-  <td class='<%="color_#{color}" %>' onclick=''><%=patient[:birthdate].to_date.strftime('%Y-%m-%d') rescue '&nbsp;'%></td>
+  <td class='<%="color_#{color}" %>' onclick=''><%=patient[:birthdate] %></td>
   <td class='<%="color_#{color}" %>' onclick=''><%=patient[:visit_date].to_date.strftime('%Y-%m-%d') || '&nbsp;'%></td>
   <td class='<%="color_#{color}" %>' onclick=''><input class='patient_link' type="button" onmousedown="document.location='/patients/show/<%=patient[:patient_id]%>'" value='Show' /></td>
 </tr>

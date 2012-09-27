@@ -71,8 +71,11 @@
     buttons_div = document.getElementById('buttons');
     buttons_div.innerHTML+= "<button onmousedown='nextMonth();' id='next' class='button navButton'><span>>|</span></button>";
     buttons_div.innerHTML+= "<button onmousedown='previousMonth();' id='previous' class='button navButton'><span>|<</span></button>";
-    finish_button = document.getElementById('finishButton');
-    finish_button.setAttribute('onmousedown','showPatients();');
+    mastercards_button = document.getElementById('find');
+    mastercards_button.setAttribute('onmousedown','showPatients();');
+
+    finish_button = document.getElementById('logout');
+    finish_button.setAttribute('onmousedown','document.location = "/clinic";');
   }
 
   function addDate(set_date) {
