@@ -702,7 +702,7 @@ class ApplicationController < GenericApplicationController
 
     current_user_activities = current_user.activities
     if current_program_location == "TB program"
-      return tb_next_form(location , patient , session_date)
+      # return tb_next_form(location , patient , session_date)
     end
     
     if current_user_activities.blank?
@@ -824,7 +824,8 @@ class ApplicationController < GenericApplicationController
           clinician_or_doctor = roles.match(/Clinician/i) or roles.match(/Doctor/i)
 
           if not encounter_available.blank? and refer_to_clinician 
-            if user_selected_activities.match(/Manage HIV clinic consultaions/i)
+
+            if user_selected_activities.match(/Manage HIV clinic consultations/i)
               task.url = "/encounters/new/hiv_clinic_consultation?patient_id=#{patient.id}"
               task.encounter_type = "Clinician " + task.encounter_type
               return task
