@@ -197,6 +197,7 @@ class PatientsController < GenericPatientsController
     label.draw_text("#{adherence_to_show(visit.adherence).gsub('%', '\\\\%') rescue nil}",185,160,0,2,1,1,false)
     label.draw_text("#{visit_data['outcome']}",577,160,0,2,1,1,false)
     label.draw_text("#{visit_data['outcome_date']}",655,130,0,2,1,1,false)
+    label.draw_text("#{visit_data['next_appointment']}",577,190,0,2,1,1,false) if visit_data['next_appointment']
     starting_index = 25
     start_line = 160
 
