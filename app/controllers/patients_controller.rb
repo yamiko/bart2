@@ -95,11 +95,38 @@ class PatientsController < GenericPatientsController
     label.draw_multi_text("#{first_cd4_count_date}", {:font_reverse => false})
  
     # Print information on current treatment of the patient transfering out!
+
     demographics.reg = []
-    PatientService.drug_given_before(patient, (date.to_date) + 1.day).uniq.each do |order|
-      next unless MedicationService.arv(order.drug_order.drug)
-      demographics.reg << order.drug_order.drug.concept.shortname
+
+    concept_id = Concept.find_by_name('AMOUNT DISPENSED').id
+    previous_orders = Order.find(:all, :joins =>"INNER JOIN obs ON obs.order_id = orders.order_id",
+        :conditions =>["obs.person_id = ? AND obs.concept_id = ?                    
+        	AND obs_datetime <=?",
+        	patient.id, concept_id, date.strftime('%Y-%m-%d 23:59:59')],
+        :order =>"obs_datetime DESC")
+
+	previous_date = nil
+	drugs = []
+
+	finished = false
+
+    previous_orders.each do |order|
+      	next unless MedicationService.arv(order.drug_order.drug)
+		next if finished
+		if previous_date.blank?
+			previous_date = order.observation.obs_datetime.to_date
+		end
+		if previous_date == order.observation.obs_datetime.to_date 
+			demographics.reg << (order.drug_order.drug.concept.shortname || order.drug_order.drug.concept.fullname)
+			previous_date = order.observation.obs_datetime.to_date
+		else
+			if !drugs.blank?
+				finished = true
+			end
+		end
     end
+
+	demographics.reg = demographics.reg.uniq.join(" + ")
 
     label.draw_multi_text("Current ART drugs", {:font_reverse => true})
     label.draw_multi_text("#{demographics.reg}", {:font_reverse => false})
