@@ -1793,10 +1793,10 @@ class GenericPatientsController < ApplicationController
     return if visit.blank?
     data = {}
     data["outcome"] = visit.outcome rescue nil
-    if visit.appointment_date and (data["outcome"].match(/ON ANTIRETROVIRALS/i) || data["outcome"].match(/Pre-ART/i) || data["outcome"].blank?)
-      data["outcome"] = "Next: #{visit.appointment_date.strftime('%b %d %Y')}" 
-    else
-      data["outcome_date"] = "#{visit.date_of_outcome.to_date.strftime('%b %d %Y')}" if visit.date_of_outcome
+    data["outcome_date"] = "#{visit.date_of_outcome.to_date.strftime('%b %d %Y')}" if visit.date_of_outcome
+
+    if visit.appointment_date 
+      data["next_appointment"] = "Next: #{visit.appointment_date.strftime('%b %d %Y')}" 
     end
 
     count = 1
