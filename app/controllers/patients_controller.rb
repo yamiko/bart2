@@ -99,11 +99,11 @@ class PatientsController < GenericPatientsController
     demographics.reg = []
 
     concept_id = Concept.find_by_name('AMOUNT DISPENSED').id
-    previous_orders = Order.find(:all, :joins =>"INNER JOIN obs ON obs.order_id = orders.order_id",
+    previous_orders = Order.find(:all, :select => "obs.obs_datetime, drug_order.drug_inventory_id", :joins =>"INNER JOIN obs ON obs.order_id = orders.order_id LEFT JOIN drug_order ON orders.order_id = drug_order.order_id",
         :conditions =>["obs.person_id = ? AND obs.concept_id = ?                    
         	AND obs_datetime <=?",
         	patient.id, concept_id, date.strftime('%Y-%m-%d 23:59:59')],
-        :order =>"obs_datetime DESC")
+        :order => "obs_datetime DESC")
 
 	previous_date = nil
 	drugs = []
@@ -111,14 +111,16 @@ class PatientsController < GenericPatientsController
 	finished = false
 
     previous_orders.each do |order|
-      	next unless MedicationService.arv(order.drug_order.drug)
+        drug = Drug.find(order.drug_inventory_id)
+      	next unless MedicationService.arv(drug)
 		next if finished
+
 		if previous_date.blank?
-			previous_date = order.observation.obs_datetime.to_date
+			previous_date = order.obs_datetime.to_date
 		end
-		if previous_date == order.observation.obs_datetime.to_date 
-			demographics.reg << (order.drug_order.drug.concept.shortname || order.drug_order.drug.concept.fullname)
-			previous_date = order.observation.obs_datetime.to_date
+		if previous_date == order.obs_datetime.to_date 
+			demographics.reg << (drug.concept.shortname || drug.concept.fullname)
+			previous_date = order.obs_datetime.to_date
 		else
 			if !drugs.blank?
 				finished = true
