@@ -2182,7 +2182,7 @@ class GenericPatientsController < ApplicationController
     
     #@status =Concept.find(Observation.find(:first,  :conditions => ["voided = 0 AND person_id= ? AND concept_id = ?",@patient.person.id, Concept.find_by_name('HIV STATUS').id], :order => 'obs_datetime DESC').value_coded).name.name rescue 'UNKNOWN'
     @hiv_test_date    = PatientService.hiv_test_date(@patient.id).strftime("%d/%b/%Y") rescue "UNKNOWN"
-    @hiv_test_date = "Unkown" if @hiv_test_date.blank?
+    @hiv_test_date = "Unknown" if @hiv_test_date.blank?
     @remote_art_info  = Patient.remote_art_info(@patient.national_id) rescue nil
 
     @recents = DiabetesService.patient_recent_screen_complications(@patient.patient_id)

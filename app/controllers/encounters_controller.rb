@@ -725,6 +725,7 @@ end
 			auto_expire_date = orders_made.sort_by(&:auto_expire_date).first.auto_expire_date.to_date
 		end
 
+        calculated_expire_date = auto_expire_date
 		orders_made.each do |order|
 			amounts_dispensed = Observation.all(:conditions => ['concept_id = ? AND order_id = ?', 
 						     ConceptName.find_by_name("AMOUNT DISPENSED").concept_id , order.id])
@@ -741,11 +742,18 @@ end
 
 			total_brought_to_clinic = total_brought_to_clinic + amounts_brought_to_clinic.sum{|amount| (amount.value_text.to_f rescue 0)}
 
-			prescription_duration = ((total_dispensed + total_brought_to_clinic)/order.drug_order.equivalent_daily_dose).to_i
-			expire_date = order.start_date.to_date + prescription_duration.days
+			#prescription_duration = ((total_dispensed + total_brought_to_clinic)/order.drug_order.equivalent_daily_dose).to_i
+			
+			hanging_pills_duration = ((total_brought_to_clinic)/order.drug_order.equivalent_daily_dose).to_i
+			
+			expire_date = order.auto_expire_date + hanging_pills_duration.days
 
-			auto_expire_date = expire_date  if expire_date  > auto_expire_date
+			calculated_expire_date = expire_date if expire_date < calculated_expire_date
 		end
+		
+		if calculated_expire_date > auto_expire_date
+		    auto_expire_date = calculated_expire_dte
+		end 
 		
 		return auto_expire_date - 2.days
 	end
