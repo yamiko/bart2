@@ -660,11 +660,11 @@ end
 		end
 
 		number_of_suggested_booked_dates_tried += 1
-		total_booked_dates = booked_dates.length rescue 0
 
-		test = (number_of_suggested_booked_dates_tried > 4 && total_booked_dates > 0)
+		test = (number_of_suggested_booked_dates_tried > 4)
 		if test
 			recommended_date = nearest_clinic_day
+			skip = false
 		end
     end
 
