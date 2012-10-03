@@ -713,9 +713,13 @@ end
 	
 	def prescription_expiry_date(patient, dispensed_date)
     	session_date = dispensed_date.to_date
-    
+        
+        arvs_given = true    
+		
 		orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o| !MedicationService.arv(o.drug_order.drug) }
 
+        arvs_given = false if orders_made.blank?
+        
 		auto_expire_date = Date.today + 2.days
 		
 		if orders_made.blank?
@@ -755,7 +759,10 @@ end
 		    auto_expire_date = calculated_expire_date
 		end 
 		
-		return auto_expire_date - 2.days
+		buffer = 2
+		buffer = 0 if !arvs_given
+		
+		return auto_expire_date - buffer.days
 	end
 	
   def bookings_within_range(end_date = nil)
