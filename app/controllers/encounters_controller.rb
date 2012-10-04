@@ -585,52 +585,52 @@ class EncountersController < GenericEncountersController
     }
   end
 
- def is_holiday(suggest_date, holidays)
-    holiday = false;
-    holidays.each do |h|
-      if (h.to_date.strftime('%A %d') == suggest_date.strftime('%A %d'))
-        holiday = true;
-      end
-    end
-    return holiday
- end
+	def is_holiday(suggest_date, holidays)
+		holiday = false;
+		holidays.each do |h|
+			if (h.to_date.strftime('%A %d') == suggest_date.strftime('%A %d'))
+				holiday = true;
+			end
+		end
+		return holiday
+	end
 
-def return_original_suggested_date(suggested_date, booked_dates)
-  suggest_original_date = nil
-  #second_biggest_date_available = nil
-  
-  booked_dates.each do |booked_date|
-    sdate = booked_date.to_s.split(":")[0].to_date
-    
-    if(sdate.to_date >= suggested_date.to_date)
-      #second_biggest_date_available = suggested_date
-      suggest_original_date = sdate
-      suggested_date = sdate
-    end
-  end if booked_dates.to_s.size > 0
-  
-  @massage="All available days this calender week are fully booked"
+	def return_original_suggested_date(suggested_date, booked_dates)
+		suggest_original_date = nil
+		#second_biggest_date_available = nil
 
-  return suggest_original_date
-end
+		booked_dates.each do |booked_date|
+			sdate = booked_date.to_s.split(":")[0].to_date
 
-  def is_below_limit(recommended_date, bookings)
-    clinic_appointment_limit = CoreService.get_global_property_value('clinic.appointment.limit').to_i rescue 0
+			if(sdate.to_date >= suggested_date.to_date)
+				#second_biggest_date_available = suggested_date
+				suggest_original_date = sdate
+				suggested_date = sdate
+			end
+		end if booked_dates.to_s.size > 0
+
+		@massage="All available days this calender week are fully booked"
+
+		return suggest_original_date
+	end
+
+	def is_below_limit(recommended_date, bookings)
+		clinic_appointment_limit = CoreService.get_global_property_value('clinic.appointment.limit').to_i rescue 0
 		clinic_appointment_limit = 0 if clinic_appointment_limit.blank?
 		within_limit = true
-		
-    if (bookings.blank? || clinic_appointment_limit <= 0)
-      within_limit = true;
-    else
-      recommended_date_limit = bookings[recommended_date] rescue 0
+	
+		if (bookings.blank? || clinic_appointment_limit <= 0)
+			within_limit = true;
+		else
+			recommended_date_limit = bookings[recommended_date] rescue 0
 
-		  if (recommended_date_limit >= clinic_appointment_limit)
-		    within_limit = false
-		  end
-    end
+			if (recommended_date_limit >= clinic_appointment_limit)
+				within_limit = false
+			end
+		end
 
-	return within_limit
- end
+		return within_limit
+	end
 
 	def suggested_date(expiry_date, holidays, bookings, clinic_days)
 		number_of_suggested_booked_dates_tried = 0
@@ -641,36 +641,37 @@ end
     
 		while skip
 			clinic_days.each do |d|
-			if (d.to_s.upcase == recommended_date.strftime('%A').to_s.upcase)
-				nearest_clinic_day = recommended_date if nearest_clinic_day.blank?
-				skip = is_holiday(recommended_date, holidays)
-				break
+				if (d.to_s.upcase == recommended_date.strftime('%A').to_s.upcase)
+					nearest_clinic_day = recommended_date if nearest_clinic_day.blank?
+					skip = is_holiday(recommended_date, holidays)
+					break
+				end
 			end
-		end
 
 
-		if (skip)
-			recommended_date = recommended_date - 1.day
-		else
-			below_limit = is_below_limit(recommended_date, bookings)
-			if (below_limit == false)
+			if (skip)
 				recommended_date = recommended_date - 1.day
-				skip = true
+			else
+				below_limit = is_below_limit(recommended_date, bookings)
+				if (below_limit == false)
+					recommended_date = recommended_date - 1.day
+					skip = true
+				end
+			end
+
+			number_of_suggested_booked_dates_tried += 1 if nearest_clinic_day
+
+			test = (number_of_suggested_booked_dates_tried > 4)
+			
+			if test
+				recommended_date = nearest_clinic_day
+				skip = false
 			end
 		end
 
-		number_of_suggested_booked_dates_tried += 1
-
-		test = (number_of_suggested_booked_dates_tried > 4)
-		if test
-			recommended_date = nearest_clinic_day
-			skip = false
-		end
-    end
-
-    return recommended_date
+    	return recommended_date
    
- end
+	end
 
   def assign_close_to_expire_date(set_date,auto_expire_date)
     if (set_date < auto_expire_date)
