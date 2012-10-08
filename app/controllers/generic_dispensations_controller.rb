@@ -156,9 +156,20 @@ class GenericDispensationsController < ApplicationController
     
     #checks if the prescription is satisfied
     complete = dispensation_complete(@patient, @encounter, PatientService.current_treatment_encounter(@patient, session_date, user_person_id))
+    
+    encounter_ids = @patient.encounters.find_by_date(session_date).map(&:encounter_id)
+    observations = Observation.find(:all, 
+                      :conditions => ["encounter_id IN (?) AND voided = 0", encounter_ids])
+                      
+    @transfer_out_site = nil
+    
+    observations.each do |ob|  
+      @transfer_out_site = ob.to_s if ob.to_s.include?('Transfer out to')
+    end
+
     if complete
       unless params[:location]
-        if (CoreService.get_global_property_value('auto_set_appointment') rescue false)
+        if (CoreService.get_global_property_value('auto_set_appointment') rescue false) && (@transfer_out_site.blank?)
           start_date, end_date = DrugOrder.prescription_dates(@patient,session_date.to_date)
           redirect_to :controller => 'encounters',:action => 'new',
             :patient_id => @patient.id,:id =>"show",:encounter_type => "appointment" ,
