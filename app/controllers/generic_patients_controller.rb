@@ -1601,7 +1601,7 @@ class GenericPatientsController < ApplicationController
             drug = Drug.find(obs.value_drug) rescue nil
             next if drug.blank?
             drug_name = drug.concept.shortname rescue drug.name
-            if drug_name.match(/Cotrimoxazole/i)
+            if drug_name.match(/Cotrimoxazole/i) || drug_name.match(/CPT/i)
               patient_visits[visit_date].cpt += obs.value_numeric unless patient_visits[visit_date].cpt.blank?
               patient_visits[visit_date].cpt = obs.value_numeric if patient_visits[visit_date].cpt.blank?
             else
