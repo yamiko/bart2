@@ -14,6 +14,7 @@ module TouchscreenHelper
     content << hidden_field_tag("observations[][value_drug]", nil)  unless kind == 'value_drug'
     content << hidden_field_tag("observations[][accession_number]", options[:accession_number], :id => "#{options[:id]}_#{options[:accession_number]}") if options[:accession_number] 
     content << hidden_field_tag("observations[][obs_group_id]", options[:obs_group_id])
+    content << hidden_field_tag("observations[][parent_concept_name]", options[:parent_concept_name])
     content << hidden_field_tag("observations[][order_id]", options[:order_id])
     content << hidden_field_tag("observations[][concept_name]", concept) 
     content << hidden_field_tag("observations[][patient_id]", patient.id) 
@@ -87,10 +88,8 @@ module TouchscreenHelper
     options = {
       :field_type => 'alpha',
       :ajaxURL => '/programs/locations?q=', 
-      #:ajaxURL => '/person_addresses/health_facility?search_string=', 
       :allowFreeText => true
     }.merge(options)                 
-    #touch_text_field_tag(concept, patient, value, options, time)
     touch_select_tag(concept, patient, value, options, time)
   end
 
