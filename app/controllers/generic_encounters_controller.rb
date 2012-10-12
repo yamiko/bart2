@@ -1241,10 +1241,6 @@ class GenericEncountersController < ApplicationController
         observation.delete(:measurement_unit)
       end
       
-			if encounter.type.name.upcase == 'FILM' && observation[:concept_name].upcase == 'FILM SIZE'
-					observation.delete(:parent_concept_name)
-			end
-
       if(observation[:parent_concept_name])
         concept_id = Concept.find_by_name(observation[:parent_concept_name]).id rescue nil
         observation[:obs_group_id] = Observation.find(:first, :conditions=> ['value_coded = ? AND encounter_id = ?',concept_id, encounter.id]).id rescue ""
@@ -1269,50 +1265,8 @@ class GenericEncountersController < ApplicationController
 
     @patient = Patient.find(params[:encounter][:patient_id])
 
-    # redirect to a custom destination page 'next_url'
-    #if(params[:next_url])
-      redirect_to "/patients/show/#{@patient.patient_id}" and return
-    #else
-    #  redirect_to next_task(@patient)
-    #end
-
+    redirect_to "/patients/show/#{@patient.patient_id}" and return
   end
-
-	def test_create
-=begin
-		o = {:encounter_id => 26,
-			  :obs_group_id => "",
-			  :obs_datetime => Time.now,
-			  :person_id => 2,
-			  :value_numeric => "",
-			  :value_drug => "",
-			  :value_datetime => "",
-			  :value_boolean => "",
-			  :concept_name => "TB STATUS",
-			  :value_coded_or_text => "Confirmed TB NOT on treatment",
-			  :patient_id => "2",
-			  :value_modifier => "",
-			  :order_id => "",
-			  :value_coded => ""}
-
-=end
-		o = {:encounter_id => 26,
-			  :obs_datetime => Time.now,
-			  :person_id => 2,
-			  :concept_name => "TB STATUS",
-			  :value_coded_or_text => "Confirmed TB NOT on treatment",
-			  :patient_id => "2"
-			}
-
-		#raise current_user.to_yaml
-		#result = Observation.create(o)
-
-		result = Observation.new(o)
-		result.date_created = Time.now
-		result.creator = current_user
-		result.save
-		render :text => result.to_yaml
-	end
 
   private
 
@@ -1352,10 +1306,6 @@ class GenericEncountersController < ApplicationController
 				observation.delete(:measurement_unit)
 			end
 
-			if encounter.type.name.upcase == 'FILM' && observation[:concept_name].upcase == 'FILM SIZE'
-					observation.delete(:parent_concept_name)
-			end
-			
 			if(observation[:parent_concept_name])
 				concept_id = Concept.find_by_name(observation[:parent_concept_name]).id rescue nil
 				observation[:obs_group_id] = Observation.find(:last, :conditions=> ['concept_id = ? AND encounter_id = ?', concept_id, encounter.id], :order => "obs_id ASC, date_created ASC").id rescue ""
