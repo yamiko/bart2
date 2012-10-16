@@ -1,6 +1,6 @@
 class GenericEncountersController < ApplicationController
   def create(params=params, session=session)
-  
+
     if params[:change_appointment_date] == "true"
       session_date = session[:datetime].to_date rescue Date.today
       type = EncounterType.find_by_name("APPOINTMENT")                            
@@ -314,24 +314,23 @@ class GenericEncountersController < ApplicationController
     end
 
     # Encounter handling
-    encounter = Encounter.new(params[:encounter])
-    unless params[:location]
-      encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
-    else
-      encounter.encounter_datetime = params['encounter']['encounter_datetime']
-    end
+		encounter = Encounter.new(params[:encounter])
+		unless params[:location]
+		  encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
+		else
+		  encounter.encounter_datetime = params['encounter']['encounter_datetime']
+		end
 
-	
-    if params[:filter] and !params[:filter][:provider].blank?
-      user_person_id = User.find_by_username(params[:filter][:provider]).person_id
-    elsif params[:location] # Migration
-      user_person_id = encounter[:provider_id]
-    else
-      user_person_id = User.find_by_user_id(encounter[:provider_id]).person_id
-    end
-    encounter.provider_id = user_person_id
+		if params[:filter] and !params[:filter][:provider].blank?
+		  user_person_id = User.find_by_username(params[:filter][:provider]).person_id
+		elsif params[:location] # Migration
+		  user_person_id = encounter[:provider_id]
+		else
+		  user_person_id = User.find_by_user_id(encounter[:provider_id]).person_id
+		end
+		encounter.provider_id = user_person_id
 
-    encounter.save    
+		encounter.save
 
     #create observations for the just created encounter
     create_obs(encounter , params)
@@ -627,20 +626,22 @@ class GenericEncountersController < ApplicationController
 
 	def observations
 		# We could eventually include more here, maybe using a scope with includes
-		if !params[:id].blank? && params[:id].upcase != "UNDEFINED"
-			@encounter = Encounter.find(params[:id], :include => [:observations])
-		else
-			@encounter = Encounter.new
-		end			
-    observations = []
+		@encounter = Encounter.find(params[:id], :include => [:observations])
+		@child_obs = {}
+    	@observations = []
 		@encounter.observations.map do |obs|
+			next if !obs.obs_group_id.blank?
 			if ConceptName.find_by_concept_id(obs.concept_id).name.match(/location/)
 				obs.value_numeric = ""
-				observations << obs.to_s
+				@observations << obs
 			else
-				observations << obs.to_s
-		  end
-    end
+				@observations << obs
+		  	end
+			child_obs = Observation.find(:all, :conditions => ["obs_group_id = ?", obs.obs_id])
+			if child_obs
+				@child_obs[obs.obs_id] = child_obs
+			end
+    	end
 
 		render :layout => false
 	end
@@ -1239,10 +1240,14 @@ class GenericEncountersController < ApplicationController
         observation[:value_numeric] = observation[:value_numeric].to_f * 18 if ( observation[:measurement_unit] == "mmol/l")
         observation.delete(:measurement_unit)
       end
+      
+			if encounter.type.name.upcase == 'FILM' && observation[:concept_name].upcase == 'FILM SIZE'
+					observation.delete(:parent_concept_name)
+			end
 
       if(observation[:parent_concept_name])
         concept_id = Concept.find_by_name(observation[:parent_concept_name]).id rescue nil
-        observation[:obs_group_id] = Observation.find(:first, :conditions=> ['concept_id = ? AND encounter_id = ?',concept_id, encounter.id]).id rescue ""
+        observation[:obs_group_id] = Observation.find(:first, :conditions=> ['value_coded = ? AND encounter_id = ?',concept_id, encounter.id]).id rescue ""
         observation.delete(:parent_concept_name)
       end
 
@@ -1313,7 +1318,7 @@ class GenericEncountersController < ApplicationController
 
 	def create_obs(encounter , params)
 		# Observation handling
-		#raise params.to_yaml
+		# raise params.to_yaml
 		(params[:observations] || []).each do |observation|
 			# Check to see if any values are part of this observation
 			# This keeps us from saving empty observations
@@ -1347,34 +1352,38 @@ class GenericEncountersController < ApplicationController
 				observation.delete(:measurement_unit)
 			end
 
+			if encounter.type.name.upcase == 'FILM' && observation[:concept_name].upcase == 'FILM SIZE'
+					observation.delete(:parent_concept_name)
+			end
+			
 			if(observation[:parent_concept_name])
 				concept_id = Concept.find_by_name(observation[:parent_concept_name]).id rescue nil
-				observation[:obs_group_id] = Observation.find(:first, :conditions=> ['concept_id = ? AND encounter_id = ?',concept_id, encounter.id]).id rescue ""
+				observation[:obs_group_id] = Observation.find(:last, :conditions=> ['concept_id = ? AND encounter_id = ?', concept_id, encounter.id], :order => "obs_id ASC, date_created ASC").id rescue ""
 				observation.delete(:parent_concept_name)
 			end
 
 			extracted_value_numerics = observation[:value_numeric]
 			extracted_value_coded_or_text = observation[:value_coded_or_text]
       
-      #TODO : Added this block with Yam, but it needs some testing.
-      if params[:location]
-        if encounter.encounter_type == EncounterType.find_by_name("ART ADHERENCE").id
-          passed_concept_id = Concept.find_by_name(observation[:concept_name]).concept_id rescue -1
-          obs_concept_id = Concept.find_by_name("AMOUNT OF DRUG BROUGHT TO CLINIC").concept_id rescue -1
-          if observation[:order_id].blank? && passed_concept_id == obs_concept_id
-            order_id = Order.find(:first,
-                                  :select => "orders.order_id",
-                                  :joins => "INNER JOIN drug_order USING (order_id)",
-                                  :conditions => ["orders.patient_id = ? AND drug_order.drug_inventory_id = ? 
-                                                  AND orders.start_date < ?", encounter.patient_id, 
-                                                  observation[:value_drug], encounter.encounter_datetime.to_date],
-                                  :order => "orders.start_date DESC").order_id rescue nil
-            if !order_id.blank?
-              observation[:order_id] = order_id
-            end
-          end
-        end
-      end
+			#TODO : Added this block with Yam, but it needs some testing.
+			if params[:location]
+				if encounter.encounter_type == EncounterType.find_by_name("ART ADHERENCE").id
+					passed_concept_id = Concept.find_by_name(observation[:concept_name]).concept_id rescue -1
+					obs_concept_id = Concept.find_by_name("AMOUNT OF DRUG BROUGHT TO CLINIC").concept_id rescue -1
+					if observation[:order_id].blank? && passed_concept_id == obs_concept_id
+						order_id = Order.find(:first,
+							:select => "orders.order_id",
+							:joins => "INNER JOIN drug_order USING (order_id)",
+							:conditions => ["orders.patient_id = ? AND drug_order.drug_inventory_id = ? 
+										  AND orders.start_date < ?", encounter.patient_id, 
+										  observation[:value_drug], encounter.encounter_datetime.to_date],
+							:order => "orders.start_date DESC").order_id rescue nil
+						if !order_id.blank?
+							observation[:order_id] = order_id
+						end
+					end
+				end
+			end
       
 			if observation[:value_coded_or_text_multiple] && observation[:value_coded_or_text_multiple].is_a?(Array) && !observation[:value_coded_or_text_multiple].blank?
 				values = observation.delete(:value_coded_or_text_multiple)
