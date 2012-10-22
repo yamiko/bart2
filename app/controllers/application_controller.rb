@@ -11,6 +11,7 @@ class ApplicationController < GenericApplicationController
     end
   end
 
+  # TB next form
   def tb_next_form(location , patient , session_date = Date.today)
     task = Task.first rescue Task.new()
     
