@@ -508,6 +508,58 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 
+DROP FUNCTION IF EXISTS `last_text_for_obs`;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `last_text_for_observation`(my_patient_id INT, my_encounter_type_id INT, my_concept_id INT, my_end_date DATETIME) RETURNS VARCHAR(255)
+BEGIN
+  SET @obs_value = NULL;
+	SELECT encounter_id INTO @encounter_id FROM encounter e
+			INNER JOIN observation o ON e.encounter_id = o.encounter_id AND o.concept_id = my_concept_id AND o.voided = 0
+		WHERE e.encounter_type = my_encounter_type_id 
+			AND e.voided = 0
+			AND e.patient_id = my_patient_id 
+			AND e.encounter_datetime <= my_end_date 
+		ORDER BY e.encounter_datetime DESC LIMIT 1;
+
+	SELECT cn.name INTO @obs_value FROM obs o
+			LEFT JOIN concept_name cn ON o.value_coded = cn.concept_id AND cn.concept_name_type = 'FULLY_SPECIFIED' 
+		WHERE encounter_id = @encounter_id
+			AND o.voided = 0 
+			AND o.concept_id = my_concept_id 
+			AND o.voided = 0 LIMIT 1;
+
+	IF @obs_value IS NULL THEN
+		SELECT value_text INTO @obs_value FROM obs
+			WHERE encounter_id = @encounter_id
+				AND voided = 0 
+				AND concept_id = my_concept_id 
+				AND voided = 0 LIMIT 1;
+	END IF;
+
+	IF @obs_value IS NULL THEN
+		SELECT value_numeric INTO @obs_value FROM obs
+			WHERE encounter_id = @encounter_id
+				AND voided = 0 
+				AND concept_id = my_concept_id 
+				AND voided = 0 LIMIT 1;
+	END IF;
+
+	RETURN @obs_value;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+
 DROP FUNCTION IF EXISTS `current_text_for_obs`;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_text_for_obs`(my_patient_id INT, my_encounter_type_id INT, my_concept_id INT, my_end_date DATETIME) RETURNS VARCHAR(255)
