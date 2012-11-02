@@ -510,11 +510,11 @@ DELIMITER ;
 
 DROP FUNCTION IF EXISTS `last_text_for_obs`;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `last_text_for_observation`(my_patient_id INT, my_encounter_type_id INT, my_concept_id INT, my_end_date DATETIME) RETURNS VARCHAR(255)
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `last_text_for_obs`(my_patient_id INT, my_encounter_type_id INT, my_concept_id INT, my_end_date DATETIME) RETURNS VARCHAR(255)
 BEGIN
   SET @obs_value = NULL;
-	SELECT encounter_id INTO @encounter_id FROM encounter e
-			INNER JOIN observation o ON e.encounter_id = o.encounter_id AND o.concept_id = my_concept_id AND o.voided = 0
+	SELECT o.encounter_id INTO @encounter_id FROM encounter e
+			INNER JOIN obs o ON e.encounter_id = o.encounter_id AND o.concept_id = my_concept_id AND o.voided = 0
 		WHERE e.encounter_type = my_encounter_type_id 
 			AND e.voided = 0
 			AND e.patient_id = my_patient_id 
