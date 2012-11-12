@@ -60,7 +60,7 @@
        <td colspan="7"><b>Reason for ARV:</b></td>
      </tr>
      <tr class="master_data">
-       <td colspan="2"><%= @data_demo.date_of_first_line_regimen.to_date.strftime('%d-%b-%Y') rescue nil%></td>
+       <td colspan="2"><%= @data_demo.date_of_first_line_regimen.nil? ? @data_demo.date_of_first_alt_line_regimen.to_date.strftime('%d-%b-%Y') : @data_demo.date_of_first_line_regimen.to_date.strftime('%d-%b-%Y') rescue nil%></td>
        <td colspan="7"><%= @data_demo.reason_for_art_eligibility -%></td>
      </tr>
      <tr>

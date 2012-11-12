@@ -176,58 +176,57 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
   }
 
 </script>
+                                     
+<form id='appointment' action="/encounters/create" method='post'> 
+	<%= hidden_field_tag "old_appointment", @old_appointment %>                 
+	<%= hidden_field_tag "report_url", @report_url %>                           
+	<%= hidden_field_tag "encounter[encounter_type_name]", "APPOINTMENT" %>     
+	<%= hidden_field_tag "encounter[patient_id]", @patient.id rescue 24 %>                
+	<%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>     
+	<%= hidden_field_tag "encounter[provider_id]", current_user.user_id %>         
 
-<% if @location_transferred_to.empty? %>                                        
- <form id='appointment' action="/encounters/create" method='post'> 
- <%= hidden_field_tag "old_appointment", @old_appointment %>                 
-    <%= hidden_field_tag "report_url", @report_url %>                           
-    <%= hidden_field_tag "encounter[encounter_type_name]", "APPOINTMENT" %>     
-    <%= hidden_field_tag "encounter[patient_id]", @patient.id rescue 24 %>                
-    <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>     
-    <%= hidden_field_tag "encounter[provider_id]", current_user.user_id %>         
-
-		<% if params[:select_date].to_s.upcase != 'NO' %>
-		  <label for='time_until_next_visit'>Time Until Next Appointment</label>      
-		  <%= select_tag("time_until_next_visit",                                     
-		            options_for_select([["2 weeks", 14],                               
-		                                 ["1 month", 28],                              
-		                                 ["2 months", 2*28],                             
-		                                 ["3 months", 3*28],                             
-		                                 ["4 months", 4*28],                            
-		                                 ["5 months", 5*28],                            
-		                                 ["6 months", 6*28]]),                          
-		           {:helpText => 'Time Until Next Appointment',                       
-		           :tt_onLoad => "calculateGivenRange('#{params[:start_date]}','#{params[:end_date]}')",
-		           :tt_onUnLoad => "setDate.setDate(sessionDate.getDate()+parseInt($('time_until_next_visit').options[$('time_until_next_visit').selectedIndex].value));"}) %>
-		<% end %>
-		
-<label for='next_appointment_date'>Next Appointment Date</label>            
-<%= hidden_field_tag("observations[][concept_name]", "RETURN VISIT DATE") %>
-<%= hidden_field_tag("observations[][patient_id]", @patient.id) %>          
-<%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-<%= text_field_tag "observations[][value_datetime]", (Time.now + 1.month).year, 
-    { :tt_onLoad => "$('backButton').style.cssText = 'display: none';chart();cssText();moveToSetMonth();finishButtonAttributes();",
-      :tt_pageStyleClass => "NoControls",
-      :id => "appointment_date" ,
-      :helpText =>"Next appointment date:",                                                 
-    } %>
-
-<% session_date = session[:datetime].to_date rescue nil
-if session_date %>                                                          
-  <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
-  <%= text_field "filter" , 'provider', 
-      :helpText => 'Staff who provided the information (Provider)', 
-      :tt_onLoad => "changefinishButton();",
-      :ajaxURL => '/user/username?username=' %></p>
-<% else %>                                                                  
-  <%= hidden_field_tag "filter[provider]", nil %>                           
-<%end%>
-<% if params[:change_app]=="true"%>
-  <%= hidden_field_tag "change_appointment_date", true %>                           
-<%end%>
+	<% if params[:select_date].to_s.upcase != 'NO' %>
+		<label for='time_until_next_visit'>Time Until Next Appointment</label>      
+		<%= select_tag("time_until_next_visit",                                     
+	            options_for_select([["2 weeks", 14],                               
+	                                 ["1 month", 28],                              
+	                                 ["2 months", 2*28],                             
+	                                 ["3 months", 3*28],                             
+	                                 ["4 months", 4*28],                            
+	                                 ["5 months", 5*28],                            
+	                                 ["6 months", 6*28]]),                          
+	           {:helpText => 'Time Until Next Appointment',                       
+	           :tt_onLoad => "calculateGivenRange('#{params[:start_date]}','#{params[:end_date]}')",
+	           :tt_onUnLoad => "setDate.setDate(sessionDate.getDate()+parseInt($('time_until_next_visit').options[$('time_until_next_visit').selectedIndex].value));"}) %>
+	<% end %>
+	
+	<label for='next_appointment_date'>Next Appointment Date</label>            
+	<%= hidden_field_tag("observations[][concept_name]", "RETURN VISIT DATE") %>
+	<%= hidden_field_tag("observations[][patient_id]", @patient.id) %>          
+	<%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
+	<%= text_field_tag "observations[][value_datetime]", (Time.now + 1.month).year, 
+	    { :tt_onLoad => "$('backButton').style.cssText = 'display: none';chart();cssText();moveToSetMonth();finishButtonAttributes();",
+	      :tt_pageStyleClass => "NoControls",
+	      :id => "appointment_date" ,
+	      :helpText =>"Next appointment date:",                                                 
+	    } %>
+	
+	<% session_date = session[:datetime].to_date rescue nil
+	if session_date %>                                                          
+	  <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
+	  <%= text_field "filter" , 'provider', 
+	      :helpText => 'Staff who provided the information (Provider)', 
+	      :tt_onLoad => "changefinishButton();",
+	      :ajaxURL => '/user/username?username=' %></p>
+	<% else %>                                                                  
+	  <%= hidden_field_tag "filter[provider]", nil %>                           
+	<%end%>
+	<% if params[:change_app]=="true"%>
+	  <%= hidden_field_tag "change_appointment_date", true %>                           
+	<%end%>
 </form>
 
 <div id = "information">
- <span id ='app_date'><%=Date.today.year%></span>&nbsp;Qeurying number of booked patients ... please wait
+	<span id ='app_date'><%=Date.today.year%></span>&nbsp;Qeurying number of booked patients ... please wait
 </div>
-<%end%>
+

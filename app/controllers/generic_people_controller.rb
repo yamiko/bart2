@@ -152,7 +152,8 @@ class GenericPeopleController < ApplicationController
   end
    
 	def confirm
-		session_date = session[:datetime] || Date.today
+		session_date = session[:datetime].blank? ? Date.today : session[:datetime].to_date
+
 		if request.post?
 			redirect_to search_complete_url(params[:found_person_id], params[:relation]) and return
 		end
