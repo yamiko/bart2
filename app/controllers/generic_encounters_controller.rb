@@ -1,6 +1,6 @@
 class GenericEncountersController < ApplicationController
   def create(params=params, session=session)
-
+   
     if params[:change_appointment_date] == "true"
       session_date = session[:datetime].to_date rescue Date.today
       type = EncounterType.find_by_name("APPOINTMENT")                            
@@ -159,7 +159,7 @@ class GenericEncountersController < ApplicationController
         params[:observations] = vitals_observations
         create_obs(encounter , params)
       end
-
+ 
       unless observations.blank? 
         encounter = Encounter.new()
         encounter.encounter_type = EncounterType.find_by_name("HIV STAGING").id
@@ -251,7 +251,8 @@ class GenericEncountersController < ApplicationController
           end
           encounter.provider_id = user_person_id
           encounter.save   
-        end 
+        end
+
         params[:observations] = previous_hiv_clinic_consultation_observations
         create_obs(encounter , params)
       end
@@ -508,10 +509,14 @@ class GenericEncountersController < ApplicationController
                        params[:date_voided],
                        params[:voided_by])
       end
+      redirect_to "/patients/show/#{params[:encounter]['patient_id']}"
       #made restful the default due to time
-      render :text => encounter.encounter_id.to_s and return
+
+      #render :text => encounter.encounter_id.to_s and return
+      
       #return encounter.id.to_s  # support non-RESTful creation of encounters
     end
+    
   end
 
 	def new	
