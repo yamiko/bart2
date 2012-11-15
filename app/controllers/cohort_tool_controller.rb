@@ -739,16 +739,10 @@ class CohortToolController < GenericCohortToolController
   end
 
 	def survival_analysis
-		
-			@quarter = params[:quarter]
+    @quarter = params[:quarter]
 
-			#start_date,end_date = Report.generate_cohort_date_range(@quarter)
-			#cohort = Cohort.new(start_date, end_date)
-
-			@survival_analysis = params[:survivor]
-			@survival_analysis = ActiveSupport::JSON.decode(@survival_analysis)
-			#raise @survival_analysis.to_json
-
+    @survival_analysis = params[:survivor]
+    @survival_analysis = ActiveSupport::JSON.decode(@survival_analysis)
 		render :layout => 'cohort'
 	end
 
