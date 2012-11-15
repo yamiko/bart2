@@ -1531,7 +1531,7 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
         AND obs.voided = 0
         AND o.voided = 0
         AND obs.person_id = #{patient.id}
-        AND DATE(obs.obs_datetime) > #{date_after}
+        AND DATE(obs.obs_datetime) > DATE(#{date_after})
     ORDER BY obs.obs_datetime ASC
     LIMIT 1
     "
