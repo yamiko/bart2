@@ -15,12 +15,12 @@ sleep 5
 
 outcomes_array.each do |aOutcome|
 
-  	location = Location.find(aOutcome.location_id)
+  	location = Location.find(700)
   	Location.current_location = location
     new_encounter = {"encounter_datetime"=> aOutcome.start_date,
       			         "encounter_type_name"=>"EXIT FROM HIV CARE",
       			         "patient_id"=> aOutcome.patient_id,
-            				 "location_id" => aOutcome.location_id,
+            				 "location_id" => 700,
             				 "provider_id" => user,
       			         "creator"=> user}
 
