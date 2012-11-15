@@ -6,6 +6,10 @@
   var tt_cancel_destination = "/"  
 
   function showReport() {
+	document.forms[0].submit();
+	//window.location = '/cohort_tool/survival_analysis?name=<%=@survival_analysis%>&quarter=<%=@quarter%>';
+	}
+	/*
     cohort = document.getElementsByClassName('scrollTableContainer')[0]
     survival_analysis = document.getElementsByClassName('survival-analysis')[0]
     switch_button = $('switch_view')
@@ -19,9 +23,13 @@
       survival_analysis.style.display = 'none'
     } 
      
-  }
+  } */
 </script>
 <style>
+  .scrollTableContainer{
+
+  }
+
   table {
     border-style:none;
     border-width:1px;
@@ -44,6 +52,7 @@
 
   div.scrollTableContainer {
     border-style:solid;
+	height:68%;
   }
 
   .survival-analysis th, .survival-analysis td {
@@ -148,6 +157,9 @@
    background-color:lightgrey;
    -moz-user-select:none;
    }
+   .logo {
+        float:left
+      }
 		
 </style>
 
@@ -155,7 +167,10 @@
 </head>
 
 <body>
-<h1><%= Location.current_health_center.name + "  " + @quarter %></h1>
+<%= image_tag("mw.gif",:class=>"logo")%>
+		<br />
+		
+<h1><%= Location.current_health_center.name + " : " + @quarter %></h1>
 <br />
 
 <div class='scrollTableContainer'>
@@ -802,6 +817,7 @@
 </tbody>
 </table>
 </div>
+<<<<<<< HEAD
 
 <div class = 'survival-analysis'>
 <table>
@@ -841,6 +857,12 @@
 <% end %>
 </table>
 </div>
+
+<form name="survivors" action="survival_analysis" method="post">
+  <input type="hidden" name="quarter" value="<%=@quarter%>">
+  <input type="hidden" name="survivor" value='<%= @survival_analysis.to_json %>'>
+  
+</form>
 
 </body>
 </html>
