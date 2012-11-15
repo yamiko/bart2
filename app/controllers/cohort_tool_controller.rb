@@ -734,7 +734,7 @@ class CohortToolController < GenericCohortToolController
 			@cohort = session[:cohort]
 		end
 
-    #@survival_analysis = SurvivalAnalysis.report(cohort)
+    @survival_analysis = SurvivalAnalysis.report(cohort)
     render :layout => 'cohort'
   end
 

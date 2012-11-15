@@ -811,34 +811,34 @@
     <th>&nbsp;</th>
   </tr>
   <tr>
-    <td>New patients registered for ART</td>
-    <td style = "text-align:right;"><%=values['New patients registered for ART'].length rescue 0%></td>
+    <td>New patients registered for ART between <%=values['Section date range']%></td>
+    <td style = "text-align:right;"><%=values['New patients registered for ART']%></td>
   </tr>
   <tr>
     <td>Number Alive and on ART</td>
-    <td style = "text-align:right;"><%=values['Number Alive and on ART'].length rescue 0%></td>
+    <td style = "text-align:right;"><%=values['Number Alive and on ART']%></td>
   </tr>
   <tr>
     <td>Number Dead</td>
-    <td style = "text-align:right;"><%=values['Number Dead'].length rescue 0%></td>
+    <td style = "text-align:right;"><%=values['Number Dead']%></td>
   </tr>
   <tr>
     <td>Number Defaulted</td>
-    <td style = "text-align:right;"><%=values['Unknown'].length rescue 0%></td>
+    <td style = "text-align:right;"><%=values['Unknown']%></td>
   </tr>
   <tr>
     <td>Number Stopped Treatment</td>
-    <td style = "text-align:right;"><%=values['Number Stopped Treatment'].length rescue 0%></td>
+    <td style = "text-align:right;"><%=values['Number Stopped Treatment']%></td>
   </tr>
   <tr>
     <td>Number Transferred out</td>
-    <td style = "text-align:right;"><%=values['Number Transferred out'].length rescue 0%></td>
+    <td style = "text-align:right;"><%=values['Number Transferred out']%></td>
   </tr>
   <tr>
     <td>Number Unknown</td>
-    <td style = "text-align:right;"><%=values['Unknown'].length rescue 0%></td>
+    <td style = "text-align:right;"><%=values['Unknown']%></td>
   </tr>
-<% end rescue nil%>
+<% end %>
 </table>
 </div>
 

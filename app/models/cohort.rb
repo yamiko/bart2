@@ -845,6 +845,8 @@ class Cohort
 =end
 
   def outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date, program_id = @@program_id, min_age=nil, max_age=nil,states = [])
+  
+    states = []
 
     if min_age or max_age
       conditions = "AND TRUNCATE(DATEDIFF(p.date_enrolled, person.birthdate)/365,0) >= #{min_age}
@@ -872,6 +874,8 @@ class Cohort
       ORDER BY K.patient_state_id DESC , K.start_date DESC").map do |state|
         states << [state.patient_id , state.name]
       end
+
+      return states
   end
   
   def first_registration_date

@@ -703,7 +703,7 @@ class ApplicationController < GenericApplicationController
 
     current_user_activities = current_user.activities
     if current_program_location == "TB program"
-      # return tb_next_form(location , patient , session_date)
+      return tb_next_form(location , patient , session_date)
     end
     
     if current_user_activities.blank?
