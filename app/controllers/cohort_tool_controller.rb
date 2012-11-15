@@ -603,9 +603,9 @@ class CohortToolController < GenericCohortToolController
 
   def list_patients_details
   
-  	@report_url = "/cohort_tool/cohort?quarter=#{@quarter}"
     @report = []
     @quarter = params[:quarter]
+  	@report_url = "/cohort_tool/cohort?quarter=#{@quarter}"
     
     sort_value = CoreService.get_global_property_value("debugger_sorting_attribute") rescue "arv_number"
     
