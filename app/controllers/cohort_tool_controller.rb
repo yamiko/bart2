@@ -734,9 +734,25 @@ class CohortToolController < GenericCohortToolController
 			@cohort = session[:cohort]
 		end
 
-    #@survival_analysis = SurvivalAnalysis.report(cohort)
+    @survival_analysis = SurvivalAnalysis.report(cohort)
+		
     render :layout => 'cohort'
   end
+
+	def survival_analysis
+		
+			@quarter = params[:quarter]
+
+			#start_date,end_date = Report.generate_cohort_date_range(@quarter)
+			#cohort = Cohort.new(start_date, end_date)
+
+			@survival_analysis = params[:survivor]
+			@survival_analysis = ActiveSupport::JSON.decode(@survival_analysis)
+			#raise @survival_analysis.to_json
+
+		render :layout => 'cohort'
+	end
+
 
   def cohort_menu
   end
