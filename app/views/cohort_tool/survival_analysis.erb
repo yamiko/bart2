@@ -22,8 +22,8 @@
     border-style:none;
     border-width:1px;
 	position:absolute;
-    top:200px;
-    left:4%;
+    top:39px;
+    left:0%;
     margin-top:-40px;
   }
 
@@ -44,13 +44,16 @@
 
   div.scrollTableContainer {
     border-style:solid;
+	height:68%;
   }
 
   .survival-analysis th, .survival-analysis td {
     text-align:left;
 	display:inline;
   }
-
+  #switch_view_children, #switch_view_women{
+	display:none;
+  }
   .clinic_own_data {
 		position:relative;
 		float:left;
@@ -161,10 +164,12 @@
 </head>
 
 <body>
-<%= image_tag("mw.gif",:class=>"logo")%>
+<%= image_tag(@logo,:class=>"logo")%>
 		<br />
 <h1><%= Location.current_health_center.name + " : " + @quarter %></h1>
-<br />
+
+<h2>General Survival Analysis</h2>
+<div class='scrollTableContainer'>
 <div class="survival_analysis">
 <table align="left">
   
@@ -203,6 +208,7 @@
   </tr>
 <% end %>
 </table>
+</div>
 </div>
 </body>
 </html>
