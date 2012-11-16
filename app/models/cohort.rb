@@ -878,6 +878,42 @@ class Cohort
       return states
   end
   
+	#Method added to avoid conflicting the already existing ones
+	#More time is needed to upgade the code so that its relevant and according to standards
+	def women_outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date, program_id = @@program_id, min_age=nil, max_age=nil,states = [])
+
+    states = []
+
+		coded_id = Concept.find_by_name('Yes').id
+
+    PatientState.find_by_sql("SELECT * FROM (
+        SELECT s.patient_program_id, patient_id,patient_state_id,start_date,
+               n.name name,state
+        FROM patient_state s
+        INNER JOIN patient_program p ON p.patient_program_id = s.patient_program_id
+        INNER JOIN program_workflow pw ON pw.program_id = p.program_id
+        INNER JOIN program_workflow_state w ON w.program_workflow_id = pw.program_workflow_id
+                   AND w.program_workflow_state_id = s.state
+        INNER JOIN concept_name n ON w.concept_id = n.concept_id
+        INNER JOIN person ON person.person_id = p.patient_id
+				INNER JOIN obs m ON person.person_id = m.person_id
+
+        WHERE p.voided = 0 
+        AND (patient_start_date(patient_id) >= '#{start_date}'
+        AND patient_start_date(patient_id) <= '#{end_date}')
+        AND p.program_id = #{program_id}
+				AND ((n.name = 'Breastfeeding' AND m.value_coded = '#{coded_id}') OR (n.name = 'Pregnant' AND m.value_coded = '#{coded_id}'))
+        AND s.start_date <= '#{outcome_end_date}'
+        ORDER BY patient_id DESC, patient_state_id DESC, start_date DESC
+      ) K
+      GROUP BY patient_id
+      ORDER BY K.patient_state_id DESC , K.start_date DESC").map do |state|
+        states << [state.patient_id , state.name]
+      end
+
+      return states
+  end
+
   def first_registration_date
     @@first_registration_date
   end
