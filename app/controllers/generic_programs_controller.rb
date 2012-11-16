@@ -207,7 +207,7 @@ class GenericProgramsController < ApplicationController
         
       else
         #for import
-        unless params[:location]
+        unless params[:location].blank?
           redirect_to :controller => :patients, :action => :programs_dashboard, :patient_id => params[:patient_id],:error => "Unable to update state"
         else
             render :text => "import suceeded" and return
