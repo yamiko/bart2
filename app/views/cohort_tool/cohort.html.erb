@@ -7,23 +7,15 @@
 
   function showReport() {
 	document.forms[0].submit();
-	//window.location = '/cohort_tool/survival_analysis?name=<%=@survival_analysis%>&quarter=<%=@quarter%>';
 	}
-	/*
-    cohort = document.getElementsByClassName('scrollTableContainer')[0]
-    survival_analysis = document.getElementsByClassName('survival-analysis')[0]
-    switch_button = $('switch_view')
-    if (switch_button.innerHTML.sub('<span>','').sub('</span>','') == 'Survival Analysis'){
-      cohort.style.display = 'none'
-      switch_button.innerHTML = "<span>Cohort</span>"
-      survival_analysis.style.display = 'inline'
-    } else {
-      cohort.style.display = 'inline'
-      switch_button.innerHTML = "<span>Survival Analysis</span>"
-      survival_analysis.style.display = 'none'
-    } 
-     
-  } */
+
+  function showReportChildren() {
+	document.forms[1].submit();
+	}
+
+  function showReportWomen() {
+	document.forms[2].submit();
+	}
 </script>
 <style>
   .scrollTableContainer{
@@ -169,7 +161,7 @@
 </head>
 
 <body>
-<%= image_tag("mw.gif",:class=>"logo")%>
+<%= image_tag(@logo,:class=>"logo")%>
 		<br />
 		
 <h1><%= Location.current_health_center.name + " : " + @quarter %></h1>
@@ -822,9 +814,23 @@
 
 <form name="survivors" action="survival_analysis" method="post">
   <input type="hidden" name="quarter" value="<%=@quarter%>">
+  <input type="hidden" name="logo" value="<%=@logo%>">
   <input type="hidden" name="survivor" value='<%= @survival_analysis.to_json %>'>
   
 </form>
 
+<form name="children_survivors" action="children_survival" method="post">
+  <input type="hidden" name="quarter" value="<%=@quarter%>">
+  <input type="hidden" name="logo" value="<%=@logo%>">
+  <input type="hidden" name="children_survivor" value='<%= @children_survival_analysis.to_json %>'>
+
+</form>
+
+<form name="women_survivors" action="women_survival" method="post">
+  <input type="hidden" name="quarter" value="<%=@quarter%>">
+  <input type="hidden" name="logo" value="<%=@logo%>">
+  <input type="hidden" name="women_survivor" value='<%= @women_survival_analysis.to_json %>'>
+
+</form>
 </body>
 </html>
