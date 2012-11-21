@@ -734,11 +734,11 @@ class CohortToolController < GenericCohortToolController
 		else
 			@cohort = session[:cohort]
 		end
-
+		
     @survival_analysis = SurvivalAnalysis.report(cohort)
 		@children_survival_analysis = SurvivalAnalysis.childern_survival_analysis(cohort)
-		@women_survival_analysis = SurvivalAnalysis.pregnant_and_breast_feeding(cohort)
-		#raise @women_survival_analysis.to_yaml
+		@women_survival_analysis = SurvivalAnalysis.pregnant_and_breast_feeding(cohort, @cohort['Total registered women (pregnant)'], @cohort['Total Patient breastfeeding'])
+		
     render :layout => 'cohort'
   end
 

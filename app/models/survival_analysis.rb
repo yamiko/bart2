@@ -19,7 +19,7 @@ class SurvivalAnalysis
     end
 
     ( date_ranges || [] ).each_with_index do | range ,i | 
-      states = cohort.outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id, min_age, max_age)
+      states = cohort.outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id, states = nil, min_age, max_age)
       survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"] = {
         'Number Alive and on ART' => 0, 
         'Number Dead' => 0, 'Number Defaulted' => 0 , 
@@ -49,7 +49,7 @@ class SurvivalAnalysis
 		self.report(cohort, 0, 14)
   end
 
-	def self.pregnant_and_breast_feeding(cohort)
+	def self.pregnant_and_breast_feeding(cohort, pregnant, breastfeeding)
 		
 		program_id = Program.find_by_name('HIV PROGRAM').id
     survival_analysis_outcomes = {} ; months = 12 ; patients_found = true
@@ -66,9 +66,9 @@ class SurvivalAnalysis
                       :end_date   => survival_end_date
       }
     end
-
+		
     ( date_ranges || [] ).each_with_index do | range ,i |
-      states = cohort.women_outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id)
+      states = cohort.women_outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id, states = nil, min=nil,max=nil, pregnant, breastfeeding)
 
 			 survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"] = {
         'Number Alive and on ART' => 0,
