@@ -602,7 +602,7 @@ class CohortToolController < GenericCohortToolController
   end
 
   def list_patients_details
-  
+		
     @report = []
     @quarter = params[:quarter]
   	@report_url = "/cohort_tool/cohort?quarter=#{@quarter}"
@@ -734,10 +734,10 @@ class CohortToolController < GenericCohortToolController
 		else
 			@cohort = session[:cohort]
 		end
-		
+		#raise session[:cohort]["outcomes"].to_yaml
     @survival_analysis = SurvivalAnalysis.report(cohort)
 		@children_survival_analysis = SurvivalAnalysis.childern_survival_analysis(cohort)
-		@women_survival_analysis = SurvivalAnalysis.pregnant_and_breast_feeding(cohort, @cohort['Total registered women (pregnant)'], @cohort['Total Patient breastfeeding'])
+		@women_survival_analysis = SurvivalAnalysis.pregnant_and_breast_feeding(cohort)
 		
     render :layout => 'cohort'
   end

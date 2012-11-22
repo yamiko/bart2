@@ -845,7 +845,7 @@ class Cohort
 =end
 
   def outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date,
-			program_id = @@program_id, states = [], min_age=nil, max_age=nil, pregnant=nil, breastfeeding=nil)
+			program_id = @@program_id, states = [], min_age=nil, max_age=nil)
   
     states = []
 
@@ -856,7 +856,7 @@ class Cohort
 
     PatientState.find_by_sql("SELECT * FROM (
         SELECT s.patient_program_id, patient_id,patient_state_id,start_date,
-               n.name name,state
+               n.name name, current_state_for_program(p.patient_id, 1, '#{@end_date}') AS state
         FROM patient_state s
         INNER JOIN patient_program p ON p.patient_program_id = s.patient_program_id
         INNER JOIN program_workflow pw ON pw.program_id = p.program_id
@@ -883,31 +883,28 @@ class Cohort
 	#More time is needed to upgade the code so that its relevant and according to standards
 
 	def women_outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date,
-			program_id = @@program_id, states = [], min_age=nil, max_age=nil, pregnant=nil, breastfeeding=nil)
-		
+			program_id = @@program_id, states = [], min_age=nil, max_age=nil)
+		#	raise valued.to_yaml
 		states = []
 			coded_id = ConceptName.find_by_name("Yes").concept_id
-
+			pregnant_id = ConceptName.find_by_name("Is patient pregnant?").concept_id
+			breast_feeding_id = ConceptName.find_by_name("Is patient breast feeding?").concept_id
 		PatientState.find_by_sql("SELECT * FROM (
 					SELECT s.patient_program_id, p.patient_id,patient_state_id,start_date,
-               n.name name,state
+               n.name name, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state
 					FROM patient_state s
 					INNER JOIN patient_program p ON p.patient_program_id = s.patient_program_id
-					INNER JOIN patient_pregnant_obs m ON m.person_id = p.patient_id
-					INNER JOIN earliest_start_date e ON e.patient_id = m.person_id
-					INNER JOIN encounter t ON t.patient_id = e.patient_id
-					INNER JOIN obs o ON e.patient_id = o.person_id
+					INNER JOIN earliest_start_date e ON e.patient_id = p.patient_id
+					INNER JOIN obs o on o.person_id = e.patient_id
 					INNER JOIN concept_name n on n.concept_id = o.concept_id
-					WHERE p.voided = 0 AND s.voided = 0
-				  AND e.earliest_start_date >= '#{start_date}'
+					WHERE e.earliest_start_date >= '#{start_date}'
 					AND e.earliest_start_date <= '#{end_date}'
-					AND s.start_date <= '#{outcome_end_date}'
-					AND ((n.name = 'Is patient pregnant?'
+					AND ((n.concept_id = '#{pregnant_id}'
 								AND o.value_coded = '#{coded_id}'
 								AND DATEDIFF(o.obs_datetime, e.earliest_start_date) <= 30
 								AND DATEDIFF(o.obs_datetime, e.earliest_start_date) > -1)
 								OR
-						  (n.name = 'Is patient breast feeding?'
+						  (n.concept_id = '#{breast_feeding_id}'
 								AND o.value_coded = '#{coded_id}'))
 					ORDER BY patient_id DESC, patient_state_id DESC, start_date DESC
       ) K
@@ -915,7 +912,7 @@ class Cohort
       ORDER BY K.patient_state_id DESC , K.start_date DESC").map do |state|
 			states << [state.patient_id , state.name]
 		end
-
+		#raise states.to_yaml
 		return states
   end
 

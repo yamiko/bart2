@@ -1518,11 +1518,9 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
   
   
   def self.date_dispensation_date_after(patient, date_after)
-    
     arv_concept = ConceptName.find_by_name("ANTIRETROVIRAL DRUGS").concept_id
-    
     start_date = ActiveRecord::Base.connection.select_value "
-    SELECT DATE(obs.obs_datetime) AS obs_datetime 
+    SELECT DATE(obs.obs_datetime) AS obs_datetime
     FROM drug_order d 
         LEFT JOIN orders o ON d.order_id = o.order_id
         LEFT JOIN obs ON d.order_id = obs.order_id
@@ -1531,7 +1529,7 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
         AND obs.voided = 0
         AND o.voided = 0
         AND obs.person_id = #{patient.id}
-        AND DATE(obs.obs_datetime) > #{date_after}
+        AND DATE(obs.obs_datetime) > DATE(#{date_after})
     ORDER BY obs.obs_datetime ASC
     LIMIT 1
     "
