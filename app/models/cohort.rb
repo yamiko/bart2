@@ -907,7 +907,7 @@ class Cohort
 
     PatientProgram.find_by_sql(
       "SELECT e.patient_id,
-              current_text_for_obs(e.patient_id, #{dispensing_encounter_id}, #{regimen_category}, '#{end_date}') AS regimen_category 
+              last_text_for_obs(e.patient_id, #{dispensing_encounter_id}, #{regimen_category}, '#{end_date}') AS regimen_category 
       FROM earliest_start_date e
       WHERE patient_id IN(#{patient_ids.join(',')}) AND
             earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
