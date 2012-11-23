@@ -39,123 +39,123 @@ class Cohort
 		threads = []
 
 		threads << Thread.new do
-				begin
-					cohort_report['Total Presumed severe HIV disease in infants'] = []
-					cohort_report['Total Confirmed HIV infection in infants (PCR)'] = []
-					cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] = []
-					cohort_report['Total WHO stage 2, total lymphocytes'] = []
-					cohort_report['Total Unknown reason'] = []
-					cohort_report['Total WHO stage 3'] = []
-					cohort_report['Total WHO stage 4'] = []
-					cohort_report['Total Patient pregnant'] = []
-					cohort_report['Total Patient breastfeeding'] = []
-					cohort_report['Total HIV infected'] = []
+			begin
+				cohort_report['Total Presumed severe HIV disease in infants'] = []
+				cohort_report['Total Confirmed HIV infection in infants (PCR)'] = []
+				cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] = []
+				cohort_report['Total WHO stage 2, total lymphocytes'] = []
+				cohort_report['Total Unknown reason'] = []
+				cohort_report['Total WHO stage 3'] = []
+				cohort_report['Total WHO stage 4'] = []
+				cohort_report['Total Patient pregnant'] = []
+				cohort_report['Total Patient breastfeeding'] = []
+				cohort_report['Total HIV infected'] = []
 
-					( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | collection_reason |
+				( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | collection_reason |
 
-						reason = ''
-						if !collection_reason.name.blank?
-							reason = collection_reason.name
-						end
-
-						if reason.match(/Presumed/i)
-							cohort_report['Total Presumed severe HIV disease in infants'] << collection_reason.patient_id
-						elsif reason.match(/Confirmed/i) or reason.match(/HIV DNA polymerase chain reaction/i)
-							cohort_report['Total Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
-						elsif reason.match(/WHO STAGE I /i) or reason.match(/CD/i)
-							cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
-						elsif reason.match(/WHO STAGE II /i) or reason.match(/lymphocyte/i)
-							cohort_report['Total WHO stage 2, total lymphocytes'] << collection_reason.patient_id
-						elsif reason.match(/WHO STAGE III /i)
-							cohort_report['Total WHO stage 3'] << collection_reason.patient_id
-						elsif reason.match(/WHO STAGE IV /i)
-							cohort_report['Total WHO stage 4'] << collection_reason.patient_id
-						elsif reason.strip.humanize == 'Patient pregnant'
-							cohort_report['Total Patient pregnant'] << collection_reason.patient_id
-						elsif reason.match(/Breastfeeding/i)
-							cohort_report['Total Patient breastfeeding'] << collection_reason.patient_id
-						elsif reason.strip.upcase == 'HIV INFECTED'
-							cohort_report['Total HIV infected'] << collection_reason.patient_id
-						else 
-							cohort_report['Total Unknown reason'] << collection_reason.patient_id
-						end
+					reason = ''
+					if !collection_reason.name.blank?
+						reason = collection_reason.name
 					end
-				rescue Exception => e
-					Thread.current[:exception] = e
+
+					if reason.match(/Presumed/i)
+						cohort_report['Total Presumed severe HIV disease in infants'] << collection_reason.patient_id
+					elsif reason.match(/Confirmed/i) or reason.match(/HIV DNA polymerase chain reaction/i)
+						cohort_report['Total Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
+					elsif reason.match(/WHO STAGE I /i) or reason.match(/CD/i)
+						cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+					elsif reason.match(/WHO STAGE II /i) or reason.match(/lymphocyte/i)
+						cohort_report['Total WHO stage 2, total lymphocytes'] << collection_reason.patient_id
+					elsif reason.match(/WHO STAGE III /i)
+						cohort_report['Total WHO stage 3'] << collection_reason.patient_id
+					elsif reason.match(/WHO STAGE IV /i)
+						cohort_report['Total WHO stage 4'] << collection_reason.patient_id
+					elsif reason.strip.humanize == 'Patient pregnant'
+						cohort_report['Total Patient pregnant'] << collection_reason.patient_id
+					elsif reason.match(/Breastfeeding/i)
+						cohort_report['Total Patient breastfeeding'] << collection_reason.patient_id
+					elsif reason.strip.upcase == 'HIV INFECTED'
+						cohort_report['Total HIV infected'] << collection_reason.patient_id
+					else
+						cohort_report['Total Unknown reason'] << collection_reason.patient_id
+					end
 				end
+			rescue Exception => e
+				Thread.current[:exception] = e
+			end
 		end
 
 		threads << Thread.new do
-				begin
-					cohort_report['Total registered'] = self.total_registered(@@first_registration_date)
-					cohort_report['Newly total registered'] = self.total_registered
+			begin
+				cohort_report['Total registered'] = self.total_registered(@@first_registration_date)
+				cohort_report['Newly total registered'] = self.total_registered
 
-					logger.info("initiated_on_art " + Time.now.to_s)
-					cohort_report['Patients reinitiated on ART'] = self.patients_reinitiated_on_art
-					cohort_report['Total Patients reinitiated on ART'] = self.patients_reinitiated_on_art(@@first_registration_date)
+				logger.info("initiated_on_art " + Time.now.to_s)
+				cohort_report['Patients reinitiated on ART'] = self.patients_reinitiated_on_art
+				cohort_report['Total Patients reinitiated on ART'] = self.patients_reinitiated_on_art(@@first_registration_date)
 					
-					cohort_report['Patients initiated on ART'] = self.patients_initiated_on_art_first_time - cohort_report['Patients reinitiated on ART']
-					cohort_report['Total Patients initiated on ART'] = self.patients_initiated_on_art_first_time(@@first_registration_date) - cohort_report['Total Patients reinitiated on ART']
-				rescue Exception => e
-					Thread.current[:exception] = e
-				end
+				cohort_report['Patients initiated on ART'] = self.patients_initiated_on_art_first_time - cohort_report['Patients reinitiated on ART']
+				cohort_report['Total Patients initiated on ART'] = self.patients_initiated_on_art_first_time(@@first_registration_date) - cohort_report['Total Patients reinitiated on ART']
+			rescue Exception => e
+				Thread.current[:exception] = e
+			end
 		end
 
 		threads << Thread.new do
-				begin
-					logger.info("male " + Time.now.to_s)
-					cohort_report['Newly registered male'] = self.total_registered_by_gender_age(@start_date, @end_date,'M')
-					cohort_report['Total registered male'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date,'M')
+			begin
+				logger.info("male " + Time.now.to_s)
+				cohort_report['Newly registered male'] = self.total_registered_by_gender_age(@start_date, @end_date,'M')
+				cohort_report['Total registered male'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date,'M')
 
-					logger.info("non-pregnant " + Time.now.to_s)
-					cohort_report['Newly registered women (non-pregnant)'] = self.non_pregnant_women(@start_date, @end_date)
-					cohort_report['Total registered women (non-pregnant)'] = self.non_pregnant_women(@@first_registration_date, @end_date)
-				rescue Exception => e
-					Thread.current[:exception] = e
-				end
+				logger.info("non-pregnant " + Time.now.to_s)
+				cohort_report['Newly registered women (non-pregnant)'] = self.non_pregnant_women(@start_date, @end_date)
+				cohort_report['Total registered women (non-pregnant)'] = self.non_pregnant_women(@@first_registration_date, @end_date)
+			rescue Exception => e
+				Thread.current[:exception] = e
+			end
 		end
 
 		threads << Thread.new do
-				begin
-					logger.info("pregnant " + Time.now.to_s)
-					cohort_report['Newly registered women (pregnant)'] = self.pregnant_women(@start_date, @end_date)
-					cohort_report['Total registered women (pregnant)'] = self.pregnant_women(@@first_registration_date, @end_date)
+			begin
+				logger.info("pregnant " + Time.now.to_s)
+				cohort_report['Newly registered women (pregnant)'] = self.pregnant_women(@start_date, @end_date)
+				cohort_report['Total registered women (pregnant)'] = self.pregnant_women(@@first_registration_date, @end_date)
 
-				rescue Exception => e
-					Thread.current[:exception] = e
-				end
+			rescue Exception => e
+				Thread.current[:exception] = e
+			end
 		end
 
 		threads << Thread.new do
-				begin
-					logger.info("adults " + Time.now.to_s)
-					cohort_report['Newly registered adults'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 5479, 109500)
-					cohort_report['Total registered adults'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 5479, 109500)
-				rescue Exception => e
-					Thread.current[:exception] = e
-				end
+			begin
+				logger.info("adults " + Time.now.to_s)
+				cohort_report['Newly registered adults'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 5479, 109500)
+				cohort_report['Total registered adults'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 5479, 109500)
+			rescue Exception => e
+				Thread.current[:exception] = e
+			end
 		end
 
 		threads << Thread.new do
-				begin
-					logger.info("children " + Time.now.to_s)
-					# Child min age = 2 yrs = (365.25 * 2) = 730.5 == 731 days to nearest day
-					cohort_report['Newly registered children'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 731, 5479)
-					cohort_report['Total registered children'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 731, 5479)
-				rescue Exception => e
-					Thread.current[:exception] = e
-				end
+			begin
+				logger.info("children " + Time.now.to_s)
+				# Child min age = 2 yrs = (365.25 * 2) = 730.5 == 731 days to nearest day
+				cohort_report['Newly registered children'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 731, 5479)
+				cohort_report['Total registered children'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 731, 5479)
+			rescue Exception => e
+				Thread.current[:exception] = e
+			end
 		end
 
 		threads << Thread.new do
-				begin
-					logger.info("infants " + Time.now.to_s)
-					cohort_report['Newly registered infants'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 0, 731)
-					cohort_report['Total registered infants'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 0, 731)
+			begin
+				logger.info("infants " + Time.now.to_s)
+				cohort_report['Newly registered infants'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 0, 731)
+				cohort_report['Total registered infants'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 0, 731)
 
-				rescue Exception => e
-					Thread.current[:exception] = e
-				end
+			rescue Exception => e
+				Thread.current[:exception] = e
+			end
 		end
 =begin
 		threads << Thread.new do
@@ -173,9 +173,9 @@ class Cohort
 		threads.each do |thread|				
 			thread.join
 			if thread[:exception]
-				 # log it somehow, or even re-raise it if you
-				 # really want, it's got it's original backtrace.
-				 raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				# log it somehow, or even re-raise it if you
+				# really want, it's got it's original backtrace.
+				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 
@@ -314,9 +314,9 @@ class Cohort
 		threads.each do |thread|				
 			thread.join
 			if thread[:exception]
-				 # log it somehow, or even re-raise it if you
-				 # really want, it's got it's original backtrace.
-				 raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				# log it somehow, or even re-raise it if you
+				# really want, it's got it's original backtrace.
+				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 		
@@ -324,7 +324,7 @@ class Cohort
 
 		threads << Thread.new do
 			begin
-		    	cohort_report['Total patients with side effects'] = self.patients_with_side_effects
+				cohort_report['Total patients with side effects'] = self.patients_with_side_effects
 
 				logger.info("current_episode_of_tb " + Time.now.to_s)
 				cohort_report['Current episode of TB'] = self.current_episode_of_tb
@@ -362,26 +362,26 @@ class Cohort
 		threads.each do |thread|				
 			thread.join
 			if thread[:exception]
-				 # log it somehow, or even re-raise it if you
-				 # really want, it's got it's original backtrace.
-				 raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				# log it somehow, or even re-raise it if you
+				# really want, it's got it's original backtrace.
+				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 		cohort_report['Total transferred in patients'] = (cohort_report['Total registered'] - 
-                                                      cohort_report['Total Patients reinitiated on ART'] -
-                                                      cohort_report['Total Patients initiated on ART'])
+				cohort_report['Total Patients reinitiated on ART'] -
+				cohort_report['Total Patients initiated on ART'])
                                                       
 		cohort_report['Newly transferred in patients'] = (cohort_report['Newly total registered'] - 
-                                                      cohort_report['Patients reinitiated on ART'] -
-                                                      cohort_report['Patients initiated on ART'])
+				cohort_report['Patients reinitiated on ART'] -
+				cohort_report['Patients initiated on ART'])
                                                      		
 		cohort_report['Total Unknown age'] = cohort_report['Total registered'] - (cohort_report['Total registered adults'] +
-				                            cohort_report['Total registered children'] +
-				                            cohort_report['Total registered infants'])
+				cohort_report['Total registered children'] +
+				cohort_report['Total registered infants'])
 
 		cohort_report['New Unknown age'] = cohort_report['Newly total registered']-(cohort_report['Newly registered adults'] +
-				                            cohort_report['Newly registered children'] +
-				                            cohort_report['Newly registered infants'])
+				cohort_report['Newly registered children'] +
+				cohort_report['Newly registered infants'])
 
 		current_episode = cohort_report['Current episode of TB']
 		total_current_episode = cohort_report['Total Current episode of TB']
@@ -396,11 +396,11 @@ class Cohort
 		#cohort_report['Total Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_cumulative)
 
 		cohort_report['Unknown outcomes'] = cohort_report['Total registered'] -
-				                            (cohort_report['Total alive and on ART'] +
-				                              cohort_report['Defaulted'] +
-				                              cohort_report['Died total'] +
-				                              cohort_report['Stopped taking ARVs'] +
-				                              cohort_report['Transferred out'])
+			(cohort_report['Total alive and on ART'] +
+				cohort_report['Defaulted'] +
+				cohort_report['Died total'] +
+				cohort_report['Stopped taking ARVs'] +
+				cohort_report['Transferred out'])
 		
 		patients_with_0_6_doses_missed = []; patients_with_7_doses_missed = []
 		
@@ -408,7 +408,7 @@ class Cohort
 		patients_with_7_doses_missed = cohort_report['Patients with 7+ doses missed at their last visit'].map{|person| person.person_id}
 		
 		cohort_report['Unknown adherence'] = (cohort_report['Total alive and on ART'] -
-																					patients_with_0_6_doses_missed - patients_with_7_doses_missed)
+				patients_with_0_6_doses_missed - patients_with_7_doses_missed)
 		
 		cohort_report['Earliest_start_dates'] = @patient_earliest_start_date
 		self.cohort = cohort_report
@@ -422,7 +422,7 @@ class Cohort
 	    @patient_earliest_start_date[patient.patient_id]= patient.earliest_start_date
 			patients << patient.patient_id
 		end
-        return patients   
+		return patients
 										
 
 		#start_date = @start_date
@@ -470,7 +470,7 @@ class Cohort
       self.patients_reinitiated_on_art(start_date, end_date).map(&:patient_id) +
       self.patients_initiated_on_art_first_time(start_date, end_date).map(&:patient_id))
 =end
-	patients = []
+		patients = []
     no_concept_id = ConceptName.find_by_name("NO").concept_id
     art_last_taken_concept_id = ConceptName.find_by_name("Date ART last taken").concept_id
     taken_art_last_two_months_id = ConceptName.find_by_name("Has the patient taken ART in the last two months").concept_id
@@ -490,7 +490,7 @@ class Cohort
             GROUP BY esd.patient_id").each do | patient | 
 			patients << patient.patient_id
 		end
-        return patients   
+		return patients
 	end
 
 	def total_registered_by_gender_age(start_date = @start_date, end_date = @end_date, sex = nil, min_age = nil, max_age = nil)
@@ -516,7 +516,7 @@ class Cohort
 	    HAVING esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' #{conditions}").each do | patient | 
 			patients << patient.patient_id
 		end
-        return patients   
+		return patients
 
 	end
 
@@ -537,13 +537,13 @@ class Cohort
         GROUP BY patient_id").each do | patient | 
 			patients << patient.patient_id
 		end
-        return patients   
+		return patients
 
 	end
 
 	def start_reason(start_date = @start_date, end_date = @end_date)
 		#start_reason_hash = Hash.new(0)
-	    reason_concept_id = ConceptName.find_by_name("REASON FOR ART ELIGIBILITY").concept_id
+		reason_concept_id = ConceptName.find_by_name("REASON FOR ART ELIGIBILITY").concept_id
 
 		PatientProgram.find_by_sql("SELECT e.patient_id, name FROM earliest_start_date e
 											LEFT JOIN obs o ON e.patient_id = o.person_id AND o.concept_id = #{reason_concept_id} AND o.voided = 0
@@ -622,20 +622,20 @@ class Cohort
 		  ORDER BY K.patient_state_id DESC, K.start_date DESC")
 =end
     
-    	patients = []
-		  if @total_alive_and_on_art.blank?
-		 		PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state 
+		patients = []
+		if @total_alive_and_on_art.blank?
+			PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state
 		 									FROM earliest_start_date e
 											WHERE earliest_start_date <=  '#{@end_date}'
 											HAVING state = 7").reject{|t| defaulted_patients.include?(t.patient_id) }.each do | patient | 
-					patients << patient.patient_id
-				end
-				@total_alive_and_on_art = patients
-			else
-				patients = @total_alive_and_on_art
+				patients << patient.patient_id
 			end
+			@total_alive_and_on_art = patients
+		else
+			patients = @total_alive_and_on_art
+		end
 
-			return patients  
+		return patients
 	end
 
 =begin
@@ -657,10 +657,10 @@ class Cohort
     state = ProgramWorkflowState.find(
       :first,
       :conditions => ["concept_id IN (?)",
-                      concept_name.map{|c|c.concept_id}]
+				concept_name.map{|c|c.concept_id}]
     ).program_workflow_state_id
 
-	patients = []    										
+		patients = []
 
    	PatientProgram.find_by_sql(
    		"SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state, death_date,
@@ -673,7 +673,7 @@ class Cohort
 				DATEDIFF(death_date, initiation_date) BETWEEN #{min_days} AND #{max_days}").each do | patient | 
 			patients << patient.patient_id
 		end
-        return patients   
+		return patients
 	end
 
 	def transferred_out_patients
@@ -691,7 +691,7 @@ class Cohort
 			end
 			@art_defaulters = patients
 		else
-     patients = @art_defaulters
+			patients = @art_defaulters
     end
     
 		return patients 
@@ -738,12 +738,12 @@ class Cohort
 		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
 
 		status = PatientState.find_by_sql(
-													"SELECT e.patient_id, current_value_for_obs(e.patient_id, #{hiv_clinic_consultation_encounter_id}, #{tb_status_concept_id}, '#{end_date}') AS obs_value 
+			"SELECT e.patient_id, current_value_for_obs(e.patient_id, #{hiv_clinic_consultation_encounter_id}, #{tb_status_concept_id}, '#{end_date}') AS obs_value
 													FROM earliest_start_date e
 													WHERE earliest_start_date <= '#{end_date}'
 													AND e.patient_id IN (#{@patient_id_on_art_and_alive.join(',')}) ").each do |state|
-														states[state.patient_id] = state.obs_value
-												  end
+			states[state.patient_id] = state.obs_value
+		end
 
 		tb_not_suspected_id = ConceptName.find_by_name('TB NOT SUSPECTED').concept_id
 		tb_suspected_id = ConceptName.find_by_name('TB SUSPECTED').concept_id
@@ -777,16 +777,16 @@ class Cohort
     state = ProgramWorkflowState.find(
       :first,
       :conditions => ["concept_id IN (?)",
-                      concept_name.map{|c|c.concept_id}]
+				concept_name.map{|c|c.concept_id}]
     ).program_workflow_state_id
-	patients = []
- 	PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{end_date}') AS state 
+		patients = []
+		PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{end_date}') AS state
  									FROM earliest_start_date e
 									WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
 									HAVING state = #{state}").each do | patient | 
 			patients << patient.patient_id
 		end
-        return patients   
+		return patients
   end
 
 =begin
@@ -819,11 +819,11 @@ class Cohort
 		patients = []
 		Observation.find(:all, :joins => [:encounter], :conditions => ["concept_id = ? AND value_coded IN (?) AND encounter.voided = 0 \
 			AND DATE_FORMAT(obs_datetime, '%Y-%m-%d') <= ?", ConceptName.find_by_name("EVER RECEIVED ART").concept_id,
-			ConceptName.find(:all, :conditions => ["name = 'YES'"]).collect{|c| c.concept_id},
-			@end_date.to_date.strftime("%Y-%m-%d")]).each do | patient | 
+				ConceptName.find(:all, :conditions => ["name = 'YES'"]).collect{|c| c.concept_id},
+				@end_date.to_date.strftime("%Y-%m-%d")]).each do | patient |
 			patients << patient.patient_id
 		end
-        return patients   
+		return patients
 	end
 
 =begin
@@ -844,7 +844,10 @@ class Cohort
   end
 =end
 
-  def outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date, program_id = @@program_id, min_age=nil, max_age=nil,states = [])
+  def outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date,
+			program_id = @@program_id, states = [], min_age=nil, max_age=nil)
+  
+    states = []
 
     if min_age or max_age
       conditions = "AND TRUNCATE(DATEDIFF(p.date_enrolled, person.birthdate)/365,0) >= #{min_age}
@@ -853,7 +856,7 @@ class Cohort
 
     PatientState.find_by_sql("SELECT * FROM (
         SELECT s.patient_program_id, patient_id,patient_state_id,start_date,
-               n.name name,state
+               n.name name, current_state_for_program(p.patient_id, 1, '#{@end_date}') AS state
         FROM patient_state s
         INNER JOIN patient_program p ON p.patient_program_id = s.patient_program_id
         INNER JOIN program_workflow pw ON pw.program_id = p.program_id
@@ -870,10 +873,50 @@ class Cohort
       ) K
       GROUP BY patient_id
       ORDER BY K.patient_state_id DESC , K.start_date DESC").map do |state|
-        states << [state.patient_id , state.name]
-      end
+			states << [state.patient_id , state.name]
+		end
+
+		return states
   end
   
+	#Method added to avoid conflicting the already existing ones
+	#More time is needed to upgade the code so that its relevant and according to standards
+
+	def women_outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date,
+			program_id = @@program_id, states = [], min_age=nil, max_age=nil)
+		#	raise valued.to_yaml
+		states = []
+			coded_id = ConceptName.find_by_name("Yes").concept_id
+			pregnant_id = ConceptName.find_by_name("Is patient pregnant?").concept_id
+			breast_feeding_id = ConceptName.find_by_name("Is patient breast feeding?").concept_id
+		PatientState.find_by_sql("SELECT * FROM (
+					SELECT s.patient_program_id, p.patient_id,patient_state_id,start_date,
+               n.name name, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state
+					FROM patient_state s
+					INNER JOIN patient_program p ON p.patient_program_id = s.patient_program_id
+					INNER JOIN earliest_start_date e ON e.patient_id = p.patient_id
+					INNER JOIN obs o on o.person_id = e.patient_id
+					INNER JOIN concept_name n on n.concept_id = o.concept_id
+					WHERE e.earliest_start_date >= '#{start_date}'
+					AND e.earliest_start_date <= '#{end_date}'
+					AND ((n.concept_id = '#{pregnant_id}'
+								AND o.value_coded = '#{coded_id}'
+								AND DATEDIFF(o.obs_datetime, e.earliest_start_date) <= 30
+								AND DATEDIFF(o.obs_datetime, e.earliest_start_date) > -1)
+								OR
+						  (n.concept_id = '#{breast_feeding_id}'
+								AND o.value_coded = '#{coded_id}'))
+					ORDER BY patient_id DESC, patient_state_id DESC, start_date DESC
+      ) K
+      GROUP BY patient_id
+      ORDER BY K.patient_state_id DESC , K.start_date DESC").map do |state|
+			states << [state.patient_id , state.name]
+		end
+		#raise states.to_yaml
+		return states
+  end
+
+
   def first_registration_date
     @@first_registration_date
   end
@@ -888,7 +931,7 @@ class Cohort
 
       if reg_name == regimen_category
         patient_ids.each do |patient_id|
-         regimens << patient_id
+					regimens << patient_id
         end
       end
     end
@@ -913,14 +956,14 @@ class Cohort
             earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
       ").each do | value |
   
-        if value.regimen_category.blank?
-          regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] ||= []
-          regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] << value.patient_id
-        else
-          regimen_hash[value.regimen_category] ||= []
-          regimen_hash[value.regimen_category] << value.patient_id
-        end
-      end
+			if value.regimen_category.blank?
+				regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] ||= []
+				regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] << value.patient_id
+			else
+				regimen_hash[value.regimen_category] ||= []
+				regimen_hash[value.regimen_category] << value.patient_id
+			end
+		end
 
     regimen_hash
   end
@@ -968,7 +1011,7 @@ class Cohort
       self.transferred_in_patients(start_date, end_date).map(&:patient_id) +
       self.patients_initiated_on_art_first_time(start_date, end_date).map(&:patient_id))
 =end
-	patients = []
+		patients = []
     yes_concept = ConceptName.find_by_name('YES').concept_id
 		no_concept = ConceptName.find_by_name('NO').concept_id
     date_art_last_taken_concept = ConceptName.find_by_name('DATE ART LAST TAKEN').concept_id
@@ -991,7 +1034,7 @@ class Cohort
       GROUP BY esd.patient_id").each do | patient | 
 			patients << patient.patient_id
 		end
-        return patients   
+		return patients
   end
 	
 	def patients_with_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
@@ -1128,36 +1171,36 @@ class Cohort
 
   def side_effect_patients(start_date = @start_date, end_date = @end_date)
     side_effect_concept_ids =[ConceptName.find_by_name('PERIPHERAL NEUROPATHY').concept_id,
-                              ConceptName.find_by_name('LEG PAIN / NUMBNESS').concept_id,
-                              ConceptName.find_by_name('HEPATITIS').concept_id,
-                              ConceptName.find_by_name('SKIN RASH').concept_id,
-                              ConceptName.find_by_name('JAUNDICE').concept_id]
+			ConceptName.find_by_name('LEG PAIN / NUMBNESS').concept_id,
+			ConceptName.find_by_name('HEPATITIS').concept_id,
+			ConceptName.find_by_name('SKIN RASH').concept_id,
+			ConceptName.find_by_name('JAUNDICE').concept_id]
 
     encounter_type = EncounterType.find_by_name('HIV CLINIC CONSULTATION')
     concept_ids = [ConceptName.find_by_name('SYMPTOM PRESENT').concept_id,
-                   ConceptName.find_by_name('DRUG INDUCED').concept_id]
+			ConceptName.find_by_name('DRUG INDUCED').concept_id]
 
     encounter_ids = Encounter.find(:all,:conditions => ["encounter_type = ? 
                     AND (patient_start_date(patient_id) >= '#{start_date}'
                     AND patient_start_date(patient_id) <= '#{end_date}')
                     AND (encounter_datetime >= '#{start_date}'
                     AND encounter_datetime <= '#{end_date}')",
-                    encounter_type.id],:group => 'patient_id',:order => 'encounter_datetime DESC').map{| e | e.encounter_id }
+				encounter_type.id],:group => 'patient_id',:order => 'encounter_datetime DESC').map{| e | e.encounter_id }
 
     Observation.find(:all,
-                     :conditions => ["encounter_id IN (#{encounter_ids.join(',')})
+			:conditions => ["encounter_id IN (#{encounter_ids.join(',')})
                      AND concept_id IN (?)
                      AND value_coded IN (#{side_effect_concept_ids.join(',')})",
-                     concept_ids],
-                     :group =>'person_id')
+				concept_ids],
+			:group =>'person_id')
   end
 
   def patients_with_side_effects(start_date = @start_date, end_date = @end_date)
 		side_effect_concept_ids =[ConceptName.find_by_name('PERIPHERAL NEUROPATHY').concept_id,
-                              ConceptName.find_by_name('LEG PAIN / NUMBNESS').concept_id,
-                              ConceptName.find_by_name('HEPATITIS').concept_id,
-                              ConceptName.find_by_name('SKIN RASH').concept_id,
-                              ConceptName.find_by_name('JAUNDICE').concept_id]
+			ConceptName.find_by_name('LEG PAIN / NUMBNESS').concept_id,
+			ConceptName.find_by_name('HEPATITIS').concept_id,
+			ConceptName.find_by_name('SKIN RASH').concept_id,
+			ConceptName.find_by_name('JAUNDICE').concept_id]
 
     hiv_clinic_consultation_encounter_id = EncounterType.find_by_name("HIV CLINIC CONSULTATION").id
 
@@ -1180,9 +1223,9 @@ class Cohort
                                                                                   AND e1.encounter_datetime BETWEEN '#{start_date}' AND '#{end_date}'
                                                                                   AND e1.voided = 0)
                                                     GROUP BY e.patient_id"
-                                                    )
+		)
                                                  
-   side_effects_patients
+		side_effects_patients
 
 	end
 
@@ -1190,41 +1233,41 @@ class Cohort
 
   def cohort_regimen_name(name , age)
     case name
-      when 'd4T/3TC/NVP'
-        return '1A' if age > 14
-        return '1P'
-      when 'd4T/3TC + d4T/3TC/NVP (Starter pack)'
-        return '1A' if age > 14
-        return '1P'
-      when 'AZT/3TC/NVP'
-        return '2A' if age > 14
-        return '2P'
-      when 'AZT/3TC + AZT/3TC/NVP (Starter pack)'
-        return '2A' if age > 14
-        return '2P'
-      when 'd4T/3TC/EFV'
-        return '3A' if age > 14
-        return '3P'
-      when 'AZT/3TC+EFV'
-        return '4A' if age > 14
-        return '4P'
-      when 'TDF/3TC/EFV'
-        return '5A' if age > 14
-        return '5P'
-      when 'TDF/3TC+NVP'
-        return '6A' if age > 14
-        return '6P'
-      when 'TDF/3TC+LPV/r'
-        return '7A' if age > 14
-        return '7P'
-      when 'AZT/3TC+LPV/r'
-        return '8A' if age > 14
-        return '8P'
-      when 'ABC/3TC+LPV/r'
-        return '9A' if age > 14
-        return '9P'
-      else
-        return 'UNKNOWN ANTIRETROVIRAL DRUG'
+		when 'd4T/3TC/NVP'
+			return '1A' if age > 14
+			return '1P'
+		when 'd4T/3TC + d4T/3TC/NVP (Starter pack)'
+			return '1A' if age > 14
+			return '1P'
+		when 'AZT/3TC/NVP'
+			return '2A' if age > 14
+			return '2P'
+		when 'AZT/3TC + AZT/3TC/NVP (Starter pack)'
+			return '2A' if age > 14
+			return '2P'
+		when 'd4T/3TC/EFV'
+			return '3A' if age > 14
+			return '3P'
+		when 'AZT/3TC+EFV'
+			return '4A' if age > 14
+			return '4P'
+		when 'TDF/3TC/EFV'
+			return '5A' if age > 14
+			return '5P'
+		when 'TDF/3TC+NVP'
+			return '6A' if age > 14
+			return '6P'
+		when 'TDF/3TC+LPV/r'
+			return '7A' if age > 14
+			return '7P'
+		when 'AZT/3TC+LPV/r'
+			return '8A' if age > 14
+			return '8P'
+		when 'ABC/3TC+LPV/r'
+			return '9A' if age > 14
+			return '9P'
+		else
+			return 'UNKNOWN ANTIRETROVIRAL DRUG'
     end
   end
 end

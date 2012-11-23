@@ -602,10 +602,10 @@ class CohortToolController < GenericCohortToolController
   end
 
   def list_patients_details
-  
-  	@report_url = "/cohort_tool/cohort?quarter=#{@quarter}"
+		
     @report = []
     @quarter = params[:quarter]
+  	@report_url = "/cohort_tool/cohort?quarter=#{@quarter}"
     
     sort_value = CoreService.get_global_property_value("debugger_sorting_attribute") rescue "arv_number"
     
@@ -722,6 +722,7 @@ class CohortToolController < GenericCohortToolController
   end
   
   def cohort
+		@logo = CoreService.get_global_property_value('logo').to_s
     @quarter = params[:quarter]
     start_date,end_date = Report.generate_cohort_date_range(@quarter)
     cohort = Cohort.new(start_date, end_date)
@@ -733,10 +734,42 @@ class CohortToolController < GenericCohortToolController
 		else
 			@cohort = session[:cohort]
 		end
-
-    #@survival_analysis = SurvivalAnalysis.report(cohort)
+		#raise session[:cohort]["outcomes"].to_yaml
+    @survival_analysis = SurvivalAnalysis.report(cohort)
+		@children_survival_analysis = SurvivalAnalysis.childern_survival_analysis(cohort)
+		@women_survival_analysis = SurvivalAnalysis.pregnant_and_breast_feeding(cohort)
+		
     render :layout => 'cohort'
   end
+
+	def survival_analysis
+    @quarter = params[:quarter]
+		@logo = params[:logo]
+		
+    @survival_analysis = params[:survivor]
+    @survival_analysis = ActiveSupport::JSON.decode(@survival_analysis)
+		render :layout => 'cohort'
+	end
+
+	def children_survival
+    @quarter = params[:quarter]
+		@logo = params[:logo]
+
+    @children_survival_analysis = params[:children_survivor]
+    @children_survival_analysis = ActiveSupport::JSON.decode(params[:children_survivor])
+		#raise @children_survival_analysis.to_yaml
+		render :layout => 'cohort'
+	end
+
+	def women_survival
+    @quarter = params[:quarter]
+		@logo = params[:logo]
+
+    @women_survival_analysis = params[:women_survivor]
+    @women_survival_analysis = ActiveSupport::JSON.decode(params[:women_survivor])
+		
+		render :layout => 'cohort'
+	end
 
   def cohort_menu
   end
