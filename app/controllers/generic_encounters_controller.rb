@@ -1,6 +1,6 @@
 class GenericEncountersController < ApplicationController
   def create(params=params, session=session)
-
+   
     if params[:change_appointment_date] == "true"
       session_date = session[:datetime].to_date rescue Date.today
       type = EncounterType.find_by_name("APPOINTMENT")                            
@@ -159,7 +159,7 @@ class GenericEncountersController < ApplicationController
         params[:observations] = vitals_observations
         create_obs(encounter , params)
       end
-
+ 
       unless observations.blank? 
         encounter = Encounter.new()
         encounter.encounter_type = EncounterType.find_by_name("HIV STAGING").id
@@ -251,7 +251,8 @@ class GenericEncountersController < ApplicationController
           end
           encounter.provider_id = user_person_id
           encounter.save   
-        end 
+        end
+
         params[:observations] = previous_hiv_clinic_consultation_observations
         create_obs(encounter , params)
       end
@@ -290,7 +291,7 @@ class GenericEncountersController < ApplicationController
     end
 
     @patient = Patient.find(params[:encounter][:patient_id]) rescue nil
-    if params[:location]
+    if ! params[:location].blank?
       if @patient.nil?
         @patient = Patient.find_with_voided(params[:encounter][:patient_id])
       end
@@ -315,7 +316,7 @@ class GenericEncountersController < ApplicationController
 
     # Encounter handling
 		encounter = Encounter.new(params[:encounter])
-		unless params[:location]
+		if params[:location].blank?
 		  encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
 		else
 		  encounter.encounter_datetime = params['encounter']['encounter_datetime']
@@ -407,7 +408,7 @@ class GenericEncountersController < ApplicationController
 
       #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       #if params[:location] is not blank == migration params
-      if params[:location]
+      if ! params[:location].blank?
         next if not @patient.patient_programs.in_programs("HIV PROGRAM").blank?
       end
       #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -487,7 +488,7 @@ class GenericEncountersController < ApplicationController
     # only redirect to next task if location parameter has not been provided
 
     
-    unless params[:location]
+    if params[:location].blank?
     #find a way of printing the lab_orders labels
      if params['encounter']['encounter_type_name'] == "LAB ORDERS"
        redirect_to"/patients/print_lab_orders/?patient_id=#{@patient.id}"
@@ -508,10 +509,14 @@ class GenericEncountersController < ApplicationController
                        params[:date_voided],
                        params[:voided_by])
       end
+      #redirect_to "/patients/show/#{params[:encounter]['patient_id']}"
       #made restful the default due to time
+
       render :text => encounter.encounter_id.to_s and return
+      
       #return encounter.id.to_s  # support non-RESTful creation of encounters
     end
+    
   end
 
 	def new	
@@ -1322,7 +1327,7 @@ class GenericEncountersController < ApplicationController
 			extracted_value_coded_or_text = observation[:value_coded_or_text]
       
 			#TODO : Added this block with Yam, but it needs some testing.
-			if params[:location]
+			if ! params[:location].blank?
 				if encounter.encounter_type == EncounterType.find_by_name("ART ADHERENCE").id
 					passed_concept_id = Concept.find_by_name(observation[:concept_name]).concept_id rescue -1
 					obs_concept_id = Concept.find_by_name("AMOUNT OF DRUG BROUGHT TO CLINIC").concept_id rescue -1

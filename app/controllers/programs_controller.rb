@@ -70,9 +70,9 @@ end
           :state => 1, #TODO find a better way of getting the this state rather than hard coding
           :start_date => initial_date,
           :creator => User.current.user_id)
-        initial_patient_state.save
-    else
-      #ensure that initial state is known, so that we can assign
+        initial_patient_state.save 
+    else 
+      #ensure that initial state is known, so that we can assign 
       #end date of the beginning of the on arv state
       current_patient_program.patient_states.each do |state|
         initial_patient_state = state if state.state == pre_art_state
@@ -83,7 +83,7 @@ end
     #TODO check if the patient has any art dispensation, and get the date of the earliest start date
 
     date_of_first_dispensation = PatientService.date_of_first_dispensation(patient) rescue nil
-
+   
     if ! date_of_first_dispensation.nil?
       on_arv_state = current_patient_program.patient_states.build(
         :state => 7, #TODO find a better way of getting the this state rather than hard coding
@@ -155,14 +155,14 @@ end
           :state => 6, #TODO find a better way of getting the this state rather than hard coding
           :start_date => exit_from_care_date,
           :creator => User.current.user_id)
-        stopped_patient_state.save
-      end
+        stopped_patient_state.save      
+      end 
       #update the the on_arvs state, append the exit from care date
-
+      
         on_arv_state[:end_date] = exit_from_care_date
         on_arv_state.save
-
-      #update the end date for the patient program
+            
+      #update the end date for the patient program    
       current_patient_program.date_completed = exit_from_care_date
       current_patient_program.save
 
