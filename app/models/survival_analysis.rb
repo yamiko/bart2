@@ -17,12 +17,13 @@ class SurvivalAnalysis
                       :end_date   => survival_end_date
       }
     end
-    ( date_ranges || [] ).each_with_index do | range ,i | 
-      states = cohort.outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id, states = nil, min_age, max_age)
-      survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"] = {
-        'Number Alive and on ART' => 0, 
-        'Number Dead' => 0, 'Number Defaulted' => 0 , 
-        'Number Stopped Treatment' => 0, 'Number Transferred out' => 0, 
+    ( date_ranges || [] ).each_with_index do | range ,i |
+      states = cohort.women_outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id, states = nil)
+
+			 survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"] = {
+        'Number Alive and on ART' => 0,
+        'Number Dead' => 0, 'Number Defaulted' => 0 ,
+        'Number Stopped Treatment' => 0, 'Number Transferred out' => 0,
         "Section date range" => "#{range[:start_date].strftime('%B %Y')} to #{range[:end_date].strftime('%B %Y')}",
         'Unknown' => 0,'New patients registered for ART' => states.length}
 
@@ -45,8 +46,8 @@ class SurvivalAnalysis
 				end
       end
     end
-    survival_analysis_outcomes.sort
-  end
+     survival_analysis_outcomes.sort{|a,b| (a[0].to_i == b[0].to_i) ? a[1].to_i <=> b[1].to_i : a[0].to_i <=> b[0].to_i }
+	end
 
 	def self.childern_survival_analysis(cohort)
 		self.report(cohort, 0, 14)
@@ -69,10 +70,9 @@ class SurvivalAnalysis
                       :end_date   => survival_end_date
       }
     end
-		
+		#raise date_ranges.to_yaml
     ( date_ranges || [] ).each_with_index do | range ,i |
       states = cohort.women_outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id, states = nil)
-			#raise survival_end_date.to_yaml
 
 			 survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"] = {
         'Number Alive and on ART' => 0,
@@ -80,8 +80,7 @@ class SurvivalAnalysis
         'Number Stopped Treatment' => 0, 'Number Transferred out' => 0,
         "Section date range" => "#{range[:start_date].strftime('%B %Y')} to #{range[:end_date].strftime('%B %Y')}",
         'Unknown' => 0,'New patients registered for ART' => states.length}
-      
-				#raise states.to_yaml
+
       (states || [] ).each do | patient_id , state |
         case state.upcase
           when 'DEFAULTED'
@@ -101,6 +100,6 @@ class SurvivalAnalysis
 				end
       end
     end
-    survival_analysis_outcomes.sort
+     survival_analysis_outcomes.sort{|a,b| (a[0].to_i == b[0].to_i) ? a[1].to_i <=> b[1].to_i : a[0].to_i <=> b[0].to_i }
 	end
 end
