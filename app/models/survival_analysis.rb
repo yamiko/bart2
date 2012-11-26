@@ -19,7 +19,7 @@ class SurvivalAnalysis
     end
     ( date_ranges || [] ).each_with_index do | range ,i | 
       states = cohort.outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id, states = nil, min_age, max_age)
-      survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"] = {
+      survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"] = {
         'Number Alive and on ART' => 0, 
         'Number Dead' => 0, 'Number Defaulted' => 0 , 
         'Number Stopped Treatment' => 0, 'Number Transferred out' => 0, 
@@ -29,19 +29,19 @@ class SurvivalAnalysis
       (states || [] ).each do | patient_id , state |
         case state.upcase
           when 'DEFAULTED'
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"]['Number Defaulted']+=1
+            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"]['Number Defaulted']+=1
           when 'PATIENT TRANSFERRED OUT'
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"]['Number Transferred out']+=1
+            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"]['Number Transferred out']+=1
           when 'PATIENT DIED'
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"]['Number Dead']+=1
+            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"]['Number Dead']+=1
           when 'TREATMENT STOPPED'
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"]['Number Stopped Treatment']+=1
+            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"]['Number Stopped Treatment']+=1
 					when 'STOPPED TAKING ARVS'
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"]['Number Stopped Treatment']+=1
+            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"]['Number Stopped Treatment']+=1
 					when 'ON ANTIRETROVIRALS'
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"]['Number Alive and on ART']+=1
+            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"]['Number Alive and on ART']+=1
           when 'ON ARVS'
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"]['Number Alive and on ART']+=1
+            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"]['Number Alive and on ART']+=1
 				end
       end
     end
@@ -71,9 +71,10 @@ class SurvivalAnalysis
     end
 		
     ( date_ranges || [] ).each_with_index do | range ,i |
-      states = cohort.women_outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id, states = nil, min=nil,max=nil)
+      states = cohort.women_outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id, states = nil)
+			#raise survival_end_date.to_yaml
 
-			 survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"] = {
+			 survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"] = {
         'Number Alive and on ART' => 0,
         'Number Dead' => 0, 'Number Defaulted' => 0 ,
         'Number Stopped Treatment' => 0, 'Number Transferred out' => 0,
@@ -84,19 +85,19 @@ class SurvivalAnalysis
       (states || [] ).each do | patient_id , state |
         case state.upcase
           when 'DEFAULTED'
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"]['Number Defaulted']+=1
+            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"]['Number Defaulted']+=1
           when 'PATIENT TRANSFERRED OUT'
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"]['Number Transferred out']+=1
+            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"]['Number Transferred out']+=1
           when 'PATIENT DIED'
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"]['Number Dead']+=1
+            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"]['Number Dead']+=1
           when 'TREATMENT STOPPED'
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"]['Number Stopped Treatment']+=1
+            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"]['Number Stopped Treatment']+=1
 					when 'STOPPED TAKING ARVS'
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"]['Number Stopped Treatment']+=1
+            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"]['Number Stopped Treatment']+=1
 					when 'ON ANTIRETROVIRALS'
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"]['Number Alive and on ART']+=1
+            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"]['Number Alive and on ART']+=1
           when 'ON ARVS'
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{survival_end_date.strftime('%B %Y')}"]['Number Alive and on ART']+=1
+            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"]['Number Alive and on ART']+=1
 				end
       end
     end

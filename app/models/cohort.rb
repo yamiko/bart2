@@ -883,8 +883,8 @@ class Cohort
 	#More time is needed to upgade the code so that its relevant and according to standards
 
 	def women_outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date,
-			program_id = @@program_id, states = [], min_age=nil, max_age=nil)
-		#	raise valued.to_yaml
+			program_id = @@program_id, states = [])
+		
 		states = []
 			coded_id = ConceptName.find_by_name("Yes").concept_id
 			pregnant_id = ConceptName.find_by_name("Is patient pregnant?").concept_id
@@ -912,7 +912,7 @@ class Cohort
       ORDER BY K.patient_state_id DESC , K.start_date DESC").map do |state|
 			states << [state.patient_id , state.name]
 		end
-		#raise states.to_yaml
+		
 		return states
   end
 
