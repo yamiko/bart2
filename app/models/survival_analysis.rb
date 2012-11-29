@@ -17,8 +17,9 @@ class SurvivalAnalysis
                       :end_date   => survival_end_date
       }
     end
+		
     ( date_ranges || [] ).each_with_index do | range ,i |
-      states = cohort.women_outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id, states = nil)
+      states = cohort.outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id, states = nil, min_age, max_age)
 
 			 survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"] = {
         'Number Alive and on ART' => 0,
