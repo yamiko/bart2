@@ -855,18 +855,17 @@ class Cohort
     end
 
     PatientState.find_by_sql("SELECT * FROM (
-        SELECT s.patient_program_id, patient_id,patient_state_id,start_date,
-               n.name name, current_state_for_program(p.patient_id, 1, '#{@end_date}') AS state
+        SELECT s.patient_program_id, p.patient_id,patient_state_id,start_date,
+               n.name name, current_state_for_program(p.patient_id, '#{program_id}', '#{@end_date}') AS state
         FROM patient_state s
         INNER JOIN patient_program p ON p.patient_program_id = s.patient_program_id
-        INNER JOIN program_workflow pw ON pw.program_id = p.program_id
-        INNER JOIN program_workflow_state w ON w.program_workflow_id = pw.program_workflow_id
-                   AND w.program_workflow_state_id = s.state
-        INNER JOIN concept_name n ON w.concept_id = n.concept_id
-        INNER JOIN person ON person.person_id = p.patient_id
+        INNER JOIN earliest_start_date e ON e.patient_id = p.patient_id
+				INNER JOIN obs o on o.person_id = e.patient_id
+        INNER JOIN concept_name n on n.concept_id = o.concept_id
+				INNER JOIN person ON person.person_id = p.patient_id
         WHERE p.voided = 0 AND s.voided = 0 #{conditions}
-        AND (patient_start_date(patient_id) >= '#{start_date}'
-        AND patient_start_date(patient_id) <= '#{end_date}')
+        AND (patient_start_date(p.patient_id) >= '#{start_date}'
+        AND patient_start_date(p.patient_id) <= '#{end_date}')
         AND p.program_id = #{program_id}
         AND s.start_date <= '#{outcome_end_date}'
         ORDER BY patient_id DESC, patient_state_id DESC, start_date DESC
@@ -891,14 +890,16 @@ class Cohort
 			breast_feeding_id = ConceptName.find_by_name("Is patient breast feeding?").concept_id
 		PatientState.find_by_sql("SELECT * FROM (
 					SELECT s.patient_program_id, p.patient_id,patient_state_id,start_date,
-               n.name name, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state
+               n.name name, current_state_for_program(e.patient_id, '#{program_id}', '#{@end_date}') AS state
 					FROM patient_state s
 					INNER JOIN patient_program p ON p.patient_program_id = s.patient_program_id
 					INNER JOIN earliest_start_date e ON e.patient_id = p.patient_id
 					INNER JOIN obs o on o.person_id = e.patient_id
 					INNER JOIN concept_name n on n.concept_id = o.concept_id
-					WHERE e.earliest_start_date >= '#{start_date}'
-					AND e.earliest_start_date <= '#{end_date}'
+					WHERE (patient_start_date(p.patient_id) >= '#{start_date}'
+					AND patient_start_date(p.patient_id) <= '#{end_date}')
+					AND s.start_date <= '#{outcome_end_date}'
+					AND p.program_id = #{program_id}
 					AND ((n.concept_id = '#{pregnant_id}'
 								AND o.value_coded = '#{coded_id}'
 								AND DATEDIFF(o.obs_datetime, e.earliest_start_date) <= 30
