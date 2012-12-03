@@ -120,12 +120,15 @@
 
  <%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
 
-
+ <% if Location.current_location.name.upcase == "TB HTC" %>
+   <%= touch_hidden_tag "Refer to HTC", @patient, "NO", {:id => "refer_to_htc" }%>
+ <%else%>
    <%= touch_yes_no_unknown_tag "Refer to HTC", @patient, nil,                     
    {:id => "refer_to_htc",                                                      
     :condition => '$("hiv_status").value != "POSITIVE" && updateTestDate() == true',
     :tt_pageStyleClass => "NoKeyboard",                                         
     :helpText => "Patient has been -ve for more than 3 months. Refer patient to HTC?" } %>
+ <%end%>
 
    <% session_date = session[:datetime].to_date rescue nil                       
     if session_date %>

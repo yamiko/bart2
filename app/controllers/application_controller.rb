@@ -142,7 +142,12 @@ class ApplicationController < GenericApplicationController
                     patient.id, refered_to_htc_concept_id,
                     session_date.to_date])).to_s.strip.squish.upcase rescue nil
 
-          if ('Refer to HTC: Yes'.upcase == refered_to_htc)
+          #if hiv_status.blank? and user_selected_activities.match(/Manage HIV Status Visits/i)
+          if 'Refer to HTC: Yes'.upcase == refered_to_htc and user_selected_activities.match(/Manage HIV Status Visits/i)
+            task.encounter_type = 'Refered to HTC'
+            task.url = "/encounters/new/hiv_status?show&patient_id=#{patient.id}"
+            return task
+          elsif ('Refer to HTC: Yes'.upcase == refered_to_htc)
             task.encounter_type = 'Refered to HTC'
             task.url = "/patients/show/#{patient.id}"
             return task
