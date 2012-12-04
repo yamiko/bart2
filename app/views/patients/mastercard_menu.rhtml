@@ -74,4 +74,12 @@ var tt_cancel_destination = "/patients/show/" + "<%=params[:patient_id]%>"
   <div class = 'mastercards'>
     <a href='/patients/mastercard?patient_id=<%=params[:patient_id]%>' class = 'mastercard_button'>Master</a>
   </div>
+  <%if current_user.activities.include?('Manage Lab Orders') or current_user.activities.include?('Manage Lab Results') or
+    current_user.activities.include?('Manage Sputum Submissions') or current_user.activities.include?('Manage TB Clinic Visits') or
+    current_user.activities.include?('Manage TB Reception Visits') or current_user.activities.include?('Manage TB Registration Visits') or
+    current_user.activities.include?('Manage HIV Status Visits') %>       
+      <div class = 'mastercards'>
+        <a href='/patients/tb_treatment_card?patient_id=<%=params[:patient_id]%>' class = 'mastercard_button'>TB Treatment card</a>
+      </div>
+  <%end%> 
 </div>

@@ -594,11 +594,20 @@ class ApplicationController < GenericApplicationController
             task.url = "/patients/show/#{patient.id}"
             return task
           end if art_drugs_given_before
-        when 'TREATMENT' 
+        when 'TREATMENT'
+=begin 
           tb_treatment_encounter = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                    :joins => "INNER JOIN obs USING(encounter_id)",
                                    :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ? AND concept_id = ?",
                                    session_date.to_date,patient.id,EncounterType.find_by_name(type).id,ConceptName.find_by_name('TB regimen type').concept_id])
+=end
+          tb_treatment_encounter = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
+                                   :joins => "INNER JOIN obs USING(encounter_id)",
+                                   :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
+                                   session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
+    
+          next unless tb_treatment_encounter.blank? 
+
 
           encounter_tb_visit = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                                    patient.id,EncounterType.find_by_name('TB VISIT').id,session_date],
