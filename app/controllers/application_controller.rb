@@ -121,11 +121,14 @@ class ApplicationController < GenericApplicationController
             return task
           end
 
-          xray = Observation.find(Observation.find(:first,
-                    :order => "obs_datetime DESC,date_created DESC", 
-                    :conditions => ["person_id = ? AND concept_id = ? AND DATE(obs_datetime) <= ?", 
-                    patient.id, ConceptName.find_by_name("Refer to x-ray?").concept_id,
-                    session_date.to_date])).to_s.strip.squish.upcase rescue ''
+          tb_clinic_encounter = Encounter.find(:first,
+            :conditions => ["encounter_type = ? AND patient_id = ? 
+            AND DATE(encounter_datetime) <= ?",    
+            EncounterType.find_by_name("TB clinic visit").id,patient.id,
+            session_date.to_date],:order => "encounter_datetime DESC,
+            encounter.date_created DESC")
+
+          xray = tb_clinic_encounter.observations.find_all_by_concept_id(ConceptName.find_by_name("Refer to x-ray?").concept_id).first.to_s.strip.squish.upcase rescue ''
 
           if xray.match(/: Yes/i)
             task.encounter_type = "Xray scan"

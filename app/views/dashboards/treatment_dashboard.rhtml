@@ -36,7 +36,14 @@
 		<div id='content'>
 			<form id = 'dashboard' action='/clinic'>
 				<h1 id='project_name'>
-					BART
+				  <%if current_user.activities.include?('Manage Lab Orders') or current_user.activities.include?('Manage Lab Results') or
+           current_user.activities.include?('Manage Sputum Submissions') or current_user.activities.include?('Manage TB Clinic Visits') or
+           current_user.activities.include?('Manage TB Reception Visits') or current_user.activities.include?('Manage TB Registration Visits') or
+           current_user.activities.include?('Manage HIV Status Visits') %>          
+           <span style="font-size: 55px;">TB-ART</span>                   
+         <%else%>                                                         
+           BART                                                           
+         <%end%>	
 				</h1>
 				<span id='patient_name'><%= @patient_bean.name rescue "" %></span>
 				<span id='patient_id'><%= @patient_bean.national_id_with_dashes rescue "" %></span>
