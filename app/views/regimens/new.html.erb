@@ -259,7 +259,7 @@
        <% if @family_planning_methods.length != 0 %>
                 resultString += '<b>Family Planning Methods:</b><br><ul>'
        <%        
-                family_planning_methods = @family_planning_methods.sort.map do |method|
+                family_planning_methods = @family_planning_methods.uniq.sort.map do |method|
                                     "<li> #{method}</li>"
                 end 
             end

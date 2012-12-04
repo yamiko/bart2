@@ -488,11 +488,12 @@ class ApplicationController < GenericApplicationController
           tb_followup = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                       :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                                       session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
-
+=begin
+          #Not sure on what this commented block is doing - need to check
           if (tb_followup.encounter_datetime.to_date == tb_registration.encounter_datetime.to_date)
 			      next
           end if not tb_followup.blank? and not tb_registration.blank?
-
+=end
           if tb_registration.blank?
             task.encounter_type = 'TB PROGRAM ENROLMENT'
             task.url = "/patients/show/#{patient.id}"

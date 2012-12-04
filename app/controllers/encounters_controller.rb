@@ -104,7 +104,7 @@ class EncountersController < GenericEncountersController
 		
 		@select_options = select_options
 		@months_since_last_hiv_test = PatientService.months_since_last_hiv_test(@patient.id)
-		@current_user_role = self.current_user_role
+		@current_user_role = current_user_roles
 		@tb_patient = is_tb_patient(@patient)
 		@art_patient = PatientService.art_patient?(@patient)
 		@recent_lab_results = patient_recent_lab_results(@patient.id)
