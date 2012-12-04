@@ -102,7 +102,7 @@
                   <!--%if current_user.activities.include?('Manage Patient Programs')%-->
                     <option value='/patients/programs_dashboard/<%= @patient.id -%>'>Outcomes</option>
                   <!--%end%-->
-                  <option value='/patients/show/<%= @patient.id -%>?source=opd'>OPD</option>
+                  <!--option value='/patients/show/<%#= @patient.id -%>?source=opd'>OPD</option-->
                 </select>
                 <select id="navigation_links">
                     <option link="/encounter_types?patient_id=<%= @patient.id -%>" ttSize = "160px">Tasks</option>
