@@ -1,9 +1,11 @@
 <script >
   tt_cancel_destination = "/cohort_tool/cohort";
+  jQuery(document).ready(function(){
+
+  });
 </script>
 <%= javascript_include_tag 'jquery' %>
 <%= stylesheet_link_tag 'extra_buttons' %>
-
 <script>
   var prev_link;
   var next_link;
@@ -81,10 +83,10 @@
 <%= image_tag(@logo,:class=>"logo")%>
 <br />
 <div class="location"><h1><%= Location.current_health_center.name + " : " + @quarter %></h1></div>
-<div class="description"><h2><u><%=params[:field].capitalize rescue params[:value].capitalize-%></u></h2></div>
+<div class="description"><h2><u><%=params[:value].capitalize-%></u></h2></div>
 
 <div style = "position : relative; width : 100%; height: 540px; overflow-y:scroll;">
-  <table class='summary'>
+  <table id ="table_id"class='summary'>
 	<tbody>
 	  <tr style="bor der-bottom:4px solid black;">
 		<th>ID</th>
@@ -99,7 +101,6 @@
 	  <% session[:mastercard_counter] = 0 %>
 	  <% @report.each do |data_row| %>
 		<% session[:mastercard_ids] << data_row.person_id %>
-
 		<tr>
 		  <td align='center'><%= link_to_onmousedown "#{data_row.person_id}",{:controller =>"patients", :action => 'mastercard',
 			  :patient_id => "#{data_row.person_id}" ,:source =>"out_of_range_arv_number", :quarter => "#{@report_quarter}",
@@ -112,8 +113,8 @@
 			<td align='center'><%= data_row.age_in_months %> Months</td>
 		  <% end %>
 		  <td align='center'><%= session[:cohort]["Earliest_start_dates"][data_row.patient_id] %></td>
-		  <td><%= "#{session[:cohort]["start_reason"][data_row.patient_id	.to_s]}" %></td>
-		  <td><%= "#{session[:cohort]["outcomes"][data_row.patient_id.to_s]}" %></td>
+		  <td><%= "#{session[:cohort]["start_reason"][data_row.patient_id.to_s]}" rescue "<br>" %></td>
+		  <td><%= "#{session[:cohort]["outcomes"][data_row.patient_id.to_s]}" rescue "" %></td>
 
 		</tr>
 	  <%end%>
@@ -123,3 +124,4 @@
     <tbody>
   </table>
 </div>
+

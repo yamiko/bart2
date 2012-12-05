@@ -175,37 +175,37 @@
   
 <table align="left">
 <% @children_survival_analysis.each do | key , values | %>
-  <tr>
+   <tr>
     <th style = "text-align:left;"><%=key%></th>
     <th>&nbsp;</th>
   </tr>
   <tr>
-    <td style = "text-align:left;">New patients registered for ART between <%=values['Section date range']%></td>
-    <td style = "text-align:right;"><%=values['New patients registered for ART']%></td>
+    <td style = "text-align:left;">New patients registered for ART between <%=values['Section date range'] -%></td>
+    <td style = "text-align:right;"><%= values['New patients registered for ART'] rescue 0 -%></td>
   </tr>
   <tr>
     <td style = "text-align:left;">Number Alive and on ART</td>
-    <td style = "text-align:right;"><%=values['Number Alive and on ART']%></td>
+    <td style = "text-align:right;"><%= link_to "#{(values['Number Alive and on ART'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=children&value=#{key}&attribute=arvs&quarter=#{@quarter}" -%></td>
   </tr>
   <tr>
     <td style = "text-align:left;">Number Dead</td>
-    <td style = "text-align:right;"><%=values['Number Dead']%></td>
+    <td style = "text-align:right;"><%= link_to "#{(values['Number Dead'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=children&value=#{key}&attribute=dead&quarter=#{@quarter}" -%></td>
   </tr>
   <tr>
     <td style = "text-align:left;">Number Defaulted</td>
-    <td style = "text-align:right;"><%=values['Number Defaulted']%></td>
+    <td style = "text-align:right;"><%= link_to "#{(values['Number Defaulted'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=children&value=#{key}&attribute=defaulted&quarter=#{@quarter}" -%></td>
   </tr>
   <tr>
     <td style = "text-align:left;">Number Stopped Treatment</td>
-    <td style = "text-align:right;"><%=values['Number Stopped Treatment']%></td>
+    <td style = "text-align:right;"><%= link_to "#{(values['Number Stopped Treatment'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=children&value=#{key}&attribute=stopped&quarter=#{@quarter}" -%></td>
   </tr>
   <tr>
     <td style = "text-align:left;">Number Transferred out</td>
-    <td style = "text-align:right;"><%=values['Number Transferred out']%></td>
+    <td style = "text-align:right;"><%= link_to "#{(values['Number Transferred out'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=children&value=#{key}&attribute=transferred&quarter=#{@quarter}" -%></td>
   </tr>
   <tr>
     <td style = "text-align:left;">Number Unknown</td>
-    <td style = "text-align:right;"><%=values['Unknown']%></td>
+    <td style = "text-align:right;"><%= link_to "#{(values['Unknown'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=children&value=#{key}&attribute=unknown&quarter=#{@quarter}" -%></td>
   </tr>
 <% end %>
 </table>
@@ -213,4 +213,3 @@
 </div>
 </body>
 </html>
-

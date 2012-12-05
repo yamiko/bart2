@@ -686,7 +686,7 @@ class Cohort
 			@art_defaulters ||= PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{@end_date}') AS def
 											FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
 											WHERE e.earliest_start_date <=  '#{@end_date}' AND p.dead=0
-											HAVING def = 1 AND current_state_for_program(patient_id, 1, '#{@end_date}') NOT IN (6, 2, 3)").each do | patient | 
+											HAVING def = 1 AND current_state_for_program(patient_id, 1, '#{@end_date}') NOT IN (6, 2, 3)").each do | patient |
 				patients << patient.patient_id
 			end
 			@art_defaulters = patients
@@ -848,15 +848,15 @@ class Cohort
 			program_id = @@program_id, states = [], min_age=nil, max_age=nil)
   
     states = []
-
-    if min_age or max_age
+		
+		if min_age or max_age
       conditions = "AND TRUNCATE(DATEDIFF(p.date_enrolled, person.birthdate)/365,0) >= #{min_age}
                     AND TRUNCATE(DATEDIFF(p.date_enrolled, person.birthdate)/365,0) <= #{max_age}"
     end
 
     PatientState.find_by_sql("SELECT * FROM (
         SELECT s.patient_program_id, p.patient_id,patient_state_id,start_date,
-               n.name name, current_state_for_program(p.patient_id, '#{program_id}', '#{@end_date}') AS state
+               n.name name, current_defaulter(p.patient_id, '#{@end_date}') AS def, current_state_for_program(p.patient_id, '#{program_id}', '#{@end_date}') AS state
         FROM patient_state s
         INNER JOIN patient_program p ON p.patient_program_id = s.patient_program_id
         INNER JOIN earliest_start_date e ON e.patient_id = p.patient_id
@@ -872,7 +872,15 @@ class Cohort
       ) K
       GROUP BY patient_id
       ORDER BY K.patient_state_id DESC , K.start_date DESC").map do |state|
-			states << [state.patient_id , state.name]
+			if state.def.to_i == 1
+				if (state.name.upcase != 'PATIENT TRANSFERRED OUT' and state.name.upcase != 'PATIENT DIED' and state.name.upcase != 'TREATMENT STOPPED' and state.name.upcase != 'STOPPED TAKING ARVS' and state.name.upcase != 'ON ANTIRETROVIRALS' and state.name.upcase != 'UNKNOWN' )
+					states << [state.patient_id , "defaulted"]
+				else
+					states << [state.patient_id , state.name]
+				end
+			else
+				states << [state.patient_id , state.name]
+			end
 		end
 
 		return states
@@ -883,14 +891,13 @@ class Cohort
 
 	def women_outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date,
 			program_id = @@program_id, states = [])
-		
 		states = []
-			coded_id = ConceptName.find_by_name("Yes").concept_id
-			pregnant_id = ConceptName.find_by_name("Is patient pregnant?").concept_id
-			breast_feeding_id = ConceptName.find_by_name("Is patient breast feeding?").concept_id
+		coded_id = ConceptName.find_by_name("Yes").concept_id
+		pregnant_id = ConceptName.find_by_name("Is patient pregnant?").concept_id
+		breast_feeding_id = ConceptName.find_by_name("Is patient breast feeding?").concept_id
 		PatientState.find_by_sql("SELECT * FROM (
 					SELECT s.patient_program_id, p.patient_id,patient_state_id,start_date,
-               n.name name, current_state_for_program(e.patient_id, '#{program_id}', '#{@end_date}') AS state
+               n.name name, current_defaulter(p.patient_id, '#{@end_date}') AS def, current_state_for_program(e.patient_id, '#{program_id}', '#{@end_date}') AS state
 					FROM patient_state s
 					INNER JOIN patient_program p ON p.patient_program_id = s.patient_program_id
 					INNER JOIN earliest_start_date e ON e.patient_id = p.patient_id
@@ -911,7 +918,15 @@ class Cohort
       ) K
       GROUP BY patient_id
       ORDER BY K.patient_state_id DESC , K.start_date DESC").map do |state|
-			states << [state.patient_id , state.name]
+			if state.def.to_i == 1
+				if (state.name.upcase != 'PATIENT TRANSFERRED OUT' and state.name.upcase != 'PATIENT DIED' and state.name.upcase != 'TREATMENT STOPPED' and state.name.upcase != 'STOPPED TAKING ARVS' and state.name.upcase != 'ON ANTIRETROVIRALS' and state.name.upcase != 'UNKNOWN' )
+					states << [state.patient_id , "defaulted"]
+				else
+					states << [state.patient_id , state.name]
+				end
+			else
+				states << [state.patient_id , state.name]
+			end
 		end
 		
 		return states

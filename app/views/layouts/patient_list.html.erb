@@ -103,30 +103,7 @@
         height:12px;
       }
       
-      .prev_page {
-		-moz-user-select: none;
-		background-color: grey;
-		border-top: 1px outset black;
-		color: white;
-		display: block;
-		padding: 10px 16px 10px 10px;
-		text-align: center;
-		text-decoration: none;
-		width: 140px;
 
-      }
-
-      .next_page {
-		-moz-user-select: none;
-		background-color: grey;
-		border-top: 1px outset black;
-		color: white;
-		display: block;
-		padding: 10px 16px 10px 10px;
-		text-align: center;
-		text-decoration: none;
-		width: 140px;
-      }
 
     </style>
     
@@ -147,7 +124,7 @@
           <div id="buttons" class="buttons" style="top:0px">
             <button id="logout" class="red left" style="position :relative; float:right;"><span>Finish</span></button>
             <button id="find" class="green" style="width:200px;" style="position :relative; float:right;"><span>Mastercards</span></button>
-			<%= will_paginate @current_page, :page_links => false %>
+			<%#= will_paginate @current_page, :page_links => false %>
             <% if current_user.admin? %>
             <!--button id="staging" class="yellow"><span>Staging</span></button-->
             <% end %>
