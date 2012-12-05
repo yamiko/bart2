@@ -1577,4 +1577,64 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
      'Preschool child','Mechanic','Prisoner','Craftsman','Healthcare Worker','Soldier'].sort.concat(["Other","Unknown"])
   end
 
+  def self.tb_drug_given_before(patient, date = Date.today)
+    clinic_encounters =  [                                                          
+                      'SOURCE OF REFERRAL','UPDATE HIV STATUS','LAB ORDERS',    
+                      'SPUTUM SUBMISSION','LAB RESULTS','TB_INITIAL',           
+                      'TB RECEPTION','TB REGISTRATION','TB VISIT',
+                      'TB ADHERENCE','TB CLINIC VISIT'
+                     ] 
+
+    encounter_type_ids = EncounterType.find_all_by_name(clinic_encounters).collect{|e|e.id}
+
+    latest_encounter_date = Encounter.find(:first,:conditions =>["patient_id=? AND encounter_datetime < ? AND 
+        encounter_type IN(?)",patient.id,date.strftime('%Y-%m-%d 00:00:00'),
+        encounter_type_ids],:order =>"encounter_datetime DESC").encounter_datetime rescue nil
+                        
+    return [] if latest_encounter_date.blank?
+
+    start_date = latest_encounter_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = latest_encounter_date.strftime('%Y-%m-%d 23:59:59')
+                                       
+    concept_id = Concept.find_by_name('AMOUNT DISPENSED').id
+    orders = Order.find(:all,:joins =>"INNER JOIN obs ON obs.order_id = orders.order_id",
+        :conditions =>["obs.person_id = ? AND obs.concept_id = ?                    
+        AND obs_datetime >=? AND obs_datetime <=?",
+        patient.id,concept_id,start_date,end_date],
+        :order =>"obs_datetime")
+
+    (orders || []).reject do |order|
+      !MedicationService.tb_medication(order.drug_order.drug)
+    end
+  end
+
+  def self.art_drug_given_before(patient, date = Date.today)
+    clinic_encounters  =  [                                                          
+                      'HIV CLINIC REGISTRATION','HIV STAGING',
+                      'HIV CLINIC CONSULTATION','ART ADHERENCE','HIV RECEPTION'
+                     ]
+
+    encounter_type_ids = EncounterType.find_all_by_name(clinic_encounters).collect{|e|e.id}
+
+    latest_encounter_date = Encounter.find(:first,:conditions =>["patient_id=? AND encounter_datetime < ? AND 
+        encounter_type IN(?)",patient.id,date.strftime('%Y-%m-%d 00:00:00'),
+        encounter_type_ids],:order =>"encounter_datetime DESC").encounter_datetime rescue nil
+                        
+    return [] if latest_encounter_date.blank?
+
+    start_date = latest_encounter_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = latest_encounter_date.strftime('%Y-%m-%d 23:59:59')
+                                       
+    concept_id = Concept.find_by_name('AMOUNT DISPENSED').id
+    orders = Order.find(:all,:joins =>"INNER JOIN obs ON obs.order_id = orders.order_id",
+        :conditions =>["obs.person_id = ? AND obs.concept_id = ?                    
+        AND obs_datetime >=? AND obs_datetime <=?",
+        patient.id,concept_id,start_date,end_date],
+        :order =>"obs_datetime")
+
+    (orders || []).reject do |order|
+      !MedicationService.arv(order.drug_order.drug)
+    end
+  end
+
 end

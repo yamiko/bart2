@@ -12,6 +12,19 @@ class ApplicationController < GenericApplicationController
   end
 
   # TB next form
+
+  def continue_tb_treatment(patient,session_date)
+    tb_visit = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
+                    :conditions =>["patient_id = ? AND encounter_type = ?       
+                    AND DATE(encounter_datetime) = ?",patient.id,               
+                    EncounterType.find_by_name("TB VISIT").id,session_date.to_date])
+                                                                                
+    tb_visit.observations.map{|o|              
+      o.to_s.upcase.strip.squish                                          
+    }.include?("CONTINUE TREATMENT: YES") rescue false                     
+                                                                                
+  end
+
   def tb_next_form(location , patient , session_date = Date.today)
     task = Task.first rescue Task.new()
     
@@ -384,7 +397,9 @@ class ApplicationController < GenericApplicationController
           end 
         when 'HIV CLINIC REGISTRATION'
           next unless PatientService.patient_hiv_status(patient).match(/Positive/i)
-        
+       
+          next unless continue_tb_treatment(patient,session_date)
+ 
           enrolled_in_hiv_program = Concept.find(Observation.find(:last, 
             :conditions => ["person_id = ? AND concept_id = ?",patient.id, 
             ConceptName.find_by_name("Patient enrolled in HIV program").concept_id]).value_coded).concept_names.map{|c|
@@ -407,6 +422,7 @@ class ApplicationController < GenericApplicationController
             return task
           end
         when 'HIV STAGING'
+          next unless continue_tb_treatment(patient,session_date)
           #checks if vitals have been taken already 
           vitals = PatientService.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
           return vitals unless vitals.blank?
@@ -540,7 +556,9 @@ class ApplicationController < GenericApplicationController
               end
             end
           end
-        when 'HIV CLINIC CONSULTATION'  
+        when 'HIV CLINIC CONSULTATION' 
+          next unless continue_tb_treatment(patient,session_date)
+
           next unless patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') rescue false
           clinic_visit = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                     :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
@@ -580,6 +598,7 @@ class ApplicationController < GenericApplicationController
             return task
           end if drugs_given_before
         when 'ART ADHERENCE'
+          next unless continue_tb_treatment(patient,session_date)
           art_drugs_given_before = false
           PatientService.drug_given_before(patient,session_date).each do |order|
             next unless MedicationService.arv(order.drug_order.drug)
@@ -1314,4 +1333,14 @@ class ApplicationController < GenericApplicationController
 		return require_registration
 	end
 
+  def what_app?
+    if current_user.activities.include?('Manage Lab Orders') or current_user.activities.include?('Manage Lab Results') or
+       current_user.activities.include?('Manage Sputum Submissions') or current_user.activities.include?('Manage TB Clinic Visits') or
+       current_user.activities.include?('Manage TB Reception Visits') or current_user.activities.include?('Manage TB Registration Visits') or
+       current_user.activities.include?('Manage HIV Status Visits') 
+      'TB-ART'
+    else
+      'BART'
+    end
+  end 
 end

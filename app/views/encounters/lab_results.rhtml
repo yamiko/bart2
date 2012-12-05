@@ -96,7 +96,7 @@
     for(i = 0 ; i < result_filed_ids.length ; i++) {
       if ($(result_filed_ids[i]).value != 'NEGATIVE') {
         tb_status =  'Confirmed TB NOT on treatment'
-        attrs = " class='alert'"
+        //attrs = " class='alert'"
       }
       var specimen = $(specimen_field_ids[i]).value
       results += '<li><b>' + acc_numbers[specimen] + " Results (Accession number: " + specimen + ") : </b>" +
@@ -107,6 +107,11 @@
     //var display = "<div><span class='title'>TB Status: " + tb_status + "</span></div>";
     var display = "<div><span class='title' style='font-size:25px;padding-top:7px;'>" + results + "</span></div>";
     $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + display + '</div>' ;    
+    if(tb_status == 'Confirmed TB NOT on treatment') {
+      $('inputFrame'+tstCurrentPage).style.background = 'red';    
+    }else{
+      $('inputFrame'+tstCurrentPage).style.background = '#F0F0F0';    
+    }
     $("clearButton").style.display = 'none';
   }
 

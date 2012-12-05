@@ -25,9 +25,7 @@
   <%= hidden_field_tag "encounter[provider_id]", current_user.user_id %>
 
 <%session_date = session[:datetime] || Time.now() %>
-<% PatientService.drug_given_before(@patient, session_date.to_date).uniq.each do |order|
-     next if MedicationService.arv(order.drug_order.drug)
-%>
+<% PatientService.tb_drug_given_before(@patient, session_date.to_date).uniq.each do |order| %>
     <%= touch_numeric_tag "AMOUNT OF DRUG BROUGHT TO CLINIC", @patient, nil,
       {:id        => "amount_brought_#{order.order_id}",
        :units     => "#{order.drug_order.units}",

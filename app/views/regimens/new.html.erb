@@ -240,11 +240,11 @@
   }
   
   function isRegisteredForTB() {
-	var isRegistered = false;    
-	if(prescribeTBDrugs == 'true'){
-      isRegistered = true;
-	}
-	return isRegistered;
+    var isRegistered = false;    
+    if(prescribeTBDrugs == 'true'){
+        isRegistered = true;
+    }
+    return isRegistered;
   }
   
     function showResults(){
@@ -352,12 +352,16 @@
                     :helpText => '' } %>
 		<% end %>
   <% end %>
+
+  <% unless @transfer_out_patient %>
 	
 	<%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
 	{	:optional => false,
 		:id => 'prescribe_tb_drugs',
 		:condition => 'isRegisteredForTB() == true',
 		:helpText => "Prescribe TB Regimen?" } %>
+
+	<%end%>
 
 	<% unless @tb_programs.uniq.count == 1 %>
 		<%= select_tag :tb_patient_program, options_for_select(@tb_programs.map{|program| [program.program.name, program.patient_program_id] if PatientProgram.find(program.patient_program_id).date_completed == nil}), 
@@ -368,6 +372,8 @@
 	<%else%>
 		<%= hidden_field_tag(:tb_patient_program, @tb_programs.first.patient_program_id) %>
 	<%end%>
+
+  <% unless @transfer_out_patient %>
 
 	<%= select_tag :tb_continue_existing_regimen, options_for_select([['',''],['Yes','YES'],['No','NO']], ''), 
 		{	:textCase => "upper", 
@@ -412,6 +418,9 @@
 		{	:condition => '$("prescribe_tb_drugs").value == "YES"',	
 			:helpText => 'Duration' } %> 
 
+
+  <%end%>
+
 	<% if @transfer_out_patient %>
 		<%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
 			{	:optional => false,
@@ -435,6 +444,17 @@
 				:condition => '$("prescribe_continuation_tb_drugs").value == "YES"',
 				:helpText => "Select formulations and doses" } %>
 
+        <% optionsString = "<option>" "" "</option>"
+           durations = ['1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months']
+           durations.each do |duration|
+            if duration.match(/week/i)
+              days = (((duration.to_i)*7))
+            elsif duration.match(/month/i)
+              days = (((duration.to_i)* 28))
+            end
+            optionsString += "<option value = '" + days.to_s + "'>" + duration + "</option>"
+           end
+        %>
 		<%= select_tag :tb_continuation_duration, optionsString, 
 			{	:condition => '$("prescribe_continuation_tb_drugs").value == "YES"',	
 				:helpText => 'Duration of TB drugs' } %> 

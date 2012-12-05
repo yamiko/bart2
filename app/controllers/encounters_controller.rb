@@ -716,10 +716,17 @@ class EncountersController < GenericEncountersController
     session_date = dispensed_date.to_date
         
     arvs_given = true
-		
-		orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o| !MedicationService.arv(o.drug_order.drug) }
-
-    arvs_given = false if orders_made.blank?
+	
+    if what_app? == 'TB-ART'
+      orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o| 
+        !MedicationService.tb_medication(o.drug_order.drug) 
+      }
+  	else
+		  orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o| 
+        !MedicationService.arv(o.drug_order.drug) 
+      }
+      arvs_given = false if orders_made.blank?
+    end
         
 		auto_expire_date = Date.today + 2.days
 		
