@@ -625,7 +625,7 @@ class CohortToolController < GenericCohortToolController
 		@current_page = []
 
 		if !data.nil?
-			@current_page = data.paginate(:page => params[:page], :per_page => records_per_page.to_i)
+			@current_page = data.paginate(:page => params[:page], :per_page => 100)
 		end
 
 		@current_page.each do |patient_id|
@@ -679,7 +679,7 @@ class CohortToolController < GenericCohortToolController
 		@current_page = []
 		 
 		if !data.nil?
-			@current_page = data.paginate(:page => params[:page], :per_page => records_per_page.to_i)
+			@current_page = data.paginate(:page => params[:page], :per_page => 100)
 		end
 
 		@current_page.each do |patient_id|
@@ -783,12 +783,16 @@ class CohortToolController < GenericCohortToolController
   end
 
 	def survival_analysis
+		session[:cohort]["outcomes"] = {} if session[:cohort]["outcomes"].blank?
+		#raise session[:cohort]['Defaulted'].to_yaml
 		session[:field] = nil
     @quarter = params[:quarter]
 		@logo = params[:logo]
 		start_date,end_date = Report.generate_cohort_date_range(@quarter)
     cohort = Cohort.new(start_date, end_date)
-		@survival_analysis, session[:views] = SurvivalAnalysis.report(cohort)
+		#raise session[:cohort].to_yaml
+		@survival_analysis, session[:views] = SurvivalAnalysis.report(cohort, session[:cohort])
+		#raise @survival_analysis.to_yaml
 		render :layout => 'cohort'
 	end
 
@@ -798,7 +802,7 @@ class CohortToolController < GenericCohortToolController
 		@logo = params[:logo]
 		start_date,end_date = Report.generate_cohort_date_range(@quarter)
     cohort = Cohort.new(start_date, end_date)
-		@children_survival_analysis, session[:children] = SurvivalAnalysis.childern_survival_analysis(cohort)
+		@children_survival_analysis, session[:children] = SurvivalAnalysis.childern_survival_analysis(cohort, session[:cohort])
 		render :layout => 'cohort'
 	end
 
@@ -809,7 +813,7 @@ class CohortToolController < GenericCohortToolController
 		start_date,end_date = Report.generate_cohort_date_range(@quarter)
     cohort = Cohort.new(start_date, end_date)
    	logger.info("cohort")
-   	@women_survival_analysis, session[:women] = SurvivalAnalysis.pregnant_and_breast_feeding(cohort)
+   	@women_survival_analysis, session[:women] = SurvivalAnalysis.pregnant_and_breast_feeding(cohort, session[:cohort])
 		
 		render :layout => 'cohort'
 	end

@@ -846,7 +846,6 @@ class Cohort
 
   def outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date,
 			program_id = @@program_id, states = [], min_age=nil, max_age=nil)
-  
     states = []
 		
 		if min_age or max_age
@@ -854,33 +853,18 @@ class Cohort
                     AND TRUNCATE(DATEDIFF(p.date_enrolled, person.birthdate)/365,0) <= #{max_age}"
     end
 
-    PatientState.find_by_sql("SELECT * FROM (
-        SELECT s.patient_program_id, p.patient_id,patient_state_id,start_date,
-               n.name name, current_defaulter(p.patient_id, '#{@end_date}') AS def, current_state_for_program(p.patient_id, '#{program_id}', '#{@end_date}') AS state
+    PatientState.find_by_sql("SELECT  distinct(p.patient_id)
         FROM patient_state s
         INNER JOIN patient_program p ON p.patient_program_id = s.patient_program_id
         INNER JOIN earliest_start_date e ON e.patient_id = p.patient_id
-				INNER JOIN obs o on o.person_id = e.patient_id
-        INNER JOIN concept_name n on n.concept_id = o.concept_id
-				INNER JOIN person ON person.person_id = p.patient_id
+				INNER JOIN person ON person.person_id = e.patient_id
         WHERE p.voided = 0 AND s.voided = 0 #{conditions}
-        AND (patient_start_date(p.patient_id) >= '#{start_date}'
-        AND patient_start_date(p.patient_id) <= '#{end_date}')
+        AND e.earliest_start_date >= '#{start_date}'
+        AND e.earliest_start_date  <= '#{end_date}'
         AND p.program_id = #{program_id}
         AND s.start_date <= '#{outcome_end_date}'
-        ORDER BY patient_id DESC, patient_state_id DESC, start_date DESC
-      ) K
-      GROUP BY patient_id
-      ORDER BY K.patient_state_id DESC , K.start_date DESC").map do |state|
-			if state.def.to_i == 1
-				if (state.name.upcase != 'PATIENT TRANSFERRED OUT' and state.name.upcase != 'PATIENT DIED' and state.name.upcase != 'TREATMENT STOPPED' and state.name.upcase != 'STOPPED TAKING ARVS' and state.name.upcase != 'ON ANTIRETROVIRALS' and state.name.upcase != 'UNKNOWN' )
-					states << [state.patient_id , "defaulted"]
-				else
-					states << [state.patient_id , state.name]
-				end
-			else
-				states << [state.patient_id , state.name]
-			end
+			").each do |patient_id|
+			states << patient_id.patient_id
 		end
 
 		return states
@@ -890,43 +874,29 @@ class Cohort
 	#More time is needed to upgade the code so that its relevant and according to standards
 
 	def women_outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date,
-			program_id = @@program_id, states = [])
+			program_id = @@program_id, states = [], min_age=nil, max_age=nil)
 		states = []
 		coded_id = ConceptName.find_by_name("Yes").concept_id
 		pregnant_id = ConceptName.find_by_name("Is patient pregnant?").concept_id
 		breast_feeding_id = ConceptName.find_by_name("Is patient breast feeding?").concept_id
-		PatientState.find_by_sql("SELECT * FROM (
-					SELECT s.patient_program_id, p.patient_id,patient_state_id,start_date,
-               n.name name, current_defaulter(p.patient_id, '#{@end_date}') AS def, current_state_for_program(e.patient_id, '#{program_id}', '#{@end_date}') AS state
+		PatientState.find_by_sql(" SELECT  distinct(p.patient_id)
 					FROM patient_state s
 					INNER JOIN patient_program p ON p.patient_program_id = s.patient_program_id
 					INNER JOIN earliest_start_date e ON e.patient_id = p.patient_id
 					INNER JOIN obs o on o.person_id = e.patient_id
-					INNER JOIN concept_name n on n.concept_id = o.concept_id
-					WHERE (patient_start_date(p.patient_id) >= '#{start_date}'
-					AND patient_start_date(p.patient_id) <= '#{end_date}')
+					WHERE (e.earliest_start_date  >= '#{start_date}'
+					AND e.earliest_start_date  <= '#{end_date}')
 					AND s.start_date <= '#{outcome_end_date}'
 					AND p.program_id = #{program_id}
-					AND ((n.concept_id = '#{pregnant_id}'
+					AND ((o.concept_id = '#{pregnant_id}'
 								AND o.value_coded = '#{coded_id}'
 								AND DATEDIFF(o.obs_datetime, e.earliest_start_date) <= 30
 								AND DATEDIFF(o.obs_datetime, e.earliest_start_date) > -1)
 								OR
-						  (n.concept_id = '#{breast_feeding_id}'
+						  (o.concept_id = '#{breast_feeding_id}'
 								AND o.value_coded = '#{coded_id}'))
-					ORDER BY patient_id DESC, patient_state_id DESC, start_date DESC
-      ) K
-      GROUP BY patient_id
-      ORDER BY K.patient_state_id DESC , K.start_date DESC").map do |state|
-			if state.def.to_i == 1
-				if (state.name.upcase != 'PATIENT TRANSFERRED OUT' and state.name.upcase != 'PATIENT DIED' and state.name.upcase != 'TREATMENT STOPPED' and state.name.upcase != 'STOPPED TAKING ARVS' and state.name.upcase != 'ON ANTIRETROVIRALS' and state.name.upcase != 'UNKNOWN' )
-					states << [state.patient_id , "defaulted"]
-				else
-					states << [state.patient_id , state.name]
-				end
-			else
-				states << [state.patient_id , state.name]
-			end
+					").each do |patient_id|
+			states << patient_id.patient_id
 		end
 		
 		return states
