@@ -602,8 +602,8 @@ class CohortToolController < GenericCohortToolController
   end
 
 	def list_debbuger_details
-		#undefaulted = ['PATIENT TRANSFERRED OUT', 'PATIENT DIED', 'TREATMENT STOPPED', 'STOPPED TAKING ARVS', 'ON ANTIRETROVIRALS', 'ON ARVS', 'UNKNOWN']
-		#raise undefaulted.include?('PATIENT DIED').to_yaml
+
+
 		@logo = CoreService.get_global_property_value('logo').to_s
 		@quarter = params[:quarter]
   	@report_url = "/cohort_tool/cohort?quarter=#{@quarter}"
@@ -612,7 +612,7 @@ class CohortToolController < GenericCohortToolController
 	
 		patients = params[:attribute].to_s
 		session[:field] = params[:field] if session[:field].nil?
-		
+
 		if session[:field] == "children"
 			data =  session[:children][reported_range][patients]
 		elsif session[:field] == "women"
@@ -783,16 +783,15 @@ class CohortToolController < GenericCohortToolController
   end
 
 	def survival_analysis
-		session[:cohort]["outcomes"] = {} if session[:cohort]["outcomes"].blank?
-		#raise session[:cohort]['Defaulted'].to_yaml
 		session[:field] = nil
+		session[:cohort]["outcomes"] = {} if session[:cohort]["outcomes"].blank?
     @quarter = params[:quarter]
 		@logo = params[:logo]
 		start_date,end_date = Report.generate_cohort_date_range(@quarter)
     cohort = Cohort.new(start_date, end_date)
-		#raise session[:cohort].to_yaml
+
 		@survival_analysis, session[:views] = SurvivalAnalysis.report(cohort, session[:cohort])
-		#raise @survival_analysis.to_yaml
+
 		render :layout => 'cohort'
 	end
 
