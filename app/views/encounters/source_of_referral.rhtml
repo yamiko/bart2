@@ -105,7 +105,9 @@ end -%>
       <%= touch_select_tag "Referred by", @patient, options_for_select(@select_options['source_of_referral']),
         {:id => "referred_by",
         :tt_pageStyleClass => "NoKeyboard",
-        :helpText => "Referred by"} %>
+        :helpText => "Referred by",
+	   :tt_onLoad => "__$('keyboard').style.display = 'none'"
+	 } %>
 
       <%= text_field_tag :given_name, params[:given_name], 
           {:field_type => 'alpha', 

@@ -54,7 +54,7 @@
   <%= touch_text_field_tag "Clinic Location", @patient, nil,
       {:id => "location_of_tb_initiation",
        :condition => "$('transfer_in').value =='YES'",
-       :ajaxURL => '/people/tb_initialization_district?',
+       :ajaxURL => '/people/tb_initialization_location?',
        :allowFreeText => true,
        :helpText => 'Location of TB initiation'} %>
 

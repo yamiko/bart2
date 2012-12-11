@@ -551,7 +551,7 @@ class EncountersController < GenericEncountersController
       ],
       'eptb_classification'=> [
         ['',''],
-        ['Pulmonary effusion', 'Pulmonary effusion'],
+        ['Pleural effusion', 'Pleural effusion'],
         ['Lymphadenopathy', 'Lymphadenopathy'],
         ['Pericardial effusion', 'Pericardial effusion'],
         ['Ascites', 'Ascites'],
@@ -1271,7 +1271,11 @@ class EncountersController < GenericEncountersController
           arv_number = identifier[:identifier].strip
           if arv_number.match(/(.*)[A-Z]/i).blank?
             if params[:encounter]['encounter_type_name'] == 'TB REGISTRATION'
-              identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB-#{arv_number}"
+							if PatientIdentifier.site_prefix == "MPC"
+							 identifier[:identifier] = "LL-TB #{Date.today.strftime('%Y %m')} #{arv_number}"
+							else
+               identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{Date.today.strftime('%Y %m')} #{arv_number}"
+							end
             else
               identifier[:identifier] = "#{PatientIdentifier.site_prefix}-ARV-#{arv_number}"
             end
@@ -1314,4 +1318,8 @@ class EncountersController < GenericEncountersController
 
   end 
 
+	#def create_tb_number(type_id)
+	#	 type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ?', type_id],:order => 'date_created DESC')
+	#	 raise type.to_yaml
+	#end
 end

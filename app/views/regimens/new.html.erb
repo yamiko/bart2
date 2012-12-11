@@ -404,10 +404,12 @@
 			:helpText => "Select formulations and doses" } %>
 
 	<% optionsString = "<option>" "" "</option>"
-		 durations = ['1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months']
+		 durations = ['4 days','1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months','7 months','8 months']
 		 durations.each do |duration|
 			if duration.match(/week/i)
 				days = (((duration.to_i)*7))
+			elsif duration.match(/days/i)
+			    days = 4
 			elsif duration.match(/month/i)
 				days = (((duration.to_i)* 28))
 			end

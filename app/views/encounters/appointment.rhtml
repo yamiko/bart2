@@ -188,13 +188,16 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
 	<% if params[:select_date].to_s.upcase != 'NO' %>
 		<label for='time_until_next_visit'>Time Until Next Appointment</label>      
 		<%= select_tag("time_until_next_visit",                                     
-	            options_for_select([["2 weeks", 14],                               
+	            options_for_select([ ["4 days", 4],
+									 ["2 weeks", 14],
 	                                 ["1 month", 28],                              
 	                                 ["2 months", 2*28],                             
 	                                 ["3 months", 3*28],                             
 	                                 ["4 months", 4*28],                            
 	                                 ["5 months", 5*28],                            
-	                                 ["6 months", 6*28]]),                          
+	                                 ["6 months", 6*28],
+	                                 ["7 months", 7*28],
+	                                 ["8 months", 8*28]]),
 	           {:helpText => 'Time Until Next Appointment',                       
 	           :tt_onLoad => "calculateGivenRange('#{params[:start_date]}','#{params[:end_date]}')",
 	           :tt_onUnLoad => "setDate.setDate(sessionDate.getDate()+parseInt($('time_until_next_visit').options[$('time_until_next_visit').selectedIndex].value));"}) %>
@@ -205,10 +208,10 @@ var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_
 	<%= hidden_field_tag("observations[][patient_id]", @patient.id) %>          
 	<%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
 	<%= text_field_tag "observations[][value_datetime]", (Time.now + 1.month).year, 
-	    { :tt_onLoad => "$('backButton').style.cssText = 'display: none';chart();cssText();moveToSetMonth();finishButtonAttributes();",
+	    { :tt_onLoad => "__$('keyboard').style.display = 'none', $('backButton').style.cssText = 'display: none';chart();cssText();moveToSetMonth();finishButtonAttributes();",
 	      :tt_pageStyleClass => "NoControls",
 	      :id => "appointment_date" ,
-	      :helpText =>"Next appointment date:",                                                 
+	      :helpText =>"Next appointment date:"
 	    } %>
 	
 	<% session_date = session[:datetime].to_date rescue nil
