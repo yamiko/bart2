@@ -521,7 +521,7 @@ class GenericPatientsController < ApplicationController
         end
 =end
       end
-      # send it to the browsah
+      # send it to the browsbah
       send_data csv_string.gsub(' ','_'),
         :type => 'text/csv; charset=iso-8859-1; header=present',
         :disposition => "attachment:wq
@@ -782,7 +782,15 @@ class GenericPatientsController < ApplicationController
 
   def tb_treatment_card # to look at later - To test that is
   	@patient_bean = PatientService.get_patient(@patient.person)
-    render :layout => 'menu'
+	@start = PatientService.patient_art_start_date(@patient.person)
+	
+   render :layout => 'menu'
+  end
+
+  def tb_treatment_card_page
+	#this method calls the page that displays a patients treatment records
+	  	@patient_bean = PatientService.get_patient(@patient.person)
+	render:layout => 'menu'
   end
 
   def alerts(patient, session_date = Date.today) 

@@ -849,7 +849,8 @@ EOF
 		patient.birthdate_estimated = person.birthdate_estimated
 		patient.home_district = person.addresses.first.address2
 		patient.traditional_authority = person.addresses.first.county_district
-		patient.current_residence = person.addresses.first.city_village
+		patient.
+current_residence = person.addresses.first.city_village
 		patient.landmark = person.addresses.first.address1
 		patient.mothers_surname = person.names.first.family_name2
 		patient.eid_number = get_patient_identifier(person.patient, 'EID Number') rescue nil
