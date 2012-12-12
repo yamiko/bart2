@@ -305,7 +305,7 @@ class EncountersController < GenericEncountersController
 			if @tb_status == true && @hiv_status != 'Negative'
         tb_hiv_exclusions = [['Pulmonary tuberculosis (current)', 'Pulmonary tuberculosis (current)'],
 					['Tuberculosis (PTB or EPTB) within the last 2 years', 'Tuberculosis (PTB or EPTB) within the last 2 years']]
-				@who_stage_iii = @who_stage_iii - tb_hiv_exclusions
+				#@who_stage_iii = @who_stage_iii - tb_hiv_exclusions
 			end
 
   			

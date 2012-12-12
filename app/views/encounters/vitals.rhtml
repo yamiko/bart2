@@ -261,7 +261,7 @@
 	<% end %>
     
     <%= text_field_tag :showSummary, nil, 
-		{	:tt_onLoad => "$('clearButton').style.display = 'none';growthIndicators()", 
+		{	:tt_onLoad => "$('clearButton').style.display = 'none';growthIndicators();__$('keyboard').style.display = 'none'",
 			:tt_onUnLoad => "$('clearButton').style.display = 'inline';", 
 			:helpText => "Summary",
 			:optional => "true", 

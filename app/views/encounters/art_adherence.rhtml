@@ -168,7 +168,7 @@
 
   <label for='summary'>Adherence Report</label>
     <%= text_field_tag :summary, nil,
-      { :tt_onLoad => "adherenceReport();setAttributes();",
+      { :tt_onLoad => "adherenceReport();setAttributes();__$('keyboard').style.display = 'none'",
         :optional => "true",
         :tt_pageStyleClass => "NoControls" } %>
 
