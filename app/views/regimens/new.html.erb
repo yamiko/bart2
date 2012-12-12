@@ -113,8 +113,8 @@
   var prescribeARTDrugs = "<%= @prescribe_art_drugs %>";
   var artVisit = "<%= @hiv_clinic_consultation %>";
   var regimen_id = null; 
-  var tb_regimen_id = null; 
-
+  var tb_regimen_id = null;
+  <%#= raise @regimen_formulations.to_yaml -%>
   function setSelectedRow() {
     l = document.getElementsByTagName('li');
     for (i = 0 ; i < l.length ; i++) {
@@ -197,6 +197,22 @@
     }});
 
   }
+
+    function showTbDrugs() {
+	  var prescription_container = $("previous_drugs_dispensed");
+      var html = "<table>"
+      html += "<tr><th>Drug name</th><th>Dose</th><th>Units</th><th>Daily dose</th></tr>"
+      <% (@tb_regimen_formulations || []).each do |data| %>
+        regimen_id = <%= data[4]%>
+        html += "<tr><td>" + "<%=data[0]%>" + "</td>"
+        html += "<td style='text-align:center;'>" + "<%=data[1]%>" + "</td>"
+        html += "<td>" + "<%=data[3]%>" + "</td>"
+        html += "<td>" + "<%=data[2]%>" + "</td></tr>"
+      <%end%>
+      html += "</table>"
+      prescription_container.innerHTML = html
+      prescription_container.style.display = "inline";
+    }
 
   function setRegimenId(regimen) {
 	if(regimen == 'ART') {
@@ -379,7 +395,8 @@
 		{	:textCase => "upper", 
 			:allowFreeText => 'false',
 			:condition => 'current_regimens_for_programs[$("tb_patient_program").value] != null && $("prescribe_tb_drugs").value == "YES"',
-			:tt_onLoad => '$("infoBar"+tstCurrentPage).innerHTML = current_regimen_names_for_programs[$("tb_patient_program").value]',
+			:tt_onLoad => 'showTbDrugs();setAttributes();',
+			:tt_onUnLoad => 'resetAttributes();',
 			:helpText => "Continue current TB regimen?" } %>
 
 	<%	initial_regimen_help_text = "Select TB regimen" 
