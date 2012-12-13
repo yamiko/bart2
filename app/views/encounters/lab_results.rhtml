@@ -197,8 +197,8 @@ var positive
   <label for='sputum_microscopy_year'>HIV test year</label>
   <%= text_field_tag "sputum_microscopy_year", nil, {:helpText => 'Sputum microscopy year', :field_type => 'number', :absoluteMin => "1982", :min => "1982", :absoluteMax => Date.today.year, :tt_pageStyleClass => "Numeric NumbersOnly"}  %>
 
-  
-  <%= touch_select_tag "sputum_microscopy_month", month_name_options,
+  <label for='sputum_microscopy_month'>Sputum microscopy month</label>
+  <%= select_tag "sputum_microscopy_month", month_name_options,
     {:helpText => 'Sputum microscopy month',
 	 :tt_onLoad => "__$('keyboard').style.display = 'none';",
      :condition => '$("sputum_microscopy_year").value.toLowerCase() != "unknown"'
