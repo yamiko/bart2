@@ -49,6 +49,14 @@
     }
   }
 
+  function checkSymptoms(){
+
+	<% if @patient.person.observations.to_s.include?('TB symptoms') %>
+		$('any_tb_symptoms').value = 'NO'
+		return true;
+	<% end  %>
+  }
+
 </script>
 
 <style>
@@ -83,7 +91,9 @@
                 :helpText => ''
 			  } %>
     <% end %>
-  <% if @patient_bean.sex == 'Female' && @patient_bean.age > 13 %>
+
+  <% if @previous_tb_visit.length == 0
+  if @patient_bean.sex == 'Female' && @patient_bean.age > 13 %>
     
           <% if @is_patient_pregnant_value.nil? %>
 
@@ -96,7 +106,8 @@
           <%else%>
               <%= touch_hidden_tag "IS PATIENT PREGNANT?" , @patient, @is_patient_pregnant_value , :id => "pregnant" %>
           <%end%>
-  <% end %>
+  <% end
+ end %>
   <%  if @previous_tb_visit.length == 0  %>
 	<%  if @patient_bean.age > 13 %>
 
@@ -151,9 +162,11 @@
   <% if @tb_symptoms.empty? || (@current_user_role.include?("Doctor") || @current_user_role.include?("Nurse") || @current_user_role.include?("Clinician")) %>
 	  <%= touch_yes_no_unknown_tag "SYMPTOMATIC", @patient, nil,
 		  {	:id => "any_tb_symptoms",
+			  :condition => 'checkSymptoms() != true;',
 			  :helpText => "Any current TB signs?" } %>
 
 	  <% if @current_user_role.include?("Doctor") || @current_user_role.include?("Nurse") || @current_user_role.include?("Clinician") %>
+		  
 		  <%= touch_select_tag "TB symptoms", @patient, options_for_select(@select_options['tb_symptoms_all']),
 			  {	:id => 'tb_symptoms',
 				  :optional => true,

@@ -24,9 +24,10 @@ class GenericRegimensController < ApplicationController
 		
 		@current_regimens_for_programs = current_regimens_for_programs
     @regimen_formulations = []
+		@tb_regimen_formulations = []
     (@current_regimens_for_programs || {}).each do |patient_program_id , regimen_id|
-      next unless PatientProgram.find(patient_program_id).program.name.match(/HIV PROGRAM/i)
-      @regimen_formulations = formulation(@patient,regimen_id)
+      @regimen_formulations = formulation(@patient,regimen_id) if PatientProgram.find(patient_program_id).program.name.match(/HIV PROGRAM/i)
+			@tb_regimen_formulations = formulation(@patient,regimen_id) if PatientProgram.find(patient_program_id).program.name.match(/TB PROGRAM/i)
     end
 		@current_regimen_names_for_programs = current_regimen_names_for_programs
 		

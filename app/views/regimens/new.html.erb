@@ -113,8 +113,8 @@
   var prescribeARTDrugs = "<%= @prescribe_art_drugs %>";
   var artVisit = "<%= @hiv_clinic_consultation %>";
   var regimen_id = null; 
-  var tb_regimen_id = null; 
-
+  var tb_regimen_id = null;
+  <%#= raise @regimen_formulations.to_yaml -%>
   function setSelectedRow() {
     l = document.getElementsByTagName('li');
     for (i = 0 ; i < l.length ; i++) {
@@ -197,6 +197,22 @@
     }});
 
   }
+
+    function showTbDrugs() {
+	  var prescription_container = $("previous_drugs_dispensed");
+      var html = "<table>"
+      html += "<tr><th>Drug name</th><th>Dose</th><th>Units</th><th>Daily dose</th></tr>"
+      <% (@tb_regimen_formulations || []).each do |data| %>
+        regimen_id = <%= data[4]%>
+        html += "<tr><td>" + "<%=data[0]%>" + "</td>"
+        html += "<td style='text-align:center;'>" + "<%=data[1]%>" + "</td>"
+        html += "<td>" + "<%=data[3]%>" + "</td>"
+        html += "<td>" + "<%=data[2]%>" + "</td></tr>"
+      <%end%>
+      html += "</table>"
+      prescription_container.innerHTML = html
+      prescription_container.style.display = "inline";
+    }
 
   function setRegimenId(regimen) {
 	if(regimen == 'ART') {
@@ -379,7 +395,8 @@
 		{	:textCase => "upper", 
 			:allowFreeText => 'false',
 			:condition => 'current_regimens_for_programs[$("tb_patient_program").value] != null && $("prescribe_tb_drugs").value == "YES"',
-			:tt_onLoad => '$("infoBar"+tstCurrentPage).innerHTML = current_regimen_names_for_programs[$("tb_patient_program").value]',
+			:tt_onLoad => 'showTbDrugs();setAttributes();',
+			:tt_onUnLoad => 'resetAttributes();',
 			:helpText => "Continue current TB regimen?" } %>
 
 	<%	initial_regimen_help_text = "Select TB regimen" 
@@ -448,10 +465,12 @@
 				:helpText => "Select formulations and doses" } %>
 
         <% optionsString = "<option>" "" "</option>"
-           durations = ['1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months']
+           durations = ['4 Days','1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months','7 months', '8 months']
            durations.each do |duration|
             if duration.match(/week/i)
               days = (((duration.to_i)*7))
+			elsif duration.match(/days/i)
+			    days = 4
             elsif duration.match(/month/i)
               days = (((duration.to_i)* 28))
             end
@@ -538,8 +557,9 @@
 		<%= touch_hidden_tag "ISONIAZID", @patient, "", :id => "ipt_given" %>
   <%end%>
 
-  <%= select_tag :duration, optionsString, { 
-	:condition => '$("prescribe_arvs").value == "YES" || $("cpt_given").value == "YES" || $("ipt_given").value == "YES"',	
+  <%= select_tag :duration, optionsString, {
+	:condition => '$("prescribe_arvs").value == "YES" || $("cpt_given").value == "YES" || $("ipt_given").value == "YES"',
+	:tt_onLoad => "__$('keyboard').style.display = 'none'",
 	:helpText => 'Duration of prescribed drugs' } %> 
 
 
