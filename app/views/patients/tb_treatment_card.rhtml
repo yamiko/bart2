@@ -1,7 +1,7 @@
 <script type = "text/javascript">
 	function finish (){
 		var finish = document.getElementById("finishButton")
-		finish.setAttribute("onclick", "window.location='/clinic'")	
+		finish.setAttribute("onclick", "window.location='/patients/show/?patient_id=" + "<%=@patient_bean.person_id%>'")	
 		finish.setAttribute("class","red")
 	}
 	setTimeout("finish();", 300)
@@ -16,7 +16,7 @@
 	setTimeout("buttAdd();",300)
 	function nextPage(){
 		var next = document.getElementById("next")
-		next.setAttribute("onclick", "window.location='/patients/tb_treatment_card_page/<%=params[:patient_id]%>'")	
+		next.setAttribute("onclick", "window.location='/patients/tb_treatment_card_page/" + "<%= @patient_bean.person_id%>'")	
 	}
 	setTimeout("nextPage();",300)
 </script>
@@ -34,12 +34,12 @@
 			div.container{overflow:auto; border: 1px solid;line-height:25px; border-radius:15px;margin:10px;}
 			div.option{border: 1px solid;height:25px;width:30px; border-radius:5px;}
 			div.option2{border: 1px solid;height:25px;width:95%;text-align:center; border-radius:4px;}
-			div.main{height:330px;overflow:scroll; margin: 5px;}
+			div.main{height:230px;overflow:scroll; margin: 5px;}
 		</style>
 
 	<div style= "overflow:auto;">	
 
-		<table width= 100%>
+		<table width= 100% >
 			<tr><th width = 40%>NATIONAL TUBERCULOSIS PROGRAMME<br>MALAWI</td>
 			<th width=70%><div class = "option2">TUBERCULOSIS TREATMENT CARD</div></th>
 			</tr>
@@ -61,23 +61,29 @@
 					</div>
 					
 				</td>
-				<td>
+				<td rowspan = 2>
 
 					<div class= "container">			
 						<div style = "margin-left:15px">
 					<table>
 
 						<tr><td><b>District TB No</b><td>:<td> <%#= @patient_bean.name %></td></tr>
-						<tr><td><b>Health Unit</b><td>:<td><%#= @patient_bean.address %></td></tr>
+						<tr><td><b>Health Unit</b><td>:<td><%= Location.current_health_center.name %></td></tr>
 						<tr><td><b>Registr. Date</b><td>:<td><%#= @patient_bean.guardian %></td></tr>
 					</table>
 						<b>Management of HIV + Patients</b><br>
 						<table width= 80% >
 						<tr><td >&nbsp</td><th width = 35%>ARV</th><th width = 35%>CPT</th></tr>
-						<tr><td><b>Start Date :</b><td><div class= "option2"></div></td>
+						<tr><td><b>Start Date :</b><td><div class= "option2"><%= @start %></div></td>
 							<td><div class= "option2"></div></td>
-						<tr><td><b>ARV No. :</b><td><div class= "option2"></div></td></tr>
+						<tr><td><b>ARV No. :</b><td><div class= "option2"><%= @patient_bean.arv_number %></div></td></tr>
 						<tr><td><b>ARV Status :</b><td><div class= "option2"></div></td></tr>
+						<tr><td colspan= "3"><font size = "2">
+							<b>Update HIV-Status in Register from this card: </b><br>
+							<b>A</b>: started ARV <u>before</u> starting TB treatment<br>
+							<b>B</b>: started ARV<u>while on</u> TB treatment<br>
+							<b>C</b>: ARV <u>not</u> started by the time when discharged from TB treat<br>
+						</font></td></tr>
 						</table>
 						</div>
 					</div>
@@ -85,6 +91,18 @@
 			
 				</td>
 			</tr>
+			<tr><td>
+
+				<table width= 100%>
+					<tr><td> Disease Class</td><th></th></tr>
+					<tr><td> Disease Category</td><th></th></tr>
+					<tr><td colspan=2><font size= 2> <b>P</b> = Pulmonary TB&nbsp&nbsp <b>EP</b>= Extra-pulmonary TB<br>
+				<b>New</b> = New Case &nbsp&nbsp <b>Relap</b> = Relapse &nbsp&nbsp
+				<b>RAD</b> = Retreatment after default &nbsp&nbsp<b>Fail</b>
+				= Treatment failure &nbsp&nbsp <b>Oth</b> = Other previously treated</font></td></tr>
+					
+				</table>
+			</td></tr>
 		</table>
 		
 		

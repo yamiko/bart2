@@ -1,7 +1,7 @@
 <script>
 	function finish(){
 		var done = document.getElementById("finishButton")	
-		done.setAttribute("onclick","window.location='/clinic'")
+		done.setAttribute("onclick","window.location='/patients/show/?patient_id=" + "<%=@patient_bean.person_id%>'")
 		done.setAttribute("class","red")
 	}
 	setTimeout("finish();",300)
@@ -18,7 +18,7 @@
 	
 	function back(){
 		var back = document.getElementById("back")
-		back.setAttribute("onclick","window.location= document.referrer")
+		back.setAttribute("onclick","window.location= '/patients/tb_treatment_card?patient_id=" + "<%=@patient_bean.person_id%>'")
 	}
 	setTimeout("back()",300)
 	
