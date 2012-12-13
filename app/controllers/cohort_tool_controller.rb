@@ -621,14 +621,14 @@ class CohortToolController < GenericCohortToolController
 			data =  session[:views]["#{reported_range}"]["#{patients}"]
 		end
 
-		records_per_page = CoreService.get_global_property_value('records_per_page') rescue 15
-		@current_page = []
+		#records_per_page = CoreService.get_global_property_value('records_per_page') rescue 15
+		#@current_page = []
 
-		if !data.nil?
-			@current_page = data.paginate(:page => params[:page], :per_page => 100)
-		end
+		#if !data.nil?
+			#@current_page = data.paginate(:page => params[:page], :per_page => 100)
+		#end
 
-		@current_page.each do |patient_id|
+		data.each do |patient_id|
 			patient = Patient.find(patient_id)
 			@report << PatientService.get_patient(patient.person)
 			set_outcomes_and_start_reason(patient_id) #find start reason and outcome for patient
@@ -675,14 +675,14 @@ class CohortToolController < GenericCohortToolController
 			session[:cohort]["sorted"]["#{key}"] = true
 		end
 		
-		records_per_page = CoreService.get_global_property_value('records_per_page') rescue 15
-		@current_page = []
+		#records_per_page = CoreService.get_global_property_value('records_per_page') rescue 15
+		#@current_page = []
 		 
-		if !data.nil?
-			@current_page = data.paginate(:page => params[:page], :per_page => 100)
-		end
+		#if !data.nil?
+			#@current_page = data.paginate(:page => params[:page], :per_page => 100)
+		#end
 
-		@current_page.each do |patient_id|
+		data.each do |patient_id|
 			patient = Patient.find(patient_id)
 			@report << PatientService.get_patient(patient.person) 
 			
