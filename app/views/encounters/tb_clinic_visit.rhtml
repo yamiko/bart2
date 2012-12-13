@@ -132,7 +132,7 @@
    <%= touch_yes_no_unknown_tag "TB SUSPECTED", @patient, nil,
 			{	:id => "tb_suspected",
 			    :tt_onUnload => 'assignTBstatus();',
-				:condition => "$('xray').value != 'Consistent of TB'",
+				:condition => "$('xray').value != 'Consistent of TB' && $('any_tb_symptoms').value == 'YES' && $('interpret_xray').value == 'YES'",
 				:helpText => 'Does the patient have TB?'} %>
 				
 	<%= touch_yes_no_tag "Refer to x-ray?", @patient, nil,
