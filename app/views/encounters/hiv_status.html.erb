@@ -120,6 +120,8 @@
 
  <%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
 
+ <%= touch_hidden_tag "ART INITIATION DATE", @patient, nil, {:id => "art_intiation_date",:condition => '$("art_status").value == "Yes"', :value_datetime => true}%>
+
  <% if Location.current_location.name.upcase == "TB HTC" %>
    <%= touch_hidden_tag "Refer to HTC", @patient, "NO", {:id => "refer_to_htc" }%>
  <%else%>

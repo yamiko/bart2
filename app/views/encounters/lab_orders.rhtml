@@ -161,7 +161,7 @@
 
 	<label for='showSummary'>Summary </label>
 	<%= text_field_tag :showSummary, nil, 
-		{	:tt_onLoad => "showLabels();$('clearButton').style.display='none'", 
+		{	:tt_onLoad => "__$('keyboard').style.display = 'none';showLabels();$('clearButton').style.display='none'",
 			:optional => "true", :tt_pageStyleClass => "NoControls" } %>
 
   <% session_date = session[:datetime].to_date rescue nil                       

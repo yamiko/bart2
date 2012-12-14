@@ -1032,10 +1032,10 @@ class GenericPatientsController < ApplicationController
           label.font_horizontal_multiplier = 1
           label.font_vertical_multiplier = 1
           label.left_margin = 300
-          label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
-          label.draw_multi_text("#{patient_bean.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
-          label.draw_multi_text("#{observation.name rescue nil} - #{accession_number rescue nil}")
-          label.draw_multi_text("#{observation.date_created.strftime("%d-%b-%Y %H:%M")}")
+          label.draw_barcode(70,105,0,1,4,8,50,false,"#{accession_number}")
+          label.draw_text("#{patient_bean.name.titleize.delete("'")} #{patient_national_id_with_dashes}",70,45,0,2,1,1)
+          label.draw_text("#{observation.name rescue nil} - #{accession_number rescue nil}",70,65,0,2,1,1)
+          label.draw_text("#{observation.date_created.strftime("%d-%b-%Y %H:%M")}",70,90,0,2,1,1)
           labels << label
          end
 
@@ -1303,11 +1303,14 @@ class GenericPatientsController < ApplicationController
           label.font_size = 2
           label.font_horizontal_multiplier = 1
           label.font_vertical_multiplier = 1
-          label.left_margin = 300
-          label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
-          label.draw_multi_text("#{patient_bean.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
-          label.draw_multi_text("#{lab_orders[i].name rescue nil} - #{accession_number rescue nil}")
-          label.draw_multi_text("#{lab_orders[i].obs_datetime.strftime("%d-%b-%Y %H:%M")}")
+          label.left_margin = 750
+          label.draw_barcode(70,105,0,1,4,8,50,false,"#{accession_number}")
+          #label.draw_multi_text("#{patient_bean.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
+          #label.draw_multi_text("#{lab_orders[i].name rescue nil} - #{accession_number rescue nil}")
+          #label.draw_multi_text("#{lab_orders[i].obs_datetime.strftime("%d-%b-%Y %H:%M")}")
+					label.draw_text("#{patient_bean.name.titleize.delete("'")} #{patient_national_id_with_dashes}",70,45,0,2,1,1)
+          label.draw_text("#{lab_orders[i].name rescue nil} - #{accession_number rescue nil}",70,65,0,2,1,1)
+          label.draw_text("#{lab_orders[i].obs_datetime.strftime("%d-%b-%Y %H:%M")}",70,90,0,2,1,1)
           labels << label
           end
           i = i + 1
