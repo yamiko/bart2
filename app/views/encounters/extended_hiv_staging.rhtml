@@ -430,12 +430,13 @@
       }catch(e){}
     }
 	artifitial_reason = false
-	if (reasonForArtEligibility == "NONE" && option3 == "YES") {
-		  reasonForArtEligibility = "Pulmonary Tuber"
-		  artifitial_reason = true
-		}
-	if (artifitial_reason == true && option4 == "YES") {
-		  reasonForArtEligibility = "ExtraPulmonary Tuber"
+	if (reasonForArtEligibility == "NONE" && (option3 == "YES" || option4 == "YES")) {
+		  if (age > 14){
+		  reasonForArtEligibility = whoStageConcept(whoStage, "ADULT")
+		  }
+		  else{
+			reasonForArtEligibility = whoStageConcept(whoStage, "PEDS")
+		  }
 		}
 
     $('reason_for_art_eligibility').value = reasonForArtEligibility;

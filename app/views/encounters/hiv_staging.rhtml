@@ -454,17 +454,23 @@
   }
 	function checkPtb(){
 			<% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve') %>
-				   <% tb_hiv_exclusions = [['Pulmonary tuberculosis (current)', 'Pulmonary tuberculosis (current)']]
-					  @who_stage_iii = @who_stage_iii - tb_hiv_exclusions
-					%>
+				options = document.getElementsByTagName('li');
+				  for (i = 0 ; i < options.length ; i++) {
+				   if (options[i].getAttribute('tstvalue') == "Pulmonary tuberculosis (current)") {
+					  updateTouchscreenInputForSelect($("optionValue" + i));
+				   }
+				  }
 			<% end  %>
 	}
 
 	function checkEptb(){
 			  <% if  @patient.person.observations.to_s.include?('Extrapulmonary tuberculosis (EPTB)') %>
-				  <% tb_hiv_exclusions = ['Extrapulmonary tuberculosis (EPTB)', 'Extrapulmonary tuberculosis (EPTB)']
-					@who_stage_iv = @who_stage_iv - tb_hiv_exclusions
-				  %>
+				  options = document.getElementsByTagName('li');
+				  for (i = 0 ; i < options.length ; i++) {
+				   if (options[i].getAttribute('tstvalue') == "Extrapulmonary tuberculosis (EPTB)") {
+					  updateTouchscreenInputForSelect($("optionValue" + i));
+				   }
+				  }
 			  <%  end %>
 	}
 </script>  
