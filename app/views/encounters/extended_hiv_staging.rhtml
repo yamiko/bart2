@@ -131,6 +131,8 @@
   var firstPositiveHivTestType = "<%= @confirmatory_hiv_test_type -%>";  
   var cd4_count_numeric, cd4_count_estimate, cd4_count_modifier;
   var selected_stage_conditions = {};
+  var option3 = "NO"
+  var option4 = "NO"
 
 
 
@@ -262,36 +264,44 @@
   // WHO STAGE II PEDS
   // WHO STAGE III PEDS
   // WHO STAGE IV PEDS
-	function whoStageConcept(stage, adultOrPeds) {    
-		if (selected_stage_conditions) {
-			var selected_stage_conditions_ext = []
-			for (conditions in selected_stage_conditions) {
-				selected_stage_conditions_ext.push(selected_stage_conditions[conditions]);
-			}
-
-			conditions_found = 0;
-			severe_weight_loss = false;
-			for (i = 0 ; i < selected_stage_conditions_ext.length ; i++) {
-				if (selected_stage_conditions_ext[i] == 'Severe weight loss >10% and/or BMI <18.5kg/m^2, unexplained') {
-					severe_weight_loss = true;
-				}else if (selected_stage_conditions_ext[i] == 'Diarrhoea, chronic (>1 month) unexplained') {
-					conditions_found++;
-				}else if (selected_stage_conditions_ext[i] == 'Fever, persistent unexplained, intermittent or constant, >1 month') {
-					conditions_found++;
-				}
-			}
-
-			if (conditions_found > 0 && severe_weight_loss) {
-				<%	if !@retrospective %>
-					selected_stage_conditions[<%= count + 1 %>] = 'HIV wasting syndrome (severe weight loss + persistent fever or severe weight loss + chronic diarrhoea)';
-					$('calculated_who_stage_4').value = selected_stage_conditions[<%= count + 1 %>]; 	
-				<%	end	%>
-
-				return  "WHO STAGE " + numeral(4) + " " + adultOrPeds;
-			}
+	function whoStageConcept(stage, adultOrPeds) {
+		if (stage < 3 && option3 == "YES") {
+		  return  "WHO STAGE " + numeral(3) + " " + adultOrPeds;
 		}
+		else if (stage < 4 && option4 == "YES") {
+		  return  "WHO STAGE " + numeral(4) + " " + adultOrPeds;
+		}
+		else {
+				  if (selected_stage_conditions) {
+					  var selected_stage_conditions_ext = []
+					  for (conditions in selected_stage_conditions) {
+						  selected_stage_conditions_ext.push(selected_stage_conditions[conditions]);
+					  }
 
-		return "WHO STAGE " + numeral(stage) + " " + adultOrPeds;  
+					  conditions_found = 0;
+					  severe_weight_loss = false;
+					  for (i = 0 ; i < selected_stage_conditions_ext.length ; i++) {
+						  if (selected_stage_conditions_ext[i] == 'Severe weight loss >10% and/or BMI <18.5kg/m^2, unexplained') {
+							  severe_weight_loss = true;
+						  }else if (selected_stage_conditions_ext[i] == 'Diarrhoea, chronic (>1 month) unexplained') {
+							  conditions_found++;
+						  }else if (selected_stage_conditions_ext[i] == 'Fever, persistent unexplained, intermittent or constant, >1 month') {
+							  conditions_found++;
+						  }
+					  }
+
+					  if (conditions_found > 0 && severe_weight_loss) {
+						  <%	if !@retrospective %>
+							  selected_stage_conditions[<%= count + 1 %>] = 'HIV wasting syndrome (severe weight loss + persistent fever or severe weight loss + chronic diarrhoea)';
+							  $('calculated_who_stage_4').value = selected_stage_conditions[<%= count + 1 %>];
+						  <%	end	%>
+
+						  return  "WHO STAGE " + numeral(4) + " " + adultOrPeds;
+					  }
+				  }
+
+				  return "WHO STAGE " + numeral(stage) + " " + adultOrPeds;
+		 }
 	}
   
   function numeral(num) {
@@ -330,7 +340,7 @@
 	if (ageInMonths < 12 && firstPositiveHivTestType == "HIV rapid test") {
 		$('who_stage').value = "PRESUMED SEVERE HIV";
 	}
-     
+
     return whoStage
   }
   
@@ -418,7 +428,17 @@
           reasonForArtEligibility = "BREASTFEEDING";              
         } 
       }catch(e){}
-    }  
+    }
+	artifitial_reason = false
+	if (reasonForArtEligibility == "NONE" && (option3 == "YES" || option4 == "YES")) {
+		  if (age > 14){
+		  reasonForArtEligibility = whoStageConcept(whoStage, "ADULT")
+		  }
+		  else{
+			reasonForArtEligibility = whoStageConcept(whoStage, "PEDS")
+		  }
+		}
+
     $('reason_for_art_eligibility').value = reasonForArtEligibility;
   }
 
@@ -535,23 +555,26 @@
       return 'false';
     }
   }
+
   function removeValues(){
 				  <% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve') %>
 					  <% tb_hiv_exclusions = [['Pulmonary tuberculosis (current)', 'Pulmonary tuberculosis (current)']]
 					  @who_stage_iii = @who_stage_iii - tb_hiv_exclusions
 					  %>
+					option3 = "YES";
 			  <% end  %>
 			
 			  <% if  @patient.person.observations.to_s.include?('Extrapulmonary tuberculosis (EPTB)') %>
 					<% tb_hiv_exclusions = [['Extrapulmonary tuberculosis (EPTB)', 'Extrapulmonary tuberculosis (EPTB)']]
 					@who_stage_iv = @who_stage_iv - tb_hiv_exclusions
 					%>
+					option4 = "YES";
 			  <%  end %>
   }
   function updateSelectedOptions(){
 			  <% count += 1 %>
 			  condition_number = '<%= count %>';
-			  <% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve') %>
+			  <% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve') %>	
 					 selected_stage_conditions[condition_number] = 'Pulmonary tuberculosis'
 			  <% end  %>
 
