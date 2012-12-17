@@ -15,6 +15,59 @@
       }
   }
 
+
+  function updateInitiationDate(){
+
+    testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
+    $('hiv_initiation_date').value = testDate;
+	<% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
+	<% @todayDate = @session_date.to_date - 90 %>
+
+    var sessionDate = "<%="#{@todayDate}"%>";
+    var todayDate = new Date(sessionDate);
+
+    if (todayDate > testDate){
+      showNegativeTestReminder = true
+	}else {
+      showNegativeTestReminder = false
+    }
+    return showNegativeTestReminder
+ }
+
+  function checkTestDate (){
+    var dateCheck = "";
+
+    var testDate = new Date($('hiv_test_year').value, $('hiv_test_month').value - 1, $('hiv_test_day').value);
+<% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
+
+    var sessionDate = "<%="#{@session_date.to_date.year},#{@session_date.to_date.month},#{@session_date.to_date.day}"%>";
+    var todayDate = new Date(sessionDate);
+
+    if (testDate <= todayDate){
+      dateCheck = 'true'
+	}else {
+      dateCheck = 'false'
+    }
+    return dateCheck
+  }
+   function updateTestDate(){
+    var testDate = new Date($('hiv_test_year').value, $('hiv_test_month').value - 1, $('hiv_test_day').value);
+    $('hiv_test_date').value = testDate;
+
+<% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
+<% @todayDate = @session_date.to_date - 90 %>
+
+    var sessionDate = "<%="#{@todayDate}"%>";
+    var todayDate = new Date(sessionDate);
+
+    if (todayDate > testDate){
+      showNegativeTestReminder = true
+	}else {
+      showNegativeTestReminder = false
+    }
+    return showNegativeTestReminder
+  }
+
   function checkTBstatus() {
     try {
       tb_status = $('tb_status').value;
@@ -81,6 +134,41 @@
         $('tb_status').value = "Confirmed TB NOT on treatment";
         $('tb_suspected').value = "YES";   
     }
+  }
+
+  function isTestOverDue(testDate,alertDate) {
+    if (testDate <= alertDate){
+      return true;
+    }else {
+      return false;
+    }
+  }
+
+    function createDate(year,month,day) {
+    date_str = year
+
+    if(month.length == 1)
+      month = '0' + month
+
+    date_str+='-' + month
+
+    if(day.length == 1)
+      day = '0' + day
+
+    date_str+='-' + day
+
+    intyear = 0 ; intmonth = 0 ; intday = 0;
+    intyear = parseInt(date_str.substring(0,4))
+    intmonth = (parseInt(date_str.substring(5,7)) - 1)
+    intday = (parseInt(date_str.substring(8,10)))
+
+    if (intmonth == -1)
+      intmonth = (parseInt(date_str.substring(5,7).substring(1,2)) - 1)
+
+    if (intday == 0)
+      intday = parseInt(date_str.substring(8,10).substring(1,2))
+
+    return new Date(intyear,intmonth,intday);
   }
 </script> 
 
@@ -163,6 +251,59 @@
 		 	:helpText => "TB type / TB susceptibility"
 		 	} %>
 
+    <% if @hiv_status.upcase !=  'POSITIVE' %>
+    <%= touch_select_tag "HIV STATUS", @patient, options_for_select(@select_options['hiv_status']),
+	{:id => "hiv_status",
+	:multiple => false,
+	:tt_pageStyleClass => "NoKeyboard",
+	:helpText => "HIV Status" } %>
+
+  <%= text_field_tag "hiv_test_year", nil,
+	{:helpText => 'HIV test year',
+	:field_type => 'number',
+	:absoluteMin => "1982",
+	:min => "1982",
+	:absoluteMax => Date.today.year,
+	:tt_pageStyleClass => "Numeric NumbersOnly",
+	:condition => '$("hiv_status").value != "UNKNOWN"'}
+%>
+
+  <%= select_tag "hiv_test_month", month_name_options, {:helpText => 'HIV test month', :condition => '($("hiv_test_year").value.toLowerCase() != "unknown") && ($("hiv_status").value != "UNKNOWN")', :tt_onLoad => "__$('keyboard').style.display = 'none'"}%>
+
+  <%= text_field_tag "hiv_test_day",  nil,
+	{:field_type => 'number',
+	:helpText => 'HIV test day',
+	:validationCode => "checkTestDate() == 'true'",
+	:validationMessage => "HIV test date greater than #{session[:datetime].to_date rescue Date.today.to_date}",
+	:condition => '($("hiv_test_year").value != "Unknown") && ($("hiv_test_month").value != "Unknown") && ($("hiv_status").value != "UNKNOWN")',
+	:tt_onLoad => "getDayOfMonthPicker($('hiv_test_year').value,$('hiv_test_month').value);",
+	:tt_onUnload=> "updateTestDate();"
+  } %>
+  	<%= touch_yes_no_unknown_tag "ON ART", @patient, nil,
+	  {:id => "art_status",
+	  :condition => '$("hiv_status").value == "POSITIVE"',
+	  :tt_pageStyleClass => "NoKeyboard",
+	  :helpText => "On ART?" } %>
+
+	<%= text_field_tag "hiv_initiation_year", nil, {:helpText => 'HIV initiation year', :field_type => 'number', :absoluteMin => "1982", :min => "1982", :absoluteMax => Date.today.year, :tt_pageStyleClass => "Numeric NumbersOnly", :condition => '$("art_status").value == "YES"'}  %>
+
+	<%= select_tag "hiv_initiation_month", month_name_options, {:tt_onLoad => "__$('keyboard').style.display = 'none'",:helpText => 'HIV initiation month', :condition => '($("hiv_initiation_year").value.toLowerCase() != "unknown") && ($("art_status").value == "YES")'}%>
+
+	<%= text_field_tag "hiv_initiation_day",  nil,
+	  {:field_type => 'number',
+	  :helpText => 'HIV initiation day',
+	  :validationCode => "checkTestDate();",
+	  :validationMessage => "HIV initiation date greater than #{session[:datetime].to_date rescue Date.today.to_date}",
+	  :condition => '($("hiv_initiation_year").value != "Unknown") && ($("hiv_initiation_month").value != "Unknown") && ($("art_status").value == "YES")',
+	  :tt_onLoad => "getDayOfMonthPicker($('hiv_initiation_year').value, $('hiv_initiation_month').value)",
+	  :tt_onUnload=> "updateInitiationDate();"
+	} %>
+
+	<%= touch_location_tag "Location Of ART Initiation", @patient, nil, {:id => "location_of_art_intiation", :value_datetime => true,:helpText => "Location Of ART Initiation", :condition => '$("art_status").value == "YES"'}%>
+
+  <%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
+   <%= touch_hidden_tag "ART initiation date", @patient, nil, {:id => "hiv_initiation_date", :value_datetime => true}%>
+<%end%>
 	<%if @hiv_status.upcase == 'POSITIVE' and not
       @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')%>
     <%= touch_yes_no_tag "Continue treatment", @patient, nil,
