@@ -747,7 +747,8 @@ class GenericPatientsController < ApplicationController
             concept_id,encounter_type.id,date.strftime('%Y-%m-%d 00:00:00'),date.strftime('%Y-%m-%d 23:59:59')])
     count = count.values unless count.blank?
     count = '0' if count.blank?
-    render :text => count
+
+    render :text => (count.first.to_i >= 0 ? {params[:date] => count}.to_json : 0)
   end
 
   def recent_lab_orders_print

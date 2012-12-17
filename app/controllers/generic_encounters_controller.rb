@@ -12,7 +12,7 @@ class GenericEncountersController < ApplicationController
       ConceptName.find_by_name('Appointment date').concept_id,
       type.id, params[:encounter]["patient_id"],session_date.strftime("%Y-%m-%d 00:00:00"),             
       session_date.strftime("%Y-%m-%d 23:59:59")]).encounter
-      appointment_encounter.void("Given a new appointment date")
+      appointment_encounter.void("Given a new appointment date") unless appointment_encounter.blank?
     end
     	
     if params['encounter']['encounter_type_name'] == 'TB_INITIAL'
