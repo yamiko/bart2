@@ -1,7 +1,6 @@
 class GenericPropertiesController < ApplicationController
   def set_clinic_holidays
     @clinic_holidays = CoreService.get_global_property_value('clinic.holidays') rescue nil
-    render :layout => "menu"
   end
 
   def create_clinic_holidays
