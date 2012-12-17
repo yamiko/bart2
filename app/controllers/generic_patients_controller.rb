@@ -521,7 +521,7 @@ class GenericPatientsController < ApplicationController
         end
 =end
       end
-      # send it to the browsah
+      # send it to the browsbah
       send_data csv_string.gsub(' ','_'),
         :type => 'text/csv; charset=iso-8859-1; header=present',
         :disposition => "attachment:wq
@@ -781,8 +781,108 @@ class GenericPatientsController < ApplicationController
   end
 
   def tb_treatment_card # to look at later - To test that is
-  	@patient_bean = PatientService.get_patient(@patient.person)
-    render :layout => 'menu'
+
+	@variables = Hash.new()
+	@patient_bean = PatientService.get_patient(@patient.person)
+	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", 78, @patient.person]) rescue nil
+	duration = Time.now.to_date - tbStart.encounter_datetime.to_date
+	@variables["patientId"] = PatientIdentifier.identifier(@patient_bean.patient_id, "7").identifier
+  	@variables["tbStart"] = tbStart.encounter_datetime.to_time.strftime('%A, %d %B %Y') rescue nil
+	@variables["arvStart"] = PatientService.patient_art_start_date(@patient.person).to_date.strftime(' %d- %b- %Y') rescue nil
+	@variables["regimen"] = Concept.find(:first, :conditions => ["concept_id = ?" ,PatientProgram.find(:all, :conditions => ["patient_id =? AND program_id = ?", @patient.person, 2]).last.current_regimen]).shortname rescue nil
+	encounters = [14,15,77,78,87,86,85]	
+	smears = PatientService.sputum_results_by_date(@patient.person) rescue nil
+	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime = ?",@patient.person,5089, 			tbStart.encounter_datetime]) rescue nil
+
+	#retrieve hiv status as required
+	@variables["hiv1"]=@variables["hiv2"]=@variables["hiv3"]=@variables["hiv4"] = " "
+	if @variables["status"] == "A"
+		@variables["hiv1"]=@variables["hiv2"]=@variables["hiv3"]=@variables["hiv4"] = "Past Postive"
+
+	elsif(obs.obs_datetime.to_date <= Date.today)
+		@variables["hiv1"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
+	elsif((obs.obs_datetime.to_date + 60) <= duration)
+		@variables["hiv2"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
+	elsif((obs.obs_datetime.to_date + 150) <= duration)
+		@variables["hiv2"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
+		elsif((obs.obs_datetime.to_date + 180) <= duration)
+		@variables["hiv2"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
+	end	
+
+
+
+	@variables["startWeight"] = obs.value_numeric rescue nil
+	@variables["startWeightdate"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
+	temp = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
+	@variables["smear1AAccession"] = temp["acc1"] +"/"+temp["acc2"]
+	@variables["smear1Aresult"] = temp["result1"] +"/"+ temp["result2"]
+
+	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime > ?",@patient.person,5089, tbStart.encounter_datetime]) 
+	@variables["weight2"] = obs.value_numeric rescue nil
+	@variables["weight2date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
+	temp1 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
+	if(temp1 != nil)
+		@variables["smear2AAccession"] = temp1["acc1"] +"/" + temp1["acc2"]
+		@variables["smear2Aresult"] = temp1["result1"] +"/"+ temp1["result2"]
+
+
+	end
+
+	obs = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",@patient.person,5089, tbStart.encounter_datetime.to_date + 145,tbStart.encounter_datetime.to_date + 160 ]) rescue nil
+	@variables["weight3"].obs.value_numeric rescue nil
+	@variables["weight3date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
+	temp3 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
+	if (temp3 != nil)
+		@variables["smear3AAccesion"] = temp3["acc1"] + "/" + temp3["acc2"]
+		@variables["smear3Aresult"] = temp3["result1"] + "/" + temp3["result2"]
+
+	end
+
+	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",@patient.person,5089, tbStart.encounter_datetime.to_date + 175,tbStart.encounter_datetime.to_date + 245 ]) rescue nil
+
+	@variables["weight4"] = obs.value_numeric rescue nil
+	@variables["weight4date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
+	temp4 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
+	if (temp4 != nil)
+		@variables["smear4AAccesion"] = temp4["acc1"] + "/" + temp4["acc2"]
+		@variables["smear4Aresult"] = temp4["result1"] + "/" + temp4["result2"]
+	end
+
+	status = @variables["arvStart"].to_date - tbStart.encounter_datetime.to_date rescue nil
+
+	if status == nil
+			@variables["status"] = "C"
+	elsif sputum !=nil and sputum > 0
+			@variables["status"] = "A"
+	else
+			@variables["status"] = "B"
+	end
+
+	
+	@observations = Observation.find(:all, :conditions => ["encounter_id = ?", tbStart.encounter_id]) rescue nil 
+
+	x = 0
+	while x < @observations.length 
+		if @observations[x].concept.fullname == "Tuberculosis classification"
+			@variables["tbType"] = @observations.fetch(x).answer_string
+
+		elsif @observations[x].concept.fullname == "TB patient category"
+			@variables["patientType"] = @observations.fetch(x).answer_string
+		elsif @observations[x].concept.fullname == "Directly observed treatment option"
+			@variables["dotOption"] = @observations.fetch(x).answer_string
+		end
+		x +=1
+	end
+	
+	
+
+   render :layout => 'menu'
+  end
+
+  def tb_treatment_card_page
+	#this method calls the page that displays a patients treatment records
+	  	@patient_bean = PatientService.get_patient(@patient.person)
+	render:layout => 'menu'
   end
 
   def alerts(patient, session_date = Date.today) 

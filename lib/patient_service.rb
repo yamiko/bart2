@@ -511,6 +511,26 @@ module PatientService
     obs = Observation.find(:all, :conditions => ["person_id = ? AND concept_id IN (?)", patient_id, sputum_concept_ids], :order => "obs_datetime desc", :limit => 3)
   end
 
+  def self.sputum_results_by_date(patient_id)
+    sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
+    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
+    obs = Observation.find(:all, :conditions => ["person_id = ? AND concept_id IN (?)", patient_id, sputum_concept_ids], :order => "obs_datetime desc")
+  end
+	def self.sputum_by_date(sputum_list, date)
+		i = 0;
+		list = Hash.new( "")
+		while (i < sputum_list.count) 
+			if ((sputum_list[i].obs_datetime.to_date >= date - 10) && (sputum_list[i].obs_datetime.to_date <= date + 10))
+					list["acc1"] = sputum_list[i].accession_number
+					list["result1"] = sputum_list[i].answer_string
+					list["acc2"] = sputum_list[i+1].accession_number
+					list["result2"] = sputum_list[i+1].answer_string
+					return list
+			end
+			i+=1
+		end
+	end
+
   def self.sputum_orders_without_submission(patient_id)
     self.recent_sputum_orders(patient_id).collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", patient_id, Concept.find_by_name("Sputum submission")]).map{|o| o.accession_number}.include?(order.accession_number)}.compact #rescue []
   end
@@ -546,6 +566,18 @@ module PatientService
     end
     return status
   end
+
+def self.patient_hiv_status_by_date(patient, date)
+    status = Concept.find(Observation.find(:last,
+        :order => "obs_datetime DESC,date_created DESC",
+        :conditions => ["value_coded IS NOT NULL AND person_id = ? AND concept_id = ? AND obs_datetime BETWEEN ? AND ?", patient.id,
+          ConceptName.find_by_name("HIV STATUS").concept_id,date - 20,date + 20]).value_coded).fullname rescue "UNKNOWN"
+    if status.upcase == 'UNKNOWN'
+      return "Unknown"
+    end
+    return status
+  end
+
 
   def self.patient_is_child?(patient)
     return self.get_patient_attribute_value(patient, "age") <= 14 unless self.get_patient_attribute_value(patient, "age").nil?
@@ -849,7 +881,8 @@ EOF
 		patient.birthdate_estimated = person.birthdate_estimated
 		patient.home_district = person.addresses.first.address2
 		patient.traditional_authority = person.addresses.first.county_district
-		patient.current_residence = person.addresses.first.city_village
+		patient.
+current_residence = person.addresses.first.city_village
 		patient.landmark = person.addresses.first.address1
 		patient.mothers_surname = person.names.first.family_name2
 		patient.eid_number = get_patient_identifier(person.patient, 'EID Number') rescue nil
