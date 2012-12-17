@@ -53,8 +53,19 @@
 
     testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
     $('hiv_initiation_date').value = testDate;
-    return isTestOverDue(testDate,alertDate);
-  }
+	<% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
+	<% @todayDate = @session_date.to_date - 90 %>
+
+    var sessionDate = "<%="#{@todayDate}"%>";
+    var todayDate = new Date(sessionDate);
+
+    if (todayDate > testDate){
+      showNegativeTestReminder = true
+	}else {
+      showNegativeTestReminder = false
+    }
+    return showNegativeTestReminder
+ }
 
   function isTestOverDue(testDate,alertDate) {
     if (testDate <= alertDate){
@@ -62,6 +73,33 @@
     }else {
       return false;
     }
+  }
+
+    function createDate(year,month,day) {
+    date_str = year
+
+    if(month.length == 1)
+      month = '0' + month
+
+    date_str+='-' + month
+
+    if(day.length == 1)
+      day = '0' + day
+
+    date_str+='-' + day
+
+    intyear = 0 ; intmonth = 0 ; intday = 0;
+    intyear = parseInt(date_str.substring(0,4))
+    intmonth = (parseInt(date_str.substring(5,7)) - 1)
+    intday = (parseInt(date_str.substring(8,10)))
+
+    if (intmonth == -1)
+      intmonth = (parseInt(date_str.substring(5,7).substring(1,2)) - 1)
+
+    if (intday == 0)
+      intday = parseInt(date_str.substring(8,10).substring(1,2))
+
+    return new Date(intyear,intmonth,intday);
   }
 </script>
 <style>

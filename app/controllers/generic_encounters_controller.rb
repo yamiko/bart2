@@ -1411,10 +1411,16 @@ class GenericEncountersController < ApplicationController
 	end
 	
 	def create_tb_number(type_id)
-		 type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ?', type_id],:order => 'date_created DESC')
+		 session_date = "%#{session[:datetime].to_date.year.to_s}%";
+		 patient_exists = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ? AND patient_id = ?', type_id, session_date, @patient.id])
+		 type = patient_exists
+		 if patient_exists.blank?
+			type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ?', type_id, session_date],:order => 'date_created DESC')
+		 end
 		 type = type.first.identifier.split(" ") rescue ""
 		 if type.include?(session[:datetime].to_date.year.to_s)
-			return (type.last.to_i + 1)
+			return (type.last.to_i + 1) if patient_exists.blank?
+			return (type.last.to_i) if ! patient_exists.blank?
 		 else
 			return 1
 		 end
