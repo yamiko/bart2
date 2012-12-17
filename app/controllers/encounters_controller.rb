@@ -18,7 +18,7 @@ class EncountersController < GenericEncountersController
 
       (bart_activities).each do |activity|
         if not current_user_activities.include?(activity.upcase)
-          user_property.property_value += ",#{activity}" unless current_user.activities.blank?
+          user_property.property_value += ",#{activity}" rescue "" unless current_user.activities.blank?
           user_property.property_value = activity if current_user.activities.blank?
           user_property.save 
         end
@@ -104,7 +104,7 @@ class EncountersController < GenericEncountersController
 		
 		@select_options = select_options
 		@months_since_last_hiv_test = PatientService.months_since_last_hiv_test(@patient.id)
-		@current_user_role = current_user_roles
+		@current_user_role = self.current_user_role
 		@tb_patient = is_tb_patient(@patient)
 		@art_patient = PatientService.art_patient?(@patient)
 		@recent_lab_results = patient_recent_lab_results(@patient.id)
@@ -345,7 +345,7 @@ class EncountersController < GenericEncountersController
 
 			@require_hiv_clinic_registration = require_hiv_clinic_registration
 		end
-		@tb_auto_number = create_tb_number(PatientIdentifierType.find_by_name('District TB Number').id)
+
 		redirect_to "/" and return unless @patient
 
 		redirect_to next_task(@patient) and return unless params[:encounter_type]
@@ -551,7 +551,7 @@ class EncountersController < GenericEncountersController
       ],
       'eptb_classification'=> [
         ['',''],
-        ['Pleural effusion', 'Pleural effusion'],
+        ['Pulmonary effusion', 'Pulmonary effusion'],
         ['Lymphadenopathy', 'Lymphadenopathy'],
         ['Pericardial effusion', 'Pericardial effusion'],
         ['Ascites', 'Ascites'],
@@ -588,7 +588,7 @@ class EncountersController < GenericEncountersController
 	def is_holiday(suggest_date, holidays)
 		holiday = false;
 		holidays.each do |h|
-			if (h.to_date.strftime('%A %d') == suggest_date.strftime('%A %d'))
+			if (h.to_date.strftime('%B %d') == suggest_date.strftime('%B %d'))
 				holiday = true;
 			end
 		end
@@ -633,29 +633,31 @@ class EncountersController < GenericEncountersController
 	end
 
 	def suggested_date(expiry_date, holidays, bookings, clinic_days)
-		number_of_suggested_booked_dates_tried = 0
     bookings.delete_if{|k,v| holidays.collect{|h|h.to_date.to_s[5..-1]}.include?(k.to_date.to_s[5..-1])}
-
-    recommended_date = nil
+                                                                                
+    recommended_date = nil                                                      
     clinic_appointment_limit = CoreService.get_global_property_value('clinic.appointment.limit').to_i rescue 0
-
-    (bookings ||{}).sort_by { |dates,num| num }.reverse.each do |dates , num|
+                                                                                
+    (bookings ||{}).sort_by { |dates,num| num }.reverse.each do |dates , num|   
       next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
-      recommended_date = dates
-      break if num <= clinic_appointment_limit 
-    end
-
-    if recommended_date.blank?
-      1.upto(5).each do |num|
+      recommended_date = dates                                                  
+      break if num <= clinic_appointment_limit                                  
+    end                                                                         
+                                                                                
+    if recommended_date.blank?                                                  
+      expiry_date_rec = expiry_date
+      1.upto(5).each do |num|                                                   
         if clinic_days.collect{|c|c.upcase}.include?(expiry_date.strftime('%A').upcase)
-          recommended_date = expiry_date
-          break
-        end
-        expiry_date-= 1.day
-        recommended_date = expiry_date
-      end
-    end
-
+          unless is_holiday(expiry_date_rec,holidays)                                       
+            recommended_date = expiry_date_rec 
+            break                                                                 
+          end
+          expiry_date_rec -= 1
+        end                                                                     
+      end                                                                       
+    end                                                                         
+                                                                                
+    recommended_date = expiry_date if recommended_date.blank?
     return recommended_date
 	end
 
@@ -702,17 +704,10 @@ class EncountersController < GenericEncountersController
     session_date = dispensed_date.to_date
         
     arvs_given = true
-	
-    if what_app? == 'TB-ART'
-      orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o| 
-        !MedicationService.tb_medication(o.drug_order.drug) 
-      }
-  	else
-		  orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o| 
-        !MedicationService.arv(o.drug_order.drug) 
-      }
-      arvs_given = false if orders_made.blank?
-    end
+		
+		orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o| !MedicationService.arv(o.drug_order.drug) }
+
+    arvs_given = false if orders_made.blank?
         
 		auto_expire_date = Date.today + 2.days
 		
@@ -1245,11 +1240,10 @@ class EncountersController < GenericEncountersController
         end
         (program[:states] || []).each {|state| @patient_program.transition(state) }
       end
-			
+
       # Identifier handling
       arv_number_identifier_type = PatientIdentifierType.find_by_name('ARV Number').id
       (params[:identifiers] || []).each do |identifier|
-				
         # Look up the identifier if the patient_identfier_id is set
         @patient_identifier = PatientIdentifier.find(identifier[:patient_identifier_id]) unless identifier[:patient_identifier_id].blank?
         # Create or update
@@ -1258,18 +1252,13 @@ class EncountersController < GenericEncountersController
           arv_number = identifier[:identifier].strip
           if arv_number.match(/(.*)[A-Z]/i).blank?
             if params[:encounter]['encounter_type_name'] == 'TB REGISTRATION'
-							tb_identifier = create_tb_number(type)
-							if PatientIdentifier.site_prefix == "MPC"
-							 identifier[:identifier] = "LL-TB #{Date.today.strftime('%Y %m')} #{tb_identifier}"
-							else
-               identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{Date.today.strftime('%Y %m')} #{tb_identifier}"
-							end
+              identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB-#{arv_number}"
             else
               identifier[:identifier] = "#{PatientIdentifier.site_prefix}-ARV-#{arv_number}"
             end
           end
         end
-				
+
         if @patient_identifier
           @patient_identifier.update_attributes(identifier)
         else
@@ -1303,11 +1292,36 @@ class EncountersController < GenericEncountersController
     else
       render :text => "Location not found or not valid"
     end
-
   end 
 
-	#def create_tb_number(type_id)
-	#	 type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ?', type_id],:order => 'date_created DESC')
-	#	 raise type.to_yaml
-	#end
+  def export_on_art_patients
+		@ids = params["ids"].split(",")   
+		@id_string = @ids =  "'" + @ids.join("','") + "'"	
+		@end_date = params["end_date"]  
+		@start_date = params["start_date"] 
+       	result = Hash.new
+        id_start_date_map = Hash.new
+        @patient_ids = []
+        
+      	PatientProgram.find_by_sql("SELECT e.patient_id, f.identifier, e.earliest_start_date, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state 
+			FROM earliest_start_date e 
+			JOIN person p ON p.person_id = e.patient_id
+            JOIN patient_identifier f ON f.patient_id = p.person_id AND f.identifier_type = (SELECT patient_identifier_type_id FROM patient_identifier_type WHERE name = 'National id') AND f.identifier IN (#{@id_string})
+			WHERE p.gender regexp 'F'
+			HAVING state = 7").each do | patient | 
+					@patient_ids << patient.patient_id								
+					idf = patient.identifier
+		       		result["#{idf}"] = patient.earliest_start_date
+			end   
+     
+  		cpt_ids = Encounter.find_by_sql("SELECT e.patient_id, o.value_drug, e.encounter_type FROM encounter e
+			INNER JOIN obs o ON e.encounter_id = o.encounter_id AND e.voided = 0
+			WHERE e.encounter_type = (SELECT encounter_type_id FROM encounter_type WHERE name = 'DISPENSING') 
+			AND o.value_drug IN (SELECT drug_id FROM drug WHERE name regexp 'cotrimoxazole')
+			AND e.patient_id IN (#{@patient_ids.join(',')})").collect{|e| e.patient_id}.uniq rescue []
+        
+		result["on_cpt"] = cpt_ids.length
+		render :text => result.to_json
+  end
+
 end
