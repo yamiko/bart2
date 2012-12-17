@@ -54,7 +54,7 @@
   <%= touch_text_field_tag "Clinic Location", @patient, nil,
       {:id => "location_of_tb_initiation",
        :condition => "$('transfer_in').value =='YES'",
-       :ajaxURL => '/people/tb_initialization_location?',
+       :ajaxURL => '/people/tb_initialization_location?search_string=',
        :allowFreeText => true,
        :helpText => 'Location of TB initiation'} %>
 
@@ -89,7 +89,8 @@
 				:helpText => "Weight at TB initiation" } %>
 
   <%= touch_select_tag "Last tuberculosis drugs taken", @patient, options_for_select(@tb_regimen_array),
-			{:id => "last_tb_drugs_taken",
+			{:tt_onLoad => "__$('keyboard').style.display = 'none'",
+			 :id => "last_tb_drugs_taken",
 			 :condition => "$('transfer_in').value =='YES'",
 			 :helpText => "Last TB drugs taken" } %>
 
@@ -120,7 +121,7 @@
 
   <% if !@tb_status %>
     <label for='summary'>Summary</label>
-    <%= text_field_tag :summary, nil, { :tt_onLoad => "summary();", :optional => "true",
+    <%= text_field_tag :summary, nil, { :tt_onLoad => "__$('keyboard').style.display = 'none';summary();", :optional => "true",
                        :tt_pageStyleClass => "NoControls" ,
                        :condition => "$('transfer_in').value !='YES'",
                        :helpText => ''} %>
