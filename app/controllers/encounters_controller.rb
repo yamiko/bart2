@@ -4,10 +4,8 @@ class EncountersController < GenericEncountersController
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
 
-		if params[:encounter_type] == "hiv_clinic_consultation"
 			@hiv_status = tb_art_patient(@patient,"hiv program")
 			@tb_status = tb_art_patient(@patient,"TB program")
-		end
 
     if (params[:from_anc] == 'true')
       bart_activities = ['Manage Vitals','Manage HIV clinic consultations',
