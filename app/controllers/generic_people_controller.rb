@@ -414,7 +414,7 @@ class GenericPeopleController < ApplicationController
   end
 
 	def tb_initialization_location
-    locations = Location.find_by_sql("SELECT l.name FROM mwanza.location_tag lt
+    locations = Location.find_by_sql("SELECT l.name FROM location_tag lt
 																			INNER JOIN location_tag_map lm ON lm.location_tag_id = lt.location_tag_id
 																			INNER JOIN location l ON l.location_id = lm.location_id
 																			WHERE lt.name LIKE '%tb dot sites'
