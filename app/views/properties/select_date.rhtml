@@ -1,0 +1,26 @@
+<style>                                                                         
+div {                                                                           
+  -moz-user-select: none;                                                       
+}                                                                               
+</style>
+
+<script type="text/javascript">
+  tt_cancel_destination = "/clinic";
+  tt_cancel_show = '/clinic';
+</script>
+
+<% session_date = session[:datetime].to_date rescue Date.today %>
+
+<form id="frmMain" action="/report/set_appointments" method="post">
+
+  <%= text_field_tag("observations[][value_datetime]", session_date.strftime("%Y-%m-%d"),
+    {
+      :field_type => 'calendar',
+      :tt_onLoad => "showCategory('Next Appointment'); __$('category').style.display = 'none'; ",
+      :minDate => "#{session_date}",
+      :ajaxCalendarUrl => "/patients/number_of_booked_patients?date=",
+      :tt_onUnLoad => "__$('observations__value_datetime').value = hideInfo();"
+      }) %>
+
+<%=hidden_field_tag("user_selected_date", nil, :id => "user_selected_date" )%>
+</form>
