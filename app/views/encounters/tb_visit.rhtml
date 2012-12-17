@@ -60,7 +60,7 @@ function checkTBstatus() {
   function checkTestDate (){
     var dateCheck = "";
 
-    var testDate = new Date($('hiv_test_year').value, $('hiv_test_month').value - 1, $('hiv_test_day').value);
+    var testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
 <% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
 
     var sessionDate = "<%="#{@session_date.to_date.year},#{@session_date.to_date.month},#{@session_date.to_date.day}"%>";
@@ -73,23 +73,7 @@ function checkTBstatus() {
     }
     return dateCheck
   }
-   function updateTestDate(){
-    var testDate = new Date($('hiv_test_year').value, $('hiv_test_month').value - 1, $('hiv_test_day').value);
-    $('hiv_test_date').value = testDate;
 
-<% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
-<% @todayDate = @session_date.to_date - 90 %>
-
-    var sessionDate = "<%="#{@todayDate}"%>";
-    var todayDate = new Date(sessionDate);
-
-    if (todayDate > testDate){
-      showNegativeTestReminder = true
-	}else {
-      showNegativeTestReminder = false
-    }
-    return showNegativeTestReminder
-  }
 
   function updateInitiationDate(){
 
@@ -425,7 +409,7 @@ function checkTBstatus() {
 		} %>
 
 		<%= touch_location_tag "Location Of ART Initiation", @patient, nil, {:id => "location_of_art_intiation", :value_datetime => true,:helpText => "Location Of ART Initiation", :condition => '$("art_status").value == "YES"'}%>
-
+		<%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
 		<%= touch_hidden_tag "ART initiation date", @patient, nil, {:id => "hiv_initiation_date", :value_datetime => true}%>
         <%= touch_yes_no_tag "Ever registered at ART clinic", @patient, nil,
 	        {	:id => "ever_registered_at_ART_clinic",

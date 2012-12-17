@@ -37,7 +37,7 @@
   function checkTestDate (){
     var dateCheck = "";
 
-    var testDate = new Date($('hiv_test_year').value, $('hiv_test_month').value - 1, $('hiv_test_day').value);
+    var testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
 <% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
 
     var sessionDate = "<%="#{@session_date.to_date.year},#{@session_date.to_date.month},#{@session_date.to_date.day}"%>";
@@ -51,7 +51,7 @@
     return dateCheck
   }
    function updateTestDate(){
-    var testDate = new Date($('hiv_test_year').value, $('hiv_test_month').value - 1, $('hiv_test_day').value);
+    var testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
     $('hiv_test_date').value = testDate;
 
 <% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
@@ -272,7 +272,8 @@
 		} %>
 
 		<%= touch_location_tag "Location Of ART Initiation", @patient, nil, {:id => "location_of_art_intiation", :value_datetime => true,:helpText => "Location Of ART Initiation", :condition => '$("art_status").value == "YES"'}%>
- <%end%>
+		<%= touch_hidden_tag "Location Of ART Initiation", @patient, nil, {:id => "hiv_initiation_date", :value_datetime => true}%>
+<%end%>
 	<%if @hiv_status.upcase == 'POSITIVE' and not
       @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')%>
     <%= touch_yes_no_tag "Continue treatment", @patient, nil,
