@@ -251,7 +251,15 @@
 		 	:helpText => "TB type / TB susceptibility"
 		 	} %>
 <%#= raise @hiv_status.upcase.to_yaml %>
- <% if @hiv_status.upcase == 'POSITIVE' && !@patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM') %>
+
+	<%if @hiv_status.upcase == 'POSITIVE' and not
+      @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')%>
+    <%= touch_yes_no_tag "Continue treatment", @patient, nil,
+		  {	:id => "continue_treatment",
+			  :condition => "$('tb_suspected').value == 'YES'",
+			  :helpText => "Do you plan to continue picking up TB drugs at this clinic?" } %>
+	<% end %>
+	 <% if @hiv_status.upcase == 'POSITIVE' && !@patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM') %>
    <%= touch_yes_no_unknown_tag "ON ART", @patient, nil,
 		{:id => "art_status",
 		:tt_pageStyleClass => "NoKeyboard",
@@ -274,13 +282,8 @@
 		<%= touch_location_tag "Location Of ART Initiation", @patient, nil, {:id => "location_of_art_intiation", :value_datetime => true,:helpText => "Location Of ART Initiation", :condition => '$("art_status").value == "YES"'}%>
 		<%= touch_hidden_tag "Location Of ART Initiation", @patient, nil, {:id => "hiv_initiation_date", :value_datetime => true}%>
 <%end%>
-	<%if @hiv_status.upcase == 'POSITIVE' and not
+    <%if @hiv_status.upcase == 'POSITIVE' and not
       @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')%>
-    <%= touch_yes_no_tag "Continue treatment", @patient, nil,
-		  {	:id => "continue_treatment",
-			  :condition => "$('tb_suspected').value == 'YES'",
-			  :helpText => "Do you plan to continue picking up TB drugs at this clinic?" } %>
-
 		<%= touch_yes_no_unknown_tag "Patient enrolled in HIV program", 
         @patient, nil,
 			  {	:id => "enroll_patient_in_art",
