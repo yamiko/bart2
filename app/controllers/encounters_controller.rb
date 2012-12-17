@@ -367,7 +367,9 @@ class EncountersController < GenericEncountersController
 	def tb_art_patient(patient,program)
     program_id = Program.find_by_name(program).id
     enrolled = PatientProgram.find(:first,:conditions =>["program_id = ? AND patient_id = ?",program_id,patient.id]).blank?
-    return true unless enrolled
+    #raise enrolled.to_yaml
+
+		return true if enrolled
     false
   end
 
