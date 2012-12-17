@@ -588,7 +588,7 @@ class EncountersController < GenericEncountersController
 	def is_holiday(suggest_date, holidays)
 		holiday = false;
 		holidays.each do |h|
-			if (h.to_date.strftime('%A %d') == suggest_date.strftime('%A %d'))
+			if (h.to_date.strftime('%B %d') == suggest_date.strftime('%B %d'))
 				holiday = true;
 			end
 		end
@@ -645,16 +645,19 @@ class EncountersController < GenericEncountersController
     end                                                                         
                                                                                 
     if recommended_date.blank?                                                  
+      expiry_date_rec = expiry_date
       1.upto(5).each do |num|                                                   
         if clinic_days.collect{|c|c.upcase}.include?(expiry_date.strftime('%A').upcase)
-          recommended_date = expiry_date                                        
-          break                                                                 
+          unless is_holiday(expiry_date_rec,holidays)                                       
+            recommended_date = expiry_date_rec 
+            break                                                                 
+          end
+          expiry_date_rec -= 1
         end                                                                     
-        expiry_date-= 1.day                                                     
-        recommended_date = expiry_date                                          
       end                                                                       
     end                                                                         
                                                                                 
+    recommended_date = expiry_date if recommended_date.blank?
     return recommended_date
 	end
 
