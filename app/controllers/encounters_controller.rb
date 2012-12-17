@@ -4,6 +4,10 @@ class EncountersController < GenericEncountersController
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
 
+		if params[:encounter_type] == "hiv_clinic_consultation"
+			@hiv_status = tb_art_patient(@patient,"hiv program")
+			@tb_status = tb_art_patient(@patient,"TB program")
+		end
 
     if (params[:from_anc] == 'true')
       bart_activities = ['Manage Vitals','Manage HIV clinic consultations',
@@ -360,6 +364,12 @@ class EncountersController < GenericEncountersController
 		
 	end
 
+	def tb_art_patient(patient,program)
+    program_id = Program.find_by_name(program).id
+    enrolled = PatientProgram.find(:first,:conditions =>["program_id = ? AND patient_id = ?",program_id,patient.id]).blank?
+    return true unless enrolled
+    false
+  end
 
   def select_options
     select_options = {

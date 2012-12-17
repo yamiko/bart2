@@ -133,6 +133,14 @@
     }
   }
 
+  function checkTbHivStatus(){
+	<% #raise @tb_status.to_yaml
+	if @hiv_status == (true || "positive") and @tb_status == (true || "positive") %>
+		$("tb_status").value = "Confirmed TB NOT on treatment";
+    <%end%>
+
+  }
+
 </script>
 
 <form action="/encounters/create" method='post'>
@@ -212,7 +220,8 @@
     <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
       {:id => 'tb_status',
         :multiple => false,
-       :helpText => "TB Status" } %>
+       :helpText => "TB Status",
+	   :onLoad => 'checkTbHivStatus()'} %>
     <% else %>
         <%= touch_hidden_tag "TB STATUS" , @patient, ConceptName.find_by_name("#{@patient_tb_status}").name, {:id => "tb_status"} %>
     <% end %>
