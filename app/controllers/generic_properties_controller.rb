@@ -11,7 +11,7 @@ class GenericPropertiesController < ApplicationController
         clinic_holidays.property = 'clinic.holidays'
         clinic_holidays.description = 'day month year when clinic will be closed'
       end
-      clinic_holidays.property_value = params[:holidays]
+      clinic_holidays.property_value = params[:holidays].split(',').uniq.join(',')
       clinic_holidays.save 
       flash[:notice] = 'Date(s) successfully created.'
       redirect_to '/properties/clinic_holidays' and return

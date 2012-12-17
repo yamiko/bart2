@@ -7,14 +7,11 @@
 
 
   <%
-      clinic_holidays = CoreService.get_global_property_value('clinic.holidays') || '1900-12-25,1900-03-03'
-      clinic_holidays_hash = {} 
-      clinic_holidays.split(',').sort.map do |date|
-        clinic_holidays_hash[date] = 'true'
-      end    
+    clinic_holidays = CoreService.get_global_property_value('clinic.holidays') || '1900-12-25,1900-03-03'
+    clinic_holidays = clinic_holidays.split(',').to_json
   %>
 
-  var counts = <%= clinic_holidays_hash.to_json() %>;
+  var clinic_holidays = <%= clinic_holidays %>
 
   function summary() {
     //updateWhoStage();
@@ -30,16 +27,62 @@
     $("observations__value_datetime").value = "";
   }
 
+  var date_set = [];
+
+  for(var c = 0; c < clinic_holidays.length; c++) {
+    date_set.push(clinic_holidays[c]);
+  }
+
+  function removeDate(td) {                                               
+    dates = date_set ; date_set = []                                            
+    for (i = 0 ; i < dates.length ; i++) {                                      
+      if (dates[i] != td.getAttribute('date'))                                                 
+        date_set.push(dates[i])                                                 
+        document.getElementById('selected_dates').value = date_set.join(',');                                           
+    }                                                                           
+  }
 
   function showSelectedDates() {
     activeCells = document.getElementsByClassName('cellActive');
-    for(i=0;i<activeCells.length;i++) {
-      activeCells[i].style.backgroundColor = 'red;'
-      console.log(activeCells[i].style.backgroundColor)
+    for(var i = 0; i < activeCells.length; i++) {
+      weekDay = activeCells[i].getAttribute('date');
+      activeCells[i].setAttribute('onclick',"addDate(this);");
+      for(var x = 0 ; x < clinic_holidays.length; x++){
+        if (weekDay == clinic_holidays[x]) {
+          activeCells[i].style.backgroundColor = 'red';
+        }
+      }
+    }
+
+    for(var i = 0; i < activeCells.length; i++) {
+      weekDay = activeCells[i].getAttribute('date');
+      for(var x = 0 ; x < date_set.length; x++){
+        if (weekDay == date_set[x]) {
+          activeCells[i].style.backgroundColor = 'tomato';
+        }
+      }
+    }
+    
+  }
+
+  function setAttributes() {
+    buttons = document.getElementsByClassName('btn');
+    for(var i = 0; i < buttons.length; i++) {
+      new_attr = buttons[i].getAttribute('onclick') + ';showSelectedDates();'
+      buttons[i].setAttribute('onclick',new_attr);
     }
   }
 
-
+  function addDate(td) {
+    if (td.style.backgroundColor.match(/tomato/i)) {                                 
+      td.style.backgroundColor = '#FFFFFF';                                          
+      removeDate(td);                                                     
+    }else{                                                                      
+      date_set.push(td.getAttribute('date'));                                                  
+      td.style.background = 'tomato';
+      document.getElementById('selected_dates').value = date_set.join(',');                                           
+    }                     
+  }
   //-->
 </script>
 
@@ -50,9 +93,11 @@
   <%= text_field_tag("observations[][value_datetime]", session_date,
     {
       :field_type => 'calendar',
-      :tt_onLoad => "showSelectedDates();showCategory('Next Appointment'); __$('category').style.display = 'none';",
+      :tt_onLoad => "setAttributes();showSelectedDates();showCategory('Next Appointment'); __$('category').style.display = 'none';",
       :minDate => "#{session_date}",
       :tt_onUnLoad => "__$('observations__value_datetime').value = hideInfo();"
       }) %>
+
+  <%= hidden_field_tag "holidays", nil , :id => 'selected_dates' %> 
 
 </form>
