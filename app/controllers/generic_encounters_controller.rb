@@ -440,9 +440,9 @@ class GenericEncountersController < ApplicationController
           if params['encounter']['encounter_type_name'] == 'TB REGISTRATION'
 						tb_identifier = create_tb_number(type)
             if PatientIdentifier.site_prefix == "MPC"
-							identifier[:identifier] = "LL-TB #{session[:datetime].to_date.strftime('%Y %m')} #{tb_identifier}"
+							identifier[:identifier] = "LL-TB #{session[:datetime].to_date.strftime('%Y %m')} #{tb_identifier}" rescue  "LL-TB #{Date.today.strftime('%Y %m')} #{tb_identifier}"
 						else
-							identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{session[:datetime].to_date.strftime('%Y %m')} #{tb_identifier}"
+							identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{session[:datetime].to_date.strftime('%Y %m')} #{tb_identifier}" rescue  "LL-TB #{Date.today.strftime('%Y %m')} #{tb_identifier}"
 						end
           else
             identifier[:identifier] = "#{PatientIdentifier.site_prefix}-ARV-#{arv_number}"
@@ -1411,14 +1411,17 @@ class GenericEncountersController < ApplicationController
 	end
 	
 	def create_tb_number(type_id)
-		 session_date = "%#{session[:datetime].to_date.year.to_s}%";
+		session_date = "%#{Date.today.year.to_s}%"
+		current_date = Date.today.to_s
+		current_date = session[:datetime] if !session[:datetime].blank?
+		 session_date = "%#{session[:datetime].to_date.year.to_s}%" if !session[:datetime].blank?
 		 patient_exists = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ? AND patient_id = ?', type_id, session_date, @patient.id])
 		 type = patient_exists
 		 if patient_exists.blank?
 			type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ?', type_id, session_date],:order => 'date_created DESC')
 		 end
 		 type = type.first.identifier.split(" ") rescue ""
-		 if type.include?(session[:datetime].to_date.year.to_s)
+		 if type.include?(current_date.to_date.year.to_s)
 			return (type.last.to_i + 1) if patient_exists.blank?
 			return (type.last.to_i) if ! patient_exists.blank?
 		 else
