@@ -116,7 +116,7 @@ function tb_number(){
 	<% else %>
 	   prefix.innerHTML = "<%= get_global_property_value("site_prefix") rescue nil %>-TB"
 	<% end %>
-	prefix.innerHTML += ' <%= Date.today.strftime("%Y %m") %> '
+	prefix.innerHTML += ' <%= session[:datetime].to_date.strftime("%Y %m") %> '
     inputElement.parentNode.insertBefore(prefix, inputElement)
     style.value+= 'left:35px;'
     prefix.setAttributeNode(style)

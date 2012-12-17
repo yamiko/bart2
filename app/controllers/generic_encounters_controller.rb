@@ -440,9 +440,9 @@ class GenericEncountersController < ApplicationController
           if params['encounter']['encounter_type_name'] == 'TB REGISTRATION'
 						tb_identifier = create_tb_number(type)
             if PatientIdentifier.site_prefix == "MPC"
-							identifier[:identifier] = "LL-TB #{Date.today.strftime('%Y %m')} #{tb_identifier}"
+							identifier[:identifier] = "LL-TB #{session[:datetime].to_date.strftime('%Y %m')} #{tb_identifier}"
 						else
-							identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{Date.today.strftime('%Y %m')} #{tb_identifier}"
+							identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{session[:datetime].to_date.strftime('%Y %m')} #{tb_identifier}"
 						end
           else
             identifier[:identifier] = "#{PatientIdentifier.site_prefix}-ARV-#{arv_number}"
@@ -1413,7 +1413,7 @@ class GenericEncountersController < ApplicationController
 	def create_tb_number(type_id)
 		 type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ?', type_id],:order => 'date_created DESC')
 		 type = type.first.identifier.split(" ") rescue ""
-		 if type.include?(Date.today.strftime('%Y').to_s)
+		 if type.include?(session[:datetime].to_date.year.to_s)
 			return (type.last.to_i + 1)
 		 else
 			return 1
