@@ -251,13 +251,14 @@
 		 	:helpText => "TB type / TB susceptibility"
 		 	} %>
 
-    <% if @hiv_status.upcase !=  'POSITIVE' %>
+    
     <%= touch_select_tag "HIV STATUS", @patient, options_for_select(@select_options['hiv_status']),
 	{:id => "hiv_status",
 	:multiple => false,
 	:tt_pageStyleClass => "NoKeyboard",
 	:helpText => "HIV Status" } %>
 
+  <% if not  @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')%>
   <%= text_field_tag "hiv_test_year", nil,
 	{:helpText => 'HIV test year',
 	:field_type => 'number',
