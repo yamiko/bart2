@@ -785,6 +785,7 @@ class GenericPatientsController < ApplicationController
 	@variables = Hash.new()
 	@patient_bean = PatientService.get_patient(@patient.person)
 	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", 78, @patient.person]) rescue nil
+if (tbStart != nil)	
 	duration = Time.now.to_date - tbStart.encounter_datetime.to_date
 	@variables["patientId"] = PatientIdentifier.identifier(@patient_bean.patient_id, "7").identifier
   	@variables["tbStart"] = tbStart.encounter_datetime.to_time.strftime('%A, %d %B %Y') rescue nil
@@ -796,9 +797,9 @@ class GenericPatientsController < ApplicationController
 
 	#retrieve hiv status as required
 	@variables["hiv1"]=@variables["hiv2"]=@variables["hiv3"]=@variables["hiv4"] = " "
+if (obs != nil)
 	if @variables["status"] == "A"
 		@variables["hiv1"]=@variables["hiv2"]=@variables["hiv3"]=@variables["hiv4"] = "Past Postive"
-
 	elsif(obs.obs_datetime.to_date <= Date.today)
 		@variables["hiv1"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
 	elsif((obs.obs_datetime.to_date + 60) <= duration)
@@ -808,15 +809,16 @@ class GenericPatientsController < ApplicationController
 		elsif((obs.obs_datetime.to_date + 180) <= duration)
 		@variables["hiv2"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
 	end	
-
+end
 
 
 	@variables["startWeight"] = obs.value_numeric rescue nil
 	@variables["startWeightdate"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
 	temp = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
+if (obs != nil)	
 	@variables["smear1AAccession"] = temp["acc1"] +"/"+temp["acc2"]
 	@variables["smear1Aresult"] = temp["result1"] +"/"+ temp["result2"]
-
+end
 	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime > ?",@patient.person,5089, tbStart.encounter_datetime]) 
 	@variables["weight2"] = obs.value_numeric rescue nil
 	@variables["weight2date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
@@ -873,7 +875,7 @@ class GenericPatientsController < ApplicationController
 		end
 		x +=1
 	end
-	
+end	
 	
 
    render :layout => 'menu'
