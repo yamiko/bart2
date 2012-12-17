@@ -18,7 +18,7 @@ class EncountersController < GenericEncountersController
 
       (bart_activities).each do |activity|
         if not current_user_activities.include?(activity.upcase)
-          user_property.property_value += ",#{activity}" unless current_user.activities.blank?
+          user_property.property_value += ",#{activity}" rescue "" unless current_user.activities.blank?
           user_property.property_value = activity if current_user.activities.blank?
           user_property.save 
         end
@@ -1304,7 +1304,36 @@ class EncountersController < GenericEncountersController
     else
       render :text => "Location not found or not valid"
     end
-
   end 
+
+  def export_on_art_patients
+		@ids = params["ids"].split(",")   
+		@id_string = @ids =  "'" + @ids.join("','") + "'"	
+		@end_date = params["end_date"]  
+		@start_date = params["start_date"] 
+       	result = Hash.new
+        id_start_date_map = Hash.new
+        @patient_ids = []
+        
+      	PatientProgram.find_by_sql("SELECT e.patient_id, f.identifier, e.earliest_start_date, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state 
+			FROM earliest_start_date e 
+			JOIN person p ON p.person_id = e.patient_id
+            JOIN patient_identifier f ON f.patient_id = p.person_id AND f.identifier_type = (SELECT patient_identifier_type_id FROM patient_identifier_type WHERE name = 'National id') AND f.identifier IN (#{@id_string})
+			WHERE p.gender regexp 'F'
+			HAVING state = 7").each do | patient | 
+					@patient_ids << patient.patient_id								
+					idf = patient.identifier
+		       		result["#{idf}"] = patient.earliest_start_date
+			end   
+     
+  		cpt_ids = Encounter.find_by_sql("SELECT e.patient_id, o.value_drug, e.encounter_type FROM encounter e
+			INNER JOIN obs o ON e.encounter_id = o.encounter_id AND e.voided = 0
+			WHERE e.encounter_type = (SELECT encounter_type_id FROM encounter_type WHERE name = 'DISPENSING') 
+			AND o.value_drug IN (SELECT drug_id FROM drug WHERE name regexp 'cotrimoxazole')
+			AND e.patient_id IN (#{@patient_ids.join(',')})").collect{|e| e.patient_id}.uniq rescue []
+        
+		result["on_cpt"] = cpt_ids.length
+		render :text => result.to_json
+  end
 
 end

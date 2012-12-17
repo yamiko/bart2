@@ -13,7 +13,7 @@ class ApplicationController < GenericApplicationController
 
   # TB next form
   def tb_next_form(location , patient , session_date = Date.today)
-    task = Task.first rescue Task.new()
+     task = (Task.first.nil?)? Task.new() : Task.first
     
     if patient.patient_programs.in_uncompleted_programs(['TB PROGRAM', 'MDR-TB PROGRAM']).blank?
       #Patient has no active TB program ...'
@@ -687,7 +687,7 @@ class ApplicationController < GenericApplicationController
   
   def next_form(location , patient , session_date = Date.today)
     #for Oupatient departments
-    task = Task.first rescue Task.new()
+    task = (Task.first.nil?)? Task.new() : Task.first
     if location.name.match(/Outpatient/i)
       opd_reception = Encounter.find(:first,:conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?",
                         patient.id, session_date, EncounterType.find_by_name('OUTPATIENT RECEPTION').id])
