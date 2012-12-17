@@ -34,7 +34,7 @@
           }
           else
           {
-              window.location = '/clinic'; // /report/data_cleaning';
+              history.go(-1); // /report/data_cleaning';
           }
 
           })
@@ -122,12 +122,8 @@
 
         <div id="footer" class="dark">
           <div id="buttons" class="buttons" style="top:0px">
-            <button id="logout" class="red left" style="position :relative; float:right;"><span>Finish</span></button>
-            <button id="find" class="green" style="width:200px;" style="position :relative; float:right;"><span>Mastercards</span></button>
-			<%#= will_paginate @current_page, :page_links => false %>
-            <% if current_user.admin? %>
-            <!--button id="staging" class="yellow"><span>Staging</span></button-->
-            <% end %>
+            <button id="logout" class="green"><span>Finish</span></button>
+            <button id="find" class="blue" style="width:200px;left:5px;"><span>Mastercards</span></button>
           </div>          
         </div>    
       </div>  

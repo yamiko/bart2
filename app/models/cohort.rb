@@ -497,14 +497,14 @@ class Cohort
 		conditions = ''
 		patients = []
 		if min_age and max_age
-		  conditions = "AND DATEDIFF(initiation_date, person.birthdate) >= #{min_age}
-				        AND DATEDIFF(initiation_date, person.birthdate) < #{max_age}"
+		  conditions = "AND DATEDIFF(esd.earliest_start_date, person.birthdate) >= #{min_age}
+				        AND DATEDIFF(esd.earliest_start_date, person.birthdate) < #{max_age}"
 		end
 
 		if sex
 		  conditions += "AND person.gender = '#{sex}'"
 		end
-
+=begin
     PatientProgram.find_by_sql(
       "SELECT esd.*,person.gender,person.birthdate,
         IF(ISNULL(MIN(sdo.value_datetime)), earliest_start_date,
@@ -514,6 +514,15 @@ class Cohort
 	      LEFT JOIN start_date_observation sdo ON esd.patient_id = sdo.person_id
 			GROUP BY esd.patient_id
 	    HAVING esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' #{conditions}").each do | patient | 
+			patients << patient.patient_id
+		end
+		return patients
+=end
+		  PatientProgram.find_by_sql(
+      "SELECT esd.patient_id, esd.earliest_start_date
+	    FROM earliest_start_date esd
+	    INNER JOIN person ON person.person_id = esd.patient_id
+	    WHERE esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' #{conditions}").each do | patient |
 			patients << patient.patient_id
 		end
 		return patients
@@ -736,12 +745,26 @@ class Cohort
 		@patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
 		@patient_id_on_art_and_alive = @patients_alive_and_on_art
 		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
-
+=begin
 		status = PatientState.find_by_sql(
 			"SELECT e.patient_id, current_value_for_obs(e.patient_id, #{hiv_clinic_consultation_encounter_id}, #{tb_status_concept_id}, '#{end_date}') AS obs_value
 													FROM earliest_start_date e
 													WHERE earliest_start_date <= '#{end_date}'
 													AND e.patient_id IN (#{@patient_id_on_art_and_alive.join(',')}) ").each do |state|
+			states[state.patient_id] = state.obs_value
+		end
+=end
+		joined_array = @patient_id_on_art_and_alive.join(',')
+		PatientState.find_by_sql(
+			"SELECT e.patient_id, o.value_coded
+											FROM earliest_start_date e
+											INNER JOIN encounter en ON en.patient_id = e.patient_id
+											INNER JOIN obs o ON o.person_id = e.patient_id
+													WHERE earliest_start_date <= '#{end_date}'
+													AND o.encounter_id = #{hiv_clinic_consultation_encounter_id}
+													AND o.concept_id = #{tb_status_concept_id}
+													AND e.patient_id IN (#{joined_array})
+													ORDER BY en.encounter_datetime DESC LIMIT 1").each do |state|
 			states[state.patient_id] = state.obs_value
 		end
 
