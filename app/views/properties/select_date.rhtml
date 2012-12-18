@@ -10,6 +10,27 @@ div {
 <script type="text/javascript">
   tt_cancel_destination = "/clinic";
   tt_cancel_show = '/clinic';
+
+
+
+  function showSelectedDates() {  
+    activeCells = document.getElementsByClassName('cellActive');                
+    for(var i = 0; i < activeCells.length; i++) {                               
+      weekDay = activeCells[i].getAttribute('date');
+      activeCells[i].setAttribute('onmousedown',"addDate(this);");                  
+    }                                                                           
+  } 
+
+  function addDate(td) {                                                        
+    var selectedDate = td.getAttribute('date');
+    var mastercard = document.getElementById('clearButton');
+    mastercard.style.display = 'inline';
+    document.getElementById('user_selected_date').value = selectedDate;
+    mastercard.innerHTML = "<span>Mastercards</span>";
+    mastercard.setAttribute('onmousedown',"javascript:document.forms[0].submit();");
+  }   
+
+
 </script>
 
 <% session_date = session[:datetime].to_date rescue Date.today %>
@@ -19,7 +40,7 @@ div {
   <%= text_field_tag("observations[][value_datetime]", session_date.strftime("%Y-%m-%d"),
     {
       :field_type => 'calendar',
-      :tt_onLoad => "showCategory('Next Appointment'); __$('category').style.display = 'none'; ",
+      :tt_onLoad => "showCategory('Next Appointment'); __$('category').style.display = 'none';showSelectedDates();",
       :minDate => "#{session_date}",
       :ajaxCalendarUrl => "/patients/number_of_booked_patients?date=",
       :tt_onUnLoad => "__$('observations__value_datetime').value = hideInfo();"
