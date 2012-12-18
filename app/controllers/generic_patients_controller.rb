@@ -521,7 +521,7 @@ class GenericPatientsController < ApplicationController
         end
 =end
       end
-      # send it to the browsah
+      # send it to the browsbah
       send_data csv_string.gsub(' ','_'),
         :type => 'text/csv; charset=iso-8859-1; header=present',
         :disposition => "attachment:wq
@@ -782,8 +782,110 @@ class GenericPatientsController < ApplicationController
   end
 
   def tb_treatment_card # to look at later - To test that is
-  	@patient_bean = PatientService.get_patient(@patient.person)
-    render :layout => 'menu'
+
+	@variables = Hash.new()
+	@patient_bean = PatientService.get_patient(@patient.person)
+	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", 78, @patient.person]) rescue nil
+if (tbStart != nil)	
+	duration = Time.now.to_date - tbStart.encounter_datetime.to_date
+	@variables["patientId"] = PatientIdentifier.identifier(@patient_bean.patient_id, "7").identifier
+  	@variables["tbStart"] = tbStart.encounter_datetime.to_time.strftime('%A, %d %B %Y') rescue nil
+	@variables["arvStart"] = PatientService.patient_art_start_date(@patient.person).to_date.strftime(' %d- %b- %Y') rescue nil
+	@variables["regimen"] = Concept.find(:first, :conditions => ["concept_id = ?" ,PatientProgram.find(:all, :conditions => ["patient_id =? AND program_id = ?", @patient.person, 2]).last.current_regimen]).shortname rescue nil
+	encounters = [14,15,77,78,87,86,85]	
+	smears = PatientService.sputum_results_by_date(@patient.person) rescue nil
+	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime = ?",@patient.person,5089, 			tbStart.encounter_datetime]) rescue nil
+
+	#retrieve hiv status as required
+	@variables["hiv1"]=@variables["hiv2"]=@variables["hiv3"]=@variables["hiv4"] = " "
+if (obs != nil)
+	if @variables["status"] == "A"
+		@variables["hiv1"]=@variables["hiv2"]=@variables["hiv3"]=@variables["hiv4"] = "Past Postive"
+	elsif(obs.obs_datetime.to_date <= Date.today)
+		@variables["hiv1"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
+	elsif((obs.obs_datetime.to_date + 60) <= duration)
+		@variables["hiv2"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
+	elsif((obs.obs_datetime.to_date + 150) <= duration)
+		@variables["hiv2"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
+		elsif((obs.obs_datetime.to_date + 180) <= duration)
+		@variables["hiv2"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
+	end	
+end
+
+
+	@variables["startWeight"] = obs.value_numeric rescue nil
+	@variables["startWeightdate"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
+	temp = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
+if (obs != nil)	
+	@variables["smear1AAccession"] = temp["acc1"] +"/"+temp["acc2"]
+	@variables["smear1Aresult"] = temp["result1"] +"/"+ temp["result2"]
+end
+	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime > ?",@patient.person,5089, tbStart.encounter_datetime]) 
+	@variables["weight2"] = obs.value_numeric rescue nil
+	@variables["weight2date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
+	temp1 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
+	if(temp1 != nil)
+		@variables["smear2AAccession"] = temp1["acc1"] +"/" + temp1["acc2"]
+		@variables["smear2Aresult"] = temp1["result1"] +"/"+ temp1["result2"]
+
+
+	end
+
+	obs = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",@patient.person,5089, tbStart.encounter_datetime.to_date + 145,tbStart.encounter_datetime.to_date + 160 ]) rescue nil
+	@variables["weight3"].obs.value_numeric rescue nil
+	@variables["weight3date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
+	temp3 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
+	if (temp3 != nil)
+		@variables["smear3AAccesion"] = temp3["acc1"] + "/" + temp3["acc2"]
+		@variables["smear3Aresult"] = temp3["result1"] + "/" + temp3["result2"]
+
+	end
+
+	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",@patient.person,5089, tbStart.encounter_datetime.to_date + 175,tbStart.encounter_datetime.to_date + 245 ]) rescue nil
+
+	@variables["weight4"] = obs.value_numeric rescue nil
+	@variables["weight4date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
+	temp4 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
+	if (temp4 != nil)
+		@variables["smear4AAccesion"] = temp4["acc1"] + "/" + temp4["acc2"]
+		@variables["smear4Aresult"] = temp4["result1"] + "/" + temp4["result2"]
+	end
+
+	status = @variables["arvStart"].to_date - tbStart.encounter_datetime.to_date rescue nil
+
+	if status == nil
+			@variables["status"] = "C"
+	elsif sputum !=nil and sputum > 0
+			@variables["status"] = "A"
+	else
+			@variables["status"] = "B"
+	end
+
+	
+	@observations = Observation.find(:all, :conditions => ["encounter_id = ?", tbStart.encounter_id]) rescue nil 
+
+	x = 0
+	while x < @observations.length 
+		if @observations[x].concept.fullname == "Tuberculosis classification"
+			@variables["tbType"] = @observations.fetch(x).answer_string
+
+		elsif @observations[x].concept.fullname == "TB patient category"
+			@variables["patientType"] = @observations.fetch(x).answer_string
+		elsif @observations[x].concept.fullname == "Directly observed treatment option"
+			@variables["dotOption"] = @observations.fetch(x).answer_string
+		end
+		x +=1
+	end
+end	
+	
+
+   render :layout => 'menu'
+  end
+
+  def tb_treatment_card_page
+	#this method calls the page that displays a patients treatment records
+	  	@patient_bean = PatientService.get_patient(@patient.person)
+	render:layout => 'menu'
   end
 
   def alerts(patient, session_date = Date.today) 
@@ -1033,10 +1135,10 @@ class GenericPatientsController < ApplicationController
           label.font_horizontal_multiplier = 1
           label.font_vertical_multiplier = 1
           label.left_margin = 300
-          label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
-          label.draw_multi_text("#{patient_bean.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
-          label.draw_multi_text("#{observation.name rescue nil} - #{accession_number rescue nil}")
-          label.draw_multi_text("#{observation.date_created.strftime("%d-%b-%Y %H:%M")}")
+          label.draw_barcode(70,105,0,1,4,8,50,false,"#{accession_number}")
+          label.draw_text("#{patient_bean.name.titleize.delete("'")} #{patient_national_id_with_dashes}",70,45,0,2,1,1)
+          label.draw_text("#{observation.name rescue nil} - #{accession_number rescue nil}",70,65,0,2,1,1)
+          label.draw_text("#{observation.date_created.strftime("%d-%b-%Y %H:%M")}",70,90,0,2,1,1)
           labels << label
          end
 
@@ -1304,11 +1406,14 @@ class GenericPatientsController < ApplicationController
           label.font_size = 2
           label.font_horizontal_multiplier = 1
           label.font_vertical_multiplier = 1
-          label.left_margin = 300
-          label.draw_barcode(50,105,0,1,4,8,50,false,"#{accession_number}")
-          label.draw_multi_text("#{patient_bean.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
-          label.draw_multi_text("#{lab_orders[i].name rescue nil} - #{accession_number rescue nil}")
-          label.draw_multi_text("#{lab_orders[i].obs_datetime.strftime("%d-%b-%Y %H:%M")}")
+          label.left_margin = 750
+          label.draw_barcode(70,105,0,1,4,8,50,false,"#{accession_number}")
+          #label.draw_multi_text("#{patient_bean.name.titleize.delete("'")} #{patient_national_id_with_dashes}")
+          #label.draw_multi_text("#{lab_orders[i].name rescue nil} - #{accession_number rescue nil}")
+          #label.draw_multi_text("#{lab_orders[i].obs_datetime.strftime("%d-%b-%Y %H:%M")}")
+					label.draw_text("#{patient_bean.name.titleize.delete("'")} #{patient_national_id_with_dashes}",70,45,0,2,1,1)
+          label.draw_text("#{lab_orders[i].name rescue nil} - #{accession_number rescue nil}",70,65,0,2,1,1)
+          label.draw_text("#{lab_orders[i].obs_datetime.strftime("%d-%b-%Y %H:%M")}",70,90,0,2,1,1)
           labels << label
           end
           i = i + 1

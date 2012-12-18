@@ -200,7 +200,9 @@ var positive
   <label for='sputum_microscopy_month'>Sputum microscopy month</label>
   <%= select_tag "sputum_microscopy_month", month_name_options,
     {:helpText => 'Sputum microscopy month',
-     :condition => '$("sputum_microscopy_year").value.toLowerCase() != "unknown"'}%>
+	 :tt_onLoad => "__$('keyboard').style.display = 'none';",
+     :condition => '$("sputum_microscopy_year").value.toLowerCase() != "unknown"'
+	}%>
 
   <label for='sputum_microscopy_day'>Sputum microscopy day</label>
   <%= text_field_tag "sputum_microscopy_day",  nil, :field_type => 'number',

@@ -4,6 +4,8 @@ class EncountersController < GenericEncountersController
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
 
+			@hiv_status = tb_art_patient(@patient,"hiv program")
+			@tb_status = tb_art_patient(@patient,"TB program")
 
     if (params[:from_anc] == 'true')
       bart_activities = ['Manage Vitals','Manage HIV clinic consultations',
@@ -305,7 +307,7 @@ class EncountersController < GenericEncountersController
 			if @tb_status == true && @hiv_status != 'Negative'
         tb_hiv_exclusions = [['Pulmonary tuberculosis (current)', 'Pulmonary tuberculosis (current)'],
 					['Tuberculosis (PTB or EPTB) within the last 2 years', 'Tuberculosis (PTB or EPTB) within the last 2 years']]
-				@who_stage_iii = @who_stage_iii - tb_hiv_exclusions
+				#@who_stage_iii = @who_stage_iii - tb_hiv_exclusions
 			end
 
   			
@@ -360,6 +362,14 @@ class EncountersController < GenericEncountersController
 		
 	end
 
+	def tb_art_patient(patient,program)
+    program_id = Program.find_by_name(program).id
+    enrolled = PatientProgram.find(:first,:conditions =>["program_id = ? AND patient_id = ?",program_id,patient.id]).blank?
+    #raise enrolled.to_yaml
+
+		return true if enrolled
+    false
+  end
 
   def select_options
     select_options = {
