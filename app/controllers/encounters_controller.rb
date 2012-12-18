@@ -640,9 +640,17 @@ class EncountersController < GenericEncountersController
                                                                                 
     (bookings ||{}).sort_by { |dates,num| num }.reverse.each do |dates , num|   
       next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
-      recommended_date = dates                                                  
-      break if num <= clinic_appointment_limit                                  
+      if num <= clinic_appointment_limit                                  
+        recommended_date = dates                                                  
+        break 
+      end
     end                                                                         
+                                                                                
+    (bookings ||{}).sort_by { |dates,num| num }.each do |dates , num|   
+      next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
+      recommended_date = dates                                                  
+      break 
+    end if recommended_date.blank?                                                                        
                                                                                 
     if recommended_date.blank?                                                  
       expiry_date_rec = expiry_date
