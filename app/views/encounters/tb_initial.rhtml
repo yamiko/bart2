@@ -108,9 +108,7 @@
        :helpText => 'Can we send you an SMS for TB follow-up?'} %>
 
   <% end %>
-  <%= touch_yes_no_unknown_tag "Follow up agreement", @patient, nil,
-    {:id => "follow_up_agreement",
-     :helpText => 'Can we follow-up with you for TB treatment?'} %>
+
 
   <%
     date = session[:datetime].to_date rescue Date.today
