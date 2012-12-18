@@ -134,11 +134,12 @@
   }
 
   function checkTbHivStatus(){
-	<% if @hiv_status.to_s.upcase == "POSITIVE" && @tb_status.to_s == "true" %>
+	
+	<% if @hiv_status.to_s.upcase == "POSITIVE" && @tb_status.to_s == "true" %>	
 	  options = document.getElementsByTagName('li');
 				  for (i = 0 ; i < options.length ; i++) {
 				   if (options[i].getAttribute('tstvalue') == "Confirmed TB NOT on treatment") {
-					  updateTouchscreenInputForSelect($("optionValue" + i));
+					  updateTouchscreenInputForSelect(options[i]);
 				   }
 				  }
 
