@@ -1,7 +1,7 @@
 class ReportController < GenericReportController
 
 	def set_appointments
-		@select_date = params[:user_selected_date].to_date
+		@select_date = params[:user_selected_date].to_date rescue Date.today
 		@patients = appointments_for_the_day(@select_date)
 		render :layout => 'menu'
 	end

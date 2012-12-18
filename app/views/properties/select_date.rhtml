@@ -23,13 +23,20 @@ div {
 
   function addDate(td) {                                                        
     var selectedDate = td.getAttribute('date');
-    var mastercard = document.getElementById('clearButton');
-    mastercard.style.display = 'inline';
-    document.getElementById('user_selected_date').value = selectedDate;
-    mastercard.innerHTML = "<span>Mastercards</span>";
-    mastercard.setAttribute('onmousedown',"javascript:document.forms[0].submit();");
+    document.getElementById('selected_date').value = selectedDate;
+    //var mastercard = document.getElementById('clearButton');
+    //mastercard.style.display = 'inline';
+    //mastercard.innerHTML = "<span>Mastercards</span>";
+    //mastercard.setAttribute('onmousedown',"javascript:document.forms[0].submit();");
   }   
 
+  function setAttributes() {                                                    
+    buttons = document.getElementsByClassName('btn');                           
+    for(var i = 0; i < buttons.length; i++) {                                   
+      new_attr = buttons[i].getAttribute('onclick') + ';showSelectedDates();'   
+      buttons[i].setAttribute('onclick',new_attr);                              
+    }                                                                           
+  }
 
 </script>
 
@@ -40,11 +47,11 @@ div {
   <%= text_field_tag("observations[][value_datetime]", session_date.strftime("%Y-%m-%d"),
     {
       :field_type => 'calendar',
-      :tt_onLoad => "showCategory('Next Appointment'); __$('category').style.display = 'none';showSelectedDates();",
+      :tt_onLoad => "setAttributes();showCategory('Next Appointment'); __$('category').style.display = 'none';showSelectedDates();",
       :minDate => "#{session_date}",
       :ajaxCalendarUrl => "/patients/number_of_booked_patients?date=",
       :tt_onUnLoad => "__$('observations__value_datetime').value = hideInfo();"
       }) %>
 
-<%=hidden_field_tag("user_selected_date", nil, :id => "user_selected_date" )%>
+<%=hidden_field_tag("user_selected_date", nil, :id => "selected_date" )%>
 </form>
