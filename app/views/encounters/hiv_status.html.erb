@@ -53,8 +53,8 @@
 
     testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
     $('hiv_initiation_date').value = testDate;
-	<% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
-	<% @todayDate = @session_date.to_date - 90 %>
+<% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
+<% @todayDate = @session_date.to_date - 90 %>
 
     var sessionDate = "<%="#{@todayDate}"%>";
     var todayDate = new Date(sessionDate);
@@ -65,7 +65,7 @@
       showNegativeTestReminder = false
     }
     return showNegativeTestReminder
- }
+  }
 
   function isTestOverDue(testDate,alertDate) {
     if (testDate <= alertDate){
@@ -75,7 +75,7 @@
     }
   }
 
-    function createDate(year,month,day) {
+  function createDate(year,month,day) {
     date_str = year
 
     if(month.length == 1)
@@ -192,16 +192,13 @@
   <%= touch_hidden_tag "ART initiation date", @patient, nil, {:id => "hiv_initiation_date", :value_datetime => true}%>
   <%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
 
+  <%= touch_hidden_tag "Refer to HTC", @patient, "NO", {:id => "refer_to_htc"}%>
 
-  <% if Location.current_location.name.upcase == "TB HTC" %>
-	<%= touch_hidden_tag "Refer to HTC", @patient, "NO", {:id => "refer_to_htc" }%>
-  <%else%>
-	<%= touch_yes_no_unknown_tag "Refer to HTC", @patient, nil,
-	  {:id => "refer_to_htc",
-	  :condition => '$("hiv_status").value != "POSITIVE" && updateTestDate() == true',
-	  :tt_pageStyleClass => "NoKeyboard",
-	  :helpText => "Patient has been -ve for more than 3 months. Refer patient to HTC?" } %>
-  <%end%>
+  <%= touch_yes_no_unknown_tag "Refer to HTC", @patient, nil,
+	{:id => "refer_to_htc",
+	:condition => '$("hiv_status").value != "POSITIVE" && updateTestDate() == true',
+	:tt_pageStyleClass => "NoKeyboard",
+	:helpText => "Patient has been -ve for more than 3 months. Refer patient to HTC?" } %>
 
   <% session_date = session[:datetime].to_date rescue nil
   if session_date %>
