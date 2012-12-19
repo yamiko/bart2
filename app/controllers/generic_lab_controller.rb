@@ -102,6 +102,16 @@ class GenericLabController < ApplicationController
       :conditions=>["patient_id=? AND identifier_type IN (?)",
         patient.id,identifier_types]).collect{| i | i.identifier }
   end
-
+  
+  def new
+    @available_test = LabTestType.available_test                                
+    @lab_test = ['']                                                          
+    LabTestType.find(:all,                                                    
+    :conditions =>["REPLACE(TestName,'_',' ') LIKE ?","%#{params[:name]}%"],  
+    :order =>"TestName ASC").map{|test|                                       
+      @lab_test << [test.TestName.gsub('_',' '),test.TestName]                
+    }                                                                         
+    @patient_id = params[:id]                                                 
+  end
 
 end

@@ -41,7 +41,18 @@
     td = document.getElementById(id);
     td.innerHTML = "<a href =" + path + ">" +  result + "</a>"
   }
+
+  function newResults() {
+    document.location = '/lab/new'
+  }
+
+  function setAttributes() {
+    divBtn = document.getElementById('buttons');
+    divBtn.innerHTML += "<button onclick='newResults();' class='left button navButton' id='newResultsButton'><span>Enter results</span></button>"
+  }
 </script>
+
+<body onload="setTimeout('setAttributes();',100);">
 
 <div id = 'headdiv'>
 <h2><%=@patient_bean.name%>&nbsp;(<%=@patient_bean.sex%>)&nbsp;Age:&nbsp;<%=@patient_bean.age%></h2>
@@ -64,6 +75,7 @@
   </table>
 </div>
 
+</body>
 
 <%
 count = @results.length + 3 unless @results.blank?

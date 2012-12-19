@@ -39,6 +39,13 @@ end
 healthdata = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))['healthdata']
 bart_one_data = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))['migration']
 Lab.establish_connection(healthdata)
+LabTestType.establish_connection(healthdata)
+LabTestTable.establish_connection(healthdata)
+LabPanel.establish_connection(healthdata)
+LabParameter.establish_connection(healthdata)
+TableLabResultList.establish_connection(healthdata)
+TableLabResult.establish_connection(healthdata)
+
 BartOneEncounter.establish_connection(bart_one_data) # added for migration
 BartOneObservation.establish_connection(bart_one_data) # added for migration
 BartOneDrugOrder.establish_connection(bart_one_data) # added for migration

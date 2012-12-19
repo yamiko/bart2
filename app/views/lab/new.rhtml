@@ -1,0 +1,18 @@
+<script>
+   tt_cancel_destination = "/clinic";
+
+</script>
+
+<% form_tag 'create', :method => :post do %>
+   <%= select_tag("lab_result", options_for_select(@lab_test),
+       :id => 'value',
+       :helpText  => "Available tests") %>
+
+<%= select_tag 'date_available',options_for_select(["","Yes","No"]), 
+  {:onchange => "displayDate();" ,:helpText => 'Test date available'} %>
+
+<%= unobtrusive_date_picker :test_date, nil ,
+      :start_year => 1900 ,
+      :end_year => Date.today.year %>
+
+<%end%>
