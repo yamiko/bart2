@@ -1,0 +1,23 @@
+<script>
+   tt_cancel_destination = "/clinic";
+
+</script>
+
+<% form_tag 'create', :method => :post do %>
+   <%= select_tag("lab_result", options_for_select(@lab_test),
+       :id => 'value',
+       :helpText  => "Available tests") %>
+
+<%= select_tag 'date_available',options_for_select(["","Yes","No"]), 
+  {:onchange => "displayDate();" ,:helpText => 'Test date available'} %>
+
+<%= text_field_tag 'test_date', Date.today,                              
+      {:id => 'test_date',                                                 
+       :field_type => 'date',                                                 
+       :tt_onLoad => "displayDate();",                            
+       :helpText => "Test date",                                 
+       :max => "#{(Date.today).strftime('%Y-%m-%d')}",                        
+       :tt_pageStyleClass => "Date DatesOnly"} %>
+
+
+<%end%>
