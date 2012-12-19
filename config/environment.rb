@@ -45,6 +45,7 @@ LabPanel.establish_connection(healthdata)
 LabParameter.establish_connection(healthdata)
 TableLabResultList.establish_connection(healthdata)
 TableLabResult.establish_connection(healthdata)
+LabSample.establish_connection(healthdata)
 
 BartOneEncounter.establish_connection(bart_one_data) # added for migration
 BartOneObservation.establish_connection(bart_one_data) # added for migration
