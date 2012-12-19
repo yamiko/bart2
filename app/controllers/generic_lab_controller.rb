@@ -70,7 +70,7 @@ class GenericLabController < ApplicationController
     end
 
     results.each do | key , values |
-      value = values['Range'] + ' ' + values['TestValue']
+      value = values['Range'].to_s + ' ' + values['TestValue'].to_s
       @table_tr_data = @table_tr_data.sub(" id='#{key}'>"," class=#{}>#{value}")
     end
 
