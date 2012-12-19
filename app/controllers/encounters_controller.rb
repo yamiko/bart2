@@ -1329,6 +1329,74 @@ class EncountersController < GenericEncountersController
 
   end 
 
+	def lab_results_print
+		label_commands = lab_results_label(params[:id])
+		send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:id]}#{rand(10000)}.lbs", :disposition => "inline")
+
+	end
+
+	def lab_results_label(patient_id)
+		patient = Patient.find(patient_id)
+    patient_bean = PatientService.get_patient(patient.person)
+		observation = patient_recent_lab_results(patient_id)
+		sputum_results = [['NEGATIVE','NEGATIVE'], ['SCANTY','SCANTY'], ['WEAKLY POSITIVE','1+'], ['MODERATELY POSITIVE','2+'], ['STRONGLY POSITIVE','3+']]
+		concept_one = ConceptName.find_by_name("First sputum for AAFB results").concept_id
+		concept_two = ConceptName.find_by_name("Second sputum for AAFB results").concept_id
+		concept_three = ConceptName.find_by_name("Third sputum for AAFB results").concept_id
+		concept_four = ConceptName.find_by_name("Culture(1st) Results").concept_id
+		concept_five = ConceptName.find_by_name("Culture(2nd) Results").concept_id
+		concept =[]
+		culture =[]
+		labels = []
+		observation.each do |obs|
+			next if obs.value_coded.blank?
+			concept[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_one
+			concept[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_two
+			concept[2] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_three
+			culture[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_four
+			culture[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_five
+		end
+		if concept.length < 2
+						first = "Culture-1 Results: #{sputum_results.assoc("#{culture[0].upcase}")[1]}"
+						second = "Culture-2 Results: #{sputum_results.assoc("#{culture[1].upcase}")[1]}"
+		else
+						lab_result = []
+						h = 0
+						(0..2).each do |x|
+							if concept[x].to_s != ""
+								lab_result[h] = sputum_results.assoc("#{concept[x].upcase}")
+								h += 1
+							end
+						end
+						first = "AAFB(1st) results: #{lab_result[0][1] rescue ""}"
+						second = "AAFB(2nd) results: #{lab_result[1][1] rescue ""}"
+		end
+		i = 0
+    labels = []
+
+          label = 'label' + i.to_s
+          label = ZebraPrinter::Label.new(500,165)
+          label.font_size = 2
+          label.font_horizontal_multiplier = 1
+          label.font_vertical_multiplier = 1
+          label.left_margin = 300
+          label.draw_text("Name: #{patient_bean.name}",50,50,0,3,1,1,false)
+          label.draw_text(first,50,90,0,2,1,1)
+          label.draw_text(second,50,130,0,2,1,1)
+
+          labels << label
+
+         i = i + 1
+
+      print_labels = []
+      label = 0
+      while label <= labels.size
+        print_labels << labels[label].print(1) if labels[label] != nil
+        label = label + 1
+      end
+
+      return print_labels
+  end
 	#def create_tb_number(type_id)
 	#	 type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ?', type_id],:order => 'date_created DESC')
 	#	 raise type.to_yaml

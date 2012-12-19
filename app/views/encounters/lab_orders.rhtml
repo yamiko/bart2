@@ -151,6 +151,7 @@
 			:id => 'main_tests',
 			:tt_onUnLoad => 'updateLaborderUrl($("main_tests").value);'}%>
 
+
 	<%= touch_select_tag "TESTS ORDERED", @patient, options_for_select([]),
 		{	:id => "lab_orders",
 			:tt_onLoad => "$('clearButton').style.display='block'", 
