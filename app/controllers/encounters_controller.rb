@@ -588,7 +588,7 @@ class EncountersController < GenericEncountersController
 	def is_holiday(suggest_date, holidays)
 		holiday = false;
 		holidays.each do |h|
-			if (h.to_date.strftime('%A %d') == suggest_date.strftime('%A %d'))
+			if (h.to_date.strftime('%B %d') == suggest_date.strftime('%B %d'))
 				holiday = true;
 			end
 		end
@@ -633,44 +633,40 @@ class EncountersController < GenericEncountersController
 	end
 
 	def suggested_date(expiry_date, holidays, bookings, clinic_days)
-		number_of_suggested_booked_dates_tried = 0
-
-		skip = true
-		recommended_date = expiry_date
-		nearest_clinic_day = nil
-    
-		while skip
-			clinic_days.each do |d|
-				if (d.to_s.upcase == recommended_date.strftime('%A').to_s.upcase)
-					nearest_clinic_day = recommended_date if nearest_clinic_day.blank?
-					skip = is_holiday(recommended_date, holidays)
-					break
-				end
-			end
-
-
-			if (skip)
-				recommended_date = recommended_date - 1.day
-			else
-				below_limit = is_below_limit(recommended_date, bookings)
-				if (below_limit == false)
-					recommended_date = recommended_date - 1.day
-					skip = true
-				end
-			end
-
-			number_of_suggested_booked_dates_tried += 1 if nearest_clinic_day
-
-			test = (number_of_suggested_booked_dates_tried > 4)
-			
-			if test
-				recommended_date = nearest_clinic_day
-				skip = false
-			end
-		end
-
+    bookings.delete_if{|k,v| holidays.collect{|h|h.to_date.to_s[5..-1]}.include?(k.to_date.to_s[5..-1])}
+                                                                                
+    recommended_date = nil                                                      
+    clinic_appointment_limit = CoreService.get_global_property_value('clinic.appointment.limit').to_i rescue 0
+                                                                                
+    (bookings ||{}).sort_by { |dates,num| num }.reverse.each do |dates , num|   
+      next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
+      if num <= clinic_appointment_limit                                  
+        recommended_date = dates                                                  
+        break 
+      end
+    end                                                                         
+                                                                                
+    (bookings ||{}).sort_by { |dates,num| num }.each do |dates , num|   
+      next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
+      recommended_date = dates                                                  
+      break 
+    end if recommended_date.blank?                                                                        
+                                                                                
+    if recommended_date.blank?                                                  
+      expiry_date_rec = expiry_date
+      1.upto(5).each do |num|                                                   
+        if clinic_days.collect{|c|c.upcase}.include?(expiry_date.strftime('%A').upcase)
+          unless is_holiday(expiry_date_rec,holidays)                                       
+            recommended_date = expiry_date_rec 
+            break                                                                 
+          end
+          expiry_date_rec -= 1
+        end                                                                     
+      end                                                                       
+    end                                                                         
+                                                                                
+    recommended_date = expiry_date if recommended_date.blank?
     return recommended_date
-   
 	end
 
   def assign_close_to_expire_date(set_date,auto_expire_date)
