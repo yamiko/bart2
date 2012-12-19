@@ -1,4 +1,5 @@
 <%= javascript_include_tag "dateformat" %>
+
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
 
@@ -24,9 +25,7 @@
   <%= hidden_field_tag "encounter[provider_id]", current_user.user_id %>
 
 <%session_date = session[:datetime] || Time.now() %>
-<% @drug_given_before.prescriptions.each do |order| 
-     next if MedicationService.arv(order.drug_order.drug)
-%>
+<% PatientService.tb_drug_given_before(@patient, session_date.to_date).uniq.each do |order| %>
     <%= touch_numeric_tag "AMOUNT OF DRUG BROUGHT TO CLINIC", @patient, nil,
       {:id        => "amount_brought_#{order.order_id}",
        :units     => "#{order.drug_order.units}",
@@ -40,11 +39,15 @@
     <%= touch_text_field_tag "WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER", @patient, nil,
       {:id          => "adherence_#{order.order_id}",
        :helpText    => "Adherence summary for #{order.drug_order.drug.name}",
-       :tt_onLoad   => "adherence(#{order.id}, '#{order.start_date.strftime('%Y-%m-%d')}', '#{order.auto_expire_date.strftime('%Y-%m-%d')}', #{order.drug_order.equivalent_daily_dose || 0}, #{order.drug_order.quantity || 0})",
+       :tt_onLoad   => "__$('keyboard').style.display = 'none';adherence(#{order.id},
+       '#{order.start_date.strftime('%Y-%m-%d')}', 
+       '#{order.auto_expire_date.strftime('%Y-%m-%d')}', 
+       #{order.drug_order.equivalent_daily_dose || 0}, 
+       #{order.drug_order.quantity || 0})",
        :optional    => "true",
        :order_id    => "#{order.order_id}",
        :tt_pageStyleClass => "NoControls"} %>
-  <% end rescue [] %>
+  <% end %>
 <script>
 function since(date) {
     var today = dateCreate('<%=session_date.to_date%>');

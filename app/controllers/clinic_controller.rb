@@ -55,7 +55,7 @@ class ClinicController < GenericClinicController
   end
 
   def properties_tab
-    if current_program_location.match(/HIV program/i)
+    if current_program_location.match(/HIV program/i) or current_program_location.match(/TB program/i)
       @settings = [
         ["Set Clinic Days","/properties/clinic_days"],
         ["View Clinic Holidays","/properties/clinic_holidays"],

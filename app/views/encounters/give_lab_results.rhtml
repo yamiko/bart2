@@ -1,6 +1,6 @@
 <style type="text/css">
   .alert {
-    background: orange;
+    background: red;
   }
 </style>
 <script>
@@ -102,7 +102,7 @@
         <%= hidden_field_tag "encounter[provider_id]", current_user.user_id %>
 
         <%= text_field_tag :task_name, nil,
-            {   :tt_onLoad => "showResults();",
+            {   :tt_onLoad => "showResults();__$('keyboard').style.display = 'none'",
                 :optional => "true",
                 :tt_pageStyleClass => "NoControls",
                 :helpText => 'Give results' } %>

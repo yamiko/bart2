@@ -33,6 +33,6 @@
 %>
   <%= select_tag :relationship, options_for_select(
     options, params[:relationship]), 
-    {:helpText => "How is #{Person.find(params[:relation]).name rescue 'this person'} related to the patient"} %> 
+    {:tt_onLoad => "__$('keyboard').style.display = 'none';",  :helpText => "How is #{Person.find(params[:relation]).name rescue 'this person'} related to the patient"} %>
 
 </form>

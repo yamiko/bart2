@@ -27,4 +27,5 @@ class Patient < ActiveRecord::Base
     self.encounters.each {|row| row.void(reason) }
   end
 
+	
 end
