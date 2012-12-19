@@ -585,9 +585,8 @@ class EncountersController < GenericEncountersController
         ['Walk in', 'Walk in'],
         ['Index Patient', 'Index Patient'],
         ['HTC', 'HTC clinic'],
-        ['ART', 'ART Clinic'],
+        ['ART/PMTCT', 'ART Clinic/PMTCT'],
         ['OPD', 'OPD'],
-        ['PMTCT', 'PMTCT'],
         ['Private practitioner', 'Private practitioner'],
         ['Sputum collection point', 'Sputum collection point'],
         ['Other','Other']
