@@ -414,7 +414,7 @@ class GenericPeopleController < ApplicationController
   end
 
 	def tb_initialization_location
-    locations = Location.find_by_sql("SELECT name FROM location WHERE description like '%Health Facility' AND name LIKE '#{params[:search_string]}%'order by name")
+    locations = Location.find_by_sql("SELECT name FROM location WHERE description like '%Health Facility' AND name LIKE '#{params[:search_string]}%'order by name LIMIT 10")
     locations = locations.map do |d|
       "<li value='#{d.name}'>#{d.name}</li>"
     end
