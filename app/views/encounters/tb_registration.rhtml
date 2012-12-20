@@ -195,6 +195,7 @@ Check applicability of code below
 
   <%= touch_select_tag "Duration of current cough", @patient, options_for_select(@select_options['duration_of_current_cough']),
     {:id => "number_of_weeks_of_current_cough",
+	 :tt_onLoad => "__$('keyboard').style.display = 'none'",
      :tt_pageStyleClass => "NoKeyboard",
      :condition => "($('patient_coughing').value == 'YES')" ,
      :helpText => "Duration of cough" } %>

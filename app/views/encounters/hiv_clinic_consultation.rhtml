@@ -194,13 +194,13 @@
       {:id => 'symptoms',
        :optional => true,
        :multiple => true,
-       :helpText => "Symptoms (select all that apply)" } %>
+       :helpText => "ART related symptoms (select all that apply)" } %>
 
     <%= touch_select_tag "SYMPTOM PRESENT", @patient, concept_set_options('ADDITIONAL MALAWI ART SYMPTOM SET'),
       {:id => 'additional_symptoms',
        :optional => true,
        :multiple => true,
-       :helpText => "More symptoms (select all that apply)" } %>
+       :helpText => "More ART related symptoms (select all that apply)" } %>
 
     <% if @art_first_visit == false %>
       <%= touch_select_tag "DRUG INDUCED", @patient, options_for_select([['', '']]),
