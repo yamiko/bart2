@@ -176,6 +176,7 @@ Check applicability of code below
       <%= touch_identifier_tag @patient, "District TB Number", @identifier_value,
             {:id => "tb_district_number",
              :optional => false,
+			 :value => @tb_auto_number,
              :tt_onLoad => "press('num');tb_number();",
              :tt_pageStyleClass => "Numeric NumbersOnly",
              :helpText => "TB registration number" } %>

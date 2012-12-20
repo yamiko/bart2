@@ -345,7 +345,7 @@ class EncountersController < GenericEncountersController
 
 			@require_hiv_clinic_registration = require_hiv_clinic_registration
 		end
-
+		@tb_auto_number = create_tb_number(PatientIdentifierType.find_by_name('District TB Number').id)
 		redirect_to "/" and return unless @patient
 
 		redirect_to next_task(@patient) and return unless params[:encounter_type]
@@ -1259,10 +1259,11 @@ class EncountersController < GenericEncountersController
         end
         (program[:states] || []).each {|state| @patient_program.transition(state) }
       end
-
+			
       # Identifier handling
       arv_number_identifier_type = PatientIdentifierType.find_by_name('ARV Number').id
       (params[:identifiers] || []).each do |identifier|
+				
         # Look up the identifier if the patient_identfier_id is set
         @patient_identifier = PatientIdentifier.find(identifier[:patient_identifier_id]) unless identifier[:patient_identifier_id].blank?
         # Create or update
@@ -1271,17 +1272,18 @@ class EncountersController < GenericEncountersController
           arv_number = identifier[:identifier].strip
           if arv_number.match(/(.*)[A-Z]/i).blank?
             if params[:encounter]['encounter_type_name'] == 'TB REGISTRATION'
+							tb_identifier = create_tb_number(type)
 							if PatientIdentifier.site_prefix == "MPC"
-							 identifier[:identifier] = "LL-TB #{Date.today.strftime('%Y %m')} #{arv_number}"
+							 identifier[:identifier] = "LL-TB #{Date.today.strftime('%Y %m')} #{tb_identifier}"
 							else
-               identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{Date.today.strftime('%Y %m')} #{arv_number}"
+               identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{Date.today.strftime('%Y %m')} #{tb_identifier}"
 							end
             else
               identifier[:identifier] = "#{PatientIdentifier.site_prefix}-ARV-#{arv_number}"
             end
           end
         end
-
+				
         if @patient_identifier
           @patient_identifier.update_attributes(identifier)
         else
