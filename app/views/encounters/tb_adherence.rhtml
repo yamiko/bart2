@@ -39,7 +39,7 @@
     <%= touch_text_field_tag "WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER", @patient, nil,
       {:id          => "adherence_#{order.order_id}",
        :helpText    => "Adherence summary for #{order.drug_order.drug.name}",
-       :tt_onLoad   => "adherence(#{order.id}, 
+       :tt_onLoad   => "__$('keyboard').style.display = 'none';adherence(#{order.id},
        '#{order.start_date.strftime('%Y-%m-%d')}', 
        '#{order.auto_expire_date.strftime('%Y-%m-%d')}', 
        #{order.drug_order.equivalent_daily_dose || 0}, 

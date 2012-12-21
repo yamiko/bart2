@@ -346,7 +346,7 @@
 
 		<% if (@family_planning_methods.length != 0) || ( @patient_bean.sex == 'Female' && @patient_bean.age > 14 ) %>
 			<%= text_field_tag :task_name, nil,
-                {   :tt_onLoad => "showResults();",
+                {   :tt_onLoad => "showResults();__$('keyboard').style.display = 'none'",
                     :optional => "true",
                     :tt_pageStyleClass => "NoControls",
                     :helpText => '' } %>
@@ -417,7 +417,8 @@
 		 end
 	%>
 	<%= select_tag :tb_duration, optionsString, 
-		{	:condition => '$("prescribe_tb_drugs").value == "YES"',	
+		{	:condition => '$("prescribe_tb_drugs").value == "YES"',
+			:tt_onLoad => "__$('keyboard').style.display = 'none'",
 			:helpText => 'Duration' } %> 
 
 

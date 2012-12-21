@@ -177,8 +177,8 @@ Check applicability of code below
             {:id => "tb_district_number",
              :optional => false,
 			 :value => @tb_auto_number,
-             :tt_onLoad => "press('num');tb_number();",
-             :tt_pageStyleClass => "Numeric NumbersOnly",
+             :tt_onLoad => "__$('keyboard').style.display = 'none';press('num');tb_number();",
+             
              :helpText => "TB registration number" } %>
     <%else%>
         <%= touch_hidden_tag "TB registration number" , @patient, @transfer_in_TB_registration_number.to_s , :id => "tb_district_number" %>

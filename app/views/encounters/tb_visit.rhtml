@@ -77,10 +77,11 @@
 
     <% if @previous_tb_visit.length != 0 %> 
         <%= text_field_tag :task_name, nil,
-            {   :tt_onLoad => "showLastTBsigns();",
+            {   :tt_onLoad => "__$('keyboard').style.display = 'none';showLastTBsigns();",
                 :optional => "true",
-                :tt_pageStyleClass => "NoControls",
-                :helpText => '' } %>
+                :tt_pageStyleClass => "NoControls;",
+                :helpText => ''
+			  } %>
     <% end %>
   <% if @patient_bean.sex == 'Female' && @patient_bean.age > 13 %>
     
@@ -96,7 +97,7 @@
               <%= touch_hidden_tag "IS PATIENT PREGNANT?" , @patient, @is_patient_pregnant_value , :id => "pregnant" %>
           <%end%>
   <% end %>
-
+  <%  if @previous_tb_visit.length == 0  %>
 	<%  if @patient_bean.age > 13 %>
 
 		<% if @patient_bean.sex == 'Male' %>
@@ -119,7 +120,7 @@
 					:tt_pageStyleClass => "NoKeyboard",
 					:helpText => "What method?" } %>
 					
-                <% if @currently_using_family_planning_methods.nil? %>
+                <% if @currently_using_family_planning_methods.nil? and @previous_tb_visit.length == 0 %>
                     <%= touch_yes_no_unknown_tag "CURRENTLY USING FAMILY PLANNING METHOD", @patient, nil,
                       {:id => "on_fpm",
                        :condition => "$('pregnant').value == 'No'",
@@ -145,6 +146,7 @@
 
 		<% end %>
 	<% end %>
+<% end %>
 
   <% if @tb_symptoms.empty? || (@current_user_role.include?("Doctor") || @current_user_role.include?("Nurse") || @current_user_role.include?("Clinician")) %>
 	  <%= touch_yes_no_unknown_tag "SYMPTOMATIC", @patient, nil,
@@ -186,6 +188,11 @@
 				:tt_pageStyleClass => "NoKeyboard",
 				:tt_onUnLoad => "",
 				:helpText => "Drug related side effects" } %>
+		<% if not current_user.user_roles.map{|r|r.role}.include?('Clinician') and not current_user.user_roles.map{|r|r.role}.include?('Doctor')%>
+			<%= touch_yes_no_tag "REFER PATIENT TO CLINICIAN", @patient, nil,
+			 {:id => "refer_to_clinician",
+			   :helpText => "Refer patient to clinician" } %>
+		  <% end %>
 	<% end %>
 
 	<%	

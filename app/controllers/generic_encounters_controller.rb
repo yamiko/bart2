@@ -1413,6 +1413,10 @@ class GenericEncountersController < ApplicationController
 	def create_tb_number(type_id)
 		 type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ?', type_id],:order => 'date_created DESC')
 		 type = type.first.identifier.split(" ")
-		 return (type.last.to_i + 1)
+		 if type.include?(Date.today.strftime('%Y').to_s)
+			return (type.last.to_i + 1)
+		 else
+			return 1
+		 end
 	end
 end
