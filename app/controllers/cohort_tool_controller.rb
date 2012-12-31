@@ -603,16 +603,17 @@ class CohortToolController < GenericCohortToolController
 
 	def list_debbuger_details
 
-
+		
 		@logo = CoreService.get_global_property_value('logo').to_s
 		@quarter = params[:quarter]
   	@report_url = "/cohort_tool/cohort?quarter=#{@quarter}"
 		@report = []
 		reported_range = params[:value].to_s
-	
+		@sort = CoreService.get_global_property_value('sort')
+
 		patients = params[:attribute].to_s
 		session[:field] = params[:field] if session[:field].nil?
-
+		
 		if session[:field] == "children"
 			data =  session[:children][reported_range][patients]
 		elsif session[:field] == "women"
@@ -633,7 +634,14 @@ class CohortToolController < GenericCohortToolController
 			@report << PatientService.get_patient(patient.person)
 			set_outcomes_and_start_reason(patient_id) #find start reason and outcome for patient
 		end
-		
+		@report.sort { |a,b|
+						ap = a.arv_number.split('_') rescue ""
+						a = ap[0] + "%10d" rescue ""
+						bp = b.arv_number.split('_') rescue ""
+						b = bp[0] + "%10d" rescue ""
+						a <=> b
+			}
+			
 		render :layout => 'patient_list'
 	end
 	
