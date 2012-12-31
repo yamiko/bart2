@@ -113,7 +113,7 @@ Skip logic
   <%= touch_location_tag "LOCATION OF HIV TEST", @patient, nil,
     {:id => "location_of_hiv_test",
       :condition => '$("hiv_status").value == "POSITIVE"',
-	  :ajaxURL => '/people/tb_initialization_location?search_string=',
+	  :ajaxURL => '/encounters/locations?search_string=',
      :helpText => "Location of HIV test" } %>
 
  <%= touch_numeric_tag "HTC SERIAL NUMBER", @patient, nil,
@@ -126,18 +126,19 @@ Skip logic
  <%= touch_hidden_tag "ART initiation date", @patient, nil, {:id => "hiv_initiation_date", :value_datetime => true}%>
  <%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
 
-<% if !@referred_to_htc.nil? && ('YES' == @referred_to_htc.squish.upcase) %>
-  <%= hidden_field_tag("observations[][value_coded_or_text]", "NO") %>
-  <%= hidden_field_tag("observations[][concept_name]", "Refer to HTC") %>
-  <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-<%else%>
-  <% unless Location.current_location.name == "TB HTC" %>
+ <% unless Location.current_location.name == "TB HTC" %>
     <%= touch_yes_no_unknown_tag "Refer to HTC", @patient, nil,
       {:id => "refer_to_htc",
       :condition => '$("hiv_status").value != "POSITIVE" && updateTestDate()',
       :tt_pageStyleClass => "NoKeyboard",
       :helpText => "Patient has been -ve for more than 3 months. Refer patient to HTC?" } %>
   <%end%>
+
+<% if !@referred_to_htc.nil? && ('YES' == @referred_to_htc.squish.upcase) %>
+  <%= hidden_field_tag("observations[][value_coded_or_text]", "NO") %>
+  <%= hidden_field_tag("observations[][concept_name]", "Refer to HTC") %>
+  <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
+
 <%end%>
 
 <% session_date = session[:datetime].to_date rescue nil
