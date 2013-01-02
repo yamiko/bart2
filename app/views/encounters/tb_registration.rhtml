@@ -188,14 +188,16 @@ Check applicability of code below
   <%= touch_select_tag "DOT Option", @patient, concept_set_options("DOT Option"),
     {:id => "dot_option",
      :tt_pageStyleClass => "NoKeyboard",
-     :helpText => "DOT option" } %>
+     :helpText => "DOT option",
+	 :tt_onLoad => 'showCategory("Registration")' } %>
      
 <%= select_tag :patient_coughing, options_for_select([['',''],['Yes','YES'],['No','NO']], ''),
-	  { :helpText => "Is the patient coughing?", } %>
+	  { :helpText => "Is the patient coughing?",
+	 :tt_onLoad => 'showCategory("Registration")' } %>
 
   <%= touch_select_tag "Duration of current cough", @patient, options_for_select(@select_options['duration_of_current_cough']),
     {:id => "number_of_weeks_of_current_cough",
-	 :tt_onLoad => "__$('keyboard').style.display = 'none'",
+	 :tt_onLoad => "__$('keyboard').style.display = 'none';showCategory('Registration')",
      :tt_pageStyleClass => "NoKeyboard",
      :condition => "($('patient_coughing').value == 'YES')" ,
      :helpText => "Duration of cough" } %>
@@ -205,7 +207,8 @@ Check applicability of code below
 		  <%= touch_select_tag "TB classification", @patient, options_for_select(@select_options['tb_classification']),
 			{	:id => "tb_classification",
 				:tt_pageStyleClass => "NoKeyboard",
-				:helpText => "TB classification" } %>
+				:helpText => "TB classification",
+				:tt_onLoad => 'showCategory("Registration")' } %>
 		 <% else %>
 		   <%= touch_hidden_tag "TB classification", @patient, "Pulmonary tuberculosis", :id => "tb_classification" %>
 		 <% end %>
@@ -218,7 +221,8 @@ Check applicability of code below
 			{	:id => "further_tb_classification",
 				:condition => '$("tb_classification").value == "Extrapulmonary tuberculosis (EPTB)"',
 				:tt_pageStyleClass => "NoKeyboard",
-				:helpText => "EPTB classification" } %>
+				:helpText => "EPTB classification",
+				:tt_onLoad => 'showCategory("Registration")' } %>
 	<% else %>
 		<%= touch_hidden_tag "EPTB classification", @patient, @eptb_classification, :id => "further_tb_classification" %>
 	<% end %> 
@@ -228,7 +232,8 @@ Check applicability of code below
 			{	:id => "tb_type",
 				:tt_pageStyleClass => "NoKeyboard",
 				:helpText => "TB type / TB susceptibility",
-				:tt_OnUnload => "set_TB_program_values($('tb_type').value)"  } %>
+				:tt_OnUnload => "set_TB_program_values($('tb_type').value)",
+				:tt_onLoad => 'showCategory("Registration")'  } %>
 	<% else %>
 		<%= touch_hidden_tag "TB type", @patient, @tb_type, :id => "tb_type" %>
 		<script>
@@ -253,7 +258,8 @@ Check applicability of code below
   <%= touch_select_tag "TB patient category", @patient,  options_for_select(@select_options['tb_patient_categories']),
     {:id => "patient_category",
      :tt_pageStyleClass => "NoKeyboard",
-     :helpText => "Patient category" } %>
+     :helpText => "Patient category",
+	 :tt_onLoad => 'showCategory("Registration")'} %>
 
   <% session_date = session[:datetime].to_date rescue nil                       
     if session_date %>

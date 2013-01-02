@@ -4,9 +4,21 @@ class EncountersController < GenericEncountersController
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
 
-			@hiv_status = tb_art_patient(@patient,"hiv program")
-			@tb_status = tb_art_patient(@patient,"TB program")
-
+			@hiv_status = tb_art_patient(@patient,"hiv program") rescue ""
+			@tb_status = tb_art_patient(@patient,"TB program") rescue ""
+			@show_tb_types = false
+			consultation_tb_status = Patient.find_by_sql("
+											SELECT patient_id, current_state_for_program(patient_id, 2, '#{session_date}') AS state, c.name
+											FROM patient p INNER JOIN program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(patient_id, 2, '#{session_date}')
+											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{@patient.patient_id}'").first.name rescue ""
+			 if consultation_tb_status == "Currently in treatment"
+				 @consultation_tb_status = "Confirmed TB on treatment"
+			 elsif consultation_tb_status == "Symptomatic but NOT in treatment" or @hiv_status.to_s.upcase == "POSITIVE"
+				 @consultation_tb_status = "Confirmed TB NOT on treatment"
+			 else
+				 @show_tb_types = true
+				 @consultation_tb_status = "Unknown"
+			 end
     if (params[:from_anc] == 'true')
       bart_activities = ['Manage Vitals','Manage HIV clinic consultations',
         'Manage ART adherence','Manage HIV staging visits','Manage HIV first visits',
@@ -522,7 +534,7 @@ class EncountersController < GenericEncountersController
         ["Fatigue", "Fatigue"],
         ["Fever", "Relapsing fever"],
         ["Loss of appetite", "Loss of appetite"],
-        ["Meningitis", "Meningitis"],
+       # ["Meningitis", "Meningitis"],
         ["Night sweats","Night sweats"],
         ["Peripheral neuropathy", "Peripheral neuropathy"],
         ["Shortness of breath", "Shortness of breath"],
@@ -572,8 +584,8 @@ class EncountersController < GenericEncountersController
       'tb_types' => [
         ['',''],
         ['Susceptible', 'Susceptible to tuberculosis drug'],
-        ['Multi-drug resistant (MDR)', 'Multi-drug resistant tuberculosis'],
-        ['Extreme drug resistant (XDR)', 'Extreme drug resistant tuberculosis']
+       # ['Multi-drug resistant (MDR)', 'Multi-drug resistant tuberculosis'],
+        ['Extensive drug resistant (XDR)', 'Extensive drug resistant tuberculosis']
       ],
       'tb_classification' => [
         ['',''],
