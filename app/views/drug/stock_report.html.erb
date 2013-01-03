@@ -171,16 +171,16 @@
     <td class="color_<%=color%> caldata" id="dispensed_<%=count%>">
       <%                                                                        
         verified = (values['confirmed_closing'] / 60).round                     
-        difference = verified - expected                                        
+        difference = ((verified.to_f/expected.to_f)*100).round                                      
       %> 
       <table class="inner-data">
         <tr>
           <%if difference < 0 %>
-            <td style="text-align:center;color:red;"><%= difference %></td>
+            <td style="text-align:center;color:red;"><%= difference %>&#37;</td>
           <%elsif difference == 0 %>
-            <td style="text-align:center;color:green;"><%= difference %></td>
+            <td style="text-align:center;color:green;"><%= difference %>&#37;</td>
           <%else%>
-            <td style="text-align:center;color:green;">+<%= difference %></td>
+            <td style="text-align:center;color:green;">+<%= difference %>&#37;</td>
           <%end%>
         </tr>
       </table>
