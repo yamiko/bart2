@@ -799,6 +799,7 @@ class GenericPatientsController < ApplicationController
 
 	@variables = Hash.new()
 	@patient_bean = PatientService.get_patient(@patient.person)
+	@variables["hiv"] =  PatientService.patient_hiv_status(@patient.person)
 	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", 78, @patient.person]) rescue nil
 if (tbStart != nil)	
 	duration = Time.now.to_date - tbStart.encounter_datetime.to_date
@@ -899,8 +900,19 @@ end
   def tb_treatment_card_page
 	#this method calls the page that displays a patients treatment records
 	  	@patient_bean = PatientService.get_patient(@patient.person)
+	  	@previous_visits  = get_previous_tb_visits(@patient.person)
 	render:layout => 'menu'
   end
+  
+  def get_previous_tb_visits(patient_id)
+  	start = 	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", 78, @patient.person]).encounter_datetime rescue nil
+
+    previous_encounters = Encounter.find(:all,
+              :conditions => ["encounter.voided = ? and patient_id = ? and encounter.encounter_datetime >= ? and encounter_type = ?", 0, patient_id, start,87])
+
+    return previous_encounters
+  end
+
 
   def alerts(patient, session_date = Date.today) 
     # next appt
