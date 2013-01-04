@@ -799,7 +799,7 @@ class GenericPatientsController < ApplicationController
 
 	@variables = Hash.new()
 	@patient_bean = PatientService.get_patient(@patient.person)
-	@variables["hiv"] =  PatientService.patient_hiv_status(@patient.person)
+	@variables["hiv"] =  PatientService.patient_hiv_status(@patient.person) rescue nil
 	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", 78, @patient.person]) rescue nil
 if (tbStart != nil)	
 	duration = Time.now.to_date - tbStart.encounter_datetime.to_date
@@ -808,8 +808,46 @@ if (tbStart != nil)
 	@variables["arvStart"] = PatientService.patient_art_start_date(@patient.person).to_date.strftime(' %d- %b- %Y') rescue nil
 	@variables["regimen"] = Concept.find(:first, :conditions => ["concept_id = ?" ,PatientProgram.find(:all, :conditions => ["patient_id =? AND program_id = ?", @patient.person, 2]).last.current_regimen]).shortname rescue nil
 	encounters = [14,15,77,78,87,86,85]	
-	smears = PatientService.sputum_results_by_date(@patient.person) rescue nil
-	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime = ?",@patient.person,5089, 			tbStart.encounter_datetime]) rescue nil
+	status = @variables["arvStart"].to_date - tbStart.encounter_datetime.to_date rescue nil
+
+	if status == nil
+			@variables["status"] = "C"
+	elsif sputum !=nil and sputum > 0
+			@variables["status"] = "A"
+	else
+			@variables["status"] = "B"
+	end
+
+	
+	@observations = Observation.find(:all, :conditions => ["encounter_id = ?", tbStart.encounter_id]) rescue nil 
+
+	x = 0
+	while x < @observations.length 
+		if @observations[x].concept.fullname == "Tuberculosis classification"
+			@variables["tbType"] = @observations.fetch(x).name
+
+		elsif @observations[x].concept.fullname == "TB patient category"
+			@variables["patientType"] = @observations.fetch(x).answer_string
+		elsif @observations[x].concept.fullname == "Directly observed treatment option"
+			@variables["dotOption"] = @observations.fetch(x).answer_string
+		end
+		x +=1
+	end
+end	
+	
+
+   render :layout => 'menu'
+  end
+
+  def tb_treatment_card_page
+	#this method calls the page that displays a patients treatment records
+	  	@patient_bean = PatientService.get_patient(@patient.person)
+	  	@previous_visits  = get_previous_tb_visits(@patient.person)
+  		smears = PatientService.sputum_results_by_date(@patient.person) rescue nil
+	  	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", EncounterType.find_by_name("TB Registration").id, @patient.person]) rescue nil
+	  	@variables = Hash.new("")
+	  	
+	  		obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime = ?",@patient.person,5089, 			tbStart.encounter_datetime]) rescue nil
 
 	#retrieve hiv status as required
 	@variables["hiv1"]=@variables["hiv2"]=@variables["hiv3"]=@variables["hiv4"] = " "
@@ -821,21 +859,21 @@ if (obs != nil)
 	elsif((obs.obs_datetime.to_date + 60) <= duration)
 		@variables["hiv2"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
 	elsif((obs.obs_datetime.to_date + 150) <= duration)
-		@variables["hiv2"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
+		@variables["hiv3"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
 		elsif((obs.obs_datetime.to_date + 180) <= duration)
-		@variables["hiv2"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
+		@variables["hiv4"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
 	end	
 end
 
-
+	
+if (obs != nil)	
 	@variables["startWeight"] = obs.value_numeric rescue nil
 	@variables["startWeightdate"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
 	temp = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
-if (obs != nil)	
 	@variables["smear1AAccession"] = temp["acc1"] +"/"+temp["acc2"]
 	@variables["smear1Aresult"] = temp["result1"] +"/"+ temp["result2"]
 end
-	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime > ?",@patient.person,5089, tbStart.encounter_datetime]) 
+	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime > ?",@patient.person,5089, tbStart.encounter_datetime]) rescue nil
 	@variables["weight2"] = obs.value_numeric rescue nil
 	@variables["weight2date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
 	temp1 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
@@ -866,51 +904,28 @@ end
 		@variables["smear4Aresult"] = temp4["result1"] + "/" + temp4["result2"]
 	end
 
-	status = @variables["arvStart"].to_date - tbStart.encounter_datetime.to_date rescue nil
-
-	if status == nil
-			@variables["status"] = "C"
-	elsif sputum !=nil and sputum > 0
-			@variables["status"] = "A"
-	else
-			@variables["status"] = "B"
-	end
-
-	
-	@observations = Observation.find(:all, :conditions => ["encounter_id = ?", tbStart.encounter_id]) rescue nil 
-
-	x = 0
-	while x < @observations.length 
-		if @observations[x].concept.fullname == "Tuberculosis classification"
-			@variables["tbType"] = @observations.fetch(x).answer_string
-
-		elsif @observations[x].concept.fullname == "TB patient category"
-			@variables["patientType"] = @observations.fetch(x).answer_string
-		elsif @observations[x].concept.fullname == "Directly observed treatment option"
-			@variables["dotOption"] = @observations.fetch(x).answer_string
-		end
-		x +=1
-	end
-end	
-	
-
-   render :layout => 'menu'
-  end
-
-  def tb_treatment_card_page
-	#this method calls the page that displays a patients treatment records
-	  	@patient_bean = PatientService.get_patient(@patient.person)
-	  	@previous_visits  = get_previous_tb_visits(@patient.person)
+	  	
+	  	
 	render:layout => 'menu'
   end
   
   def get_previous_tb_visits(patient_id)
-  	start = 	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", 78, @patient.person]).encounter_datetime rescue nil
+  
+  	start = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", 78, @patient.person]).encounter_datetime rescue nil
 
-    previous_encounters = Encounter.find(:all,
-              :conditions => ["encounter.voided = ? and patient_id = ? and encounter.encounter_datetime >= ? and encounter_type = ?", 0, patient_id, start,87])
+	type = EncounterType.find_by_name("TB Adherence").id rescue nil
+  results = Array.new()
+  adherences = Encounter.find(:all,:conditions => ["patient_id = ? and encounter_type = ? and encounter_datetime >= ?",patient_id,type,start])
+  		start = adherences[0].date rescue nil
+  		adherences.each do |work|
+  			if ((work.date.to_date <= (start.to_date + 10 )) and (work.date.to_date >= (start.to_date - 10 )) and (work.observations[2] != nil))
+  				results << work
+  				start = start.to_date + 30
 
-    return previous_encounters
+  			end
+  		end
+  
+    return results
   end
 
 
