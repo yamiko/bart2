@@ -22,6 +22,39 @@
 	}
 	setTimeout("back()",300)
 	
+	
+  function addRow() {
+ 
+  var table = document.getElementById("adherence");
+ 	<% @previous_visits.each do |visit| %>
+	
+		var rowCount = table.rows.length;
+		var row = table.insertRow(rowCount);
+	 
+		var cell1 = row.insertCell(0);   
+		cell1.innerHTML = table.rows.length -2;
+		cell1.setAttribute("align","center")
+		
+		var cell2 = row.insertCell(1);
+		cell2.innerHTML = <%= visit.date.strftime('%d/%m/%Y').to_json%>;
+		cell2.setAttribute("align","center")
+		 
+		var cell3 = row.insertCell(2);
+		cell3.innerHTML = <%= visit.observations[1].to_s.split(':')[1].to_json %>;
+		cell3.setAttribute("align","center")
+
+		var cell4 = row.insertCell(3);
+		cell4.innerHTML = <%= visit.observations[2].to_s.split(':')[1].to_json %>;
+		cell4.setAttribute("align","center")
+
+		var cell5 = row.insertCell(4);
+		cell5.innerHTML = <%= visit.observations[3].to_s.split(':')[1].to_json %>;
+		cell5.setAttribute("align","center")
+
+	<%end%>
+          
+  }
+ setTimeout("addRow();",300)
 </script>
 
 
@@ -36,7 +69,7 @@
 	div.container{border: 1px solid;line-height:25px; border-radius:15px;  margin:10px;}
 	div.option{border: 1px solid;height:35px;width:30px; border-radius:5px;}
 	div.option2{border: 1px solid;height:25px;width:95%;text-align:center; border-radius:4px;}
-	div.main {overflow:auto; margin: 15px;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-o-user-select: none;user-select: none;}
+	div.main {overflow:auto; height:630px;margin: 15px;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-o-user-select: none;user-select: none;}
 </style>
 
 
@@ -52,37 +85,27 @@
 
 	<tr><th width = 10%>Test<th width= 10%>Date<th>Accesion No<th width = 20%>Result</td></tr>
 
-	<tr><td>Initiation<td>Smear<td >&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td >&nbsp</td ></tr>
+	<tr><td>Initiation<td>Smear<td ><%= @variables["startWeightdate"]%><td><%= @variables["smear1AAccession"]%><td><%= @variables["smear1Aresult"]%><td>	<%= @variables["startWeight"]%><td ><%= @variables["hiv1"]%></td ></tr>
 			
-	<tr><td>Month 2<td>Smear<td>&nbsp<td>&nbsp<td>&nbsp<td rowspan = "2">&nbsp<td rowspan = "2">&nbsp</td></tr>
+	<tr><td>Month 2<td>Smear<td><%= @variables["weight2date"]%><td><%= @variables["smear2AAccession"]%><td><%= @variables["smear2Aresult"]%><td rowspan = "2"><%= @variables["weight2"]%><td rowspan = "2"><%= @variables["hiv2"]%></td></tr>
 
-	<tr><td>Month 3*<td>Smear<td>&nbsp<td>&nbsp<td>&nbsp</tr>
+	<tr><td>Month 3*<td>Smear<td><%= @variables["weight3date"]%><td>&nbsp<td></tr>
 
-	<tr><td>Month 5<td>Smear<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp</td></tr>
+	<tr><td>Month 5<td>Smear<td ><%= @variables["weight4date"]%><td><%= @variables["smear3AAccession"]%><td><%= @variables["smear3Aresult"]%><td>	<%= @variables["weight4"]%><td ><%= @variables["hiv3"]%></td ></tr>
 
-	<tr><td>Last month 6/8<td>Smear<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp</td></tr>
+	<tr><td>Last month 6/8<td>Smear<td ><%= @variables["weight5date"]%><td><%= @variables["smear4AAccession"]%><td><%= @variables["smear4Aresult"]%><td>	<%= @variables["weight5"]%><td ><%= @variables["hiv4"]%></td ></tr>
 	
 </table>
 <br>
 <font size = 4><b>TB DRUG ADHERENCE</b></font>
 <br>
 
-<table width= 100% border= 1px cellspacing = 0px cellpadding = 0px >
+<table id= "adherence" width= 100% border= 1px cellspacing = 0px cellpadding = 0px align= "centre" >
 	<tr><th rowspan=2>Month</th><th rowspan =2>Date</th><th width = 60% colspan = 3>Drug Adherence</th></tr>
 	<tr><th>Drugs Brought</th><th>Drugs At Home</th><th>Adherence %</th></tr>
-	<tr><th>Month 1</th><td></td><td></td><td></td><td></td> </tr>
-	<tr><th>Month 2</th><td></td><td></td><td></td><td></td> </tr>
-	<tr><th>Month 3</th><td></td><td></td><td></td><td></td> </tr>
-	<tr><th>Month 4</th><td></td><td></td><td></td><td></td> </tr>
-	<tr><th>Month 5</th><td></td><td></td><td></td><td></td> </tr>
-	<tr><th>Month 6</th><td></td><td></td><td></td><td></td> </tr>
-	<tr><th>Month 7</th><td></td><td></td><td></td><td></td> </tr>
-	<tr><th>Month 8</th><td></td><td></td><td></td><td></td> </tr>
-	<tr><th>Month 9</th><td></td><td></td><td></td><td></td> </tr>
-	<tr><th>Month 10</th><td></td><td></td><td></td><td></td> </tr>
-	<tr><th>Month 11</th><td></td><td></td><td></td><td></td> </tr>
-	<tr><th>Month 12</th><td></td><td></td><td></td><td></td> </tr>
-</table>
 	
+</table>
+	<br>
+
 <b>Remarks:</b>
 </div>
