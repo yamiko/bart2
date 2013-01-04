@@ -1342,48 +1342,49 @@ class EncountersController < GenericEncountersController
   end 
 
 	def lab_results_print
+		raise params.to_yaml
 		label_commands = lab_results_label(params[:id])
 		send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:id]}#{rand(10000)}.lbs", :disposition => "inline")
 
 	end
 
-	def lab_results_label(patient_id)
-		patient = Patient.find(patient_id)
-    patient_bean = PatientService.get_patient(patient.person)
-		observation = patient_recent_lab_results(patient_id)
-		sputum_results = [['NEGATIVE','NEGATIVE'], ['SCANTY','SCANTY'], ['WEAKLY POSITIVE','1+'], ['MODERATELY POSITIVE','2+'], ['STRONGLY POSITIVE','3+']]
-		concept_one = ConceptName.find_by_name("First sputum for AAFB results").concept_id
-		concept_two = ConceptName.find_by_name("Second sputum for AAFB results").concept_id
-		concept_three = ConceptName.find_by_name("Third sputum for AAFB results").concept_id
-		concept_four = ConceptName.find_by_name("Culture(1st) Results").concept_id
-		concept_five = ConceptName.find_by_name("Culture(2nd) Results").concept_id
-		concept =[]
-		culture =[]
-		labels = []
-		observation.each do |obs|
-			next if obs.value_coded.blank?
-			concept[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_one
-			concept[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_two
-			concept[2] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_three
-			culture[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_four
-			culture[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_five
-		end
-		if concept.length < 2
+  def lab_results_label(patient_id)
+			patient = Patient.find(patient_id)
+			patient_bean = PatientService.get_patient(patient.person)
+			observation = patient_recent_lab_results(patient_id)
+			sputum_results = [['NEGATIVE','NEGATIVE'], ['SCANTY','SCANTY'], ['WEAKLY POSITIVE','1+'], ['MODERATELY POSITIVE','2+'], ['STRONGLY POSITIVE','3+']]
+			concept_one = ConceptName.find_by_name("First sputum for AAFB results").concept_id
+			concept_two = ConceptName.find_by_name("Second sputum for AAFB results").concept_id
+			concept_three = ConceptName.find_by_name("Third sputum for AAFB results").concept_id
+			concept_four = ConceptName.find_by_name("Culture(1st) Results").concept_id
+			concept_five = ConceptName.find_by_name("Culture(2nd) Results").concept_id
+			concept =[]
+			culture =[]
+			labels = []
+			observation.each do |obs|
+						next if obs.value_coded.blank?
+						concept[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_one
+						concept[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_two
+						concept[2] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_three
+						culture[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_four
+						culture[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_five
+			end
+			if concept.length < 2
 						first = "Culture-1 Results: #{sputum_results.assoc("#{culture[0].upcase}")[1]}"
 						second = "Culture-2 Results: #{sputum_results.assoc("#{culture[1].upcase}")[1]}"
-		else
+			else
 						lab_result = []
 						h = 0
 						(0..2).each do |x|
-							if concept[x].to_s != ""
-								lab_result[h] = sputum_results.assoc("#{concept[x].upcase}")
-								h += 1
-							end
+									if concept[x].to_s != ""
+									lab_result[h] = sputum_results.assoc("#{concept[x].upcase}")
+									h += 1
+									end
 						end
 						first = "AAFB(1st) results: #{lab_result[0][1] rescue ""}"
 						second = "AAFB(2nd) results: #{lab_result[1][1] rescue ""}"
-		end
-		i = 0
+						end
+						i = 0
     labels = []
 
           label = 'label' + i.to_s
@@ -1409,6 +1410,7 @@ class EncountersController < GenericEncountersController
 
       return print_labels
   end
+	
 	#def create_tb_number(type_id)
 	#	 type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ?', type_id],:order => 'date_created DESC')
 	#	 raise type.to_yaml

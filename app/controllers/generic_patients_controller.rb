@@ -191,6 +191,7 @@ class GenericPatientsController < ApplicationController
 
     @links << ["Recent Lab Orders Label","/patients/recent_lab_orders?patient_id=#{patient.id}"]
     @links << ["Transfer out label (Print)","/patients/print_transfer_out_label/#{patient.id}"]
+		 @links << ["TB Transfer out label (Print)","/patients/print_transfer_out_tb/#{patient.id}"]
 
     render :template => 'dashboards/personal_tab', :layout => false
   end
@@ -261,6 +262,10 @@ class GenericPatientsController < ApplicationController
   def print_transfer_out_label
     print_and_redirect("/patients/transfer_out_label?patient_id=#{params[:id]}", "/patients/show/#{params[:id]}")  
   end
+
+  def print_transfer_out_tb
+    print_and_redirect("/patients/transfer_out_label_tb?patient_id=#{params[:id]}", "/patients/show/#{params[:id]}")
+  end
    
   def patient_demographics_label
     print_string = demographics_label(params[:id])
@@ -322,6 +327,15 @@ class GenericPatientsController < ApplicationController
       :type=>"application/label; charset=utf-8", 
       :stream=> false, 
       :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl", 
+      :disposition => "inline")
+  end
+
+  def transfer_out_label_tb
+    print_string = patient_tb_transfer_out_label(params[:patient_id])
+    send_data(print_string,
+      :type=>"application/label; charset=utf-8",
+      :stream=> false,
+      :filename=>"#{params[:patient_id]}#{rand(10000)}.lbl",
       :disposition => "inline")
   end
 
@@ -1385,7 +1399,82 @@ end
     label.draw_multi_text("#{date.strftime("%d-%b-%Y")}", {:font_reverse => false})
 
     label.print(1)
-  end 
+  end
+
+  def patient_tb_transfer_out_label(patient_id)
+    date = session[:datetime].to_date rescue Date.today
+    patient = Patient.find(patient_id)
+    patient_bean = PatientService.get_patient(patient.person)
+    demographics = mastercard_demographics(patient)
+		
+    who_stage = demographics.reason_for_art_eligibility
+    initial_staging_conditions = demographics.who_clinical_conditions.split(';')
+    destination = demographics.transferred_out_to
+
+    label = ZebraPrinter::Label.new(776, 329, 'T')
+    label.line_spacing = 0
+    label.top_margin = 30
+    label.bottom_margin = 30
+    label.left_margin = 25
+    label.x = 25
+    label.y = 30
+    label.font_size = 3
+    label.font_horizontal_multiplier = 1
+    label.font_vertical_multiplier = 1
+
+    # 25, 30
+    # Patient personanl data
+    label.draw_multi_text("#{Location.current_health_center.name} transfer out label", {:font_reverse => true})
+    label.draw_multi_text("To #{destination}", {:font_reverse => false}) unless destination.blank?
+    label.draw_multi_text("ARV number: #{demographics.arv_number}", {:font_reverse => true})
+    label.draw_multi_text("Name: #{demographics.name} (#{demographics.sex.first})\nAge: #{demographics.age}", {:font_reverse => false})
+
+    # Print information on Diagnosis!
+    art_start_date = PatientService.date_antiretrovirals_started(patient).strftime("%d-%b-%Y") rescue nil
+    label.draw_multi_text("Diagnosis", {:font_reverse => true})
+    label.draw_multi_text("Reason for starting: #{who_stage}", {:font_reverse => false})
+    label.draw_multi_text("ART start date: #{art_start_date}",{:font_reverse => false})
+    label.draw_multi_text("Other diagnosis:", {:font_reverse => true})
+# !!!! TODO
+    staging_conditions = ""
+    count = 1
+    initial_staging_conditions.each{|condition|
+     if staging_conditions.blank?
+       staging_conditions = "(#{count}) #{condition}" unless condition.blank?
+     else
+       staging_conditions+= " (#{count+=1}) #{condition}" unless condition.blank?
+     end
+    }
+    label.draw_multi_text("#{staging_conditions}", {:font_reverse => false})
+
+    # Print information on current status of the patient transfering out!
+    init_ht = "Init HT: #{demographics.init_ht}"
+    init_wt = "Init WT: #{demographics.init_wt}"
+
+    first_cd4_count = "CD count " + demographics.cd4_count if demographics.cd4_count
+    unless demographics.cd4_count_date.blank?
+      first_cd4_count_date = "CD count date #{demographics.cd4_count_date.strftime('%d-%b-%Y')}"
+    end
+    # renamed current status to Initial height/weight as per minimum requirements
+    label.draw_multi_text("Initial Height/Weight", {:font_reverse => true})
+    label.draw_multi_text("#{init_ht} #{init_wt}", {:font_reverse => false})
+    label.draw_multi_text("#{first_cd4_count}", {:font_reverse => false})
+    label.draw_multi_text("#{first_cd4_count_date}", {:font_reverse => false})
+
+    # Print information on current treatment of the patient transfering out!
+    demographics.reg = []
+    PatientService.drug_given_before(patient, (date.to_date) + 1.day).uniq.each do |order|
+      next unless MedicationService.tb_medication(order.drug_order.drug)
+      demographics.reg << order.drug_order.drug.concept.shortname
+    end
+
+    label.draw_multi_text("Current ART drugs", {:font_reverse => true})
+    label.draw_multi_text("#{demographics.reg}", {:font_reverse => false})
+    label.draw_multi_text("Transfer out date:", {:font_reverse => true})
+    label.draw_multi_text("#{date.strftime("%d-%b-%Y")}", {:font_reverse => false})
+
+    label.print(1)
+  end
 
 
   def patient_lab_orders_label(patient_id)
