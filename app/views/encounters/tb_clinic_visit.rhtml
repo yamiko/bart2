@@ -279,8 +279,15 @@
 		:tt_onUnload=> "updateInitiationDate();"
 		} %>
 
-		<%= touch_location_tag "Location Of ART Initiation", @patient, nil, {:id => "location_of_art_intiation", :value_datetime => true,:helpText => "Location Of ART Initiation", :condition => '$("art_status").value == "YES"'}%>
-		<%= touch_hidden_tag "Location Of ART Initiation", @patient, nil, {:id => "hiv_initiation_date", :value_datetime => true}%>
+		<%= touch_location_tag "Location Of ART Initiation", @patient, nil, 
+		  {	:id => "location_of_art_intiation",
+			:value_datetime => true,
+			:helpText => "Location Of ART Initiation",
+			:ajaxURL => '/people/tb_initialization_location?search_string=',
+			:condition => '$("art_status").value == "YES"'}%>
+		<%= touch_hidden_tag "Location Of ART Initiation", @patient, nil, 
+		  {	:id => "hiv_initiation_date",
+			:value_datetime => true}%>
 <%end%>
     <%if @hiv_status.upcase == 'POSITIVE' and not
       @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')%>
