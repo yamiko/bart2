@@ -327,8 +327,9 @@ class GenericEncountersController < ApplicationController
 		elsif params[:location] # Migration
 		  user_person_id = encounter[:provider_id]
 		else
-		  user_person_id = User.find_by_user_id(encounter[:provider_id]).person_id
-		end
+		  user_person_id = User.find_by_user_id(encounter[:provider_id]).person_id 
+		end rescue user_person_id = current_user.id
+
 		encounter.provider_id = user_person_id
 
 		encounter.save
