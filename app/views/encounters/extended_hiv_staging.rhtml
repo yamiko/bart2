@@ -557,7 +557,11 @@
   }
 
   function removeValues(){
-				  <% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve') %>
+			  <% if @patient.person.observations.to_s.include?('Ever received TB treatment:  Yes')
+					  tb_hiv_exclusions = [['Tuberculosis (PTB or EPTB) within the last 2 years','Tuberculosis (PTB or EPTB) within the last 2 years']]
+					  @who_stage_iii = @who_stage_iii - tb_hiv_exclusions
+			  end %>
+			  <% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve') %>
 					  <% tb_hiv_exclusions = [['Pulmonary tuberculosis (current)', 'Pulmonary tuberculosis (current)']]
 					  @who_stage_iii = @who_stage_iii - tb_hiv_exclusions
 					  %>
@@ -572,14 +576,19 @@
 			  <%  end %>
   }
   function updateSelectedOptions(){
-			  <% count += 1 %>
 			  condition_number = '<%= count %>';
-			  <% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve') %>	
-					 selected_stage_conditions[condition_number] = 'Pulmonary tuberculosis'
+			  <% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve') %>
+					 condition_number += 1
+					 selected_stage_conditions[condition_number] = 'Pulmonary tuberculosis (current)'
 			  <% end  %>
 
 			  <% if  @patient.person.observations.to_s.include?('Extrapulmonary tuberculosis (EPTB)') %>
+					condition_number += 1
 					selected_stage_conditions[condition_number] = 'Extrapulmonary tuberculosis (EPTB)'
+			  <%  end %>
+			  <% if @patient.person.observations.to_s.include?('Ever received TB treatment:  Yes') %>
+					condition_number += 1
+					selected_stage_conditions[condition_number] = 'Tuberculosis (PTB or EPTB) within the last 2 years'
 			  <%  end %>
   }
 </script>

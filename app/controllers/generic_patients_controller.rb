@@ -1414,18 +1414,52 @@ end
   end
 
   def patient_tb_transfer_out_label(patient_id)
+			sputum_results = [['NEGATIVE','NEGATIVE'], ['SCANTY','SCANTY'], ['WEAKLY POSITIVE','1+'], ['MODERATELY POSITIVE','2+'], ['STRONGLY POSITIVE','3+']]
+			concept_one = ConceptName.find_by_name("First sputum for AAFB results").concept_id
+			concept_two = ConceptName.find_by_name("Second sputum for AAFB results").concept_id
+			concept_three = ConceptName.find_by_name("Third sputum for AAFB results").concept_id
+			concept_four = ConceptName.find_by_name("Culture(1st) Results").concept_id
+			concept_five = ConceptName.find_by_name("Culture(2nd) Results").concept_id
+			concept =[]
+			culture =[]
+			observation = PatientService.recent_sputum_results(patient_id)
+			observation.each do |obs|
+						next if obs.value_coded.blank?
+						concept[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_one
+						concept[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_two
+						concept[2] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_three
+						culture[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_four
+						culture[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_five
+			end
+			if concept.length < 2
+						first = "Culture-1 Results: #{sputum_results.assoc("#{culture[0].upcase}")[1]}"
+						second = "Culture-2 Results: #{sputum_results.assoc("#{culture[1].upcase}")[1]}"
+			else
+						lab_result = []
+						h = 0
+						(0..2).each do |x|
+									if concept[x].to_s != ""
+									lab_result[h] = sputum_results.assoc("#{concept[x].upcase}")
+									h += 1
+									end
+						end
+						first = "AAFB(1st) results: #{lab_result[0][1] rescue ""}"
+						second = "AAFB(2nd) results: #{lab_result[1][1] rescue ""}"
+				end
+
+
     date = session[:datetime].to_date rescue Date.today
     patient = Patient.find(patient_id)
     patient_bean = PatientService.get_patient(patient.person)
-    demographics = mastercard_demographics(patient)
+		height = PatientService.get_patient_attribute_value(@patient, "current_height")
+		weight = PatientService.get_patient_attribute_value(@patient, "initial_weight")
 		tb_number = PatientService.get_patient_identifier(patient, "District TB Number")
-
-    who_stage = demographics.reason_for_art_eligibility
-    initial_staging_conditions = demographics.who_clinical_conditions.split(';')
-    destination = demographics.transferred_out_to
+		
+		transferred_out_to = Observation.find(:last, :conditions =>["concept_id = ? and person_id = ?",
+        ConceptName.find_by_name("TRANSFER OUT TO").concept_id,patient_bean.patient_id]).value_text rescue ""
 
     label = ZebraPrinter::Label.new(776, 329, 'T')
-    label.line_spacing = 0
+    label.line_spacing = 2
     label.top_margin = 30
     label.bottom_margin = 30
     label.left_margin = 25
@@ -1438,54 +1472,33 @@ end
     # 25, 30
     # Patient personanl data
     label.draw_multi_text("#{Location.current_health_center.name} transfer out label", {:font_reverse => true})
-    label.draw_multi_text("To #{destination}", {:font_reverse => false}) unless destination.blank?
+    label.draw_multi_text("To #{transferred_out_to}", {:font_reverse => false}) unless transferred_out_to.blank?
     label.draw_multi_text("TB number: #{tb_number}", {:font_reverse => true})
-    label.draw_multi_text("Name: #{demographics.name} (#{demographics.sex.first})\nAge: #{demographics.age}", {:font_reverse => false})
+    label.draw_multi_text("Name: #{patient_bean.name} (#{patient_bean.sex})\nAge: #{patient_bean.age}", {:font_reverse => false})
 
     # Print information on Diagnosis!
-    tb_start_date = PatientService.sputum_results_by_date(patient_id).strftime("%d-%b-%Y") rescue nil
-    #label.draw_multi_text("Diagnosis", {:font_reverse => true})
-    #label.draw_multi_text("Reason for starting: #{who_stage}", {:font_reverse => false})
-    label.draw_multi_text("TB start date: #{tb_start_date}",{:font_reverse => false})
-    label.draw_multi_text("Other diagnosis:", {:font_reverse => true})
-# !!!! TODO
-=begin
-    staging_conditions = ""
-    count = 1
-    initial_staging_conditions.each{|condition|
-     if staging_conditions.blank?
-       staging_conditions = "(#{count}) #{condition}" unless condition.blank?
-     else
-       staging_conditions+= " (#{count+=1}) #{condition}" unless condition.blank?
-     end
-    }
-    label.draw_multi_text("#{staging_conditions}", {:font_reverse => false})
-=end
-    # Print information on current status of the patient transfering out!
-    init_ht = "Init HT: #{demographics.init_ht}"
-    init_wt = "Init WT: #{demographics.init_wt}"
+    tb_start_date = PatientService.sputum_results_by_date(patient_id).first.obs_datetime.strftime("%d-%b-%Y") rescue nil
 
-    first_cd4_count = "CD count " + demographics.cd4_count if demographics.cd4_count
-    unless demographics.cd4_count_date.blank?
-      first_cd4_count_date = "CD count date #{demographics.cd4_count_date.strftime('%d-%b-%Y')}"
-    end
+    label.draw_multi_text("TB start date: #{tb_start_date}",{:font_reverse => false})
+# !!!! TODO
+    init_ht = "Init HT: #{height}"
+    init_wt = "Init WT: #{weight}"
     # renamed current status to Initial height/weight as per minimum requirements
     label.draw_multi_text("Initial Height/Weight", {:font_reverse => true})
     label.draw_multi_text("#{init_ht} #{init_wt}", {:font_reverse => false})
-    label.draw_multi_text("#{first_cd4_count}", {:font_reverse => false})
-    label.draw_multi_text("#{first_cd4_count_date}", {:font_reverse => false})
 
+		label.draw_multi_text("Lab Results", {:font_reverse => true})
+		label.draw_multi_text("#{first} #{second}", {:font_reverse => false})
     # Print information on current treatment of the patient transfering out!
-    demographics.reg = []
+    reg = []
     PatientService.drug_given_before(patient, (date.to_date) + 1.day).uniq.each do |order|
       next unless MedicationService.tb_medication(order.drug_order.drug)
-      demographics.reg << order.drug_order.drug.concept.shortname
+      reg << order.drug_order.drug.concept.shortname
     end
 
-    label.draw_multi_text("Current ART drugs", {:font_reverse => true})
-    label.draw_multi_text("#{demographics.reg}", {:font_reverse => false})
-    label.draw_multi_text("Transfer out date:", {:font_reverse => true})
-    label.draw_multi_text("#{date.strftime("%d-%b-%Y")}", {:font_reverse => false})
+    label.draw_multi_text("Current TB drugs", {:font_reverse => true})
+    label.draw_multi_text("#{reg}", {:font_reverse => false})
+    label.draw_multi_text("Transfer out date: #{date.strftime("%d-%b-%Y")}", {:font_reverse => false})
 
     label.print(1)
   end
