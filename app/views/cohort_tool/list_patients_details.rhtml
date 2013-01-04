@@ -14,7 +14,8 @@
             "bProcessing": true,
             "sScrollY": "400px",
             "bInfo": true,
-            "bPaginate": false
+            "bPaginate": false,
+			"bSort": true
           });
     search_box = $('#table_id').dataTable()
     search = document.getElementsByTagName("input")[0];
@@ -176,6 +177,18 @@
         display:block;
         float:left;
       }
+	  .create_button a{
+		background-color: #669999;
+		border-bottom: 1px outset black;
+		border-radius: 7px 7px 7px 7px;
+		border-style: outset;
+		border-top: 1px outset black;
+		color: white;
+		display: block;
+		padding: 10px 16px 10px 10px;
+		text-align: center;
+		text-decoration: none !important;
+		}
 
       .logo {
         float:left
