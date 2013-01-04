@@ -111,7 +111,12 @@ function tb_number(){
     style.value = "position: absolute; z-index: 100; left: 47px; font-size: 44px;"
     prefix.setAttributeNode(style)
     inputElement.setAttribute("style","text-align:right;width:924px;")
-    prefix.innerHTML = "<%= get_global_property_value("site_prefix") rescue nil %>-TB"
+	<% if get_global_property_value("site_prefix") == "MPC" %>
+	   prefix.innerHTML = "LL-TB" 
+	<% else %>
+	   prefix.innerHTML = "<%= get_global_property_value("site_prefix") rescue nil %>-TB"
+	<% end %>
+	prefix.innerHTML += ' <%= session[:datetime].to_date.strftime("%Y %m") rescue Date.today.strftime("%Y %m") %> '
     inputElement.parentNode.insertBefore(prefix, inputElement)
     style.value+= 'left:35px;'
     prefix.setAttributeNode(style)
@@ -171,8 +176,9 @@ Check applicability of code below
       <%= touch_identifier_tag @patient, "District TB Number", @identifier_value,
             {:id => "tb_district_number",
              :optional => false,
-             :tt_onLoad => "press('num');tb_number();",
-             :tt_pageStyleClass => "Numeric NumbersOnly",
+			 :value => @tb_auto_number,
+             :tt_onLoad => "__$('keyboard').style.display = 'none';press('num');tb_number();",
+             
              :helpText => "TB registration number" } %>
     <%else%>
         <%= touch_hidden_tag "TB registration number" , @patient, @transfer_in_TB_registration_number.to_s , :id => "tb_district_number" %>

@@ -22,6 +22,13 @@
     $('hiv_test_date').value = testDate;
     return isTestOverDue(testDate,alertDate);
   }
+  
+ function updateInitiationDate(){
+   
+    testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
+    $('hiv_initiation_date').value = testDate;
+    return isTestOverDue(testDate,alertDate);
+  }
 
   function isTestOverDue(testDate,alertDate) {
     if (testDate <= alertDate){
@@ -30,7 +37,6 @@
       return false;
     }
   }
-  
 
   function createDate(year,month,day) {
     date_str = year
@@ -90,7 +96,7 @@
 
   <%= text_field_tag "hiv_test_year", nil, {:helpText => 'HIV test year', :field_type => 'number', :absoluteMin => "1982", :min => "1982", :absoluteMax => Date.today.year, :tt_pageStyleClass => "Numeric NumbersOnly", :condition => '$("hiv_status").value != "UNKNOWN"'}  %>
 
-  <%= select_tag "hiv_test_month", month_name_options, {:helpText => 'HIV test month', :condition => '($("hiv_test_year").value.toLowerCase() != "unknown") && ($("hiv_status").value != "UNKNOWN")'}%>
+  <%= select_tag "hiv_test_month", month_name_options, {:tt_onLoad => "__$('keyboard').style.display = 'none'",:helpText => 'HIV test month', :condition => '($("hiv_test_year").value.toLowerCase() != "unknown") && ($("hiv_status").value != "UNKNOWN")'}%>
 
   <%= text_field_tag "hiv_test_day",  nil, 
     {:field_type => 'number', 
@@ -121,8 +127,24 @@
      :condition => '$("hiv_status").value == "POSITIVE"',
      :tt_pageStyleClass => "NoKeyboard",
      :helpText => "On ART?" } %>
-<%end%>
 
+ <%= text_field_tag "hiv_initiation_year", nil, {:helpText => 'HIV initiation year', :field_type => 'number', :absoluteMin => "1982", :min => "1982", :absoluteMax => Date.today.year, :tt_pageStyleClass => "Numeric NumbersOnly", :condition => '$("art_status").value == "YES"'}  %>
+
+  <%= select_tag "hiv_initiation_month", month_name_options, {:tt_onLoad => "__$('keyboard').style.display = 'none'",:helpText => 'HIV initiation month', :condition => '($("hiv_initiation_year").value.toLowerCase() != "unknown") && ($("art_status").value == "YES")'}%>
+
+  <%= text_field_tag "hiv_initiation_day",  nil,
+    {:field_type => 'number',
+      :helpText => 'HIV initiation day',
+      :validationCode => "checkTestDate();",
+      :validationMessage => "HIV initiation date greater than #{session[:datetime].to_date rescue Date.today.to_date}",
+      :condition => '($("hiv_initiation_year").value != "Unknown") && ($("hiv_initiation_month").value != "Unknown") && ($("art_status").value == "YES")',
+      :tt_onLoad => "getDayOfMonthPicker($('hiv_initiation_year').value, $('hiv_initiation_month').value)",
+      :tt_onUnload=> "updateInitiationDate();"
+  } %>
+
+  <%= touch_location_tag "Location Of ART Initiation", @patient, nil, {:id => "location_of_art_intiation", :value_datetime => true,:helpText => "Location Of ART Initiation", :condition => '$("art_status").value == "YES"'}%>
+<%end%>
+  <%= touch_hidden_tag "ART initiation date", @patient, nil, {:id => "hiv_initiation_date", :value_datetime => true}%>
  <%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
 
 <% if !@referred_to_htc.nil?  && ('YES' == @referred_to_htc.squish.upcase) %> 

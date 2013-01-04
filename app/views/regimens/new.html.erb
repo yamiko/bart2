@@ -113,8 +113,8 @@
   var prescribeARTDrugs = "<%= @prescribe_art_drugs %>";
   var artVisit = "<%= @hiv_clinic_consultation %>";
   var regimen_id = null; 
-  var tb_regimen_id = null; 
-
+  var tb_regimen_id = null;
+  <%#= raise @regimen_formulations.to_yaml -%>
   function setSelectedRow() {
     l = document.getElementsByTagName('li');
     for (i = 0 ; i < l.length ; i++) {
@@ -198,6 +198,22 @@
 
   }
 
+    function showTbDrugs() {
+	  var prescription_container = $("previous_drugs_dispensed");
+      var html = "<table>"
+      html += "<tr><th>Drug name</th><th>Dose</th><th>Units</th><th>Daily dose</th></tr>"
+      <% (@tb_regimen_formulations || []).each do |data| %>
+        regimen_id = <%= data[4]%>
+        html += "<tr><td>" + "<%=data[0]%>" + "</td>"
+        html += "<td style='text-align:center;'>" + "<%=data[1]%>" + "</td>"
+        html += "<td>" + "<%=data[3]%>" + "</td>"
+        html += "<td>" + "<%=data[2]%>" + "</td></tr>"
+      <%end%>
+      html += "</table>"
+      prescription_container.innerHTML = html
+      prescription_container.style.display = "inline";
+    }
+
   function setRegimenId(regimen) {
 	if(regimen == 'ART') {
     	$('regimen').value = regimen_id
@@ -240,11 +256,11 @@
   }
   
   function isRegisteredForTB() {
-	var isRegistered = false;    
-	if(prescribeTBDrugs == 'true'){
-      isRegistered = true;
-	}
-	return isRegistered;
+    var isRegistered = false;    
+    if(prescribeTBDrugs == 'true'){
+        isRegistered = true;
+    }
+    return isRegistered;
   }
   
     function showResults(){
@@ -259,7 +275,7 @@
        <% if @family_planning_methods.length != 0 %>
                 resultString += '<b>Family Planning Methods:</b><br><ul>'
        <%        
-                family_planning_methods = @family_planning_methods.sort.map do |method|
+                family_planning_methods = @family_planning_methods.uniq.sort.map do |method|
                                     "<li> #{method}</li>"
                 end 
             end
@@ -346,18 +362,22 @@
 
 		<% if (@family_planning_methods.length != 0) || ( @patient_bean.sex == 'Female' && @patient_bean.age > 14 ) %>
 			<%= text_field_tag :task_name, nil,
-                {   :tt_onLoad => "showResults();",
+                {   :tt_onLoad => "showResults();__$('keyboard').style.display = 'none'",
                     :optional => "true",
                     :tt_pageStyleClass => "NoControls",
                     :helpText => '' } %>
 		<% end %>
   <% end %>
+
+  <% unless @transfer_out_patient %>
 	
 	<%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
 	{	:optional => false,
 		:id => 'prescribe_tb_drugs',
 		:condition => 'isRegisteredForTB() == true',
 		:helpText => "Prescribe TB Regimen?" } %>
+
+	<%end%>
 
 	<% unless @tb_programs.uniq.count == 1 %>
 		<%= select_tag :tb_patient_program, options_for_select(@tb_programs.map{|program| [program.program.name, program.patient_program_id] if PatientProgram.find(program.patient_program_id).date_completed == nil}), 
@@ -369,11 +389,14 @@
 		<%= hidden_field_tag(:tb_patient_program, @tb_programs.first.patient_program_id) %>
 	<%end%>
 
+  <% unless @transfer_out_patient %>
+
 	<%= select_tag :tb_continue_existing_regimen, options_for_select([['',''],['Yes','YES'],['No','NO']], ''), 
 		{	:textCase => "upper", 
 			:allowFreeText => 'false',
 			:condition => 'current_regimens_for_programs[$("tb_patient_program").value] != null && $("prescribe_tb_drugs").value == "YES"',
-			:tt_onLoad => '$("infoBar"+tstCurrentPage).innerHTML = current_regimen_names_for_programs[$("tb_patient_program").value]',
+			:tt_onLoad => 'showTbDrugs();setAttributes();',
+			:tt_onUnLoad => 'resetAttributes();',
 			:helpText => "Continue current TB regimen?" } %>
 
 	<%	initial_regimen_help_text = "Select TB regimen" 
@@ -398,10 +421,12 @@
 			:helpText => "Select formulations and doses" } %>
 
 	<% optionsString = "<option>" "" "</option>"
-		 durations = ['1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months']
+		 durations = ['4 days','1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months','7 months','8 months']
 		 durations.each do |duration|
 			if duration.match(/week/i)
 				days = (((duration.to_i)*7))
+			elsif duration.match(/days/i)
+			    days = 4
 			elsif duration.match(/month/i)
 				days = (((duration.to_i)* 28))
 			end
@@ -409,8 +434,12 @@
 		 end
 	%>
 	<%= select_tag :tb_duration, optionsString, 
-		{	:condition => '$("prescribe_tb_drugs").value == "YES"',	
+		{	:condition => '$("prescribe_tb_drugs").value == "YES"',
+			:tt_onLoad => "__$('keyboard').style.display = 'none'",
 			:helpText => 'Duration' } %> 
+
+
+  <%end%>
 
 	<% if @transfer_out_patient %>
 		<%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
@@ -435,6 +464,19 @@
 				:condition => '$("prescribe_continuation_tb_drugs").value == "YES"',
 				:helpText => "Select formulations and doses" } %>
 
+        <% optionsString = "<option>" "" "</option>"
+           durations = ['4 Days','1 week','2 weeks','1 month','2 months','3 months','4 months','5 months','6 months','7 months', '8 months']
+           durations.each do |duration|
+            if duration.match(/week/i)
+              days = (((duration.to_i)*7))
+			elsif duration.match(/days/i)
+			    days = 4
+            elsif duration.match(/month/i)
+              days = (((duration.to_i)* 28))
+            end
+            optionsString += "<option value = '" + days.to_s + "'>" + duration + "</option>"
+           end
+        %>
 		<%= select_tag :tb_continuation_duration, optionsString, 
 			{	:condition => '$("prescribe_continuation_tb_drugs").value == "YES"',	
 				:helpText => 'Duration of TB drugs' } %> 
@@ -515,8 +557,9 @@
 		<%= touch_hidden_tag "ISONIAZID", @patient, "", :id => "ipt_given" %>
   <%end%>
 
-  <%= select_tag :duration, optionsString, { 
-	:condition => '$("prescribe_arvs").value == "YES" || $("cpt_given").value == "YES" || $("ipt_given").value == "YES"',	
+  <%= select_tag :duration, optionsString, {
+	:condition => '$("prescribe_arvs").value == "YES" || $("cpt_given").value == "YES" || $("ipt_given").value == "YES"',
+	:tt_onLoad => "__$('keyboard').style.display = 'none'",
 	:helpText => 'Duration of prescribed drugs' } %> 
 
 

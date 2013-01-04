@@ -129,7 +129,7 @@
           %>
             <td style="width:100px;color:red;"><%=relocated%></td>
           <%else%>
-            <td style="width:100px;color:green;">+<%=relocated %></td>
+            <td style="width:100px;color:red;">- <%=relocated %></td>
           <%end%>
         </tr>
       </table>
@@ -142,30 +142,45 @@
         %>
           <td style="text-align:center;color:red;"><%=dispensed %></td>
         <%else%>
-          <td style="text-align:center;color:green;">+<%=dispensed %></td>
+          <td style="text-align:center;color:red;">- <%=dispensed %></td>
         <%end%>
         </tr>
       </table>
     </td>
+      <%
+        #expected = ( (values['confirmed_closing'] / 60) - (values['expected'] / 60) ).round
+
+        plus_values = (values['receipts'] / 60).round                       
+        plus_values += (values['confirmed_opening'] / 60).round             
+                                                                            
+        minus_values = relocated                                            
+        minus_values += dispensed                                           
+                                                                            
+        expected = plus_values - minus_values                               
+
+      %>
     <td class="color_<%=color%> caldata" id="dispensed_<%=count%>">
       <table class="inner-data">
         <tr>
           <td style="text-align:left;width:40px;"><%=values['end_date'] %></td>
-          <td style="text-align:left;width:75px;padding-left:12px;"><%=(values['expected'] / 60).round %></td>
+          <td style="text-align:left;width:75px;padding-left:12px;"><%= expected %></td>
           <td style="text-align:right;width:75px;"><%=(values['confirmed_closing'] / 60).round %></td>
         </tr>
       </table>
     </td>
     <td class="color_<%=color%> caldata" id="dispensed_<%=count%>">
-      <%
-        expected = ( (values['confirmed_closing'] / 60) - (values['expected'] / 60) ).round
-      %>
+      <%                                                                        
+        verified = (values['confirmed_closing'] / 60).round                     
+        difference = ((verified.to_f/expected.to_f)*100).round                                      
+      %> 
       <table class="inner-data">
         <tr>
-          <%if expected < 0 %>
-            <td style="text-align:center;color:red;"><%= expected %></td>
+          <%if difference < 0 %>
+            <td style="text-align:center;color:red;"><%= difference %>&#37;</td>
+          <%elsif difference == 0 %>
+            <td style="text-align:center;color:green;"><%= difference %>&#37;</td>
           <%else%>
-            <td style="text-align:center;color:green;">+<%= expected %></td>
+            <td style="text-align:center;color:green;">+<%= difference %>&#37;</td>
           <%end%>
         </tr>
       </table>
