@@ -1418,7 +1418,8 @@ end
     patient = Patient.find(patient_id)
     patient_bean = PatientService.get_patient(patient.person)
     demographics = mastercard_demographics(patient)
-		
+		tb_number = PatientService.get_patient_identifier(patient, "District TB Number")
+
     who_stage = demographics.reason_for_art_eligibility
     initial_staging_conditions = demographics.who_clinical_conditions.split(';')
     destination = demographics.transferred_out_to
@@ -1438,16 +1439,17 @@ end
     # Patient personanl data
     label.draw_multi_text("#{Location.current_health_center.name} transfer out label", {:font_reverse => true})
     label.draw_multi_text("To #{destination}", {:font_reverse => false}) unless destination.blank?
-    label.draw_multi_text("ARV number: #{demographics.arv_number}", {:font_reverse => true})
+    label.draw_multi_text("TB number: #{tb_number}", {:font_reverse => true})
     label.draw_multi_text("Name: #{demographics.name} (#{demographics.sex.first})\nAge: #{demographics.age}", {:font_reverse => false})
 
     # Print information on Diagnosis!
-    art_start_date = PatientService.date_antiretrovirals_started(patient).strftime("%d-%b-%Y") rescue nil
-    label.draw_multi_text("Diagnosis", {:font_reverse => true})
-    label.draw_multi_text("Reason for starting: #{who_stage}", {:font_reverse => false})
-    label.draw_multi_text("ART start date: #{art_start_date}",{:font_reverse => false})
+    tb_start_date = PatientService.sputum_results_by_date(patient_id).strftime("%d-%b-%Y") rescue nil
+    #label.draw_multi_text("Diagnosis", {:font_reverse => true})
+    #label.draw_multi_text("Reason for starting: #{who_stage}", {:font_reverse => false})
+    label.draw_multi_text("TB start date: #{tb_start_date}",{:font_reverse => false})
     label.draw_multi_text("Other diagnosis:", {:font_reverse => true})
 # !!!! TODO
+=begin
     staging_conditions = ""
     count = 1
     initial_staging_conditions.each{|condition|
@@ -1458,7 +1460,7 @@ end
      end
     }
     label.draw_multi_text("#{staging_conditions}", {:font_reverse => false})
-
+=end
     # Print information on current status of the patient transfering out!
     init_ht = "Init HT: #{demographics.init_ht}"
     init_wt = "Init WT: #{demographics.init_wt}"
