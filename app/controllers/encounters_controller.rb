@@ -359,7 +359,13 @@ class EncountersController < GenericEncountersController
 
 			@require_hiv_clinic_registration = require_hiv_clinic_registration
 		end
-		@tb_auto_number = create_tb_number(PatientIdentifierType.find_by_name('District TB Number').id)
+
+		if PatientIdentifier.site_prefix == "MPC"
+				prefix = "LL-TB"
+		else
+				prefix = "#{PatientIdentifier.site_prefix}-TB"
+		end
+		@tb_auto_number = create_tb_number(PatientIdentifierType.find_by_name('District TB Number').id, prefix)
 		redirect_to "/" and return unless @patient
 
 		redirect_to next_task(@patient) and return unless params[:encounter_type]
@@ -391,6 +397,12 @@ class EncountersController < GenericEncountersController
         ['Smear Positive (HIV-)','SMEAR POSITIVE'],
         ['X-ray result interpretation','X-RAY RESULT INTERPRETATION']
       ],
+			'tb_investigation' =>[
+				['',''],
+				['Sputum Test','TB sputum test'],
+				['X-Ray','X-Ray'],
+				['None','None']
+			],
       'tb_clinic_visit_type' => [
         ['',''],
         ['Lab analysis','Lab follow-up'],

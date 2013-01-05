@@ -141,14 +141,23 @@ class ApplicationController < GenericApplicationController
             session_date.to_date],:order => "encounter_datetime DESC,
             encounter.date_created DESC")
 
-          xray = tb_clinic_encounter.observations.find_all_by_concept_id(ConceptName.find_by_name("Refer to x-ray?").concept_id).first.to_s.strip.squish.upcase rescue ''
+          xray = tb_clinic_encounter.observations.find_all_by_concept_id(ConceptName.find_by_name("Further examination for TB required").concept_id).first.to_s.strip.squish.upcase rescue ''
 
-          if xray.match(/: Yes/i)
+          if xray.match(/: X-Ray/i)
             task.encounter_type = "Xray scan"
             task.url = "/patients/show/#{patient.id}"
             return task
+          elsif xray.match(/: TB sputum test/i)
+						if user_selected_activities.match(/Manage Lab Orders/i)
+							task.encounter_type = "Lab orders"
+							task.url = "/encounters/new/lab_orders?show&patient_id=#{patient.id}"
+							return task
+						elsif not user_selected_activities.match(/Manage Lab Orders/i)
+							task.encounter_type = "Lab orders"
+							task.url = "/patients/show/#{patient.id}"
+							return task
+						end
           end
-
           
           refered_to_htc_concept_id = ConceptName.find_by_name("Refer to HTC").concept_id
 
@@ -364,9 +373,9 @@ class ApplicationController < GenericApplicationController
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
 
-          clinic_visit_obs = clinic_visit.observations.map{|o|
-            o.to_s.upcase.strip.squish
-          }.include?("REFER TO X-RAY?: YES") rescue false
+          clinic_visit_obs = !clinic_visit.observations.map{|o|
+            o.to_s.downcase.strip.squish
+          }.include?("further examination for tb required: none") rescue false
 
           if clinic_visit_obs
             if user_selected_activities.match(/Manage TB clinic visits/i)

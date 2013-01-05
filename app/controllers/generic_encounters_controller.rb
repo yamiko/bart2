@@ -438,22 +438,27 @@ class GenericEncountersController < ApplicationController
         arv_number = identifier[:identifier].strip
         if arv_number.match(/(.*)[A-Z]/i).blank?
           if params['encounter']['encounter_type_name'] == 'TB REGISTRATION'
-						tb_identifier = create_tb_number(type)
+						
             if PatientIdentifier.site_prefix == "MPC"
-							identifier[:identifier] = "LL-TB #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "LL-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
+							prefix = "LL-TB"
+							tb_identifier = create_tb_number(type, prefix)
+							identifier[:identifier] = "LL-TB  #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "LL-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
 						else
-							identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "LL-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
+							prefix = "#{PatientIdentifier.site_prefix}-TB"
+							tb_identifier = create_tb_number(type, prefix)
+							identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "#{PatientIdentifier.site_prefix}-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
 						end
           else
             identifier[:identifier] = "#{PatientIdentifier.site_prefix}-ARV-#{arv_number}"
           end
         end
       end
-
+			
       if @patient_identifier
         @patient_identifier.update_attributes(identifier)      
       else
         @patient_identifier = @patient.patient_identifiers.create(identifier)
+				#raise @patient_identifier.to_yaml
       end
     end
 
@@ -1412,17 +1417,19 @@ class GenericEncountersController < ApplicationController
 		render :text => "<li></li><li>" + options.join("</li><li>") + "</li>"
 	end
 	
-	def create_tb_number(type_id)
-		session_date = "%#{Date.today.year.to_s}%"
+	def create_tb_number(type_id, prefix)
+		session_date = "#{prefix} #{Date.today.year.to_s}%"
 		current_date = Date.today.to_s
 		current_date = session[:datetime] if !session[:datetime].blank?
-		 session_date = "%#{session[:datetime].to_date.year.to_s}%" if !session[:datetime].blank?
+		 session_date = "#{prefix} #{session[:datetime].to_date.year.to_s}%" if !session[:datetime].blank?
+		 #
 		 patient_exists = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ? AND patient_id = ?', type_id, session_date, @patient.id])
 		 type = patient_exists
 		 if patient_exists.blank?
-			type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ?', type_id, session_date],:order => 'date_created DESC')
+			type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ?', type_id, session_date],:order => 'identifier DESC')
 		 end
 		 type = type.first.identifier.split(" ") rescue ""
+		 
 		 if type.include?(current_date.to_date.year.to_s)
 			return (type.last.to_i + 1) if patient_exists.blank?
 			return (type.last.to_i) if ! patient_exists.blank?

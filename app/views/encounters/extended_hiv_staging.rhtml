@@ -571,7 +571,8 @@
 			  <% if  @patient.person.observations.to_s.include?('Extrapulmonary tuberculosis (EPTB)') %>
 					<% tb_hiv_exclusions = [['Extrapulmonary tuberculosis (EPTB)', 'Extrapulmonary tuberculosis (EPTB)']]
 					@who_stage_iv = @who_stage_iv - tb_hiv_exclusions
-					%>
+					%>app/controllers/generic_patients_controller.rb
+
 					option4 = "YES";
 			  <%  end %>
   }
