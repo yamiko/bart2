@@ -11,7 +11,14 @@
 
 
 <script type="text/javascript">
-var tt_cancel_destination = "/clinic";  // /management"
+ var tt_cancel_destination = "/clinic";  // /management"
+
+ setTimeout("changeCancelButton()", 500);                                      
+                                                                                
+  function changeCancelButton() {                                               
+    cancelButton = document.getElementById('cancelButton');                     
+    cancelButton.setAttribute('onmousedown','javascript:history.back();');      
+  }  
 </script>
 
 <form method='post' action="stock_report_edit">
