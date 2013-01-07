@@ -138,12 +138,7 @@ function checkTBstatus() {
 							i += 1
 						  end
 				end
-				@previous_tb_visit.map do |method|
-						if method.to_s.downcase.include?("on art")
-						  visit_list[i] = method
-						  i += 1
-						end
-				  end
+				visit_list[i] = "HIV Status: #{@current_hiv_program_status}"
 				previous_tb_visit = visit_list.map do | method |
 					  "<li> #{method}</li>"
 				end
