@@ -100,25 +100,53 @@ function checkTBstatus() {
        <% if @previous_tb_visit.length != 0 %>
                 resultString += '<b>Previous TB visit summary<br> Date: <%="#{@date}"%></b><br><ul>'
        <%
-=begin
 				visit_list = []
-
-               @previous_tb_visit.map do |method|
-                                    
-									visit_list[0] = method if method.to_s.include?("Any need to see a clinician")
-									visit_list[1] = method if method.to_s.include?("Continue treatment")
-									visit_list[2] = method if method.to_s.include?("Patient using family planing")
-									visit_list[3] = method if method.to_s.include?("Prescribe drugs")
-									visit_list[4] = method if method.to_s.include?("Symptoms and signs")
-									visit_list[5] = method if method.to_s.include?("In HIV program")
-									visit_list[6] = method if method.to_s.include?("On ART")
-
-                end
-=end
-				 previous_tb_visit = @previous_tb_visit.map do | method |
-				      "<li> #{method}</li>"
-				 end
-				#raise @previous_tb_visit.to_yaml
+				i = 0
+				@previous_tb_visit.map do |method|
+					  if method.to_s.downcase.include?("any need to see a clinician")
+						visit_list[i] = method
+						i += 1
+					  end
+				end
+				@previous_tb_visit.map do |method|
+					  if method.to_s.downcase.include?("continue treatment")
+						visit_list[i] = method
+						i += 1
+					  end
+				end
+				@previous_tb_visit.map do |method|
+					  if method.to_s.downcase.include?("patient using family planing")
+						visit_list[i] = method
+						i += 1
+					  end
+				end
+				@previous_tb_visit.map do |method|
+					  if method.to_s.downcase.include?("prescribe drugs")
+						visit_list[i] = method
+						i += 1
+					  end
+				end
+				@previous_tb_visit.map do |method|
+						  if method.to_s.downcase.include?("tb symptoms")
+							visit_list[i] = method
+							i += 1
+						  end
+				end
+				@previous_tb_visit.map do |method|
+						  if method.to_s.downcase.include?("in hiv program")
+							visit_list[i] = method
+							i += 1
+						  end
+				end
+				@previous_tb_visit.map do |method|
+						if method.to_s.downcase.include?("on art")
+						  visit_list[i] = method
+						  i += 1
+						end
+				  end
+				previous_tb_visit = visit_list.map do | method |
+					  "<li> #{method}</li>"
+				end
             end
         %>
 
