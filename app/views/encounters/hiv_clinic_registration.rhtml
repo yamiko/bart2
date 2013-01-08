@@ -510,10 +510,11 @@
         :id => "year_art_last_taken" }  %>                                      
                                                                                 
     <%= select_tag "month_art_last_taken", month_name_options,                     
-      { :helpText => 'Month ART last taken',                                       
+      { :tt_onLoad => "__$('keyboard').style.display = 'none'",
+		:helpText => 'Month ART last taken',
         :condition => '$("year_art_last_taken").value.toLowerCase() != "unknown" && $("ever_received_art").value == "YES"',
         :validationJS => "validateDate();",                                      
-        :tt_onUnLoad => "buildDate('art_last_taken');",                                            
+        :tt_onUnLoad => "buildDate('art_last_taken');",
         :id => "month_art_last_taken" ,                                            
         :validationMessage => 'Please enter a valid date'}%>                    
                                                                                 
@@ -593,7 +594,8 @@
 			{	:helpText => 'Month started ART', 
 				:condition => '$("ever_received_art").value == "YES" && $("year_started_art").value.toLowerCase() != "unknown" && showARTstartDate();',
 				:validationJS => "validateDOB();",
-        :tt_onUnLoad => "setUnkownStage();",
+				:tt_onLoad => "__$('keyboard').style.display = 'none';",
+				:tt_onUnLoad => "setUnkownStage();",
 				:id => "month_started_art" ,
 				:validationMessage => 'Please enter a valid date'}%>
 
@@ -676,7 +678,7 @@
 			{	:id => "reason_for_art_eligibility",
 				:condition => 'showConditions()',
 				:helpText => "Reason for ART eligibility",
-				:tt_onLoad => "calculateWHOstage();",
+				:tt_onLoad => "__$('keyboard').style.display = 'none';calculateWHOstage();",
 				:tt_pageStyleClass => 'NoKeyboard' } %>
 
 		<%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
@@ -809,7 +811,8 @@
 		<%= select_tag "month_confirmatory_hiv_test", month_name_options,                     
 			{	:helpText => 'Confirmatory HIV test month',                                        
 				:condition => '$("confirmatory_hiv_test_year").value.toLowerCase() != "unknown" && $("ever_registered_at_ART_clinic").value == "YES"',
-				:validationJS => "validateDOB();",                                       
+				:validationJS => "validateDOB();",
+				:tt_onLoad => "__$('keyboard').style.display = 'none'",
         :tt_onUnLoad => "buildDate('confirmatory');",                                            
 				:id => "confirmatory_hiv_test_month" ,                                             
 				:validationMessage => 'Please enter a valid date'} %>                     

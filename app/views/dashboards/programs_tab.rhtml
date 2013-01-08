@@ -31,7 +31,7 @@
 
   jQuery(document).ready(function($) {
     $('#enroll').click(function() { window.parent.location = '/programs/new?patient_id=<%= @patient.id -%>' })
-    $('#programs li.data div.void').click(function() { voiding($(this)); return false; });
+    //$('#programs li.data div.void').click(function() { voiding($(this)); return false; });
     $('#programs li.data').click(function() { select($(this)); });
     recent = $('#programs li.data:first');
     if (recent) select(recent);
