@@ -28,9 +28,8 @@
 		  <b>Report Type : Case Findings Report</b><br/>
 	 		<b>Duration : <b><%= "#{@start_date.strftime('%d %B %Y')} to #{@end_date.strftime('%d %B %Y')}"%></b><br/>
 		</div>
-		<br>
-		
-		<%= @n %>
+		<br><br>
+		<%=@n%>
 		<div style = "-moz-user-select:none;">
 			<table border = 1 cellpadding = 0 cellspacing =0  width = 95% style = margin = 30px align = center>
 				<tr>
@@ -138,11 +137,12 @@
 				</tr>
 				<tr>
 				<th>Total</th>
-				<td><%=@variables["newmaletotal"]%></td><td><%=@variables["newFtotal"]%></td><td><%= @variables["relmaletotal"] %>
-				</td><td><%= @variables["relFtotal"]%><td>&nbsp</td><td>&nbsp</td><td>&nbsp</td>
-				<td>&nbsp</td><td>&nbsp</td><td>&nbsp</td><td>&nbsp</td><td>&nbsp</td><td>&nbsp</td><td>&nbsp</td>
-				<td><%= @variables["Males"]%></td><td><%= @variables["Females"]%></td>
-				<td><%= @variables["Males"] + @variables["Females"] %></td>
+				<td><%=@variables["MalesNew"]%></td><td><%=@variables["FemalesNew"]%></td><td><%=@variables["MalesRel"]%></td>
+				<td><%=@variables["FemalesRel"]%><td><%=%></td><td><%=%></td>
+				<td><%=@variables["MalesEP"]%></td><td><%=@variables["FemalesEP"]%></td><td><%=@variables["MalesDef"]%></td>
+				<td><%=@variables["FemalesDef"]%></td><td><%= @variables["MalesF"] %></td><td> <%= @variables["FemalesF"] %>
+				</td><td><%= %></td><td><%=%></td><td><%= @variables["Males"]%></td>
+				<td><%= @variables["Females"]%></td><td><%= @variables["Males"] + @variables["Females"] %></td>
 				</tr>
 
 			</table>
