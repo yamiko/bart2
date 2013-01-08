@@ -1340,7 +1340,6 @@ class EncountersController < GenericEncountersController
     end
   end 
 
-<<<<<<< HEAD
   def export_on_art_patients
 		@ids = params["ids"].split(",")
 		@id_string = "'" + @ids.join("','") + "'"
