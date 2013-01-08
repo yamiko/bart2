@@ -1,6 +1,6 @@
 class GenericEncountersController < ApplicationController
   def create(params=params, session=session)
-   
+
     if params[:change_appointment_date] == "true"
       session_date = session[:datetime].to_date rescue Date.today
       type = EncounterType.find_by_name("APPOINTMENT")                            
@@ -439,22 +439,27 @@ class GenericEncountersController < ApplicationController
         arv_number = identifier[:identifier].strip
         if arv_number.match(/(.*)[A-Z]/i).blank?
           if params['encounter']['encounter_type_name'] == 'TB REGISTRATION'
-						tb_identifier = create_tb_number(type)
+						
             if PatientIdentifier.site_prefix == "MPC"
-							identifier[:identifier] = "LL-TB #{session[:datetime].to_date.strftime('%Y %m')} #{tb_identifier}" rescue  "LL-TB #{Date.today.strftime('%Y %m')} #{tb_identifier}"
+							prefix = "LL-TB"
+							tb_identifier = create_tb_number(type, prefix)
+							identifier[:identifier] = "LL-TB  #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "LL-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
 						else
-							identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{session[:datetime].to_date.strftime('%Y %m')} #{tb_identifier}" rescue  "LL-TB #{Date.today.strftime('%Y %m')} #{tb_identifier}"
+							prefix = "#{PatientIdentifier.site_prefix}-TB"
+							tb_identifier = create_tb_number(type, prefix)
+							identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "#{PatientIdentifier.site_prefix}-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
 						end
           else
             identifier[:identifier] = "#{PatientIdentifier.site_prefix}-ARV-#{arv_number}"
           end
         end
       end
-
+			
       if @patient_identifier
         @patient_identifier.update_attributes(identifier)      
       else
         @patient_identifier = @patient.patient_identifiers.create(identifier)
+				#raise @patient_identifier.to_yaml
       end
     end
 
@@ -493,10 +498,11 @@ class GenericEncountersController < ApplicationController
     # Go to the next task in the workflow (or dashboard)
     # only redirect to next task if location parameter has not been provided
 
-    
     if params[:location].blank?
 			#find a way of printing the lab_orders labels
-			if params['encounter']['encounter_type_name'] == "LAB ORDERS"
+			if params['encounter']['encounter_type_name'].upcase == 'LAB RESULTS'
+				print_and_redirect("/encounters/lab_results_print/?id=#{@patient.id}", next_task(@patient))
+			elsif	params['encounter']['encounter_type_name'] == "LAB ORDERS"
 				redirect_to"/patients/print_lab_orders/?patient_id=#{@patient.id}"
 			elsif params['encounter']['encounter_type_name'] == "TB suspect source of referral" && !params[:gender].empty? && !params[:family_name].empty? && !params[:given_name].empty?
 				redirect_to"/encounters/new/tb_suspect_source_of_referral/?patient_id=#{@patient.id}&gender=#{params[:gender]}&family_name=#{params[:family_name]}&given_name=#{params[:given_name]}"
@@ -915,7 +921,7 @@ class GenericEncountersController < ApplicationController
         "Urine" => ["Urine microscopy", "Urinanalysis", "Culture & sensitivity"],
         "Aspirate" => ["Full aspirate analysis"],
         "Stool" => ["Full stool analysis", "Culture & sensitivity"],
-        "Sputum-AAFB" => ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)"],
+        "Sputum-AAFB" => ["AAFB(1st)", "AAFB(2nd)"],
         "Sputum-Culture" => ["Culture(1st)", "Culture(2nd)"],
         "Swab" => ["Microscopy", "Culture & sensitivity"]
       },
@@ -1005,9 +1011,8 @@ class GenericEncountersController < ApplicationController
         ['Walk in', 'Walk in'],
         ['Index Patient', 'Index Patient'],
         ['HTC', 'HTC clinic'],
-        ['ART', 'ART Clinic'],
+        ['ART/PMTCT', 'ART Clinic/PMTCT'],
         ['OPD', 'OPD'],
-        ['PMTCT', 'PMTCT'],
         ['Private practitioner', 'Private practitioner'],
         ['Sputum collection point', 'Sputum collection point'],
         ['Other','Other']
@@ -1100,11 +1105,13 @@ class GenericEncountersController < ApplicationController
   end
 
   def sputum_submissons_with_no_results(patient_id)
-    sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)", "Culture(1st)", "Culture(2nd)"]
+   # sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)", "Culture(1st)", "Culture(2nd)"]
+	  sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)",  "Culture(1st)", "Culture(2nd)"]
     sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
     sputums_array = Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?) OR value_text in (?))", patient_id, ConceptName.find_by_name('Tests ordered').concept_id, sputum_concept_ids, sputum_concept_names], :order => "obs_datetime desc", :limit => 3)
 
-    results_concept_name = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
+    #results_concept_name = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
+		results_concept_name = ["AAFB(1st) results", "AAFB(2nd) results", "Culture(1st) Results", "Culture-2 Results"]
     sputum_results_id = ConceptName.find(:all, :conditions => ["name IN (?)", results_concept_name ]).map(&:concept_id)
 
     sputums_array = sputums_array.select { |order|
@@ -1411,17 +1418,19 @@ class GenericEncountersController < ApplicationController
 		render :text => "<li></li><li>" + options.join("</li><li>") + "</li>"
 	end
 	
-	def create_tb_number(type_id)
-		session_date = "%#{Date.today.year.to_s}%"
+	def create_tb_number(type_id, prefix)
+		session_date = "#{prefix} #{Date.today.year.to_s}%"
 		current_date = Date.today.to_s
 		current_date = session[:datetime] if !session[:datetime].blank?
-		 session_date = "%#{session[:datetime].to_date.year.to_s}%" if !session[:datetime].blank?
+		 session_date = "#{prefix} #{session[:datetime].to_date.year.to_s}%" if !session[:datetime].blank?
+		 #
 		 patient_exists = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ? AND patient_id = ?', type_id, session_date, @patient.id])
 		 type = patient_exists
 		 if patient_exists.blank?
-			type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ?', type_id, session_date],:order => 'date_created DESC')
+			type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ?', type_id, session_date],:order => 'identifier DESC')
 		 end
 		 type = type.first.identifier.split(" ") rescue ""
+		 
 		 if type.include?(current_date.to_date.year.to_s)
 			return (type.last.to_i + 1) if patient_exists.blank?
 			return (type.last.to_i) if ! patient_exists.blank?

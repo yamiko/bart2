@@ -178,16 +178,16 @@
         float:left;
       }
 	  .create_button a{
-		background-color: #669999;
-		border-bottom: 1px outset black;
-		border-radius: 7px 7px 7px 7px;
-		border-style: outset;
-		border-top: 1px outset black;
-		color: white;
-		display: block;
-		padding: 10px 16px 10px 10px;
-		text-align: center;
-		text-decoration: none !important;
+		    background-color: #669999;
+			border-bottom: 1px outset black;
+			border-radius: 7px 7px 7px 7px;
+			border-style: outset;
+			border-top: 1px outset black;
+			color: white;
+			display: block;
+			padding: 10px 16px 10px 10px;
+			text-align: center;
+			text-decoration: none !important;
 		}
 
       .logo {
@@ -237,14 +237,14 @@
 <body>
 <%= image_tag(@logo,:class=>"logo")%>
 <br /><b style="margin-left:75px"><%= Location.current_health_center.name + " : " + @quarter %></b><br />
-<b style="position:relative; top:0px;margin-left:75px"><%=params[:field].capitalize rescue params[:value].capitalize-%></b><br />
+<b style="position:relative; top:0px;margin-left:75px"><%=params[:value].capitalize-%></b><br />
 <br /><b style="position: relative; display:block; font-weight:bold; top:-15px; padding-left:30px;margin-left:200px">&nbsp;</b>
  <b style="position: relative; display:block; font-weight:bold; top:-15px; padding-left:30px;margin-left:200px">&nbsp;</b><br /><br />
-<div>
-  <table id="table_id" class="display">
+<div style="border: 3px solid #80890F">
+  <table name="table_id" id="table_id" class="display">
 			<thead>
 					<tr>
-							<th>ID</th>
+							<th>&nbsp;</th>
 							<th>ARV Number</th>
 							<th>Name</th>
 							<th>Age</th>
@@ -260,9 +260,9 @@
 									<% session[:mastercard_ids] << data_row.person_id %>
 
 									<tr>
-										  <td align='center'><%= link_to_onmousedown "#{data_row.person_id}",{:controller =>"patients", :action => 'mastercard',
+										  <td align='center' class="create_button"><%= link_to_onmousedown "View",{:controller =>"patients", :action => 'mastercard',
 										  :patient_id => "#{data_row.person_id}" ,:source =>"out_of_range_arv_number", :quarter => "#{@report_quarter}",
-										  :arv_start_number => "#{params[:arv_start_number]}",:arv_end_number => "#{params[:arv_end_number]}"}%></td>
+										  :arv_start_number => "#{params[:arv_start_number]}",:arv_end_number => "#{params[:arv_end_number]}"}%></td> 
 										  <td align='center'><%= data_row.arv_number %></td>
 										  <td><%= data_row.name %></td>
 
@@ -278,7 +278,7 @@
 
 									</tr>
 							<%end%>
-		
+
 			</tbody>
   </table>
 </div>

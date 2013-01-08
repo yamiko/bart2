@@ -4,9 +4,26 @@ class EncountersController < GenericEncountersController
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
 
-			@hiv_status = tb_art_patient(@patient,"hiv program")
-			@tb_status = tb_art_patient(@patient,"TB program")
-
+			@hiv_status = tb_art_patient(@patient,"hiv program") rescue ""
+			@tb_status = tb_art_patient(@patient,"TB program") rescue ""
+			@show_tb_types = false
+			consultation_tb_status = Patient.find_by_sql("
+											SELECT patient_id, current_state_for_program(patient_id, 2, '#{session_date}') AS state, c.name
+											FROM patient p INNER JOIN program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(patient_id, 2, '#{session_date}')
+											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{@patient.patient_id}'").first.name rescue ""
+			 if consultation_tb_status == "Currently in treatment"
+				 @consultation_tb_status = "Confirmed TB on treatment"
+			 elsif consultation_tb_status == "Symptomatic but NOT in treatment" or @hiv_status.to_s.upcase == "POSITIVE"
+				 @consultation_tb_status = "Confirmed TB NOT on treatment"
+			 else
+				 @show_tb_types = true
+				 @consultation_tb_status = "Unknown"
+			 end
+		@current_hiv_program_status = Patient.find_by_sql("
+											SELECT patient_id, current_state_for_program(patient_id, 1, '#{session_date}') AS state, c.name
+											FROM patient p INNER JOIN program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(patient_id, 1, '#{session_date}')
+											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{@patient.patient_id}'").first.name rescue "Unknown"
+		
     if (params[:from_anc] == 'true')
       bart_activities = ['Manage Vitals','Manage HIV clinic consultations',
         'Manage ART adherence','Manage HIV staging visits','Manage HIV first visits',
@@ -123,7 +140,7 @@ class EncountersController < GenericEncountersController
 
 		@hiv_status = PatientService.patient_hiv_status(@patient)
 		@hiv_test_date = PatientService.hiv_test_date(@patient.id)
-    #raise @hiv_test_date.to_s
+    
 		@lab_activities = lab_activities
 		# @tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
 		@tb_patient_category = [["New","NEW"], ["Relapse","RELAPSE"], ["Retreatment after default","RETREATMENT AFTER DEFAULT"], ["Fail","FAIL"], ["Other","OTHER"]]
@@ -214,7 +231,7 @@ class EncountersController < GenericEncountersController
 					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('TB type').concept_id
  				end
 			end
-			#raise @tb_classification.to_s
+			
 
 		end
 
@@ -348,6 +365,12 @@ class EncountersController < GenericEncountersController
 			@require_hiv_clinic_registration = require_hiv_clinic_registration
 		end
 
+		if PatientIdentifier.site_prefix == "MPC"
+				prefix = "LL-TB"
+		else
+				prefix = "#{PatientIdentifier.site_prefix}-TB"
+		end
+		@tb_auto_number = create_tb_number(PatientIdentifierType.find_by_name('District TB Number').id, prefix)
 		redirect_to "/" and return unless @patient
 
 		redirect_to next_task(@patient) and return unless params[:encounter_type]
@@ -365,7 +388,7 @@ class EncountersController < GenericEncountersController
 	def tb_art_patient(patient,program)
     program_id = Program.find_by_name(program).id
     enrolled = PatientProgram.find(:first,:conditions =>["program_id = ? AND patient_id = ?",program_id,patient.id]).blank?
-    #raise enrolled.to_yaml
+ 
 
 		return true if enrolled
     false
@@ -379,6 +402,12 @@ class EncountersController < GenericEncountersController
         ['Smear Positive (HIV-)','SMEAR POSITIVE'],
         ['X-ray result interpretation','X-RAY RESULT INTERPRETATION']
       ],
+			'tb_investigation' =>[
+				['',''],
+				['Sputum Test','TB sputum test'],
+				['X-Ray','X-Ray'],
+				['None','None']
+			],
       'tb_clinic_visit_type' => [
         ['',''],
         ['Lab analysis','Lab follow-up'],
@@ -522,7 +551,7 @@ class EncountersController < GenericEncountersController
         ["Fatigue", "Fatigue"],
         ["Fever", "Relapsing fever"],
         ["Loss of appetite", "Loss of appetite"],
-        ["Meningitis", "Meningitis"],
+       # ["Meningitis", "Meningitis"],
         ["Night sweats","Night sweats"],
         ["Peripheral neuropathy", "Peripheral neuropathy"],
         ["Shortness of breath", "Shortness of breath"],
@@ -572,8 +601,8 @@ class EncountersController < GenericEncountersController
       'tb_types' => [
         ['',''],
         ['Susceptible', 'Susceptible to tuberculosis drug'],
-        ['Multi-drug resistant (MDR)', 'Multi-drug resistant tuberculosis'],
-        ['Extreme drug resistant (XDR)', 'Extreme drug resistant tuberculosis']
+       # ['Multi-drug resistant (MDR)', 'Multi-drug resistant tuberculosis'],
+        ['Extensive drug resistant (XDR)', 'Extensive drug resistant tuberculosis']
       ],
       'tb_classification' => [
         ['',''],
@@ -1343,4 +1372,74 @@ class EncountersController < GenericEncountersController
 		render :text => result.to_json
   end
 
+	def lab_results_print
+		label_commands = lab_results_label(params[:id])
+		send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:id]}#{rand(10000)}.lbs", :disposition => "inline")
+
+	end
+
+  def lab_results_label(patient_id)
+			patient = Patient.find(patient_id)
+			patient_bean = PatientService.get_patient(patient.person)
+			observation = patient_recent_lab_results(patient_id)
+			sputum_results = [['NEGATIVE','NEGATIVE'], ['SCANTY','SCANTY'], ['WEAKLY POSITIVE','1+'], ['MODERATELY POSITIVE','2+'], ['STRONGLY POSITIVE','3+']]
+			concept_one = ConceptName.find_by_name("First sputum for AAFB results").concept_id
+			concept_two = ConceptName.find_by_name("Second sputum for AAFB results").concept_id
+			concept_three = ConceptName.find_by_name("Third sputum for AAFB results").concept_id
+			concept_four = ConceptName.find_by_name("Culture(1st) Results").concept_id
+			concept_five = ConceptName.find_by_name("Culture(2nd) Results").concept_id
+			concept =[]
+			culture =[]
+			labels = []
+			observation.each do |obs|
+						next if obs.value_coded.blank?
+						concept[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_one
+						concept[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_two
+						concept[2] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_three
+						culture[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_four
+						culture[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_five
+			end
+			if concept.length < 2
+						first = "Culture-1 Results: #{sputum_results.assoc("#{culture[0].upcase}")[1]}"
+						second = "Culture-2 Results: #{sputum_results.assoc("#{culture[1].upcase}")[1]}"
+			else
+						lab_result = []
+						h = 0
+						(0..2).each do |x|
+									if concept[x].to_s != ""
+									lab_result[h] = sputum_results.assoc("#{concept[x].upcase}")
+									h += 1
+									end
+						end
+						first = "AAFB(1st) results: #{lab_result[0][1] rescue ""}"
+						second = "AAFB(2nd) results: #{lab_result[1][1] rescue ""}"
+						end
+						i = 0
+    labels = []
+
+          label = 'label' + i.to_s
+          label = ZebraPrinter::Label.new(500,165)
+          label.font_size = 2
+          label.font_horizontal_multiplier = 1
+          label.font_vertical_multiplier = 1
+          label.left_margin = 300
+          label.draw_text("Name: #{patient_bean.name}",50,50,0,3,1,1,false)
+          label.draw_text(first,50,90,0,2,1,1)
+          label.draw_text(second,50,130,0,2,1,1)
+
+          labels << label
+
+         i = i + 1
+
+      print_labels = []
+      label = 0
+      while label <= labels.size
+        print_labels << labels[label].print(1) if labels[label] != nil
+        label = label + 1
+      end
+
+      return print_labels
+  end
+	
+	
 end

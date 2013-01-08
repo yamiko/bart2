@@ -414,7 +414,7 @@ class GenericPeopleController < ApplicationController
   end
 
 	def tb_initialization_location
-    locations = Location.find_by_sql("SELECT name FROM location WHERE description like '%Health Facility' AND name LIKE '#{params[:search_string]}%'order by name")
+    locations = Location.find_by_sql("SELECT name FROM location WHERE description like '%Health Facility' AND name LIKE '#{params[:search_string]}%'order by name LIMIT 10")
     locations = locations.map do |d|
       "<li value='#{d.name}'>#{d.name}</li>"
     end
@@ -427,7 +427,7 @@ class GenericPeopleController < ApplicationController
 
     villages = Village.find(:all,:conditions => village_conditions, :order => 'name')
     villages = villages.map do |v|
-      "<li value='#{v.name}'>#{v.name}</li>"
+      '<li value=' + v.name + '>' + v.name + '</li>'
     end
     render :text => villages.join('') + "<li value='Other'>Other</li>" and return
   end

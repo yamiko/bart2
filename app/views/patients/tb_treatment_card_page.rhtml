@@ -22,6 +22,39 @@
 	}
 	setTimeout("back()",300)
 	
+	
+  function addRow() {
+ 
+  var table = document.getElementById("adherence");
+ 	<% @previous_visits.each do |visit| %>
+	
+		var rowCount = table.rows.length;
+		var row = table.insertRow(rowCount);
+	 
+		var cell1 = row.insertCell(0);   
+		cell1.innerHTML = table.rows.length -2;
+		cell1.setAttribute("align","center")
+		
+		var cell2 = row.insertCell(1);
+		cell2.innerHTML = <%= visit.date.strftime('%d/%m/%Y').to_json%>;
+		cell2.setAttribute("align","center")
+		 
+		var cell3 = row.insertCell(2);
+		cell3.innerHTML = <%= visit.observations[1].to_s.split(':')[1].to_json %>;
+		cell3.setAttribute("align","center")
+
+		var cell4 = row.insertCell(3);
+		cell4.innerHTML = <%= visit.observations[2].to_s.split(':')[1].to_json %>;
+		cell4.setAttribute("align","center")
+
+		var cell5 = row.insertCell(4);
+		cell5.innerHTML = <%= visit.observations[3].to_s.split(':')[1].to_json %>;
+		cell5.setAttribute("align","center")
+
+	<%end%>
+          
+  }
+ setTimeout("addRow();",300)
 </script>
 
 
@@ -36,117 +69,43 @@
 	div.container{border: 1px solid;line-height:25px; border-radius:15px;  margin:10px;}
 	div.option{border: 1px solid;height:35px;width:30px; border-radius:5px;}
 	div.option2{border: 1px solid;height:25px;width:95%;text-align:center; border-radius:4px;}
-	div.main {overflow:scroll; margin: 5px;}
+	div.main {overflow:auto; height:630px;margin: 15px;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-o-user-select: none;user-select: none;}
 </style>
-<div>
 
-<b>Patient Name :<%= @patient_bean.name %> (<%= @patient_bean.sex %>)</b>
 
-	<div style = "height: 620px; overflow:scroll;">
-	<table class = "fixed" cellspacing = 0px width = 130% border = 1>
-		<tr style = "height: 40px"><td colspan = "7">Month<td>1<td>2<td>3<td>4<td>5<td>6<td>7<td>8<td>9<td>10<td>11<td>12<td>
-		13<td>14<td>15<td>16<td>17<td>18<td>19<td>20<td>21<td>22<td>23<td>24<td>25<td>
-		26<td>27<td>28<td>29<td>30<td>31</td></tr>
-		<tr style = "height: 30px"><td colspan = "7">
-		&nbsp</td><td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td >&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp</td></tr>
-		<tr style = "height: 30px"><td colspan = "7">
-		&nbsp</td><td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td colspan = "5" rowspan = "2">At <b> 2 months</b>: If HIV Positive, Start ART</td></tr>
-		<tr style = "height: 30px" ><td colspan = "7">
-		&nbsp</td><td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp</td></tr>
-		<tr style = "height: 30px"><td colspan = "7">
-		&nbsp</td><td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp</td></tr>
+<div class = "main">
 
-	</table>
+<font size = 5><b>Patient Name : <%= @patient_bean.name %> (<%= @patient_bean.sex %>)</b></font>
+<br>
 
-	<br>
+<table width= 100% border= 1px cellspacing = 0px cellpadding = 0px >
+
+	<tr><th rowspan= "2" width ="10%">TIME<th rowspan = "1" colspan = "4">Sputum Results<th rowspan = "2" width ="10px" >Weight (kg)
+	<td rowspan = "2" width = 250px><b>Documented HIV Test History</b> (see back)</tr>
+
+	<tr><th width = 10%>Test<th width= 10%>Date<th>Accesion No<th width = 20%>Result</td></tr>
+
+	<tr><td>Initiation<td>Smear<td ><%= @variables["startWeightdate"]%><td><%= @variables["smear1AAccession"]%><td><%= @variables["smear1Aresult"]%><td>	<%= @variables["startWeight"]%><td ><%= @variables["hiv1"]%></td ></tr>
+			
+	<tr><td>Month 2<td>Smear<td><%= @variables["weight2date"]%><td><%= @variables["smear2AAccession"]%><td><%= @variables["smear2Aresult"]%><td rowspan = "2"><%= @variables["weight2"]%><td rowspan = "2"><%= @variables["hiv2"]%></td></tr>
+
+	<tr><td>Month 3*<td>Smear<td><%= @variables["weight3date"]%><td>&nbsp<td></tr>
+
+	<tr><td>Month 5<td>Smear<td ><%= @variables["weight4date"]%><td><%= @variables["smear3AAccession"]%><td><%= @variables["smear3Aresult"]%><td>	<%= @variables["weight4"]%><td ><%= @variables["hiv3"]%></td ></tr>
+
+	<tr><td>Last month 6/8<td>Smear<td ><%= @variables["weight5date"]%><td><%= @variables["smear4AAccession"]%><td><%= @variables["smear4Aresult"]%><td>	<%= @variables["weight5"]%><td ><%= @variables["hiv4"]%></td ></tr>
 	
+</table>
+<br>
+<font size = 4><b>TB DRUG ADHERENCE</b></font>
+<br>
 
-	<table class = "fixed" cellspacing = 0px width = 130% border = 1>
-		<tr><td width = 30%>
-			<h3> 2. CONTINUATION PHASE (see guidelines)</h3>
-			<span class= "tab2"></span> Enter Prescribed regimen and dosages<br>
-			<span class= "tab2"></span> (indicate number of tablets per dose)<br>
-			<table width= 100%>
-				<tr><th colspan=2>Regimen 1<th colspan=2>Regimen 2<th colspan=2>TB Meningitis</tr>
-				<tr><td><div class= "option"></div><td>RH daily for 4 months
-					<td><div class= "option"></div><td>RHE daily for 5 months<td><div class= "option">
-				</div><td>RH daily for 7 months</td></tr>
-			</table>
-
-		</td>
-		<td><b>Documented HIV Test History</b><br>
-			<div style= "font-size: 12; line-height: 15px">
-			<span class= "tab1"></span><u>Regard all previous test results without documentation as "Never Listed"</u><br><br>
-			<b>Recent Negative:</b><span class= "tab2"></span> &nbspDocumented negative test within 3 months -> No new test needed this time
-			<br><br>
-			<b>Past Positive:</b><span class= "tab3"></span>Documented positive from any time in the past
-			<br><br>
-			<b>Never Tested:</b><span class= "tab3"></span>Never tested <u>or</u> Documented negative test from more than 3 months ago 
-			<u>or</u> Previous test without<br>
-			<b>or Old Negative:</b><span class= "tab2"></span> &nbsp documnetation -> All these patients need new HIV test
-			<br><br>
-			<b> Unknown:</b><span class= "tab3"></span><span class= "tab2"></span> &nbspCurrent HIV-status unknown, HIV-testing 
-				was not discussed
-			</div></td>
-		</tr>
-	</table>
+<table id= "adherence" width= 100% border= 1px cellspacing = 0px cellpadding = 0px align= "centre" >
+	<tr><th rowspan=2>Month</th><th rowspan =2>Date</th><th width = 60% colspan = 3>Drug Adherence</th></tr>
+	<tr><th>Drugs Brought</th><th>Drugs At Home</th><th>Adherence %</th></tr>
 	
+</table>
 	<br>
-	
-	<table class = "fixed" cellspacing = 0px  width = 130%  border = 1>
-		<tr style = "height: 40px"><td colspan = "7">Month<td>1<td>2<td>3<td>4<td>5<td>6<td>7<td>8<td>9<td>10<td>11<td>12<td>
-		13<td>14<td>15<td>16<td>17<td>18<td>19<td>20<td>21<td>22<td>23<td>24<td>25<td>
-		26<td>27<td>28<td>29<td>30<td>31</td></tr>
-		<tr style = "height: 30px"><td colspan = "7">
-		&nbsp</td><td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td >&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp</td></tr>
-		<tr style = "height: 30px"><td colspan = "7">
-		&nbsp</td><td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp</tr>
-		<tr style = "height: 30px" ><td colspan = "7">
-		&nbsp</td><td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp</td></tr>
-		<tr style = "height: 30px"><td colspan = "7">
-		&nbsp</td><td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp</tr>
-		<tr style = "height: 30px" ><td colspan = "7">
-		&nbsp</td><td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp</td></tr>
-		<tr style = "height: 30px"><td colspan = "7">
-		&nbsp</td><td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp</tr>
-		<tr style = "height: 30px" ><td colspan = "7">
-		&nbsp</td><td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp<td>&nbsp
-		<td>&nbsp<td>&nbsp<td>&nbsp</td></tr>
 
-	</table>
-	<br>
-	</div>
-	<b>Remarks:</b>
+<b>Remarks:</b>
 </div>
