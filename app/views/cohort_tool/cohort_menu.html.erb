@@ -24,6 +24,6 @@
     }
 
   %>
-  <%= select_tag 'quarter', options_for_select( qtrs ), {:helpText => "Select Quarter"} %>
+  <%= select_tag 'quarter', options_for_select( qtrs ), {:helpText => "Select Quarter", :tt_onLoad => "__$('keyboard').style.display = 'none'"} %>
 
 </form>

@@ -244,7 +244,7 @@
   <table id="table_id" class="display">
 			<thead>
 					<tr>
-							<th>ID</th>
+							<th>&nbsp;</th>
 							<th>ARV Number</th>
 							<th>Name</th>
 							<th>Age</th>
@@ -260,7 +260,7 @@
 									<% session[:mastercard_ids] << data_row.person_id %>
 
 									<tr>
-										  <td align='center'><%= link_to_onmousedown "#{data_row.person_id}",{:controller =>"patients", :action => 'mastercard',
+										  <td align='center' class="create_button"><%= link_to_onmousedown "View",{:controller =>"patients", :action => 'mastercard',
 										  :patient_id => "#{data_row.person_id}" ,:source =>"out_of_range_arv_number", :quarter => "#{@report_quarter}",
 										  :arv_start_number => "#{params[:arv_start_number]}",:arv_end_number => "#{params[:arv_end_number]}"}%></td>
 										  <td align='center'><%= data_row.arv_number %></td>
