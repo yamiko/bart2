@@ -497,14 +497,14 @@ class Cohort
 		conditions = ''
 		patients = []
 		if min_age and max_age
-		  conditions = "AND DATEDIFF(initiation_date, person.birthdate) >= #{min_age}
-				        AND DATEDIFF(initiation_date, person.birthdate) < #{max_age}"
+		  conditions = "AND DATEDIFF(esd.earliest_start_date, person.birthdate) >= #{min_age}
+				        AND DATEDIFF(esd.earliest_start_date, person.birthdate) < #{max_age}"
 		end
 
 		if sex
 		  conditions += "AND person.gender = '#{sex}'"
 		end
-
+=begin
     PatientProgram.find_by_sql(
       "SELECT esd.*,person.gender,person.birthdate,
         IF(ISNULL(MIN(sdo.value_datetime)), earliest_start_date,
@@ -514,6 +514,15 @@ class Cohort
 	      LEFT JOIN start_date_observation sdo ON esd.patient_id = sdo.person_id
 			GROUP BY esd.patient_id
 	    HAVING esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' #{conditions}").each do | patient | 
+			patients << patient.patient_id
+		end
+		return patients
+=end
+		  PatientProgram.find_by_sql(
+      "SELECT esd.patient_id, esd.earliest_start_date
+	    FROM earliest_start_date esd
+	    INNER JOIN person ON person.person_id = esd.patient_id
+	    WHERE esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' #{conditions}").each do | patient |
 			patients << patient.patient_id
 		end
 		return patients
@@ -686,7 +695,7 @@ class Cohort
 			@art_defaulters ||= PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{@end_date}') AS def
 											FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
 											WHERE e.earliest_start_date <=  '#{@end_date}' AND p.dead=0
-											HAVING def = 1 AND current_state_for_program(patient_id, 1, '#{@end_date}') NOT IN (6, 2, 3)").each do | patient | 
+											HAVING def = 1 AND current_state_for_program(patient_id, 1, '#{@end_date}') NOT IN (6, 2, 3)").each do | patient |
 				patients << patient.patient_id
 			end
 			@art_defaulters = patients
@@ -736,12 +745,26 @@ class Cohort
 		@patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
 		@patient_id_on_art_and_alive = @patients_alive_and_on_art
 		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
-
+=begin
 		status = PatientState.find_by_sql(
 			"SELECT e.patient_id, current_value_for_obs(e.patient_id, #{hiv_clinic_consultation_encounter_id}, #{tb_status_concept_id}, '#{end_date}') AS obs_value
 													FROM earliest_start_date e
 													WHERE earliest_start_date <= '#{end_date}'
 													AND e.patient_id IN (#{@patient_id_on_art_and_alive.join(',')}) ").each do |state|
+			states[state.patient_id] = state.obs_value
+		end
+=end
+		joined_array = @patient_id_on_art_and_alive.join(',')
+		PatientState.find_by_sql(
+			"SELECT e.patient_id, o.value_coded
+											FROM earliest_start_date e
+											INNER JOIN encounter en ON en.patient_id = e.patient_id
+											INNER JOIN obs o ON o.person_id = e.patient_id
+													WHERE earliest_start_date <= '#{end_date}'
+													AND o.encounter_id = #{hiv_clinic_consultation_encounter_id}
+													AND o.concept_id = #{tb_status_concept_id}
+													AND e.patient_id IN (#{joined_array})
+													ORDER BY en.encounter_datetime DESC LIMIT 1").each do |state|
 			states[state.patient_id] = state.obs_value
 		end
 
@@ -846,34 +869,25 @@ class Cohort
 
   def outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date,
 			program_id = @@program_id, states = [], min_age=nil, max_age=nil)
-  
     states = []
-
-    if min_age or max_age
+		
+		if min_age or max_age
       conditions = "AND TRUNCATE(DATEDIFF(p.date_enrolled, person.birthdate)/365,0) >= #{min_age}
                     AND TRUNCATE(DATEDIFF(p.date_enrolled, person.birthdate)/365,0) <= #{max_age}"
     end
 
-    PatientState.find_by_sql("SELECT * FROM (
-        SELECT s.patient_program_id, patient_id,patient_state_id,start_date,
-               n.name name, current_state_for_program(p.patient_id, 1, '#{@end_date}') AS state
+    PatientState.find_by_sql("SELECT  distinct(p.patient_id)
         FROM patient_state s
         INNER JOIN patient_program p ON p.patient_program_id = s.patient_program_id
-        INNER JOIN program_workflow pw ON pw.program_id = p.program_id
-        INNER JOIN program_workflow_state w ON w.program_workflow_id = pw.program_workflow_id
-                   AND w.program_workflow_state_id = s.state
-        INNER JOIN concept_name n ON w.concept_id = n.concept_id
-        INNER JOIN person ON person.person_id = p.patient_id
+        INNER JOIN earliest_start_date e ON e.patient_id = p.patient_id
+				INNER JOIN person ON person.person_id = e.patient_id
         WHERE p.voided = 0 AND s.voided = 0 #{conditions}
-        AND (patient_start_date(patient_id) >= '#{start_date}'
-        AND patient_start_date(patient_id) <= '#{end_date}')
+        AND e.earliest_start_date >= '#{start_date}'
+        AND e.earliest_start_date  <= '#{end_date}'
         AND p.program_id = #{program_id}
         AND s.start_date <= '#{outcome_end_date}'
-        ORDER BY patient_id DESC, patient_state_id DESC, start_date DESC
-      ) K
-      GROUP BY patient_id
-      ORDER BY K.patient_state_id DESC , K.start_date DESC").map do |state|
-			states << [state.patient_id , state.name]
+			").each do |patient_id|
+			states << patient_id.patient_id
 		end
 
 		return states
@@ -884,35 +898,30 @@ class Cohort
 
 	def women_outcomes(start_date=@start_date, end_date=@end_date, outcome_end_date=@end_date,
 			program_id = @@program_id, states = [], min_age=nil, max_age=nil)
-		#	raise valued.to_yaml
 		states = []
-			coded_id = ConceptName.find_by_name("Yes").concept_id
-			pregnant_id = ConceptName.find_by_name("Is patient pregnant?").concept_id
-			breast_feeding_id = ConceptName.find_by_name("Is patient breast feeding?").concept_id
-		PatientState.find_by_sql("SELECT * FROM (
-					SELECT s.patient_program_id, p.patient_id,patient_state_id,start_date,
-               n.name name, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state
+		coded_id = ConceptName.find_by_name("Yes").concept_id
+		pregnant_id = ConceptName.find_by_name("Is patient pregnant?").concept_id
+		breast_feeding_id = ConceptName.find_by_name("Is patient breast feeding?").concept_id
+		PatientState.find_by_sql(" SELECT  distinct(p.patient_id)
 					FROM patient_state s
 					INNER JOIN patient_program p ON p.patient_program_id = s.patient_program_id
 					INNER JOIN earliest_start_date e ON e.patient_id = p.patient_id
 					INNER JOIN obs o on o.person_id = e.patient_id
-					INNER JOIN concept_name n on n.concept_id = o.concept_id
-					WHERE e.earliest_start_date >= '#{start_date}'
-					AND e.earliest_start_date <= '#{end_date}'
-					AND ((n.concept_id = '#{pregnant_id}'
+					WHERE (e.earliest_start_date  >= '#{start_date}'
+					AND e.earliest_start_date  <= '#{end_date}')
+					AND s.start_date <= '#{outcome_end_date}'
+					AND p.program_id = #{program_id}
+					AND ((o.concept_id = '#{pregnant_id}'
 								AND o.value_coded = '#{coded_id}'
 								AND DATEDIFF(o.obs_datetime, e.earliest_start_date) <= 30
 								AND DATEDIFF(o.obs_datetime, e.earliest_start_date) > -1)
 								OR
-						  (n.concept_id = '#{breast_feeding_id}'
+						  (o.concept_id = '#{breast_feeding_id}'
 								AND o.value_coded = '#{coded_id}'))
-					ORDER BY patient_id DESC, patient_state_id DESC, start_date DESC
-      ) K
-      GROUP BY patient_id
-      ORDER BY K.patient_state_id DESC , K.start_date DESC").map do |state|
-			states << [state.patient_id , state.name]
+					").each do |patient_id|
+			states << patient_id.patient_id
 		end
-		#raise states.to_yaml
+		
 		return states
   end
 
