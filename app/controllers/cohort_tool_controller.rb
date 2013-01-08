@@ -1,5 +1,129 @@
 class CohortToolController < GenericCohortToolController
+	def case_findings
+		@variables = Hash.new(0)
+		@n = []
+		quarter = params[:quarter]
+    @start_date,@end_date = Report.generate_cohort_date_range(quarter)
+    encounters = Encounter.find(:all, :conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ?", EncounterType.find_by_name("tb registration").id, @start_date, @end_date])
+    tbtype = ConceptName.find_by_name("TB classification").concept_id
+    patienttype = ConceptName.find_by_name("TB patient category").concept_id
+    
+    encounters.each do |enc|
+    		
+    		tbclass = Concept.find(Observation.find(:last, :conditions => ["encounter_id = ? and concept_id = ? ", enc.id,tbtype]).value_coded).fullname
+    		patclass = Concept.find(Observation.find(:last, :conditions => ["encounter_id = ? and concept_id = ? ", enc.id,patienttype]).value_coded).fullname
+    		
+    		age = PatientService.age(enc.patient.person)
+    		
+    		if ((age >= 0) && (age <= 4))
+    			case enc.patient.person.gender
+    				when ("M")
+    					@variables["Males"] +=1
+    					@variables["Under5Males"] +=1    		
+    				when ("F")
+    					@variables["Females"] +=1    		
+    					@variables["Under5Females"] +=1
+    			end
+    			@variables[case_find_cat_sort(patclass,tbclass,age= "Under5",gender= enc.patient.person.gender)] +=1
+    		elsif((age >= 5) && (age <= 14))
+    			@n << tbclass
+		  		case enc.patient.person.gender
+		  				when ("M")
+		  					@variables["Males"] +=1    		
+		  					@variables["Under15Males"] +=1    		
+		  				when ("F")
+		  					@variables["Females"] +=1  
+		  					@variables["Under15Females"] +=1  		
+		  			end
+		  			@variables[case_find_cat_sort(patclass,tbclass,age= "Under15",gender= enc.patient.person.gender)] +=1
+    		elsif((age >= 15) && (age <= 24))
+					case enc.patient.person.gender
+		  				when ("M")
+		  					@variables["Males"] +=1    		
+		  					@variables["Under25Males"] +=1
+		  				when ("F")
+		  					@variables["Females"] +=1    		
+		  					@variables["Under25Females"] +=1
+		  			end
+		  			@variables[case_find_cat_sort(patclass,tbtype,age= "Under25",gender= enc.patient.person.gender)] +=1    		
+    		elsif((age >= 25) && (age <= 34))
+						case enc.patient.person.gender
+		  				when ("M")
+		  					@variables["Males"] +=1
+		  					@variables["Under35Males"] +=1    		
+		  				when ("F")
+		  					@variables["Females"] +=1    		
+		  					@variables["Under35Females"] +=1
+		  			end
+		  			@variables[case_find_cat_sort(patclass,tbtype,age= "Under35",gender= enc.patient.person.gender)] +=1    		
+    		elsif((age >= 35) && (age <= 44))
+						case enc.patient.person.gender
+		  				when ("M")
+		  					@variables["Males"] +=1
+		  					@variables["Under45Males"] +=1    		
+		  				when ("F")
+		  					@variables["Females"] +=1    		
+		  					@variables["Under45Females"] +=1
+		  			end
+		  			@variables[case_find_cat_sort(patclass,tbtype,age= "Under45",gender= enc.patient.person.gender)] +=1    		
+    		elsif((age >= 45) && (age <= 54))
+						case enc.patient.person.gender
+		  				when ("M")
+		  					@variables["Males"] +=1
+		  					@variables["Under55Males"] +=1    		
+		  				when ("F")
+		  					@variables["Females"] +=1    		
+		  					@variables["Under55Females"] +=1
+		  			end
+    			@variables[case_find_cat_sort(patclass,tbtype,age= "Under55",gender= enc.patient.person.gender)] +=1    		
+    		elsif((age >= 55) && (age <= 64))
+					case enc.patient.person.gender
+    				when ("M")
+    					@variables["Males"] +=1    		
+    					@variables["Under65Males"] +=1
+    				when ("F")
+    					@variables["Females"] +=1    		
+    					@variables["Under65Females"] +=1
+    			end
+    			@variables[case_find_cat_sort(patclass,tbtype,age= "Under65",gender= enc.patient.person.gender)] +=1    		
+    		else
+	    		case enc.patient.person.gender
+    				when ("M")
+    					@variables["Males"] +=1
+    					@variables["Over64Males"] +=1    		
+    				when ("F")
+    					@variables["Females"] +=1    		
+    					@variables["Over64Females"] +=1
+    			end
+    			@variables[case_find_cat_sort(patclass,tbtype,age= "Over64",gender= enc.patient.person.gender)] +=1
+    		end
+    		
+    end
+    
+		render :layout => "report"
+		
+	end
+	def case_findings2
+		render :layout => "report"
+	end
 
+	def case_find_cat_sort(patientclass,tbtype,age,gender)
+			
+			if tbtype == "Pulmonary tuberculosis"
+				if patientclass == "New patient"
+					store = age.to_s+gender.to_s+"Pulnew"
+				elsif patientclass == "relapse"||"Treatment after default MDR-TB patient"
+					store = age.to_s+gender.to_s+"Puldef"
+				elsif patientclass == "relapse"||"Treatment after failure of first treatment MDR-TB patient"
+					store = age.to_s+gender.to_s+"PulF"
+				elsif patientclass == "relapse"
+					store = age.to_s+gender.to_s+"Pulrel"
+				end
+			else
+					store = age.to_s+gender.to_s+"EP"
+			end
+			return store
+	end
   def select
     @cohort_quarters  = [""]
     @report_type      = params[:report_type]
