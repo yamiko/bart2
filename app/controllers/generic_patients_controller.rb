@@ -800,7 +800,7 @@ class GenericPatientsController < ApplicationController
 
 	@variables = Hash.new()
 	@patient_bean = PatientService.get_patient(@patient.person)
-	@variables["hiv"] =  PatientService.patient_hiv_status(@patient.person)
+	@variables["hiv"] =  PatientService.patient_hiv_status(@patient.person) rescue nil
 	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", 78, @patient.person]) rescue nil
 if (tbStart != nil)	
 	duration = Time.now.to_date - tbStart.encounter_datetime.to_date
@@ -809,8 +809,46 @@ if (tbStart != nil)
 	@variables["arvStart"] = PatientService.patient_art_start_date(@patient.person).to_date.strftime(' %d- %b- %Y') rescue nil
 	@variables["regimen"] = Concept.find(:first, :conditions => ["concept_id = ?" ,PatientProgram.find(:all, :conditions => ["patient_id =? AND program_id = ?", @patient.person, 2]).last.current_regimen]).shortname rescue nil
 	encounters = [14,15,77,78,87,86,85]	
-	smears = PatientService.sputum_results_by_date(@patient.person) rescue nil
-	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime = ?",@patient.person,5089, 			tbStart.encounter_datetime]) rescue nil
+	status = @variables["arvStart"].to_date - tbStart.encounter_datetime.to_date rescue nil
+
+	if status == nil
+			@variables["status"] = "C"
+	elsif sputum !=nil and sputum > 0
+			@variables["status"] = "A"
+	else
+			@variables["status"] = "B"
+	end
+
+	
+	@observations = Observation.find(:all, :conditions => ["encounter_id = ?", tbStart.encounter_id]) rescue nil 
+
+	x = 0
+	while x < @observations.length 
+		if @observations[x].concept.fullname == "Tuberculosis classification"
+			@variables["tbType"] = @observations.fetch(x).name
+
+		elsif @observations[x].concept.fullname == "TB patient category"
+			@variables["patientType"] = @observations.fetch(x).answer_string
+		elsif @observations[x].concept.fullname == "Directly observed treatment option"
+			@variables["dotOption"] = @observations.fetch(x).answer_string
+		end
+		x +=1
+	end
+end	
+	
+
+   render :layout => 'menu'
+  end
+
+  def tb_treatment_card_page
+	#this method calls the page that displays a patients treatment records
+	  	@patient_bean = PatientService.get_patient(@patient.person)
+	  	@previous_visits  = get_previous_tb_visits(@patient.person)
+  		smears = PatientService.sputum_results_by_date(@patient.person) rescue nil
+	  	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", EncounterType.find_by_name("TB Registration").id, @patient.person]) rescue nil
+	  	@variables = Hash.new("")
+	  	
+	  		obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime = ?",@patient.person,5089, 			tbStart.encounter_datetime]) rescue nil
 
 	#retrieve hiv status as required
 	@variables["hiv1"]=@variables["hiv2"]=@variables["hiv3"]=@variables["hiv4"] = " "
@@ -822,21 +860,21 @@ if (obs != nil)
 	elsif((obs.obs_datetime.to_date + 60) <= duration)
 		@variables["hiv2"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
 	elsif((obs.obs_datetime.to_date + 150) <= duration)
-		@variables["hiv2"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
+		@variables["hiv3"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
 		elsif((obs.obs_datetime.to_date + 180) <= duration)
-		@variables["hiv2"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
+		@variables["hiv4"] = PatientService.patient_hiv_status_by_date(@patient.person, obs.obs_datetime.to_date)
 	end	
 end
 
-
+	
+if (obs != nil)	
 	@variables["startWeight"] = obs.value_numeric rescue nil
 	@variables["startWeightdate"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
 	temp = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
-if (obs != nil)	
 	@variables["smear1AAccession"] = temp["acc1"] +"/"+temp["acc2"]
 	@variables["smear1Aresult"] = temp["result1"] +"/"+ temp["result2"]
 end
-	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime > ?",@patient.person,5089, tbStart.encounter_datetime]) 
+	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime > ?",@patient.person,5089, tbStart.encounter_datetime]) rescue nil
 	@variables["weight2"] = obs.value_numeric rescue nil
 	@variables["weight2date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
 	temp1 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
@@ -867,51 +905,28 @@ end
 		@variables["smear4Aresult"] = temp4["result1"] + "/" + temp4["result2"]
 	end
 
-	status = @variables["arvStart"].to_date - tbStart.encounter_datetime.to_date rescue nil
-
-	if status == nil
-			@variables["status"] = "C"
-	elsif sputum !=nil and sputum > 0
-			@variables["status"] = "A"
-	else
-			@variables["status"] = "B"
-	end
-
-	
-	@observations = Observation.find(:all, :conditions => ["encounter_id = ?", tbStart.encounter_id]) rescue nil 
-
-	x = 0
-	while x < @observations.length 
-		if @observations[x].concept.fullname == "Tuberculosis classification"
-			@variables["tbType"] = @observations.fetch(x).answer_string
-
-		elsif @observations[x].concept.fullname == "TB patient category"
-			@variables["patientType"] = @observations.fetch(x).answer_string
-		elsif @observations[x].concept.fullname == "Directly observed treatment option"
-			@variables["dotOption"] = @observations.fetch(x).answer_string
-		end
-		x +=1
-	end
-end	
-	
-
-   render :layout => 'menu'
-  end
-
-  def tb_treatment_card_page
-	#this method calls the page that displays a patients treatment records
-	  	@patient_bean = PatientService.get_patient(@patient.person)
-	  	@previous_visits  = get_previous_tb_visits(@patient.person)
+	  	
+	  	
 	render:layout => 'menu'
   end
   
   def get_previous_tb_visits(patient_id)
-  	start = 	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", 78, @patient.person]).encounter_datetime rescue nil
+  
+  	start = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", 78, @patient.person]).encounter_datetime rescue nil
 
-    previous_encounters = Encounter.find(:all,
-              :conditions => ["encounter.voided = ? and patient_id = ? and encounter.encounter_datetime >= ? and encounter_type = ?", 0, patient_id, start,87])
+	type = EncounterType.find_by_name("TB Adherence").id rescue nil
+  results = Array.new()
+  adherences = Encounter.find(:all,:conditions => ["patient_id = ? and encounter_type = ? and encounter_datetime >= ?",patient_id,type,start])
+  		start = adherences[0].date rescue nil
+  		adherences.each do |work|
+  			if ((work.date.to_date <= (start.to_date + 10 )) and (work.date.to_date >= (start.to_date - 10 )) and (work.observations[2] != nil))
+  				results << work
+  				start = start.to_date + 30
 
-    return previous_encounters
+  			end
+  		end
+  
+    return results
   end
 
 
@@ -1415,18 +1430,52 @@ end
   end
 
   def patient_tb_transfer_out_label(patient_id)
+			sputum_results = [['NEGATIVE','NEGATIVE'], ['SCANTY','SCANTY'], ['WEAKLY POSITIVE','1+'], ['MODERATELY POSITIVE','2+'], ['STRONGLY POSITIVE','3+']]
+			concept_one = ConceptName.find_by_name("First sputum for AAFB results").concept_id
+			concept_two = ConceptName.find_by_name("Second sputum for AAFB results").concept_id
+			concept_three = ConceptName.find_by_name("Third sputum for AAFB results").concept_id
+			concept_four = ConceptName.find_by_name("Culture(1st) Results").concept_id
+			concept_five = ConceptName.find_by_name("Culture(2nd) Results").concept_id
+			concept =[]
+			culture =[]
+			observation = PatientService.recent_sputum_results(patient_id)
+			observation.each do |obs|
+						next if obs.value_coded.blank?
+						concept[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_one
+						concept[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_two
+						concept[2] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_three
+						culture[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_four
+						culture[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_five
+			end
+			if concept.length < 2
+						first = "Culture-1 Results: #{sputum_results.assoc("#{culture[0].upcase}")[1]}"
+						second = "Culture-2 Results: #{sputum_results.assoc("#{culture[1].upcase}")[1]}"
+			else
+						lab_result = []
+						h = 0
+						(0..2).each do |x|
+									if concept[x].to_s != ""
+									lab_result[h] = sputum_results.assoc("#{concept[x].upcase}")
+									h += 1
+									end
+						end
+						first = "AAFB(1st) results: #{lab_result[0][1] rescue ""}"
+						second = "AAFB(2nd) results: #{lab_result[1][1] rescue ""}"
+				end
+
+
     date = session[:datetime].to_date rescue Date.today
     patient = Patient.find(patient_id)
     patient_bean = PatientService.get_patient(patient.person)
-    demographics = mastercard_demographics(patient)
+		height = PatientService.get_patient_attribute_value(@patient, "current_height")
+		weight = PatientService.get_patient_attribute_value(@patient, "initial_weight")
 		tb_number = PatientService.get_patient_identifier(patient, "District TB Number")
-
-    who_stage = demographics.reason_for_art_eligibility
-    initial_staging_conditions = demographics.who_clinical_conditions.split(';')
-    destination = demographics.transferred_out_to
+		
+		transferred_out_to = Observation.find(:last, :conditions =>["concept_id = ? and person_id = ?",
+        ConceptName.find_by_name("TRANSFER OUT TO").concept_id,patient_bean.patient_id]).value_text rescue ""
 
     label = ZebraPrinter::Label.new(776, 329, 'T')
-    label.line_spacing = 0
+    label.line_spacing = 2
     label.top_margin = 30
     label.bottom_margin = 30
     label.left_margin = 25
@@ -1439,54 +1488,33 @@ end
     # 25, 30
     # Patient personanl data
     label.draw_multi_text("#{Location.current_health_center.name} transfer out label", {:font_reverse => true})
-    label.draw_multi_text("To #{destination}", {:font_reverse => false}) unless destination.blank?
+    label.draw_multi_text("To #{transferred_out_to}", {:font_reverse => false}) unless transferred_out_to.blank?
     label.draw_multi_text("TB number: #{tb_number}", {:font_reverse => true})
-    label.draw_multi_text("Name: #{demographics.name} (#{demographics.sex.first})\nAge: #{demographics.age}", {:font_reverse => false})
+    label.draw_multi_text("Name: #{patient_bean.name} (#{patient_bean.sex})\nAge: #{patient_bean.age}", {:font_reverse => false})
 
     # Print information on Diagnosis!
-    tb_start_date = PatientService.sputum_results_by_date(patient_id).strftime("%d-%b-%Y") rescue nil
-    #label.draw_multi_text("Diagnosis", {:font_reverse => true})
-    #label.draw_multi_text("Reason for starting: #{who_stage}", {:font_reverse => false})
-    label.draw_multi_text("TB start date: #{tb_start_date}",{:font_reverse => false})
-    label.draw_multi_text("Other diagnosis:", {:font_reverse => true})
-# !!!! TODO
-=begin
-    staging_conditions = ""
-    count = 1
-    initial_staging_conditions.each{|condition|
-     if staging_conditions.blank?
-       staging_conditions = "(#{count}) #{condition}" unless condition.blank?
-     else
-       staging_conditions+= " (#{count+=1}) #{condition}" unless condition.blank?
-     end
-    }
-    label.draw_multi_text("#{staging_conditions}", {:font_reverse => false})
-=end
-    # Print information on current status of the patient transfering out!
-    init_ht = "Init HT: #{demographics.init_ht}"
-    init_wt = "Init WT: #{demographics.init_wt}"
+    tb_start_date = PatientService.sputum_results_by_date(patient_id).first.obs_datetime.strftime("%d-%b-%Y") rescue nil
 
-    first_cd4_count = "CD count " + demographics.cd4_count if demographics.cd4_count
-    unless demographics.cd4_count_date.blank?
-      first_cd4_count_date = "CD count date #{demographics.cd4_count_date.strftime('%d-%b-%Y')}"
-    end
+    label.draw_multi_text("TB start date: #{tb_start_date}",{:font_reverse => false})
+# !!!! TODO
+    init_ht = "Init HT: #{height}"
+    init_wt = "Init WT: #{weight}"
     # renamed current status to Initial height/weight as per minimum requirements
     label.draw_multi_text("Initial Height/Weight", {:font_reverse => true})
     label.draw_multi_text("#{init_ht} #{init_wt}", {:font_reverse => false})
-    label.draw_multi_text("#{first_cd4_count}", {:font_reverse => false})
-    label.draw_multi_text("#{first_cd4_count_date}", {:font_reverse => false})
 
+		label.draw_multi_text("Lab Results", {:font_reverse => true})
+		label.draw_multi_text("#{first} #{second}", {:font_reverse => false})
     # Print information on current treatment of the patient transfering out!
-    demographics.reg = []
+    reg = []
     PatientService.drug_given_before(patient, (date.to_date) + 1.day).uniq.each do |order|
       next unless MedicationService.tb_medication(order.drug_order.drug)
-      demographics.reg << order.drug_order.drug.concept.shortname
+      reg << order.drug_order.drug.concept.shortname
     end
 
-    label.draw_multi_text("Current ART drugs", {:font_reverse => true})
-    label.draw_multi_text("#{demographics.reg}", {:font_reverse => false})
-    label.draw_multi_text("Transfer out date:", {:font_reverse => true})
-    label.draw_multi_text("#{date.strftime("%d-%b-%Y")}", {:font_reverse => false})
+    label.draw_multi_text("Current TB drugs", {:font_reverse => true})
+    label.draw_multi_text("#{reg}", {:font_reverse => false})
+    label.draw_multi_text("Transfer out date: #{date.strftime("%d-%b-%Y")}", {:font_reverse => false})
 
     label.print(1)
   end

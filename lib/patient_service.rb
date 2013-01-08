@@ -382,7 +382,7 @@ module PatientService
 
     if not give_lab_results.blank?
       if not give_lab_results.observations.collect{|obs|obs.to_s.squish}.include?('Laboratory results given to patient: Yes')
-        task.encounter_type = 'GIVE LAB RESULTS'
+				task.encounter_type = 'GIVE LAB RESULTS'
         task.url = "/encounters/new/give_lab_results?patient_id=#{patient.id}"
         return task
       end if not (give_lab_results.encounter_datetime.to_date == session_date.to_date)

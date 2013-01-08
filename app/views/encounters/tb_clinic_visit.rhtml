@@ -223,10 +223,10 @@
 				:condition => "$('xray').value != 'Consistent of TB' && $('any_tb_symptoms').value == 'YES' && $('interpret_xray').value == 'YES'",
 				:helpText => 'Does the patient have TB?'} %>
 				
-	<%= touch_yes_no_tag "Refer to x-ray?", @patient, nil,
+	<%= touch_select_tag "Further examination for TB required", @patient, options_for_select(@select_options['tb_investigation']),
 		{	:id => "refer_to_xray",
 			:condition => "$('tb_suspected').value != 'YES' && $('interpret_xray').value != 'YES'",
-			:helpText => "Refer patient to x-ray?" } %>
+			:helpText => "Further examination for TB required?" } %>
 
     <%= touch_hidden_tag "TB STATUS", @patient, nil, {:id => 'tb_status'} %>
 

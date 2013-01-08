@@ -427,7 +427,7 @@ class GenericPeopleController < ApplicationController
 
     villages = Village.find(:all,:conditions => village_conditions, :order => 'name')
     villages = villages.map do |v|
-      "<li value='#{v.name}'>#{v.name}</li>"
+      '<li value=' + v.name + '>' + v.name + '</li>'
     end
     render :text => villages.join('') + "<li value='Other'>Other</li>" and return
   end

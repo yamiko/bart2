@@ -19,6 +19,11 @@ class EncountersController < GenericEncountersController
 				 @show_tb_types = true
 				 @consultation_tb_status = "Unknown"
 			 end
+		@current_hiv_program_status = Patient.find_by_sql("
+											SELECT patient_id, current_state_for_program(patient_id, 1, '#{session_date}') AS state, c.name
+											FROM patient p INNER JOIN program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(patient_id, 1, '#{session_date}')
+											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{@patient.patient_id}'").first.name rescue "Unknown"
+		
     if (params[:from_anc] == 'true')
       bart_activities = ['Manage Vitals','Manage HIV clinic consultations',
         'Manage ART adherence','Manage HIV staging visits','Manage HIV first visits',
@@ -135,7 +140,7 @@ class EncountersController < GenericEncountersController
 
 		@hiv_status = PatientService.patient_hiv_status(@patient)
 		@hiv_test_date = PatientService.hiv_test_date(@patient.id)
-    #raise @hiv_test_date.to_s
+    
 		@lab_activities = lab_activities
 		# @tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
 		@tb_patient_category = [["New","NEW"], ["Relapse","RELAPSE"], ["Retreatment after default","RETREATMENT AFTER DEFAULT"], ["Fail","FAIL"], ["Other","OTHER"]]
@@ -226,7 +231,7 @@ class EncountersController < GenericEncountersController
 					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('TB type').concept_id
  				end
 			end
-			#raise @tb_classification.to_s
+			
 
 		end
 
@@ -360,6 +365,12 @@ class EncountersController < GenericEncountersController
 			@require_hiv_clinic_registration = require_hiv_clinic_registration
 		end
 
+		if PatientIdentifier.site_prefix == "MPC"
+				prefix = "LL-TB"
+		else
+				prefix = "#{PatientIdentifier.site_prefix}-TB"
+		end
+		@tb_auto_number = create_tb_number(PatientIdentifierType.find_by_name('District TB Number').id, prefix)
 		redirect_to "/" and return unless @patient
 
 		redirect_to next_task(@patient) and return unless params[:encounter_type]
@@ -377,7 +388,7 @@ class EncountersController < GenericEncountersController
 	def tb_art_patient(patient,program)
     program_id = Program.find_by_name(program).id
     enrolled = PatientProgram.find(:first,:conditions =>["program_id = ? AND patient_id = ?",program_id,patient.id]).blank?
-    #raise enrolled.to_yaml
+ 
 
 		return true if enrolled
     false
@@ -391,6 +402,12 @@ class EncountersController < GenericEncountersController
         ['Smear Positive (HIV-)','SMEAR POSITIVE'],
         ['X-ray result interpretation','X-RAY RESULT INTERPRETATION']
       ],
+			'tb_investigation' =>[
+				['',''],
+				['Sputum Test','TB sputum test'],
+				['X-Ray','X-Ray'],
+				['None','None']
+			],
       'tb_clinic_visit_type' => [
         ['',''],
         ['Lab analysis','Lab follow-up'],
@@ -1347,7 +1364,6 @@ class EncountersController < GenericEncountersController
   end
 
 	def lab_results_print
-		raise params.to_yaml
 		label_commands = lab_results_label(params[:id])
 		send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:id]}#{rand(10000)}.lbs", :disposition => "inline")
 
@@ -1416,8 +1432,5 @@ class EncountersController < GenericEncountersController
       return print_labels
   end
 	
-	#def create_tb_number(type_id)
-	#	 type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ?', type_id],:order => 'date_created DESC')
-	#	 raise type.to_yaml
-	#end
+	
 end

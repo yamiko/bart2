@@ -415,6 +415,7 @@
 
   function setSelectedStageConditions(stage) {
 	selected_stage_conditions[stage] = $("touchscreenInput" + tstCurrentPage).value;
+/*
 	if (stage == 3) {
 			  <%  if @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve')%>
 							  if ($("touchscreenInput" + tstCurrentPage).value == "") {
@@ -435,6 +436,7 @@
 							  }
 			<%end%>
 	}
+*/
   }
 
   function showConditions() {
@@ -458,11 +460,24 @@
 				  for (i = 0 ; i < options.length ; i++) {
 				   if (options[i].getAttribute('tstvalue') == "Pulmonary tuberculosis (current)") {
 					  updateTouchscreenInputForSelect($("optionValue" + i));
+					  return
 				   }
 				  }
 			<% end  %>
 	}
-
+	
+	function checkPastTb(){
+		  <% if @patient.person.observations.to_s.include?('Ever received TB treatment:  Yes') %>
+			  options = document.getElementsByTagName('li');
+				  for (i = 0 ; i < options.length ; i++) {
+				   if (options[i].getAttribute('tstvalue') == "Tuberculosis (PTB or EPTB) within the last 2 years") {
+					  updateTouchscreenInputForSelect($("optionValue" + i));
+					  return
+				   }
+				  }
+			<%  end %>
+	}
+	
 	function checkEptb(){
 			  <% if  @patient.person.observations.to_s.include?('Extrapulmonary tuberculosis (EPTB)') %>
 				  options = document.getElementsByTagName('li');
@@ -581,7 +596,7 @@
 		:optional => true,
 		:condition => 'showConditions() == true',
 		:tt_onUnLoad => 'setSelectedStageConditions(3);',
-		:tt_onLoad => 'checkPtb();',
+		:tt_onLoad => 'checkPtb();checkPastTb();',
 		:helpText => "Stage 3 Conditions",
 		:tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
 
