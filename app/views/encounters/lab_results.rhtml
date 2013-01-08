@@ -94,15 +94,17 @@ var positive
     results = '<ul>';
     attrs = '';
 	positive = 0;
+	var append_color;
     for(i = 0 ; i < result_filed_ids.length ; i++) {
       if ($(result_filed_ids[i]).value != 'NEGATIVE') {
 		positive += 1;
         tb_status =  'Confirmed TB NOT on treatment'
+		append_color = "yes"
         //attrs = " class='alert'"
       }
       var specimen = $(specimen_field_ids[i]).value
-	  if(tb_status == 'Confirmed TB NOT on treatment') {
-      results += '<li><b>' + acc_numbers[specimen] + " Results (Accession number: " + specimen + ") : </b>" +
+	  if(append_color == "yes") {
+	  results += '<li><b>' + acc_numbers[specimen] + " Results (Accession number: " + specimen + ") : </b>" +
                  '<span '+ attrs + ' style="background:red">' + $(result_filed_ids[i]).options[$(result_filed_ids[i]).selectedIndex].text  + '</span></li>'
 	  }
 	  else {
@@ -110,6 +112,7 @@ var positive
                  '<span '+ attrs + ' style="background:orange">' + $(result_filed_ids[i]).options[$(result_filed_ids[i]).selectedIndex].text  + '</span></li>'
 
 	  }
+	  append_color = "";
     }
     results += '</ul>';
 

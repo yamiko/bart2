@@ -40,6 +40,9 @@ EOF
   def name
     self.type.name rescue "N/A"
   end
+  def date
+  	self.encounter_datetime
+  end
 
   def encounter_type_name=(encounter_type_name)
     self.type = EncounterType.find_by_name(encounter_type_name)
