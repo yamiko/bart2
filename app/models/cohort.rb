@@ -204,7 +204,7 @@ class Cohort
 				cohort_report['HIV infected'] = []
 
 				check_existing = []
- 				( self.start_reason || [] ).each do | collection_reason |
+ 				( self.start_reason(@start_date, @end_date) || [] ).each do | collection_reason |
 				unless check_existing.include?(collection_reason.patient_id)
 							check_existing << collection_reason.patient_id
 							reason = ''
@@ -214,11 +214,17 @@ class Cohort
 
 							if reason.match(/Presumed/i)
 								cohort_report['Presumed severe HIV disease in infants'] << collection_reason.patient_id
-							elsif reason.match(/Confirmed/i) or reason.match(/HIV DNA polymerase chain reaction/i)
+							elsif reason.match(/Confirmed/i) 
 								cohort_report['Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
-							elsif reason.match(/WHO STAGE I /i) or reason.match(/CD/i)
+							elsif reason.match(/HIV DNA polymerase chain reaction/i)
+								cohort_report['Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
+							elsif reason.match(/WHO STAGE I /i)  
 								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
-							elsif reason.match(/WHO STAGE II /i) or reason.match(/lymphocyte/i)
+							elsif reason.match(/CD/i)
+								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+							elsif reason.match(/WHO STAGE II /i)
+								cohort_report['WHO stage 2, total lymphocytes'] << collection_reason.patient_id
+						  elsif reason.match(/lymphocyte/i)
 								cohort_report['WHO stage 2, total lymphocytes'] << collection_reason.patient_id
 							elsif reason.match(/WHO STAGE III /i)
 								cohort_report['WHO stage 3'] << collection_reason.patient_id
