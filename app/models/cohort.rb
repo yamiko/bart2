@@ -220,7 +220,7 @@ class Cohort
 								cohort_report['Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
 							elsif reason.match(/WHO STAGE I /i)
 								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
-							elsif reason.match(/CD/i)
+							elsif reason.match(/CD4 /i)
 								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
 							elsif reason.match(/WHO STAGE II /i)
 								cohort_report['WHO stage 2, total lymphocytes'] << collection_reason.patient_id
@@ -733,58 +733,28 @@ class Cohort
 		tb_status_hash = {} ; status = []
 		tb_status_hash['TB STATUS'] = {'Unknown' => 0,'Suspected' => 0,'Not Suspected' => 0,'On Treatment' => 0,'Not on treatment' => 0} 
 		tb_status_concept_id = ConceptName.find_by_name('TB STATUS').concept_id
-		hiv_clinic_consultation_encounter_id = EncounterType.find_by_name('HIV CLINIC CONSULTATION').id
-=begin
-    status = PatientState.find_by_sql("SELECT * FROM (
-                          SELECT e.patient_id,n.name tbstatus,obs_datetime,e.encounter_datetime,s.state
-                          FROM patient_state s
-                          LEFT JOIN patient_program p ON p.patient_program_id = s.patient_program_id   
-                          
-                          LEFT JOIN encounter e ON e.patient_id = p.patient_id
-                          
-                          LEFT JOIN obs ON obs.encounter_id = e.encounter_id
-                          LEFT JOIN concept_name n ON obs.value_coded = n.concept_id
-                          WHERE p.voided = 0
-                          AND s.voided = 0
-                          AND obs.obs_datetime = e.encounter_datetime
-                          AND (s.start_date >= '#{start_date}'
-                          AND s.start_date <= '#{end_date}')
-                          AND obs.concept_id = #{tb_status_concept_id}
-                          AND e.encounter_type = #{hiv_clinic_consultation_encounter_id}
-                          AND p.program_id = #{@@program_id}
-                          ORDER BY e.encounter_datetime DESC, patient_state_id DESC , start_date DESC) K
-                          GROUP BY K.patient_id
-                          ORDER BY K.encounter_datetime DESC , K.obs_datetime DESC")
-=end      
+		hiv_clinic_consultation_encounter_id = EncounterType.find_by_name('HIV CLINIC CONSULTATION').id    
 		states = Hash.new()
 
     @art_defaulters ||= self.art_defaulted_patients
 		@patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
 		@patient_id_on_art_and_alive = @patients_alive_and_on_art
 		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
-=begin
-		status = PatientState.find_by_sql(
-			"SELECT e.patient_id, current_value_for_obs(e.patient_id, #{hiv_clinic_consultation_encounter_id}, #{tb_status_concept_id}, '#{end_date}') AS obs_value
-													FROM earliest_start_date e
-													WHERE earliest_start_date <= '#{end_date}'
-													AND e.patient_id IN (#{@patient_id_on_art_and_alive.join(',')}) ").each do |state|
-			states[state.patient_id] = state.obs_value
-		end
-=end
+		
 		joined_array = @patient_id_on_art_and_alive.join(',')
 		PatientState.find_by_sql(
 			"SELECT e.patient_id, o.value_coded
 											FROM earliest_start_date e
 											INNER JOIN encounter en ON en.patient_id = e.patient_id
 											INNER JOIN obs o ON o.person_id = e.patient_id
-													WHERE earliest_start_date <= '#{end_date}'
-													AND o.encounter_id = #{hiv_clinic_consultation_encounter_id}
-													AND o.concept_id = #{tb_status_concept_id}
-													AND e.patient_id IN (#{joined_array})
-													ORDER BY en.encounter_datetime DESC LIMIT 1").each do |state|
-			states[state.patient_id] = state.obs_value
+											WHERE earliest_start_date <= '#{@end_date}'
+											AND en.encounter_type = #{hiv_clinic_consultation_encounter_id}
+											AND o.concept_id = #{tb_status_concept_id}
+											AND e.patient_id IN (#{joined_array})
+											ORDER BY en.encounter_datetime DESC").each do |state|
+			states[state.patient_id] = state.value_coded
 		end
-
+		
 		tb_not_suspected_id = ConceptName.find_by_name('TB NOT SUSPECTED').concept_id
 		tb_suspected_id = ConceptName.find_by_name('TB SUSPECTED').concept_id
 		tb_confirmed_on_treatment_id = ConceptName.find_by_name('CONFIRMED TB ON TREATMENT').concept_id
