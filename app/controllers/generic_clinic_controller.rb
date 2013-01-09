@@ -123,8 +123,11 @@ class GenericClinicController < ApplicationController
       ["Supervision","/clinic/supervision_tab"],
       ["Data Cleaning Tools", "/clinic/data_cleaning_tab"],
       ["View appointments","/report/select_date"]
-    ]
 
+    ]
+  	if what_app? == 'TB-ART'
+  		@reports <<  ["Case Findings", "/cohort_tool/case_findings_quarter"]
+  	end
     @reports = [
       ["Diagnosis","/drug/date_select?goto=/report/age_group_select?type=diagnosis"],
      # ["Patient Level Data","/drug/date_select?goto=/report/age_group_select?type=patient_level_data"],
