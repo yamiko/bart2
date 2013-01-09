@@ -51,33 +51,40 @@ class Cohort
 				cohort_report['Total Patient breastfeeding'] = []
 				cohort_report['Total HIV infected'] = []
 
+				check_existing = []
 				( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | collection_reason |
+					unless check_existing.include?(collection_reason.patient_id)
+							check_existing << collection_reason.patient_id
+							reason = ''
+							if !collection_reason.name.blank?
+								reason = collection_reason.name
+							end
 
-					reason = ''
-					if !collection_reason.name.blank?
-						reason = collection_reason.name
-					end
-
-					if reason.match(/Presumed/i)
-						cohort_report['Total Presumed severe HIV disease in infants'] << collection_reason.patient_id
-					elsif reason.match(/Confirmed/i) or reason.match(/HIV DNA polymerase chain reaction/i)
-						cohort_report['Total Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
-					elsif reason.match(/WHO STAGE I /i) or reason.match(/CD/i)
-						cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
-					elsif reason.match(/WHO STAGE II /i) or reason.match(/lymphocyte/i)
-						cohort_report['Total WHO stage 2, total lymphocytes'] << collection_reason.patient_id
-					elsif reason.match(/WHO STAGE III /i)
-						cohort_report['Total WHO stage 3'] << collection_reason.patient_id
-					elsif reason.match(/WHO STAGE IV /i)
-						cohort_report['Total WHO stage 4'] << collection_reason.patient_id
-					elsif reason.strip.humanize == 'Patient pregnant'
-						cohort_report['Total Patient pregnant'] << collection_reason.patient_id
-					elsif reason.match(/Breastfeeding/i)
-						cohort_report['Total Patient breastfeeding'] << collection_reason.patient_id
-					elsif reason.strip.upcase == 'HIV INFECTED'
-						cohort_report['Total HIV infected'] << collection_reason.patient_id
-					else
-						cohort_report['Total Unknown reason'] << collection_reason.patient_id
+							if reason.match(/Presumed/i)
+								cohort_report['Total Presumed severe HIV disease in infants'] << collection_reason.patient_id
+							elsif reason.match(/Confirmed/i)
+								cohort_report['Total Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
+							elsif reason.match(/HIV DNA polymerase chain reaction/i)
+								cohort_report['Total Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
+							elsif reason.match(/WHO STAGE I/i)
+								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+							elsif reason.match(/CD4/i)
+								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+							elsif reason.match(/WHO STAGE II /i) or reason.match(/lymphocyte/i)
+								cohort_report['Total WHO stage 2, total lymphocytes'] << collection_reason.patient_id
+							elsif reason.match(/WHO STAGE III /i)
+								cohort_report['Total WHO stage 3'] << collection_reason.patient_id
+							elsif reason.match(/WHO STAGE IV /i)
+								cohort_report['Total WHO stage 4'] << collection_reason.patient_id
+							elsif reason.strip.humanize == 'Patient pregnant'
+								cohort_report['Total Patient pregnant'] << collection_reason.patient_id
+							elsif reason.match(/Breastfeeding/i)
+								cohort_report['Total Patient breastfeeding'] << collection_reason.patient_id
+							elsif reason.strip.upcase == 'HIV INFECTED'
+								cohort_report['Total HIV infected'] << collection_reason.patient_id
+							else
+								cohort_report['Total Unknown reason'] << collection_reason.patient_id
+							end
 					end
 				end
 			rescue Exception => e
@@ -196,34 +203,43 @@ class Cohort
 				cohort_report['Patient breastfeeding'] = []
 				cohort_report['HIV infected'] = []
 
- 				( self.start_reason || [] ).each do | collection_reason |
+				check_existing = []
+ 				( self.start_reason(@start_date, @end_date) || [] ).each do | collection_reason |
+				unless check_existing.include?(collection_reason.patient_id)
+							check_existing << collection_reason.patient_id
+							reason = ''
+							if !collection_reason.name.blank?
+								reason = collection_reason.name.to_s
+							end
 
-					reason = ''
-					if !collection_reason.name.blank?
-						reason = collection_reason.name
-					end
-
-				  if reason.match(/Presumed/i)
-				    cohort_report['Presumed severe HIV disease in infants'] << collection_reason.patient_id
-				  elsif reason.match(/Confirmed/i) or reason.match(/HIV DNA polymerase chain reaction/i)
-				    cohort_report['Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
-				  elsif reason.match(/WHO STAGE I /i) or reason.match(/CD/i)
-				    cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
-				  elsif reason.match(/WHO STAGE II /i) or reason.match(/lymphocyte/i)
-				    cohort_report['WHO stage 2, total lymphocytes'] << collection_reason.patient_id
-				  elsif reason.match(/WHO STAGE III /i)
-				    cohort_report['WHO stage 3'] << collection_reason.patient_id
-				  elsif reason.match(/WHO STAGE IV /i)
-				    cohort_report['WHO stage 4'] << collection_reason.patient_id
-				  elsif reason.strip.humanize == 'Patient pregnant'
-				    cohort_report['Patient pregnant'] << collection_reason.patient_id
-				  elsif reason.match(/Breastfeeding/i)
-				    cohort_report['Patient breastfeeding'] << collection_reason.patient_id
-				  elsif reason.strip.upcase == 'HIV INFECTED'
-				    cohort_report['HIV infected'] << collection_reason.patient_id
-				  else 
-				    cohort_report['Unknown reason'] << collection_reason.patient_id
-				  end
+							if reason.match(/Presumed/i)
+								cohort_report['Presumed severe HIV disease in infants'] << collection_reason.patient_id
+							elsif reason.match(/Confirmed/i)
+								cohort_report['Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
+							elsif reason.match(/HIV DNA polymerase chain reaction/i)
+								cohort_report['Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
+							elsif reason.match(/WHO STAGE I /i)
+								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+							elsif reason.match(/CD/i)
+								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+							elsif reason.match(/WHO STAGE II /i)
+								cohort_report['WHO stage 2, total lymphocytes'] << collection_reason.patient_id
+						  elsif reason.match(/lymphocyte/i)
+								cohort_report['WHO stage 2, total lymphocytes'] << collection_reason.patient_id
+							elsif reason.match(/WHO STAGE III /i)
+								cohort_report['WHO stage 3'] << collection_reason.patient_id
+							elsif reason.match(/WHO STAGE IV /i)
+								cohort_report['WHO stage 4'] << collection_reason.patient_id
+							elsif reason.strip.humanize == 'Patient pregnant'
+								cohort_report['Patient pregnant'] << collection_reason.patient_id
+							elsif reason.match(/Breastfeeding/i)
+								cohort_report['Patient breastfeeding'] << collection_reason.patient_id
+							elsif reason.strip.upcase == 'HIV INFECTED'
+								cohort_report['HIV infected'] << collection_reason.patient_id
+							else
+								cohort_report['Unknown reason'] << collection_reason.patient_id
+							end
+				end
 				end
 	
 
@@ -554,13 +570,14 @@ class Cohort
 		#start_reason_hash = Hash.new(0)
 		reason_concept_id = ConceptName.find_by_name("REASON FOR ART ELIGIBILITY").concept_id
 
-		PatientProgram.find_by_sql("SELECT e.patient_id, name FROM earliest_start_date e
+		 PatientProgram.find_by_sql("SELECT e.patient_id, name, o.obs_datetime FROM earliest_start_date e
 											LEFT JOIN obs o ON e.patient_id = o.person_id AND o.concept_id = #{reason_concept_id} AND o.voided = 0
+														AND o.obs_datetime >= '#{start_date}' AND o.obs_datetime <= '#{end_date}'
 											LEFT JOIN concept_name n ON n.concept_id = o.value_coded AND n.concept_name_type = 'FULLY_SPECIFIED' AND n.voided = 0
 										WHERE earliest_start_date >= '#{start_date}'
 											AND earliest_start_date <= '#{end_date}'
-										GROUP BY e.patient_id")
-
+										ORDER BY o.obs_datetime DESC")
+		
 	end
 
 	def tb_within_the_last_2_yrs(start_date = @start_date, end_date = @end_date)
