@@ -55,11 +55,7 @@ class Cohort
 				( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | collection_reason |
 					unless check_existing.include?(collection_reason.patient_id)
 							check_existing << collection_reason.patient_id
-							reason = ''
-							if !collection_reason.name.blank?
-								reason = collection_reason.name
-							end
-
+							reason = PatientService.reason_for_art_eligibility(collection_reason.patient)
 							if reason.match(/Presumed/i)
 								cohort_report['Total Presumed severe HIV disease in infants'] << collection_reason.patient_id
 							elsif reason.match(/Confirmed/i)
@@ -207,10 +203,7 @@ class Cohort
  				( self.start_reason(@start_date, @end_date) || [] ).each do | collection_reason |
           unless check_existing.include?(collection_reason.patient_id)
 							check_existing << collection_reason.patient_id
-							reason = ''
-							if !collection_reason.name.blank?
-								reason = collection_reason.name.to_s
-							end
+							reason = PatientService.reason_for_art_eligibility(collection_reason.patient)
 
 							if reason.match(/Presumed/i)
 								cohort_report['Presumed severe HIV disease in infants'] << collection_reason.patient_id
