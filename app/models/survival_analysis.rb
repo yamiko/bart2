@@ -65,11 +65,8 @@ class SurvivalAnalysis
 				"defaulted" => defaulted,
 				"unknown" => unknown
 			}
+			break if ((i + 1)*12) == 60
 		end
-		#raise survival_analysis.to_yaml
-		#raise survival_analysis.to_yaml
-		
-		#s_analysis << [@test_analysis, @test_views]
 
     return survival_analysis_outcomes.sort{|a,b| (a[0].to_i == b[0].to_i) ? a[1].to_i <=> b[1].to_i : a[0].to_i <=> b[0].to_i }, views
 	end
