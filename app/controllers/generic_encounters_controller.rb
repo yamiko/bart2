@@ -5,14 +5,14 @@ class GenericEncountersController < ApplicationController
       session_date = session[:datetime].to_date rescue Date.today
       type = EncounterType.find_by_name("APPOINTMENT")                            
       appointment_encounter = Observation.find(:first,                            
-      :order => "encounter_datetime DESC,encounter.date_created DESC",
-      :joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
-      :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
+				:order => "encounter_datetime DESC,encounter.date_created DESC",
+				:joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
+				:conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
       AND encounter_datetime >= ? AND encounter_datetime <= ?",
-      ConceptName.find_by_name('Appointment date').concept_id,
-      type.id, params[:encounter]["patient_id"],session_date.strftime("%Y-%m-%d 00:00:00"),             
-      session_date.strftime("%Y-%m-%d 23:59:59")]).encounter
-      appointment_encounter.void("Given a new appointment date")
+					ConceptName.find_by_name('Appointment date').concept_id,
+					type.id, params[:encounter]["patient_id"],session_date.strftime("%Y-%m-%d 00:00:00"),
+					session_date.strftime("%Y-%m-%d 23:59:59")]).encounter rescue nil
+      appointment_encounter.void("Given a new appointment date") unless appointment_encounter.blank?
     end
     	
     if params['encounter']['encounter_type_name'] == 'TB_INITIAL'
@@ -159,7 +159,7 @@ class GenericEncountersController < ApplicationController
         params[:observations] = vitals_observations
         create_obs(encounter , params)
       end
-
+ 
       unless observations.blank? 
         encounter = Encounter.new()
         encounter.encounter_type = EncounterType.find_by_name("HIV STAGING").id
@@ -238,7 +238,7 @@ class GenericEncountersController < ApplicationController
         encounter = Encounter.find(:first,:order =>"encounter_datetime DESC,date_created DESC",
           :conditions =>["encounter_type=? AND patient_id=? AND encounter_datetime >= ?
           AND encounter_datetime <= ?",encounter_type.id,params['encounter']['patient_id'],
-          session_date.strftime("%Y-%m-%d 00:00:00"),session_date.strftime("%Y-%m-%d 23:59:59")])
+						session_date.strftime("%Y-%m-%d 00:00:00"),session_date.strftime("%Y-%m-%d 23:59:59")])
         if encounter.blank?
           encounter = Encounter.new()
           encounter.encounter_type = encounter_type.id
@@ -251,7 +251,8 @@ class GenericEncountersController < ApplicationController
           end
           encounter.provider_id = user_person_id
           encounter.save   
-        end 
+        end
+
         params[:observations] = previous_hiv_clinic_consultation_observations
         create_obs(encounter , params)
       end
@@ -274,7 +275,7 @@ class GenericEncountersController < ApplicationController
       params[:observations] = observations unless observations.blank?
     end
 
-   if params['encounter']['encounter_type_name'].upcase == 'REFER PATIENT OUT?'
+		if params['encounter']['encounter_type_name'].upcase == 'REFER PATIENT OUT?'
       observations = []
       (params[:observations] || []).each do |observation|
         if observation['concept_name'].upcase == 'REFERRAL CLINIC IF REFERRED'
@@ -290,7 +291,7 @@ class GenericEncountersController < ApplicationController
     end
 
     @patient = Patient.find(params[:encounter][:patient_id]) rescue nil
-    if params[:location]
+    if ! params[:location].blank?
       if @patient.nil?
         @patient = Patient.find_with_voided(params[:encounter][:patient_id])
       end
@@ -303,19 +304,19 @@ class GenericEncountersController < ApplicationController
     end
     
     if params['encounter']['encounter_type_name'].to_s.upcase == "APPOINTMENT" && !params[:report_url].nil? && !params[:report_url].match(/report/).nil?
-        concept_id = ConceptName.find_by_name("RETURN VISIT DATE").concept_id
-        encounter_id_s = Observation.find_by_sql("SELECT encounter_id
+			concept_id = ConceptName.find_by_name("RETURN VISIT DATE").concept_id
+			encounter_id_s = Observation.find_by_sql("SELECT encounter_id
                        FROM obs
                        WHERE concept_id = #{concept_id} AND person_id = #{@patient.id}
                             AND DATE(value_datetime) = DATE('#{params[:old_appointment]}') AND voided = 0
-                       ").map{|obs| obs.encounter_id}.each do |encounter_id|
-                                    Encounter.find(encounter_id).void
-                       end   
+				").map{|obs| obs.encounter_id}.each do |encounter_id|
+				Encounter.find(encounter_id).void
+			end
     end
 
     # Encounter handling
 		encounter = Encounter.new(params[:encounter])
-		unless params[:location]
+		if params[:location].blank?
 		  encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
 		else
 		  encounter.encounter_datetime = params['encounter']['encounter_datetime']
@@ -326,8 +327,9 @@ class GenericEncountersController < ApplicationController
 		elsif params[:location] # Migration
 		  user_person_id = encounter[:provider_id]
 		else
-		  user_person_id = User.find_by_user_id(encounter[:provider_id]).person_id
-		end
+		  user_person_id = User.find_by_user_id(encounter[:provider_id]).person_id 
+		end rescue user_person_id = current_user.id
+
 		encounter.provider_id = user_person_id
 
 		encounter.save
@@ -336,66 +338,66 @@ class GenericEncountersController < ApplicationController
     create_obs(encounter , params)
 
 		if !params[:recalculate_bmi].blank? && params[:recalculate_bmi] == "true"
-				weight = 0
-				height = 0
+			weight = 0
+			height = 0
 
-				weight_concept_id  = ConceptName.find_by_name("Weight (kg)").concept_id
-				height_concept_id  = ConceptName.find_by_name("Height (cm)").concept_id
-				bmi_concept_id = ConceptName.find_by_name("Body mass index, measured").concept_id
-				work_station_concept_id = ConceptName.find_by_name("Workstation location").concept_id
+			weight_concept_id  = ConceptName.find_by_name("Weight (kg)").concept_id
+			height_concept_id  = ConceptName.find_by_name("Height (cm)").concept_id
+			bmi_concept_id = ConceptName.find_by_name("Body mass index, measured").concept_id
+			work_station_concept_id = ConceptName.find_by_name("Workstation location").concept_id
 				
-				vitals_encounter_id = EncounterType.find_by_name("VITALS").encounter_type_id
-				enc = Encounter.find(:all, :conditions => ["encounter_type = ? AND patient_id = ?
+			vitals_encounter_id = EncounterType.find_by_name("VITALS").encounter_type_id
+			enc = Encounter.find(:all, :conditions => ["encounter_type = ? AND patient_id = ?
 											AND voided=0", vitals_encounter_id, @patient.id])
 
-				encounter.observations.each do |o|
-							height = o.answer_string.squish if o.concept_id == height_concept_id 
-				end
+			encounter.observations.each do |o|
+				height = o.answer_string.squish if o.concept_id == height_concept_id
+			end
 								
-				enc.each do |e|
-						obs_created = false
-						weight = nil
+			enc.each do |e|
+				obs_created = false
+				weight = nil
 						
-						e.observations.each do |o|
-							next if o.concept_id == work_station_concept_id
+				e.observations.each do |o|
+					next if o.concept_id == work_station_concept_id
 							
-							if o.concept_id == weight_concept_id
-								weight = o.answer_string.squish.to_i
-							elsif o.concept_id == height_concept_id || o.concept_id == bmi_concept_id
-								o.voided = 1
-								o.date_voided = Time.now
-								o.voided_by = encounter.creator
-								o.void_reason = "Back data entry recalculation"
-								o.save
-							end
-						end
-
-						bmi = (weight.to_f/(height.to_f*height.to_f)*10000).round(1) rescue "Unknown"
-
-						field = :value_numeric
-						field = :value_text and height = 'Unknown' if height == 'Unknown' || height.to_i == 0
-
-						height_obs = Observation.new(
-							:concept_name => "Height (cm)",
-							:person_id => @patient.id,
-							:encounter_id => e.id,
-							field => height,
-							:obs_datetime => e.encounter_datetime)
-
-						height_obs.save
-						
-						field = :value_numeric
-						field = :value_text and bmi = 'Unknown' if bmi == 'Unknown' || bmi.to_i == 0
-												
-						bmi_obs = Observation.new(
-							:concept_name => "Body mass index, measured",
-							:person_id => @patient.id,
-							:encounter_id => e.id,
-							field => bmi,
-							:obs_datetime => e.encounter_datetime)
-
-						bmi_obs.save
+					if o.concept_id == weight_concept_id
+						weight = o.answer_string.squish.to_i
+					elsif o.concept_id == height_concept_id || o.concept_id == bmi_concept_id
+						o.voided = 1
+						o.date_voided = Time.now
+						o.voided_by = encounter.creator
+						o.void_reason = "Back data entry recalculation"
+						o.save
+					end
 				end
+
+				bmi = (weight.to_f/(height.to_f*height.to_f)*10000).round(1) rescue "Unknown"
+
+				field = :value_numeric
+				field = :value_text and height = 'Unknown' if height == 'Unknown' || height.to_i == 0
+
+				height_obs = Observation.new(
+					:concept_name => "Height (cm)",
+					:person_id => @patient.id,
+					:encounter_id => e.id,
+					field => height,
+					:obs_datetime => e.encounter_datetime)
+
+				height_obs.save
+						
+				field = :value_numeric
+				field = :value_text and bmi = 'Unknown' if bmi == 'Unknown' || bmi.to_i == 0
+												
+				bmi_obs = Observation.new(
+					:concept_name => "Body mass index, measured",
+					:person_id => @patient.id,
+					:encounter_id => e.id,
+					field => bmi,
+					:obs_datetime => e.encounter_datetime)
+
+				bmi_obs.save
+			end
 		end
 		
     # Program handling
@@ -407,7 +409,7 @@ class GenericEncountersController < ApplicationController
 
       #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       #if params[:location] is not blank == migration params
-      if params[:location]
+      if ! params[:location].blank?
         next if not @patient.patient_programs.in_programs("HIV PROGRAM").blank?
       end
       #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -437,17 +439,27 @@ class GenericEncountersController < ApplicationController
         arv_number = identifier[:identifier].strip
         if arv_number.match(/(.*)[A-Z]/i).blank?
           if params['encounter']['encounter_type_name'] == 'TB REGISTRATION'
-            identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB-#{arv_number}"
+						
+            if PatientIdentifier.site_prefix == "MPC"
+							prefix = "LL-TB"
+							tb_identifier = create_tb_number(type, prefix)
+							identifier[:identifier] = "LL-TB  #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "LL-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
+						else
+							prefix = "#{PatientIdentifier.site_prefix}-TB"
+							tb_identifier = create_tb_number(type, prefix)
+							identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "#{PatientIdentifier.site_prefix}-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
+						end
           else
             identifier[:identifier] = "#{PatientIdentifier.site_prefix}-ARV-#{arv_number}"
           end
         end
       end
-
+			
       if @patient_identifier
         @patient_identifier.update_attributes(identifier)      
       else
         @patient_identifier = @patient.patient_identifiers.create(identifier)
+				#raise @patient_identifier.to_yaml
       end
     end
 
@@ -463,12 +475,12 @@ class GenericEncountersController < ApplicationController
         @patient_identifier.update_attributes(person_attribute)      
       else
         case type
-          when 'agrees_to_be_visited_for_TB_therapy'
-            @person_attribute = @patient.person.person_attributes.create(
+				when 'agrees_to_be_visited_for_TB_therapy'
+					@person_attribute = @patient.person.person_attributes.create(
             :person_attribute_type_id => PersonAttributeType.find_by_name("Agrees to be visited at home for TB therapy").person_attribute_type_id,
             :value => attribute)
-          when 'agrees_phone_text_for_TB_therapy'
-            @person_attribute = @patient.person.person_attributes.create(
+				when 'agrees_phone_text_for_TB_therapy'
+					@person_attribute = @patient.person.person_attributes.create(
             :person_attribute_type_id => PersonAttributeType.find_by_name("Agrees to phone text for TB therapy").person_attribute_type_id,
             :value => attribute)
         end
@@ -478,40 +490,45 @@ class GenericEncountersController < ApplicationController
     # if params['encounter']['encounter_type_name'] == "APPOINTMENT"
     #  redirect_to "/patients/treatment_dashboard/#{@patient.id}" and return
     # else
-      # Go to the dashboard if this is a non-encounter
-      # redirect_to "/patients/show/#{@patient.id}" unless params[:encounter]
-      # redirect_to next_task(@patient)
+		# Go to the dashboard if this is a non-encounter
+		# redirect_to "/patients/show/#{@patient.id}" unless params[:encounter]
+		# redirect_to next_task(@patient)
     # end
 
     # Go to the next task in the workflow (or dashboard)
     # only redirect to next task if location parameter has not been provided
 
-    
-    unless params[:location].blank?
-    #find a way of printing the lab_orders labels
-     if params['encounter']['encounter_type_name'] == "LAB ORDERS"
-       redirect_to"/patients/print_lab_orders/?patient_id=#{@patient.id}"
-     elsif params['encounter']['encounter_type_name'] == "TB suspect source of referral" && !params[:gender].empty? && !params[:family_name].empty? && !params[:given_name].empty?
-       redirect_to"/encounters/new/tb_suspect_source_of_referral/?patient_id=#{@patient.id}&gender=#{params[:gender]}&family_name=#{params[:family_name]}&given_name=#{params[:given_name]}"
-     else
-      if params['encounter']['encounter_type_name'].to_s.upcase == "APPOINTMENT" && !params[:report_url].nil? && !params[:report_url].match(/report/).nil?
-         redirect_to  params[:report_url].to_s and return
-      elsif params['encounter']['encounter_type_name'].upcase == 'APPOINTMENT'
-        print_and_redirect("/patients/dashboard_print_visit/#{params[:encounter]['patient_id']}","/patients/show/#{params[:encounter]['patient_id']}")
-        return
-      end
-      redirect_to next_task(@patient)
-     end
+    if params[:location].blank?
+			#find a way of printing the lab_orders labels
+			if params['encounter']['encounter_type_name'].upcase == 'LAB RESULTS'
+				print_and_redirect("/encounters/lab_results_print/?id=#{@patient.id}", next_task(@patient))
+			elsif	params['encounter']['encounter_type_name'] == "LAB ORDERS"
+				redirect_to"/patients/print_lab_orders/?patient_id=#{@patient.id}"
+			elsif params['encounter']['encounter_type_name'] == "TB suspect source of referral" && !params[:gender].empty? && !params[:family_name].empty? && !params[:given_name].empty?
+				redirect_to"/encounters/new/tb_suspect_source_of_referral/?patient_id=#{@patient.id}&gender=#{params[:gender]}&family_name=#{params[:family_name]}&given_name=#{params[:given_name]}"
+			else
+				if params['encounter']['encounter_type_name'].to_s.upcase == "APPOINTMENT" && !params[:report_url].nil? && !params[:report_url].match(/report/).nil?
+					redirect_to  params[:report_url].to_s and return
+				elsif params['encounter']['encounter_type_name'].upcase == 'APPOINTMENT'
+					print_and_redirect("/patients/dashboard_print_visit/#{params[:encounter]['patient_id']}","/patients/show/#{params[:encounter]['patient_id']}")
+					return
+				end
+				redirect_to next_task(@patient)
+			end
     else
       if params[:voided]
         encounter.void(params[:void_reason],
-                       params[:date_voided],
-                       params[:voided_by])
+					params[:date_voided],
+					params[:voided_by])
       end
+      #redirect_to "/patients/show/#{params[:encounter]['patient_id']}"
       #made restful the default due to time
+
       render :text => encounter.encounter_id.to_s and return
+      
       #return encounter.id.to_s  # support non-RESTful creation of encounters
     end
+    
   end
 
 	def new	
@@ -548,7 +565,7 @@ class GenericEncountersController < ApplicationController
 	def extract_regions
 		
 		ta = Region.all.collect { | element |
-			 [element.region_id.to_s  + ',' + element.name]
+			[element.region_id.to_s  + ',' + element.name]
 		}
 		render :text => "'" + ta.join("' ; '") + "'"
 	end
@@ -556,7 +573,7 @@ class GenericEncountersController < ApplicationController
 	def extract_districts
 		
 		ta = District.all.collect { | element |
-			 [element.district_id.to_s  + ',' + element.name + ',' + element.region_id.to_s + ',' + element.region.name]
+			[element.district_id.to_s  + ',' + element.name + ',' + element.region_id.to_s + ',' + element.region.name]
 		}
 		render :text => "'" + ta.join("' ; '") + "'"
 	end
@@ -564,7 +581,7 @@ class GenericEncountersController < ApplicationController
 	def extract_tas
 		
 		ta = TraditionalAuthority.all.collect { | element |
-			 [element.traditional_authority_id.to_s  + "," + element.name + "," + element.district_id.to_s + "," + element.district.name]
+			[element.traditional_authority_id.to_s  + "," + element.name + "," + element.district_id.to_s + "," + element.district.name]
 		}
 		my_text = ta.join(" <br> ")
 		render :text => my_text.to_s
@@ -573,7 +590,7 @@ class GenericEncountersController < ApplicationController
 	def extract_villages
 		
 		ta = Village.all.collect { | element |
-			 [element.village_id.to_s  + ',' + element.name + ',' + element.traditional_authority_id.to_s + ',' + element.traditional_authority.name + ',' + element.traditional_authority.district_id.to_s + ',' + element.traditional_authority.district.name]
+			[element.village_id.to_s  + ',' + element.name + ',' + element.traditional_authority_id.to_s + ',' + element.traditional_authority.name + ',' + element.traditional_authority.district_id.to_s + ',' + element.traditional_authority.district.name]
 		}
 
 		my_text = ta.join(" <br> ")
@@ -640,12 +657,12 @@ class GenericEncountersController < ApplicationController
 				@observations << obs
 			else
 				@observations << obs
-		  	end
+			end
 			child_obs = Observation.find(:all, :conditions => ["obs_group_id = ?", obs.obs_id])
 			if child_obs
 				@child_obs[obs.obs_id] = child_obs
 			end
-    	end
+		end
 
 		render :layout => false
 	end
@@ -707,13 +724,13 @@ class GenericEncountersController < ApplicationController
 
 	def give_drugs
 		@patient = Patient.find(params[:patient_id] || session[:patient_id])
-		 #@prescriptions = @patient.orders.current.prescriptions.all
+		#@prescriptions = @patient.orders.current.prescriptions.all
 		type = EncounterType.find_by_name('TREATMENT')
 		session_date = session[:datetime].to_date rescue Date.today
 		@prescriptions = Order.find(:all,
-				         :joins => "INNER JOIN encounter e USING (encounter_id)",
-				         :conditions => ["encounter_type = ? AND e.patient_id = ? AND DATE(encounter_datetime) = ?",
-				         type.id,@patient.id,session_date])
+			:joins => "INNER JOIN encounter e USING (encounter_id)",
+			:conditions => ["encounter_type = ? AND e.patient_id = ? AND DATE(encounter_datetime) = ?",
+				type.id,@patient.id,session_date])
 		@historical = @patient.orders.historical.prescriptions.all
 		@restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
 		@restricted.each do |restriction|
@@ -736,7 +753,7 @@ class GenericEncountersController < ApplicationController
 		session_date = session[:datetime].to_date rescue Date.today
 		tb_registration = Encounter.find(:first,
 			:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) < ?",
-			patient_id,EncounterType.find_by_name('TB REGISTRATION').id, session_date]) rescue nil
+				patient_id,EncounterType.find_by_name('TB REGISTRATION').id, session_date]) rescue nil
 
 		return true if tb_registration.nil?
 		return false
@@ -764,7 +781,7 @@ class GenericEncountersController < ApplicationController
 		sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
 
 		lab_results = Encounter.find(:last,:conditions =>["encounter_type = ? AND patient_id = ? AND DATE(encounter_datetime) >= ?",
-			EncounterType.find_by_name("LAB RESULTS").id, patient_id, (session_date.to_date - 3.month).strftime('%Y-%m-%d 00:00:00')])
+				EncounterType.find_by_name("LAB RESULTS").id, patient_id, (session_date.to_date - 3.month).strftime('%Y-%m-%d 00:00:00')])
 				            
 		positive_result = false                  
 
@@ -782,86 +799,86 @@ class GenericEncountersController < ApplicationController
 
   def select_options
     select_options = {
-     'reason_for_tb_clinic_visit' => [
+			'reason_for_tb_clinic_visit' => [
         ['',''],
         ['Clinical review (Children, Smear-, HIV+)','CLINICAL REVIEW'],
         ['Smear Positive (HIV-)','SMEAR POSITIVE'],
         ['X-ray result interpretation','X-RAY RESULT INTERPRETATION']
       ],
-     'tb_clinic_visit_type' => [
+			'tb_clinic_visit_type' => [
         ['',''],
         ['Lab analysis','Lab follow-up'],
         ['Follow-up','Follow-up'],
         ['Clinical review (Clinician visit)','Clinical review']
       ],
-     'family_planning_methods' => [
-       ['',''],
-       ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
-       ['Depo-Provera', 'DEPO-PROVERA'],
-       ['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
-       ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
-       ['Male condoms', 'MALE CONDOMS'],
-       ['Female condoms', 'FEMALE CONDOMS'],
-       ['Rhythm method', 'RYTHM METHOD'],
-       ['Withdrawal', 'WITHDRAWAL'],
-       ['Abstinence', 'ABSTINENCE'],
-       ['Tubal ligation', 'TUBAL LIGATION'],
-       ['Vasectomy', 'VASECTOMY']
+			'family_planning_methods' => [
+				['',''],
+				['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
+				['Depo-Provera', 'DEPO-PROVERA'],
+				['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
+				['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
+				['Male condoms', 'MALE CONDOMS'],
+				['Female condoms', 'FEMALE CONDOMS'],
+				['Rhythm method', 'RYTHM METHOD'],
+				['Withdrawal', 'WITHDRAWAL'],
+				['Abstinence', 'ABSTINENCE'],
+				['Tubal ligation', 'TUBAL LIGATION'],
+				['Vasectomy', 'VASECTOMY']
       ],
-     'male_family_planning_methods' => [
-       ['',''],
-       ['Male condoms', 'MALE CONDOMS'],
-       ['Withdrawal', 'WITHDRAWAL'],
-       ['Rhythm method', 'RYTHM METHOD'],
-       ['Abstinence', 'ABSTINENCE'],
-       ['Vasectomy', 'VASECTOMY'],
-       ['Other','OTHER']
+			'male_family_planning_methods' => [
+				['',''],
+				['Male condoms', 'MALE CONDOMS'],
+				['Withdrawal', 'WITHDRAWAL'],
+				['Rhythm method', 'RYTHM METHOD'],
+				['Abstinence', 'ABSTINENCE'],
+				['Vasectomy', 'VASECTOMY'],
+				['Other','OTHER']
       ],
-     'female_family_planning_methods' => [
-       ['',''],
-       ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
-       ['Depo-Provera', 'DEPO-PROVERA'],
-       ['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
-       ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
-       ['Female condoms', 'FEMALE CONDOMS'],
-       ['Withdrawal', 'WITHDRAWAL'],
-       ['Rhythm method', 'RYTHM METHOD'],
-       ['Abstinence', 'ABSTINENCE'],
-       ['Tubal ligation', 'TUBAL LIGATION'],
-       ['Emergency contraception', 'EMERGENCY CONTRACEPTION'],
-       ['Other','OTHER']
+			'female_family_planning_methods' => [
+				['',''],
+				['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
+				['Depo-Provera', 'DEPO-PROVERA'],
+				['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
+				['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
+				['Female condoms', 'FEMALE CONDOMS'],
+				['Withdrawal', 'WITHDRAWAL'],
+				['Rhythm method', 'RYTHM METHOD'],
+				['Abstinence', 'ABSTINENCE'],
+				['Tubal ligation', 'TUBAL LIGATION'],
+				['Emergency contraception', 'EMERGENCY CONTRACEPTION'],
+				['Other','OTHER']
       ],
-     'drug_list' => [
-          ['',''],
-          ["Rifampicin Isoniazid Pyrazinamide and Ethambutol", "RHEZ (RIF, INH, Ethambutol and Pyrazinamide tab)"],
-          ["Rifampicin Isoniazid and Ethambutol", "RHE (Rifampicin Isoniazid and Ethambutol -1-1-mg t"],
-          ["Rifampicin and Isoniazid", "RH (Rifampin and Isoniazid tablet)"],
-          ["Stavudine Lamivudine and Nevirapine", "D4T+3TC+NVP"],
-          ["Stavudine Lamivudine + Stavudine Lamivudine and Nevirapine", "D4T+3TC/D4T+3TC+NVP"],
-          ["Zidovudine Lamivudine and Nevirapine", "AZT+3TC+NVP"]
+			'drug_list' => [
+				['',''],
+				["Rifampicin Isoniazid Pyrazinamide and Ethambutol", "RHEZ (RIF, INH, Ethambutol and Pyrazinamide tab)"],
+				["Rifampicin Isoniazid and Ethambutol", "RHE (Rifampicin Isoniazid and Ethambutol -1-1-mg t"],
+				["Rifampicin and Isoniazid", "RH (Rifampin and Isoniazid tablet)"],
+				["Stavudine Lamivudine and Nevirapine", "D4T+3TC+NVP"],
+				["Stavudine Lamivudine + Stavudine Lamivudine and Nevirapine", "D4T+3TC/D4T+3TC+NVP"],
+				["Zidovudine Lamivudine and Nevirapine", "AZT+3TC+NVP"]
       ],
-        'presc_time_period' => [
-          ["",""],
-          ["1 month", "30"],
-          ["2 months", "60"],
-          ["3 months", "90"],
-          ["4 months", "120"],
-          ["5 months", "150"],
-          ["6 months", "180"],
-          ["7 months", "210"],
-          ["8 months", "240"]
+			'presc_time_period' => [
+				["",""],
+				["1 month", "30"],
+				["2 months", "60"],
+				["3 months", "90"],
+				["4 months", "120"],
+				["5 months", "150"],
+				["6 months", "180"],
+				["7 months", "210"],
+				["8 months", "240"]
       ],
-        'continue_treatment' => [
-          ["",""],
-          ["Yes", "YES"],
-          ["DHO DOT site","DHO DOT SITE"],
-          ["Transfer Out", "TRANSFER OUT"]
+			'continue_treatment' => [
+				["",""],
+				["Yes", "YES"],
+				["DHO DOT site","DHO DOT SITE"],
+				["Transfer Out", "TRANSFER OUT"]
       ],
-        'hiv_status' => [
-          ['',''],
-          ['Negative','NEGATIVE'],
-          ['Positive','POSITIVE'],
-          ['Unknown','UNKNOWN']
+			'hiv_status' => [
+				['',''],
+				['Negative','NEGATIVE'],
+				['Positive','POSITIVE'],
+				['Unknown','UNKNOWN']
       ],
       'who_stage1' => [
         ['',''],
@@ -896,15 +913,15 @@ class GenericEncountersController < ApplicationController
       ],
       'lab_orders' =>{
         "Blood" => ["Full blood count", "Malaria parasite", "Group & cross match", "Urea & Electrolytes", "CD4 count", "Resistance",
-            "Viral Load", "Cryptococcal Antigen", "Lactate", "Fasting blood sugar", "Random blood sugar", "Sugar profile",
-            "Liver function test", "Hepatitis test", "Sickling test", "ESR", "Culture & sensitivity", "Widal test", "ELISA",
-            "ASO titre", "Rheumatoid factor", "Cholesterol", "Triglycerides", "Calcium", "Creatinine", "VDRL", "Direct Coombs",
-            "Indirect Coombs", "Blood Test NOS"],
+					"Viral Load", "Cryptococcal Antigen", "Lactate", "Fasting blood sugar", "Random blood sugar", "Sugar profile",
+					"Liver function test", "Hepatitis test", "Sickling test", "ESR", "Culture & sensitivity", "Widal test", "ELISA",
+					"ASO titre", "Rheumatoid factor", "Cholesterol", "Triglycerides", "Calcium", "Creatinine", "VDRL", "Direct Coombs",
+					"Indirect Coombs", "Blood Test NOS"],
         "CSF" => ["Full CSF analysis", "Indian ink", "Protein & sugar", "White cell count", "Culture & sensitivity"],
         "Urine" => ["Urine microscopy", "Urinanalysis", "Culture & sensitivity"],
         "Aspirate" => ["Full aspirate analysis"],
         "Stool" => ["Full stool analysis", "Culture & sensitivity"],
-        "Sputum-AAFB" => ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)"],
+        "Sputum-AAFB" => ["AAFB(1st)", "AAFB(2nd)"],
         "Sputum-Culture" => ["Culture(1st)", "Culture(2nd)"],
         "Swab" => ["Microscopy", "Culture & sensitivity"]
       },
@@ -994,9 +1011,8 @@ class GenericEncountersController < ApplicationController
         ['Walk in', 'Walk in'],
         ['Index Patient', 'Index Patient'],
         ['HTC', 'HTC clinic'],
-        ['ART', 'ART Clinic'],
+        ['ART/PMTCT', 'ART Clinic/PMTCT'],
         ['OPD', 'OPD'],
-        ['PMTCT', 'PMTCT'],
         ['Private practitioner', 'Private practitioner'],
         ['Sputum collection point', 'Sputum collection point'],
         ['Other','Other']
@@ -1007,15 +1023,15 @@ class GenericEncountersController < ApplicationController
   def ever_received_tb_treatment(patient_id)
 		encounters = Encounter.find(:all,:conditions =>["patient_id = ? AND encounter_type = ?",
 				patient_id, EncounterType.find_by_name('TB_INITIAL').id],
-        :include => [:observations],:order =>'encounter_datetime ASC') rescue nil
+			:include => [:observations],:order =>'encounter_datetime ASC') rescue nil
 
     tb_treatment_value = ''
     unless encounters.nil?
       encounters.each { |encounter|
         encounter.observations.each { |observation|
-           if observation.concept_id == ConceptName.find_by_name("Ever received TB treatment").concept_id
-              tb_treatment_value = ConceptName.find_by_concept_id(observation.value_coded).name
-           end
+					if observation.concept_id == ConceptName.find_by_name("Ever received TB treatment").concept_id
+						tb_treatment_value = ConceptName.find_by_concept_id(observation.value_coded).name
+					end
         }
       }
     end
@@ -1023,55 +1039,55 @@ class GenericEncountersController < ApplicationController
 		return false
 	end
 
-    def any_previous_tb_programs(patient_id)
-        @tb_programs = ''
-        patient_programs = PatientProgram.find_all_by_patient_id(patient_id)
+	def any_previous_tb_programs(patient_id)
+		@tb_programs = ''
+		patient_programs = PatientProgram.find_all_by_patient_id(patient_id)
 
-        unless patient_programs.blank?
-          patient_programs.each{ |patient_program|
-            if patient_program.program_id == Program.find_by_name("MDR-TB program").program_id ||
-               patient_program.program_id == Program.find_by_name("TB PROGRAM").program_id
-              @tb_programs = true
-              break
-            end
-          }
-        end
+		unless patient_programs.blank?
+			patient_programs.each{ |patient_program|
+				if patient_program.program_id == Program.find_by_name("MDR-TB program").program_id ||
+						patient_program.program_id == Program.find_by_name("TB PROGRAM").program_id
+					@tb_programs = true
+					break
+				end
+			}
+		end
 	    
-	    return false if @tb_programs.blank?
-        return true
-    end
+		return false if @tb_programs.blank?
+		return true
+	end
 	
 	def previous_tb_visit(patient_id)
 		session_date = session[:datetime].to_date rescue Date.today
-        encounter = Encounter.find(:all, :conditions=>["patient_id = ? \
+		encounter = Encounter.find(:all, :conditions=>["patient_id = ? \
                     AND encounter_type = ? AND DATE(encounter_datetime) < ? ", patient_id, \
-                    EncounterType.find_by_name("TB VISIT").id, session_date]).last rescue nil
-        @date = encounter.encounter_datetime.to_date rescue nil
-        previous_visit_obs = []
+					EncounterType.find_by_name("TB VISIT").id, session_date]).last rescue nil
+		@date = encounter.encounter_datetime.to_date rescue nil
+		previous_visit_obs = []
 
-        if !encounter.nil?
-            for obs in encounter.observations do
-                    previous_visit_obs << "#{(obs.to_s(["short", "order"])).gsub('hiv','HIV').gsub('Hiv','HIV')}".squish
-            end
-        end
-        previous_visit_obs
+		if !encounter.nil?
+			for obs in encounter.observations do
+				previous_visit_obs << "#{(obs.to_s(["short", "order"])).gsub('hiv','HIV').gsub('Hiv','HIV')}".squish
+			end
+		end
+		previous_visit_obs
 	end
 	
 	def get_todays_observation_answer_for_encounter(patient_id, encountertype_name, observation_name)
 		session_date = session[:datetime].to_date rescue Date.today
-        encounter = Encounter.find(:all, :conditions=>["patient_id = ? \
+		encounter = Encounter.find(:all, :conditions=>["patient_id = ? \
                     AND encounter_type = ? AND DATE(encounter_datetime) = ? ", patient_id, \
-                    EncounterType.find_by_name("#{encountertype_name}").id, session_date]).last rescue nil
-        @date = encounter.encounter_datetime.to_date rescue nil
-        observation = nil
-        if !encounter.nil?
-            for obs in encounter.observations do
-                if obs.concept_id == ConceptName.find_by_name("#{observation_name}").concept_id
-                    observation = "#{obs.to_s(["short", "order"]).to_s.split(":")[1]}".squish
-                end
-            end
-        end
-        observation
+					EncounterType.find_by_name("#{encountertype_name}").id, session_date]).last rescue nil
+		@date = encounter.encounter_datetime.to_date rescue nil
+		observation = nil
+		if !encounter.nil?
+			for obs in encounter.observations do
+				if obs.concept_id == ConceptName.find_by_name("#{observation_name}").concept_id
+					observation = "#{obs.to_s(["short", "order"]).to_s.split(":")[1]}".squish
+				end
+			end
+		end
+		observation
 	end
 
   def lab_activities
@@ -1084,22 +1100,24 @@ class GenericEncountersController < ApplicationController
 
   #originally recent_lab_results. Changed to portray the usage
   def patient_recent_lab_results(patient_id)
-   Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+		Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("LAB RESULTS").id,patient_id]).observations.map{|o| o } rescue nil
   end
 
   def sputum_submissons_with_no_results(patient_id)
-    sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)", "Culture(1st)", "Culture(2nd)"]
+   # sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)", "Culture(1st)", "Culture(2nd)"]
+	  sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)",  "Culture(1st)", "Culture(2nd)"]
     sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
     sputums_array = Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?) OR value_text in (?))", patient_id, ConceptName.find_by_name('Tests ordered').concept_id, sputum_concept_ids, sputum_concept_names], :order => "obs_datetime desc", :limit => 3)
 
-    results_concept_name = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
+    #results_concept_name = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
+		results_concept_name = ["AAFB(1st) results", "AAFB(2nd) results", "Culture(1st) Results", "Culture-2 Results"]
     sputum_results_id = ConceptName.find(:all, :conditions => ["name IN (?)", results_concept_name ]).map(&:concept_id)
 
     sputums_array = sputums_array.select { |order|
-                       accessor_history = Observation.find(:all, :conditions => ["person_id = ? AND accession_number  = (?) AND voided = 0 AND concept_id IN (?)",  patient_id, order.accession_number, sputum_results_id]);
-                       accessor_history.size == 0
-                    }
+			accessor_history = Observation.find(:all, :conditions => ["person_id = ? AND accession_number  = (?) AND voided = 0 AND concept_id IN (?)",  patient_id, order.accession_number, sputum_results_id]);
+			accessor_history.size == 0
+		}
     sputums_array
   end
 
@@ -1152,7 +1170,7 @@ class GenericEncountersController < ApplicationController
     false
   end
 
-   def number_of_days_to_add_to_next_appointment_date(patient, date = Date.today)
+	def number_of_days_to_add_to_next_appointment_date(patient, date = Date.today)
     #because a dispension/pill count can have several drugs,we pick the drug with the lowest pill count
     #and we also make sure the drugs in the pill count/Adherence encounter are
     #the same as the one in Dispension encounter
@@ -1266,9 +1284,9 @@ class GenericEncountersController < ApplicationController
 			  
 		}
 
-    	@patient = Patient.find(params[:encounter][:patient_id])
+		@patient = Patient.find(params[:encounter][:patient_id])
 
-      redirect_to "/patients/show/#{@patient.patient_id}" and return
+		redirect_to "/patients/show/#{@patient.patient_id}" and return
 	end
 
   private
@@ -1322,7 +1340,7 @@ class GenericEncountersController < ApplicationController
 			extracted_value_coded_or_text = observation[:value_coded_or_text]
       
 			#TODO : Added this block with Yam, but it needs some testing.
-			if params[:location]
+			if ! params[:location].blank?
 				if encounter.encounter_type == EncounterType.find_by_name("ART ADHERENCE").id
 					passed_concept_id = Concept.find_by_name(observation[:concept_name]).concept_id rescue -1
 					obs_concept_id = Concept.find_by_name("AMOUNT OF DRUG BROUGHT TO CLINIC").concept_id rescue -1
@@ -1332,7 +1350,7 @@ class GenericEncountersController < ApplicationController
 							:joins => "INNER JOIN drug_order USING (order_id)",
 							:conditions => ["orders.patient_id = ? AND drug_order.drug_inventory_id = ? 
 										  AND orders.start_date < ?", encounter.patient_id, 
-										  observation[:value_drug], encounter.encounter_datetime.to_date],
+								observation[:value_drug], encounter.encounter_datetime.to_date],
 							:order => "orders.start_date DESC").order_id rescue nil
 						if !order_id.blank?
 							observation[:order_id] = order_id
@@ -1376,7 +1394,7 @@ class GenericEncountersController < ApplicationController
 				Observation.create(observation)
 			end
 		end
-  	end
+	end
 
 	def update_observation_value(observation)
 		value = observation[:value_coded_or_text]
@@ -1399,5 +1417,25 @@ class GenericEncountersController < ApplicationController
 
 		render :text => "<li></li><li>" + options.join("</li><li>") + "</li>"
 	end
-
+	
+	def create_tb_number(type_id, prefix)
+		session_date = "#{prefix} #{Date.today.year.to_s}%"
+		current_date = Date.today.to_s
+		current_date = session[:datetime] if !session[:datetime].blank?
+		 session_date = "#{prefix} #{session[:datetime].to_date.year.to_s}%" if !session[:datetime].blank?
+		 #
+		 patient_exists = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ? AND patient_id = ?', type_id, session_date, @patient.id])
+		 type = patient_exists
+		 if patient_exists.blank?
+			type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ?', type_id, session_date],:order => 'identifier DESC')
+		 end
+		 type = type.first.identifier.split(" ") rescue ""
+		 
+		 if type.include?(current_date.to_date.year.to_s)
+			return (type.last.to_i + 1) if patient_exists.blank?
+			return (type.last.to_i) if ! patient_exists.blank?
+		 else
+			return 1
+		 end
+	end
 end

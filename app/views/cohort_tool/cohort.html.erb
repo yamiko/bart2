@@ -6,25 +6,22 @@
   var tt_cancel_destination = "/"  
 
   function showReport() {
-    cohort = document.getElementsByClassName('scrollTableContainer')[0]
-    survival_analysis = document.getElementsByClassName('survival-analysis')[0]
-    switch_button = $('switch_view')
-    if (switch_button.innerHTML.sub('<span>','').sub('</span>','') == 'Survival Analysis'){
-      cohort.style.display = 'none'
-      switch_button.innerHTML = "<span>Cohort</span>"
-      survival_analysis.style.display = 'inline'
-    } else {
-      cohort.style.display = 'inline'
-      switch_button.innerHTML = "<span>Survival Analysis</span>"
-      survival_analysis.style.display = 'none'
-    } 
-     
-  }
+	document.forms[0].submit();
+	}
+
+  function showReportChildren() {
+	document.forms[1].submit();
+	}
+
+  function showReportWomen() {
+	document.forms[2].submit();
+	}
 </script>
 <style>
   table {
     border-style:none;
     border-width:1px;
+	width:99% !important;
   }
 
   th {
@@ -44,6 +41,7 @@
 
   div.scrollTableContainer {
     border-style:solid;
+	height:68%;
   }
 
   .survival-analysis th, .survival-analysis td {
@@ -143,23 +141,35 @@
 	  width:68px;
 	  padding-left:5px;
 	}
-	
+	 tr{
+	 width:100% !important;
+   }
 	td.bg {
    background-color:lightgrey;
    -moz-user-select:none;
+   }
+
+   .logo {
+     float:left;
+     height: 8em;
+   }
+   .dataTable{
+	 width:6%
    }
 		
 </style>
 
 <title>Cohort<%= Location.current_health_center.name + "  " + @quarter %></title>
 </head>
-
 <body>
-<h1><%= Location.current_health_center.name + "  " + @quarter %></h1>
+<%= image_tag(@logo,:class=>"logo")%>
+		<br />
+		
+<h1><%= Location.current_health_center.name + " : " + @quarter %></h1>
 <br />
 
 <div class='scrollTableContainer'>
-<table class='dataTable' cellspacing='0'>
+<table cellspacing='0'>
 <thead>
 <tr>
   <td width="30px" class="bg">&nbsp;</td>
@@ -803,44 +813,25 @@
 </table>
 </div>
 
-<div class = 'survival-analysis'>
-<table>
-<% @survival_analysis.each do | key , values | %>
-  <tr>
-    <th><%=key%></th>
-    <th>&nbsp;</th>
-  </tr>
-  <tr>
-    <td>New patients registered for ART</td>
-    <td style = "text-align:right;"><%=values['New patients registered for ART'].length rescue 0%></td>
-  </tr>
-  <tr>
-    <td>Number Alive and on ART</td>
-    <td style = "text-align:right;"><%=values['Number Alive and on ART'].length rescue 0%></td>
-  </tr>
-  <tr>
-    <td>Number Dead</td>
-    <td style = "text-align:right;"><%=values['Number Dead'].length rescue 0%></td>
-  </tr>
-  <tr>
-    <td>Number Defaulted</td>
-    <td style = "text-align:right;"><%=values['Unknown'].length rescue 0%></td>
-  </tr>
-  <tr>
-    <td>Number Stopped Treatment</td>
-    <td style = "text-align:right;"><%=values['Number Stopped Treatment'].length rescue 0%></td>
-  </tr>
-  <tr>
-    <td>Number Transferred out</td>
-    <td style = "text-align:right;"><%=values['Number Transferred out'].length rescue 0%></td>
-  </tr>
-  <tr>
-    <td>Number Unknown</td>
-    <td style = "text-align:right;"><%=values['Unknown'].length rescue 0%></td>
-  </tr>
-<% end rescue nil%>
-</table>
-</div>
+<form name="survivors" action="survival_analysis" method="post">
+  <input type="hidden" name="quarter" value="<%=@quarter%>">
+  <input type="hidden" name="logo" value="<%=@logo%>">
+  <input type="hidden" name="survivor" value='<%= @survival_analysis.to_json %>'>
+  
+</form>
 
+<form name="children_survivors" action="children_survival" method="post">
+  <input type="hidden" name="quarter" value="<%=@quarter%>">
+  <input type="hidden" name="logo" value="<%=@logo%>">
+  <input type="hidden" name="children_survivor" value='<%= @children_survival_analysis.to_json %>'>
+
+</form>
+
+<form name="women_survivors" action="women_survival" method="post">
+  <input type="hidden" name="quarter" value="<%=@quarter%>">
+  <input type="hidden" name="logo" value="<%=@logo%>">
+  <input type="hidden" name="women_survivor" value='<%= @women_survival_analysis.to_json %>'>
+
+</form>
 </body>
 </html>

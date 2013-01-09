@@ -129,7 +129,9 @@
     }
     return true
   }
-
+  function test(){
+	alert($("person_addresses_city_village").value);
+  }
   function dateCreate(date_str){
     intyear = 0 ; intmonth = 0 ; intday = 0;
     intyear = parseInt(date_str.substring(0,4))
@@ -172,7 +174,7 @@
 
   <%= text_field_tag "person[birth_year]", nil, {:helpText => 'Year of Birth', :field_type => 'number', :absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year, :tt_pageStyleClass => "Numeric NumbersOnly", :tt_onLoad => 'seen(tstCurrentPage);',:validationJS => "setDOB();" }  %>
 
-  <%= select_tag "person[birth_month]", month_name_options, {:helpText => 'Month of Birth', :condition => '$("person_birth_year").value.toLowerCase() != "unknown"',:validationJS => "validateDOB();",:validationMessage => 'Please enter a valid date'}%>
+  <%= select_tag "person[birth_month]", month_name_options, {:helpText => 'Month of Birth', :condition => '$("person_birth_year").value.toLowerCase() != "unknown"',:validationJS => "validateDOB();",:validationMessage => 'Please enter a valid date', :tt_onLoad => "__$('keyboard').style.display = 'none'"}%>
 
   <%= text_field_tag "person[age_estimate]", nil, {:helpText => 'Age Estimate', :absoluteMin => 1, :absoluteMax => age_limit, :field_type => 'number', :condition => '$("person_birth_year").value == "Unknown"', :tt_onLoad => "$('nextButton').style.display = 'block';", :tt_pageStyleClass => "Numeric NumbersOnly"} %> 
 
@@ -197,27 +199,27 @@
 
 <p><label for="filter_t_a">Traditional Authority (T/A) or area of residence</label></br>
 
-<%= text_field "filter" , 't_a', :condition => '$("filter_district").value != "Other"', :helpText => 'Traditional Authority (T/A) or area of residence', :tt_requireNextClick => false, :ajaxURL => '', :tt_pageStyleClass => "azButton", :tt_onLoad => "set_ajaxURL_for_suggestions('/people/traditional_authority/TraditionalAuthority?filter_value=' ,document.getElementById('filter_district').value);$('nextButton').style.display = 'none';" %></p>
+<%= text_field "filter" , 't_a', :condition => '$("filter_district").value != "Other"', :helpText => 'Traditional Authority (T/A) or area of residence', :tt_requireNextClick => false, :ajaxURL => "", :tt_pageStyleClass => "azButton", :tt_onLoad => "set_ajaxURL_for_suggestions('/people/traditional_authority/TraditionalAuthority?filter_value=' ,document.getElementById('filter_district').value);$('nextButton').style.display = 'none';" %></p>
 
-<%= text_field "filter" , 't_a_a', :tt_onUnLoad => 'if ($("t_a_a")) {$("t_a").value = $("t_a_a").value}', :condition => '$("filter_district").value == "Other"', :ajaxURL => '/person_addresses/traditional_authority?search_string=', :tt_pageStyleClass => "azButton", :allowFreeText => true,  :helpText => 'Specify Traditional Authority (T/A) or area of residence', :tt_onLoad => "$('nextButton').style.display = 'block';" %></p>
+<%= text_field "filter" , 't_a_a', :tt_onUnLoad => 'if ($("t_a_a")) {$("t_a").value = $("t_a_a").value}', :condition => '$("filter_district").value == "Other"', :ajaxURL => "/person_addresses/traditional_authority?search_string=", :tt_pageStyleClass => "azButton", :allowFreeText => true,  :helpText => 'Specify Traditional Authority (T/A) or area of residence', :tt_onLoad => "$('nextButton').style.display = 'block';" %></p>
 
-<%= text_field_tag "person[addresses][city_village]", params[:city_village], 
+<%= text_field_tag "person[addresses][city_village]", params[:city_village],
 	{:condition => '$("filter_t_a").value != "Other"',
 	 :field_type => 'alpha',
 	 :helpText => 'Location/Village',
 	 :tt_requireNextClick => false,
 	 :tt_pageStyleClass => "azButton",
-	 :ajaxURL => '/people/village?search_string=',
-	 :allowFreeText => false , :tt_onLoad => "set_ajaxURL_for_suggestions('/people/village/Village?filter_value=' ,document.getElementById('filter_t_a').value);$('nextButton').style.display = 'none';"}%>
+	 :ajaxURL => "/people/village?search_string=",
+	 :allowFreeText => false , :tt_onLoad => 'set_ajaxURL_for_suggestions("/people/village/Village?filter_value=" ,document.getElementById("filter_t_a").value);$("nextButton").style.display = "none";'} %>
 
 <%= text_field_tag "p[addresses][city_village_a]", params[:city_village_a],
 	 {:tt_onUnLoad => '$("person_addresses_city_village").value = $("p_addresses_city_village_a").value',
 	  :condition => '$("filter_t_a").value == "Other"' ,
-	  :ajaxURL => '/person_addresses/village?search_string=',
+	  :ajaxURL => "/person_addresses/village?search_string=",
 	  :allowFreeText => true, :field_type => 'alpha',
 	  :helpText => 'Specify Location/Village',
 	  :tt_pageStyleClass => "azButton",
-	  :tt_requireNextClick => true, :tt_onLoad => "$('nextButton').style.display = 'block';"}%>
+	  :tt_requireNextClick => true, :tt_onLoad => "$('nextButton').style.display = 'block';"} %>
 
 
 <%= text_field_tag "person[addresses][address1]",  params[:address1],
@@ -273,7 +275,7 @@
       :helpText =>"Occupation",
       :id => "occupation",
       :allowFreeText => false, 
-      :tt_onLoad => 'seen(tstCurrentPage);', 
+      :tt_onLoad => "seen(tstCurrentPage);__$('keyboard').style.display = 'none'",
       :ttMatchFromBeginning => "true")%>
 
   <!-- Make sure patient is created -->

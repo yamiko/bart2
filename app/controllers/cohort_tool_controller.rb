@@ -23,86 +23,86 @@ class CohortToolController < GenericCohortToolController
 
     if params[:report]
       case  params[:report_type]
-        when "visits_by_day"
-          redirect_to :action   => "visits_by_day",
-                      :name     => params[:report],
-                      :pat_name => "Visits by day",
-                      :quarter  => params[:report].gsub("_"," ")
+			when "visits_by_day"
+				redirect_to :action   => "visits_by_day",
+					:name     => params[:report],
+					:pat_name => "Visits by day",
+					:quarter  => params[:report].gsub("_"," ")
         return
 
-        when "non_eligible_patients_in_cohort"
-          date = Report.generate_cohort_date_range(params[:report])
+			when "non_eligible_patients_in_cohort"
+				date = Report.generate_cohort_date_range(params[:report])
 
-          redirect_to :action       => "non_eligible_patients_in_art",
-                      :controller   => "report",
-                      :start_date   => date.first.to_s,
-                      :end_date     => date.last.to_s,
-                      :id           => "start_reason_other",
-                      :report_type  => "non_eligible patients in: #{params[:report]}"
+				redirect_to :action       => "non_eligible_patients_in_art",
+					:controller   => "report",
+					:start_date   => date.first.to_s,
+					:end_date     => date.last.to_s,
+					:id           => "start_reason_other",
+					:report_type  => "non_eligible patients in: #{params[:report]}"
         return
 
-        when "out_of_range_arv_number"
-          redirect_to :action           => "out_of_range_arv_number",
-                      :arv_end_number   => params[:arv_end_number],
-                      :arv_start_number => params[:arv_start_number],
-                      :quarter          => params[:report].gsub("_"," "),
-                      :report_type      => params[:report_type]
+			when "out_of_range_arv_number"
+				redirect_to :action           => "out_of_range_arv_number",
+					:arv_end_number   => params[:arv_end_number],
+					:arv_start_number => params[:arv_start_number],
+					:quarter          => params[:report].gsub("_"," "),
+					:report_type      => params[:report_type]
         return
 
-        when "data_consistency_check"
-          redirect_to :action       => "data_consistency_check",
-                      :quarter      => params[:report],
-                      :report_type  => params[:report_type]
+			when "data_consistency_check"
+				redirect_to :action       => "data_consistency_check",
+					:quarter      => params[:report],
+					:report_type  => params[:report_type]
         return
 
-        when "summary_of_records_that_were_updated"
-          redirect_to :action   => "records_that_were_updated",
-                      :quarter  => params[:report].gsub("_"," ")
+			when "summary_of_records_that_were_updated"
+				redirect_to :action   => "records_that_were_updated",
+					:quarter  => params[:report].gsub("_"," ")
         return
 
-        when "adherence_histogram_for_all_patients_in_the_quarter"
-          redirect_to :action   => "adherence",
-                      :quarter  => params[:report].gsub("_"," ")
+			when "adherence_histogram_for_all_patients_in_the_quarter"
+				redirect_to :action   => "adherence",
+					:quarter  => params[:report].gsub("_"," ")
         return
 
-        when "patients_with_adherence_greater_than_hundred"
-          redirect_to :action  => "patients_with_adherence_greater_than_hundred",
-                      :quarter => params[:report].gsub("_"," ")
+			when "patients_with_adherence_greater_than_hundred"
+				redirect_to :action  => "patients_with_adherence_greater_than_hundred",
+					:quarter => params[:report].gsub("_"," ")
         return
 
-        when "patients_with_multiple_start_reasons"
-          redirect_to :action       => "patients_with_multiple_start_reasons",
-                      :quarter      => params[:report],
-                      :report_type  => params[:report_type]
+			when "patients_with_multiple_start_reasons"
+				redirect_to :action       => "patients_with_multiple_start_reasons",
+					:quarter      => params[:report],
+					:report_type  => params[:report_type]
         return
 
-        when "dispensations_without_prescriptions"
-          redirect_to :action       => "dispensations_without_prescriptions",
-                      :quarter      => params[:report],
-                      :report_type  => params[:report_type]
+			when "dispensations_without_prescriptions"
+				redirect_to :action       => "dispensations_without_prescriptions",
+					:quarter      => params[:report],
+					:report_type  => params[:report_type]
         return
 
-        when "prescriptions_without_dispensations"
-          redirect_to :action       => "prescriptions_without_dispensations",
-                      :quarter      => params[:report],
-                      :report_type  => params[:report_type]
+			when "prescriptions_without_dispensations"
+				redirect_to :action       => "prescriptions_without_dispensations",
+					:quarter      => params[:report],
+					:report_type  => params[:report_type]
         return
 
-        when "drug_stock_report"
-          start_date  = "#{params[:start_year]}-#{params[:start_month]}-#{params[:start_day]}"
-          end_date    = "#{params[:end_year]}-#{params[:end_month]}-#{params[:end_day]}"
+			when "drug_stock_report"
+				start_date  = "#{params[:start_year]}-#{params[:start_month]}-#{params[:start_day]}"
+				end_date    = "#{params[:end_year]}-#{params[:end_month]}-#{params[:end_day]}"
 
-          if end_date.to_date < start_date.to_date
-            redirect_to :controller   => "cohort_tool",
-                        :action       => "select",
-                        :report_type  =>"drug_stock_report" and return
-          end rescue nil
+				if end_date.to_date < start_date.to_date
+					redirect_to :controller   => "cohort_tool",
+						:action       => "select",
+						:report_type  =>"drug_stock_report" and return
+				end rescue nil
 
-          redirect_to :controller => "drug",
-                      :action     => "report",
-                      :start_date => start_date,
-                      :end_date   => end_date,
-                      :quarter    => params[:report].gsub("_"," ")
+				redirect_to :controller => "drug",
+					:action     => "report",
+					:start_date => start_date,
+					:end_date   => end_date,
+					:quarter    => params[:report].gsub("_"," ")
         return
       end
     end
@@ -148,8 +148,8 @@ class CohortToolController < GenericCohortToolController
 
       new_encounter  = other_encounters.reduce([])do |result, e|
         result << e if( e.encounter_datetime.strftime("%d-%m-%Y") == encounter.encounter_datetime.strftime("%d-%m-%Y")&&
-                        e.patient_id      == encounter.patient_id &&
-                        e.encounter_type  == encounter. encounter_type)
+						e.patient_id      == encounter.patient_id &&
+						e.encounter_type  == encounter. encounter_type)
         result
       end
 
@@ -162,17 +162,17 @@ class CohortToolController < GenericCohortToolController
       changed_from  = changed_from(voided_observations)
 
       if( voided_observations && !voided_observations.empty?)
-          voided_records[encounter.id] = {
-              "id"              => patient.patient_id,
-              "arv_number"      => patient_bean.arv_number,
-              "name"            => patient_bean.name,
-              "national_id"     => patient_bean.national_id,
-              "encounter_name"  => encounter.name,
-              "voided_date"     => encounter.date_voided,
-              "reason"          => encounter.void_reason,
-              "change_from"     => changed_from,
-              "change_to"       => changed_to
-            }
+				voided_records[encounter.id] = {
+					"id"              => patient.patient_id,
+					"arv_number"      => patient_bean.arv_number,
+					"name"            => patient_bean.name,
+					"national_id"     => patient_bean.national_id,
+					"encounter_name"  => encounter.name,
+					"voided_date"     => encounter.date_voided,
+					"reason"          => encounter.void_reason,
+					"change_from"     => changed_from,
+					"change_to"       => changed_to
+				}
       end
     end
 
@@ -188,12 +188,12 @@ class CohortToolController < GenericCohortToolController
       changed_from      = ''
       changed_to        = ''
 
-     new_encounter  =  drug_encounters.reduce([])do |result, e|
+			new_encounter  =  drug_encounters.reduce([])do |result, e|
         result << e if( e.encounter_datetime.strftime("%d-%m-%Y") == encounter.encounter_datetime.strftime("%d-%m-%Y")&&
-                        e.patient_id      == encounter.patient_id &&
-                        e.encounter_type  == encounter. encounter_type)
-          result
-        end
+						e.patient_id      == encounter.patient_id &&
+						e.encounter_type  == encounter. encounter_type)
+				result
+			end
 
       new_encounter = new_encounter.last
 
@@ -203,15 +203,15 @@ class CohortToolController < GenericCohortToolController
 
       if( orders && !orders.empty?)
         voided_records[encounter.id]= {
-            "id"              => patient.patient_id,
-            "arv_number"      => patient_bean.arv_number,
-            "name"            => patient_bean.name,
-            "national_id"     => patient_bean.national_id,
-            "encounter_name"  => encounter.name,
-            "voided_date"     => encounter.date_voided,
-            "reason"          => encounter.void_reason,
-            "change_from"     => changed_from,
-            "change_to"       => changed_to
+					"id"              => patient.patient_id,
+					"arv_number"      => patient_bean.arv_number,
+					"name"            => patient_bean.name,
+					"national_id"     => patient_bean.national_id,
+					"encounter_name"  => encounter.name,
+					"voided_date"     => encounter.date_voided,
+					"reason"          => encounter.void_reason,
+					"change_from"     => changed_from,
+					"change_to"       => changed_to
         }
       end
 
@@ -220,7 +220,7 @@ class CohortToolController < GenericCohortToolController
     show_tabuler_format(voided_records)
   end
 
-   def show_tabuler_format(records)
+	def show_tabuler_format(records)
 
     patients = {}
 
@@ -252,35 +252,35 @@ class CohortToolController < GenericCohortToolController
       value_data =  value.last
 
       case value_name
-        when "id"
-          patient_id = value_data
-        when "arv_number"
-          arv_number = value_data
-        when "name"
-          name = value_data
-        when "national_id"
-          national_id = value_data
-        when "encounter_name"
-          encounter_name = value_data
-        when "voided_date"
-          voided_date = value_data
-        when "reason"
-          reason = value_data
-        when "change_from"
-          value_data.split("</br>").each do |obs|
-            obs_name  = obs.split(':')[0].strip
-            obs_value = obs.split(':')[1].strip rescue ''
+			when "id"
+				patient_id = value_data
+			when "arv_number"
+				arv_number = value_data
+			when "name"
+				name = value_data
+			when "national_id"
+				national_id = value_data
+			when "encounter_name"
+				encounter_name = value_data
+			when "voided_date"
+				voided_date = value_data
+			when "reason"
+				reason = value_data
+			when "change_from"
+				value_data.split("</br>").each do |obs|
+					obs_name  = obs.split(':')[0].strip
+					obs_value = obs.split(':')[1].strip rescue ''
 
-            changed_from_obs[obs_name] = obs_value
-          end unless value_data.blank?
-        when "change_to"
+					changed_from_obs[obs_name] = obs_value
+				end unless value_data.blank?
+			when "change_to"
 
-          value_data.split("</br>").each do |obs|
-            obs_name  = obs.split(':')[0].strip
-            obs_value = obs.split(':')[1].strip rescue ''
+				value_data.split("</br>").each do |obs|
+					obs_name  = obs.split(':')[0].strip
+					obs_value = obs.split(':')[1].strip rescue ''
 
-            changed_to_obs[obs_name] = obs_value
-          end unless value_data.blank?
+					changed_to_obs[obs_name] = obs_value
+				end unless value_data.blank?
       end
     end
 
@@ -321,15 +321,15 @@ class CohortToolController < GenericCohortToolController
     end
 
     results = {
-        "id"              => patient_id,
-        "arv_number"      => arv_number,
-        "name"            => name,
-        "national_id"     => national_id,
-        "encounter_name"  => encounter_name,
-        "voided_date"     => voided_date,
-        "obs_name"        => obs_names,
-        "reason"          => reason
-      }
+			"id"              => patient_id,
+			"arv_number"      => arv_number,
+			"name"            => name,
+			"national_id"     => national_id,
+			"encounter_name"  => encounter_name,
+			"voided_date"     => voided_date,
+			"obs_name"        => obs_names,
+			"reason"          => reason
+		}
 
     results
   end
@@ -340,21 +340,21 @@ class CohortToolController < GenericCohortToolController
     observations.collect do |obs|
       ["value_coded","value_datetime","value_modifier","value_numeric","value_text"].each do |value|
         case value
-          when "value_coded"
-            next if obs.value_coded.blank?
-            changed_obs += "#{obs.to_s}</br>"
-          when "value_datetime"
-            next if obs.value_datetime.blank?
-            changed_obs += "#{obs.to_s}</br>"
-          when "value_numeric"
-            next if obs.value_numeric.blank?
-            changed_obs += "#{obs.to_s}</br>"
-          when "value_text"
-            next if obs.value_text.blank?
-            changed_obs += "#{obs.to_s}</br>"
-          when "value_modifier"
-            next if obs.value_modifier.blank?
-            changed_obs += "#{obs.to_s}</br>"
+				when "value_coded"
+					next if obs.value_coded.blank?
+					changed_obs += "#{obs.to_s}</br>"
+				when "value_datetime"
+					next if obs.value_datetime.blank?
+					changed_obs += "#{obs.to_s}</br>"
+				when "value_numeric"
+					next if obs.value_numeric.blank?
+					changed_obs += "#{obs.to_s}</br>"
+				when "value_text"
+					next if obs.value_text.blank?
+					changed_obs += "#{obs.to_s}</br>"
+				when "value_modifier"
+					next if obs.value_modifier.blank?
+					changed_obs += "#{obs.to_s}</br>"
         end
       end
     end
@@ -366,11 +366,11 @@ class CohortToolController < GenericCohortToolController
     encounter_type = enc.encounter_type
 
     encounter = Encounter.find(:first,
-                 :joins       => "INNER JOIN obs ON encounter.encounter_id=obs.encounter_id",
-                 :conditions  => ["encounter_type=? AND encounter.patient_id=? AND Date(encounter.encounter_datetime)=?",
-                                  encounter_type,enc.patient_id, enc.encounter_datetime.to_date],
-                 :group       => "encounter.encounter_type",
-                 :order       => "encounter.encounter_datetime DESC")
+			:joins       => "INNER JOIN obs ON encounter.encounter_id=obs.encounter_id",
+			:conditions  => ["encounter_type=? AND encounter.patient_id=? AND Date(encounter.encounter_datetime)=?",
+				encounter_type,enc.patient_id, enc.encounter_datetime.to_date],
+			:group       => "encounter.encounter_type",
+			:order       => "encounter.encounter_datetime DESC")
 
     observations = encounter.observations rescue nil
     return if observations.blank?
@@ -379,21 +379,21 @@ class CohortToolController < GenericCohortToolController
     observations.collect do |obs|
       ["value_coded","value_datetime","value_modifier","value_numeric","value_text"].each do |value|
         case value
-          when "value_coded"
-            next if obs.value_coded.blank?
-            changed_obs += "#{obs.to_s}</br>"
-          when "value_datetime"
-            next if obs.value_datetime.blank?
-            changed_obs += "#{obs.to_s}</br>"
-          when "value_numeric"
-            next if obs.value_numeric.blank?
-            changed_obs += "#{obs.to_s}</br>"
-          when "value_text"
-            next if obs.value_text.blank?
-            changed_obs += "#{obs.to_s}</br>"
-          when "value_modifier"
-            next if obs.value_modifier.blank?
-            changed_obs += "#{obs.to_s}</br>"
+				when "value_coded"
+					next if obs.value_coded.blank?
+					changed_obs += "#{obs.to_s}</br>"
+				when "value_datetime"
+					next if obs.value_datetime.blank?
+					changed_obs += "#{obs.to_s}</br>"
+				when "value_numeric"
+					next if obs.value_numeric.blank?
+					changed_obs += "#{obs.to_s}</br>"
+				when "value_text"
+					next if obs.value_text.blank?
+					changed_obs += "#{obs.to_s}</br>"
+				when "value_modifier"
+					next if obs.value_modifier.blank?
+					changed_obs += "#{obs.to_s}</br>"
         end
       end
     end
@@ -453,9 +453,9 @@ class CohortToolController < GenericCohortToolController
           visit_date    = this_day.first.encounter_datetime.to_date.strftime("%d-%b-%Y")
           js_date       = this_day.first.encounter_datetime.to_time.to_i * 1000
         else
-        this_day      = (week.to_date + index.days)
-        visit_date    = this_day.strftime("%d-%b-%Y")
-        js_date       = this_day.to_time.to_i * 1000
+					this_day      = (week.to_date + index.days)
+					visit_date    = this_day.strftime("%d-%b-%Y")
+					js_date       = this_day.to_time.to_i * 1000
         end
 
         (week_day_visits[day].nil?) ? week_day_visits[day] = [[js_date, visits_number, visit_date]] : week_day_visits[day].push([js_date, visits_number, visit_date])
@@ -470,18 +470,18 @@ class CohortToolController < GenericCohortToolController
 
       visit_date = visit.encounter_datetime.strftime("%d-%b-%Y")
 
-	  patient_bean = PatientService.get_patient(visit.patient.person)
+			patient_bean = PatientService.get_patient(visit.patient.person)
 	  
       # get a patient of a given visit
       new_patient   = { :patient_id   => (visit.patient.patient_id || ""),
-                        :arv_number   => (patient_bean.arv_number || ""),
-                        :name         => (patient_bean.name || ""),
-                        :national_id  => (patient_bean.national_id || ""),
-                        :gender       => (patient_bean.sex || ""),
-                        :age          => (patient_bean.age || ""),
-                        :birthdate    => (patient_bean.birth_date || ""),
-                        :phone_number => (PatientService.phone_numbers(visit.patient) || ""),
-                        :start_date   => (visit.patient.encounters.last.encounter_datetime.strftime("%d-%b-%Y") || "")
+				:arv_number   => (patient_bean.arv_number || ""),
+				:name         => (patient_bean.name || ""),
+				:national_id  => (patient_bean.national_id || ""),
+				:gender       => (patient_bean.sex || ""),
+				:age          => (patient_bean.age || ""),
+				:birthdate    => (patient_bean.birth_date || ""),
+				:phone_number => (PatientService.phone_numbers(visit.patient) || ""),
+				:start_date   => (visit.patient.encounters.last.encounter_datetime.strftime("%d-%b-%Y") || "")
       }
 
       #add a patient to the day
@@ -495,7 +495,7 @@ class CohortToolController < GenericCohortToolController
 
   def get_visits_by_day(start_date,end_date)
     required_encounters = ["ART ADHERENCE", "ART_FOLLOWUP",   "HIV CLINIC REGISTRATION",
-                           "HIV CLINIC CONSULTATION",     "HIV RECEPTION",  "HIV STAGING",   "VITALS"]
+			"HIV CLINIC CONSULTATION",     "HIV RECEPTION",  "HIV STAGING",   "VITALS"]
 
     required_encounters_ids = required_encounters.inject([]) do |encounters_ids, encounter_type|
       encounters_ids << EncounterType.find_by_name(encounter_type).id rescue nil
@@ -506,79 +506,79 @@ class CohortToolController < GenericCohortToolController
 
     Encounter.find(:all,
       :joins      => ["INNER JOIN obs     ON obs.encounter_id    = encounter.encounter_id",
-                      "INNER JOIN patient ON patient.patient_id  = encounter.patient_id"],
+				"INNER JOIN patient ON patient.patient_id  = encounter.patient_id"],
       :conditions => ["obs.voided = 0 AND encounter_type IN (?) AND encounter_datetime >=? AND encounter_datetime <=?",required_encounters_ids,start_date,end_date],
       :group      => "encounter.patient_id,DATE(encounter_datetime)",
       :order      => "encounter.encounter_datetime ASC")
   end
 
   def prescriptions_without_dispensations
-      include_url_params_for_back_button
+		include_url_params_for_back_button
 
-      date_range  = Report.generate_cohort_date_range(params[:quarter])
-      start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
-      end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
-      @report     = report_prescriptions_without_dispensations_data(start_date , end_date)
+		date_range  = Report.generate_cohort_date_range(params[:quarter])
+		start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
+		end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
+		@report     = report_prescriptions_without_dispensations_data(start_date , end_date)
 
-      render :layout => 'report'
+		render :layout => 'report'
   end
   
   def  dispensations_without_prescriptions
-       include_url_params_for_back_button
+		include_url_params_for_back_button
 
-      date_range  = Report.generate_cohort_date_range(params[:quarter])
-      start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
-      end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
-      @report     = report_dispensations_without_prescriptions_data(start_date , end_date)
+		date_range  = Report.generate_cohort_date_range(params[:quarter])
+		start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
+		end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
+		@report     = report_dispensations_without_prescriptions_data(start_date , end_date)
 
-       render :layout => 'report'
+		render :layout => 'report'
   end
   
   def  patients_with_multiple_start_reasons
-       include_url_params_for_back_button
+		include_url_params_for_back_button
 
-      date_range  = Report.generate_cohort_date_range(params[:quarter])
-      start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
-      end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
-      @report     = report_patients_with_multiple_start_reasons(start_date , end_date)
+		date_range  = Report.generate_cohort_date_range(params[:quarter])
+		start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
+		end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
+		@report     = report_patients_with_multiple_start_reasons(start_date , end_date)
 
-      render :layout => 'report'
+		render :layout => 'report'
   end
   
   def out_of_range_arv_number
 
-      include_url_params_for_back_button
+		include_url_params_for_back_button
 
-      date_range        = Report.generate_cohort_date_range(params[:quarter])
-      start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
-      end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
-      arv_number_range  = [params[:arv_start_number].to_s.gsub(/[^0-9]/,'').to_i, params[:arv_end_number].to_s.gsub(/[^0-9]/,'').to_i]
+		date_range        = Report.generate_cohort_date_range(params[:quarter])
+		start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
+		end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
+		arv_number_range  = [params[:arv_start_number].to_s.gsub(/[^0-9]/,'').to_i, params[:arv_end_number].to_s.gsub(/[^0-9]/,'').to_i]
 
-      @report = report_out_of_range_arv_numbers(arv_number_range, start_date, end_date)
+		@report = report_out_of_range_arv_numbers(arv_number_range, start_date, end_date)
 
-      render :layout => 'report'
+		render :layout => 'report'
   end
   
   def data_consistency_check
-      include_url_params_for_back_button
-      date_range  = Report.generate_cohort_date_range(params[:quarter])
-      start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
-      end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
+		include_url_params_for_back_button
+		date_range  = Report.generate_cohort_date_range(params[:quarter])
+		start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
+		end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
 
-      @dead_patients_with_visits       = report_dead_with_visits(start_date, end_date)
-      @males_allegedly_pregnant        = report_males_allegedly_pregnant(start_date, end_date)
-      @move_from_second_line_to_first =  report_patients_who_moved_from_second_to_first_line_drugs(start_date, end_date)
-      @patients_with_wrong_start_dates = report_with_drug_start_dates_less_than_program_enrollment_dates(start_date, end_date)
-      session[:data_consistency_check] = { :dead_patients_with_visits => @dead_patients_with_visits,
-                                           :males_allegedly_pregnant  => @males_allegedly_pregnant,
-                                           :patients_with_wrong_start_dates => @patients_with_wrong_start_dates,
-                                           :move_from_second_line_to_first =>  @move_from_second_line_to_first
-                                         }
-      @checks = [['Dead patients with visits', @dead_patients_with_visits.length],
-                 ['Male patients with a pregnant observation', @males_allegedly_pregnant.length],
-                 ['Patients who moved from 2nd to 1st line drugs', @move_from_second_line_to_first.length],
-                 ['patients with start dates > first receive drug dates', @patients_with_wrong_start_dates.length]]
-      render :layout => 'report'
+		@dead_patients_with_visits       = report_dead_with_visits(start_date, end_date)
+		@males_allegedly_pregnant        = report_males_allegedly_pregnant(start_date, end_date)
+		@move_from_second_line_to_first =  report_patients_who_moved_from_second_to_first_line_drugs(start_date, end_date)
+		@patients_with_wrong_start_dates = report_with_drug_start_dates_less_than_program_enrollment_dates(start_date, end_date)
+		session[:data_consistency_check] = { :dead_patients_with_visits => @dead_patients_with_visits,
+			:males_allegedly_pregnant  => @males_allegedly_pregnant,
+			:patients_with_wrong_start_dates => @patients_with_wrong_start_dates,
+			:move_from_second_line_to_first =>  @move_from_second_line_to_first
+		}
+		@checks = [['Dead patients with visits', @dead_patients_with_visits.length],
+			['Male patients with a pregnant observation', @males_allegedly_pregnant.length],
+			['Patients who moved from 2nd to 1st line drugs', @move_from_second_line_to_first.length],
+			['patients with start dates > first receive drug dates', @patients_with_wrong_start_dates.length]]
+		render :layout => 'report'
   end
   
   def list
@@ -586,36 +586,80 @@ class CohortToolController < GenericCohortToolController
     include_url_params_for_back_button
 
     case params[:check_type]
-       when 'Dead patients with visits' then
-            @report  =  session[:data_consistency_check][:dead_patients_with_visits]
-       when 'Patients who moved from 2nd to 1st line drugs'then
-             @report =  session[:data_consistency_check][:move_from_second_line_to_first]
-       when 'Male patients with a pregnant observation' then
-             @report =  session[:data_consistency_check][:males_allegedly_pregnant]
-       when 'patients with start dates > first receive drug dates' then
-             @report =  session[:data_consistency_check][:patients_with_wrong_start_dates]
-       else
+		when 'Dead patients with visits' then
+			@report  =  session[:data_consistency_check][:dead_patients_with_visits]
+		when 'Patients who moved from 2nd to 1st line drugs'then
+			@report =  session[:data_consistency_check][:move_from_second_line_to_first]
+		when 'Male patients with a pregnant observation' then
+			@report =  session[:data_consistency_check][:males_allegedly_pregnant]
+		when 'patients with start dates > first receive drug dates' then
+			@report =  session[:data_consistency_check][:patients_with_wrong_start_dates]
+		else
 
     end
 
     render :layout => 'report'
   end
 
-  def list_patients_details
-  
+	def list_debbuger_details
+
+		
+		@logo = CoreService.get_global_property_value('logo').to_s
+		@quarter = params[:quarter]
   	@report_url = "/cohort_tool/cohort?quarter=#{@quarter}"
+		@report = []
+		reported_range = params[:value].to_s
+		@sort = CoreService.get_global_property_value('sort')
+
+		patients = params[:attribute].to_s
+		session[:field] = params[:field] if session[:field].nil?
+		
+		if session[:field] == "children"
+			data =  session[:children][reported_range][patients]
+		elsif session[:field] == "women"
+			data =  session[:women][reported_range][patients]
+		elsif session[:field] == "general"
+			data =  session[:views]["#{reported_range}"]["#{patients}"]
+		end
+
+		#records_per_page = CoreService.get_global_property_value('records_per_page') rescue 15
+		#@current_page = []
+
+		#if !data.nil?
+			#@current_page = data.paginate(:page => params[:page], :per_page => 100)
+		#end
+
+		data.each do |patient_id|
+			patient = Patient.find(patient_id)
+			@report << PatientService.get_patient(patient.person)
+			set_outcomes_and_start_reason(patient_id) #find start reason and outcome for patient
+		end
+		@report.sort { |a,b|
+						ap = a.arv_number.split('_') rescue ""
+						a = ap[0] + "%10d" rescue ""
+						bp = b.arv_number.split('_') rescue ""
+						b = bp[0] + "%10d" rescue ""
+						a <=> b
+			}
+			
+		render :layout => 'patient_list'
+	end
+	
+  def list_patients_details
+		@logo = CoreService.get_global_property_value('logo').to_s
     @report = []
     @quarter = params[:quarter]
-    
-    sort_value = CoreService.get_global_property_value("debugger_sorting_attribute") rescue "arv_number"
+  	@report_url = "/cohort_tool/cohort?quarter=#{@quarter}"
+		@sort = CoreService.get_global_property_value('sort')
+		sort_value = CoreService.get_global_property_value("debugger_sorting_attribute") rescue "arv_number"
     
     data_type = "to_s"
     data_type = "to_i" if ["age", "person_id", "patient_id"].include?(sort_value)
     
     
 		key = session[:cohort].keys.sort.select { |k|
-						k.humanize.upcase == params[:field].humanize.upcase
-					}.first.to_s
+			k.humanize.upcase == params[:field].humanize.upcase
+		}.first.to_s
 		
 		session[:cohort]["sorted"]={} if session[:cohort]["sorted"].blank?
 		
@@ -624,7 +668,7 @@ class CohortToolController < GenericCohortToolController
 			
 			session[:cohort][key][type].sort! do |a,b|
 				PatientService.get_patient(Person.find(a)).send(sort_value).send(data_type) <=>
-				PatientService.get_patient(Person.find(b)).send(sort_value).send(data_type)
+					PatientService.get_patient(Person.find(b)).send(sort_value).send(data_type)
 			end if session[:cohort]["sorted"]["#{type}"].blank?
 																		
 			data=session[:cohort][key][type]
@@ -632,96 +676,113 @@ class CohortToolController < GenericCohortToolController
 		else
 			session[:cohort][key].sort! do |a,b|
 				PatientService.get_patient(Person.find(a)).send(sort_value).send(data_type) <=>
-				PatientService.get_patient(Person.find(b)).send(sort_value).send(data_type)
+					PatientService.get_patient(Person.find(b)).send(sort_value).send(data_type)
 			end if session[:cohort]["sorted"]["#{key}"].blank?
 			
 			data=session[:cohort][key]
 			session[:cohort]["sorted"]["#{key}"] = true
 		end
 		
-		records_per_page = CoreService.get_global_property_value('records_per_page') rescue 15
-		@current_page = []
+		#records_per_page = CoreService.get_global_property_value('records_per_page') rescue 15
+		#@current_page = []
 		 
-		if !data.nil?
-			@current_page = data.paginate(:page => params[:page], :per_page => records_per_page.to_i)
-		end
+		#if !data.nil?
+			#@current_page = data.paginate(:page => params[:page], :per_page => 100)
+		#end
 
-		@current_page.each do |patient_id|
+		data.each do |patient_id|
 			patient = Patient.find(patient_id)
-			@report << PatientService.get_patient(patient.person) 
-			
+			@report << PatientService.get_patient(patient.person)
+
 			#find start reason
-			session[:cohort]["start_reason"] = {} if session[:cohort]["start_reason"].blank?
-			
-			if !session[:cohort]["start_reason"][patient_id.to_s].blank?
-					#we already have the start reason  for the patient therefore no need for searching
-							
-			elsif session[:cohort]['Total Confirmed HIV infection in infants (PCR)'].include?(patient_id)
-					session[:cohort]["start_reason"][patient_id.to_s]	= 'Confirmed HIV infection in infants (PCR)'
-					
-			elsif session[:cohort]['Total Presumed severe HIV disease in infants'].include?(patient_id)
-					session[:cohort]["start_reason"][patient_id.to_s]	= 'Presumed severe HIV disease in infants'
-						
-			elsif session[:cohort]['Total WHO stage 1 or 2, CD4 below threshold'].include?(patient_id)
-					session[:cohort]["start_reason"][patient_id.to_s]	= 'WHO stage 1 or 2, CD4 below threshold'
-					
-			elsif session[:cohort]['Total WHO stage 2, total lymphocytes'].include?(patient_id)
-					session[:cohort]["start_reason"][patient_id.to_s]	= 'WHO stage 2, total lymphocytes'
-						
-			elsif session[:cohort]['Total Patient breastfeeding'].include?(patient_id)
-					session[:cohort]["start_reason"][patient_id.to_s]	= 'Patient breastfeeding'	
-					
-			elsif session[:cohort]['Total Patient pregnant'].include?(patient_id)
-					session[:cohort]["start_reason"][patient_id.to_s]	= 'Patient pregnant'	
-					
-			elsif session[:cohort]['Total Unknown reason'].include?(patient_id)
-					session[:cohort]["start_reason"][patient_id.to_s]	= 'Unknown reason'
-						
-			elsif session[:cohort]['Total WHO stage 4'].include?(patient_id)
-					session[:cohort]["start_reason"][patient_id.to_s]	= 'WHO stage 4'
-						
-			elsif session[:cohort]['Total HIV infected'].include?(patient_id)
-					session[:cohort]["start_reason"][patient_id.to_s]	= 'HIV infected'
-					
-			elsif session[:cohort]['Total WHO stage 3'].include?(patient_id)
-					session[:cohort]["start_reason"][patient_id.to_s]	= 'WHO stage 3'
-			end
-			
-			#find patient outcome
-			session[:cohort]["outcomes"] = {} if session[:cohort]["outcomes"].blank?
-
-			if !session[:cohort]["outcomes"][patient_id.to_s].blank?
-					#we already have the outcome for the patient therefore no need for searching
-												
-			elsif session[:cohort]['Defaulted'].include?(patient_id)
-					session[:cohort]["outcomes"][patient_id.to_s]	= 'Defaulted'
-					
-			elsif session[:cohort]['Total alive and on ART'].include?(patient_id)
-					session[:cohort]["outcomes"][patient_id.to_s]	= 'Alive and on ART'
-					
-			elsif session[:cohort]['Died total'].include?(patient_id)
-					session[:cohort]["outcomes"][patient_id.to_s]	= 'Patient died'
-
-			elsif session[:cohort]['Stopped taking ARVs'].include?(patient_id)
-					session[:cohort]["outcomes"][patient_id.to_s]	= 'Stopped taking ARVs'	
-					
-			elsif session[:cohort]['Unknown outcomes'].include?(patient_id)
-					session[:cohort]["outcomes"][patient_id.to_s]	= 'Unknown outcome'
-
-			elsif session[:cohort]['Transferred out'].include?(patient_id)
-					session[:cohort]["outcomes"][patient_id.to_s]	= 'Transferred out'
-			end								
+			set_outcomes_and_start_reason(patient_id)
 		end
-		
+
+		@report.sort { |a,b|
+						ap = a.arv_number.split('_') rescue ""
+						a = ap[0] + "%10d" rescue ""
+						bp = b.arv_number.split('_') rescue ""
+						b = bp[0] + "%10d" rescue ""
+						a <=> b
+			}
+
 		render :layout => 'patient_list'
   end
 
+	def set_outcomes_and_start_reason(patient_id)
+		#Same code as it was in the list_patient_details method
+		#Re-used so as to get the outcomes and start reasons in the survival analysis debugger
+		#
+		#find start reason
+		session[:cohort]["start_reason"] = {} if session[:cohort]["start_reason"].blank?
+
+		if !session[:cohort]["start_reason"][patient_id.to_s].blank?
+			#we already have the start reason  for the patient therefore no need for searching
+
+		elsif session[:cohort]['Total Confirmed HIV infection in infants (PCR)'].include?(patient_id)
+			session[:cohort]["start_reason"][patient_id.to_s]	= 'Confirmed HIV infection in infants (PCR)'
+
+		elsif session[:cohort]['Total Presumed severe HIV disease in infants'].include?(patient_id)
+			session[:cohort]["start_reason"][patient_id.to_s]	= 'Presumed severe HIV disease in infants'
+
+		elsif session[:cohort]['Total WHO stage 1 or 2, CD4 below threshold'].include?(patient_id)
+			session[:cohort]["start_reason"][patient_id.to_s]	= 'WHO stage 1 or 2, CD4 below threshold'
+
+		elsif session[:cohort]['Total WHO stage 2, total lymphocytes'].include?(patient_id)
+			session[:cohort]["start_reason"][patient_id.to_s]	= 'WHO stage 2, total lymphocytes'
+
+		elsif session[:cohort]['Total Patient breastfeeding'].include?(patient_id)
+			session[:cohort]["start_reason"][patient_id.to_s]	= 'Patient breastfeeding'
+
+		elsif session[:cohort]['Total Patient pregnant'].include?(patient_id)
+			session[:cohort]["start_reason"][patient_id.to_s]	= 'Patient pregnant'
+
+		elsif session[:cohort]['Total Unknown reason'].include?(patient_id)
+			session[:cohort]["start_reason"][patient_id.to_s]	= 'Unknown reason'
+
+		elsif session[:cohort]['Total WHO stage 4'].include?(patient_id)
+			session[:cohort]["start_reason"][patient_id.to_s]	= 'WHO stage 4'
+
+		elsif session[:cohort]['Total HIV infected'].include?(patient_id)
+			session[:cohort]["start_reason"][patient_id.to_s]	= 'HIV infected'
+
+		elsif session[:cohort]['Total WHO stage 3'].include?(patient_id)
+			session[:cohort]["start_reason"][patient_id.to_s]	= 'WHO stage 3'
+		end
+
+		#find patient outcome
+		session[:cohort]["outcomes"] = {} if session[:cohort]["outcomes"].blank?
+
+		if !session[:cohort]["outcomes"][patient_id.to_s].blank?
+			#we already have the outcome for the patient therefore no need for searching
+
+		elsif session[:cohort]['Defaulted'].include?(patient_id)
+			session[:cohort]["outcomes"][patient_id.to_s]	= 'Defaulted'
+
+		elsif session[:cohort]['Total alive and on ART'].include?(patient_id)
+			session[:cohort]["outcomes"][patient_id.to_s]	= 'Alive and on ART'
+
+		elsif session[:cohort]['Died total'].include?(patient_id)
+			session[:cohort]["outcomes"][patient_id.to_s]	= 'Patient died'
+
+		elsif session[:cohort]['Stopped taking ARVs'].include?(patient_id)
+			session[:cohort]["outcomes"][patient_id.to_s]	= 'Stopped taking ARVs'
+
+		elsif session[:cohort]['Unknown outcomes'].include?(patient_id)
+			session[:cohort]["outcomes"][patient_id.to_s]	= 'Unknown outcome'
+
+		elsif session[:cohort]['Transferred out'].include?(patient_id)
+			session[:cohort]["outcomes"][patient_id.to_s]	= 'Transferred out'
+		end
+	end
+
   def include_url_params_for_back_button
-       @report_quarter = params[:quarter]
-       @report_type = params[:report_type]
+		@report_quarter = params[:quarter]
+		@report_type = params[:report_type]
   end
   
   def cohort
+		@logo = CoreService.get_global_property_value('logo').to_s
     @quarter = params[:quarter]
     start_date,end_date = Report.generate_cohort_date_range(@quarter)
     cohort = Cohort.new(start_date, end_date)
@@ -733,10 +794,44 @@ class CohortToolController < GenericCohortToolController
 		else
 			@cohort = session[:cohort]
 		end
-
-    #@survival_analysis = SurvivalAnalysis.report(cohort)
+		session[:views]=nil; session[:chidren]; session[:nil]
     render :layout => 'cohort'
   end
+
+	def survival_analysis
+		session[:field] = nil
+		session[:cohort]["outcomes"] = {} if session[:cohort]["outcomes"].blank?
+    @quarter = params[:quarter]
+		@logo = params[:logo]
+		start_date,end_date = Report.generate_cohort_date_range(@quarter)
+    cohort = Cohort.new(start_date, end_date)
+
+		@survival_analysis, session[:views] = SurvivalAnalysis.report(cohort, session[:cohort])
+
+		render :layout => 'cohort'
+	end
+
+	def children_survival
+		session[:field] = nil
+    @quarter = params[:quarter]
+		@logo = params[:logo]
+		start_date,end_date = Report.generate_cohort_date_range(@quarter)
+    cohort = Cohort.new(start_date, end_date)
+		@children_survival_analysis, session[:children] = SurvivalAnalysis.childern_survival_analysis(cohort, session[:cohort])
+		render :layout => 'cohort'
+	end
+
+	def women_survival
+		session[:field] = nil
+    @quarter = params[:quarter]
+		@logo = params[:logo]
+		start_date,end_date = Report.generate_cohort_date_range(@quarter)
+    cohort = Cohort.new(start_date, end_date)
+   	logger.info("cohort")
+   	@women_survival_analysis, session[:women] = SurvivalAnalysis.pregnant_and_breast_feeding(cohort, session[:cohort])
+		
+		render :layout => 'cohort'
+	end
 
   def cohort_menu
   end
@@ -777,31 +872,31 @@ class CohortToolController < GenericCohortToolController
 
   def patients_with_adherence_greater_than_hundred
 
-      min_range = params[:min_range]
-      max_range = params[:max_range]
-      missing_adherence = false
-      missing_adherence = true if params[:show_missing_adherence] == "yes"
-      session[:list_of_patients] = nil
+		min_range = params[:min_range]
+		max_range = params[:max_range]
+		missing_adherence = false
+		missing_adherence = true if params[:show_missing_adherence] == "yes"
+		session[:list_of_patients] = nil
 
-      @patients = adherence_over_hundred(params[:quarter],min_range,max_range,missing_adherence)
-      cohort.regimens_with_patient_ids(@first_registration_date)
-      @quarter = params[:quarter] + ": (#{@patients.length})" rescue  params[:quarter]
-      if missing_adherence
-        @report_type = "Patient(s) with missing adherence"
-      elsif max_range.blank? and min_range.blank?
-        @report_type = "Patient(s) with adherence greater than 100%"
-      else
-        @report_type = "Patient(s) with adherence starting from  #{min_range}% to #{max_range}%"
-      end
-      render :layout => 'report'
-      return
+		@patients = adherence_over_hundred(params[:quarter],min_range,max_range,missing_adherence)
+		cohort.regimens_with_patient_ids(@first_registration_date)
+		@quarter = params[:quarter] + ": (#{@patients.length})" rescue  params[:quarter]
+		if missing_adherence
+			@report_type = "Patient(s) with missing adherence"
+		elsif max_range.blank? and min_range.blank?
+			@report_type = "Patient(s) with adherence greater than 100%"
+		else
+			@report_type = "Patient(s) with adherence starting from  #{min_range}% to #{max_range}%"
+		end
+		render :layout => 'report'
+		return
   end
 
   def report_patients_with_multiple_start_reasons(start_date , end_date)
 
     art_eligibility_id = ConceptName.find_by_name('REASON FOR ART ELIGIBILITY').concept_id    
     patients = Observation.find_by_sql(
-                ["SELECT person_id, concept_id, date_created, obs_datetime, value_coded_name_id
+			["SELECT person_id, concept_id, date_created, obs_datetime, value_coded_name_id
                  FROM obs
                  WHERE (SELECT COUNT(*)
                         FROM obs observation
@@ -818,13 +913,13 @@ class CohortToolController < GenericCohortToolController
       patient = Patient.find(reason[:person_id])
       patient_bean = PatientService.get_patient(patient.person)
       patients_data << {'person_id' => patient.id,
-                        'arv_number' => patient_bean.arv_number,
-                        'national_id' => patient_bean.national_id,
-                        'date_created' => reason[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
-                        'start_reason' => (ConceptName.find(reason[:value_coded_name_id]).name rescue '')
-                       }
+				'arv_number' => patient_bean.arv_number,
+				'national_id' => patient_bean.national_id,
+				'date_created' => reason[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
+				'start_reason' => (ConceptName.find(reason[:value_coded_name_id]).name rescue '')
+			}
     end
-   patients_data
+		patients_data
   end
 
   def voided_observations(encounter)
@@ -851,7 +946,7 @@ class CohortToolController < GenericCohortToolController
                                    AND (NOT EXISTS(SELECT * FROM patient_identifier
                                    WHERE identifier_type = ? AND date_created >= ? AND date_created <= ?))
                                    ORDER BY (REPLACE(identifier, '#{arv_number_suffix}', '')+0) ASC",
-                                   arv_number_id,  arv_start_number,  arv_end_number, arv_number_id, start_date, end_date])
+				arv_number_id,  arv_start_number,  arv_end_number, arv_number_id, start_date, end_date])
 
     out_of_range_arv_numbers_data = []
     out_of_range_arv_numbers.each do |arv_num_data|
@@ -859,14 +954,14 @@ class CohortToolController < GenericCohortToolController
       patient_bean = PatientService.get_patient(patient.person)
 
       out_of_range_arv_numbers_data <<{'person_id' => patient.id,
-                                       'arv_number' => patient_bean.arv_number,
-                                       'name' => patient_bean.name,
-                                       'national_id' => patient_bean.national_id,
-                                       'gender' => patient_bean.sex,
-                                       'age' => patient_bean.age,
-                                       'birthdate' => patient_bean.birth_date,
-                                       'date_created' => arv_num_data[:date_created].strftime("%Y-%m-%d %H:%M:%S")
-                                       }
+				'arv_number' => patient_bean.arv_number,
+				'name' => patient_bean.name,
+				'national_id' => patient_bean.national_id,
+				'gender' => patient_bean.sex,
+				'age' => patient_bean.age,
+				'birthdate' => patient_bean.birth_date,
+				'date_created' => arv_num_data[:date_created].strftime("%Y-%m-%d %H:%M:%S")
+			}
     end
     out_of_range_arv_numbers_data
   end
@@ -875,22 +970,22 @@ class CohortToolController < GenericCohortToolController
     pills_dispensed_id      = ConceptName.find_by_name('PILLS DISPENSED').concept_id
 
     missed_prescriptions_data = Observation.find(:all, :select =>  "person_id, value_drug, date_created",
-                                              :conditions =>["order_id IS NULL
+			:conditions =>["order_id IS NULL
                                                 AND date_created >= ? AND date_created <= ? AND
                                                     concept_id = ? AND voided = 0" ,start_date , end_date, pills_dispensed_id])
     dispensations_without_prescriptions = []
 
     missed_prescriptions_data.each do |dispensation|
-        patient = Patient.find(dispensation[:person_id])
-        patient_bean = PatientService.get_patient(patient.person)
-        drug_name    = Drug.find(dispensation[:value_drug]).name
+			patient = Patient.find(dispensation[:person_id])
+			patient_bean = PatientService.get_patient(patient.person)
+			drug_name    = Drug.find(dispensation[:value_drug]).name
 
-        dispensations_without_prescriptions << { 'person_id' => patient.id,
-                                              'arv_number' => patient_bean.arv_number,
-                                              'national_id' => patient_bean.national_id,
-                                              'date_created' => dispensation[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
-                                              'drug_name' => drug_name
-                                             }
+			dispensations_without_prescriptions << { 'person_id' => patient.id,
+				'arv_number' => patient_bean.arv_number,
+				'national_id' => patient_bean.national_id,
+				'date_created' => dispensation[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
+				'drug_name' => drug_name
+			}
     end
 
     dispensations_without_prescriptions
@@ -907,16 +1002,16 @@ class CohortToolController < GenericCohortToolController
     prescriptions_without_dispensations = []
 
     missed_dispensations_data.each do |prescription|
-        patient      = Patient.find(prescription[:patient_id])
-        drug_id      = DrugOrder.find(prescription[:order_id]).drug_inventory_id
-        drug_name    = Drug.find(drug_id).name
+			patient      = Patient.find(prescription[:patient_id])
+			drug_id      = DrugOrder.find(prescription[:order_id]).drug_inventory_id
+			drug_name    = Drug.find(drug_id).name
 
-        prescriptions_without_dispensations << {'person_id' => patient.id,
-                                                'arv_number' => PatientService.get_patient_identifier(patient, 'ARV Number'),
-                                                'national_id' => PatientService.get_national_id(patient),
-                                                'date_created' => prescription[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
-                                                'drug_name' => drug_name
-                                                }
+			prescriptions_without_dispensations << {'person_id' => patient.id,
+				'arv_number' => PatientService.get_patient_identifier(patient, 'ARV Number'),
+				'national_id' => PatientService.get_national_id(patient),
+				'date_created' => prescription[:date_created].strftime("%Y-%m-%d %H:%M:%S"),
+				'drug_name' => drug_name
+			}
     end
     prescriptions_without_dispensations
   end
@@ -938,15 +1033,15 @@ class CohortToolController < GenericCohortToolController
       person = Person.find(patient_data_row[:patient_id].to_i)
       patient_bean = PatientService.get_patient(person)
       patients_data <<{ 'person_id' => person.id,
-                        'arv_number' => patient_bean.arv_number,
-                        'name' => patient_bean.name,
-                        'national_id' => patient_bean.national_id,
-                        'gender' => patient_bean.sex,
-                        'age' => patient_bean.age,
-                        'birthdate' => patient_bean.birth_date,
-                        'phone' => PatientService.phone_numbers(person), 
-                        'date_created' => patient_data_row[:date_started]
-                       }
+				'arv_number' => patient_bean.arv_number,
+				'name' => patient_bean.name,
+				'national_id' => patient_bean.national_id,
+				'gender' => patient_bean.sex,
+				'age' => patient_bean.age,
+				'birthdate' => patient_bean.birth_date,
+				'phone' => PatientService.phone_numbers(person),
+				'date_created' => patient_data_row[:date_started]
+			}
     end
     patients_data
   end
@@ -960,22 +1055,22 @@ class CohortToolController < GenericCohortToolController
                                            obs.concept_id = ? AND obs.obs_datetime >= ? AND obs.obs_datetime <= ? AND obs.voided = 0",
         pregnant_patient_concept_id, '2008-12-23 00:00:00', end_date])
 
-        patients_data  = []
-        patients.each do |patient_data_row|
-          person = Person.find(patient_data_row[:person_id].to_i)
+		patients_data  = []
+		patients.each do |patient_data_row|
+			person = Person.find(patient_data_row[:person_id].to_i)
 		  patient_bean = PatientService.get_patient(person)
-          patients_data <<{ 'person_id' => person.id,
-                            'arv_number' => patient_bean.arv_number,
-                            'name' => patient_bean.name,
-                            'national_id' => patient_bean.national_id,
-                            'gender' => patient_bean.sex,
-                            'age' => patient_bean.age,
-                            'birthdate' => patient_bean.birth_date,
-                            'phone' => PatientService.phone_numbers(person),
-                            'date_created' => patient_data_row[:obs_datetime]
-                           }
-        end
-        patients_data
+			patients_data <<{ 'person_id' => person.id,
+				'arv_number' => patient_bean.arv_number,
+				'name' => patient_bean.name,
+				'national_id' => patient_bean.national_id,
+				'gender' => patient_bean.sex,
+				'age' => patient_bean.age,
+				'birthdate' => patient_bean.birth_date,
+				'phone' => PatientService.phone_numbers(person),
+				'date_created' => patient_data_row[:obs_datetime]
+			}
+		end
+		patients_data
   end
 
   def report_patients_who_moved_from_second_to_first_line_drugs(start_date, end_date)
@@ -1015,15 +1110,15 @@ class CohortToolController < GenericCohortToolController
       person = Person.find(patient_data_row[:person_id].to_i)
       patient_bean = PatientService.get_patient(person)
       patients_data <<{ 'person_id' => person.id,
-                        'arv_number' => patient_bean.arv_number,
-                        'name' => patient_bean.name,
-                        'national_id' => patient_bean.national_id,
-                        'gender' => patient_bean.sex,
-                        'age' => patient_bean.age,
-                        'birthdate' => patient_bean.birth_date,
-                        'phone' => PatientService.phone_numbers(person),
-                        'date_created' => patient_data_row[:date_started]
-                       }
+				'arv_number' => patient_bean.arv_number,
+				'name' => patient_bean.name,
+				'national_id' => patient_bean.national_id,
+				'gender' => patient_bean.sex,
+				'age' => patient_bean.age,
+				'birthdate' => patient_bean.birth_date,
+				'phone' => PatientService.phone_numbers(person),
+				'date_created' => patient_data_row[:date_started]
+			}
     end
     patients_data
   end
@@ -1068,30 +1163,30 @@ class CohortToolController < GenericCohortToolController
     patients_data  = []
     patients.each do |patient_data_row|
       person = Person.find(patient_data_row[:patient_id])
-	  patient_bean = PatientService.get_patient(person)
+			patient_bean = PatientService.get_patient(person)
       patients_data <<{ 'person_id' => person.id,
-                        'arv_number' => patient_bean.arv_number,
-                        'name' => patient_bean.name,
-                        'national_id' => patient_bean.national_id,
-                        'gender' => patient_bean.sex,
-                        'age' => patient_bean.age,
-                        'birthdate' => patient_bean.birth_date,
-                        'phone' => PatientService.phone_numbers(person), 
-                        'date_created' => patient_data_row[:date_started_ARV]
-                       }
+				'arv_number' => patient_bean.arv_number,
+				'name' => patient_bean.name,
+				'national_id' => patient_bean.national_id,
+				'gender' => patient_bean.sex,
+				'age' => patient_bean.age,
+				'birthdate' => patient_bean.birth_date,
+				'phone' => PatientService.phone_numbers(person),
+				'date_created' => patient_data_row[:date_started_ARV]
+			}
     end
     patients_data
   end
   
   def get_adherence(quarter="Q1 2009")
-  date = Report.generate_cohort_date_range(quarter)
+		date = Report.generate_cohort_date_range(quarter)
 
-  start_date  = date.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
-  end_date    = date.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
-  adherences  = Hash.new(0)
-  adherence_concept_id = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
+		start_date  = date.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
+		end_date    = date.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
+		adherences  = Hash.new(0)
+		adherence_concept_id = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
 
- adherence_sql_statement= " SELECT worse_adherence_dif, pat_ad.person_id as patient_id, pat_ad.value_numeric AS adherence_rate_worse
+		adherence_sql_statement= " SELECT worse_adherence_dif, pat_ad.person_id as patient_id, pat_ad.value_numeric AS adherence_rate_worse
                             FROM (SELECT ABS(100 - Abs(value_numeric)) as worse_adherence_dif, obs_id, person_id, concept_id, encounter_id, order_id, obs_datetime, location_id, value_numeric
                                   FROM obs q
                                   WHERE concept_id = #{adherence_concept_id} AND order_id IS NOT NULL
@@ -1099,22 +1194,22 @@ class CohortToolController < GenericCohortToolController
                             WHERE pat_ad.obs_datetime >= '#{start_date}' AND pat_ad.obs_datetime<= '#{end_date}'
                             GROUP BY patient_id "
 
-  adherence_rates = Observation.find_by_sql(adherence_sql_statement)
+		adherence_rates = Observation.find_by_sql(adherence_sql_statement)
 
-  adherence_rates.each{|adherence|
+		adherence_rates.each{|adherence|
 
-    rate = adherence.adherence_rate_worse.to_i
+			rate = adherence.adherence_rate_worse.to_i
 
-    if rate >= 91 and rate <= 94
-      cal_adherence = 94
-    elsif  rate >= 95 and rate <= 100
-      cal_adherence = 100
-    else
-      cal_adherence = rate + (5- rate%5)%5
-    end
-    adherences[cal_adherence]+=1
-  }
-  adherences
+			if rate >= 91 and rate <= 94
+				cal_adherence = 94
+			elsif  rate >= 95 and rate <= 100
+				cal_adherence = 100
+			else
+				cal_adherence = rate + (5- rate%5)%5
+			end
+			adherences[cal_adherence]+=1
+		}
+		adherences
   end
 
   def adherence_over_hundred(quarter="Q1 2009",min_range = nil,max_range=nil,missing_adherence=false)
@@ -1128,10 +1223,10 @@ class CohortToolController < GenericCohortToolController
     patients = {}
 
     if (min_range.blank? or max_range.blank?) and !missing_adherence
-        adherence_range_filter = " (adherence_rate_worse > 100) "
+			adherence_range_filter = " (adherence_rate_worse > 100) "
     elsif missing_adherence
 
-       adherence_range_filter = " (adherence_rate_worse IS NULL) "
+			adherence_range_filter = " (adherence_rate_worse IS NULL) "
 
     end
 
@@ -1154,7 +1249,7 @@ class CohortToolController < GenericCohortToolController
                                     orders oders
                                On     oders.order_id = obs_inner_order.order_id) patients_with_adherence  "
 
-      worse_adherence_per_patient =" (SELECT worse_adherence_dif, pat_ad.person_id as patient_id, pat_ad.value_numeric AS adherence_rate_worse
+		worse_adherence_per_patient =" (SELECT worse_adherence_dif, pat_ad.person_id as patient_id, pat_ad.value_numeric AS adherence_rate_worse
                                 FROM (SELECT ABS(100 - Abs(value_numeric)) as worse_adherence_dif, obs_id, person_id, concept_id, encounter_id, order_id, obs_datetime, location_id, value_numeric
                                       FROM obs q
                                       WHERE concept_id = #{adherence_concept_id} AND order_id IS NOT NULL
@@ -1162,18 +1257,18 @@ class CohortToolController < GenericCohortToolController
                                 WHERE pat_ad.obs_datetime >= '#{start_date}' AND pat_ad.obs_datetime<= '#{end_date}'
                                 GROUP BY patient_id ) worse_adherence_per_patient   "
 
-     patient_adherences_sql =  " SELECT *
+		patient_adherences_sql =  " SELECT *
                                  FROM   #{patients_with_adherences} INNER JOIN #{worse_adherence_per_patient}
                                  ON patients_with_adherence.patient_id = worse_adherence_per_patient.patient_id
                                  WHERE  #{adherence_range_filter} "
 
-      rates = Observation.find_by_sql(patient_adherences_sql)
+		rates = Observation.find_by_sql(patient_adherences_sql)
 
-      patients_rates = []
-      rates.each{|rate|
-        patients_rates << rate
-      }
-      adherence_rates = patients_rates
+		patients_rates = []
+		rates.each{|rate|
+			patients_rates << rate
+		}
+		adherence_rates = patients_rates
 
     arv_number_id = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
     adherence_rates.each{|rate|
@@ -1185,33 +1280,33 @@ class CohortToolController < GenericCohortToolController
       pill_count = Observation.find(:first, :conditions => "order_id = #{rate.order_id} AND encounter_id = #{rate.encounter_id} AND concept_id = #{brought_drug_concept_id} ").value_numeric rescue ""
       if !patients[patient.patient_id] then
 
-          patients[patient.patient_id]={"id" =>patient.id,
-                                        "arv_number" => patient_bean.arv_number,
-                                        "name" => patient_bean.name,
-                                        "national_id" => patient_bean.national_id,
-                                        "visit_date" =>rate.obs_datetime,
-                                        "gender" =>patient_bean.sex,
-                                        "age" => PatientService.patient_age_at_initiation(patient, rate.start_date.to_date),
-                                        "birthdate" => patient_bean.birth_date,
-                                        "pill_count" => pill_count.to_i.to_s,
-                                        "adherence" => rate. adherence_rate_worse,
-                                        "start_date" => rate.start_date.to_date,
-                                        "expected_count" =>rate.expected_remaining,
-                                        "drug" => drug.name}
-   elsif  patients[patient.patient_id] then
+				patients[patient.patient_id]={"id" =>patient.id,
+					"arv_number" => patient_bean.arv_number,
+					"name" => patient_bean.name,
+					"national_id" => patient_bean.national_id,
+					"visit_date" =>rate.obs_datetime,
+					"gender" =>patient_bean.sex,
+					"age" => PatientService.patient_age_at_initiation(patient, rate.start_date.to_date),
+					"birthdate" => patient_bean.birth_date,
+					"pill_count" => pill_count.to_i.to_s,
+					"adherence" => rate. adherence_rate_worse,
+					"start_date" => rate.start_date.to_date,
+					"expected_count" =>rate.expected_remaining,
+					"drug" => drug.name}
+			elsif  patients[patient.patient_id] then
 
-          patients[patient.patient_id]["age"].to_i < PatientService.patient_age_at_initiation(patient, rate.start_date.to_date).to_i ? patients[patient.patient_id]["age"] = patient.age_at_initiation(rate.start_date.to_date).to_s : ""
+				patients[patient.patient_id]["age"].to_i < PatientService.patient_age_at_initiation(patient, rate.start_date.to_date).to_i ? patients[patient.patient_id]["age"] = patient.age_at_initiation(rate.start_date.to_date).to_s : ""
 
-          patients[patient.patient_id]["drug"] = patients[patient.patient_id]["drug"].to_s + "<br>#{drug.name}"
+				patients[patient.patient_id]["drug"] = patients[patient.patient_id]["drug"].to_s + "<br>#{drug.name}"
 
-          patients[patient.patient_id]["pill_count"] << "<br>#{pill_count.to_i.to_s}"
+				patients[patient.patient_id]["pill_count"] << "<br>#{pill_count.to_i.to_s}"
 
-          patients[patient.patient_id]["expected_count"] << "<br>#{rate.expected_remaining.to_i.to_s}"
+				patients[patient.patient_id]["expected_count"] << "<br>#{rate.expected_remaining.to_i.to_s}"
 
-          patients[patient.patient_id]["start_date"].to_date > rate.start_date.to_date ?
+				patients[patient.patient_id]["start_date"].to_date > rate.start_date.to_date ?
           patients[patient.patient_id]["start_date"] = rate.start_date.to_date : ""
 
-    end
+			end
     }
 
     patients.sort { |a,b| a[1]['adherence'].to_i <=> b[1]['adherence'].to_i }

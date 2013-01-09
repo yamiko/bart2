@@ -1,6 +1,15 @@
 <%= javascript_include_tag "prototype" %>
 
 <style>
+  .negative_numbers a {
+    color: red;
+    text-decoration: none;
+  }
+
+  .positive_numbers a {
+    color: navy;
+    text-decoration: none;
+  }
 </style>
 
 <%= stylesheet_link_tag "stock_report" %>
@@ -116,7 +125,11 @@
       <table class="inner-data">
         <tr>
           <td style="width:60px;text-align:left;"><%=values['start_date']%></td>
-          <td style="width:60px;"><%=(values['confirmed_opening'] / 60).round %></td>
+          <td style="width:60px;" class='positive_numbers'>
+            <a href="/drug/stock_report_edit?date=<%=values['start_date']%>&drug_id=<%=values['drug_id']%>&edit_reason=opening_stock&start_date=<%=@start_date%>&end_date=<%=@end_date%>">
+              <%=(values['confirmed_opening'] / 60).round %>
+            </a>
+          </td>
         </tr>
       </table>
     </td>
@@ -127,9 +140,13 @@
           <% relocated = (values['relocated'] / 60).round 
             if relocated < 0
           %>
-            <td style="width:100px;color:red;"><%=relocated%></td>
+            <td style="width:100px;color:red;"  class='negative_numbers'>
+              <a href="/drug/stock_report_edit?drug_id=<%=values['drug_id']%>&edit_reason=relocated&max_date=<%=values['end_date']%>&start_date=<%=@start_date%>&end_date=<%=@end_date%>"><%=relocated %></a>
+            </td>
           <%else%>
-            <td style="width:100px;color:green;">+<%=relocated %></td>
+            <td style="width:100px;color:red;" class='negative_numbers'>
+              <a href="/drug/stock_report_edit?drug_id=<%=values['drug_id']%>&edit_reason=relocated&max_date=<%=values['end_date']%>&start_date=<%=@start_date%>&end_date=<%=@end_date%>">- <%=relocated %></a>
+            </td>
           <%end%>
         </tr>
       </table>
@@ -142,30 +159,49 @@
         %>
           <td style="text-align:center;color:red;"><%=dispensed %></td>
         <%else%>
-          <td style="text-align:center;color:green;">+<%=dispensed %></td>
+          <td style="text-align:center;color:red;">- <%=dispensed %></td>
         <%end%>
         </tr>
       </table>
     </td>
+      <%
+        #expected = ( (values['confirmed_closing'] / 60) - (values['expected'] / 60) ).round
+
+        plus_values = (values['receipts'] / 60).round                       
+        plus_values += (values['confirmed_opening'] / 60).round             
+                                                                            
+        minus_values = relocated                                            
+        minus_values += dispensed                                           
+                                                                            
+        expected = plus_values - minus_values                               
+
+      %>
     <td class="color_<%=color%> caldata" id="dispensed_<%=count%>">
       <table class="inner-data">
         <tr>
           <td style="text-align:left;width:40px;"><%=values['end_date'] %></td>
-          <td style="text-align:left;width:75px;padding-left:12px;"><%=(values['expected'] / 60).round %></td>
-          <td style="text-align:right;width:75px;"><%=(values['confirmed_closing'] / 60).round %></td>
+          <td style="text-align:left;width:75px;padding-left:12px;"><%= expected %></td>
+          <td style="text-align:right;width:75px;" class='positive_numbers'>
+            <a href="/drug/stock_report_edit?date=<%=values['end_date']%>&drug_id=<%=values['drug_id']%>&edit_reason=closing_stock&start_date=<%=@start_date%>&end_date=<%=@end_date%>">
+              <%=(values['confirmed_closing'] / 60).round %>
+            </a>
+          </td>
         </tr>
       </table>
     </td>
     <td class="color_<%=color%> caldata" id="dispensed_<%=count%>">
-      <%
-        expected = ( (values['confirmed_closing'] / 60) - (values['expected'] / 60) ).round
-      %>
+      <%                                                                        
+        verified = (values['confirmed_closing'] / 60).round                     
+        difference = ((verified.to_f/expected.to_f)*100).round                                      
+      %> 
       <table class="inner-data">
         <tr>
-          <%if expected < 0 %>
-            <td style="text-align:center;color:red;"><%= expected %></td>
+          <%if difference < 0 %>
+            <td style="text-align:center;color:red;"><%= difference %>&#37;</td>
+          <%elsif difference == 0 %>
+            <td style="text-align:center;color:green;"><%= difference %>&#37;</td>
           <%else%>
-            <td style="text-align:center;color:green;">+<%= expected %></td>
+            <td style="text-align:center;color:green;">+<%= difference %>&#37;</td>
           <%end%>
         </tr>
       </table>

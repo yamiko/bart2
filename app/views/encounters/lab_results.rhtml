@@ -89,24 +89,41 @@
    function inform() {
     $('infoBar'+tstCurrentPage).innerHTML = "Scan the label on the sputum collection bottle";
   }
-
+var positive
   function summary() {
     results = '<ul>';
     attrs = '';
+	positive = 0;
+	var append_color;
     for(i = 0 ; i < result_filed_ids.length ; i++) {
       if ($(result_filed_ids[i]).value != 'NEGATIVE') {
+		positive += 1;
         tb_status =  'Confirmed TB NOT on treatment'
-        attrs = " class='alert'"
+		append_color = "yes"
+        //attrs = " class='alert'"
       }
       var specimen = $(specimen_field_ids[i]).value
-      results += '<li><b>' + acc_numbers[specimen] + " Results (Accession number: " + specimen + ") : </b>" +
-                 '<span '+ attrs + '>' + $(result_filed_ids[i]).options[$(result_filed_ids[i]).selectedIndex].text  + '</span></li>'
+	  if(append_color == "yes") {
+	  results += '<li><b>' + acc_numbers[specimen] + " Results (Accession number: " + specimen + ") : </b>" +
+                 '<span '+ attrs + ' style="background:red">' + $(result_filed_ids[i]).options[$(result_filed_ids[i]).selectedIndex].text  + '</span></li>'
+	  }
+	  else {
+		results += '<li><b>' + acc_numbers[specimen] + " Results (Accession number: " + specimen + ") : </b>" +
+                 '<span '+ attrs + ' style="background:orange">' + $(result_filed_ids[i]).options[$(result_filed_ids[i]).selectedIndex].text  + '</span></li>'
+
+	  }
+	  append_color = "";
     }
     results += '</ul>';
 
     //var display = "<div><span class='title'>TB Status: " + tb_status + "</span></div>";
     var display = "<div><span class='title' style='font-size:25px;padding-top:7px;'>" + results + "</span></div>";
-    $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + display + '</div>' ;    
+    $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + display + '</div>' ;
+    //if(tb_status == 'Confirmed TB NOT on treatment') {
+    //  $('inputFrame'+tstCurrentPage).style.background = 'red';
+    //}else{
+     // $('inputFrame'+tstCurrentPage).style.background = '#F0F0F0';
+   // }
     $("clearButton").style.display = 'none';
   }
 
@@ -186,7 +203,9 @@
   <label for='sputum_microscopy_month'>Sputum microscopy month</label>
   <%= select_tag "sputum_microscopy_month", month_name_options,
     {:helpText => 'Sputum microscopy month',
-     :condition => '$("sputum_microscopy_year").value.toLowerCase() != "unknown"'}%>
+	 :tt_onLoad => "__$('keyboard').style.display = 'none';",
+     :condition => '$("sputum_microscopy_year").value.toLowerCase() != "unknown"'
+	}%>
 
   <label for='sputum_microscopy_day'>Sputum microscopy day</label>
   <%= text_field_tag "sputum_microscopy_day",  nil, :field_type => 'number',
@@ -240,7 +259,7 @@ s[i]})" } %>
 
   <label for='summary'>Results Summary</label>
     <%= text_field_tag :summary, nil, { 
-        :tt_onLoad => "summary();setAttributes();", 
+        :tt_onLoad => "summary();setAttributes();__$('keyboard').style.display = 'none'",
         :tt_onUnLoad => "resetAttributes();",
         :optional => "true", 
         :tt_pageStyleClass => "NoControls" 

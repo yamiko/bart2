@@ -29,7 +29,7 @@ class GenericPrescriptionsController < ApplicationController
   def create
     @suggestions = params[:suggestion] || ['New Prescription']
     @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
-    unless params[:location]
+    if params[:location].blank?
       session_date = session[:datetime] || params[:encounter_datetime] || Time.now()
     else
       session_date = params[:encounter_datetime] #Use encounter_datetime passed during import
@@ -71,7 +71,7 @@ class GenericPrescriptionsController < ApplicationController
       end  
     end
 
-    unless params[:location].blank?
+    if params[:location].blank?
       redirect_to (params[:auto] == '1' ? "/prescriptions/auto?patient_id=#{@patient.id}" : "/patients/treatment_dashboard/#{@patient.id}")
     else
       render :text => 'import success' and return

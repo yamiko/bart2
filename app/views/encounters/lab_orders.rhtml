@@ -102,9 +102,10 @@
         number_of_selected_test = tstInputTarget.value.split(';').length;
         if(number_of_selected_test < 2){
             showMessage('Please select 2 or more tests');
-			gotoPage(tstCurrentPage - 1, false);
+			//gotoPage(tstCurrentPage - 1, false);
         }
     }
+
 
     function formSubmit()
     {
@@ -151,17 +152,18 @@
 			:id => 'main_tests',
 			:tt_onUnLoad => 'updateLaborderUrl($("main_tests").value);'}%>
 
+
 	<%= touch_select_tag "TESTS ORDERED", @patient, options_for_select([]),
 		{	:id => "lab_orders",
-			:tt_onLoad => "$('clearButton').style.display='block'", 
-			:tt_onUnLoad => 'validateOptions();',
+			:tt_onLoad => "$('clearButton').style.display='block'",
 			:multiple => true,
 			:helpText => "Select test" } %>
 
 
+
 	<label for='showSummary'>Summary </label>
 	<%= text_field_tag :showSummary, nil, 
-		{	:tt_onLoad => "showLabels();$('clearButton').style.display='none'", 
+		{	:tt_onLoad => "__$('keyboard').style.display = 'none';showLabels();$('clearButton').style.display='none'",
 			:optional => "true", :tt_pageStyleClass => "NoControls" } %>
 
   <% session_date = session[:datetime].to_date rescue nil                       

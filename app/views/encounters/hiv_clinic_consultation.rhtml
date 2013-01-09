@@ -28,6 +28,7 @@
 
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
+  var consultation_tb_status = '<%= @consultation_tb_status %>'
 	
   function getNumberOfSymptoms(){
     var options = $('symptoms').options
@@ -132,7 +133,17 @@
       return 'false';
     }
   }
-  
+
+  function checkTbHivStatus(){
+	  options = document.getElementsByTagName('li');
+				  for (i = 0 ; i < options.length ; i++) {
+				   if (options[i].getAttribute('tstvalue') == consultation_tb_status) {
+					  updateTouchscreenInputForSelect(options[i]);
+				   }
+				  }
+
+  }
+
 </script>
 
 <form action="/encounters/create" method='post'>
@@ -181,13 +192,13 @@
       {:id => 'symptoms',
        :optional => true,
        :multiple => true,
-       :helpText => "Symptoms (select all that apply)" } %>
+       :helpText => "ART related symptoms (select all that apply)" } %>
 
     <%= touch_select_tag "SYMPTOM PRESENT", @patient, concept_set_options('ADDITIONAL MALAWI ART SYMPTOM SET'),
       {:id => 'additional_symptoms',
        :optional => true,
        :multiple => true,
-       :helpText => "More symptoms (select all that apply)" } %>
+       :helpText => "More ART related symptoms (select all that apply)" } %>
 
     <% if @art_first_visit == false %>
       <%= touch_select_tag "DRUG INDUCED", @patient, options_for_select([['', '']]),
@@ -208,11 +219,13 @@
 
 
   <%  if @tb_programs_state.nil? %>
-  
+	<%= touch_hidden_tag "TB STATUS", @patient, @consultation_tb_status, {:id => "tb_status", :value_datetime => true}%>
     <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
       {:id => 'tb_status',
         :multiple => false,
-       :helpText => "TB Status" } %>
+       :helpText => "TB Status",
+	   :tt_onLoad => 'checkTbHivStatus()',
+	   :condition => @show_tb_types  == true} %>
     <% else %>
         <%= touch_hidden_tag "TB STATUS" , @patient, ConceptName.find_by_name("#{@patient_tb_status}").name, {:id => "tb_status"} %>
     <% end %>

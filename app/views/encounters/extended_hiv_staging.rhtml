@@ -131,6 +131,8 @@
   var firstPositiveHivTestType = "<%= @confirmatory_hiv_test_type -%>";  
   var cd4_count_numeric, cd4_count_estimate, cd4_count_modifier;
   var selected_stage_conditions = {};
+  var option3 = "NO"
+  var option4 = "NO"
 
 
 
@@ -262,36 +264,44 @@
   // WHO STAGE II PEDS
   // WHO STAGE III PEDS
   // WHO STAGE IV PEDS
-	function whoStageConcept(stage, adultOrPeds) {    
-		if (selected_stage_conditions) {
-			var selected_stage_conditions_ext = []
-			for (conditions in selected_stage_conditions) {
-				selected_stage_conditions_ext.push(selected_stage_conditions[conditions]);
-			}
-
-			conditions_found = 0;
-			severe_weight_loss = false;
-			for (i = 0 ; i < selected_stage_conditions_ext.length ; i++) {
-				if (selected_stage_conditions_ext[i] == 'Severe weight loss >10% and/or BMI <18.5kg/m^2, unexplained') {
-					severe_weight_loss = true;
-				}else if (selected_stage_conditions_ext[i] == 'Diarrhoea, chronic (>1 month) unexplained') {
-					conditions_found++;
-				}else if (selected_stage_conditions_ext[i] == 'Fever, persistent unexplained, intermittent or constant, >1 month') {
-					conditions_found++;
-				}
-			}
-
-			if (conditions_found > 0 && severe_weight_loss) {
-				<%	if !@retrospective %>
-					selected_stage_conditions[<%= count + 1 %>] = 'HIV wasting syndrome (severe weight loss + persistent fever or severe weight loss + chronic diarrhoea)';
-					$('calculated_who_stage_4').value = selected_stage_conditions[<%= count + 1 %>]; 	
-				<%	end	%>
-
-				return  "WHO STAGE " + numeral(4) + " " + adultOrPeds;
-			}
+	function whoStageConcept(stage, adultOrPeds) {
+		if (stage < 3 && option3 == "YES") {
+		  return  "WHO STAGE " + numeral(3) + " " + adultOrPeds;
 		}
+		else if (stage < 4 && option4 == "YES") {
+		  return  "WHO STAGE " + numeral(4) + " " + adultOrPeds;
+		}
+		else {
+				  if (selected_stage_conditions) {
+					  var selected_stage_conditions_ext = []
+					  for (conditions in selected_stage_conditions) {
+						  selected_stage_conditions_ext.push(selected_stage_conditions[conditions]);
+					  }
 
-		return "WHO STAGE " + numeral(stage) + " " + adultOrPeds;  
+					  conditions_found = 0;
+					  severe_weight_loss = false;
+					  for (i = 0 ; i < selected_stage_conditions_ext.length ; i++) {
+						  if (selected_stage_conditions_ext[i] == 'Severe weight loss >10% and/or BMI <18.5kg/m^2, unexplained') {
+							  severe_weight_loss = true;
+						  }else if (selected_stage_conditions_ext[i] == 'Diarrhoea, chronic (>1 month) unexplained') {
+							  conditions_found++;
+						  }else if (selected_stage_conditions_ext[i] == 'Fever, persistent unexplained, intermittent or constant, >1 month') {
+							  conditions_found++;
+						  }
+					  }
+
+					  if (conditions_found > 0 && severe_weight_loss) {
+						  <%	if !@retrospective %>
+							  selected_stage_conditions[<%= count + 1 %>] = 'HIV wasting syndrome (severe weight loss + persistent fever or severe weight loss + chronic diarrhoea)';
+							  $('calculated_who_stage_4').value = selected_stage_conditions[<%= count + 1 %>];
+						  <%	end	%>
+
+						  return  "WHO STAGE " + numeral(4) + " " + adultOrPeds;
+					  }
+				  }
+
+				  return "WHO STAGE " + numeral(stage) + " " + adultOrPeds;
+		 }
 	}
   
   function numeral(num) {
@@ -330,7 +340,7 @@
 	if (ageInMonths < 12 && firstPositiveHivTestType == "HIV rapid test") {
 		$('who_stage').value = "PRESUMED SEVERE HIV";
 	}
-     
+
     return whoStage
   }
   
@@ -418,7 +428,17 @@
           reasonForArtEligibility = "BREASTFEEDING";              
         } 
       }catch(e){}
-    }  
+    }
+	artifitial_reason = false
+	if (reasonForArtEligibility == "NONE" && (option3 == "YES" || option4 == "YES")) {
+		  if (age > 14){
+		  reasonForArtEligibility = whoStageConcept(whoStage, "ADULT")
+		  }
+		  else{
+			reasonForArtEligibility = whoStageConcept(whoStage, "PEDS")
+		  }
+		}
+
     $('reason_for_art_eligibility').value = reasonForArtEligibility;
   }
 
@@ -479,7 +499,7 @@
     if (html == "<ul><h3>Selected stage defining conditions</h3>") return '';
     return html + '</ul>';
   }
-    
+
   function setSelectedStageConditions(condition_num,staging_condition) {
     input_text = $('staging_condition_' + condition_num);
     if ( input_text.value == 'YES' ) {
@@ -536,13 +556,49 @@
     }
   }
 
-</script>  
+  function removeValues(){
+			  <% if @patient.person.observations.to_s.include?('Ever received TB treatment:  Yes')
+					  tb_hiv_exclusions = [['Tuberculosis (PTB or EPTB) within the last 2 years','Tuberculosis (PTB or EPTB) within the last 2 years']]
+					  @who_stage_iii = @who_stage_iii - tb_hiv_exclusions
+			  end %>
+			  <% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve') %>
+					  <% tb_hiv_exclusions = [['Pulmonary tuberculosis (current)', 'Pulmonary tuberculosis (current)']]
+					  @who_stage_iii = @who_stage_iii - tb_hiv_exclusions
+					  %>
+					option3 = "YES";
+			  <% end  %>
+			
+			  <% if  @patient.person.observations.to_s.include?('Extrapulmonary tuberculosis (EPTB)') %>
+					<% tb_hiv_exclusions = [['Extrapulmonary tuberculosis (EPTB)', 'Extrapulmonary tuberculosis (EPTB)']]
+					@who_stage_iv = @who_stage_iv - tb_hiv_exclusions
+					%>app/controllers/generic_patients_controller.rb
+
+					option4 = "YES";
+			  <%  end %>
+  }
+  function updateSelectedOptions(){
+			  condition_number = '<%= count %>';
+			  <% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve') %>
+					 condition_number += 1
+					 selected_stage_conditions[condition_number] = 'Pulmonary tuberculosis (current)'
+			  <% end  %>
+
+			  <% if  @patient.person.observations.to_s.include?('Extrapulmonary tuberculosis (EPTB)') %>
+					condition_number += 1
+					selected_stage_conditions[condition_number] = 'Extrapulmonary tuberculosis (EPTB)'
+			  <%  end %>
+			  <% if @patient.person.observations.to_s.include?('Ever received TB treatment:  Yes') %>
+					condition_number += 1
+					selected_stage_conditions[condition_number] = 'Tuberculosis (PTB or EPTB) within the last 2 years'
+			  <%  end %>
+  }
+</script>
 <style type="text/css">
   .small .options li { font-size:1.1em; }
   .tt_controls_cd4_count #lessthan, .tt_controls_cd4_count #greaterthan { display:block; float:right }
   .tt_controls_cd4_percent #lessthan, .tt_controls_cd4_percent #greaterthan { display:block; float:right }
 </style>
-
+<body onload="removeValues()">
 <% if !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.squish != '' %>
 	<div class="inputPage NoKeyboard" id="page" style="display: block;">
 		<div id="trigger"></div>
@@ -652,7 +708,7 @@
 			<%= touch_yes_no_tag "Perform extended staging" , @patient, nil,
 				{	:id => "perform_extended_staging" ,
 					:optional => false,
-					:tt_onLoad => "$('nextButton').style.display = 'inline';setTimeout('cssText();',1);",
+					:tt_onLoad => "$('nextButton').style.display = 'inline';setTimeout('cssText();',1);updateSelectedOptions();",
 					:helpText => 'Perform extended staging' } %>
 
 			<% extended_staging.each do | staging_condition | %>
@@ -669,7 +725,7 @@
 			<label for='new_cd4_count_available'>Recent CD4 count results available?</label>
 			<%= select_tag "new_cd4_count_available", options_for_select([['Yes','YES'],['No','NO']]), 
 				:id => 'new_cd4_count_available', 
-				:tt_onLoad => "$('nextButton').style.display = 'inline';setTimeout('cssText();',1);",
+				:tt_onLoad => "$('nextButton').style.display = 'inline';setTimeout('cssText();',1);updateSelectedOptions(count)",
 				:tt_pageStyleClass => 'NoKeyboard' %>
 
 			<%= touch_date_tag "CD4 COUNT DATETIME", @patient, (Time.now - 1.month).year,
@@ -748,7 +804,7 @@
 		<%= touch_hidden_tag "REASON FOR ART ELIGIBILITY", @patient, "", :id => "reason_for_art_eligibility" %>
   
   <label for='summary'>Summary</label>
-  <%= text_field_tag :summary, nil, { :tt_onLoad => "summary();", :optional => "true", :tt_pageStyleClass => "NoControls" } %>
+  <%= text_field_tag :summary, nil, { :tt_onLoad => "summary();__$('keyboard').style.display = 'none';", :optional => "true", :tt_pageStyleClass => "NoControls" } %>
 
   <% session_date = session[:datetime].to_date rescue nil                       
     if session_date %>
@@ -761,3 +817,4 @@
   <%= submit_tag "Finish" %>    
 </form>
 <% end %>
+</body>

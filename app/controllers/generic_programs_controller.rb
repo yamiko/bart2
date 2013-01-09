@@ -56,8 +56,16 @@ class GenericProgramsController < ApplicationController
   end
   
   def void
-    @program = PatientProgram.find(params[:id])
-    @program.void
+    if params[:program]
+      program = params[:program]
+      @program = PatientProgram.find(program)
+      @program.void
+    end
+    if params[:state]
+      state = params[:state]
+      @patient_state = PatientState.find(state)
+      @patient_state.void
+    end
     head :ok
   end  
   
@@ -199,7 +207,7 @@ class GenericProgramsController < ApplicationController
                                      "patient_program_id = #{patient_program.patient_program_id}"
         end
         #for import
-         unless params[:location]
+         if params[:location].blank?
             redirect_to :controller => :patients, :action => :programs_dashboard, :patient_id => params[:patient_id]
          else
             render :text => "import suceeded" and return
@@ -207,7 +215,7 @@ class GenericProgramsController < ApplicationController
         
       else
         #for import
-        unless params[:location].blank?
+        if params[:location].blank?
           redirect_to :controller => :patients, :action => :programs_dashboard, :patient_id => params[:patient_id],:error => "Unable to update state"
         else
             render :text => "import suceeded" and return
@@ -217,8 +225,8 @@ class GenericProgramsController < ApplicationController
     else
       patient_program = PatientProgram.find(params[:id])
       unless patient_program.date_completed.blank?
-        unless params[:location]
-            flash[:error] = "The patient has already completed this program!"
+       if params[:location].blank?
+          flash[:error] = "The patient has already completed this program!"
        else
           render :text => "import suceeded" and return
        end   

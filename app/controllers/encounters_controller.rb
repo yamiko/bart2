@@ -4,7 +4,26 @@ class EncountersController < GenericEncountersController
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
 
-
+			@hiv_status = tb_art_patient(@patient,"hiv program") rescue ""
+			@tb_status = tb_art_patient(@patient,"TB program") rescue ""
+			@show_tb_types = false
+			consultation_tb_status = Patient.find_by_sql("
+											SELECT patient_id, current_state_for_program(patient_id, 2, '#{session_date}') AS state, c.name
+											FROM patient p INNER JOIN program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(patient_id, 2, '#{session_date}')
+											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{@patient.patient_id}'").first.name rescue ""
+			 if consultation_tb_status == "Currently in treatment"
+				 @consultation_tb_status = "Confirmed TB on treatment"
+			 elsif consultation_tb_status == "Symptomatic but NOT in treatment" or @hiv_status.to_s.upcase == "POSITIVE"
+				 @consultation_tb_status = "Confirmed TB NOT on treatment"
+			 else
+				 @show_tb_types = true
+				 @consultation_tb_status = "Unknown"
+			 end
+		@current_hiv_program_status = Patient.find_by_sql("
+											SELECT patient_id, current_state_for_program(patient_id, 1, '#{session_date}') AS state, c.name
+											FROM patient p INNER JOIN program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(patient_id, 1, '#{session_date}')
+											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{@patient.patient_id}'").first.name rescue "Unknown"
+		
     if (params[:from_anc] == 'true')
       bart_activities = ['Manage Vitals','Manage HIV clinic consultations',
         'Manage ART adherence','Manage HIV staging visits','Manage HIV first visits',
@@ -18,7 +37,7 @@ class EncountersController < GenericEncountersController
 
       (bart_activities).each do |activity|
         if not current_user_activities.include?(activity.upcase)
-          user_property.property_value += ",#{activity}" unless current_user.activities.blank?
+          user_property.property_value += ",#{activity}" rescue "" unless current_user.activities.blank?
           user_property.property_value = activity if current_user.activities.blank?
           user_property.save 
         end
@@ -121,7 +140,7 @@ class EncountersController < GenericEncountersController
 
 		@hiv_status = PatientService.patient_hiv_status(@patient)
 		@hiv_test_date = PatientService.hiv_test_date(@patient.id)
-    #raise @hiv_test_date.to_s
+    
 		@lab_activities = lab_activities
 		# @tb_classification = [["Pulmonary TB","PULMONARY TB"],["Extra Pulmonary TB","EXTRA PULMONARY TB"]]
 		@tb_patient_category = [["New","NEW"], ["Relapse","RELAPSE"], ["Retreatment after default","RETREATMENT AFTER DEFAULT"], ["Fail","FAIL"], ["Other","OTHER"]]
@@ -212,7 +231,7 @@ class EncountersController < GenericEncountersController
 					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('TB type').concept_id
  				end
 			end
-			#raise @tb_classification.to_s
+			
 
 		end
 
@@ -305,7 +324,7 @@ class EncountersController < GenericEncountersController
 			if @tb_status == true && @hiv_status != 'Negative'
         tb_hiv_exclusions = [['Pulmonary tuberculosis (current)', 'Pulmonary tuberculosis (current)'],
 					['Tuberculosis (PTB or EPTB) within the last 2 years', 'Tuberculosis (PTB or EPTB) within the last 2 years']]
-				@who_stage_iii = @who_stage_iii - tb_hiv_exclusions
+				#@who_stage_iii = @who_stage_iii - tb_hiv_exclusions
 			end
 
   			
@@ -346,6 +365,12 @@ class EncountersController < GenericEncountersController
 			@require_hiv_clinic_registration = require_hiv_clinic_registration
 		end
 
+		if PatientIdentifier.site_prefix == "MPC"
+				prefix = "LL-TB"
+		else
+				prefix = "#{PatientIdentifier.site_prefix}-TB"
+		end
+		@tb_auto_number = create_tb_number(PatientIdentifierType.find_by_name('District TB Number').id, prefix)
 		redirect_to "/" and return unless @patient
 
 		redirect_to next_task(@patient) and return unless params[:encounter_type]
@@ -360,6 +385,14 @@ class EncountersController < GenericEncountersController
 		
 	end
 
+	def tb_art_patient(patient,program)
+    program_id = Program.find_by_name(program).id
+    enrolled = PatientProgram.find(:first,:conditions =>["program_id = ? AND patient_id = ?",program_id,patient.id]).blank?
+ 
+
+		return true if enrolled
+    false
+  end
 
   def select_options
     select_options = {
@@ -369,6 +402,12 @@ class EncountersController < GenericEncountersController
         ['Smear Positive (HIV-)','SMEAR POSITIVE'],
         ['X-ray result interpretation','X-RAY RESULT INTERPRETATION']
       ],
+			'tb_investigation' =>[
+				['',''],
+				['Sputum Test','TB sputum test'],
+				['X-Ray','X-Ray'],
+				['None','None']
+			],
       'tb_clinic_visit_type' => [
         ['',''],
         ['Lab analysis','Lab follow-up'],
@@ -512,7 +551,7 @@ class EncountersController < GenericEncountersController
         ["Fatigue", "Fatigue"],
         ["Fever", "Relapsing fever"],
         ["Loss of appetite", "Loss of appetite"],
-        ["Meningitis", "Meningitis"],
+       # ["Meningitis", "Meningitis"],
         ["Night sweats","Night sweats"],
         ["Peripheral neuropathy", "Peripheral neuropathy"],
         ["Shortness of breath", "Shortness of breath"],
@@ -562,8 +601,8 @@ class EncountersController < GenericEncountersController
       'tb_types' => [
         ['',''],
         ['Susceptible', 'Susceptible to tuberculosis drug'],
-        ['Multi-drug resistant (MDR)', 'Multi-drug resistant tuberculosis'],
-        ['Extreme drug resistant (XDR)', 'Extreme drug resistant tuberculosis']
+       # ['Multi-drug resistant (MDR)', 'Multi-drug resistant tuberculosis'],
+        ['Extensive drug resistant (XDR)', 'Extensive drug resistant tuberculosis']
       ],
       'tb_classification' => [
         ['',''],
@@ -575,9 +614,8 @@ class EncountersController < GenericEncountersController
         ['Walk in', 'Walk in'],
         ['Index Patient', 'Index Patient'],
         ['HTC', 'HTC clinic'],
-        ['ART', 'ART Clinic'],
+        ['ART/PMTCT', 'ART Clinic/PMTCT'],
         ['OPD', 'OPD'],
-        ['PMTCT', 'PMTCT'],
         ['Private practitioner', 'Private practitioner'],
         ['Sputum collection point', 'Sputum collection point'],
         ['Other','Other']
@@ -588,7 +626,7 @@ class EncountersController < GenericEncountersController
 	def is_holiday(suggest_date, holidays)
 		holiday = false;
 		holidays.each do |h|
-			if (h.to_date.strftime('%A %d') == suggest_date.strftime('%A %d'))
+			if (h.to_date.strftime('%B %d') == suggest_date.strftime('%B %d'))
 				holiday = true;
 			end
 		end
@@ -633,44 +671,40 @@ class EncountersController < GenericEncountersController
 	end
 
 	def suggested_date(expiry_date, holidays, bookings, clinic_days)
-		number_of_suggested_booked_dates_tried = 0
-
-		skip = true
-		recommended_date = expiry_date
-		nearest_clinic_day = nil
-    
-		while skip
-			clinic_days.each do |d|
-				if (d.to_s.upcase == recommended_date.strftime('%A').to_s.upcase)
-					nearest_clinic_day = recommended_date if nearest_clinic_day.blank?
-					skip = is_holiday(recommended_date, holidays)
-					break
-				end
-			end
-
-
-			if (skip)
-				recommended_date = recommended_date - 1.day
-			else
-				below_limit = is_below_limit(recommended_date, bookings)
-				if (below_limit == false)
-					recommended_date = recommended_date - 1.day
-					skip = true
-				end
-			end
-
-			number_of_suggested_booked_dates_tried += 1 if nearest_clinic_day
-
-			test = (number_of_suggested_booked_dates_tried > 4)
-			
-			if test
-				recommended_date = nearest_clinic_day
-				skip = false
-			end
-		end
-
+    bookings.delete_if{|k,v| holidays.collect{|h|h.to_date.to_s[5..-1]}.include?(k.to_date.to_s[5..-1])}
+                                                                                
+    recommended_date = nil                                                      
+    clinic_appointment_limit = CoreService.get_global_property_value('clinic.appointment.limit').to_i rescue 0
+                                                                                
+    (bookings ||{}).sort_by { |dates,num| num }.reverse.each do |dates , num|   
+      next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
+      if num <= clinic_appointment_limit                                  
+        recommended_date = dates                                                  
+        break 
+      end
+    end                                                                         
+                                                                                
+    (bookings ||{}).sort_by { |dates,num| num }.each do |dates , num|   
+      next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
+      recommended_date = dates                                                  
+      break 
+    end if recommended_date.blank?                                                                        
+                                                                                
+    if recommended_date.blank?                                                  
+      expiry_date_rec = expiry_date
+      1.upto(5).each do |num|                                                   
+        if clinic_days.collect{|c|c.upcase}.include?(expiry_date.strftime('%A').upcase)
+          unless is_holiday(expiry_date_rec,holidays)                                       
+            recommended_date = expiry_date_rec 
+            break                                                                 
+          end
+          expiry_date_rec -= 1
+        end                                                                     
+      end                                                                       
+    end                                                                         
+                                                                                
+    recommended_date = expiry_date if recommended_date.blank?
     return recommended_date
-   
 	end
 
   def assign_close_to_expire_date(set_date,auto_expire_date)
@@ -1304,7 +1338,108 @@ class EncountersController < GenericEncountersController
     else
       render :text => "Location not found or not valid"
     end
-
   end 
 
+  def export_on_art_patients
+		@ids = params["ids"].split(",")
+		@id_string = "'" + @ids.join("','") + "'"
+		@end_date = params["end_date"]
+		@start_date = params["start_date"]
+       	result = Hash.new
+        @patient_ids = []
+
+      	PatientProgram.find_by_sql("SELECT e.patient_id, f.identifier, e.earliest_start_date, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state
+			FROM earliest_start_date e
+			JOIN person p ON p.person_id = e.patient_id
+            JOIN patient_identifier f ON f.patient_id = p.person_id AND f.identifier_type = (SELECT patient_identifier_type_id FROM patient_identifier_type WHERE name = 'National id') AND f.identifier IN (#{@id_string})
+			WHERE p.gender regexp 'F'
+			HAVING state = 7").each do | patient |
+					@patient_ids << patient.patient_id
+					idf = patient.identifier
+		       		result["#{idf}"] = patient.earliest_start_date
+			end
+     if @patient_ids.length > 0
+  		cpt_ids = Encounter.find_by_sql("SELECT e.patient_id, o.value_drug, e.encounter_type FROM encounter e
+			INNER JOIN obs o ON e.encounter_id = o.encounter_id AND e.voided = 0
+			WHERE e.encounter_type = (SELECT encounter_type_id FROM encounter_type WHERE name = 'DISPENSING')
+			AND o.value_drug IN (SELECT drug_id FROM drug WHERE name regexp 'cotrimoxazole')
+			AND e.patient_id IN (#{@patient_ids.join(',')})").collect{|e| e.patient_id}.uniq rescue []
+     else
+       cpt_ids = []
+     end
+
+		result["on_cpt"] = cpt_ids.length
+		render :text => result.to_json
+  end
+
+	def lab_results_print
+		label_commands = lab_results_label(params[:id])
+		send_data(label_commands.to_s,:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{params[:id]}#{rand(10000)}.lbs", :disposition => "inline")
+
+	end
+
+  def lab_results_label(patient_id)
+			patient = Patient.find(patient_id)
+			patient_bean = PatientService.get_patient(patient.person)
+			observation = patient_recent_lab_results(patient_id)
+			sputum_results = [['NEGATIVE','NEGATIVE'], ['SCANTY','SCANTY'], ['WEAKLY POSITIVE','1+'], ['MODERATELY POSITIVE','2+'], ['STRONGLY POSITIVE','3+']]
+			concept_one = ConceptName.find_by_name("First sputum for AAFB results").concept_id
+			concept_two = ConceptName.find_by_name("Second sputum for AAFB results").concept_id
+			concept_three = ConceptName.find_by_name("Third sputum for AAFB results").concept_id
+			concept_four = ConceptName.find_by_name("Culture(1st) Results").concept_id
+			concept_five = ConceptName.find_by_name("Culture(2nd) Results").concept_id
+			concept =[]
+			culture =[]
+			labels = []
+			observation.each do |obs|
+						next if obs.value_coded.blank?
+						concept[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_one
+						concept[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_two
+						concept[2] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_three
+						culture[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_four
+						culture[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_five
+			end
+			if concept.length < 2
+						first = "Culture-1 Results: #{sputum_results.assoc("#{culture[0].upcase}")[1]}"
+						second = "Culture-2 Results: #{sputum_results.assoc("#{culture[1].upcase}")[1]}"
+			else
+						lab_result = []
+						h = 0
+						(0..2).each do |x|
+									if concept[x].to_s != ""
+									lab_result[h] = sputum_results.assoc("#{concept[x].upcase}")
+									h += 1
+									end
+						end
+						first = "AAFB(1st) results: #{lab_result[0][1] rescue ""}"
+						second = "AAFB(2nd) results: #{lab_result[1][1] rescue ""}"
+						end
+						i = 0
+    labels = []
+
+          label = 'label' + i.to_s
+          label = ZebraPrinter::Label.new(500,165)
+          label.font_size = 2
+          label.font_horizontal_multiplier = 1
+          label.font_vertical_multiplier = 1
+          label.left_margin = 300
+          label.draw_text("Name: #{patient_bean.name}",50,50,0,3,1,1,false)
+          label.draw_text(first,50,90,0,2,1,1)
+          label.draw_text(second,50,130,0,2,1,1)
+
+          labels << label
+
+         i = i + 1
+
+      print_labels = []
+      label = 0
+      while label <= labels.size
+        print_labels << labels[label].print(1) if labels[label] != nil
+        label = label + 1
+      end
+
+      return print_labels
+  end
+	
+	
 end

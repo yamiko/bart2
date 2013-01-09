@@ -36,7 +36,7 @@
 		<div id='content'>
 			<form id = 'dashboard' action='/clinic'>
 				<h1 id='project_name'>
-					BART
+          <span style="font-size: 55px;"><%=what_app?%></span>                   
 				</h1>
 				<span id='patient_name'><%= @patient_bean.name rescue "" %></span>
 				<span id='patient_id'><%= @patient_bean.national_id_with_dashes rescue "" %></span>
@@ -85,13 +85,7 @@
 					<% else %>
 						<option value='/prescriptions/auto?patient_id=<%= @patient.id -%>'>Other drugs</option>
 					<% end %>
-					<option value='/dispensations/new?patient_id=<%= @patient.id -%>'>Dispense</option>
-					<%if current_user.activities.include?('Manage Lab Orders') or current_user.activities.include?('Manage Lab Results') or
-					current_user.activities.include?('Manage Sputum Submissions') or current_user.activities.include?('Manage TB Clinic Visits') or
-					current_user.activities.include?('Manage TB Reception Visits') or current_user.activities.include?('Manage TB Registration Visits') or
-					current_user.activities.include?('Manage HIV Status Visits') %>
-					<option value='/patients/tb_treatment_card?patient_id=<%= @patient.id -%>'>TB Treatment Card</option>
-					<%end%>
+					<!-- <option value='/dispensations/new?patient_id=<%= @patient.id -%>'>Dispense</option> -->
 				</select>
 				<input type='submit' value='Finish' />
 			</form>
