@@ -14,7 +14,7 @@
 				next.setAttribute("onclick","window.location= '/cohort_tool/case_findings2'")
 				button.appendChild(next)
 			}
-			setTimeout("load();",300)
+			setTimeout("load();",30)
 			
 
 		</script>
@@ -26,10 +26,10 @@
 
 			<b>Facility : <%= Location.current_health_center.name %></b><br/>
 		  <b>Report Type : Case Findings Report</b><br/>
-	 		<b>Duration : <b><%= "#{@start_date.strftime('%d %B %Y')} to #{@end_date.strftime('%d %B %Y')}"%></b><br/>
+	 		<b>Duration : <b><%= "#{@start_date.strftime('%d %B %Y')} to #{@end_date.strftime('%d %B %Y')} (#{@quarter})"%></b>
 		</div>
 		<br><br>
-		<%=@n%>
+
 		<div style = "-moz-user-select:none;">
 			<table border = 1 cellpadding = 0 cellspacing =0  width = 95% style = margin = 30px align = center>
 				<tr>

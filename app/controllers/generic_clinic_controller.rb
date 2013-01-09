@@ -126,7 +126,7 @@ class GenericClinicController < ApplicationController
 
     ]
   	if what_app? == 'TB-ART'
-  		@reports <<  ["Case Findings", "/cohort_tool/case_findings_quarter"]
+  		@reports <<  ["Case Findings", "/cohort_tool/case_findings_quarter"] << ["Laboratory Register","/cohort_tool/report_duration?report_name=lab_register"] << ["TB Register","/cohort_tool/report_duration?report_name=tb_register"]
   	end
     @reports = [
       ["Diagnosis","/drug/date_select?goto=/report/age_group_select?type=diagnosis"],

@@ -800,14 +800,14 @@ class GenericPatientsController < ApplicationController
 	@variables = Hash.new()
 	@patient_bean = PatientService.get_patient(@patient.person)
 	@variables["hiv"] =  PatientService.patient_hiv_status(@patient.person) rescue nil
-	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", 78, @patient.person]) rescue nil
+	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", EncounterType.find_by_name("tb registration").id, @patient.person]) rescue nil
 if (tbStart != nil)	
 	duration = Time.now.to_date - tbStart.encounter_datetime.to_date
-	@variables["patientId"] = PatientIdentifier.identifier(@patient_bean.patient_id, "7").identifier
+	@variables["patientId"] = PatientIdentifier.identifier(@patient_bean.patient_id, PatientIdentifierType.find_by_name("District TB Number").id).identifier
   	@variables["tbStart"] = tbStart.encounter_datetime.to_time.strftime('%A, %d %B %Y') rescue nil
 	@variables["arvStart"] = PatientService.patient_art_start_date(@patient.person).to_date.strftime(' %d- %b- %Y') rescue nil
 	@variables["regimen"] = Concept.find(:first, :conditions => ["concept_id = ?" ,PatientProgram.find(:all, :conditions => ["patient_id =? AND program_id = ?", @patient.person, 2]).last.current_regimen]).shortname rescue nil
-	encounters = [14,15,77,78,87,86,85]	
+
 	status = @variables["arvStart"].to_date - tbStart.encounter_datetime.to_date rescue nil
 
 	if status == nil
@@ -911,7 +911,7 @@ end
   
   def get_previous_tb_visits(patient_id)
   
-  	start = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", 78, @patient.person]).encounter_datetime rescue nil
+  	start = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", EncounterType.find_by_name("tb registration").id, @patient.person]).encounter_datetime rescue nil
 
 	type = EncounterType.find_by_name("TB Adherence").id rescue nil
   results = Array.new()

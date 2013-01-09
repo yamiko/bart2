@@ -1,9 +1,9 @@
 class CohortToolController < GenericCohortToolController
 	def case_findings
 		@variables = Hash.new(0)
-		@n = []
-		quarter = params[:quarter]
-    @start_date,@end_date = Report.generate_cohort_date_range(quarter)
+
+		@quarter = params[:quarter]
+    @start_date,@end_date = Report.generate_cohort_date_range(@quarter)
     encounters = Encounter.find(:all, :conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ?", EncounterType.find_by_name("tb registration").id, @start_date, @end_date])
     tbtype = ConceptName.find_by_name("TB classification").concept_id
     patienttype = ConceptName.find_by_name("TB patient category").concept_id
@@ -1390,5 +1390,97 @@ class CohortToolController < GenericCohortToolController
 
     patients.sort { |a,b| a[1]['adherence'].to_i <=> b[1]['adherence'].to_i }
   end
+  
+	def report_duration
+			@report_name = params[:report_name]
+	end  
+	
+	def lab_register
+    start_year = params[:start_year]
+    start_month = params[:start_month]
+    start_day = params[:start_day]
+    end_year = params[:end_year]
+    end_month = params[:end_month]
+    end_day = params[:end_day]
+
+    @start_date = (start_year + "-" + start_month + "-" + start_day).to_date.strftime('%d %B %Y')
+    @end_date = (end_year + "-" + end_month + "-" + end_day).to_date.strftime('%d %B %Y')
+
+
+		render :layout => "report"
+	end
+	
+	def tb_register
+    start_year = params[:start_year]
+    start_month = params[:start_month]
+    start_day = params[:start_day]
+    end_year = params[:end_year]
+    end_month = params[:end_month]
+    end_day = params[:end_day]
+
+		@data= []
+		@total = 0
+    @start_date = (start_year + "-" + start_month + "-" + start_day).to_date
+    @end_date = (end_year + "-" + end_month + "-" + end_day).to_date
+		encounters = Encounter.find(:all, :conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ?", EncounterType.find_by_name("tb registration").id, @start_date, @end_date])
+    
+    encounters.each do |enc|
+    
+    	person = Hash.new("")
+    	person["reg_date"] = enc.encounter_datetime.to_date.strftime('%d/%b/%Y')
+    	person["sex"] = enc.patient.person.gender
+    	person["age"] = PatientService.age(enc.patient.person)
+    	person["address"] = enc.patient.person.addresses.first.city_village
+    	person["person_id"] = enc.patient.id
+    	person["name"] = enc.patient.person.names.first.given_name + ' ' + enc.patient.person.names.first.family_name rescue nil
+    	person["cough_duration"] =Concept.find(Observation.find(:last, :conditions => ["encounter_id = ? and concept_id = ? ", enc.id,ConceptName.find_by_name("Duration of current cough").concept_id]).value_coded).shortname rescue nil
+    	tbcat = Concept.find(Observation.find(:last, :conditions => ["encounter_id = ? and concept_id = ? ", enc.id,ConceptName.find_by_name("TB classification").concept_id]).value_coded).fullname
+    	
+    	if tbcat == "Pulmonary tuberculosis"
+    		person["Category"] = "P"
+    	else
+	    	person["Category"] = "EP"
+    	end
+    	dot = Concept.find(Observation.find(:last, :conditions => ["encounter_id = ? and concept_id = ?",enc.id,ConceptName.find_by_name("Directly observed treatment option").concept_id]).value_coded).shortname
+    	
+    	case dot.upcase
+    		when("GUARDIAN")
+    			person["DOT"] = "Gua"
+				when("HEALTH CENTER")
+    			person["DOT"] = "HC"
+   			when("HOSPITAL")
+    			person["DOT"] = "Hosp"
+   			when("COMMUNITY VOLUNTEER")
+    			person["DOT"] = "Com. V" 
+  			when("HEALTH CARE WORKER")
+    			person["DOT"] = "HCW"
+    	end
+    	
+    	ptype = Concept.find(Observation.find(:last, :conditions => ["encounter_id = ? and concept_id = ? ", enc.id,ConceptName.find_by_name("TB patient category").concept_id]).value_coded).fullname
+
+    	case ptype.upcase
+    		when ("NEW PATIENT")
+    			person["pat_type"] = "New"
+    		when ("FAILED - TB") 
+    			person["pat_type"] = "Fail"
+    		when ("RELAPSE MDR-TB PATIENT")
+    			person["pat_type"] = "Relap"
+    		when ("TREATMENT AFTER DEFAULT MDR-TB PATIENT")
+    			person["pat_type"] = "RAD"
+    		else
+    			person["pat_type"] = "Oth"
+    	end
+    	
+    	person["tbnumber"] = PatientIdentifier.identifier(enc.patient.id, PatientIdentifierType.find_by_name("District TB Number").id).identifier
+    	@data << person
+			@total +=1    	
+    end
+
+		render :layout => "report"
+	end
+	
+	def register_specifics
+	
+	end
 end
 

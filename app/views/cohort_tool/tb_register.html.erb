@@ -1,0 +1,56 @@
+<script>
+	function load(){
+		document.getElementById('find').style.display = 'none';
+	}
+	setTimeout("load();",100);
+</script>
+<style>
+	td{
+		text-align:center;
+		height:50px;
+	}
+	tbody{
+
+		overflow:scoll; 
+	}
+	div{
+		-moz-user-select:none;
+	}
+	th{
+		background-color:lightblue; 
+	}
+	A{
+		text-decoration:none;
+	}
+	
+</style>
+
+<img src= "/images/mw.gif" >
+<div style = "position:absolute; top:30px;left:200px; -moz-user-select:none;">
+	<b>Facility : <%= Location.current_health_center.name %></b><br/>
+	<b>Report Type : Tuberculosis Register</b><br/>
+	<b>Duration : <%= "#{@start_date.strftime('%d %B %Y')} to #{@end_date.strftime('%d %B %Y')}"%></b><br>
+	<b>Total Registered : <%= @total%> </b>
+</div>
+<br><br>
+
+<div style = "overflow:auto; margin-left: 10px;border:1px solid; height:65%; width:98%" >
+	<table border = 1 cellspacing = 0 cellpadding =0 width= 100% height = 100%>
+		<tr>
+		<th>Registration Date</th><th>District TB Number</th>
+		<th width = 10%>Name</th><th>Sex</th><th>Age</th><th>Address</th><th>DOT Option
+		</th><th>Duration of Current Cough</th><th>TB Classification</th><th>Patient Category</th><th>&nbsp</th>
+		</tr>
+		<tbody>
+		<%@data.each do |person|%>
+			<tr>
+				<td><%= person["reg_date"] %></td><td><%= person["tbnumber"] %></td><td><%= person["name"] %></td>
+				<td><%= person["sex"] %></td><td><%= person["age"] %></td><td><%= person["address"] %></td>
+				<td><%= person["DOT"] %></td><td><%= person["cough_duration"] %></td><td><%= person["Category"] %></td>
+				<td><%= person["pat_type"] %></td><td><%= link_to "More",:action =>"register_specifics" ,:id =>person['person_id'] %></td>
+			</tr>
+		<%end%>
+		</tbody>
+	</table>
+
+</div>
