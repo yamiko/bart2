@@ -205,7 +205,7 @@ class Cohort
 
 				check_existing = []
  				( self.start_reason(@start_date, @end_date) || [] ).each do | collection_reason |
-				unless check_existing.include?(collection_reason.patient_id)
+          unless check_existing.include?(collection_reason.patient_id)
 							check_existing << collection_reason.patient_id
 							reason = ''
 							if !collection_reason.name.blank?
@@ -239,7 +239,7 @@ class Cohort
 							else
 								cohort_report['Unknown reason'] << collection_reason.patient_id
 							end
-				end
+          end
 				end
 	
 
