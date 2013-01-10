@@ -20,7 +20,7 @@ class SurvivalAnalysis
 		survival_analysis_outcomes = {};  views = {};
 		date_ranges.each_with_index do |range, i|
 			program_id = Program.find_by_name('HIV PROGRAM').id
-			transferred = []; arvs =[]; stopped = []; defaulted=[]; dead=[]; unknown =[]
+			transferred = []; arvs =[]; stopped = []; defaulted=[]; dead=[]; unknown =[]; total = []
 
 			if sex == "female"
 					states = cohort.women_outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id, states = nil, min_age, max_age)
@@ -36,6 +36,7 @@ class SurvivalAnalysis
         'Unknown' => 0,'New patients registered for ART' => states.length}
 
       states.each do | patient_id |
+				total << patient_id
 						#raise patient_id.to_yaml if patient_state['Defaulted'].include?(patient_id.patient_id)
          if patient_state['Defaulted'].include?(patient_id)
 						defaulted << patient_id
@@ -58,6 +59,7 @@ class SurvivalAnalysis
 				end
       end
     			views["#{(i + 1)*12} month survival: outcomes by end of #{range[:end_date].strftime('%B %Y')}"] = {
+				"total" => total,
 				"stopped" => stopped,
 				"arvs" => arvs,
 				"dead" => dead,
