@@ -1482,5 +1482,8 @@ class CohortToolController < GenericCohortToolController
 	def register_specifics
 	
 	end
+	def tb_register_summary
+		render :layout => "report"
+	end
 end
 

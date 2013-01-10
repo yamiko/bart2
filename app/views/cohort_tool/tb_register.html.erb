@@ -1,8 +1,12 @@
 <script>
 	function load(){
-		document.getElementById('find').style.display = 'none';
+		var summary = document.getElementById("find");
+		summary.innerHTML = "<span>Summary</span>"
+		summary.setAttribute("class","blue")
+		summary.setAttribute("onclick", "window.location='/cohort_tool/tb_register_summary'")
 	}
 	setTimeout("load();",100);
+	
 </script>
 <style>
 	td{
