@@ -173,12 +173,12 @@ class Cohort
 		end    
 =end
 		# Run the threads up to this point
-		threads.each do |thread|				
+		(threads || [] ).each do |thread|
 			thread.join
 			if thread[:exception]
 				# log it somehow, or even re-raise it if you
 				# really want, it's got it's original backtrace.
-				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				#raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 
@@ -320,12 +320,12 @@ class Cohort
 		  end
 		end
 
-		threads.each do |thread|				
+		(threads || [] ).each do |thread|
 			thread.join
 			if thread[:exception]
 				# log it somehow, or even re-raise it if you
 				# really want, it's got it's original backtrace.
-				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				#raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 		
@@ -368,12 +368,12 @@ class Cohort
 		  end
 		end
 
-		threads.each do |thread|				
+		(threads|| [] ).each do |thread|
 			thread.join
 			if thread[:exception]
 				# log it somehow, or even re-raise it if you
 				# really want, it's got it's original backtrace.
-				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				#raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 		cohort_report['Total transferred in patients'] = (cohort_report['Total registered'] - 

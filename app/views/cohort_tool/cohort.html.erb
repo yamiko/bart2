@@ -18,6 +18,7 @@
 	}
 </script>
 <style>
+
   table {
     border-style:none;
     border-width:1px;
@@ -54,44 +55,71 @@
 		display:block;
 		padding-left:10px; 
   }
-  
+ 
   .checked_data {
 		position:relative;
 		float:right;
 		display:block;
 		padding-right:10px; 
   }
-  
+  a{
+	text-decoration: none !important;
+	color: white;
+  }
   .clinic_data_value {
 		position:relative;
 		float:left;
 		display:block;
 		border: 0px 0px 2px 0px;
-		border-top:0px;
-		border-bottom:0px;
+		border-top: 1px outset black;
+		border-bottom: 1px outset black;
+		border-radius: 7px 7px 7px 7px;
 		border-left:0px;
 		margin-top:2px;
-		border-style:solid;
-		width:40%;
+		border-style: outset;
+		width:30%;
 		height:100%;
-		padding-left:10px;  	
+		padding: 10px 16px 10px 10px;
+		text-align: center;
+		text-decoration: none !important;
+		background-color: #669999;
+		color: white;
+		display: block;
+		font-size:13px;
   }
-  
+     .create_button a{
+		    background-color: #669999;
+			border-bottom: 1px outset black;
+			border-radius: 7px 7px 7px 7px;
+			border-style: outset;
+			border-top: 1px outset black;
+			color: white;
+			display: block;
+			padding: 10px 16px 10px 10px;
+			text-align: center;
+			text-decoration: none !important;
+			font-size:13px;
+		}
   .checked_data_value {
 		position:relative;
 		float:right;
 		display:block;
 		border: 0px 0px 2px 0px;
-		border-top:0px;
-		border-bottom:0px;
+		border-radius: 7px 7px 7px 7px;
+		border-top: 1px outset black;
+		background-color: #669999;
+		border-bottom: 1px outset black;
 		border-right:0px;
 		border-left:0px;
 		margin-top:2px;
 		margin-top:2px;
-		border-style:solid;
-		width:41%;
+		border-style: outset;
+		width:30%;
 		height:100%;
-		padding-right:10px; 
+		padding: 10px 16px 10px 10px;
+		color: white;
+		display: block;
+		font-size:13px;
   }
   
 	td.left_top_right {
@@ -706,7 +734,7 @@
   <td class="regimen_name_bottom">Other(paed./ adult)</td>
   <td style="border-width:0px 0px 1px 0px;">&nbsp;</td>
   <td class="right_bottom_left">
-  	<span class="clinic_data_value" style="width:100%;">
+  	<span class="clinic_data_value" style="width:83%;">
   	  	<span class="regimen">Other P/A</span></br >
   	<%= link_to "#{@cohort['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'].length rescue '0'}", "/cohort_tool/list_patients_details?field=regimens&type=unknown_antiretroviral_drug&quarter=#{@quarter}" -%>
 	</span>
@@ -726,7 +754,7 @@
   <td style="text-align:left;border-width:1px 0px 1px 1px;">Total patients with side effects</td>
   <td style="border-width:1px 0px 1px 0px;">&nbsp;</td>
   <td style="border-width:1px 0px 1px 0px;">&nbsp;</td>
-  <td class="left_top_right_bottom"><%= link_to "#{@cohort['Total patients with side effects'].length rescue 0}", "/cohort_tool/list_patients_details?field=total_patients_with_side_effects&quarter=#{@quarter}"%></td>
+  <td class="left_top_right_bottom"><span class="create_button"><%= link_to "#{@cohort['Total patients with side effects'].length rescue 0}", "/cohort_tool/list_patients_details?field=total_patients_with_side_effects&quarter=#{@quarter}"%></span></td>
 </tr>
 
 <tr class = 'row_break'>
@@ -742,7 +770,7 @@
   <td style="text-align:left;border-width:1px 0px 0px 1px;">Patients with 0 - 6 doses missed at their last visit (before end of quarter evaluated)</td>
   <td style="border-width:1px 0px 0px 0px;">&nbsp;</td>
   <td style="border-width:1px 0px 0px 0px;">&nbsp;</td>
-  <td class="left_top_right"><%= link_to "#{@cohort['Patients with 0 - 6 doses missed at their last visit'].length rescue 0}", "/cohort_tool/list_patients_details?field=patients_with_0_-_6_doses_missed_at_their_last_visit&quarter=#{@quarter}" -%></td>
+  <td class="left_top_right"><span class="create_button"><%= link_to "#{@cohort['Patients with 0 - 6 doses missed at their last visit'].length rescue 0}", "/cohort_tool/list_patients_details?field=patients_with_0_-_6_doses_missed_at_their_last_visit&quarter=#{@quarter}" -%></span></td>
 </tr>
 
 <tr class = 'row_break'>
@@ -750,7 +778,7 @@
   <td style="text-align:left;border-width:0px 0px 1px 1px;">Patients with 7+ doses missed at their last visit (before end of quarter evaluated)</td>
   <td style="border-width:0px 0px 1px 0px;">&nbsp;</td>
   <td style="border-width:0px 0px 1px 0px;">&nbsp;</td>
-  <td class="right_bottom_left" ><%= link_to "#{@cohort['Patients with 7+ doses missed at their last visit'].length rescue 0}", "/cohort_tool/list_patients_details?field=patients_with_7%2B_doses_missed_at_their_last_visit&quarter=#{@quarter}" -%></td>
+  <td class="right_bottom_left" ><span class="create_button"><%= link_to "#{@cohort['Patients with 7+ doses missed at their last visit'].length rescue 0}", "/cohort_tool/list_patients_details?field=patients_with_7%2B_doses_missed_at_their_last_visit&quarter=#{@quarter}" -%></span></td>
 </tr>
 
 <tr class = 'row_break'>
@@ -758,7 +786,7 @@
   <td style="text-align:left;border-width:0px 0px 1px 1px;">Unknown adherence</td>
   <td style="border-width:0px 0px 1px 0px;">&nbsp;</td>
   <td style="border-width:0px 0px 1px 0px;">&nbsp;</td>
-  <td class="right_bottom_left" ><%= link_to "#{@cohort['Unknown adherence'].length rescue 0}", "/cohort_tool/list_patients_details?field=patients_with_7%2B_doses_missed_at_their_last_visit&quarter=#{@quarter}" -%></td>
+  <td class="right_bottom_left" ><span class="create_button"><%= link_to "#{@cohort['Unknown adherence'].length rescue 0}", "/cohort_tool/list_patients_details?field=patients_with_7%2B_doses_missed_at_their_last_visit&quarter=#{@quarter}" -%></span></td>
 </tr>
 
 <tr class = 'row_break'>
@@ -774,7 +802,7 @@
   <td style="text-align:left;border-width:1px 0px 0px 1px;">Current TB status, any form of TB</td>
   <td style="text-align:left;border-width:1px 0px 0px 0px;">TB not suspected</td>
   <td style="border-width:1px 0px 0px 0px;"">&nbsp;</td>
-  <td class="left_top_right"><%= link_to "#{@cohort['TB not suspected'].length rescue 0}", "/cohort_tool/list_patients_details?field=tb_not_suspected&quarter=#{@quarter}" -%></td>
+  <td class="left_top_right"><span class="create_button"><%= link_to "#{@cohort['TB not suspected'].length rescue 0}", "/cohort_tool/list_patients_details?field=tb_not_suspected&quarter=#{@quarter}" -%></span></td>
 </tr>
 
 <tr class = 'row_break'>
@@ -782,7 +810,7 @@
   <td style="border-width:0px 0px 0px 1px;"></td>
   <td style="text-align:left;border-width:0px;">TB suspected</td>
   <td style="border-width:0px 0px 0px 0px;">&nbsp;</td>
-  <td class="left_right" ><%= link_to "#{@cohort['TB suspected'].length rescue 0}", "/cohort_tool/list_patients_details?field=tb_suspected&quarter=#{@quarter}" -%></td>
+  <td class="left_right" ><span class="create_button"><%= link_to "#{@cohort['TB suspected'].length rescue 0}", "/cohort_tool/list_patients_details?field=tb_suspected&quarter=#{@quarter}" -%></span></td>
 </tr>
 
 <tr class = 'row_break'>
@@ -790,7 +818,7 @@
   <td style="border-width:0px 0px 0px 1px;"></td>
   <td style="text-align:left;border-width:0px;">TB confirmed, currently not yet on TB treatment</td>
   <td style="border-width:0px;">&nbsp;</td>
-  <td class="left_right" ><%= link_to "#{@cohort['TB confirmed not treatment'].length rescue 0}", "/cohort_tool/list_patients_details?field=tb_confirmed_not_treatment&quarter=#{@quarter}" -%></td>
+  <td class="left_right" ><span class="create_button"><%= link_to "#{@cohort['TB confirmed not treatment'].length rescue 0}", "/cohort_tool/list_patients_details?field=tb_confirmed_not_treatment&quarter=#{@quarter}" -%></span></td>
 </tr>
 
 <tr class = 'row_break'>
@@ -798,7 +826,7 @@
   <td style="border-width:0px 0px 0px 1px;"></td>
   <td style="text-align:left;border-width:0px;">TB confirmed, on TB treatment</td>
   <td style="border-width:0px;">&nbsp;</td>
-  <td class="left_right"><%= link_to "#{@cohort['TB confirmed on treatment'].length rescue 0}", "/cohort_tool/list_patients_details?field=tb_confirmed_on_treatment&quarter=#{@quarter}" -%></td>
+  <td class="left_right"><span class="create_button"><%= link_to "#{@cohort['TB confirmed on treatment'].length rescue 0}", "/cohort_tool/list_patients_details?field=tb_confirmed_on_treatment&quarter=#{@quarter}" -%></span></td>
 </tr>
 
 <tr class = 'row_break'>
@@ -806,7 +834,7 @@
   <td style="border-width:0px 0px 1px 1px;"></td>
   <td style="text-align:left;border-width:0px 0px 1px 0px;">Unknown TB status</td>
   <td style="border-width:0px 0px 1px 0px;">&nbsp;</td>
-  <td class="right_bottom_left" ><%= link_to "#{@cohort['TB Unknown'].length rescue 0}", "/cohort_tool/list_patients_details?field=tb_unknown&quarter=#{@quarter}" -%></td>
+  <td class="right_bottom_left" ><span class="create_button"><%= link_to "#{@cohort['TB Unknown'].length rescue 0}", "/cohort_tool/list_patients_details?field=tb_unknown&quarter=#{@quarter}" -%></span></td>
 </tr>
 
 </tbody>

@@ -18,6 +18,19 @@
 	  switch_button.innerHTML = "<span>Cohort</span>"
 	</script>
 	<style>
+	   .create_button a{
+		background-color: #669999;
+		border-bottom: 1px outset black;
+		border-radius: 7px 7px 7px 7px;
+		border-style: outset;
+		border-top: 1px outset black;
+		color: white;
+		display: block;
+		padding: 10px 16px 10px 10px;
+		text-align: center;
+		text-decoration: none !important;
+		font-size:13px;
+		}
 	  table {
 		border-style:none;
 		border-width:1px;
@@ -181,31 +194,31 @@
   </tr>
   <tr>
     <td style = "text-align:left;">New patients registered for ART between <%=values['Section date range'] -%></td>
-    <td style = "text-align:right;"><%= link_to "#{values['New patients registered for ART'] rescue 0}", "/cohort_tool/list_debbuger_details?field=women&value=#{key}&attribute=total&quarter=#{@quarter}" -%></td>
+    <td style = "text-align:right;"  class="create_button"><%= link_to "#{values['New patients registered for ART'] rescue 0}", "/cohort_tool/list_debbuger_details?field=women&value=#{key}&attribute=total&quarter=#{@quarter}" -%></td>
   </tr>
   <tr>
     <td style = "text-align:left;">Number Alive and on ART</td>
-    <td style = "text-align:right;"><%= link_to "#{(values['Number Alive and on ART'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=women&value=#{key}&attribute=arvs&quarter=#{@quarter}" -%></td>
+    <td style = "text-align:right;"  class="create_button"><%= link_to "#{(values['Number Alive and on ART'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=women&value=#{key}&attribute=arvs&quarter=#{@quarter}" -%></td>
   </tr>
   <tr>
     <td style = "text-align:left;">Number Dead</td>
-    <td style = "text-align:right;"><%= link_to "#{(values['Number Dead'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=women&value=#{key}&attribute=dead&quarter=#{@quarter}" -%></td>
+    <td style = "text-align:right;"  class="create_button"><%= link_to "#{(values['Number Dead'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=women&value=#{key}&attribute=dead&quarter=#{@quarter}" -%></td>
   </tr>
   <tr>
     <td style = "text-align:left;">Number Defaulted</td>
-    <td style = "text-align:right;"><%= link_to "#{(values['Number Defaulted'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=women&value=#{key}&attribute=defaulted&quarter=#{@quarter}" -%></td>
+    <td style = "text-align:right;"  class="create_button"><%= link_to "#{(values['Number Defaulted'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=women&value=#{key}&attribute=defaulted&quarter=#{@quarter}" -%></td>
   </tr>
   <tr>
     <td style = "text-align:left;">Number Stopped Treatment</td>
-    <td style = "text-align:right;"><%= link_to "#{(values['Number Stopped Treatment'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=women&value=#{key}&attribute=stopped&quarter=#{@quarter}" -%></td>
+    <td style = "text-align:right;"  class="create_button"><%= link_to "#{(values['Number Stopped Treatment'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=women&value=#{key}&attribute=stopped&quarter=#{@quarter}" -%></td>
   </tr>
   <tr>
     <td style = "text-align:left;">Number Transferred out</td>
-    <td style = "text-align:right;"><%= link_to "#{(values['Number Transferred out'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=women&value=#{key}&attribute=transferred&quarter=#{@quarter}" -%></td>
+    <td style = "text-align:right;"  class="create_button"><%= link_to "#{(values['Number Transferred out'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=women&value=#{key}&attribute=transferred&quarter=#{@quarter}" -%></td>
   </tr>
   <tr>
     <td style = "text-align:left;">Number Unknown</td>
-    <td style = "text-align:right;"><%= link_to "#{(values['Unknown'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=women&value=#{key}&attribute=unknown&quarter=#{@quarter}" -%></td>
+    <td style = "text-align:right;"  class="create_button"><%= link_to "#{(values['Unknown'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=women&value=#{key}&attribute=unknown&quarter=#{@quarter}" -%></td>
   </tr>
 <% end %>
 </table>
