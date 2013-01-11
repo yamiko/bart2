@@ -1,7 +1,25 @@
+
+<script>
+	function load(){
+		var back = document.getElementById("find");
+		back.innerHTML = "<span>Back</span>"
+		back.setAttribute("onclick","history.go(-1);")
+	}
+	setTimeout("load();",30)
+</script>
+
 <style>
 	td{
-		color:red;
 		text-align:center;
+		border-color:black;
+	}
+	A{
+		text-decoration:none;
+		color:red;
+	}
+	A.visited{
+		text-decoration:none;
+		color:red;
 	}
 	
 </style>
@@ -9,27 +27,27 @@
 	<div style= "-moz-user-select:none;margin-left:20px;width:95%;">
 
 			<table width= 100% border=0 cellpadding=0 cellspacing =10>
-					<caption><font size = 5 >Summary of Registered Tuberculosis Cases from to</font></caption>
+					<caption><font size = 5 >Summary of Registered Tuberculosis Cases from <%=@start_date.strftime('%d %B %Y')%> to <%= @end_date.strftime('%d %B %Y')%></font></caption>
 				<tr>
 					<th>
 							<table border = 1 cellspacing = 0 cellpadding =0 width= 100% >
 								<tr>
 									<th ><font size = 5 >Grouping</font></th><th ><font size = 5 >Description</font></th>
 									<th ><font size= 5 >Total Count</th></font><tr>
-								<tr><th rowspan=2>By Gender</th><th>Females Registered</th><td>45</td></tr>
-								<tr><th>Males Registered</th><td>45</td></tr>
-								<tr><th rowspan=2>By TB Classification</th><th>Pulmonary TB Cases</th><td>45</td></tr>
-								<tr><th>Extra-Pulmonary TB Cases</th><td>45</td></tr>
-								<tr><th rowspan=5>By Patient Category</th><th>New TB Cases</th><td>45</td></tr>
-								<tr><th>Relapse TB Cases</th><td>45</td></tr>
-								<tr><th>RAD TB Cases</th><td>45</td></tr>
-								<tr><th>Past Failure TB Cases</th><td>45</td></tr>
-								<tr><th>Other TB Cases</th><td>45</td></tr>
-								<tr><th rowspan=3>By Sputum Examination At Initiation</th><th>Smear Positive</th><td>45</td></tr>
-								<tr><th>Xpert </th><td>45</td></tr>
-								<tr><th>Culture Negative</th><td>45</td></tr>
-								<tr><th></th><th>Smear Positive At 2 Months </th><td>45</td></tr>
-								<tr><th></th><th>Smear Positive At 5 Months</th><td>45</td></tr>
+								<tr><th rowspan=2>By Gender</th><th>Females Registered</th><td><%=link_to @total["Females"],:action => "tb_register_summary_specifics", :grp=>"by gender females",:start=>@start_date,:end=> @end_date%></td></tr>
+								<tr><th>Males Registered</th><td><%=link_to @total["Males"],:action => "tb_register_summary_specifics", :grp=>"by gender males",:start=>@start_date,:end=> @end_date%></td></tr>
+								<tr><th rowspan=2>By TB Classification</th><th>Pulmonary TB Cases</th><td><%= link_to @total["pulmonary"] ,:action => "tb_register_summary_specifics", :grp=>"by tbclass pul",:start=>@start_date,:end=> @end_date %></td></tr>
+								<tr><th>Extra-Pulmonary TB Cases</th><td><%= link_to @total["EP"],:action => "tb_register_summary_specifics", :grp=>"by tbclass EP",:start=>@start_date,:end=> @end_date%></td></tr>
+								<tr><th rowspan=5>By Patient Category</th><th>New TB Cases</th><td><%= link_to @total["new"],:action => "tb_register_summary_specifics", :grp=>"by patclass new",:start=>@start_date,:end=> @end_date%></td></tr>
+								<tr><th>Relapse TB Cases</th><td><%= link_to @total["relapse"],:action => "tb_register_summary_specifics", :grp=>"by patclass rel",:start=>@start_date,:end=> @end_date%></td></tr>
+								<tr><th>RAD TB Cases</th><td><%= link_to @total["defualt"],:action => "tb_register_summary_specifics", :grp=>"by patclass def",:start=>@start_date,:end=> @end_date%></td></tr>
+								<tr><th>Past Failure TB Cases</th><td><%= link_to @total["fail"],:action => "tb_register_summary_specifics", :grp=>"by patclass fail",:start=>@start_date,:end=> @end_date%></td></tr>
+								<tr><th>Other TB Cases</th><td><%= link_to @total["other"],:action => "tb_register_summary_specifics", :grp=>"by patclass other",:start=>@start_date,:end=> @end_date%></td></tr>
+								<tr><th rowspan=3>By Sputum Examination At Initiation</th><th>Smear Positive</th><td></td></tr>
+								<tr><th>Xpert </th><td></td></tr>
+								<tr><th>Culture Negative</th><td></td></tr>
+								<tr><th></th><th>Smear Positive At 2 Months </th><td><%= @total["month2+ve"] %></td></tr>
+								<tr><th></th><th>Smear Positive At 5 Months</th><td><%= @total["month5+ve"] %></td></tr>
 
 							</table>
 					</th>
@@ -37,26 +55,26 @@
 							<table border = 1 cellspacing = 0 cellpadding =0 width= 100% >
 								<tr><th ><font size = 5 >Grouping</font></th><th ><font size = 5 >Description</font></th>
 									<th ><font size= 5 >Total Count</th></font><tr>
-								<tr><th rowspan=6>By Treatment Outcome</th><th>Cured </th><td>45</td></tr>
-								<tr><th>Tx Complete </th><td>45</td></tr>
-								<tr><th>Died </th><td>45</td></tr>
-								<tr><th>Tx Failure</th><td>45</td></tr>
-								<tr><th>Default</th><td>45</td></tr>
-								<tr><th>Transfer</th><td>45</td></tr>
-								<tr><th rowspan=3>By HIV Test Status</th><th>Negative</th><td>45</td></tr>
-								<tr><th>Positive</th><td>45</td></tr>
-								<tr><th>Unknown</th><td>45</td></tr>
-								<tr><th rowspan=2>By Time of HIV Test</th><th>Before TB Registration</th><td>45</td></tr>
-								<tr><th>After TB Registration</th><td>45</td></tr>
-								<tr><th rowspan=3>By ARV Status</th><th>A</th><td>45</td></tr>
-								<tr><th>B</th><td>45</td></tr>
-								<tr><th>C</th><td>45</td></tr>
-								<tr><th>CPT Status</th><th>Started CPT</th><td>45</td></tr>
+								<tr><th rowspan=6>By Treatment Outcome</th><th>Cured </th><td></td></tr>
+								<tr><th>Tx Complete </th><td></td></tr>
+								<tr><th>Died </th><td></td></tr>
+								<tr><th>Tx Failure</th><td></td></tr>
+								<tr><th>Default</th><td></td></tr>
+								<tr><th>Transfer</th><td></td></tr>
+								<tr><th rowspan=3>By HIV Test Status</th><th>Negative</th><td><%= @total["hivneg"]%></td></tr>
+								<tr><th>Positive</th><td><%= @total["hivpos"] %></td></tr>
+								<tr><th>Unknown</th><td><%= @total["hivunk"]%></td></tr>
+								<tr><th rowspan=2>By Time of HIV Test</th><th>Before TB Registration</th><td><%=@total["hivtestb4"]%></td></tr>
+								<tr><th>After TB Registration</th><td><%= @total["hivtestafta"] %></td></tr>
+								<tr><th rowspan=3>By ARV Status</th><th>A</th><td><%= @total["statusA"]%></td></tr>
+								<tr><th>B</th><td><%= @total["statusB"] %></td></tr>
+								<tr><th>C</th><td><%= @total["statusC"] %></td></tr>
+								<tr><th>CPT Status</th><th>Started CPT</th><td><%= @total["cpt"]%></td></tr>
 							</table>
 					</th>
 				</tr>
 			</table>
-		<font size = 4 style = strong>Total Registered :</font>		
+		<font size = 4 style = strong>Total Registered :</font>	<b><%= @total["total"]%></b>
 
 	</div>
 

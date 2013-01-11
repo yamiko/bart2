@@ -847,7 +847,7 @@ end
 	  	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", EncounterType.find_by_name("TB Registration").id, @patient.person]) rescue nil
 	  	@variables = Hash.new("")
 	  	
-	  		obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime = ?",@patient.person,5089, 			tbStart.encounter_datetime]) rescue nil
+	  		obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime = ?",@patient.person,ConceptName.find_by_name("Weight").concept_id,tbStart.encounter_datetime]) rescue nil
 
 	#retrieve hiv status as required
 	@variables["hiv1"]=@variables["hiv2"]=@variables["hiv3"]=@variables["hiv4"] = " "
@@ -873,7 +873,7 @@ if (obs != nil)
 	@variables["smear1AAccession"] = temp["acc1"] +"/"+temp["acc2"]
 	@variables["smear1Aresult"] = temp["result1"] +"/"+ temp["result2"]
 end
-	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime > ?",@patient.person,5089, tbStart.encounter_datetime]) rescue nil
+	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime > ?",@patient.person,ConceptName.find_by_name("Weight").concept_id, tbStart.encounter_datetime]) rescue nil
 	@variables["weight2"] = obs.value_numeric rescue nil
 	@variables["weight2date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
 	temp1 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
@@ -884,7 +884,7 @@ end
 
 	end
 
-	obs = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",@patient.person,5089, tbStart.encounter_datetime.to_date + 145,tbStart.encounter_datetime.to_date + 160 ]) rescue nil
+	obs = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",@patient.person,ConceptName.find_by_name("Weight").concept_id, tbStart.encounter_datetime.to_date + 145,tbStart.encounter_datetime.to_date + 160 ]) rescue nil
 	@variables["weight3"].obs.value_numeric rescue nil
 	@variables["weight3date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
 	temp3 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
@@ -894,7 +894,7 @@ end
 
 	end
 
-	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",@patient.person,5089, tbStart.encounter_datetime.to_date + 175,tbStart.encounter_datetime.to_date + 245 ]) rescue nil
+	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",@patient.person,ConceptName.find_by_name("Weight").concept_id, tbStart.encounter_datetime.to_date + 175,tbStart.encounter_datetime.to_date + 245 ]) rescue nil
 
 	@variables["weight4"] = obs.value_numeric rescue nil
 	@variables["weight4date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil

@@ -1419,7 +1419,7 @@ class CohortToolController < GenericCohortToolController
     end_day = params[:end_day]
 
 		@data= []
-		@total = 0
+		@total = Hash.new(0)
     @start_date = (start_year + "-" + start_month + "-" + start_day).to_date
     @end_date = (end_year + "-" + end_month + "-" + end_day).to_date
 		encounters = Encounter.find(:all, :conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ?", EncounterType.find_by_name("tb registration").id, @start_date, @end_date])
@@ -1429,6 +1429,11 @@ class CohortToolController < GenericCohortToolController
     	person = Hash.new("")
     	person["reg_date"] = enc.encounter_datetime.to_date.strftime('%d/%b/%Y')
     	person["sex"] = enc.patient.person.gender
+    	if (enc.patient.person.gender == "M")
+    		@total["Males"] +=1
+    	else
+    		@total["Females"] +=1
+    	end
     	person["age"] = PatientService.age(enc.patient.person)
     	person["address"] = enc.patient.person.addresses.first.city_village
     	person["person_id"] = enc.patient.id
@@ -1438,8 +1443,10 @@ class CohortToolController < GenericCohortToolController
     	
     	if tbcat == "Pulmonary tuberculosis"
     		person["Category"] = "P"
+    		@total["pulmonary"] +=1
     	else
 	    	person["Category"] = "EP"
+	    	@total["EP"] +=1
     	end
     	dot = Concept.find(Observation.find(:last, :conditions => ["encounter_id = ? and concept_id = ?",enc.id,ConceptName.find_by_name("Directly observed treatment option").concept_id]).value_coded).shortname
     	
@@ -1461,29 +1468,351 @@ class CohortToolController < GenericCohortToolController
     	case ptype.upcase
     		when ("NEW PATIENT")
     			person["pat_type"] = "New"
+    			@total["new"] +=1
     		when ("FAILED - TB") 
     			person["pat_type"] = "Fail"
+    			@total["fail"] +=1
     		when ("RELAPSE MDR-TB PATIENT")
     			person["pat_type"] = "Relap"
+    			@total["relapse"] +=1
     		when ("TREATMENT AFTER DEFAULT MDR-TB PATIENT")
     			person["pat_type"] = "RAD"
+    			@total["defualt"] +=1
     		else
     			person["pat_type"] = "Oth"
+    			@total["other"] +=1
     	end
     	
     	person["tbnumber"] = PatientIdentifier.identifier(enc.patient.id, PatientIdentifierType.find_by_name("District TB Number").id).identifier
     	@data << person
-			@total +=1    	
+  	
     end
 
 		render :layout => "report"
 	end
 	
 	def register_specifics
+		
+		id = params[:id]
+		@values = Hash.new("N/A")
+		@values["name"] = params[:name]
+		start = params[:start]
+		end_date = params[:end]
+		
+		encounters = Encounter.find(:last, :conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ? and patient_id = ?", EncounterType.find_by_name("tb registration").id, start, end_date,id])
+       	
+    @values["hivstatus"] = PatientService.patient_hiv_status(encounters.patient)
+    	
 	
+    
+    	
+			arvstart = PatientService.patient_art_start_date(id).to_date rescue nil
+
+			if arvstart == nil
+				@values["arvstatus"] = "C"
+			elsif arvstart >  encounters.encounter_datetime.to_date
+				@values["arvstatus"] = "A"
+				@values["arvnumber"] = PatientService.get_patient_identifier(encounters.patient, 'ARV Number')
+			else
+				@values["arvstatus"] = "B"
+				@values["arvnumber"] = PatientService.get_patient_identifier(encounters.patient, 'ARV Number')
+		
+			
+			startedcpt = Observation.find(:first,:conditions => ["concept_id = ?",ConceptName.find_by_name("cpt given")])
+				
+				if (startedcpt != nil)
+					@values["cpt"] = "Started"
+				else
+					@values["cpt"] = "Not Started"
+				end
+    end
+    	
+    	if ((@values["hivstatus"].upcase == "POSITIVE") || (@values["hivstatus"].upcase == "NEGATIVE"))
+    		hivdate = PatientService.hiv_test_date(id)
+    		if (hivdate != nil)
+		  		if encounters.encounter_datetime.to_date < hivdate.to_date
+		  			@values["hiv_test_date"] = "After"
+		  		elsif encounters.encounter_datetime.to_date > hivdate.to_date
+		  			@values["hiv_test_date"] = "Before"
+		  		end
+		  	end
+    	end
+    	
+    culture_concepts = [ConceptName.find_by_name("Culture(1st)").concept_id,ConceptName.find_by_name("Culture(2nd)").concept_id]
+    
+		culture = Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ? AND (value_coded in (?))", id, ConceptName.find_by_name('Tests ordered').concept_id, start,end_date, culture_concepts], :limit => 2)
+
+    if culture != []
+    	if ((culture[0].answer_string.to_s.include?"positive") ||(culture[1].answer_string.to_s.include?"positive"))
+    			@values["culture"] = "Positive"
+    	elsif((culture[0].answer_string.to_s.include?"negative") ||(culture[1].answer_string.to_s.include?"negative"))
+    			@values["culture"] = "Negative"
+    	else
+    			@values["culture"] = "Unknown"
+    	end
+    end
+
+
+    	smears = PatientService.sputum_results_by_date(id)
+    	result = PatientService.sputum_by_date(smears, encounters.encounter_datetime.to_date)
+    	#last line gets the results of initial smear test
+    	if result != nil
+    	
+    		if ((result["result1"].to_s.include?"positive") ||(result["result2"].to_s.include?"positive"))
+    				@values["smearat1"] = "Positive"
+    		elsif((result["result1"].to_s.include?"negative") ||(result["result2"].to_s.include?"negative"))
+    				@values["smearat1"] = "Negative"
+    		else
+    				@values["smearat1"] = "Unknown"
+    		end
+    	end
+
+    	result = PatientService.sputum_by_date(smears, encounters.encounter_datetime.to_date + 60)
+    	#last line gets the results of second smear test
+    	if result != nil
+    	
+    		if ((result["result1"].to_s.include?"positive") ||(result["result2"].to_s.include?"positive"))
+    				@values["smearat2"] = "Positive"
+    		elsif((result["result1"].to_s.include?"negative") ||(result["result2"].to_s.include?"negative"))
+    				@values["smearat2"] = "Negative"
+    		else
+    				@values["smearat2"] = "Unknown"
+    		end
+    	end
+    	
+    	result = PatientService.sputum_by_date(smears, encounters.encounter_datetime.to_date + 150)
+    	#last line gets the results of smear test at month 5
+    	if result != nil
+    	
+    		if ((result["result1"].to_s.include?"positive") ||(result["result2"].to_s.include?"positive"))
+    				@values["smearat5"] = "Positive"
+    		elsif((result["result1"].to_s.include?"negative") ||(result["result2"].to_s.include?"negative"))
+    				@values["smearat5"] = "Negative"
+    		else
+    				@values["smearat5"] = "Unknown"
+    		end
+    	end
+
+    	result = PatientService.sputum_by_date(smears, encounters.encounter_datetime.to_date + 180)
+    	#last line gets the results of smear test at month 5
+    	if result != nil
+    	
+    		if ((result["result1"].to_s.include?"positive") ||(result["result2"].to_s.include?"positive"))
+    				@values["smearat6"] = "Positive"
+    		elsif((result["result1"].to_s.include?"negative") ||(result["result2"].to_s.include?"negative"))
+    				@values["smearat6"] = "Negative"
+    		else
+    				@values["smearat6"] = "Unknown"
+    		end
+    	end
+    	
+    	result = PatientService.sputum_by_date(smears, encounters.encounter_datetime.to_date + 210)
+    	#last line gets the results of smear test at month 5
+    	if result != nil
+    	
+    		if ((result["result1"].to_s.include?"positive") ||(result["result2"].to_s.include?"positive"))
+    				@values["smearat8"] = "Positive"
+    		elsif((result["result1"].to_s.include?"negative") ||(result["result2"].to_s.include?"negative"))
+    				@values["smearat8"] = "Negative"
+    		else
+    				@values["smearat8"] = "Unknown"
+    		end
+    	end
+
+
+			
+			@values["outcome"] = Concept.find(Observation.find(:last, :conditions => ["concept_id = ?",ConceptName.find_by_name("TB treatment outcome").concept_id]).value_coded).fullname rescue nil
+		render :layout => "menu"
 	end
 	def tb_register_summary
+		temp = params[:start].to_s
+		@start_date = params[:start].to_s.split(",")[0].to_date
+		@end_date = params[:start].to_s.split(",")[1].to_date
+		@total = Hash.new(0)
+		encounters = Encounter.find(:all, :conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ?", EncounterType.find_by_name("tb registration").id, @start_date, @end_date])
+    
+    encounters.each do |enc|
+			@total["total"] +=1    
+    	if (enc.patient.person.gender == "M")
+    		@total["Males"] +=1
+    	else
+    		@total["Females"] +=1
+    	end
+    	tbcat = Concept.find(Observation.find(:last, :conditions => ["encounter_id = ? and concept_id = ? ", enc.id,ConceptName.find_by_name("TB classification").concept_id]).value_coded).fullname
+    	
+    	if tbcat == "Pulmonary tuberculosis"
+
+    		@total["pulmonary"] +=1
+    	else
+
+	    	@total["EP"] +=1
+    	end
+    	
+    	ptype = Concept.find(Observation.find(:last, :conditions => ["encounter_id = ? and concept_id = ? ", enc.id,ConceptName.find_by_name("TB patient category").concept_id]).value_coded).fullname
+
+    	case ptype.upcase
+    		when ("NEW PATIENT")
+
+    			@total["new"] +=1
+    		when ("FAILED - TB") 
+
+    			@total["fail"] +=1
+    		when ("RELAPSE MDR-TB PATIENT")
+
+    			@total["relapse"] +=1
+    		when ("TREATMENT AFTER DEFAULT MDR-TB PATIENT")
+
+    			@total["defualt"] +=1
+    		else
+
+					@total["other"] +=1
+    	end
+    	
+    	hivstatus = PatientService.patient_hiv_status(enc.patient)
+    	
+    	case hivstatus.upcase
+    	
+    	when ("POSITIVE")
+    		@total["hivpos"] +=1
+				arvstart = PatientService.patient_art_start_date(enc.patient.person.id).to_date.strftime(' %d- %b- %Y') rescue nil
+				status = arvstart.to_date - encounter_datetime.to_date rescue nil
+				if status == nil
+					@total["statusC"] += 1
+				elsif sputum !=nil and sputum > 0
+					@total["statusA"] += 1
+				else
+					@total["statusB"] += 1
+				end
+				startedcpt = Observation.find(:first,:conditions => ["concept_id = ?",ConceptName.find_by_name("CPT Started").concept_id])
+				
+				if (startedcpt != nil)
+					@total["cpt"] +=1
+				end
+    	when ("NEGATIVE")
+    		@total["hivneg"] +=1
+
+    	when ("UNKNOWN")
+    		@total["hivunk"] +=1  	
+    						startedcpt = Observation.find(:first,:conditions => ["concept_id = ?",ConceptName.find_by_name("CPT Started").concept_id])
+				
+				if (startedcpt != nil)
+					@total["cpt"] +=1
+				end
+
+    	end
+    	
+    	if ((hivstatus.upcase == "POSITIVE") || (hivstatus.upcase == "NEGATIVE"))
+    		hivdate = PatientService.hiv_test_date(enc.patient.person.id)
+    		if (hivdate != nil)
+		  		if enc.encounter_datetime.to_date < hivdate.to_date
+		  			@total["hivtestafta"] +=1
+		  		elsif enc.encounter_datetime.to_date > hivdate.to_date
+		  			@total["hivtestb4"] +=1
+		  		end
+		  	end
+    	end
+    	
+    	smears = PatientService.sputum_results_by_date(enc.patient.person.id)
+    	result = PatientService.sputum_by_date(smears, enc.encounter_datetime.to_date + 60)
+    	#last line gets the results of second smear test
+    	if result != nil
+    	
+    		if ((result["result1"].to_s.include?"positive") ||(result["result2"].to_s.include?"positive"))
+    				@total["month2+ve"] +=1
+    		end
+    	end
+    	
+    	result = PatientService.sputum_by_date(smears, enc.encounter_datetime.to_date + 150)
+    	#last line gets the results of smear test at month 5
+    	if result != nil
+    		if ((result["result1"].to_s.include?"positive") ||(result["result2"].to_s.include?"positive"))
+    				@total["month5+ve"] +=1
+    		end
+    	end
+
+    end
 		render :layout => "report"
 	end
+	
+	def tb_register_summary_specifics
+		start = params[:start]
+		end_date = params[:end]
+		category = params[:grp]
+		@people = []
+		
+		case category
+			when("by gender females")
+				@title = "Female TB Patients"		
+						encounters = Encounter.find(:all, 
+						:joins => ["inner join person on encounter.patient_id = person.person_id "],
+						:conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ? and person.gender = ?", EncounterType.find_by_name("tb registration").id, start, end_date, "F"])
+						
+			when("by gender males")				
+				@title = "Male TB Patients"
+						encounters = Encounter.find(:all, 
+						:joins => ["inner join person on encounter.patient_id = person.person_id "],
+						:conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ? and person.gender = ?", EncounterType.find_by_name("tb registration").id, start, end_date, "M"])
+			
+			when("by tbclass pul")
+				@title = "Pulmonary TB Patients"
+						encounters = Encounter.find(:all, 
+						:joins => ["inner join obs on encounter.encounter_id = obs.encounter_id"],
+						:conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ? and obs.concept_id = ? and obs.value_coded = ?", EncounterType.find_by_name("tb registration").id, start, end_date, ConceptName.find_by_name("TB classification").concept_id,ConceptName.find_by_name("Pulmonary tuberculosis").concept_id ])
+
+			when("by tbclass EP")
+				@title = "Extra Pulmonary TB Patients"
+						encounters = Encounter.find(:all, 
+						:joins => ["inner join obs on encounter.encounter_id = obs.encounter_id"],
+						:conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ? and obs.concept_id = ? and obs.value_coded != ?", EncounterType.find_by_name("tb registration").id, start, end_date, ConceptName.find_by_name("TB classification").concept_id,ConceptName.find_by_name("Pulmonary tuberculosis").concept_id ])
+
+			when("by patclass new")
+				@title = "New TB Patients"
+						encounters = Encounter.find(:all, 
+						:joins => ["inner join obs on encounter.encounter_id = obs.encounter_id"],
+						:conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ? and obs.concept_id = ? and obs.value_coded = ?", EncounterType.find_by_name("tb registration").id, start, end_date, ConceptName.find_by_name("TB patient category").concept_id, ConceptName.find_by_name("new patient").concept_id ])
+
+	when("by patclass def")
+		@title = "TB Patients being treated after defualt"
+						encounters = Encounter.find(:all, 
+						:joins => ["inner join obs on encounter.encounter_id = obs.encounter_id"],
+						:conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ? and obs.concept_id = ? and obs.value_coded = ?", EncounterType.find_by_name("tb registration").id, start, end_date, ConceptName.find_by_name("TB patient category").concept_id, ConceptName.find_by_name("Treatment after default MDR-TB patient").concept_id ])
+
+	when("by patclass fail")
+		@title = "TB Patients being treated after failure"
+						encounters = Encounter.find(:all, 
+						:joins => ["inner join obs on encounter.encounter_id = obs.encounter_id"],
+						:conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ? and obs.concept_id = ? and obs.value_coded = ?", EncounterType.find_by_name("tb registration").id, start, end_date, ConceptName.find_by_name("TB patient category").concept_id, ConceptName.find_by_name("Failed - TB").concept_id ])
+
+	when("by patclass rel")
+			@title = "TB Patients being treated after relapse"
+						encounters = Encounter.find(:all, 
+						:joins => ["inner join obs on encounter.encounter_id = obs.encounter_id"],
+						:conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ? and obs.concept_id = ? and obs.value_coded = ?", EncounterType.find_by_name("tb registration").id, start, end_date, ConceptName.find_by_name("TB patient category").concept_id, ConceptName.find_by_name("Relapse MDR-TB patient").concept_id ])
+
+	when("by patclass other")
+				@title = "Other TB Patients "
+		concepts = [ConceptName.find_by_name("new patient").concept_id,ConceptName.find_by_name("Treatment after default MDR-TB patient").concept_id,ConceptName.find_by_name("Failed - TB").concept_id,ConceptName.find_by_name("Relapse MDR-TB patient").concept_id]
+		
+						encounters = Encounter.find(:all, 
+						:joins => ["inner join obs on encounter.encounter_id = obs.encounter_id"],
+						:conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ? and obs.concept_id = ? and obs.value_coded NOT in (?)", EncounterType.find_by_name("tb registration").id, start, end_date, ConceptName.find_by_name("TB patient category").concept_id, concepts ])
+	
+	end
+	
+
+	encounters.each do |enc|
+		person = Hash.new("")
+		person["birthdate"] = enc.patient.person.birthdate.strftime('%d %B %Y') rescue nil
+		person["sex"] = enc.patient.person.gender
+		person["reg_date"] = enc.encounter_datetime.to_date.strftime('%d %B %Y')
+   	person["address"] = enc.patient.person.addresses.first.city_village
+		person["name"] = enc.patient.person.names.first.given_name + ' ' + enc.patient.person.names.first.family_name rescue nil
+  	person["tbnumber"] = PatientIdentifier.identifier(enc.patient.id, PatientIdentifierType.find_by_name("District TB Number").id).identifier
+		@people << person
+	end rescue nil
+
+
+		render :layout => "report"	
+	end	
 end
 

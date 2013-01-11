@@ -11,17 +11,16 @@
       jQuery(document).ready(function($) {     
           $('#table_id').dataTable({
             "bAutoWidth": true,
-            "bPaginate": false,
+            "bPaginate": true,
             "bProcessing": true,
-            "sScrollY": "390px",
-            "bInfo": true
-
+            "sScrollY": "470px",
+            "bInfo": true,
+            "bPaginate": true
           });
     search_box = $('#table_id').dataTable()
     search = document.getElementsByTagName("input")[0];
     search.setAttribute("id","search");
     document.getElementById('search').setAttribute("onclick","showKeyboard();");
-    document.getElementById("find").setAttribute("onclick", "history.back(-1);")
     document.getElementById("find").innerHTML = "<span>Back</span>";
     document.getElementById("find").style.cssFloat = "left";
     //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -36,9 +35,9 @@
                             id='"+id+"'>"+
         string +
         "</button>";
-    function getButtons(chars){
     }
 
+    function getButtons(chars){
       var buttonLine = "";
       for(var i=0; i<chars.length; i++){
         character = chars.substring(i,i+1)
@@ -80,17 +79,6 @@
     table_length.setAttribute("style","width:100px;");
 
   })
-    </script>
-    <script type= "text/javascript">
-    	function onLoadInit(){
-		  	var button = document.getElementById("buttons");
-		  	var summary = document.createElement("button");
-		  	summary.innerHTML = "<span>Summary</span>"
-		  	summary.setAttribute("class","blue")
-		  	summary.setAttribute("onclick","window.location='/cohort_tool/tb_register_summary?start=<%=@start_date%>,<%=@end_date%>'")
-		  	button.appendChild(summary)
-    	}
-    	setTimeout("onLoadInit();",300)
     </script>
 
     <script>
@@ -183,14 +171,11 @@
        div {
         -moz-user-select: none;
       }
-			A{
-				text-decoration:none;
-				color:maroon;
+			th{
+				background-color:#9999FF; 
+
+
 			}
-			A.visited{
-				color:maroon;
-			}
-			
 
       .basic_span {
         position:relative;
@@ -231,7 +216,7 @@
       #table_id_info{
         left: 10px;
         position: absolute;
-        bottom: -25px;
+        bottom: -20px;
         font-weight:bold;
       }
       #table_id_length{
@@ -246,34 +231,39 @@
     </style>
   </head>
   <body >
-  
-			<img src= "/images/mw.gif" >
-		<div style = "position:absolute; top:30px;left:200px; -moz-user-select:none;">
-			<b>Facility : <%= Location.current_health_center.name %></b><br/>
-			<b>Report Type : Tuberculosis Register</b><br/>
-			<b>Duration : <%= "#{@start_date.strftime('%d %B %Y')} to #{@end_date.strftime('%d %B %Y')}" %></b><br>
-			<b>Total Registered : <%= @data.length %> </b>
-		</div>
-		<br>
-
+		<span style="align:center;"><font color=brown face= arial size=15 > List of <%=@title%>  </font></span>
     <div style = "margin-top: 30px; background-color:beige">
       <table  id="table_id" class="display" >
-<thead>
-				<th><u>Registration Date</u></th><th><u>District TB Number</u></th>
-				<th width = 10%><u>Name</u></th><th><u>Sex</u></th><th><u>Age</u></th><th><u>Address</u></th>
-				<th><u>DOT Option</u></th><th><u>Duration of Current Cough</u></th><th><u>TB Classification</u></th>
-				<th><u>Patient Category</u></th><th>&nbsp</th>
-			</thead>			
-				<tbody>
-				<%@data.each do |person|%>
-					<tr>
-						<td><%= person["reg_date"] %></td><td><%= person["tbnumber"] %></td><td><%= person["name"] %></td>
-						<td><%= person["sex"] %></td><td><%= person["age"] %></td><td><%= person["address"] %></td>
-						<td><%= person["DOT"] %></td><td><%= person["cough_duration"] %></td><td><%= person["Category"] %></td>
-						<td><%= person["pat_type"] %></td><td><%= link_to "Test Details",:action =>"register_specifics" ,:id =>person['person_id'],:start =>@start_date, :end =>@end_date, :name => person["name"] %></td>
-					</tr>
-				<% end %>
-				</tbody>      </table>
+        <thead><tr>
+            <th>
+                  <u>Name</u> <p />
+            </th>
+            <th>
+                  <u> Birthdate </u> <p />
+            </th>
+            <th>
+                  <u>Gender </u> <p />
+            </th>
+            <th>
+                  <u> Address </u> <p />
+            </th>
+            <th>
+                  <u> Date Registered </u> <p />
+            </th>
+            <th>
+                  <u> TB Number </u> <p />
+            </th>
+            
+          </tr>
+
+        </thead>
+        <tbody>
+        	<% @people.each do |pple| %>
+	        	<tr><td><%= pple["name"]%></td><td><%= pple["birthdate"]%></td><td><%= pple["sex"]%></td>
+	        	<td><%= pple["address"]%></td><td><%= pple["reg_date"]%></td><td><%= pple["tbnumber"]%></td></tr>
+	        <%end%>
+        </tbody>
+      </table>
     </div>
     <div class="horizontal_line">
       <hr width="100%" color="gray"/>
