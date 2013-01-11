@@ -64,7 +64,7 @@
   }
   a{
 	text-decoration: none !important;
-	color: white;
+	color: black;
   }
   .clinic_data_value {
 		position:relative;
@@ -83,7 +83,7 @@
 		text-align: center;
 		text-decoration: none !important;
 		background-color: #669999;
-		color: white;
+		color: black;
 		display: block;
 		font-size:13px;
   }
@@ -93,7 +93,7 @@
 			border-radius: 7px 7px 7px 7px;
 			border-style: outset;
 			border-top: 1px outset black;
-			color: white;
+			color: black;
 			display: block;
 			padding: 10px 16px 10px 10px;
 			text-align: center;
@@ -117,7 +117,7 @@
 		width:30%;
 		height:100%;
 		padding: 10px 16px 10px 10px;
-		color: white;
+		color: black;
 		display: block;
 		font-size:13px;
   }
@@ -141,9 +141,13 @@
 	.regimen {
 		position:absolute;
 		top:0px;
-		left:0px;
+		left:1px;
+		border-radius:100px;
+		background:white;
+		color:black;
+		text-align:center;
+		font-size:15px;
 	}
-	
 	td.regimen_name_top {
 		text-align:left;
 		border-width:1px 0px 0px 0px;
@@ -184,7 +188,7 @@
    .dataTable{
 	 width:6%
    }
-		
+ 
 </style>
 
 <title>Cohort<%= Location.current_health_center.name + "  " + @quarter %></title>
