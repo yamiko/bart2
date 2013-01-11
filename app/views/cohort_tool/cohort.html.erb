@@ -544,7 +544,7 @@
   <td style="text-align:left;border-width:0px 0px 1px 1px;">Unknown outcome</td>
   <td style="border-width:0px 0px 1px 0px;">&nbsp;</td>
   <td style="border-width:0px 0px 1px 0px;">&nbsp;</td>
-  <td style="border-width:0px 3px 3px 3px;"><span class="clinic_data_value" ><%="#{@cohort['Unknown outcomes'].length rescue 0}"%></span><span class="checked_data_value">&nbsp;</span></td>
+  <td style="border-width:0px 3px 3px 3px;"><span class="clinic_data_value" ><%=link_to "#{@cohort['Unknown outcomes'].length rescue 0}", "/cohort_tool/list_patients_details?field=unknown_outcomes&quarter=#{@quarter}" -%></span><span class="checked_data_value">&nbsp;</span></td>
 </tr>
 
 
@@ -786,7 +786,7 @@
   <td style="text-align:left;border-width:0px 0px 1px 1px;">Unknown adherence</td>
   <td style="border-width:0px 0px 1px 0px;">&nbsp;</td>
   <td style="border-width:0px 0px 1px 0px;">&nbsp;</td>
-  <td class="right_bottom_left" ><span class="create_button"><%= link_to "#{@cohort['Unknown adherence'].length rescue 0}", "/cohort_tool/list_patients_details?field=patients_with_7%2B_doses_missed_at_their_last_visit&quarter=#{@quarter}" -%></span></td>
+  <td class="right_bottom_left" ><span class="create_button"><%= link_to "#{@cohort['Unknown adherence'].length rescue 0}", "/cohort_tool/list_patients_details?field=unknown_adherence&quarter=#{@quarter}" -%></span></td>
 </tr>
 
 <tr class = 'row_break'>

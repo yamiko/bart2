@@ -173,12 +173,12 @@ class Cohort
 		end    
 =end
 		# Run the threads up to this point
-		(threads || [] ).each do |thread|
+		threads.each do |thread|
 			thread.join
 			if thread[:exception]
 				# log it somehow, or even re-raise it if you
 				# really want, it's got it's original backtrace.
-				#raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 
@@ -320,12 +320,12 @@ class Cohort
 		  end
 		end
 
-		(threads || [] ).each do |thread|
+		threads.each do |thread|
 			thread.join
 			if thread[:exception]
 				# log it somehow, or even re-raise it if you
 				# really want, it's got it's original backtrace.
-				#raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 		
@@ -368,12 +368,12 @@ class Cohort
 		  end
 		end
 
-		(threads|| [] ).each do |thread|
+		threads.each do |thread|
 			thread.join
 			if thread[:exception]
 				# log it somehow, or even re-raise it if you
 				# really want, it's got it's original backtrace.
-				#raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 		cohort_report['Total transferred in patients'] = (cohort_report['Total registered'] - 
@@ -1055,7 +1055,7 @@ class Cohort
 		art_adherence_concept = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
 		art_adherence_encounter = EncounterType.find_by_name("ART ADHERENCE").id
 
-		patients = Observation.find_by_sql("SELECT DISTINCT person_id AS person_id, 
+		patients = Observation.find_by_sql("SELECT DISTINCT e.patient_id, person_id AS person_id,
           earliest_start_date, current_text_for_obs(obs.person_id,#{art_adherence_encounter},#{art_adherence_concept},'#{end_date}') AS current_text 
           FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
 					AND concept_id = #{art_adherence_concept} 
@@ -1077,7 +1077,7 @@ class Cohort
 		art_adherence_concept = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
 		art_adherence_encounter = EncounterType.find_by_name("ART ADHERENCE").id
 
-		patients = Observation.find_by_sql("SELECT DISTINCT person_id AS person_id, 
+		patients = Observation.find_by_sql("SELECT DISTINCT e.patient_id, person_id AS person_id,
           earliest_start_date, current_text_for_obs(obs.person_id,#{art_adherence_encounter},#{art_adherence_concept},'#{end_date}')
           FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
 					AND concept_id = #{art_adherence_concept} 

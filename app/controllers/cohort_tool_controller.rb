@@ -662,11 +662,25 @@ class CohortToolController < GenericCohortToolController
 		}.first.to_s
 		
 		session[:cohort]["sorted"]={} if session[:cohort]["sorted"].blank?
-		
-		if params[:field] == "regimens"	
+		if params[:field] == "patients_with_7+_doses_missed_at_their_last_visit" 
+			#raise session[:cohort]["#{params[:field].humanize}"].to_yaml
+			data = []
+			session[:cohort]["#{params[:field].humanize}"].map do |patient_id|
+				data << patient_id.patient_id || patient_id.person_id
+			end
+			session[:cohort]["sorted"]["#{params[:field].humanize}"] = true
+
+		elsif params[:field] == "patients_with_0_-_6_doses_missed_at_their_last_visit"
+			data = []
+			session[:cohort]["#{params[:field].humanize}"].map do |patient_id|
+				data <<  patient_id.person_id
+			end
+			session[:cohort]["sorted"]["#{params[:field].humanize}"] = true
+
+		elsif params[:field] == "regimens"
 			type=params[:type].humanize.upcase
 			
-			session[:cohort][key][type].sort! do |a,b|
+			(session[:cohort][key][type] || []).sort! do |a,b|
 				PatientService.get_patient(Person.find(a)).send(sort_value).send(data_type) <=>
 					PatientService.get_patient(Person.find(b)).send(sort_value).send(data_type)
 			end if session[:cohort]["sorted"]["#{type}"].blank?
@@ -690,7 +704,7 @@ class CohortToolController < GenericCohortToolController
 			#@current_page = data.paginate(:page => params[:page], :per_page => 100)
 		#end
 
-		data.each do |patient_id|
+		(data || []).each do |patient_id|
 			patient = Patient.find(patient_id)
 			@report << PatientService.get_patient(patient.person)
 
