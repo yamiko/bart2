@@ -862,6 +862,17 @@ EOF
         :order =>"obs_datetime")
   end
 
+	def self.get_debugger_details(person, current_date = Date.today)
+		patient = PatientBean.new('')
+		patient.person_id = person.id
+		patient.name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
+		patient.patient_id = person.patient.id
+		patient.age = age(person, current_date)
+		patient.age_in_months = age_in_months(person, current_date)
+		patient.arv_number = get_patient_identifier(person.patient, 'ARV Number')
+		patient
+	end
+
 	def self.get_patient(person, current_date = Date.today)
 		patient = PatientBean.new('')
 		patient.person_id = person.id
