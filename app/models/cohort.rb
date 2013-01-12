@@ -52,7 +52,7 @@ class Cohort
 				cohort_report['Total HIV infected'] = []
 
 				check_existing = []
-				#raise self.start_reason(@@first_registration_date, @end_date).to_yaml
+				
 				( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | collection_reason |
 					unless check_existing.include?(collection_reason.patient_id)
 							check_existing << collection_reason.patient_id

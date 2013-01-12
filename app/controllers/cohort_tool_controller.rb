@@ -631,7 +631,7 @@ class CohortToolController < GenericCohortToolController
 
 		data.each do |patient_id|
 			patient = Patient.find(patient_id)
-			@report << PatientService.get_patient(patient.person)
+			@report << PatientService.get_debugger_details(patient.person)
 			set_outcomes_and_start_reason(patient_id) #find start reason and outcome for patient
 		end
 		@report.sort { |a,b|
@@ -700,7 +700,7 @@ class CohortToolController < GenericCohortToolController
 
 		(data || []).each do |patient_id|
 			patient = Patient.find(patient_id)
-			@report << PatientService.get_patient(patient.person)
+			@report << PatientService.get_debugger_details(patient.person)
 
 			#find start reason
 			set_outcomes_and_start_reason(patient_id)
