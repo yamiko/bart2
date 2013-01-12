@@ -697,12 +697,6 @@ class CohortToolController < GenericCohortToolController
 			session[:cohort]["sorted"]["#{key}"] = true
 		end
 		
-		#records_per_page = CoreService.get_global_property_value('records_per_page') rescue 15
-		#@current_page = []
-		 
-		#if !data.nil?
-			#@current_page = data.paginate(:page => params[:page], :per_page => 100)
-		#end
 
 		(data || []).each do |patient_id|
 			patient = Patient.find(patient_id)

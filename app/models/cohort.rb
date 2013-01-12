@@ -52,26 +52,29 @@ class Cohort
 				cohort_report['Total HIV infected'] = []
 
 				check_existing = []
+				#raise self.start_reason(@@first_registration_date, @end_date).to_yaml
 				( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | collection_reason |
 					unless check_existing.include?(collection_reason.patient_id)
 							check_existing << collection_reason.patient_id
 							reason = PatientService.reason_for_art_eligibility(collection_reason.patient) || ''
-							if reason.match(/Presumed/i)
-								cohort_report['Total Presumed severe HIV disease in infants'] << collection_reason.patient_id
+							if reason.match(/WHO stage III/i)
+								cohort_report['Total WHO stage 3'] << collection_reason.patient_id
+							elsif reason.match(/WHO stage IV/i)
+								cohort_report['Total WHO stage 4'] << collection_reason.patient_id
 							elsif reason.match(/Confirmed/i)
 								cohort_report['Total Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
 							elsif reason.match(/HIV DNA polymerase chain reaction/i)
 								cohort_report['Total Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
+							elsif reason.match(/WHO STAGE II/i)
+								cohort_report['Total WHO stage 2, total lymphocytes'] << collection_reason.patient_id
+							elsif reason.match(/lymphocyte/i)
+								cohort_report['Total WHO stage 2, total lymphocytes'] << collection_reason.patient_id
 							elsif reason.match(/WHO STAGE I/i)
 								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
 							elsif reason.match(/CD4/i)
 								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
-							elsif reason.match(/WHO STAGE II /i) or reason.match(/lymphocyte/i)
-								cohort_report['Total WHO stage 2, total lymphocytes'] << collection_reason.patient_id
-							elsif reason.match(/WHO STAGE III /i)
-								cohort_report['Total WHO stage 3'] << collection_reason.patient_id
-							elsif reason.match(/WHO STAGE IV /i)
-								cohort_report['Total WHO stage 4'] << collection_reason.patient_id
+							elsif reason.match(/Presumed/i)
+								cohort_report['Total Presumed severe HIV disease in infants'] << collection_reason.patient_id
 							elsif reason.strip.humanize == 'Patient pregnant'
 								cohort_report['Total Patient pregnant'] << collection_reason.patient_id
 							elsif reason.match(/Breastfeeding/i)
@@ -173,7 +176,7 @@ class Cohort
 		end    
 =end
 		# Run the threads up to this point
-		threads.each do |thread|
+		(threads || []).each do |thread|
 			thread.join
 			if thread[:exception]
 				# log it somehow, or even re-raise it if you
@@ -211,18 +214,18 @@ class Cohort
 								cohort_report['Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
 							elsif reason.match(/HIV DNA polymerase chain reaction/i)
 								cohort_report['Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
-							elsif reason.match(/WHO STAGE I /i)  
-								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
-							elsif reason.match(/CD4 /i)
-								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
-							elsif reason.match(/WHO STAGE II /i)
-								cohort_report['WHO stage 2, total lymphocytes'] << collection_reason.patient_id
-						  elsif reason.match(/lymphocyte/i)
-								cohort_report['WHO stage 2, total lymphocytes'] << collection_reason.patient_id
 							elsif reason.match(/WHO STAGE III /i)
 								cohort_report['WHO stage 3'] << collection_reason.patient_id
 							elsif reason.match(/WHO STAGE IV /i)
 								cohort_report['WHO stage 4'] << collection_reason.patient_id
+							elsif reason.match(/WHO STAGE II /i)
+								cohort_report['WHO stage 2, total lymphocytes'] << collection_reason.patient_id
+							elsif reason.match(/WHO STAGE I /i)  
+								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+							elsif reason.match(/CD4 /i)
+								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+						  elsif reason.match(/lymphocyte/i)
+								cohort_report['WHO stage 2, total lymphocytes'] << collection_reason.patient_id
 							elsif reason.strip.humanize == 'Patient pregnant'
 								cohort_report['Patient pregnant'] << collection_reason.patient_id
 							elsif reason.match(/Breastfeeding/i)
@@ -320,12 +323,12 @@ class Cohort
 		  end
 		end
 
-		threads.each do |thread|
+		(threads || []).each do |thread|
 			thread.join
 			if thread[:exception]
 				# log it somehow, or even re-raise it if you
 				# really want, it's got it's original backtrace.
-				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				#raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 		
@@ -368,7 +371,7 @@ class Cohort
 		  end
 		end
 
-		threads.each do |thread|
+		(threads || []).each do |thread|
 			thread.join
 			if thread[:exception]
 				# log it somehow, or even re-raise it if you
