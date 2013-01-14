@@ -870,8 +870,8 @@ if (obs != nil)
 	@variables["startWeight"] = obs.value_numeric rescue nil
 	@variables["startWeightdate"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
 	temp = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
-	@variables["smear1AAccession"] = temp["acc1"] +"/"+temp["acc2"]
-	@variables["smear1Aresult"] = temp["result1"] +"/"+ temp["result2"]
+	@variables["smear1AAccession"] = temp["acc1"] +"/"+temp["acc2"] rescue nil
+	@variables["smear1Aresult"] = temp["result1"] +"/"+ temp["result2"] rescue nil
 end
 	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime > ?",@patient.person,ConceptName.find_by_name("Weight").concept_id, tbStart.encounter_datetime]) rescue nil
 	@variables["weight2"] = obs.value_numeric rescue nil

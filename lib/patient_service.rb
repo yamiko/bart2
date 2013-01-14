@@ -526,7 +526,7 @@ module PatientService
 					list["acc2"] = sputum_list[i+1].accession_number
 					list["result2"] = sputum_list[i+1].answer_string
 					return list
-			end
+			end rescue nil
 			i+=1
 		end
 	end

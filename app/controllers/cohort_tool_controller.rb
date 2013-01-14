@@ -1550,74 +1550,55 @@ class CohortToolController < GenericCohortToolController
     end
 
 
-    	smears = PatientService.sputum_results_by_date(id)
-    	result = PatientService.sputum_by_date(smears, encounters.encounter_datetime.to_date)
-    	#last line gets the results of initial smear test
-    	if result != nil
-    	
-    		if ((result["result1"].to_s.include?"positive") ||(result["result2"].to_s.include?"positive"))
+    	sputum_results = sputum_results_at_reg(encounters.encounter_datetime, encounters.patient.patient_id)
+      sputum_results.each { |obs|
+        if obs.value_coded != ConceptName.find_by_name("Negative").id
     				@values["smearat1"] = "Positive"
-    		elsif((result["result1"].to_s.include?"negative") ||(result["result2"].to_s.include?"negative"))
+					break
+				elsif obs.value_coded == ConceptName.find_by_name("Negative").id
     				@values["smearat1"] = "Negative"
-    		else
-    				@values["smearat1"] = "Unknown"
-    		end
-    	end
-
-    	result = PatientService.sputum_by_date(smears, encounters.encounter_datetime.to_date + 60)
-    	#last line gets the results of second smear test
-    	if result != nil
-    	
-    		if ((result["result1"].to_s.include?"positive") ||(result["result2"].to_s.include?"positive"))
+   			end}
+   		
+    	sputum_results2 = sputum_results_after_reg(encounters.encounter_datetime, encounters.patient.patient_id,60)
+      sputum_results2.each { |obs|
+        if obs.value_coded != ConceptName.find_by_name("Negative").id
     				@values["smearat2"] = "Positive"
-    		elsif((result["result1"].to_s.include?"negative") ||(result["result2"].to_s.include?"negative"))
+					break
+				elsif obs.value_coded == ConceptName.find_by_name("Negative").id
     				@values["smearat2"] = "Negative"
-    		else
-    				@values["smearat2"] = "Unknown"
-    		end
-    	end
-    	
-    	result = PatientService.sputum_by_date(smears, encounters.encounter_datetime.to_date + 150)
-    	#last line gets the results of smear test at month 5
-    	if result != nil
-    	
-    		if ((result["result1"].to_s.include?"positive") ||(result["result2"].to_s.include?"positive"))
+   			end}
+
+			date = encounters.encounter_datetime + 60.days
+    	sputum_results5 = sputum_results_after_reg(date, encounters.patient.patient_id,150)
+      sputum_results5.each { |obs|
+        if obs.value_coded != ConceptName.find_by_name("Negative").id
     				@values["smearat5"] = "Positive"
-    		elsif((result["result1"].to_s.include?"negative") ||(result["result2"].to_s.include?"negative"))
+					break
+				elsif obs.value_coded == ConceptName.find_by_name("Negative").id
     				@values["smearat5"] = "Negative"
-    		else
-    				@values["smearat5"] = "Unknown"
-    		end
-    	end
+   			end}
 
-    	result = PatientService.sputum_by_date(smears, encounters.encounter_datetime.to_date + 180)
-    	#last line gets the results of smear test at month 5
-    	if result != nil
-    	
-    		if ((result["result1"].to_s.include?"positive") ||(result["result2"].to_s.include?"positive"))
+			date = encounters.encounter_datetime + 150.days
+    	sputum_results6 = sputum_results_after_reg(date , encounters.patient.patient_id,180)
+      sputum_results6.each { |obs|
+        if obs.value_coded != ConceptName.find_by_name("Negative").id
     				@values["smearat6"] = "Positive"
-    		elsif((result["result1"].to_s.include?"negative") ||(result["result2"].to_s.include?"negative"))
+					break
+				elsif obs.value_coded == ConceptName.find_by_name("Negative").id
     				@values["smearat6"] = "Negative"
-    		else
-    				@values["smearat6"] = "Unknown"
-    		end
-    	end
-    	
-    	result = PatientService.sputum_by_date(smears, encounters.encounter_datetime.to_date + 210)
-    	#last line gets the results of smear test at month 5
-    	if result != nil
-    	
-    		if ((result["result1"].to_s.include?"positive") ||(result["result2"].to_s.include?"positive"))
+   			end}
+
+			date = encounters.encounter_datetime + 180.days
+    	sputum_results8 = sputum_results_after_reg(date, encounters.patient.patient_id,210)
+      sputum_results8.each { |obs|
+        if obs.value_coded != ConceptName.find_by_name("Negative").id
     				@values["smearat8"] = "Positive"
-    		elsif((result["result1"].to_s.include?"negative") ||(result["result2"].to_s.include?"negative"))
+					break
+				elsif obs.value_coded == ConceptName.find_by_name("Negative").id
     				@values["smearat8"] = "Negative"
-    		else
-    				@values["smearat8"] = "Unknown"
-    		end
-    	end
+   			end}
 
-
-			
+    				
 			@values["outcome"] = Concept.find(Observation.find(:last, :conditions => ["concept_id = ?",ConceptName.find_by_name("TB treatment outcome").concept_id]).value_coded).fullname rescue nil
 		render :layout => "menu"
 	end
@@ -1707,43 +1688,37 @@ class CohortToolController < GenericCohortToolController
     	
   culture_concepts = [ConceptName.find_by_name("Culture(1st)").concept_id,ConceptName.find_by_name("Culture(2nd)").concept_id]
     
-culture = Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ? AND (value_coded in (?))", id, ConceptName.find_by_name('Tests ordered').concept_id, @start_date,@end_date, culture_concepts], :limit => 2)
-
-    if culture[0] != nil && culture[1] != nil
-    	if ((culture[0].answer_string.to_s.include?"positive") ||(culture[1].answer_string.to_s.include?"positive"))
+		Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ? AND (value_coded in (?))", id, ConceptName.find_by_name('Tests ordered').concept_id, @start_date,@end_date, culture_concepts], :limit => 3).each { |obs|
+        if obs.value_coded != ConceptName.find_by_name("Negative").id
 					@total["culture"] +=1
-			end
-    end
+					break
+   			end}
 
     	
     	smears = PatientService.sputum_results_by_date(enc.patient.person.id)
     	
-    	result = PatientService.sputum_by_date(smears, enc.encounter_datetime.to_date)
-    	#last line gets the results of 1st smear test
-    	if result != nil
-    		if ((result["result1"].to_s.include?"positive") ||(result["result2"].to_s.include?"positive"))
+    	
+    	sputum_results = sputum_results_at_reg(enc.encounter_datetime, enc.patient.patient_id)
+      sputum_results.each { |obs|
+        if obs.value_coded != ConceptName.find_by_name("Negative").id
     				@total["initial+ve"] +=1
-    		end
-    	end
-
-    	
-    	result = PatientService.sputum_by_date(smears, enc.encounter_datetime.to_date + 60)
-    	#last line gets the results of second smear test
-    	if result != nil
-    	
-    		if ((result["result1"].to_s.include?"positive") ||(result["result2"].to_s.include?"positive"))
+					break
+   			end}
+   		
+    	sputum_results = sputum_results_after_reg(enc.encounter_datetime, enc.patient.patient_id,60)
+      sputum_results.each { |obs|
+        if obs.value_coded != ConceptName.find_by_name("Positive").id
     				@total["month2+ve"] +=1
-    		end
-    	end
-    	
-    	result = PatientService.sputum_by_date(smears, enc.encounter_datetime.to_date + 150)
-    	#last line gets the results of smear test at month 5
-    	if result != nil
-    		if ((result["result1"].to_s.include?"positive") ||(result["result2"].to_s.include?"positive"))
+					break
+   			end}
+
+			date = enc.encounter_datetime + 60.days
+    	sputum_results = sputum_results_after_reg(date, enc.patient.patient_id,150)
+      sputum_results.each { |obs|
+        if obs.value_coded != ConceptName.find_by_name("Positive").id
     				@total["month5+ve"] +=1
-    		end
-    	end
-    	
+					break
+   			end}
 		
 			pattbstatus = PatientProgram.find(:first, :conditions => ["program_id = ? and patient_id = ? and date_enrolled >=  ?", Program.find_by_name("TB Program").program_id, enc.patient.patient_id, enc.encounter_datetime]).patient_states.last.program_workflow_state.concept.shortname
 			
@@ -1932,7 +1907,13 @@ culture = Observation.find(:all, :conditions => ["person_id = ? AND concept_id =
 		when("dead")
 
 		@title = "Patients Who Died While in Treatment"	
-		encounters = Encounter.find(:all,:joins => ["inner join person on person.person_id = encounter.patient_id"],:conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ? and person.dead = ? and person.death_date < ?",EncounterType.find_by_name("tb registration").id, start, end_date,1,end_date])
+			encounters = []	
+			encounter = Encounter.find(:all,:conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ?",	EncounterType.find_by_name("tb registration").id, start, end_date]).map do |enc|
+			
+			if( PatientProgram.find(:first, :conditions => ["program_id = ? and patient_id = ? and date_enrolled >=  ?", Program.find_by_name("TB Program").program_id, enc.patient.patient_id, enc.encounter_datetime]).patient_states.last.program_workflow_state.concept.shortname == "Patient died")
+					encounters << enc
+				end
+			end rescue nil
 		
 		when("cured")
 			@title = "Patients Who Were Cured"
@@ -1984,6 +1965,46 @@ culture = Observation.find(:all, :conditions => ["person_id = ? AND concept_id =
 				end
 			end rescue nil
 
+		when ("Smear+ve1")
+			@title = "Patients with Smear +ve Results at Initiation "
+			encounters = []
+			encounter = Encounter.find(:all,:conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ?",	EncounterType.find_by_name("tb registration").id, start, end_date]).map do |enc|
+
+      sputum_results = sputum_results_at_reg(enc.encounter_datetime.to_date + 60 , enc.patient.patient_id)
+      sputum_results.each { |obs|
+        if obs.value_coded != ConceptName.find_by_name("Negative").id
+					encounters << enc
+					break
+   			end}
+ 			end
+ 			
+		when ("Smear+ve2")
+			@title = "Patients with Smear +ve Results at Month 2"
+			encounters = []
+			encounter = Encounter.find(:all,:conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ?",	EncounterType.find_by_name("tb registration").id, start, end_date]).map do |enc|
+
+      sputum_results = sputum_results_after_reg(enc.encounter_datetime, enc.patient.patient_id,60)
+      sputum_results.each { |obs|
+        if obs.value_coded != ConceptName.find_by_name("Negative").id
+					encounters << enc
+					break
+   			end}
+ 			end
+
+		when ("Smear+ve5")
+			@title = "Patients with Smear +ve Results at Month 5"
+			encounters = []
+			encounter = Encounter.find(:all,:conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ?",	EncounterType.find_by_name("tb registration").id, start, end_date]).map do |enc|
+			date = enc.encounter_datetime + 60.days
+      sputum_results = sputum_results_after_reg(date, enc.patient.patient_id,150)
+      sputum_results.each { |obs|
+        if obs.value_coded != ConceptName.find_by_name("Negative").id
+					encounters << enc
+					break
+   			end}
+ 			end
+
+
 	end
 	
 
@@ -2001,5 +2022,23 @@ culture = Observation.find(:all, :conditions => ["person_id = ? AND concept_id =
 
 		render :layout => "report"	
 	end	
+
+  def sputum_results_at_reg(registration_date, patient_id)
+    sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results",
+      "AAFB(3rd) results"]
+    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)",
+        sputum_concept_names]).map(&:concept_id)
+    obs = Observation.find(:all,:conditions => ["person_id = ? AND value_coded != ? AND concept_id IN (?) AND obs_datetime <= ?",patient_id,ConceptName.find_by_name("Negative").id ,sputum_concept_ids, registration_date], :limit => 3)
+  end
+
+  def sputum_results_after_reg(registration_date, patient_id,add)
+    sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results",
+      "AAFB(3rd) results"]
+    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)",
+        sputum_concept_names]).map(&:concept_id)
+    obs = Observation.find(:all,:conditions => ["person_id = ? AND value_coded != ? AND concept_id IN (?) AND obs_datetime > ? AND obs_datetime <= ?",patient_id,ConceptName.find_by_name("Negative").id ,sputum_concept_ids, registration_date, registration_date + add.days], :limit => 3)
+  end
+
+
 end
 
