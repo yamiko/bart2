@@ -11,17 +11,18 @@
       jQuery(document).ready(function($) {     
           $('#table_id').dataTable({
             "bAutoWidth": true,
-            "bPaginate": true,
+            "bPaginate": false,
             "bProcessing": true,
             "sScrollY": "470px",
             "bInfo": true,
-            "bPaginate": true
+            "bPaginate": false
           });
     search_box = $('#table_id').dataTable()
     search = document.getElementsByTagName("input")[0];
     search.setAttribute("id","search");
     document.getElementById('search').setAttribute("onclick","showKeyboard();");
     document.getElementById("find").innerHTML = "<span>Back</span>";
+	  document.getElementById("find").setAttribute("onclick","history.back(-1);")
     document.getElementById("find").style.cssFloat = "left";
     //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     keyboard = document.getElementsByClassName("keypad")[0]
@@ -198,11 +199,12 @@
         position:absolute;
         top:0px;
         right:1%;
-        margin-top:-40px;
+        margin-top:-5%;
       }
 
       #table_id_filter input{
         padding:0.5em;
+        font-size:18px;
       }
 
 
@@ -216,7 +218,7 @@
       #table_id_info{
         left: 10px;
         position: absolute;
-        bottom: -20px;
+        bottom: -7%;
         font-weight:bold;
       }
       #table_id_length{
@@ -231,27 +233,28 @@
     </style>
   </head>
   <body >
-		<span style="align:center;"><font color=brown face= arial size=15 > List of <%=@title%>  </font></span>
-    <div style = "margin-top: 30px; background-color:beige">
+		<span style="align:center;"><font color=brown face= verdana size=6 > List of <%=@title%>  </font></span>
+		<br>
+    <div style = "margin-top: 70px; background-color:beige">
       <table  id="table_id" class="display" >
         <thead><tr>
             <th>
-                  <u>Name</u> <p />
+                  Name 
             </th>
             <th>
-                  <u> Birthdate </u> <p />
+                   Birthdate  
             </th>
             <th>
-                  <u>Gender </u> <p />
+                  Gender  
             </th>
             <th>
-                  <u> Address </u> <p />
+                   Address  
             </th>
             <th>
-                  <u> Date Registered </u> <p />
+                   Date Registered  
             </th>
             <th>
-                  <u> TB Number </u> <p />
+                   TB Number  
             </th>
             
           </tr>
