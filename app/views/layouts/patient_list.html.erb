@@ -54,7 +54,19 @@
     }
     </script>
     <style type="text/css">
-      #tab {
+     @media only screen
+	  and (min-width : 1224px) {
+		#print{
+		  display:inline;
+		}
+	  }
+	  @media only screen
+	  and (max-width : 1223px) {
+		#print{
+		  display:none;
+		}
+	  }
+	  #tab {
         height:312px;
       }
       #barcode {
@@ -102,7 +114,6 @@
         position:relative;
         height:12px;
       }
-      
 
 
     </style>
@@ -110,7 +121,7 @@
   </head>
   <body id="mateme">  
     <div id="container">      
-      <div id="content" style = "position : relative; width : 85%; margin-left : -43%;">
+      <div id="content" style = "position : relative; width : 96%; margin-left : -48%;">
       
         <%= yield %>
 

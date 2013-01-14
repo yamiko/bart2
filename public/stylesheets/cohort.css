@@ -1,9 +1,9 @@
 
  body{
-   font-size:12px;
+   font-size:13px;
    }
   
- table{width:90%} 
+ table{width:100%} 
 
  th{
    background-color:lightgrey;
@@ -20,15 +20,14 @@
   border-width:1px; 
   height: 185px;
   overflow: auto;
-  width:95%;
+  width:100%;
   }
 
   div.scrollTableContainer {
-  position:relative;
   height: 70%;
   overflow: auto;
-  width: 92%;
-  margin: 15px auto auto auto;
+  width: 100%;
+  margin: 15px 0 0 0;
   /*position: relative;*/
   }
 
@@ -40,11 +39,6 @@
   width:100%;
   }
 
-  html>/**/body div.scrollTableContainer table>tbody {
-  overflow: auto;
-  height: 509px;
-  overflow-x: hidden;
-  }
 
   div.scrollTableContainer thead tr {
   /*position:relative;*/
