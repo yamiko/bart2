@@ -795,7 +795,7 @@ class CohortToolController < GenericCohortToolController
     start_date,end_date = Report.generate_cohort_date_range(@quarter)
     cohort = Cohort.new(start_date, end_date)
    	logger.info("cohort")
-   	
+    #raise request.env["HTTP_CONNECTION"].to_yaml
 		if session[:cohort].blank?
 		  @cohort = cohort.report(logger)
 		  session[:cohort]=@cohort
