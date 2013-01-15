@@ -181,7 +181,7 @@ class Cohort
 			if thread[:exception]
 				# log it somehow, or even re-raise it if you
 				# really want, it's got it's original backtrace.
-				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				#raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 
@@ -253,7 +253,7 @@ class Cohort
 		    Thread.current[:exception] = e
 		  end
 		end
-
+		
 		threads << Thread.new do
 			begin
 				cohort_report['Died within the 1st month after ART initiation'] = self.total_number_of_died_within_range(0, 30.4375)
@@ -261,7 +261,7 @@ class Cohort
 		    Thread.current[:exception] = e
 		  end
 		end
-
+		#raise self.total_number_of_died_within_range(30.4375, 60.875).to_yaml
 		threads << Thread.new do
 			begin
 				cohort_report['Died within the 2nd month after ART initiation'] = self.total_number_of_died_within_range(30.4375, 60.875)
@@ -278,13 +278,13 @@ class Cohort
 		  end
 		end
 
-		threads << Thread.new do
-			begin
-				cohort_report['Died after the end of the 3rd month after ART initiation'] = self.total_number_of_died_within_range(91.3125, 1000000)
-		  rescue Exception => e
-		    Thread.current[:exception] = e
-		  end
-		end
+		#threads << Thread.new do
+			#begin
+			#	cohort_report['Died after the end of the 3rd month after ART initiation'] = self.total_number_of_died_within_range(91.3125, 1000000)
+		  #rescue Exception => e
+		  #  Thread.current[:exception] = e
+		  #end
+		#end
 
 		threads << Thread.new do
 			begin
@@ -423,6 +423,17 @@ class Cohort
 				patients_with_0_6_doses_missed - patients_with_7_doses_missed)
 		
 		cohort_report['Earliest_start_dates'] = @patient_earliest_start_date
+		within_1 =[];within_2=[];within_3=[];total_died=[]
+		
+		total_died = cohort_report['Died total']
+		within_1 = cohort_report['Died within the 1st month after ART initiation']
+		within_2 = cohort_report['Died within the 2nd month after ART initiation']
+		within_3 = cohort_report['Died within the 3rd month after ART initiation']
+
+		cohort_report['Died after the end of the 3rd month after ART initiation'] = total_died  -
+			(within_1 +
+				within_2 +
+				within_3)
 		self.cohort = cohort_report
 		self.cohort
 	end
@@ -675,26 +686,26 @@ class Cohort
 	end
 
 	def total_number_of_died_within_range(min_days = 0, max_days = 0)								
-    concept_name = ConceptName.find_all_by_name("PATIENT DIED")
+   concept_name = ConceptName.find_all_by_name("PATIENT DIED")
     state = ProgramWorkflowState.find(
       :first,
       :conditions => ["concept_id IN (?)",
-				concept_name.map{|c|c.concept_id}]
+concept_name.map{|c|c.concept_id}]
     ).program_workflow_state_id
 
-		patients = []
+patients = []
 
-   	PatientProgram.find_by_sql(
-   		"SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state, death_date,
-				IF(ISNULL(MIN(sdo.value_datetime)), earliest_start_date, MIN(sdo.value_datetime)) AS initiation_date
-			FROM earliest_start_date e
-				LEFT JOIN start_date_observation sdo ON e.patient_id = sdo.person_id
-			WHERE earliest_start_date <=  '#{@end_date}'
-			GROUP BY e.patient_id
-			HAVING state = #{state} AND 
-				DATEDIFF(death_date, initiation_date) BETWEEN #{min_days} AND #{max_days}").each do | patient | 
-			patients << patient.patient_id
-		end
+			PatientProgram.find_by_sql(
+						"SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state, death_date,
+					IF(ISNULL(MIN(sdo.value_datetime)), earliest_start_date, MIN(sdo.value_datetime)) AS initiation_date
+					FROM earliest_start_date e
+					LEFT JOIN start_date_observation sdo ON e.patient_id = sdo.person_id
+					WHERE earliest_start_date <= '#{@end_date}'
+					GROUP BY e.patient_id
+					HAVING state = #{state} AND
+					DATEDIFF(death_date, initiation_date) BETWEEN #{min_days} AND #{max_days}").each do | patient |
+							patients << patient.patient_id
+					end
 		return patients
 	end
 
