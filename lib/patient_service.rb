@@ -879,6 +879,7 @@ EOF
 		patient.age = age(person, current_date)
 		patient.age_in_months = age_in_months(person, current_date)
 		patient.arv_number = get_patient_identifier(person.patient, 'ARV Number')
+		patient.splitted_arv_number = patient.arv_number.split("-").last.to_i rescue 0
 		patient
 	end
 
