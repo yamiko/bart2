@@ -610,7 +610,7 @@ class CohortToolController < GenericCohortToolController
 		@report = []
 		reported_range = params[:value].to_s
 		@sort = CoreService.get_global_property_value('sort')
-		@export_data = CoreService.get_global_property_value('export.cohort.data').to_s.downcase
+		@export_data = session["export.cohort.data"].to_s.downcase
 		patients = params[:attribute].to_s
 		session[:field] = params[:field] if session[:field].nil?
 		
