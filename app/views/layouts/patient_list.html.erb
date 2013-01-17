@@ -54,18 +54,6 @@
     }
     </script>
     <style type="text/css">
-     @media only screen
-	  and (min-width : 1224px) {
-		#print{
-		  display:inline;
-		}
-	  }
-	  @media only screen
-	  and (max-width : 1223px) {
-		#print{
-		  display:none;
-		}
-	  }
 	  #tab {
         height:312px;
       }
@@ -134,8 +122,10 @@
         <div id="footer" class="dark">
           <div id="buttons" class="buttons" style="top:0px">
             <button id="logout" class="green"><span>Finish</span></button>
+			<% if @export_data == "yes" %>
 			<button id="print" class="blue" style="position :relative; float:right;"
 			onClick="$('#table_id').table2CSV({header:['ARV Number','Name','Current Age','Registration Date','Start Reason','Outcome Status','']})"><span>Export</span></button>
+			<% end %>
             <button id="find" class="blue" style="width:200px;left:5px;"><span>Mastercards</span></button>
           </div>          
         </div>    

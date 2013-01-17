@@ -610,7 +610,7 @@ class CohortToolController < GenericCohortToolController
 		@report = []
 		reported_range = params[:value].to_s
 		@sort = CoreService.get_global_property_value('sort')
-
+		@export_data = CoreService.get_global_property_value('export.cohort.data').to_s.downcase
 		patients = params[:attribute].to_s
 		session[:field] = params[:field] if session[:field].nil?
 		
@@ -634,13 +634,7 @@ class CohortToolController < GenericCohortToolController
 			@report << PatientService.get_debugger_details(patient.person)
 			set_outcomes_and_start_reason(patient_id) #find start reason and outcome for patient
 		end
-		@report.sort { |a,b|
-						ap = a.arv_number.split('_') rescue ""
-						a = ap[0] + "%10d" rescue ""
-						bp = b.arv_number.split('_') rescue ""
-						b = bp[0] + "%10d" rescue ""
-						a <=> b
-			}
+		@report.sort! { |a,b| a.splitted_arv_number.to_i <=> b.splitted_arv_number.to_i }
 			
 		render :layout => 'patient_list'
 	end
@@ -652,7 +646,8 @@ class CohortToolController < GenericCohortToolController
   	@report_url = "/cohort_tool/cohort?quarter=#{@quarter}"
 		@sort = CoreService.get_global_property_value('sort')
 		sort_value = CoreService.get_global_property_value("debugger_sorting_attribute") rescue "arv_number"
-    
+    @export_data = session["export.cohort.data"].to_s.downcase
+		
     data_type = "to_s"
     data_type = "to_i" if ["age", "person_id", "patient_id"].include?(sort_value)
     
@@ -676,7 +671,12 @@ class CohortToolController < GenericCohortToolController
 				data <<  patient_id.person_id
 			end
 			session[:cohort]["sorted"]["#{params[:field].humanize}"] = true
-
+		elsif params[:field] == "total_patients_with_side_effects"
+			data = []
+			session[:cohort]["#{params[:field].humanize}"].map do |patient_id|
+				data <<  patient_id.patient_id
+			end
+			session[:cohort]["sorted"]["#{params[:field].humanize}"] = true
 		elsif params[:field] == "regimens"
 			type=params[:type].humanize.upcase
 			
@@ -705,14 +705,7 @@ class CohortToolController < GenericCohortToolController
 			#find start reason
 			set_outcomes_and_start_reason(patient_id)
 		end
-
-		@report.sort { |a,b|
-						ap = a.arv_number.split('_') rescue ""
-						a = ap[0] + "%10d" rescue ""
-						bp = b.arv_number.split('_') rescue ""
-						b = bp[0] + "%10d" rescue ""
-						a <=> b
-			}
+		@report.sort! { |a,b| a.splitted_arv_number.to_i <=> b.splitted_arv_number.to_i }
 
 		render :layout => 'patient_list'
   end

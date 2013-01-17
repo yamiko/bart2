@@ -278,13 +278,13 @@ class Cohort
 		  end
 		end
 
-		#threads << Thread.new do
-			#begin
-			#	cohort_report['Died after the end of the 3rd month after ART initiation'] = self.total_number_of_died_within_range(91.3125, 1000000)
-		  #rescue Exception => e
-		  #  Thread.current[:exception] = e
-		  #end
-		#end
+		threads << Thread.new do
+			begin
+				cohort_report['Died after the end of the 3rd month after ART initiation'] = self.total_number_of_died_within_range(91.3125, 1000000)
+		  rescue Exception => e
+		    Thread.current[:exception] = e
+		  end
+		end
 
 		threads << Thread.new do
 			begin
@@ -386,7 +386,7 @@ class Cohort
 		cohort_report['Newly transferred in patients'] = (cohort_report['Newly total registered'] - 
 				cohort_report['Patients reinitiated on ART'] -
 				cohort_report['Patients initiated on ART'])
-                                                     		
+        #raise cohort_report['Total registered'].to_yaml
 		cohort_report['Total Unknown age'] = cohort_report['Total registered'] - (cohort_report['Total registered adults'] +
 				cohort_report['Total registered children'] +
 				cohort_report['Total registered infants'])
@@ -423,17 +423,7 @@ class Cohort
 				patients_with_0_6_doses_missed - patients_with_7_doses_missed)
 		
 		cohort_report['Earliest_start_dates'] = @patient_earliest_start_date
-		within_1 =[];within_2=[];within_3=[];total_died=[]
-		
-		total_died = cohort_report['Died total']
-		within_1 = cohort_report['Died within the 1st month after ART initiation']
-		within_2 = cohort_report['Died within the 2nd month after ART initiation']
-		within_3 = cohort_report['Died within the 3rd month after ART initiation']
-
-		cohort_report['Died after the end of the 3rd month after ART initiation'] = total_died  -
-			(within_1 +
-				within_2 +
-				within_3)
+	
 		self.cohort = cohort_report
 		self.cohort
 	end
@@ -690,10 +680,10 @@ class Cohort
     state = ProgramWorkflowState.find(
       :first,
       :conditions => ["concept_id IN (?)",
-concept_name.map{|c|c.concept_id}]
-    ).program_workflow_state_id
+			concept_name.map{|c|c.concept_id}]
+			).program_workflow_state_id
 
-patients = []
+			patients = []
 
 			PatientProgram.find_by_sql(
 						"SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state, death_date,
