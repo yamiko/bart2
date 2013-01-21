@@ -1,6 +1,14 @@
 <script>
   var tt_cancel_destination = "/clinic" // /reports"
 </script>
+<style>
+  .inputFrameClass{
+	height:600px;
+  }
+  #viewport{
+	height:550px ! important;
+  }
+</style>
 <form id='quarter' action="case_findings" method='post'> 
   <%
     qtrs = ['']
@@ -24,6 +32,6 @@
     }
 
   %>
-  <%= select_tag 'quarter', options_for_select( qtrs ), {:helpText => "Select Quarter"} %>
+  <%= select_tag 'quarter', options_for_select( qtrs ), {:helpText => "Select Quarter", :tt_onLoad => "__$('keyboard').style.display = 'none'"} %>
 
 </form>
