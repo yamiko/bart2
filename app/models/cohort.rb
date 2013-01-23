@@ -181,7 +181,7 @@ class Cohort
 			if thread[:exception]
 				# log it somehow, or even re-raise it if you
 				# really want, it's got it's original backtrace.
-				#raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 
@@ -328,7 +328,7 @@ class Cohort
 			if thread[:exception]
 				# log it somehow, or even re-raise it if you
 				# really want, it's got it's original backtrace.
-				#raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 		

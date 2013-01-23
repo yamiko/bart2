@@ -34,9 +34,10 @@ class SurvivalAnalysis
         'Number Stopped Treatment' => 0, 'Number Transferred out' => 0,
         "Section date range" => "#{range[:start_date].strftime('%B %Y')} to #{range[:end_date].strftime('%B %Y')}",
         'Unknown' => 0,'New patients registered for ART' => states.length}
-
+				
       states.each do | patient_id |
-				total << patient_id
+				total << patient_id.to_i
+				patient_id = patient_id.to_i
 						#raise patient_id.to_yaml if patient_state['Defaulted'].include?(patient_id.patient_id)
          if patient_state['Defaulted'].include?(patient_id)
 						defaulted << patient_id

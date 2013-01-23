@@ -313,7 +313,7 @@
   <%if @allergic_to_sulphur.match(/Allergic to sulphur:/i).blank? %>
     <%= touch_yes_no_unknown_tag "Allergic to sulphur", @patient, nil,
 		  {	:id => "allergic_to_sulphur",
-			  :condition => "$('refer_to_clinician').value == 'NO'" ,
+			  :condition => "$('refer_to_clinician').value == 'NO' && $('prescribe_drugs').value =='YES'" ,
 			  :helpText => "Is patient allergic to sulphur" } %>
   <%end unless art_adherence_to_be_done %>
   
