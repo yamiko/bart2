@@ -181,7 +181,7 @@ class Cohort
 			if thread[:exception]
 				# log it somehow, or even re-raise it if you
 				# really want, it's got it's original backtrace.
-				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				#raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 
@@ -328,7 +328,7 @@ class Cohort
 			if thread[:exception]
 				# log it somehow, or even re-raise it if you
 				# really want, it's got it's original backtrace.
-				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				#raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 		
@@ -376,16 +376,16 @@ class Cohort
 			if thread[:exception]
 				# log it somehow, or even re-raise it if you
 				# really want, it's got it's original backtrace.
-				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
+				#raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
 			end
 		end
 		cohort_report['Total transferred in patients'] = (cohort_report['Total registered'] - 
-				cohort_report['Total Patients reinitiated on ART'] -
-				cohort_report['Total Patients initiated on ART'])
+				(cohort_report['Total Patients reinitiated on ART'] || [])  -
+				(cohort_report['Total Patients initiated on ART'] || []))
                                                       
 		cohort_report['Newly transferred in patients'] = (cohort_report['Newly total registered'] - 
-				cohort_report['Patients reinitiated on ART'] -
-				cohort_report['Patients initiated on ART'])
+				(cohort_report['Total Patients reinitiated on ART'] || [])-
+				(cohort_report['Total Patients initiated on ART'] || []))
         #raise cohort_report['Total registered'].to_yaml
 		cohort_report['Total Unknown age'] = cohort_report['Total registered'] - (cohort_report['Total registered adults'] +
 				cohort_report['Total registered children'] +
@@ -410,9 +410,9 @@ class Cohort
 		cohort_report['Unknown outcomes'] = cohort_report['Total registered'] -
 			(cohort_report['Total alive and on ART'] +
 				cohort_report['Defaulted'] +
-				cohort_report['Died total'] +
-				cohort_report['Stopped taking ARVs'] +
-				cohort_report['Transferred out'])
+				(cohort_report['Died total'] || []) +
+				(cohort_report['Stopped taking ARVs'] || []) +
+				(cohort_report['Transferred out'] || []))
 		
 		patients_with_0_6_doses_missed = []; patients_with_7_doses_missed = []
 		
