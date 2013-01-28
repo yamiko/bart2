@@ -495,7 +495,7 @@
 	  {:id => 'prescribe_arvs',
 	  :allowFreeText => 'false',
 	  :condition => 'hasReasonForART() == true && prescribeAntiretroviralDrugs() == true',
-	  :helpText => "Prescribe ARVS?" } %>
+	  :helpText => "Prescribe ARVs?" } %>
 
 	<%= select_tag :continue_existing_regimen, options_for_select([['',''],['Yes','YES'],['No','NO']], ''), {
 	  :textCase => "upper",
@@ -534,6 +534,13 @@
 :allowFreeText => "true",
 :tt_pageStyleClass => "NumbersOnlyWithDecimal"}%>
 
+	
+
+	<%= select_tag :duration, optionsString, {
+	  :condition => '$("prescribe_arvs").value == "YES" || $("cpt_given").value == "YES" || $("ipt_given").value == "YES"',
+	  :tt_onLoad => "__$('keyboard').style.display = 'none'",
+	  :helpText => 'Duration of prescribed drugs' } %>
+
 	<!-- CPT & IPT-->
 	<% if @alergic_to_suphur == true %>
 	  <%= touch_hidden_tag "Prescribe cotramoxazole", @patient, "NO", :id => "cpt_given" %>
@@ -554,13 +561,7 @@
 	<%else%>
 	  <%= touch_hidden_tag "ISONIAZID", @patient, "", :id => "ipt_given" %>
 	<%end%>
-
-	<%= select_tag :duration, optionsString, {
-	  :condition => '$("prescribe_arvs").value == "YES" || $("cpt_given").value == "YES" || $("ipt_given").value == "YES"',
-	  :tt_onLoad => "__$('keyboard').style.display = 'none'",
-	  :helpText => 'Duration of prescribed drugs' } %>
-
-
+	
 	<% if @patient_bean.age >= 14 %>
 	  <% if @retrospective %>
 		<%= touch_numeric_tag "CONDOMS", @patient, nil,

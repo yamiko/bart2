@@ -85,7 +85,16 @@
 			{	:id => "weight_at_tb_initiation",
 			  :field_type => 'number',
 			  :condition => "$('transfer_in').value =='YES'",
-			  :tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal",
+				:field_type => "number",
+				:tt_onLoad => "$('clearButton').style.display = 'inline';",
+				:min => number_with_precision(@min_weight, :precision => 1),
+				:max => number_with_precision(@max_weight, :precision => 1),
+				:absoluteMin => 0,
+				:absoluteMax => 250,
+				:units => 'kg',
+				:validationRule => "([0-9]+\\.[0-9])|Unknown$",
+				:validationMessage => "You must enter a decimal between 0 and 9 (for example: 54<b>.6</b>)",
+				:tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal",
 				:helpText => "Weight at TB initiation" } %>
 
   <%= touch_select_tag "Last tuberculosis drugs taken", @patient, options_for_select(@tb_regimen_array),

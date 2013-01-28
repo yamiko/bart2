@@ -179,7 +179,37 @@
         <%end%>
 
   <% end %>    
-  
+
+  <% if @patient_is_child_bearing_female %>
+
+    <% if @currently_using_family_planning_methods.nil? %>
+        <%= touch_yes_no_unknown_tag "CURRENTLY USING FAMILY PLANNING METHOD", @patient, nil,
+          {:id => "on_fpm",
+            :condition => "$('pregnant').value != 'YES'",
+            :helpText => "Currently using family planning method" } %>
+
+        <%= touch_select_tag "FAMILY PLANNING METHOD", @patient, options_for_select(@select_options['family_planning_methods']),
+        {:id => "fpm_used",
+         :condition => '$("on_fpm").value == "YES"',
+         :multiple => true,
+         :tt_pageStyleClass => "NoKeyboard",
+         :helpText => "What method?" } %>
+
+    <%else%>
+
+        <%= touch_hidden_tag "CURRENTLY USING FAMILY PLANNING METHOD" , @patient, @currently_using_family_planning_methods.to_s , {:id => "on_fpm"} %>
+
+        <% id = 0
+            if @family_planning_methods.length != 0
+                @family_planning_methods.each do | planning_method | %>
+                    <%= touch_hidden_tag "FAMILY PLANNING METHOD" , @patient, planning_method.to_s , {:id => "fpm_used_#{id}"} %>
+                    <% id = id + 1
+                 end
+            end %>
+    <% end %>
+
+<%end%>
+
   <% if ask_standard_art_side_effects %>
     <%= touch_select_tag "MALAWI ART SIDE EFFECTS", @patient, concept_set_options('MALAWI ART SIDE EFFECTS'),
       {:id => 'side_effects',
@@ -230,35 +260,6 @@
         <%= touch_hidden_tag "TB STATUS" , @patient, ConceptName.find_by_name("#{@patient_tb_status}").name, {:id => "tb_status"} %>
     <% end %>
 
-  <% if @patient_is_child_bearing_female %>
- 
-    <% if @currently_using_family_planning_methods.nil? %>
-        <%= touch_yes_no_unknown_tag "CURRENTLY USING FAMILY PLANNING METHOD", @patient, nil,
-          {:id => "on_fpm",
-            :condition => "$('pregnant').value != 'Yes'",
-            :helpText => "Currently using family planning method" } %>
-
-        <%= touch_select_tag "FAMILY PLANNING METHOD", @patient, options_for_select(@select_options['family_planning_methods']),
-        {:id => "fpm_used",
-         :condition => '$("on_fpm").value == "YES"',
-         :multiple => true,
-         :tt_pageStyleClass => "NoKeyboard",
-         :helpText => "What method?" } %>
-
-    <%else%>
-        
-        <%= touch_hidden_tag "CURRENTLY USING FAMILY PLANNING METHOD" , @patient, @currently_using_family_planning_methods.to_s , {:id => "on_fpm"} %>
-
-        <% id = 0 
-            if @family_planning_methods.length != 0 
-                @family_planning_methods.each do | planning_method | %>
-                    <%= touch_hidden_tag "FAMILY PLANNING METHOD" , @patient, planning_method.to_s , {:id => "fpm_used_#{id}"} %>
-                    <% id = id + 1 
-                 end 
-            end %>
-    <% end %>
-
-<%end%>
 
 <%date = session[:datetime].to_date rescue Date.today
   start_date = date.strftime("%Y-%m-%d 00:00:00")                       
