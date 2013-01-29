@@ -665,6 +665,7 @@ class GenericPatientsController < ApplicationController
   end
 
   def treatment_dashboard
+		@dispense = CoreService.get_global_property_value('use_drug_barcodes_only')
 	  @patient_bean = PatientService.get_patient(@patient.person)
     @amount_needed = 0
     @amounts_required = 0

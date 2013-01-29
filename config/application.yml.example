@@ -5,6 +5,7 @@ production:
  auto_set_appointment: true
  records_per_page: 15
  debugger_sorting_attribute: arv_number
+ use_drug_barcodes_only: false
  logo: mw.gif
 
 development:
@@ -15,6 +16,7 @@ development:
  show.patient.confirmation: false
  records_per_page: 15
  debugger_sorting_attribute: arv_number
+ use_drug_barcodes_only: false
  logo: mw.gif
 
 test: &TEST
