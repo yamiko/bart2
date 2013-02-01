@@ -1,4 +1,5 @@
 <%= javascript_include_tag "date" %>
+
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id -%>";
 <% @session_date = "#{session[:datetime].to_date rescue Date.today}" %>
@@ -169,7 +170,7 @@
   <%= touch_hidden_tag "ART initiation date", @patient, nil, {:id => "hiv_initiation_date", :value_datetime => true}%>
   <%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
 
-  <%= touch_hidden_tag "Refer to HTC", @patient, nil, {:id => "refer_to_htc"}%>
+  <%= touch_hidden_tag "Refer to HTC", @patient, "NO", {:id => "refer_to_htc"}%>
 
   <%= touch_yes_no_unknown_tag "Refer to HTC", @patient, nil,
 	{:id => "refer_to_htc",
