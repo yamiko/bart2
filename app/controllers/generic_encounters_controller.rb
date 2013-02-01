@@ -820,7 +820,7 @@ class GenericEncountersController < ApplicationController
 				['Male condoms', 'MALE CONDOMS'],
 				['Female condoms', 'FEMALE CONDOMS'],
 				['Rhythm method', 'RYTHM METHOD'],
-				['Withdrawal', 'WITHDRAWAL'],
+				['Withdrawal method', 'WITHDRAWAL METHOD'],
 				['Abstinence', 'ABSTINENCE'],
 				['Tubal ligation', 'TUBAL LIGATION'],
 				['Vasectomy', 'VASECTOMY']
@@ -828,7 +828,7 @@ class GenericEncountersController < ApplicationController
 			'male_family_planning_methods' => [
 				['',''],
 				['Male condoms', 'MALE CONDOMS'],
-				['Withdrawal', 'WITHDRAWAL'],
+				['Withdrawal method', 'WITHDRAWAL METHOD'],
 				['Rhythm method', 'RYTHM METHOD'],
 				['Abstinence', 'ABSTINENCE'],
 				['Vasectomy', 'VASECTOMY'],
@@ -841,7 +841,7 @@ class GenericEncountersController < ApplicationController
 				['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
 				['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
 				['Female condoms', 'FEMALE CONDOMS'],
-				['Withdrawal', 'WITHDRAWAL'],
+				['Withdrawal method', 'WITHDRAWAL METHOD'],
 				['Rhythm method', 'RYTHM METHOD'],
 				['Abstinence', 'ABSTINENCE'],
 				['Tubal ligation', 'TUBAL LIGATION'],
