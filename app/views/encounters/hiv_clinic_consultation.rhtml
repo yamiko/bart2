@@ -175,7 +175,7 @@
              :helpText => "Is patient breast feeding?" } %>
 
         <%else%>
-            <%= touch_hidden_tag "IS PATIENT BREAST FEEDING?" , @patient, @is_patient_breast_feeding_value , :id => "breast_feeding" %>
+            <%= touch_hidden_tag "IS PATIENT BREAST FEEDING?" , @patient, @is_patient_breast_feeding_value.strip , :id => "breast_feeding" %>
         <%end%>
 
   <% end %>    
