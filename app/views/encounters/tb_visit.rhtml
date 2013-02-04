@@ -357,6 +357,7 @@ end
 	  :tt_pageStyleClass => "NoKeyboard",
 	  :tt_onUnLoad => "",
 	  :helpText => "Drug related side effects" } %>
+  
 	<% if not current_user.user_roles.map{|r|r.role}.include?('Clinician') and not current_user.user_roles.map{|r|r.role}.include?('Doctor')%>
 	  <%= touch_yes_no_tag "REFER PATIENT TO CLINICIAN", @patient, nil,
 		{:id => "refer_to_clinician",
@@ -376,11 +377,11 @@ end
   if tb_clinic.blank? and not (@current_user_role.include?("Doctor") || @current_user_role.include?("Clinician"))
   %>
 
-	<%#= touch_yes_no_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
+	<%= touch_yes_no_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
 	  {	:id => "refer_to_clinician",
 	  :helpText => "Refer patient to clinician" } %>
   <% else %>
-	<%#= touch_hidden_tag "ANY NEED TO SEE A CLINICIAN", @patient, "NO", :id => "refer_to_clinician" %>
+	<%= touch_hidden_tag "ANY NEED TO SEE A CLINICIAN", @patient, "NO", :id => "refer_to_clinician" %>
   <% end %>
 
   <%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
