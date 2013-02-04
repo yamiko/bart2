@@ -303,7 +303,7 @@
 <%end%>
     <%if @hiv_status.upcase == 'POSITIVE' and not
       @patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')%>
-		<% if ! @patient.person.observations.to_s.match(/'in hiv program: yes'/i) %>
+		<% if ! @patient.person.observations.to_s.downcase.include?('in hiv program:') %>
 		<%= touch_yes_no_unknown_tag "Patient enrolled in HIV program", 
         @patient, nil,
 			  {	:id => "enroll_patient_in_art",
