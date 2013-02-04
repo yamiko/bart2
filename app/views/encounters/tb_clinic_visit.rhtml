@@ -260,7 +260,7 @@
 			  :helpText => "Do you plan to continue picking up TB drugs at this clinic?" } %>
 	<% end %>
 	 <% if @hiv_status.upcase == 'POSITIVE' && !@patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM') %>
-  
+ 
   <% if ! @patient.person.observations.to_s.include?('On ART:') %>
   <%= touch_yes_no_unknown_tag "ON ART", @patient, nil,
 		{:id => "art_status",
@@ -297,7 +297,7 @@
 			:helpText => "Location Of ART Initiation",
 			:ajaxURL => '/people/tb_initialization_location?search_string=',
 			:condition => '$("art_status").value == "YES"'}%>
-		<%= touch_hidden_tag "Location Of ART Initiation", @patient, nil, 
+		<%= touch_hidden_tag "ART initiation date", @patient, nil,
 		  {	:id => "hiv_initiation_date",
 			:value_datetime => true}%>
 <%end%>
