@@ -476,10 +476,12 @@ end
 	  :optional => false,
 	  :helpText => "Location of ART initiation" } %>
 
+	  <% if ! @patient.person.observations.to_s.match(/'in hiv program: yes'/i) %>
 	<%= touch_yes_no_tag "Patient enrolled in HIV program", @patient, nil,
 	  {   :id => "enroll_patient_in_art",
 	  :condition => '$("refer_to_clinician").value != "YES"',
 	  :helpText => 'Enroll for HIV care' } %>
+	  <%  end %>
   <% end %>
 
   <% session_date = session[:datetime].to_date rescue nil
