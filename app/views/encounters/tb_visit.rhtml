@@ -383,7 +383,7 @@ end
   <% else %>
 	<%= touch_hidden_tag "ANY NEED TO SEE A CLINICIAN", @patient, "NO", :id => "refer_to_clinician" %>
   <% end %>
-
+<!----->
   <%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
 	{	:id => "prescribe_drugs",
 	:condition => "$('refer_to_clinician').value == 'NO'" ,

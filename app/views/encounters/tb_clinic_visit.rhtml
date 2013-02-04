@@ -260,17 +260,26 @@
 			  :helpText => "Do you plan to continue picking up TB drugs at this clinic?" } %>
 	<% end %>
 	 <% if @hiv_status.upcase == 'POSITIVE' && !@patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM') %>
-  <%= touch_hidden_tag "ON ART", @patient, nil, 
-		  {	:id => "art_status"}%>
+  
   <% if ! @patient.person.observations.to_s.include?('On ART:') %>
   <%= touch_yes_no_unknown_tag "ON ART", @patient, nil,
 		{:id => "art_status",
 		:tt_pageStyleClass => "NoKeyboard",
 		:helpText => "On ART?" } %>
   <% end %>
-		<%= text_field_tag "hiv_initiation_year", nil, {:helpText => 'Year of ART initiation', :field_type => 'number', :absoluteMin => "1982", :min => "1982", :absoluteMax => Date.today.year, :tt_pageStyleClass => "Numeric NumbersOnly", :condition => '($("art_status").value == "YES")'}  %>
+		<%= text_field_tag "hiv_initiation_year", nil,
+		  {:helpText => 'Year of ART initiation',
+		  :field_type => 'number',
+		  :absoluteMin => "1982",
+		  :min => "1982",
+		  :absoluteMax => Date.today.year,
+		  :tt_pageStyleClass => "Numeric NumbersOnly",
+		  :condition => '$("art_status").value == "YES"'}  %>
 
-		<%= select_tag "hiv_initiation_month", month_name_options, {:tt_onLoad => "__$('keyboard').style.display = 'none'",:helpText => 'Month of ART initiation', :condition => '($("hiv_initiation_year").value.toLowerCase() != "unknown")  && ($("art_status").value == "YES")'}%>
+		<%= select_tag "hiv_initiation_month", month_name_options,
+		  {:tt_onLoad => "__$('keyboard').style.display = 'none'",
+		  :helpText => 'Month of ART initiation',
+		  :condition => '($("hiv_initiation_year").value.toLowerCase() != "unknown")  && ($("art_status").value == "YES")'}%>
 
 		<%= text_field_tag "hiv_initiation_day",  nil,
 		{:field_type => 'number',
