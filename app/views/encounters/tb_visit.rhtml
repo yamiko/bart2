@@ -264,9 +264,10 @@ end
 	  <%end%>
 	<% end
   end %>
+  
   <%  if @previous_tb_visit.length == 0  %>
 	<%  if @patient_bean.age > 13 %>
-
+	  
 	  <% if @patient_bean.sex == 'Male' %>
 
 		<%= touch_yes_no_unknown_tag "CURRENTLY USING FAMILY PLANNING METHOD", @patient, nil,
@@ -280,6 +281,7 @@ end
 		  :tt_pageStyleClass => "NoKeyboard",
 		  :helpText => "What method?" } %>
 	  <% else %>
+		
 		<%=# touch_select_tag "FAMILY PLANNING METHOD", @patient, options_for_select(@select_options['female_family_planning_methods']),
 		{	:id => "mfpm_used",
 		  :condition => '$("on_fpm").value == "YES"',
@@ -290,7 +292,7 @@ end
 		<% if @currently_using_family_planning_methods.nil? and @previous_tb_visit.length == 0 %>
 		  <%= touch_yes_no_unknown_tag "CURRENTLY USING FAMILY PLANNING METHOD", @patient, nil,
 			{:id => "on_fpm",
-			:condition => "$('pregnant').value == 'No'",
+			:condition => "$('pregnant').value == 'NO'",
 			:helpText => "Currently using family planning method" } %>
 
 		  <%= touch_select_tag "FAMILY PLANNING METHOD", @patient, options_for_select(@select_options['family_planning_methods']),
@@ -477,6 +479,7 @@ end
 	  {	:id => "location_of_art_initialization",
 	  :condition => '$("ever_registered_at_ART_clinic").value == "YES" && $("refer_to_clinician").value != "YES"',
 	  :optional => false,
+	  :ajaxURL => '/encounters/locations?search_string=',
 	  :helpText => "Location of ART initiation" } %>
 
 	  <% if ! @patient.person.observations.to_s.downcase.include?('in hiv program:') %>

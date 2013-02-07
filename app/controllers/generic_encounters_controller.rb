@@ -1,6 +1,6 @@
 class GenericEncountersController < ApplicationController
   def create(params=params, session=session)
-
+		#raise params[:identifiers].to_yaml
     if params[:change_appointment_date] == "true"
       session_date = session[:datetime].to_date rescue Date.today
       type = EncounterType.find_by_name("APPOINTMENT")                            
@@ -442,11 +442,11 @@ class GenericEncountersController < ApplicationController
 						
             if PatientIdentifier.site_prefix == "MPC"
 							prefix = "LL-TB"
-							tb_identifier = create_tb_number(type, prefix)
+							tb_identifier = identifier[:identifier].to_i
 							identifier[:identifier] = "LL-TB  #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "LL-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
 						else
 							prefix = "#{PatientIdentifier.site_prefix}-TB"
-							tb_identifier = create_tb_number(type, prefix)
+							tb_identifier = identifier[:identifier].to_i
 							identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "#{PatientIdentifier.site_prefix}-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
 						end
           else
@@ -1427,7 +1427,7 @@ class GenericEncountersController < ApplicationController
 		 patient_exists = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ? AND patient_id = ?', type_id, session_date, @patient.id])
 		 type = patient_exists
 		 if patient_exists.blank?
-			type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ?', type_id, session_date],:order => 'identifier DESC')
+			type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ?', type_id, session_date],:order => 'patient_identifier_id DESC')
 		 end
 		 type = type.first.identifier.split(" ") rescue ""
 		 

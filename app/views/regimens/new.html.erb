@@ -28,7 +28,11 @@
   .tr_blue {
     background-color: #E6E6FF;
   }
-
+  #summary {
+    top: 60px;
+	overflow:auto;
+	height:450px ! important;
+  }
   .tt_controls_duration .abcKeyboard {
     display: none;
   }
@@ -282,7 +286,7 @@
 	  resultString += <%= "'#{family_planning_methods}'" %>
 	  resultString += '</ul>'
 
-	  innerHtml = '<div id="summary" style="min-height:400px"><div>' +
+	  innerHtml = '<div id="summary"><div>' +
 		'<span class="title" style="font-size:25px;padding-top:7px;">' + resultString + '</span>' +
 		'</div></div>'
                      
@@ -506,7 +510,7 @@
 	  :validationMessage => "Patient is starting a new regimen",
 	  :tt_onUnLoad => 'resetAttributes();',
 	  :condition => 'existingRegimen();',
-	  :helpText => "Continue current ART drugs?"}%>
+	  :helpText => "Continue current ARV drugs?"}%>
 
 	<%= select_tag :regimen_concept_id, nil, {
 	  :ajaxUrl => "",

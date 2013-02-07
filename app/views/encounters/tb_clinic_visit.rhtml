@@ -1,6 +1,7 @@
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
-
+  var hivTestedDate = "<%= @hiv_test_date %>"
+  var displayedDate
   function showEnrollPatient() {
     if (tb_status.match(/treatment/i))
       return false;
@@ -26,7 +27,7 @@
     var sessionDate = "<%="#{@todayDate}"%>";
     var todayDate = new Date(sessionDate);
 
-    if (todayDate > testDate){
+    if ((todayDate > testDate ) || (testDate > hivTestedDate )){
       showNegativeTestReminder = true
 	}else {
       showNegativeTestReminder = false
@@ -42,16 +43,22 @@
 
     var sessionDate = "<%="#{@session_date.to_date.year},#{@session_date.to_date.month},#{@session_date.to_date.day}"%>";
     var todayDate = new Date(sessionDate);
-
-    if (testDate <= todayDate){
-      dateCheck = 'true'
+	var convert = new Date(hivTestedDate)
+	
+    if (testDate < convert ) {
+	  <%  displayedDate = @hiv_test_date %>
+	  dateCheck = false
+	}else if(todayDate > testDate ){
+	  dateCheck = true
 	}else {
-      dateCheck = 'false'
+	  <%  displayedDate = @session_date %>
+      dateCheck = false
     }
     return dateCheck
   }
+  /*
    function updateTestDate(){
-    var testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
+    var testDate = createDate($('hiv_test_year').value, $('hiv_test_month').value , $('hiv_test_day').value);
     $('hiv_test_date').value = testDate;
 
 <% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
@@ -59,15 +66,15 @@
 
     var sessionDate = "<%="#{@todayDate}"%>";
     var todayDate = new Date(sessionDate);
-
-    if (todayDate > testDate){
+	alert(hivTestedDate)
+    if ((todayDate > testDate ) || (testDate > hivTestedDate )){
       showNegativeTestReminder = true
 	}else {
       showNegativeTestReminder = false
     }
     return showNegativeTestReminder
   }
-
+*/
   function checkTBstatus() {
     try {
       tb_status = $('tb_status').value;
@@ -171,7 +178,10 @@
     return new Date(intyear,intmonth,intday);
   }
 </script> 
-
+<style>
+ 
+  
+</style>
 <form id='appointment' action="/encounters/create" method='post'>
 	<%= hidden_field_tag "encounter[encounter_type_name]", "TB CLINIC VISIT" %>
 	<%= hidden_field_tag "encounter[patient_id]", @patient.id %>
@@ -239,6 +249,7 @@
 	<%= touch_select_tag "EPTB classification", @patient, options_for_select(@select_options['eptb_classification']),
 		{	:id => "further_tb_classification",
 			:condition => '$("tb_classification").value == "Extrapulmonary tuberculosis (EPTB)"',
+			:tt_onLoad => "__$('keyboard').style.display = 'none'",
 		 	:tt_pageStyleClass => "NoKeyboard",
 		 	:helpText => "EPTB classification" } %>
 
@@ -288,7 +299,7 @@
 		{:field_type => 'number',
 		:helpText => 'Day of ART initiation',
 		:validationCode => "checkTestDate();",
-		:validationMessage => "HIV initiation date greater than #{session[:datetime].to_date rescue Date.today.to_date}",
+		:validationMessage => "HIV initiation date greater than #{displayedDate.to_date}" ,
 		:condition => '($("hiv_initiation_year").value != "Unknown") && ($("hiv_initiation_month").value != "Unknown") && ($("art_status").value == "YES")',
 		:tt_onLoad => "getDayOfMonthPicker($('hiv_initiation_year').value, $('hiv_initiation_month').value)",
 		:tt_onUnload=> "updateInitiationDate();"
@@ -298,7 +309,7 @@
 		  {	:id => "location_of_art_intiation",
 			:value_datetime => true,
 			:helpText => "Location Of ART Initiation",
-			:ajaxURL => '/people/tb_initialization_location?search_string=',
+			:ajaxURL => '/encounters/locations?search_string=',
 			:condition => '$("art_status").value == "YES"'}%>
 		<%= touch_hidden_tag "ART initiation date", @patient, nil,
 		  {	:id => "hiv_initiation_date",

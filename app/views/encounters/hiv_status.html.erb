@@ -158,7 +158,7 @@
   <%= touch_location_tag "LOCATION OF HIV TEST", @patient, nil,
 	{:id => "location_of_hiv_test",
 	:condition => '$("hiv_status").value == "POSITIVE"',
-	:ajaxURL => '/people/tb_initialization_location?search_string=',
+	:ajaxURL => '/encounters/locations?search_string=',
 	:helpText => "Location of HIV test" } %>
 
   <%= touch_numeric_tag "HTC SERIAL NUMBER", @patient, nil,
@@ -170,7 +170,7 @@
   <%= touch_hidden_tag "ART initiation date", @patient, nil, {:id => "hiv_initiation_date", :value_datetime => true}%>
   <%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
 
-  <%= touch_hidden_tag "Refer to HTC", @patient, "NO", {:id => "refer_to_htc"}%>
+  <%= touch_hidden_tag "Refer to HTC", @patient, nil, {:id => "refer_to_htc"}%>
 
   <%= touch_yes_no_unknown_tag "Refer to HTC", @patient, nil,
 	{:id => "refer_to_htc",

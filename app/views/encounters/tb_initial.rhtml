@@ -16,7 +16,19 @@
   }
 
 </script>
-
+<style>
+  #category{
+	height:auto ! important;
+	background-color:rgba(255, 0, 0, 0.5) ! important;
+	background:none ! important;
+	color:#0070ff ! important;
+	border-color:#ff0000 #0000ff ! important;
+  }
+  #tt_page_previous_tb_registration_number, #category{
+	top: 150px ! important;
+	left : 980px ! important;
+  }
+</style>
 <% if @patient.patient_programs.current.local.map(&:program).map(&:name).include?('TB PROGRAM') %>
   <div class="inputPage NoKeyboard" id="page" style="display: block;">
     <div id="trigger"></div>
@@ -49,37 +61,44 @@
   <%= touch_yes_no_unknown_tag "Transfer in", @patient, nil,
       {:id => "transfer_in",
        :condition => "$('tb_treatment').value == 'YES'",
-       :helpText => 'Transfer in?'} %>
+       :helpText => 'Transfer in?',
+	   :tt_onLoad => 'showCategory("TB Information At Registration")'} %>
 
   <%= touch_text_field_tag "Clinic Location", @patient, nil,
       {:id => "location_of_tb_initiation",
        :condition => "$('transfer_in').value =='YES'",
-       :ajaxURL => '/people/tb_initialization_location?search_string=',
+       :ajaxURL => '/encounters/locations?search_string=',
        :allowFreeText => true,
-       :helpText => 'Location of TB initiation'} %>
+       :helpText => 'Location of TB initiation',
+	   :tt_onLoad => 'showCategory("TB Information At Registration")'} %>
 
   <%= touch_date_tag "Date of TB initiation", @patient, nil,
 			{:id => "date_of_tb_initiation",
 			 :condition => "$('transfer_in').value =='YES'",
 			 :max => "#{session[:datetime].to_date rescue Date.today}",
-			 :helpText => "Date of TB initiation"} %>
+			 :helpText => "Date of TB initiation",
+			 :tt_onLoad => 'showCategory("TB Information At Registration")'} %>
 
  <%= touch_select_tag "Sputum result at initiation", @patient, options_for_select([['',''],['Negative','Negative'],['Positive','Positive'], ['NA','NA']]),
   {:id => "sputum_result",
 	 :condition => "$('transfer_in').value =='YES'",
-	 :helptext => "Smear results at initiation"}
+	 :helptext => "Smear results at initiation",
+	 :tt_onLoad => 'showCategory("TB Information At Registration")'
+	 }
   %>
 
   <%= touch_date_tag "DATE OF SPUTUM MICROSCOPY", @patient, nil,
 			{:id => "date_of_initial_smear_results",
 			 :condition => "$('sputum_result').value != 'NA' && $('transfer_in').value =='YES'",
 			 :max => "#{session[:datetime].to_date rescue Date.today}",
-			 :helpText => "Date of initial smear results"} %>
+			 :helpText => "Date of initial smear results",
+			 :tt_onLoad => 'showCategory("TB Information At Registration")'} %>
   
   <%= touch_text_field_tag "TB REGISTRATION NUMBER", @patient, nil,
-			{	:id => "previous_tb_registration_number",
+			{ :id => "previous_tb_registration_number",
 			  :condition => "$('transfer_in').value =='YES'",
-				:helpText => "TB registration number at previous location" } %>
+			  :helpText => "TB registration number at previous location" ,
+			  :tt_onLoad => 'showCategory("TB Information At Registration")'} %>
 
   <%= touch_text_field_tag "Weight at tuberculosis program initiation", @patient, nil,
 			{	:id => "weight_at_tb_initiation",
@@ -95,13 +114,15 @@
 				:validationRule => "([0-9]+\\.[0-9])|Unknown$",
 				:validationMessage => "You must enter a decimal between 0 and 9 (for example: 54<b>.6</b>)",
 				:tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal",
-				:helpText => "Weight at TB initiation" } %>
+				:helpText => "Weight at TB initiation",
+				:tt_onLoad => 'showCategory("TB Information At Registration")' } %>
 
   <%= touch_select_tag "Last tuberculosis drugs taken", @patient, options_for_select(@tb_regimen_array),
-			{:tt_onLoad => "__$('keyboard').style.display = 'none'",
+			{:tt_onLoad => "__$('keyboard').style.display = 'none';showCategory('TB Information At Registration')",
 			 :id => "last_tb_drugs_taken",
 			 :condition => "$('transfer_in').value =='YES'",
-			 :helpText => "Last TB drugs taken" } %>
+			 :helpText => "Last TB drugs taken",
+			 :tt_pageStyleClass => "NoKeyboard" } %>
 
   <%reason_for_clinic_visit = 'Smear -ve'%>
   <% if @tb_status %>
@@ -114,7 +135,8 @@
 
     <%= touch_yes_no_unknown_tag "SEND SMS", @patient, nil,
       {:id => "send_sms",
-       :helpText => 'Can we send you an SMS for TB follow-up?'} %>
+       :helpText => 'Can we send you an SMS for TB follow-up?',
+	   :tt_onLoad => 'showCategory("TB Information At Registration")'} %>
 
   <% end %>
 

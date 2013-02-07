@@ -178,8 +178,8 @@ Check applicability of code below
             {:id => "tb_district_number",
              :optional => false,
 			 :value => @tb_auto_number,
-             :tt_onLoad => "__$('keyboard').style.display = 'none';press('num');tb_number();",
-             
+             :tt_onLoad => "tb_number();",
+             :tt_pageStyleClass => "NumbersOnlyWithDecimal",
              :helpText => "TB registration number" } %>
     <%else%>
         <%= touch_hidden_tag "TB registration number" , @patient, @transfer_in_TB_registration_number.to_s , :id => "tb_district_number" %>
@@ -202,6 +202,7 @@ Check applicability of code below
      :condition => "($('patient_coughing').value == 'YES')" ,
      :helpText => "Duration of cough" } %>
 
+  
 	<% if @tb_classification == nil %>
 	   <% if @smear_positive.to_s.blank? %>
 		  <%= touch_select_tag "TB classification", @patient, options_for_select(@select_options['tb_classification']),
