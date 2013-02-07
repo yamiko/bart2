@@ -20,7 +20,12 @@
   function updateTestDate(){
     testDate = createDate($('hiv_test_year').value, $('hiv_test_month').value , $('hiv_test_day').value);
     $('hiv_test_date').value = testDate;
-    return isTestOverDue(testDate,alertDate);
+	 if (testDate == 'Invalid Date'){
+	  return true
+	}
+	else {
+	  return isTestOverDue(testDate,alertDate);
+	}
   }
 
  function updateInitiationDate(){
@@ -129,9 +134,15 @@ Skip logic
  <% unless Location.current_location.name == "TB HTC" %>
     <%= touch_yes_no_unknown_tag "Refer to HTC", @patient, nil,
       {:id => "refer_to_htc",
-      :condition => '$("hiv_status").value != "POSITIVE" && updateTestDate()',
+      :condition => '$("hiv_status").value == "NEGATIVE" && updateTestDate()',
       :tt_pageStyleClass => "NoKeyboard",
       :helpText => "Patient has been -ve for more than 3 months. Refer patient to HTC?" } %>
+
+	<%= touch_yes_no_unknown_tag "Refer to HTC", @patient, nil,
+      {:id => "refer_to_htc",
+      :condition => '$("hiv_status").value == "UNKNOWN"',
+      :tt_pageStyleClass => "NoKeyboard",
+      :helpText => "Refer patient to HTC?" } %>
   <%end%>
 
 <% if !@referred_to_htc.nil? && ('YES' == @referred_to_htc.squish.upcase) %>

@@ -170,13 +170,20 @@
   <%= touch_hidden_tag "ART initiation date", @patient, nil, {:id => "hiv_initiation_date", :value_datetime => true}%>
   <%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
 
-  <%= touch_hidden_tag "Refer to HTC", @patient, nil, {:id => "refer_to_htc"}%>
-
   <%= touch_yes_no_unknown_tag "Refer to HTC", @patient, nil,
 	{:id => "refer_to_htc",
-	:condition => '$("hiv_status").value != "POSITIVE" && updateTestDate() == true',
+	:condition => '$("hiv_status").value == "NEGATIVE" && updateTestDate() == true',
 	:tt_pageStyleClass => "NoKeyboard",
 	:helpText => "Patient has been -ve for more than 3 months. Refer patient to HTC?" } %>
+
+  <%= touch_yes_no_unknown_tag "Refer to HTC", @patient, nil,
+      {:id => "refer_to_htc",
+      :condition => '$("hiv_status").value == "UNKNOWN"',
+      :tt_pageStyleClass => "NoKeyboard",
+      :helpText => "Refer patient to HTC?" } %>
+
+  <%= touch_hidden_tag "Refer to HTC", @patient, "NO", {:id => "refer_to_htc",
+	:condition => '$("refer_to_htc").value != "NO" && $("refer_to_htc").value != "YES" && $("refer_to_htc").value != "UNKNOWN"'}%>
 
   <% session_date = session[:datetime].to_date rescue nil
   if session_date %>
