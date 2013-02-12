@@ -57,7 +57,7 @@
     }catch(e) {}
   }
 
-  function checkTestDate (){
+  function checkTestDate(){
     var dateCheck = "";
 
     var testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
@@ -360,11 +360,11 @@ end
 	  :tt_onUnLoad => "",
 	  :helpText => "Drug related side effects" } %>
   
-	<% if not current_user.user_roles.map{|r|r.role}.include?('Clinician') and not current_user.user_roles.map{|r|r.role}.include?('Doctor')%>
-	  <%= touch_yes_no_tag "REFER PATIENT TO CLINICIAN", @patient, nil,
+	<%# if not current_user.user_roles.map{|r|r.role}.include?('Clinician') and not current_user.user_roles.map{|r|r.role}.include?('Doctor')%>
+	  <%#= touch_yes_no_tag "REFER PATIENT TO CLINICIAN", @patient, nil,
 		{:id => "refer_to_clinician",
 		:helpText => "Refer patient to clinician" } %>
-	<% end %>
+	<%# end %>
   <% end %>
 
   <%

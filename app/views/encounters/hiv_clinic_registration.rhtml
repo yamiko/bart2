@@ -74,7 +74,142 @@
 
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
+  <% @session_date = "#{session[:datetime].to_date rescue Date.today}" %>
+  <% @todayDate = @session_date.to_date %>
+  <% @alert_date = @session_date.to_date - 90.days %>
+  var todayDate = createDate("<%= @todayDate.year %>","<%= @todayDate.month %>","<%= @todayDate.day %>");
+  var originaltestDate = createDate("<%= @hiv_test_date.year %>","<%= @hiv_test_date.month %>","<%= @hiv_test_date.day %>");
+  var alertDate = createDate("<%= @alert_date.year %>","<%= @alert_date.month %>","<%= @alert_date.day %>");
+  var testDate = null;
   var patient_age = null;
+  <%#= raise @hiv_test_date.year.to_yaml %>
+  function checkTestDate(){
+    var testDate = createDate($('year_art_last_taken').value, $('month_art_last_taken').value , $('day_art_last_taken').value);
+	//alert(alertDate)
+    if (testDate <= originaltestDate) {
+      return false
+	}
+	else if ( testDate > todayDate){
+	  return false
+	}
+	else {
+      return true
+    }
+     
+  }
+
+  //checks if the patient needs to be referred to HTC basesd on the test date
+  function updateTestDate(){
+    testDate = createDate($('year_art_last_taken').value, $('month_art_last_taken').value , $('day_art_last_taken').value);
+    $('date_art_last_taken').value = testDate;
+	 if (testDate == 'Invalid Date'){
+	  return true
+	}
+	else {
+	  return isTestOverDue(testDate,alertDate);
+	}
+  }
+
+function checkConfirmDate(){
+    var testDate = createDate($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value , $('confirmatory_hiv_test_day').value);
+   
+	if (testDate > $('date_started_art').value){
+	  return false
+	}
+	else if (testDate <= originaltestDate) {
+      return false
+	}
+	else if ( testDate > todayDate){
+	  return false
+	}
+	else {
+      return true
+    }
+
+  }
+
+  //checks if the patient needs to be referred to HTC basesd on the test date
+  function updateConfirmDate(){
+
+    testDate = createDate($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value , $('confirmatory_hiv_test_day').value);
+    $('confirmatory_hiv_test_date').value = testDate;
+	 if (testDate == 'Invalid Date'){
+	  return true
+	}
+	else {
+	  return isTestOverDue(testDate,alertDate);
+	}
+  }
+
+  function checkStartDate(){
+    var testDate = createDate($('year_started_art').value, $('month_started_art').value , $('day_started_art').value);
+	//alert(alertDate)
+    if (testDate <= originaltestDate) {
+      return false
+	}
+	else if ( testDate > todayDate){
+	  return false
+	}
+	else {
+      return true
+    }
+
+  }
+
+  //checks if the patient needs to be referred to HTC basesd on the test date
+  function updateStartDate(){
+    testDate = createDate($('year_started_art').value, $('month_started_art').value , $('day_started_art').value);
+    $('date_started_art').value = testDate;
+	 if (testDate == 'Invalid Date'){
+	  return true
+	}
+	else {
+	  return isTestOverDue(testDate,alertDate);
+	}
+  }
+
+ function updateInitiationDate(){
+
+    testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
+    $('hiv_initiation_date').value = testDate;
+    return isTestOverDue(testDate,alertDate);
+  }
+
+  function isTestOverDue(testDate,alertDate) {
+    if (testDate <= alertDate){
+      return true;
+    }else {
+      return false;
+    }
+  }
+
+  function createDate(year,month,day) {
+    date_str = year
+
+    if(month.length == 1)
+      month = '0' + month
+
+    date_str+='-' + month
+
+    if(day.length == 1)
+      day = '0' + day
+
+    date_str+='-' + day
+
+    intyear = 0 ; intmonth = 0 ; intday = 0;
+    intyear = parseInt(date_str.substring(0,4))
+    intmonth = (parseInt(date_str.substring(5,7)) - 1)
+    intday = (parseInt(date_str.substring(8,10)))
+
+    if (intmonth == -1)
+      intmonth = (parseInt(date_str.substring(5,7).substring(1,2)) - 1)
+
+    if (intday == 0)
+      intday = parseInt(date_str.substring(8,10).substring(1,2))
+
+    return new Date(intyear,intmonth,intday);
+  }
+
 
   function validateDOB() {                                                      
     setDOB();                                                                   
@@ -502,8 +637,7 @@
 -->
     <%= text_field_tag "year_art_last_taken", nil,                                 
       { :helpText => 'Year ART last taken',                                        
-        :field_type => 'number',                                                
-        :tt_onUnLoad => "buildDate('art_last_taken');",                                            
+        :field_type => 'number',                                            
         :absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year,
         :tt_pageStyleClass => "Numeric NumbersOnly",                            
         :condition => '$("ever_received_art").value == "YES"',
@@ -513,8 +647,7 @@
       { :tt_onLoad => "__$('keyboard').style.display = 'none'",
 		:helpText => 'Month ART last taken',
         :condition => '$("year_art_last_taken").value.toLowerCase() != "unknown" && $("ever_received_art").value == "YES"',
-        :validationJS => "validateDate();",                                      
-        :tt_onUnLoad => "buildDate('art_last_taken');",
+        :validationJS => "validateDate();",
         :id => "month_art_last_taken" ,                                            
         :validationMessage => 'Please enter a valid date'}%>                    
                                                                                 
@@ -522,10 +655,10 @@
         :field_type => 'number', :helpText => 'Day ART last taken',                
         :condition => '($("year_art_last_taken").value !="Unknown") && ($("month_art_last_taken").value != "Unknown") && $("ever_received_art"). value == "YES"',
         :tt_onLoad => "getDayOfMonthPicker($('year_art_last_taken').value, $('month_art_last_taken').value);$('nextButton').style.display = 'block';",
-        :tt_onUnLoad => "buildDate('art_last_taken');",                                            
-        :validationJS => "validateDate()",                                       
+        :tt_onUnLoad => "updateTestDate();",
+        :validationCode => "checkTestDate();",
         :id => "day_art_last_taken" ,                                              
-        :validationMessage => 'Please enter a valid date'%>                     
+        :validationMessage => "Date ART last taken out of range #{@hiv_test_date.to_date} and #{@todayDate.to_date}"%>
                                                                                 
    <%= touch_hidden_tag "DATE ART LAST TAKEN", @patient, nil, {:id => "date_art_last_taken", :value_datetime => true}%>
 
@@ -557,60 +690,7 @@
 			 	:condition => "$('ever_registered_at_ART_clinic').value == 'YES' && $('ever_received_art').value == 'YES'",
 			 	:helpText => "Has staging information?" } %>
 
-		<%= touch_text_field_tag "ART NUMBER AT PREVIOUS LOCATION", @patient, nil,
-			{	:id => "previous_art_number",
-				:condition => '$("ever_registered_at_ART_clinic").value == "YES" && $("ever_received_art").value == "YES"',
-				:helpText => "ART number at previous location" } %>
-
-				<%#= raise @patient.person.observations.to_s %>
-		<% if ! @patient.person.observations.to_s.include?('On ART:  Yes') %>
-			  <%= touch_location_tag "LOCATION OF ART INITIATION", @patient, nil,
-				  {	:id => "location_of_art_initialization",
-					  :condition => '$("ever_registered_at_ART_clinic").value == "YES" && $("ever_received_art").value == "YES"',
-					  :helpText => "Location of ART initiation" } %>
-
-
-			  <%= text_field_tag "year_started_art", nil,
-				  {	:helpText => 'Year started ART',
-					  :field_type => 'number',
-					  :absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year,
-					  :tt_pageStyleClass => "Numeric NumbersOnly",
-					  :condition => '$("ever_received_art").value == "YES" && $("ever_registered_at_ART_clinic").value == "YES" && showARTstartDate();',
-					  :id => "year_started_art" ,
-					  :validationJS => "setDOB();" }  %>
-
-		   <%estimates = ["6 months ago","12 months ago","18 months ago","24 months","Over 2 years ago"]%>
-		   <%= select_tag(:art_start_date_estimation, options_for_select(estimates ,[]),
-			  :helpText =>"Estimate ART start period",
-			  :id => "art_start_date_estimation",
-			  :allowFreeText => false,
-			  :tt_onUnLoad => "setUnkownStage();",
-			  :tt_onLoad => "setReasonForStarting();",
-			  :condition => '$("year_started_art").value.toUpperCase() == "UNKNOWN" && showARTstartDate();',
-			  :ttMatchFromBeginning => "true")%>
-
-			<%= touch_hidden_tag "Drug start date", @patient, "", :id => "drug_start_date", :value_datetime => true %>
-
-			  <%= select_tag "month_started_art", month_name_options,
-				  {	:helpText => 'Month started ART',
-					  :condition => '$("ever_received_art").value == "YES" && $("year_started_art").value.toLowerCase() != "unknown" && showARTstartDate();',
-					  :validationJS => "validateDOB();",
-					  :tt_onLoad => "__$('keyboard').style.display = 'none';",
-					  :tt_onUnLoad => "setUnkownStage();",
-					  :id => "month_started_art" ,
-					  :validationMessage => 'Please enter a valid date'}%>
-
-			  <%= text_field_tag "day_started_art",  nil,
-					  :field_type => 'number', :helpText => 'Day started ART',
-					  :condition => '$("ever_received_art").value == "YES" && ($("year_started_art").value !="Unknown") && ($("month_started_art").value != "Unknown") && showARTstartDate();',
-					  :tt_onLoad => "getDayOfMonthPicker($('year_started_art').value, $('month_started_art').value);$('nextButton').style.display = 'block';",
-					  :validationJS => "validateDOB()",
-					  :id => "day_started_art" ,
-			  :tt_onUnLoad => "setUnkownStage();",
-					  :validationMessage => 'Please enter a valid date'%>
-
-			  <%= touch_hidden_tag "Date antiretrovirals started", @patient, "", :id => "date_started_art", :value_datetime => true %>
-		<% end %>
+		
 
 
 		<%= touch_select_tag "WHO STAGES CRITERIA PRESENT", @patient, options_for_select(@who_stage_i),
@@ -733,6 +813,62 @@
 
 		<%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
 
+
+		 <%= touch_text_field_tag "ART NUMBER AT PREVIOUS LOCATION", @patient, nil,
+			{	:id => "previous_art_number",
+				:condition => '$("ever_registered_at_ART_clinic").value == "YES" && $("ever_received_art").value == "YES"',
+				:helpText => "ART number at previous location" } %>
+
+				<%#= raise @patient.person.observations.to_s %>
+		<% if ! @patient.person.observations.to_s.include?('On ART:  Yes') %>
+			  <%= touch_location_tag "LOCATION OF ART INITIATION", @patient, nil,
+				  {	:id => "location_of_art_initialization",
+					  :condition => '$("ever_registered_at_ART_clinic").value == "YES" && $("ever_received_art").value == "YES"',
+					  :helpText => "Location of ART initiation" } %>
+
+
+			  <%= text_field_tag "year_started_art", nil,
+				  {	:helpText => 'Year started ART',
+					  :field_type => 'number',
+					  :absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year,
+					  :tt_pageStyleClass => "Numeric NumbersOnly",
+					  :condition => '$("ever_received_art").value == "YES" && $("ever_registered_at_ART_clinic").value == "YES" && showARTstartDate();',
+					  :id => "year_started_art" ,
+					  :validationJS => "setDOB();" }  %>
+
+		   <%estimates = ["6 months ago","12 months ago","18 months ago","24 months","Over 2 years ago"]%>
+		   <%= select_tag(:art_start_date_estimation, options_for_select(estimates ,[]),
+			  :helpText =>"Estimate ART start period",
+			  :id => "art_start_date_estimation",
+			  :allowFreeText => false,
+			  :tt_onUnLoad => "setUnkownStage();",
+			  :tt_onLoad => "setReasonForStarting();",
+			  :condition => '$("year_started_art").value.toUpperCase() == "UNKNOWN" && showARTstartDate();',
+			  :ttMatchFromBeginning => "true")%>
+
+			<%= touch_hidden_tag "Drug start date", @patient, "", :id => "drug_start_date", :value_datetime => true %>
+
+			  <%= select_tag "month_started_art", month_name_options,
+				  {	:helpText => 'Month started ART',
+					  :condition => '$("ever_received_art").value == "YES" && $("year_started_art").value.toLowerCase() != "unknown" && showARTstartDate();',
+					  :validationJS => "validateDOB();",
+					  :tt_onLoad => "__$('keyboard').style.display = 'none';",
+					  :tt_onUnLoad => "setUnkownStage();",
+					  :id => "month_started_art" ,
+					  :validationMessage => 'Please enter a valid date'}%>
+
+			  <%= text_field_tag "day_started_art",  nil,
+					  :field_type => 'number', :helpText => 'Day started ART',
+					  :condition => '$("ever_received_art").value == "YES" && ($("year_started_art").value !="Unknown") && ($("month_started_art").value != "Unknown") && showARTstartDate();',
+					  :tt_onLoad => "getDayOfMonthPicker($('year_started_art').value, $('month_started_art').value);$('nextButton').style.display = 'block';",
+					  :validationCode => "checkStartDate();",
+					  :id => "day_started_art" ,
+					  :tt_onUnLoad => "updateStartDate();setUnkownStage();",
+					  :validationMessage => "Date ART started out of range #{@hiv_test_date.to_date} and #{@todayDate.to_date}"%>
+
+			  <%= touch_hidden_tag "Date antiretrovirals started", @patient, "", :id => "date_started_art", :value_datetime => true %>
+		<% end %>
+
 		<%= text_field_tag "observations[][value_numeric]", nil,                  
 			{	:id => "height",                                                       
 				:field_type => 'number',                                               
@@ -793,7 +929,7 @@
 			{	:id => "confirmatory_hiv_test_location",
 			 	:helpText => "Location of confirmatory HIV test"} %>
 
-		<%= touch_date_tag "CONFIRMATORY HIV TEST DATE", @patient, nil,
+		<%#= touch_date_tag "CONFIRMATORY HIV TEST DATE", @patient, nil,
 			{	:id => "confirmatory_hiv_test_date",
 			 	:max => "#{session[:datetime].to_date rescue Date.today}",
         :condition => '$("ever_registered_at_ART_clinic").value == "NO"',
@@ -803,32 +939,28 @@
 
 		<%= text_field_tag "year_confirmatory_hiv_test", nil,                                 
 			{	:helpText => 'Confirmatory HIV test year',                                         
-				:field_type => 'number',     
-        :tt_onUnLoad => "buildDate('confirmatory');",                                            
+				:field_type => 'number',                                            
 				:absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year, 
 				:tt_pageStyleClass => "Numeric NumbersOnly",                             
 				:condition => '$("ever_registered_at_ART_clinic").value == "YES"',
-				:id => "confirmatory_hiv_test_year" ,                                              
-				:validationJS => "setDOB();" }  %>                                       
+				:id => "confirmatory_hiv_test_year"}  %>                                       
 				                                                            
 		<%= select_tag "month_confirmatory_hiv_test", month_name_options,                     
 			{	:helpText => 'Confirmatory HIV test month',                                        
 				:condition => '$("confirmatory_hiv_test_year").value.toLowerCase() != "unknown" && $("ever_registered_at_ART_clinic").value == "YES"',
-				:validationJS => "validateDOB();",
-				:tt_onLoad => "__$('keyboard').style.display = 'none'",
-        :tt_onUnLoad => "buildDate('confirmatory');",                                            
-				:id => "confirmatory_hiv_test_month" ,                                             
-				:validationMessage => 'Please enter a valid date'} %>                     
+				:tt_onLoad => "__$('keyboard').style.display = 'none'",                                          
+				:id => "confirmatory_hiv_test_month"} %>                     
 				                                                            
 		<%= text_field_tag "day_confirmatory_hiv_test",  nil,                                 
 			:field_type => 'number', :helpText => 'Confirmatory HIV test day',                
-			:tt_onUnLoad => "buildDate('confirmatory');",                                            
+			:tt_onUnLoad => "updateConfirmDate();",
 			:condition => '($("confirmatory_hiv_test_year").value !="Unknown") && ($("confirmatory_hiv_test_month").value != "Unknown") && $("ever_registered_at_ART_clinic").value == "YES"',
 			:tt_onLoad => "getDayOfMonthPicker($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value);$('nextButton').style.display = 'block';",
-			:validationJS => "validateDOB()",                                       
+			:validationCode => "checkConfirmDate()",
 			:id => "confirmatory_hiv_test_day" ,                                              
-			:validationMessage => 'Please enter a valid date' %>
+			:validationMessage => "Confirmatory Test Date out of range #{@hiv_test_date.to_date} and #{@todayDate.to_date}"%>
 
+			<%= touch_hidden_tag "confirmatory hiv test date", @patient, "", :id => "confirmatory_hiv_test_date", :value_datetime => true %>
 		<% if @retrospective %>
 			<p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
 			<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
