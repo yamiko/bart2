@@ -1,7 +1,16 @@
 <html>
 
 	<head>
-		<title>Case Findings</title>
+	<title>Case Findings</title>
+	<style>
+		td{
+			color: red ;
+			font-size: 14;
+			border-color: black;
+			text-align:center;
+		}
+	</style>
+
 		<script>
 			function load(){
 				var button = document.getElementById("buttons");
@@ -11,7 +20,7 @@
 				next.innerHTML = "<span> Page 2</span>"
 				next.setAttribute("class","blue")
 				next.setAttribute("width","500px")
-				next.setAttribute("onclick","window.location= '/cohort_tool/case_findings2'")
+				next.setAttribute("onclick","window.location= '/cohort_tool/case_findings2?quarter=<%=@quarter%>' ")
 				button.appendChild(next)
 			}
 			setTimeout("load();",30)

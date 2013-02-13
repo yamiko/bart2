@@ -120,7 +120,16 @@ class CohortToolController < GenericCohortToolController
 		render :layout => "report"
 		
 	end
+
 	def case_findings2
+	
+		@quarter = params[:quarter]
+    @start_date,@end_date = Report.generate_cohort_date_range(@quarter)
+		@variables = Hash.new(0)		
+		
+		patients = Patient.find_by_sql("Select patient_id from encounter where encounter_type = #{EncounterType.find_by_name("tb registration").id} and encounter_datetime between #{@start_date} and #{@end_date}")
+	
+	
 		render :layout => "report"
 	end
 
