@@ -55,7 +55,8 @@
 		<%= touch_yes_no_unknown_tag "EVER RECEIVED TB TREATMENT", @patient, nil,
 			{	:id => "tb_treatment",
 				:tt_onUnload => "$('transfer_in').value = '';",
-				:helpText => 'Ever received TB treatment'} %>
+				:helpText => 'Ever received TB treatment',
+				:tt_onLoad => 'showCategory("TB Information At Registration")'} %>
 	<% end %>
 
   <%= touch_yes_no_unknown_tag "Transfer in", @patient, nil,

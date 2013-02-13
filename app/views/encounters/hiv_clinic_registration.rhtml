@@ -112,9 +112,12 @@
 
 function checkConfirmDate(){
     var testDate = createDate($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value , $('confirmatory_hiv_test_day').value);
-   
-	if (testDate > $('date_started_art').value){
+
+	if($('date_started_art') != null){
+	  if (testDate > $('date_started_art').value){
 	  return false
+	  }
+	  else{ return true}
 	}
 	else if (testDate <= originaltestDate) {
       return false
@@ -825,7 +828,7 @@ function checkConfirmDate(){
 				  {	:id => "location_of_art_initialization",
 					  :condition => '$("ever_registered_at_ART_clinic").value == "YES" && $("ever_received_art").value == "YES"',
 					  :helpText => "Location of ART initiation" } %>
-
+		
 
 			  <%= text_field_tag "year_started_art", nil,
 				  {	:helpText => 'Year started ART',

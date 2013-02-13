@@ -50,39 +50,23 @@ clinic_holidays = clinic_holidays.split(',').to_json
     date_set.push(clinic_holidays[c]);
   }
 
-  function removeDate(td) {
-    dates = date_set ; date_set = []
-    for (i = 0 ; i < dates.length ; i++) {
-      if (dates[i] != td.getAttribute('date'))
-        date_set.push(dates[i])
-        document.getElementById('selected_dates').value = date_set.join(',');
-    }
+   //alert(clinic_holidays)
+  function check(td){
+	newWeekDay = td.getAttribute('date')
+	//td.setAttribute("ajaxCalendarUrl", "/patients/number_of_booked_patients?date=" + weekDay);
+	td.style.backgroundColor = 'gray';
   }
-var found = 0;
-  function addDate(td) {
-      weekDay = td.getAttribute('date');
-	  for(var x = 0 ; x < date_set.length; x++){
-        if (weekDay == date_set[x]) {
-          td.style.background  = 'tomato';
-		  //found = 1;
-        }
-      }
-	  if (found == 0){
-	  td.style.background = 'rgb(153, 238, 153)';
-	  }
-    }
-
   function showSelectedDates() {
     activeCells = document.getElementsByClassName('cellActive');
     for(var i = 0; i < activeCells.length; i++) {
     weekDay = activeCells[i].getAttribute('date');
 	nn = new Date(weekDay).getDay();
 	var days = '<%= days.join(',') %>';
-		 days = days.split(',');
-		 //alert(days)
+	days = days.split(',');
 	if (days[nn] == ""){
-			activeCells[i].setAttribute("ajaxCalendarUrl", "/patients/number_of_booked_patients?date=" + weekDay)
+			activeCells[i].setAttribute("ajaxCalendarUrl", "/patients/number_of_booked_patients?date=" + weekDay);
 			activeCells[i].style.backgroundColor = 'gray';
+		   
 	}
 	else{
 			  activeCells[i].setAttribute("ajaxCalendarUrl", "/patients/number_of_booked_patients?date=" + weekDay)
@@ -93,16 +77,6 @@ var found = 0;
 			  }
 			}
 	}
-    for(var i = 0; i < activeCells.length; i++) {
-      weekDay = activeCells[i].getAttribute('date');
-      for(var x = 0 ; x < date_set.length; x++){
-        if (weekDay == date_set[x]) {
-		  activeCells[i].setAttribute("ajaxCalendarUrl", "/patients/number_of_booked_patients?date=" + weekDay)
-          activeCells[i].style.backgroundColor = 'tomato';
-        }
-      }
-    }
-
   }
 
   function setAttributes() {
@@ -112,10 +86,6 @@ var found = 0;
       buttons[i].setAttribute('onclick',new_attr);
     }
   }
-
-  //setInterval("updateNextAppointmentNumber();",60000);
-  //setTimeout("updateNextAppointmentNumber();",1000);
-  //-->
 </script>
 
 <% session_date = session[:datetime].to_date rescue nil %>

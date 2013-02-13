@@ -1,5 +1,10 @@
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
+  var originaltestDate = createDate("<%= @hiv_test_date.year %>","<%= @hiv_test_date.month %>","<%= @hiv_test_date.day %>");
+  <% @session_date = "#{session[:datetime].to_date rescue Date.today}" %>
+  <% @todayDate = @session_date.to_date %>
+  var todayDate = createDate("<%= @todayDate.year %>","<%= @todayDate.month %>","<%= @todayDate.day %>");
+
 
   function checkIfExists(searchItem,searchElement){
     var elem = document.getElementById(searchElement);
@@ -57,40 +62,47 @@
     }catch(e) {}
   }
 
-  function checkTestDate(){
-    var dateCheck = "";
 
-    var testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
-<% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
-
-    var sessionDate = "<%="#{@session_date.to_date.year},#{@session_date.to_date.month},#{@session_date.to_date.day}"%>";
-    var todayDate = new Date(sessionDate);
-
-    if (testDate <= todayDate){
-      dateCheck = 'true'
-	}else {
-      dateCheck = 'false'
+ function checkInitiationDate(){
+    var testDate = $('date_of_art_initiation').value;
+	testDate = new Date(testDate)
+    if (testDate <= originaltestDate) {
+      return false
+	}
+	else if ( testDate > todayDate){
+	  return false
+	}
+	else {
+      return true
     }
-    return dateCheck
+
   }
 
+  function checkTestDate(){
+
+    var testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
+
+    if (testDate <= originaltestDate) {
+      return false
+	}
+	else if ( testDate > todayDate){
+	  return false
+	}
+	else {
+      return true
+	}
+  }
 
   function updateInitiationDate(){
 
     testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
     $('hiv_initiation_date').value = testDate;
-<% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
-<% @todayDate = @session_date.to_date - 90 %>
-
-    var sessionDate = "<%="#{@todayDate}"%>";
-    var todayDate = new Date(sessionDate);
-
-    if (todayDate > testDate){
-      showNegativeTestReminder = true
-	}else {
-      showNegativeTestReminder = false
-    }
-    return showNegativeTestReminder
+	if (testDate == 'Invalid Date'){
+	  return true
+	}
+	else {
+	  return false;
+	}
   }
 
   function showLastTBsigns(){
@@ -264,10 +276,10 @@ end
 	  <%end%>
 	<% end
   end %>
-  
+
   <%  if @previous_tb_visit.length == 0  %>
 	<%  if @patient_bean.age > 13 %>
-	  
+
 	  <% if @patient_bean.sex == 'Male' %>
 
 		<%= touch_yes_no_unknown_tag "CURRENTLY USING FAMILY PLANNING METHOD", @patient, nil,
@@ -281,7 +293,7 @@ end
 		  :tt_pageStyleClass => "NoKeyboard",
 		  :helpText => "What method?" } %>
 	  <% else %>
-		
+
 		<%=# touch_select_tag "FAMILY PLANNING METHOD", @patient, options_for_select(@select_options['female_family_planning_methods']),
 		{	:id => "mfpm_used",
 		  :condition => '$("on_fpm").value == "YES"',
@@ -359,12 +371,12 @@ end
 	  :tt_pageStyleClass => "NoKeyboard",
 	  :tt_onUnLoad => "",
 	  :helpText => "Drug related side effects" } %>
-  
-	<%# if not current_user.user_roles.map{|r|r.role}.include?('Clinician') and not current_user.user_roles.map{|r|r.role}.include?('Doctor')%>
-	  <%#= touch_yes_no_tag "REFER PATIENT TO CLINICIAN", @patient, nil,
-		{:id => "refer_to_clinician",
-		:helpText => "Refer patient to clinician" } %>
-	<%# end %>
+
+  <%# if not current_user.user_roles.map{|r|r.role}.include?('Clinician') and not current_user.user_roles.map{|r|r.role}.include?('Doctor')%>
+  <%#= touch_yes_no_tag "REFER PATIENT TO CLINICIAN", @patient, nil,
+  {:id => "refer_to_clinician",
+  :helpText => "Refer patient to clinician" } %>
+  <%# end %>
   <% end %>
 
   <%
@@ -385,7 +397,7 @@ end
   <% else %>
 	<%= touch_hidden_tag "ANY NEED TO SEE A CLINICIAN", @patient, "NO", :id => "refer_to_clinician" %>
   <% end %>
-<!----->
+  <!----->
   <%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
 	{	:id => "prescribe_drugs",
 	:condition => "$('refer_to_clinician').value == 'NO'" ,
@@ -435,27 +447,36 @@ end
 	:allowFreeText => true } %>
 
   <% if @hiv_status.upcase == 'POSITIVE' && !@patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM') %>
-  <%= touch_hidden_tag "ON ART", @patient, nil, 
-		  {	:id => "art_status"}%>
-  <% if ! @patient.person.observations.to_s.include?('On ART:') %>
-  <%= touch_yes_no_unknown_tag "ON ART", @patient, nil,
-	  {:id => "art_status",
-	  :tt_pageStyleClass => "NoKeyboard",
-	  :helpText => "On ART?" } %>
-  <%else%>
-	<%= touch_hidden_tag "ON ART", @patient, nil,
+  <%#= touch_hidden_tag "ON ART", @patient, nil,
+  {	:id => "art_status"}%>
+	<% if ! @patient.person.observations.to_s.include?('On ART:') %>
+	  <%= touch_yes_no_unknown_tag "ON ART", @patient, nil,
+		{:id => "art_status",
+		:tt_pageStyleClass => "NoKeyboard",
+		:helpText => "On ART?" } %>
+	<%else%>
+	  <%= touch_hidden_tag "ON ART", @patient, nil,
 		{:id => "art_status"} %>
 	<%  end %>
 
-	<%= text_field_tag "hiv_initiation_year", nil, {:helpText => 'Year of ART initiation', :field_type => 'number', :absoluteMin => "1982", :min => "1982", :absoluteMax => Date.today.year, :tt_pageStyleClass => "Numeric NumbersOnly", :condition => '($("art_status").value == "YES")'}  %>
+	<%= text_field_tag "hiv_initiation_year", nil, {
+	  :helpText => 'Year of ART initiation',
+	  :field_type => 'number',
+	  :absoluteMin => "1982", :min => "1982",
+	  :absoluteMax => Date.today.year,
+	  :tt_pageStyleClass => "Numeric NumbersOnly",
+	  :condition => '$("art_status").value == "YES"'}  %>
 
-	<%= select_tag "hiv_initiation_month", month_name_options, {:tt_onLoad => "__$('keyboard').style.display = 'none'",:helpText => 'Month of ART initiation', :condition => '($("hiv_initiation_year").value.toLowerCase() != "unknown")  && ($("art_status").value == "YES")'}%>
+	<%= select_tag "hiv_initiation_month", month_name_options, {
+	  :tt_onLoad => "__$('keyboard').style.display = 'none'",
+	  :helpText => 'Month of ART initiation',
+	  :condition => '($("hiv_initiation_year").value.toLowerCase() != "unknown")  && ($("art_status").value == "YES")'}%>
 
 	<%= text_field_tag "hiv_initiation_day",  nil,
 	  {:field_type => 'number',
 	  :helpText => 'Day of ART initiation',
 	  :validationCode => "checkTestDate();",
-	  :validationMessage => "HIV initiation date greater than #{session[:datetime].to_date rescue Date.today.to_date}",
+	  :validationMessage => "HIV initiation date out of range #{@hiv_test_date.to_date} and #{@todayDate.to_date}",
 	  :condition => '($("hiv_initiation_year").value != "Unknown") && ($("hiv_initiation_month").value != "Unknown")  && ($("art_status").value == "YES")',
 	  :tt_onLoad => "getDayOfMonthPicker($('hiv_initiation_year').value, $('hiv_initiation_month').value)",
 	  :tt_onUnload=> "updateInitiationDate();"
@@ -464,6 +485,20 @@ end
 	<%= touch_location_tag "Location Of ART Initiation", @patient, nil, {:id => "location_of_art_intiation", :value_datetime => true,:helpText => "Location Of ART Initiation", :condition => '$("art_status").value == "YES"'}%>
 	<%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
 	<%= touch_hidden_tag "ART initiation date", @patient, nil, {:id => "hiv_initiation_date", :value_datetime => true}%>
+
+  <% if ! @patient.person.observations.to_s.downcase.include?('in hiv program:') %>
+	  <%= touch_yes_no_tag "Patient enrolled in HIV program", @patient, nil,
+		{   :id => "enroll_patient_in_art",
+		:condition => '$("refer_to_clinician").value != "YES"',
+		:helpText => 'Enroll for HIV care' } %>
+
+	<%else%>
+	  <%= touch_hidden_tag "Patient enrolled in HIV program", @patient, nil,
+		{   :id => "enroll_patient_in_art",
+		:condition => '$("refer_to_clinician").value != "YES"' } %>
+	<%  end %>
+  <% end %>
+
 	<%= touch_yes_no_tag "Ever registered at ART clinic", @patient, nil,
 	  {	:id => "ever_registered_at_ART_clinic",
 	  :condition => '$("enroll_patient_in_art").value == "YES" && $("refer_to_clinician").value != "YES"',
@@ -472,8 +507,10 @@ end
 	<%= touch_date_tag "ART initiation date", @patient, nil,
 	  {:id => "date_of_art_initiation",
 	  :condition => "$('ever_registered_at_ART_clinic').value =='YES' && $('refer_to_clinician').value != 'YES'",
+	  :validationCode => "checkInitiationDate()",
+	  :validationMessage => "Art initiation date out of range #{@hiv_test_date.to_date} and #{@todayDate.to_date}",
 	  :max => "#{session[:datetime].to_date rescue Date.today}",
-	  :helpText => "Antiretroviral initiation date"} %>
+	  :helpText => "ART initiation date"} %>
 
 	<%= touch_location_tag "LOCATION OF ART INITIATION", @patient, nil,
 	  {	:id => "location_of_art_initialization",
@@ -482,18 +519,6 @@ end
 	  :ajaxURL => '/encounters/locations?search_string=',
 	  :helpText => "Location of ART initiation" } %>
 
-	  <% if ! @patient.person.observations.to_s.downcase.include?('in hiv program:') %>
-	<%= touch_yes_no_tag "Patient enrolled in HIV program", @patient, nil,
-	  {   :id => "enroll_patient_in_art",
-	  :condition => '$("refer_to_clinician").value != "YES"',
-	  :helpText => 'Enroll for HIV care' } %>
-
-    <%else%>
-	<%= touch_hidden_tag "Patient enrolled in HIV program", @patient, nil,
-	  {   :id => "enroll_patient_in_art",
-	  :condition => '$("refer_to_clinician").value != "YES"' } %>
-	<%  end %>
-  <% end %>
 
 
   <% session_date = session[:datetime].to_date rescue nil

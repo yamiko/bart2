@@ -829,7 +829,6 @@ class EncountersController < GenericEncountersController
 		end
 
 		buffer = 0 if !arvs_given
-		buffer = 2 if regimen_type == false
 		return auto_expire_date - buffer.days
 	end
 	
