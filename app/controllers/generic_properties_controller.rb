@@ -15,8 +15,9 @@ class GenericPropertiesController < ApplicationController
       clinic_holidays.save 
       flash[:notice] = 'Date(s) successfully created.'
       redirect_to '/properties/clinic_holidays' and return
-    end
+		else
     redirect_to '/properties/set_clinic_holidays' and return
+		end
   end
 
   def clinic_holidays

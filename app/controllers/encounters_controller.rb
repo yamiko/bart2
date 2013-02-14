@@ -748,6 +748,7 @@ class EncountersController < GenericEncountersController
 		
 		limit = CoreService.get_global_property_value('clinic.appointment.limit') rescue 0
 
+
 		return suggested_date(expiry_date ,clinic_holidays, bookings, clinic_days)
 	end
 	
@@ -755,10 +756,13 @@ class EncountersController < GenericEncountersController
     session_date = dispensed_date.to_date
         
     arvs_given = true
+		regimen_type = false
 		
-		orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o| !MedicationService.arv(o.drug_order.drug) }
+		orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o|
+								 !MedicationService.tb_medication(o.drug_order.drug) }
 
     arvs_given = false if orders_made.blank?
+		regimen_type = true if orders_made.blank?
         
 		auto_expire_date = Date.today + 2.days
 		
@@ -769,9 +773,13 @@ class EncountersController < GenericEncountersController
 			auto_expire_date = orders_made.sort_by(&:auto_expire_date).first.auto_expire_date.to_date
 		end
 
-		regimen_type_concept = ConceptName.find_by_name("ARV REGIMEN TYPE").concept_id
+		regimen_type_concept = ConceptName.find_by_name("TB REGIMEN TYPE").concept_id
+		regimen_type_concept = ConceptName.find_by_name("ARV REGIMEN TYPE").concept_id if regimen_type == false
+		
 		treatment_encounter = orders_made.first.encounter
-		arv_regimen_obs = Observation.find(:first, :conditions => ["concept_id = ? AND encounter_id = ?", regimen_type_concept, treatment_encounter.id])
+		arv_regimen_obs = Observation.find(:first, 
+					:conditions => ["concept_id = ? AND encounter_id = ?",
+					regimen_type_concept, treatment_encounter.id])
 
 		arv_regimen_type = "" 
 		if !arv_regimen_obs.blank?
@@ -821,7 +829,6 @@ class EncountersController < GenericEncountersController
 		end
 
 		buffer = 0 if !arvs_given
-		
 		return auto_expire_date - buffer.days
 	end
 	

@@ -950,7 +950,7 @@ end
     type.id, patient.id,session_date.strftime("%Y-%m-%d 00:00:00"),
     session_date.strftime("%Y-%m-%d 23:59:59")]) != nil                    
 
-    next_appt = Observation.find(:first,:order => "encounter_datetime DESC,encounter.date_created DESC",
+    next_appt = Observation.find(:first,:order => "encounter_datetime ASC,encounter.date_created ASC",
                :joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
                :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
                AND obs_datetime <= ?",ConceptName.find_by_name('Appointment date').concept_id,

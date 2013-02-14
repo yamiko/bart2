@@ -153,7 +153,7 @@
   <%= hidden_field_tag "encounter[provider_id]", current_user.user_id %>
 
   <% if @patient_is_child_bearing_female %>
-  
+		<% if @currently_using_family_planning_methods.nil? %>
         <% if @is_patient_pregnant_value.nil?%>
 
             <%= touch_yes_no_unknown_tag "IS PATIENT PREGNANT?", @patient, nil,
@@ -177,11 +177,12 @@
         <%else%>
             <%#= touch_hidden_tag "IS PATIENT BREAST FEEDING?" , @patient, @is_patient_breast_feeding_value.strip , :id => "breast_feeding" %>
         <%end%>
-
+		<% end %>
   <% end %>    
 
   <% if @patient_is_child_bearing_female %>
 
+   <% if @is_patient_pregnant_value.nil?%>
     <% if @currently_using_family_planning_methods.nil? %>
         <%= touch_yes_no_unknown_tag "CURRENTLY USING FAMILY PLANNING METHOD", @patient, nil,
           {:id => "on_fpm",
@@ -207,7 +208,7 @@
                  end
             end %>
     <% end %>
-
+	<% end %>
 <%end%>
 
   <% if ask_standard_art_side_effects %>

@@ -55,7 +55,8 @@
 		<%= touch_yes_no_unknown_tag "EVER RECEIVED TB TREATMENT", @patient, nil,
 			{	:id => "tb_treatment",
 				:tt_onUnload => "$('transfer_in').value = '';",
-				:helpText => 'Ever received TB treatment'} %>
+				:helpText => 'Ever received TB treatment',
+				:tt_onLoad => 'showCategory("TB Information At Registration")'} %>
 	<% end %>
 
   <%= touch_yes_no_unknown_tag "Transfer in", @patient, nil,
@@ -160,7 +161,7 @@
     if session_date %>
 
     <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
-<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+<%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=', :tt_onLoad => 'showCategory("TB Information At Registration")' %></p>
     <% else %>
       <%= hidden_field_tag "filter[provider]", nil %>
     <%end%>
