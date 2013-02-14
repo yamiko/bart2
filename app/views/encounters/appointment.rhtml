@@ -49,13 +49,7 @@ clinic_holidays = clinic_holidays.split(',').to_json
   for(var c = 0; c < clinic_holidays.length; c++) {
     date_set.push(clinic_holidays[c]);
   }
-
-   //alert(clinic_holidays)
-  function check(td){
-	newWeekDay = td.getAttribute('date')
-	//td.setAttribute("ajaxCalendarUrl", "/patients/number_of_booked_patients?date=" + weekDay);
-	td.style.backgroundColor = 'gray';
-  }
+  
   function showSelectedDates() {
     activeCells = document.getElementsByClassName('cellActive');
     for(var i = 0; i < activeCells.length; i++) {
@@ -65,14 +59,14 @@ clinic_holidays = clinic_holidays.split(',').to_json
 	days = days.split(',');
 	if (days[nn] == ""){
 			activeCells[i].setAttribute("ajaxCalendarUrl", "/patients/number_of_booked_patients?date=" + weekDay);
-			activeCells[i].style.backgroundColor = 'gray';
+			activeCells[i].className += " nonclinic";
 		   
 	}
 	else{
 			  activeCells[i].setAttribute("ajaxCalendarUrl", "/patients/number_of_booked_patients?date=" + weekDay)
 			  for(var x = 0 ; x < clinic_holidays.length; x++){
 				if (weekDay == clinic_holidays[x]) {
-				  activeCells[i].style.backgroundColor = 'red';
+				  activeCells[i].className += " publicholiday";
 				}
 			  }
 			}
@@ -87,7 +81,14 @@ clinic_holidays = clinic_holidays.split(',').to_json
     }
   }
 </script>
-
+<style>
+  .nonclinic {
+	background: #C0C0C0 ! important;
+  }
+  .publicholiday {
+	background: #CD3333 ! important;
+  }
+</style>
 <% session_date = session[:datetime].to_date rescue nil %>
 
 <form id="frmMain" action="/encounters/create/" method="post">
