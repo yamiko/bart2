@@ -1387,6 +1387,7 @@ class EncountersController < GenericEncountersController
 
 		result["on_cpt"] = cpt_ids.join(",")
     result["arv_before_visit_one"] = b4_visit_one.join(",")
+
 		render :text => result.to_json
   end
 
