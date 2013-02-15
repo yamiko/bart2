@@ -1,18 +1,22 @@
 class CohortToolController < GenericCohortToolController
-	def case_findings
-		@variables = Hash.new(0)
 
+	def case_findings
+	
+		@variables = Hash.new(0)
 		@quarter = params[:quarter]
     @start_date,@end_date = Report.generate_cohort_date_range(@quarter)
     encounters = Encounter.find(:all, :conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ?", EncounterType.find_by_name("tb registration").id, @start_date, @end_date])
     tbtype = ConceptName.find_by_name("TB classification").concept_id
     patienttype = ConceptName.find_by_name("TB patient category").concept_id
-    
+		@tbclass = []     
     encounters.each do |enc|
     		
     		tbclass = Concept.find(Observation.find(:last, :conditions => ["encounter_id = ? and concept_id = ? ", enc.id,tbtype]).value_coded).fullname
+			@tbclass << tbclass
+    	recurrent = Concept.find(Observation.find(:last, :conditions => ["concept_id = ? ",ConceptName.find_by_name("Ever received TB treatment").concept_id]).value_coded).fullname == "Yes"
+    	
     		patclass = Concept.find(Observation.find(:last, :conditions => ["encounter_id = ? and concept_id = ? ", enc.id,patienttype]).value_coded).fullname
-    		
+		#	end
     		age = PatientService.age(enc.patient.person)
     		
     		if ((age >= 0) && (age <= 4))
@@ -24,7 +28,7 @@ class CohortToolController < GenericCohortToolController
     					@variables["Females"] +=1    		
     					@variables["Under5Females"] +=1
     			end
-    			@variables[case_find_cat_sort(patclass,tbclass,age= "Under5",gender= enc.patient.person.gender)] +=1
+    			@variables[case_find_cat_sort(patclass,tbclass,age= "Under5",gender= enc.patient.person.gender,recurrent)] +=1
     		elsif((age >= 5) && (age <= 14))
 
 		  		case enc.patient.person.gender
@@ -35,7 +39,7 @@ class CohortToolController < GenericCohortToolController
 		  					@variables["Females"] +=1  
 		  					@variables["Under15Females"] +=1  		
 		  			end
-		  			@variables[case_find_cat_sort(patclass,tbclass,age= "Under15",gender= enc.patient.person.gender)] +=1
+		  			@variables[case_find_cat_sort(patclass,tbclass,age= "Under15",gender= enc.patient.person.gender,recurrent)] +=1
     		elsif((age >= 15) && (age <= 24))
     		
 					case enc.patient.person.gender
@@ -46,7 +50,7 @@ class CohortToolController < GenericCohortToolController
 		  					@variables["Females"] +=1    		
 		  					@variables["Under25Females"] +=1
 		  			end
-		  			@variables[case_find_cat_sort(patclass,tbclass,age= "Under25",gender= enc.patient.person.gender)] +=1    		
+		  			@variables[case_find_cat_sort(patclass,tbclass,age= "Under25",gender= enc.patient.person.gender,recurrent)] +=1    		
     		elsif((age >= 25) && (age <= 34))
     		
 						case enc.patient.person.gender
@@ -57,7 +61,7 @@ class CohortToolController < GenericCohortToolController
 		  					@variables["Females"] +=1    		
 		  					@variables["Under35Females"] +=1
 		  			end
-		  			@variables[case_find_cat_sort(patclass,tbclass,age= "Under35",gender= enc.patient.person.gender)] +=1    		
+		  			@variables[case_find_cat_sort(patclass,tbclass,age= "Under35",gender= enc.patient.person.gender,recurrent)] +=1    		
     		elsif((age >= 35) && (age <= 44))
     		
 						case enc.patient.person.gender
@@ -68,7 +72,7 @@ class CohortToolController < GenericCohortToolController
 		  					@variables["Females"] +=1    		
 		  					@variables["Under45Females"] +=1
 		  			end
-		  			@variables[case_find_cat_sort(patclass,tbclass,age= "Under45",gender= enc.patient.person.gender)] +=1    		
+		  			@variables[case_find_cat_sort(patclass,tbclass,age= "Under45",gender= enc.patient.person.gender,recurrent)] +=1    		
     		elsif((age >= 45) && (age <= 54))
 
 						case enc.patient.person.gender
@@ -79,7 +83,7 @@ class CohortToolController < GenericCohortToolController
 		  					@variables["Females"] +=1    		
 		  					@variables["Under55Females"] +=1
 		  			end
-    			@variables[case_find_cat_sort(patclass,tbclass,age= "Under55",gender= enc.patient.person.gender)] +=1    		
+    			@variables[case_find_cat_sort(patclass,tbclass,age= "Under55",gender= enc.patient.person.gender,recurrent)] +=1    		
     		elsif((age >= 55) && (age <= 64))
 					case enc.patient.person.gender
     				when ("M")
@@ -89,7 +93,7 @@ class CohortToolController < GenericCohortToolController
     					@variables["Females"] +=1    		
     					@variables["Under65Females"] +=1
     			end
-    			@variables[case_find_cat_sort(patclass,tbclass,age= "Under65",gender= enc.patient.person.gender)] +=1    		
+    			@variables[case_find_cat_sort(patclass,tbclass,age= "Under65",gender= enc.patient.person.gender,recurrent)] +=1    		
     		else
 	    		case enc.patient.person.gender
     				when ("M")
@@ -99,7 +103,7 @@ class CohortToolController < GenericCohortToolController
     					@variables["Females"] +=1    		
     					@variables["Over64Females"] +=1
     			end
-    			@variables[case_find_cat_sort(patclass,tbclass,age= "Over64",gender= enc.patient.person.gender)] +=1
+    			@variables[case_find_cat_sort(patclass,tbclass,age= "Over64",gender= enc.patient.person.gender,recurrent)] +=1
     		end
     		
     end
@@ -108,6 +112,10 @@ class CohortToolController < GenericCohortToolController
     cats.each do |total|
     	@variables["MalesNew"] += @variables[total.to_s+"MPulnew"]
     	@variables["FemalesNew"] +=@variables[total.to_s+"FPulnew"]
+    	@variables["FemaleOth"] += @variables[total.to_s+"Foth"]
+    	@variables["MaleOth"] += @variables[total.to_s+"Moth"]
+    	@variables["FemaleXP"] += @variables[total.to_s+"FXP"]
+    	@variables["MaleXP"] += @variables[total.to_s+"MXP"]
     	@variables["MalesRel"] += @variables[total.to_s+"MPulrel"]
     	@variables["FemalesRel"] +=@variables[total.to_s+"FPulrel"]
     	@variables["MalesF"] += @variables[total.to_s+"MPulF"]
@@ -126,16 +134,67 @@ class CohortToolController < GenericCohortToolController
 		@quarter = params[:quarter]
     @start_date,@end_date = Report.generate_cohort_date_range(@quarter)
 		@variables = Hash.new(0)		
+
+    tbtype = ConceptName.find_by_name("TB classification").concept_id
+
+    patienttype = ConceptName.find_by_name("TB patient category").concept_id	
+
+		patients = Patient.find_by_sql("Select * from encounter where encounter_type = #{EncounterType.find_by_name("tb registration").id} and encounter_datetime between #{@start_date} and #{@end_date}")
 		
-		patients = Patient.find_by_sql("Select patient_id from encounter where encounter_type = #{EncounterType.find_by_name("tb registration").id} and encounter_datetime between #{@start_date} and #{@end_date}")
-	
+		patients.each do |patient|
+
+   		tbclass = Concept.find(Observation.find(:last, :conditions => ["patient_id = ? and concept_id = ? ", patient.id,tbtype]).value_coded).fullname
+   		
+   		patclass = Concept.find(Observation.find(:last, :conditions => ["patient_id = ? and concept_id = ? ", patient.id,patienttype]).value_coded).fullname
+		
+			state = PatientProgram.find(:first, :conditions => ["program_id = ? and patient_id = ? and date_enrolled >=  ?", Program.find_by_name("TB Program").program_id, patient, @start_date]).patient_states.last.program_workflow_state.concept.shortname
+			
+			case state.upcase
+				when "REGIMEN FAILURE" || "TREATMENT FAILURE"
+						cat = "F"
+				when "PATIENT DIED" || "DIED"
+						cat = "DI"
+				when "CURRENTLY IN TREATMENT"
+				
+				when "PATIENT CURED"
+						cat = "C"
+				when "PATIENT TRANSFERRED OUT"
+						cat = "TO"
+				when "DEFAULTED" || "Z_DEPRECATED PATIENT DEFAULTED"
+						cat = "DF"
+				when "TREATMENT COMPLETE"
+						cat = "RC"
+			end
+
+			case tbcat
+
+				when "Pulmonary tuberculosis"
+					@variables["SMpos"+patient.person.gender+cat] +=1			
+				when "Extrapulmonary tuberculosis (EPTB)"
+					@variables["SMeptb"+patient.person.gender+cat] +=1
+				else
+					@variables["SMneg"+patient.person.gender+cat] +=1					
+			end
+		
+			case patcat
+
+				when "Failed - TB"
+					@variables["SMrtaf"+patient.person.gender+cat] +=1					
+				when "Relapse MDR-TB patient"
+					@variables["rel"+patient.person.gender+cat] +=1					
+				when "Treatment after default MDR-TB patient"
+					@variables["SMrtad"+patient.person.gender+cat] +=1					
+			end
+			
+		end
 	
 		render :layout => "report"
-	end
 
-	def case_find_cat_sort(patientclass,tbtype,age,gender)
+	end
+	
+	def case_find_cat_sort(patientclass,tbtype,age,gender, recc)
 			 
-			if tbtype == "Pulmonary tuberculosis"
+			
 				if patientclass == "New patient"
 					store = age.to_s+gender.to_s+"Pulnew"
 				elsif patientclass == "Treatment after default MDR-TB patient"
@@ -144,10 +203,24 @@ class CohortToolController < GenericCohortToolController
 					store = age.to_s+gender.to_s+"PulF"
 				elsif patientclass == "Relapse MDR-TB patient"
 					store = age.to_s+gender.to_s+"Pulrel"
+				else 
+					if (recc = "Yes")
+						store = age.to_s+gender.to_s+"oth"
+					end
 				end
-			else
+			
+			if tbtype == "Extrapulmonary tuberculosis (EPTB)"
+					
 					store = age.to_s+gender.to_s+"EP"
+
+			elsif tbtype == "Pulmonary tuberculosis"
+					
+			else
+					
+					store = age.to_s+gender.to_s+"XP"
+					
 			end
+			
 			return store
 	end
   def select
@@ -1544,21 +1617,18 @@ class CohortToolController < GenericCohortToolController
 		  	end
     	end
     	
-    culture_concepts = [ConceptName.find_by_name("Culture(1st)").concept_id,ConceptName.find_by_name("Culture(2nd)").concept_id]
+    culture_concepts = [ConceptName.find_by_name("Culture(1st) Results").concept_id,ConceptName.find_by_name("Culture-2 Results").concept_id]
     
-		culture = Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ? AND (value_coded in (?))", id, ConceptName.find_by_name('Tests ordered').concept_id, start,end_date, culture_concepts], :limit => 2)
+		culture = Observation.find(:all, :conditions => ["person_id = ? AND obs_datetime >= ? AND obs_datetime <= ? AND concept_id in (?)", id, start,end_date, culture_concepts], :limit => 2).each { |ob|
+			if Concept.find(ob.value_coded).fullname.to_s.include?"positive"
+		  			@values["culture"] = "Positive"
+		  			break
+			else
+						@values["culture"] = "Negative"
+			end    			
+		}
 
-    if culture[0] != nil && culture[1] != nil
-    	if ((culture[0].answer_string.to_s.include?"positive") ||(culture[1].answer_string.to_s.include?"positive"))
-    			@values["culture"] = "Positive"
-    	elsif((culture[0].answer_string.to_s.include?"negative") ||(culture[1].answer_string.to_s.include?"negative"))
-    			@values["culture"] = "Negative"
-    	else
-    			@values["culture"] = "Unknown"
-    	end
-    end
-
-
+		
     	sputum_results = sputum_results_at_reg(encounters.encounter_datetime, encounters.patient.patient_id)
       sputum_results.each { |obs|
         if obs.value_coded != ConceptName.find_by_name("Negative").id
@@ -1611,6 +1681,7 @@ class CohortToolController < GenericCohortToolController
 			@values["outcome"] = Concept.find(Observation.find(:last, :conditions => ["concept_id = ?",ConceptName.find_by_name("TB treatment outcome").concept_id]).value_coded).fullname rescue nil
 		render :layout => "menu"
 	end
+
 	def tb_register_summary
 		temp = params[:start].to_s
 		@start_date = params[:start].to_s.split(",")[0].to_date
@@ -1632,7 +1703,6 @@ class CohortToolController < GenericCohortToolController
     		@total["pulmonary"] +=1
     	else
 
-	    	@total["EP"] +=1
     	end
     	
     	ptype = Concept.find(Observation.find(:last, :conditions => ["encounter_id = ? and concept_id = ? ", enc.id,ConceptName.find_by_name("TB patient category").concept_id]).value_coded).fullname
@@ -1642,6 +1712,7 @@ class CohortToolController < GenericCohortToolController
 
     			@total["new"] +=1
     		when ("FAILED - TB") 
+	    	@total["EP"] +=1
 
     			@total["fail"] +=1
     		when ("RELAPSE MDR-TB PATIENT")
@@ -1694,18 +1765,15 @@ class CohortToolController < GenericCohortToolController
 		  	end
     	end
     	
-    	
-  culture_concepts = [ConceptName.find_by_name("Culture(1st)").concept_id,ConceptName.find_by_name("Culture(2nd)").concept_id]
     
-		Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ? AND (value_coded in (?))", id, ConceptName.find_by_name('Tests ordered').concept_id, @start_date,@end_date, culture_concepts], :limit => 3).each { |obs|
-        if obs.value_coded != ConceptName.find_by_name("Negative").id
-					@total["culture"] +=1
-					break
-   			end}
+    culture_concepts = [ConceptName.find_by_name("Culture(1st) Results").concept_id,ConceptName.find_by_name("Culture-2 Results").concept_id]
+    
+		culture = Observation.find(:all, :conditions => ["person_id = ? AND obs_datetime >= ? AND obs_datetime <= ? AND concept_id in (?)", enc.patient.patient_id, @start_date,@end_date, culture_concepts],:limit=>2)
+		if (Concept.find(culture[0].value_coded).fullname.to_s.include?"positive") || (Concept.find(culture[1].value_coded).fullname.to_s.include?"positive")
+				@total["culture"] +=1
+		end rescue nil
 
-    	
     	smears = PatientService.sputum_results_by_date(enc.patient.person.id)
-    	
     	
     	sputum_results = sputum_results_at_reg(enc.encounter_datetime, enc.patient.patient_id)
       sputum_results.each { |obs|

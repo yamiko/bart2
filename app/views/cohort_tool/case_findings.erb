@@ -38,7 +38,6 @@
 	 		<b>Duration : <b><%= "#{@start_date.strftime('%d %B %Y')} to #{@end_date.strftime('%d %B %Y')} (#{@quarter})"%></b>
 		</div>
 		<br><br>
-
 		<div style = "-moz-user-select:none;">
 			<table border = 1 cellpadding = 0 cellspacing =0  width = 95% style = margin = 30px align = center>
 				<tr>
@@ -59,7 +58,7 @@
 				<tr>
 				<th>0-4</th><td><%= @variables["Under5MPulnew"] %></td><td><%= @variables["Under5FPulnew"] %></td>
 				<td><%= @variables["Under5MPulrel"] %></td><td><%= @variables["Under5FPulrel"] %></td>
-				<td><%=  %></td><td><%=  %></td>
+				<td><%= @variables["Under5MXP"] %></td><td><%= @variables["Under5FXP"] %></td>
 				<td><%= @variables["Under5MEP"] %></td><td><%= @variables["Under5FEP"] %></td>
 				<td><%= @variables["Under5MPuldef"] %></td><td><%= @variables["Under5FPuldef"] %></td>
 				<td><%= @variables["Under5MPulF"] %></td><td><%= @variables["Under5FPulF"] %></td>
@@ -70,7 +69,7 @@
 				<tr>
 				<th>5-14</th><td><%= @variables["Under15MPulnew"] %></td><td><%= @variables["Under15FPulnew"] %></td>
 				<td><%= @variables["Under15MPulrel"] %></td><td><%= @variables["Under15FPulrel"] %></td>
-				<td><%=  %></td><td><%=  %></td>
+				<td><%= @variables["Under15MXP"] %></td><td><%= @variables["Under15FXP"] %></td>
 				<td><%= @variables["Under15MEP"] %></td><td><%= @variables["Under15FEP"] %></td>
 				<td><%= @variables["Under15MPuldef"] %></td><td><%= @variables["Under15FPuldef"] %></td>
 				<td><%= @variables["Under15MPulF"] %></td><td><%= @variables["Under15FPulF"] %></td>
@@ -81,7 +80,7 @@
 				<tr>
 				<th>15-24</th><td><%= @variables["Under25MPulnew"] %></td><td><%= @variables["Under25FPulnew"] %></td>
 				<td><%= @variables["Under25MPulrel"] %></td><td><%= @variables["Under25FPulrel"] %></td>
-				<td><%=  %></td><td><%=  %></td>
+				<td><%= @variables["Under25MXP"] %></td><td><%= @variables["Under25FXP"] %></td>
 				<td><%= @variables["Under25MEP"] %></td><td><%= @variables["Under25FEP"] %></td>
 				<td><%= @variables["Under25MPuldef"] %></td><td><%= @variables["Under25FPuldef"] %></td>
 				<td><%= @variables["Under25MPulF"] %></td><td><%= @variables["Under25FPulF"] %></td>
@@ -92,7 +91,7 @@
 				<tr>
 				<th>25-34</th><td><%= @variables["Under35MPulnew"] %></td><td><%= @variables["Under35FPulnew"] %></td>
 				<td><%= @variables["Under35MPulrel"] %></td><td><%= @variables["Under35FPulrel"] %></td>
-				<td><%=  %></td><td><%=  %></td>
+				<td><%= @variables["Under35MXP"] %></td><td><%= @variables["Under35FXP"] %></td>
 				<td><%= @variables["Under35MEP"] %></td><td><%= @variables["Under35FEP"] %></td>
 				<td><%= @variables["Under35MPuldef"] %></td><td><%= @variables["Under35FPuldef"] %></td>
 				<td><%= @variables["Under35MPulF"] %></td><td><%= @variables["Under35FPulF"] %></td>
@@ -103,7 +102,7 @@
 				<tr>
 				<th>35-44</th><td><%= @variables["Under45MPulnew"] %></td><td><%= @variables["Under45FPulnew"] %></td>
 				<td><%= @variables["Under45MPulrel"] %></td><td><%= @variables["Under45FPulrel"] %></td>
-				<td><%=  %></td><td><%=  %></td>
+				<td><%= @variables["Under45MXP"] %></td><td><%= @variables["Under45FXP"] %></td>
 				<td><%= @variables["Under45MEP"] %></td><td><%= @variables["Under45FEP"] %></td>
 				<td><%= @variables["Under45MPuldef"] %></td><td><%= @variables["Under45FPuldef"] %></td>
 				<td><%= @variables["Under45MPulF"] %></td><td><%= @variables["Under45FPulF"] %></td>
@@ -114,7 +113,7 @@
 				<tr>
 				<th>45-54</th><td><%= @variables["Under55MPulnew"] %></td><td><%= @variables["Under55FPulnew"] %></td>
 				<td><%= @variables["Under55MPulrel"] %></td><td><%= @variables["Under55FPulrel"] %></td>
-				<td><%=  %></td><td><%=  %></td>
+				<td><%= @variables["Under55MXP"] %></td><td><%= @variables["Under55FXP"] %></td>
 				<td><%= @variables["Under55MEP"] %></td><td><%= @variables["Under55FEP"] %></td>
 				<td><%= @variables["Under55MPuldef"] %></td><td><%= @variables["Under55FPuldef"] %></td>
 				<td><%= @variables["Under55MPulF"] %></td><td><%= @variables["Under55FPulF"] %></td>
@@ -125,7 +124,7 @@
 				<tr>
 				<th>55-64</th><td><%= @variables["Under65MPulnew"] %></td><td><%= @variables["Under65FPulnew"] %></td>
 				<td><%= @variables["Under65MPulrel"] %></td><td><%= @variables["Under65FPulrel"] %></td>
-				<td><%=  %></td><td><%=  %></td>
+				<td><%= @variables["Under65MXP"] %></td><td><%= @variables["Under65FXP"] %></td>
 				<td><%= @variables["Under65MEP"] %></td><td><%= @variables["Under65FEP"] %></td>
 				<td><%= @variables["Under65MPuldef"] %></td><td><%= @variables["Under65FPuldef"] %></td>
 				<td><%= @variables["Under65MPulF"] %></td><td><%= @variables["Under65FPulF"] %></td>
@@ -136,7 +135,7 @@
 				<tr>
 				<th>65+</th><td><%= @variables["Over64MPulnew"] %></td><td><%= @variables["Over64FPulnew"] %></td>
 				<td><%= @variables["Over64MPulrel"] %></td><td><%= @variables["Over64FPulrel"] %></td>
-				<td><%=  %></td><td><%=  %></td>
+				<td><%= @variables["Over64MXP"] %></td><td><%= @variables["Over64FXP"] %></td>
 				<td><%= @variables["Over64MEP"] %></td><td><%= @variables["Over64FEP"] %></td>
 				<td><%= @variables["Over64MPuldef"] %></td><td><%= @variables["Over64FPuldef"] %></td>
 				<td><%= @variables["Over64MPulF"] %></td><td><%= @variables["Over64FPulF"] %></td>
@@ -147,11 +146,12 @@
 				<tr>
 				<th>Total</th>
 				<td><%=@variables["MalesNew"]%></td><td><%=@variables["FemalesNew"]%></td><td><%=@variables["MalesRel"]%></td>
-				<td><%=@variables["FemalesRel"]%><td><%=%></td><td><%=%></td>
+				<td><%=@variables["FemalesRel"]%><td><%=@variables["MaleXP"]%></td><td><%=@variables["FemaleXP"]%></td>
 				<td><%=@variables["MalesEP"]%></td><td><%=@variables["FemalesEP"]%></td><td><%=@variables["MalesDef"]%></td>
 				<td><%=@variables["FemalesDef"]%></td><td><%= @variables["MalesF"] %></td><td> <%= @variables["FemalesF"] %>
-				</td><td><%= %></td><td><%=%></td><td><%= @variables["Males"]%></td>
-				<td><%= @variables["Females"]%></td><td><%= @variables["Males"] + @variables["Females"] %></td>
+				</td><td><%= @variables["MaleOth"] %></td><td><%=@variables["FemaleOth"]%></td>
+				<td><%= @variables["Males"]%></td><td><%= @variables["Females"]%></td>
+				<td><%= @variables["Males"] + @variables["Females"] %></td>
 				</tr>
 
 			</table>

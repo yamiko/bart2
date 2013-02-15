@@ -3,6 +3,7 @@
 	function load(){
     document.getElementById("print").innerHTML = "<span>Back</span>";
 	  document.getElementById("print").setAttribute("onclick","history.back();")
+	  document.getElementById("finishButton").setAttribute("onclick", "window.location= '/clinic'")
 
    }
 	setTimeout("load();",30)
@@ -48,7 +49,7 @@ Summary of Registered Tuberculosis Cases from <%=@start_date.strftime('%d %B %Y'
 								<tr><th>Other TB Cases</th><td><%= link_to @total["other"],:action => "tb_register_summary_specifics", :grp=>"by patclass other",:start=>@start_date,:end=> @end_date%></td></tr>
 								<tr><th rowspan=3>By Sputum Examination At Initiation</th>
 								<th>Smear Positive</th><td><%= link_to @total["initial+ve"],:action => "tb_register_summary_specifics", :grp=>"Smear+ve1",:start=>@start_date,:end=> @end_date%></td></tr>
-								<tr><th>Xpert </th><td>N/A</td></tr>
+								<tr><th>Xpert </th><td><%=@total["xpert"]%></td></tr>
 								<tr><th>Culture Positive</th><td><%= @total["culture"]%></td></tr>
 								<tr><th></th><th>Smear Positive At 2 Months </th><td><%= link_to @total["month2+ve"] ,:action => "tb_register_summary_specifics", :grp=>"Smear+ve2",:start=>@start_date,:end=> @end_date%></td></tr>
 								<tr><th></th><th>Smear Positive At 5 Months</th><td><%= link_to @total["month5+ve"] ,:action => "tb_register_summary_specifics", :grp=>"Smear+ve5",:start=>@start_date,:end=> @end_date %></td></tr>
