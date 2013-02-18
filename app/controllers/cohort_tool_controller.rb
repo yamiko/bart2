@@ -135,60 +135,71 @@ class CohortToolController < GenericCohortToolController
     @start_date,@end_date = Report.generate_cohort_date_range(@quarter)
 		@variables = Hash.new(0)		
 
-    tbtype = ConceptName.find_by_name("TB classification").concept_id
-
-    patienttype = ConceptName.find_by_name("TB patient category").concept_id	
-
-		patients = Patient.find_by_sql("Select * from encounter where encounter_type = #{EncounterType.find_by_name("tb registration").id} and encounter_datetime between #{@start_date} and #{@end_date}")
+		encounters = Encounter.find(:all, :conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ?", EncounterType.find_by_name("tb registration").id, @start_date, @end_date])
 		
-		patients.each do |patient|
+		encounters.each do |enc|
 
-   		tbclass = Concept.find(Observation.find(:last, :conditions => ["patient_id = ? and concept_id = ? ", patient.id,tbtype]).value_coded).fullname
-   		
-   		patclass = Concept.find(Observation.find(:last, :conditions => ["patient_id = ? and concept_id = ? ", patient.id,patienttype]).value_coded).fullname
-		
-			state = PatientProgram.find(:first, :conditions => ["program_id = ? and patient_id = ? and date_enrolled >=  ?", Program.find_by_name("TB Program").program_id, patient, @start_date]).patient_states.last.program_workflow_state.concept.shortname
+			index = enc.patient.person.gender
+			state = PatientProgram.find(:first, :conditions => ["program_id = ? and patient_id = ? and date_enrolled >=  ?", Program.find_by_name("TB Program").program_id, enc.patient_id, @start_date]).patient_states.last.program_workflow_state.concept.shortname
 			
 			case state.upcase
 				when "REGIMEN FAILURE" || "TREATMENT FAILURE"
-						cat = "F"
+						index += "F"
 				when "PATIENT DIED" || "DIED"
-						cat = "DI"
+						index += "DI"
 				when "CURRENTLY IN TREATMENT"
-				
+						index += "NoNotif"
 				when "PATIENT CURED"
-						cat = "C"
+						index += "C"
 				when "PATIENT TRANSFERRED OUT"
-						cat = "TO"
+						index += "TO"
 				when "DEFAULTED" || "Z_DEPRECATED PATIENT DEFAULTED"
-						cat = "DF"
+						index += "DF"
 				when "TREATMENT COMPLETE"
-						cat = "RC"
+						index += "RC"
 			end
 
-			case tbcat
+			temp = case_find_sort(enc.patient_id)
+			@variables[temp[0]+index] +=1
+			@variables[temp[1]+index] +=1
 
-				when "Pulmonary tuberculosis"
-					@variables["SMpos"+patient.person.gender+cat] +=1			
-				when "Extrapulmonary tuberculosis (EPTB)"
-					@variables["SMeptb"+patient.person.gender+cat] +=1
-				else
-					@variables["SMneg"+patient.person.gender+cat] +=1					
-			end
-		
-			case patcat
-
-				when "Failed - TB"
-					@variables["SMrtaf"+patient.person.gender+cat] +=1					
-				when "Relapse MDR-TB patient"
-					@variables["rel"+patient.person.gender+cat] +=1					
-				when "Treatment after default MDR-TB patient"
-					@variables["SMrtad"+patient.person.gender+cat] +=1					
-			end
-			
 		end
 	
 		render :layout => "report"
+
+	end
+
+	def case_find_sort(id)
+		 
+		values = [" "," "]
+				
+   	tbclass = Concept.find(Observation.find(:last, :conditions => ["person_id = ? and concept_id = ? ", id,Concept.find_by_name("TB classification").concept_id]).value_coded).fullname
+   		
+   	patclass = Concept.find(Observation.find(:last, :conditions => ["person_id = ? and concept_id = ? ", id,Concept.find_by_name("TB patient category").concept_id	]).value_coded).fullname
+
+			case tbclass
+
+				when "Pulmonary tuberculosis"
+					values[0] = "SMpos"
+				when "Extrapulmonary tuberculosis (EPTB)"
+					values[0] = "SMeptb"
+				else
+					values[0] = "SMneg"
+			end
+		
+			case patclass
+
+				when "Failed - TB"
+					values[1] ="SMrtaf"
+				when "Relapse MDR-TB patient"
+					values[1] ="rel"
+				when "Treatment after default MDR-TB patient"
+					values[1] ="SMrtad"
+				when "Other"
+					values[1] = "SMrec"
+			end
+
+		return values
 
 	end
 	
