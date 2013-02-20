@@ -66,6 +66,7 @@ days = []
 @clinic_days.include?('Friday')?days.push("Friday"):days.push("")
 @clinic_days.include?('Saturday')?days.push("Saturday"):days.push("")
 clinic_holidays = clinic_holidays.split(',').to_json
+
 %>
   var clinic_holidays = <%= clinic_holidays %>
   function summary() {
