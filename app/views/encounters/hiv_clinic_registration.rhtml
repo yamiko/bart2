@@ -687,6 +687,11 @@ function checkConfirmDate(){
 				:condition => "$('ever_received_art').value == 'YES'",
 			 	:helpText => "Ever registered at an ART clinic?" } %>
 
+		<%= touch_text_field_tag "ART NUMBER AT PREVIOUS LOCATION", @patient, nil,
+			{	:id => "previous_art_number",
+				:condition => '$("ever_registered_at_ART_clinic").value == "YES" && $("ever_received_art").value == "YES"',
+				:helpText => "ART number at previous location" } %>
+
 		<%= touch_yes_no_tag "HAS TRANSFER LETTER", @patient, nil,
 			{	:id => "has_transfer_letter",
 				:tt_onUnload=>  "$('programs__states__state').value = 'Patient transferred in'",
@@ -816,11 +821,6 @@ function checkConfirmDate(){
 
 		<%= touch_hidden_tag "WHO STAGE", @patient, "", :id => "who_stage" %>
 
-
-		 <%= touch_text_field_tag "ART NUMBER AT PREVIOUS LOCATION", @patient, nil,
-			{	:id => "previous_art_number",
-				:condition => '$("ever_registered_at_ART_clinic").value == "YES" && $("ever_received_art").value == "YES"',
-				:helpText => "ART number at previous location" } %>
 
 				<%#= raise @patient.person.observations.to_s %>
 		<% if ! @patient.person.observations.to_s.include?('On ART:  Yes') %>
