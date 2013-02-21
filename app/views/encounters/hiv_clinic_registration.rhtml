@@ -82,10 +82,23 @@
   var alertDate = createDate("<%= @alert_date.year %>","<%= @alert_date.month %>","<%= @alert_date.day %>");
   //var testDate = null;
   var patient_age = null;
-  
+  var ageInMonths = '<%= @patient_bean.age_in_months %>'
+  var currentYear = '<%= @todayDate.year %>'
+  var currentMonth = '<%= @todayDate.month %>'
+
   function checkTestDate(){
     var testDate = createDate($('year_art_last_taken').value, $('month_art_last_taken').value , $('day_art_last_taken').value);
-    if (testDate <= originaltestDate) {
+    var years = testDate.getFullYear();
+	var month = testDate.getMonth() + 1;
+
+	years = currentYear - years;
+	month = currentMonth - month;
+	var total = (years * 12) + month;
+
+	if (total > ageInMonths){
+	  return false
+	}
+	else if (testDate <= originaltestDate) {
       return false
 	}
 	else if ( testDate > todayDate){
@@ -111,12 +124,22 @@
 
 function checkConfirmDate(){
     var testDate = createDate($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value , $('confirmatory_hiv_test_day').value);
+	var years = testDate.getFullYear();
+	var month = testDate.getMonth() + 1;
+
+	years = currentYear - years;
+	month = currentMonth - month;
+	var total = (years * 12) + month;
+
 
 	if($('date_started_art') != null){
-	  if (testDate > $('date_started_art').value){
+	  if ((testDate > $('date_started_art').value) || (total > ageInMonths) || (testDate <= originaltestDate) || ( testDate > todayDate)){
 	  return false
 	  }
 	  else{ return true}
+	}
+	else if (total > ageInMonths){
+	  return false
 	}
 	else if (testDate <= originaltestDate) {
       return false
@@ -145,7 +168,17 @@ function checkConfirmDate(){
 
   function checkStartDate(){
     var testDate = createDate($('year_started_art').value, $('month_started_art').value , $('day_started_art').value);
-    if (testDate <= originaltestDate) {
+    var years = testDate.getFullYear();
+	var month = testDate.getMonth() + 1;
+
+	years = currentYear - years;
+	month = currentMonth - month;
+	var total = (years * 12) + month;
+
+	if (total > ageInMonths){
+	  return false
+	}
+	else if (testDate <= originaltestDate) {
       return false
 	}
 	else if ( testDate > todayDate){
@@ -156,6 +189,7 @@ function checkConfirmDate(){
     }
 
   }
+
 
   //checks if the patient needs to be referred to HTC basesd on the test date
   function updateStartDate(){

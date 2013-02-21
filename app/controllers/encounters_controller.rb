@@ -595,7 +595,7 @@ class EncountersController < GenericEncountersController
       ],
       'eptb_classification'=> [
         ['',''],
-        ['Pulmonary effusion', 'Pulmonary effusion'],
+        ['Plueral effusion', 'Pulmonary effusion'],
         ['Lymphadenopathy', 'Lymphadenopathy'],
         ['Pericardial effusion', 'Pericardial effusion'],
         ['Ascites', 'Ascites'],

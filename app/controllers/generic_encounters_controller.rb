@@ -500,8 +500,12 @@ class GenericEncountersController < ApplicationController
 
     if params[:location].blank?
 			#find a way of printing the lab_orders labels
-			if params['encounter']['encounter_type_name'].upcase == 'LAB RESULTS'
-				print_and_redirect("/encounters/lab_results_print/?id=#{@patient.id}", next_task(@patient))
+			if params['encounter']['encounter_type_name'].upcase == 'GIVE LAB RESULTS'
+				if @patient.person.observations.to_s.match(/results given to patient:  Yes/i)
+					print_and_redirect("/encounters/lab_results_print/?id=#{@patient.id}", next_task(@patient))
+				else
+					redirect_to next_task(@patient)
+				end
 			elsif	params['encounter']['encounter_type_name'] == "LAB ORDERS"
 				redirect_to"/patients/print_lab_orders/?patient_id=#{@patient.id}"
 			elsif params['encounter']['encounter_type_name'] == "TB suspect source of referral" && !params[:gender].empty? && !params[:family_name].empty? && !params[:given_name].empty?
