@@ -440,7 +440,10 @@ end
 	  {:id => "art_status",
 	  :tt_pageStyleClass => "NoKeyboard",
 	  :helpText => "On ART?" } %>
-  <% end %>
+  <%else%>
+	<%= touch_hidden_tag "ON ART", @patient, nil,
+		{:id => "art_status"} %>
+	<%  end %>
 
 	<%= text_field_tag "hiv_initiation_year", nil, {:helpText => 'Year of ART initiation', :field_type => 'number', :absoluteMin => "1982", :min => "1982", :absoluteMax => Date.today.year, :tt_pageStyleClass => "Numeric NumbersOnly", :condition => '($("art_status").value == "YES")'}  %>
 
@@ -481,8 +484,14 @@ end
 	  {   :id => "enroll_patient_in_art",
 	  :condition => '$("refer_to_clinician").value != "YES"',
 	  :helpText => 'Enroll for HIV care' } %>
-	  <%  end %>
+
+    <%else%>
+	<%= touch_hidden_tag "Patient enrolled in HIV program", @patient, nil,
+	  {   :id => "enroll_patient_in_art",
+	  :condition => '$("refer_to_clinician").value != "YES"' } %>
+	<%  end %>
   <% end %>
+
 
   <% session_date = session[:datetime].to_date rescue nil
   if session_date %>
