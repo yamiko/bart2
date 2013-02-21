@@ -90,6 +90,17 @@
     $('infoBar'+tstCurrentPage).innerHTML = "Scan the label on the sputum collection bottle";
   }
 var positive
+
+  function confirmTest(){
+		confirm = false;
+		for(i = 0 ; i < result_filed_ids.length ; i++) {
+		  if ($(result_filed_ids[i]).value == 'NEGATIVE') {
+			confirm = true;
+		  }
+	  }
+	  return confirm;
+  }
+
   function summary() {
     results = '<ul>';
     attrs = '';
@@ -248,7 +259,7 @@ var positive
       {:id => "sputum_specimen_#{i+1}_result",
       :tt_pageStyleClass => "NoKeyboard",
       :accession_number => i + 1,
-      :tt_onUnload => "delete acc_numbers_check[__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value]",
+      :tt_onUnload => "summary();delete acc_numbers_check[__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value]",
       :tt_onLoad => "__$('helpText' + tstCurrentPage).innerHTML= acc_numbers[__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value] + ' Results (Accession number: ' +__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value + ')'",
 
       :helpText => "'#{@sputum_submission_waiting_results[acc_numbers[i]]}  Results (Accession number: ' +__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value + ')'" } %>
@@ -256,6 +267,12 @@ s[i]})" } %>
       <%counter += 2%>
 
    <%end%>
+
+<%#= touch_yes_no_tag "Confirmatory TB Test", @patient, nil,
+			{	:id => 'confirm_test',
+			:allowFreeText => 'false',
+			:condition => "confirmTest() == true;",
+			:helpText => "One sample is positive. Perform Confirmatory Tests?" } %>
 
   <label for='summary'>Results Summary</label>
     <%= text_field_tag :summary, nil, { 
@@ -265,6 +282,8 @@ s[i]})" } %>
         :tt_pageStyleClass => "NoControls" 
     } %>
 
+
+  
   <% session_date = session[:datetime].to_date rescue nil                       
     if session_date %>
 

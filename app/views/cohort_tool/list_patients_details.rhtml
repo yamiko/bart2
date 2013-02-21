@@ -16,7 +16,7 @@
             "sScrollY": "400px",
             "bInfo": true,
             "bPaginate": false,
-			"bSort": true
+			"bSort": false
           });
     search_box = $('#table_id').dataTable()
     search = document.getElementsByTagName("input")[0];
@@ -261,7 +261,7 @@
 			  <tbody>
 							<% session[:mastercard_ids] = [] %>
 							<% session[:mastercard_counter] = 0 %>
-							<% @report.sort{|a , b|(b.match(/[0-9](.*)/i)[0] rescue 0) <=> (a.match(/[0-9](.*)/i)[0] rescue 0)}.each do |data_row| %>
+							<% @report.each do |data_row| %>
 									<% session[:mastercard_ids] << data_row.person_id %>
 
 									<tr>

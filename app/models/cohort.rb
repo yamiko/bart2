@@ -52,7 +52,7 @@ class Cohort
 				cohort_report['Total HIV infected'] = []
 
 				check_existing = []
-				#raise self.start_reason(@@first_registration_date, @end_date).to_yaml
+				
 				( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | collection_reason |
 					unless check_existing.include?(collection_reason.patient_id)
 							check_existing << collection_reason.patient_id
@@ -178,11 +178,6 @@ class Cohort
 		# Run the threads up to this point
 		(threads || []).each do |thread|
 			thread.join
-			if thread[:exception]
-				# log it somehow, or even re-raise it if you
-				# really want, it's got it's original backtrace.
-				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
-			end
 		end
 
 		threads = []
@@ -253,7 +248,7 @@ class Cohort
 		    Thread.current[:exception] = e
 		  end
 		end
-
+		
 		threads << Thread.new do
 			begin
 				cohort_report['Died within the 1st month after ART initiation'] = self.total_number_of_died_within_range(0, 30.4375)
@@ -261,7 +256,7 @@ class Cohort
 		    Thread.current[:exception] = e
 		  end
 		end
-
+		#raise self.total_number_of_died_within_range(30.4375, 60.875).to_yaml
 		threads << Thread.new do
 			begin
 				cohort_report['Died within the 2nd month after ART initiation'] = self.total_number_of_died_within_range(30.4375, 60.875)
@@ -325,11 +320,6 @@ class Cohort
 
 		(threads || []).each do |thread|
 			thread.join
-			if thread[:exception]
-				# log it somehow, or even re-raise it if you
-				# really want, it's got it's original backtrace.
-				#raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
-			end
 		end
 		
 		threads = []
@@ -373,20 +363,15 @@ class Cohort
 
 		(threads || []).each do |thread|
 			thread.join
-			if thread[:exception]
-				# log it somehow, or even re-raise it if you
-				# really want, it's got it's original backtrace.
-				raise thread[:exception].message + ' ' + thread[:exception].backtrace.to_s
-			end
 		end
 		cohort_report['Total transferred in patients'] = (cohort_report['Total registered'] - 
-				cohort_report['Total Patients reinitiated on ART'] -
-				cohort_report['Total Patients initiated on ART'])
+				(cohort_report['Total Patients reinitiated on ART'] || [])  -
+				(cohort_report['Total Patients initiated on ART'] || []))
                                                       
 		cohort_report['Newly transferred in patients'] = (cohort_report['Newly total registered'] - 
-				cohort_report['Patients reinitiated on ART'] -
-				cohort_report['Patients initiated on ART'])
-                                                     		
+				(cohort_report['Total Patients reinitiated on ART'] || [])-
+				(cohort_report['Total Patients initiated on ART'] || []))
+        #raise cohort_report['Total registered'].to_yaml
 		cohort_report['Total Unknown age'] = cohort_report['Total registered'] - (cohort_report['Total registered adults'] +
 				cohort_report['Total registered children'] +
 				cohort_report['Total registered infants'])
@@ -410,9 +395,9 @@ class Cohort
 		cohort_report['Unknown outcomes'] = cohort_report['Total registered'] -
 			(cohort_report['Total alive and on ART'] +
 				cohort_report['Defaulted'] +
-				cohort_report['Died total'] +
-				cohort_report['Stopped taking ARVs'] +
-				cohort_report['Transferred out'])
+				(cohort_report['Died total'] || []) +
+				(cohort_report['Stopped taking ARVs'] || []) +
+				(cohort_report['Transferred out'] || []))
 		
 		patients_with_0_6_doses_missed = []; patients_with_7_doses_missed = []
 		
@@ -423,6 +408,7 @@ class Cohort
 				patients_with_0_6_doses_missed - patients_with_7_doses_missed)
 		
 		cohort_report['Earliest_start_dates'] = @patient_earliest_start_date
+	
 		self.cohort = cohort_report
 		self.cohort
 	end
@@ -675,26 +661,26 @@ class Cohort
 	end
 
 	def total_number_of_died_within_range(min_days = 0, max_days = 0)								
-    concept_name = ConceptName.find_all_by_name("PATIENT DIED")
+   concept_name = ConceptName.find_all_by_name("PATIENT DIED")
     state = ProgramWorkflowState.find(
       :first,
       :conditions => ["concept_id IN (?)",
-				concept_name.map{|c|c.concept_id}]
-    ).program_workflow_state_id
+			concept_name.map{|c|c.concept_id}]
+			).program_workflow_state_id
 
-		patients = []
+			patients = []
 
-   	PatientProgram.find_by_sql(
-   		"SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state, death_date,
-				IF(ISNULL(MIN(sdo.value_datetime)), earliest_start_date, MIN(sdo.value_datetime)) AS initiation_date
-			FROM earliest_start_date e
-				LEFT JOIN start_date_observation sdo ON e.patient_id = sdo.person_id
-			WHERE earliest_start_date <=  '#{@end_date}'
-			GROUP BY e.patient_id
-			HAVING state = #{state} AND 
-				DATEDIFF(death_date, initiation_date) BETWEEN #{min_days} AND #{max_days}").each do | patient | 
-			patients << patient.patient_id
-		end
+			PatientProgram.find_by_sql(
+						"SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state, death_date,
+					IF(ISNULL(MIN(sdo.value_datetime)), earliest_start_date, MIN(sdo.value_datetime)) AS initiation_date
+					FROM earliest_start_date e
+					LEFT JOIN start_date_observation sdo ON e.patient_id = sdo.person_id
+					WHERE earliest_start_date <= '#{@end_date}'
+					GROUP BY e.patient_id
+					HAVING state = #{state} AND
+					DATEDIFF(death_date, initiation_date) BETWEEN #{min_days} AND #{max_days}").each do | patient |
+							patients << patient.patient_id
+					end
 		return patients
 	end
 
@@ -775,6 +761,15 @@ class Cohort
 				tb_status_hash['TB STATUS']['Unknown'] << patient_id.to_i
 			end
 		end
+		# make sure that patients that do not have a TB Status observation,
+    # are added to the unknown category  
+    other_unknowns = @patient_id_on_art_and_alive - (tb_status_hash['TB STATUS']['Not Suspected'] +
+                                    tb_status_hash['TB STATUS']['Suspected'] +
+                                    tb_status_hash['TB STATUS']['On Treatment'] +
+                                    tb_status_hash['TB STATUS']['Not on treatment'] +
+                                    tb_status_hash['TB STATUS']['Unknown'])
+
+    tb_status_hash['TB STATUS']['Unknown'] += other_unknowns
 		tb_status_hash
 	end
 
@@ -960,7 +955,7 @@ class Cohort
     regimen_hash
   end
 
-=begin  
+ 
   def regimens_with_patient_ids(start_date = @start_date, end_date = @end_date)
     regimens = []
     regimen_hash = {}
@@ -993,7 +988,6 @@ class Cohort
 		                              end
                                 end
   end
-=end
 
 
   def patients_reinitiated_on_art(start_date = @start_date, end_date = @end_date)

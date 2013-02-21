@@ -18,29 +18,16 @@
 	  switch_button.innerHTML = "<span>Cohort</span>"
 	</script>
 	<style>
-	  .create_button a{
-		background-color: #7784AE;
-		border-bottom: 1px outset black;
-		border-radius: 7px 7px 7px 7px;
-		border-style: outset;
-		border-top: 1px outset black;
-		color: #E8EAF1;
-		display: block;
-		padding: 10px 16px 10px 10px;
-		text-align: center;
-		text-decoration: none !important;
-		font-size:13px;
+	  #switch_view_children, #switch_view_women{
+		display:none;
 	  }
 	  a:hover {
 		color: black;
 	  }
+
 	  table {
 		border-style:none;
 		border-width:1px;
-		position:absolute;
-		top:39px;
-		left:0%;
-		margin-top:-40px;
 		width:99% !important;
 	  }
 
@@ -66,11 +53,8 @@
 
 	  .survival-analysis th, .survival-analysis td {
 		text-align:left;
-		display:inline;
 	  }
-	  #switch_view_children, #switch_view_women{
-		display:none;
-	  }
+
 	  .clinic_own_data {
 		position:relative;
 		float:left;
@@ -84,37 +68,73 @@
 		display:block;
 		padding-right:10px;
 	  }
-
+	  a{
+		text-decoration: none !important;
+		color: #E8EAF1;
+	  }
+	  .clinic_data_value:hover {
+		color:black;
+	  }
+	  .checked_data_value:hover{
+		color:black;
+	  }
+	  td.create_button:hover{
+		color:black;
+	  }
 	  .clinic_data_value {
 		position:relative;
 		float:left;
 		display:block;
 		border: 0px 0px 2px 0px;
-		border-top:0px;
-		border-bottom:0px;
+		border-top: 1px outset black;
+		border-bottom: 1px outset black;
+		border-radius: 7px 7px 7px 7px;
 		border-left:0px;
 		margin-top:2px;
-		border-style:solid;
-		width:40%;
+		border-style: outset;
+		width:30%;
 		height:100%;
-		padding-left:10px;
+		padding: 10px 16px 10px 10px;
+		text-align: center;
+		text-decoration: none !important;
+		background-color: #7784AE;
+		color: #E8EAF1;
+		display: block;
+		font-size:13px;
 	  }
-
+	  .create_button a{
+		background-color: #7784AE;
+		border-bottom: 1px outset black;
+		border-radius: 7px 7px 7px 7px;
+		border-style: outset;
+		border-top: 1px outset black;
+		color: #E8EAF1;
+		display: block;
+		padding: 10px 16px 10px 10px;
+		text-align: center;
+		text-decoration: none !important;
+		font-size:13px;
+	  }
 	  .checked_data_value {
 		position:relative;
 		float:right;
 		display:block;
 		border: 0px 0px 2px 0px;
-		border-top:0px;
-		border-bottom:0px;
+		border-radius: 7px 7px 7px 7px;
+		border-top: 1px outset black;
+		background-color: #7784AE;
+		border-bottom: 1px outset black;
 		border-right:0px;
 		border-left:0px;
 		margin-top:2px;
 		margin-top:2px;
-		border-style:solid;
-		width:41%;
+		border-style: outset;
+		width:30%;
 		height:100%;
-		padding-right:10px;
+		padding: 10px 16px 10px 10px;
+		color:#E8EAF1;
+		display: block;
+		font-size:13px;
 	  }
 
 	  td.left_top_right {
@@ -136,9 +156,13 @@
 	  .regimen {
 		position:absolute;
 		top:0px;
-		left:0px;
+		left:1px;
+		border-radius:100px;
+		background:white;
+		color:black;
+		text-align:center;
+		font-size:15px;
 	  }
-
 	  td.regimen_name_top {
 		text-align:left;
 		border-width:1px 0px 0px 0px;
@@ -164,15 +188,20 @@
 		width:68px;
 		padding-left:5px;
 	  }
-
+	  tr{
+		width:100% !important;
+	  }
 	  td.bg {
 		background-color:lightgrey;
 		-moz-user-select:none;
 	  }
 
 	  .logo {
-		float: left;
+		float:left;
 		height: 8em;
+	  }
+	  .dataTable{
+		width:6%
 	  }
 
 	</style>
@@ -187,45 +216,44 @@
 
 	<h2>General Survival Analysis</h2>
 	<div class='scrollTableContainer'>
-	  <div class="survival_analysis">
-		<table align="left">
+	  <table  cellspacing='0'>
 
-		  <% @survival_analysis.each do | key , values | %>
-			<tr>
-			  <th style = "text-align:left;"><%=key%></th>
-			  <th>&nbsp;</th>
-			</tr>
-			<tr>
-			  <td style = "text-align:left;">New patients registered for ART between <%=values['Section date range'] -%></td>
-			  <td style = "text-align:right;" class="create_button"><%= link_to "#{values['New patients registered for ART'] rescue 0}", "/cohort_tool/list_debbuger_details?field=general&value=#{key}&attribute=total&quarter=#{@quarter}" -%></td>
-			</tr>
-			<tr>
-			  <td style = "text-align:left;">Number Alive and on ART</td>
-			  <td style = "text-align:right;" class="create_button"><%= link_to "#{(values['Number Alive and on ART'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=general&value=#{key}&attribute=arvs&quarter=#{@quarter}" -%></td>
-			</tr>
-			<tr>
-			  <td style = "text-align:left;">Number Dead</td>
-			  <td style = "text-align:right;" class="create_button"><%= link_to "#{(values['Number Dead'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=general&value=#{key}&attribute=dead&quarter=#{@quarter}" -%></td>
-			</tr>
-			<tr>
-			  <td style = "text-align:left;">Number Defaulted</td>
-			  <td style = "text-align:right;" class="create_button"><%= link_to "#{(values['Number Defaulted'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=general&value=#{key}&attribute=defaulted&quarter=#{@quarter}" -%></td>
-			</tr>
-			<tr>
-			  <td style = "text-align:left;">Number Stopped Treatment</td>
-			  <td style = "text-align:right;" class="create_button"><%= link_to "#{(values['Number Stopped Treatment'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=general&value=#{key}&attribute=stopped&quarter=#{@quarter}" -%></td>
-			</tr>
-			<tr>
-			  <td style = "text-align:left;">Number Transferred out</td>
-			  <td style = "text-align:right;" class="create_button"><%= link_to "#{(values['Number Transferred out'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=general&value=#{key}&attribute=transferred&quarter=#{@quarter}" -%></td>
-			</tr>
-			<tr>
-			  <td style = "text-align:left;">Number Unknown</td>
-			  <td style = "text-align:right;" class="create_button"><%= link_to "#{(values['Unknown'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=general&value=#{key}&attribute=unknown&quarter=#{@quarter}" -%></td>
-			</tr>
-		  <% end %>
-		</table>
-	  </div>
+		<% @survival_analysis.each do | key , values | %>
+		  <tr>
+			<th style = "text-align:left;"><%=key%></th>
+			<th>&nbsp;</th>
+		  </tr>
+		  <tr>
+			<td style = "text-align:left;">New patients registered for ART between <%=values['Section date range'] -%></td>
+			<td style = "text-align:right;" class="create_button"><%= link_to "#{values['New patients registered for ART'] rescue 0}", "/cohort_tool/list_debbuger_details?field=general&value=#{key}&attribute=total&quarter=#{@quarter}" -%></td>
+		  </tr>
+		  <tr>
+			<td style = "text-align:left;">Number Alive and on ART</td>
+			<td style = "text-align:right;" class="create_button"><%= link_to "#{(values['Number Alive and on ART'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=general&value=#{key}&attribute=arvs&quarter=#{@quarter}" -%></td>
+		  </tr>
+		  <tr>
+			<td style = "text-align:left;">Number Dead</td>
+			<td style = "text-align:right;" class="create_button"><%= link_to "#{(values['Number Dead'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=general&value=#{key}&attribute=dead&quarter=#{@quarter}" -%></td>
+		  </tr>
+		  <tr>
+			<td style = "text-align:left;">Number Defaulted</td>
+			<td style = "text-align:right;" class="create_button"><%= link_to "#{(values['Number Defaulted'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=general&value=#{key}&attribute=defaulted&quarter=#{@quarter}" -%></td>
+		  </tr>
+		  <tr>
+			<td style = "text-align:left;">Number Stopped Treatment</td>
+			<td style = "text-align:right;" class="create_button"><%= link_to "#{(values['Number Stopped Treatment'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=general&value=#{key}&attribute=stopped&quarter=#{@quarter}" -%></td>
+		  </tr>
+		  <tr>
+			<td style = "text-align:left;">Number Transferred out</td>
+			<td style = "text-align:right;" class="create_button"><%= link_to "#{(values['Number Transferred out'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=general&value=#{key}&attribute=transferred&quarter=#{@quarter}" -%></td>
+		  </tr>
+		  <tr>
+			<td style = "text-align:left;">Number Unknown</td>
+			<td style = "text-align:right;" class="create_button"><%= link_to "#{(values['Unknown'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=general&value=#{key}&attribute=unknown&quarter=#{@quarter}" -%></td>
+		  </tr>
+		<% end %>
+	  </table>
+
 	</div>
   </body>
 </html>

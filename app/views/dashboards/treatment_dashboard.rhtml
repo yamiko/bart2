@@ -85,7 +85,9 @@
 					<% else %>
 						<option value='/prescriptions/auto?patient_id=<%= @patient.id -%>'>Other drugs</option>
 					<% end %>
-					<!-- <option value='/dispensations/new?patient_id=<%= @patient.id -%>'>Dispense</option> -->
+					<% if @dispense.to_s.downcase == "false" %>
+					 <option value='/dispensations/new?patient_id=<%= @patient.id -%>'>Dispense</option> 
+					<%  end %>
 				</select>
 				<input type='submit' value='Finish' />
 			</form>

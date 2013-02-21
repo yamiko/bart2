@@ -1,6 +1,6 @@
 class GenericEncountersController < ApplicationController
   def create(params=params, session=session)
-
+		#raise params[:identifiers].to_yaml
     if params[:change_appointment_date] == "true"
       session_date = session[:datetime].to_date rescue Date.today
       type = EncounterType.find_by_name("APPOINTMENT")                            
@@ -442,11 +442,11 @@ class GenericEncountersController < ApplicationController
 						
             if PatientIdentifier.site_prefix == "MPC"
 							prefix = "LL-TB"
-							tb_identifier = create_tb_number(type, prefix)
+							tb_identifier = identifier[:identifier].to_i
 							identifier[:identifier] = "LL-TB  #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "LL-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
 						else
 							prefix = "#{PatientIdentifier.site_prefix}-TB"
-							tb_identifier = create_tb_number(type, prefix)
+							tb_identifier = identifier[:identifier].to_i
 							identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "#{PatientIdentifier.site_prefix}-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
 						end
           else
@@ -500,8 +500,12 @@ class GenericEncountersController < ApplicationController
 
     if params[:location].blank?
 			#find a way of printing the lab_orders labels
-			if params['encounter']['encounter_type_name'].upcase == 'LAB RESULTS'
-				print_and_redirect("/encounters/lab_results_print/?id=#{@patient.id}", next_task(@patient))
+			if params['encounter']['encounter_type_name'].upcase == 'GIVE LAB RESULTS'
+				if @patient.person.observations.to_s.match(/results given to patient:  Yes/i)
+					print_and_redirect("/encounters/lab_results_print/?id=#{@patient.id}", next_task(@patient))
+				else
+					redirect_to next_task(@patient)
+				end
 			elsif	params['encounter']['encounter_type_name'] == "LAB ORDERS"
 				redirect_to"/patients/print_lab_orders/?patient_id=#{@patient.id}"
 			elsif params['encounter']['encounter_type_name'] == "TB suspect source of referral" && !params[:gender].empty? && !params[:family_name].empty? && !params[:given_name].empty?
@@ -820,7 +824,7 @@ class GenericEncountersController < ApplicationController
 				['Male condoms', 'MALE CONDOMS'],
 				['Female condoms', 'FEMALE CONDOMS'],
 				['Rhythm method', 'RYTHM METHOD'],
-				['Withdrawal', 'WITHDRAWAL'],
+				['Withdrawal method', 'WITHDRAWAL METHOD'],
 				['Abstinence', 'ABSTINENCE'],
 				['Tubal ligation', 'TUBAL LIGATION'],
 				['Vasectomy', 'VASECTOMY']
@@ -828,7 +832,7 @@ class GenericEncountersController < ApplicationController
 			'male_family_planning_methods' => [
 				['',''],
 				['Male condoms', 'MALE CONDOMS'],
-				['Withdrawal', 'WITHDRAWAL'],
+				['Withdrawal method', 'WITHDRAWAL METHOD'],
 				['Rhythm method', 'RYTHM METHOD'],
 				['Abstinence', 'ABSTINENCE'],
 				['Vasectomy', 'VASECTOMY'],
@@ -841,7 +845,7 @@ class GenericEncountersController < ApplicationController
 				['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
 				['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
 				['Female condoms', 'FEMALE CONDOMS'],
-				['Withdrawal', 'WITHDRAWAL'],
+				['Withdrawal method', 'WITHDRAWAL METHOD'],
 				['Rhythm method', 'RYTHM METHOD'],
 				['Abstinence', 'ABSTINENCE'],
 				['Tubal ligation', 'TUBAL LIGATION'],
@@ -1427,7 +1431,7 @@ class GenericEncountersController < ApplicationController
 		 patient_exists = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ? AND patient_id = ?', type_id, session_date, @patient.id])
 		 type = patient_exists
 		 if patient_exists.blank?
-			type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ?', type_id, session_date],:order => 'identifier DESC')
+			type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ?', type_id, session_date],:order => 'patient_identifier_id DESC')
 		 end
 		 type = type.first.identifier.split(" ") rescue ""
 		 

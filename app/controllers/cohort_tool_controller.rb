@@ -130,13 +130,13 @@ class CohortToolController < GenericCohortToolController
 
     other_encounters = Encounter.find_by_sql("SELECT encounter.* FROM encounter
                         INNER JOIN obs ON encounter.encounter_id = obs.encounter_id
-                        WHERE ((encounter.encounter_datetime BETWEEN '#{start_date}' AND '#{end_date}'))
+                        WHERE (encounter.encounter_datetime BETWEEN '#{start_date}' AND '#{end_date}')
                         GROUP BY encounter.encounter_id
                         ORDER BY encounter.encounter_type, encounter.patient_id")
 
-    drug_encounters = Encounter.find_by_sql("SELECT encounter.* as duration FROM encounter
+    drug_encounters = Encounter.find_by_sql("SELECT encounter.* FROM encounter
                         INNER JOIN orders ON encounter.encounter_id = orders.encounter_id
-                        WHERE ((encounter.encounter_datetime BETWEEN '#{start_date}' AND '#{end_date}'))
+                        WHERE (encounter.encounter_datetime BETWEEN '#{start_date}' AND '#{end_date}')
                         ORDER BY encounter.encounter_type")
 
     voided_encounters = []
@@ -610,7 +610,7 @@ class CohortToolController < GenericCohortToolController
 		@report = []
 		reported_range = params[:value].to_s
 		@sort = CoreService.get_global_property_value('sort')
-
+		@export_data = session["export.cohort.data"].to_s.downcase
 		patients = params[:attribute].to_s
 		session[:field] = params[:field] if session[:field].nil?
 		
@@ -631,16 +631,10 @@ class CohortToolController < GenericCohortToolController
 
 		data.each do |patient_id|
 			patient = Patient.find(patient_id)
-			@report << PatientService.get_patient(patient.person)
+			@report << PatientService.get_debugger_details(patient.person)
 			set_outcomes_and_start_reason(patient_id) #find start reason and outcome for patient
 		end
-		@report.sort { |a,b|
-						ap = a.arv_number.split('_') rescue ""
-						a = ap[0] + "%10d" rescue ""
-						bp = b.arv_number.split('_') rescue ""
-						b = bp[0] + "%10d" rescue ""
-						a <=> b
-			}
+		@report.sort! { |a,b| a.splitted_arv_number.to_i <=> b.splitted_arv_number.to_i }
 			
 		render :layout => 'patient_list'
 	end
@@ -652,7 +646,8 @@ class CohortToolController < GenericCohortToolController
   	@report_url = "/cohort_tool/cohort?quarter=#{@quarter}"
 		@sort = CoreService.get_global_property_value('sort')
 		sort_value = CoreService.get_global_property_value("debugger_sorting_attribute") rescue "arv_number"
-    
+    @export_data = session["export.cohort.data"].to_s.downcase
+		
     data_type = "to_s"
     data_type = "to_i" if ["age", "person_id", "patient_id"].include?(sort_value)
     
@@ -676,7 +671,12 @@ class CohortToolController < GenericCohortToolController
 				data <<  patient_id.person_id
 			end
 			session[:cohort]["sorted"]["#{params[:field].humanize}"] = true
-
+		elsif params[:field] == "total_patients_with_side_effects"
+			data = []
+			session[:cohort]["#{params[:field].humanize}"].map do |patient_id|
+				data <<  patient_id.patient_id
+			end
+			session[:cohort]["sorted"]["#{params[:field].humanize}"] = true
 		elsif params[:field] == "regimens"
 			type=params[:type].humanize.upcase
 			
@@ -700,19 +700,12 @@ class CohortToolController < GenericCohortToolController
 
 		(data || []).each do |patient_id|
 			patient = Patient.find(patient_id)
-			@report << PatientService.get_patient(patient.person)
+			@report << PatientService.get_debugger_details(patient.person)
 
 			#find start reason
 			set_outcomes_and_start_reason(patient_id)
 		end
-
-		@report.sort { |a,b|
-						ap = a.arv_number.split('_') rescue ""
-						a = ap[0] + "%10d" rescue ""
-						bp = b.arv_number.split('_') rescue ""
-						b = bp[0] + "%10d" rescue ""
-						a <=> b
-			}
+		@report.sort! { |a,b| a.splitted_arv_number.to_i <=> b.splitted_arv_number.to_i }
 
 		render :layout => 'patient_list'
   end
@@ -795,7 +788,7 @@ class CohortToolController < GenericCohortToolController
     start_date,end_date = Report.generate_cohort_date_range(@quarter)
     cohort = Cohort.new(start_date, end_date)
    	logger.info("cohort")
-   	
+    #raise request.env["HTTP_CONNECTION"].to_yaml
 		if session[:cohort].blank?
 		  @cohort = cohort.report(logger)
 		  session[:cohort]=@cohort
@@ -887,7 +880,7 @@ class CohortToolController < GenericCohortToolController
 		session[:list_of_patients] = nil
 
 		@patients = adherence_over_hundred(params[:quarter],min_range,max_range,missing_adherence)
-		cohort.regimens_with_patient_ids(@first_registration_date)
+		Cohort.regimens_with_patient_ids(@first_registration_date)
 		@quarter = params[:quarter] + ": (#{@patients.length})" rescue  params[:quarter]
 		if missing_adherence
 			@report_type = "Patient(s) with missing adherence"

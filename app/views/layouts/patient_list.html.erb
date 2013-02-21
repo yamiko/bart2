@@ -54,7 +54,7 @@
     }
     </script>
     <style type="text/css">
-      #tab {
+	  #tab {
         height:312px;
       }
       #barcode {
@@ -102,7 +102,6 @@
         position:relative;
         height:12px;
       }
-      
 
 
     </style>
@@ -110,7 +109,7 @@
   </head>
   <body id="mateme">  
     <div id="container">      
-      <div id="content" style = "position : relative; width : 85%; margin-left : -43%;">
+      <div id="content" style = "position : relative; width : 96%; margin-left : -48%;">
       
         <%= yield %>
 
@@ -123,8 +122,10 @@
         <div id="footer" class="dark">
           <div id="buttons" class="buttons" style="top:0px">
             <button id="logout" class="green"><span>Finish</span></button>
+			<% if @export_data == "yes" %>
 			<button id="print" class="blue" style="position :relative; float:right;"
 			onClick="$('#table_id').table2CSV({header:['ARV Number','Name','Current Age','Registration Date','Start Reason','Outcome Status','']})"><span>Export</span></button>
+			<% end %>
             <button id="find" class="blue" style="width:200px;left:5px;"><span>Mastercards</span></button>
           </div>          
         </div>    
