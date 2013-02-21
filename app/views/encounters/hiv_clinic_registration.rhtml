@@ -80,12 +80,11 @@
   var todayDate = createDate("<%= @todayDate.year %>","<%= @todayDate.month %>","<%= @todayDate.day %>");
   var originaltestDate = createDate("<%= @hiv_test_date.year rescue nil %>","<%= @hiv_test_date.month rescue nil %>","<%= @hiv_test_date.day rescue nil %>");
   var alertDate = createDate("<%= @alert_date.year %>","<%= @alert_date.month %>","<%= @alert_date.day %>");
-  var testDate = null;
+  //var testDate = null;
   var patient_age = null;
-  <%#= raise @hiv_test_date.year.to_yaml %>
+  
   function checkTestDate(){
     var testDate = createDate($('year_art_last_taken').value, $('month_art_last_taken').value , $('day_art_last_taken').value);
-	//alert(alertDate)
     if (testDate <= originaltestDate) {
       return false
 	}
@@ -100,7 +99,7 @@
 
   //checks if the patient needs to be referred to HTC basesd on the test date
   function updateTestDate(){
-    testDate = createDate($('year_art_last_taken').value, $('month_art_last_taken').value , $('day_art_last_taken').value);
+    var testDate = createDate($('year_art_last_taken').value, $('month_art_last_taken').value , $('day_art_last_taken').value);
     $('date_art_last_taken').value = testDate;
 	 if (testDate == 'Invalid Date'){
 	  return true
@@ -134,7 +133,7 @@ function checkConfirmDate(){
   //checks if the patient needs to be referred to HTC basesd on the test date
   function updateConfirmDate(){
 
-    testDate = createDate($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value , $('confirmatory_hiv_test_day').value);
+    var testDate = createDate($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value , $('confirmatory_hiv_test_day').value);
     $('confirmatory_hiv_test_date').value = testDate;
 	 if (testDate == 'Invalid Date'){
 	  return true
@@ -146,7 +145,6 @@ function checkConfirmDate(){
 
   function checkStartDate(){
     var testDate = createDate($('year_started_art').value, $('month_started_art').value , $('day_started_art').value);
-	//alert(alertDate)
     if (testDate <= originaltestDate) {
       return false
 	}
@@ -161,7 +159,7 @@ function checkConfirmDate(){
 
   //checks if the patient needs to be referred to HTC basesd on the test date
   function updateStartDate(){
-    testDate = createDate($('year_started_art').value, $('month_started_art').value , $('day_started_art').value);
+    var testDate = createDate($('year_started_art').value, $('month_started_art').value , $('day_started_art').value);
     $('date_started_art').value = testDate;
 	 if (testDate == 'Invalid Date'){
 	  return true
@@ -173,7 +171,7 @@ function checkConfirmDate(){
 
  function updateInitiationDate(){
 
-    testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
+   var testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
     $('hiv_initiation_date').value = testDate;
     return isTestOverDue(testDate,alertDate);
   }
@@ -650,7 +648,6 @@ function checkConfirmDate(){
       { :tt_onLoad => "__$('keyboard').style.display = 'none'",
 		:helpText => 'Month ART last taken',
         :condition => '$("year_art_last_taken").value.toLowerCase() != "unknown" && $("ever_received_art").value == "YES"',
-        :validationJS => "validateDate();",
         :id => "month_art_last_taken" ,                                            
         :validationMessage => 'Please enter a valid date'}%>                    
                                                                                 
@@ -658,8 +655,8 @@ function checkConfirmDate(){
         :field_type => 'number', :helpText => 'Day ART last taken',                
         :condition => '($("year_art_last_taken").value !="Unknown") && ($("month_art_last_taken").value != "Unknown") && $("ever_received_art"). value == "YES"',
         :tt_onLoad => "getDayOfMonthPicker($('year_art_last_taken').value, $('month_art_last_taken').value);$('nextButton').style.display = 'block';",
-        :tt_onUnLoad => "updateTestDate();",
-        :validationCode => "checkTestDate();",
+        :tt_onUnLoad => 'updateTestDate();',
+        :validationCode => 'checkTestDate();',
         :id => "day_art_last_taken" ,                                              
         :validationMessage => "Date ART last taken out of range #{@hiv_test_date.to_date rescue nil} and #{@todayDate.to_date rescue nil}"%>
                                                                                 
@@ -836,8 +833,7 @@ function checkConfirmDate(){
 					  :absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year,
 					  :tt_pageStyleClass => "Numeric NumbersOnly",
 					  :condition => '$("ever_received_art").value == "YES" && $("ever_registered_at_ART_clinic").value == "YES" && showARTstartDate();',
-					  :id => "year_started_art" ,
-					  :validationJS => "setDOB();" }  %>
+					  :id => "year_started_art" }  %>
 
 		   <%estimates = ["6 months ago","12 months ago","18 months ago","24 months","Over 2 years ago"]%>
 		   <%= select_tag(:art_start_date_estimation, options_for_select(estimates ,[]),
@@ -854,7 +850,6 @@ function checkConfirmDate(){
 			  <%= select_tag "month_started_art", month_name_options,
 				  {	:helpText => 'Month started ART',
 					  :condition => '$("ever_received_art").value == "YES" && $("year_started_art").value.toLowerCase() != "unknown" && showARTstartDate();',
-					  :validationJS => "validateDOB();",
 					  :tt_onLoad => "__$('keyboard').style.display = 'none';",
 					  :tt_onUnLoad => "setUnkownStage();",
 					  :id => "month_started_art" ,
