@@ -331,7 +331,11 @@ class EncountersController < GenericEncountersController
 			@confirmatory_hiv_test_type = @patient.person.observations.question("CONFIRMATORY HIV TEST TYPE").last.answer_concept_name.name rescue 'UNKNOWN'
 		end
 
+		@avilable_status = ''
+		@avilable_status = PatientService.patient_tb_status(@patient).upcase if PatientService.patient_tb_status(@patient).upcase == ('CONFIRMED TB NOT ON TREATMENT' || 'CONFIRMED TB ON TREATMENT')
+
 		@arv_drugs = nil
+
 		if (params[:encounter_type].upcase rescue '') == 'HIV_CLINIC_REGISTRATION'
 			other = []
 
@@ -348,6 +352,7 @@ class EncountersController < GenericEncountersController
 			@answer_array = MedicationService.regimen_options(current_weight, hiv_program)
 			@answer_array += [['Other', 'Other'], ['Unknown', 'Unknown']]
 =end
+			
 
 			@arv_drugs = MedicationService.arv_drugs.collect { | drug | 
 				if (CoreService.get_global_property_value('use_regimen_short_names').to_s == "true" rescue false)					
