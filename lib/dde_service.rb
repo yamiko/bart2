@@ -191,7 +191,7 @@ module DDEService
     passed_national_id = (p["person"]["patient"]["identifiers"]["National id"])rescue nil
     passed_national_id = (p["person"]["value"]) if passed_national_id.blank? rescue nil
 
-    if passed_national_id.blank?
+    if passed_national_id.blank? and not p.blank?
       return [DDEService.get_remote_person(p["person"]["id"])]
     end
 
