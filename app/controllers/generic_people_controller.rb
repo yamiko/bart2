@@ -199,9 +199,10 @@ class GenericPeopleController < ApplicationController
       @patients << results
     end
 
-    (@search_results || {}).each do |npid , data |
-      @patients << data
-    end
+    # Redundant
+    #(@search_results || {}).each do |npid , data |
+    #  @patients << data
+    #end
 	end
 
   def search_from_dde
