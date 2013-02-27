@@ -8,15 +8,15 @@ class CohortToolController < GenericCohortToolController
     encounters = Encounter.find(:all, :conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ?", EncounterType.find_by_name("tb registration").id, @start_date, @end_date])
     tbtype = ConceptName.find_by_name("TB classification").concept_id
     patienttype = ConceptName.find_by_name("TB patient category").concept_id
-		@tbclass = []     
+		@variables["count"] = encounters.length
+ 
     encounters.each do |enc|
     		
     		tbclass = Concept.find(Observation.find(:last, :conditions => ["encounter_id = ? and concept_id = ? ", enc.id,tbtype]).value_coded).fullname
-			@tbclass << tbclass
+
     	recurrent = Concept.find(Observation.find(:last, :conditions => ["concept_id = ? ",ConceptName.find_by_name("Ever received TB treatment").concept_id]).value_coded).fullname == "Yes"
     	
     		patclass = Concept.find(Observation.find(:last, :conditions => ["encounter_id = ? and concept_id = ? ", enc.id,patienttype]).value_coded).fullname
-		#	end
     		age = PatientService.age(enc.patient.person)
     		
     		if ((age >= 0) && (age <= 4))
@@ -135,7 +135,7 @@ class CohortToolController < GenericCohortToolController
     @start_date,@end_date = Report.generate_cohort_date_range(@quarter)
 		@variables = Hash.new(0)		
 
-		encounters = Encounter.find(:all, :conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ?", EncounterType.find_by_name("tb registration").id, @start_date, @end_date])
+		encounters = Encounter.find(:all, :conditions => ["encounter_type = ? and encounter_datetime >= ? and encounter_datetime <= ?", EncounterType.find_by_name("tb registration").id, @start_date - 1.year, @end_date - 1.year])
 		
 		encounters.each do |enc|
 
@@ -204,27 +204,28 @@ class CohortToolController < GenericCohortToolController
 	end
 	
 	def case_find_cat_sort(patientclass,tbtype,age,gender, recc)
-			 
-			
-				if patientclass == "New patient"
-					store = age.to_s+gender.to_s+"Pulnew"
-				elsif patientclass == "Treatment after default MDR-TB patient"
-					store = age.to_s+gender.to_s+"Puldef"
-				elsif patientclass == "Failed - TB"
-					store = age.to_s+gender.to_s+"PulF"
-				elsif patientclass == "Relapse MDR-TB patient"
-					store = age.to_s+gender.to_s+"Pulrel"
-				else 
-					if (recc = "Yes")
-						store = age.to_s+gender.to_s+"oth"
-					end
+
+			if patientclass == "New patient"
+				store = age.to_s+gender.to_s+"Pulnew"
+			elsif patientclass == "Treatment after default MDR-TB patient"
+				store = age.to_s+gender.to_s+"Puldef"
+			elsif patientclass == "Failed - TB"
+				store = age.to_s+gender.to_s+"PulF"
+			elsif patientclass == "Relapse MDR-TB patient"
+				store = age.to_s+gender.to_s+"Pulrel"
+			else 
+				if (recc = "Yes")
+					store = age.to_s+gender.to_s+"oth"
 				end
+			end
+
 			
 			if tbtype == "Extrapulmonary tuberculosis (EPTB)"
 					
 					store = age.to_s+gender.to_s+"EP"
 
-			elsif tbtype == "Pulmonary tuberculosis"
+			elsif tbtype == "Pulmonary tuberculosis" 
+			
 					
 			else
 					
