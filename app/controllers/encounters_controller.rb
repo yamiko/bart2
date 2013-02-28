@@ -266,6 +266,18 @@ class EncountersController < GenericEncountersController
 			end
     end
 
+		if CoreService.get_global_property_value('use.normal.staging.questions').to_s == "true"
+			@who_stage_peds_i = concept_set('WHO STAGE I PEDS')
+			@who_stage_peds_ii = concept_set('WHO STAGE II PEDS')
+			@who_stage_peds_iii = concept_set('WHO STAGE III PEDS')
+			@who_stage_peds_iv = concept_set('WHO STAGE IV PEDS')
+
+			@who_stage_adults_i = concept_set('WHO STAGE I ADULT')
+			@who_stage_adults_ii = concept_set('WHO STAGE II ADULT')
+			@who_stage_adults_iii = concept_set('WHO STAGE III ADULT')
+			@who_stage_adults_iv = concept_set('WHO STAGE IV ADULT')
+		end
+
 		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' or (params[:encounter_type].upcase rescue '') == 'HIV_CLINIC_REGISTRATION'
 			if @patient_bean.age > 14 
 				@who_stage_i = concept_set('WHO STAGE I ADULT AND PEDS') + concept_set('WHO STAGE I ADULT')
@@ -376,6 +388,12 @@ class EncountersController < GenericEncountersController
 				prefix = "#{PatientIdentifier.site_prefix}-TB"
 		end
 		@tb_auto_number = create_tb_number(PatientIdentifierType.find_by_name('District TB Number').id, prefix)
+
+		if params["staging_conditions"] == "YES"
+			@obs = params["observations"]
+			render :template => 'encounters/normal_staging_summary', :layout => "normal_staging" and return
+		end
+		
 		redirect_to "/" and return unless @patient
 
 		redirect_to next_task(@patient) and return unless params[:encounter_type]
@@ -383,6 +401,8 @@ class EncountersController < GenericEncountersController
 		redirect_to :action => :create, 'encounter[encounter_type_name]' => params[:encounter_type].upcase, 'encounter[patient_id]' => @patient.id and return if ['registration'].include?(params[:encounter_type])
 		
 		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (CoreService.get_global_property_value('use.extended.staging.questions').to_s == "true" rescue false)
+			render :template => 'encounters/extended_hiv_staging'
+		elsif (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (CoreService.get_global_property_value('use.normal.staging.questions').to_s == "true" rescue false)
 			render :template => 'encounters/normal_hiv_staging'
 		else
 			render :action => params[:encounter_type] if params[:encounter_type]

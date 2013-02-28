@@ -63,7 +63,7 @@ class ClinicController < GenericClinicController
         ["Set Clinic Holidays","/properties/set_clinic_holidays"],
         ["Set Site Code", "/properties/site_code"],
         ["Manage Roles", "/properties/set_role_privileges"],
-        ["Use Extended Staging Format", "/properties/creation?value=use_extended_staging_format"],
+        ["Staging Format", "/properties/staging_properties"],
         ["Use User Selected Task(s)", "/properties/creation?value=use_user_selected_activities"],
         ["Use Filing Numbers", "/properties/creation?value=use_filing_numbers"],
         ["Show Lab Results", "/properties/creation?value=show_lab_results"],
