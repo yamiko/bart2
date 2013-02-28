@@ -11,8 +11,8 @@ div {
 
 
   <%
-    clinic_holidays = CoreService.get_global_property_value('clinic.holidays') || '1900-12-25,1900-03-03'
-    clinic_holidays = clinic_holidays.split(',').to_json
+    clinic_holidays = CoreService.get_global_property_value('clinic.holidays')
+    clinic_holidays = clinic_holidays.split(',').to_json rescue []
   %>
 
   var clinic_holidays = <%= clinic_holidays %>
