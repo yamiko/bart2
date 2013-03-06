@@ -2843,4 +2843,41 @@ end
     render :text => 'Done'
   end
 
+  def duplicate_menu
+    
+  end
+  
+  def duplicates
+    @logo = CoreService.get_global_property_value("logo")
+    @current_location_name = Location.current_health_center.name
+    @duplicates = Patient.duplicates(params[:attributes])
+    render(:layout => "layouts/menu")
+  end
+  
+  def merge_all_patients
+    if request.method == :post
+      params[:patient_ids].split(":").each do | ids |
+        master = ids.split(',')[0].to_i ; slaves = ids.split(',')[1..-1]
+        ( slaves || [] ).each do | patient_id  |
+          next if master == patient_id.to_i
+          Patient.merge(master,patient_id.to_i)
+        end
+      end
+      flash[:notice] = "Successfully merged patients"
+    end
+    redirect_to :action => "merge_show" and return
+  end
+
+  def merge_patients
+    master = params[:patient_ids].split(",")[0].to_i
+    slaves = []
+    params[:patient_ids].split(",").each{ | patient_id |
+      next if patient_id.to_i == master
+      slaves << patient_id.to_i
+    }
+    ( slaves || [] ).each do | patient_id  |
+     Patient.merge(master,patient_id)
+    end
+    render :text => "true" and return
+  end
 end
