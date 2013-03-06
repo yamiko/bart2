@@ -1,0 +1,16 @@
+
+<body >
+
+    <% form_tag "select_for_merge", :method => :post do %>
+      <%= text_field_tag :given_name, " ", {:field_type => 'alpha', :helpText => 'First name of Patient to Merge with', :ajaxURL => '/person_names/given_names?search_string=', :allowFreeText => true }%>
+      <%= text_field_tag :family_name, " ", {:field_type => 'alpha', :helpText => 'Last name of Patient to Merge with', :ajaxURL => '/person_names/family_names?search_string=', :allowFreeText => true }%>
+      Gender: <%= select_tag :gender, options_for_select({"" => "", "Male" => "M", "Female" => "F"}), {:helpText => "Gender of Patient to merge"} %>
+
+	    <%= hidden_field_tag :primary_patient, @primary %>
+      <%= submit_tag "Find person" %>
+
+<% end -%>
+
+
+
+</body>

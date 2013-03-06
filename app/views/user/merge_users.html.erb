@@ -1,0 +1,144 @@
+
+    <script type="text/javascript" charset="utf8" src="/javascripts/jquery.js"></script>
+<script>
+	function load()
+	{
+		var finish = document.getElementById("finishButton");
+		var buttons = document.getElementById("buttons");
+		var merge = document.createElement("button");
+		merge.innerHTML = "<span>Cancel</span>"
+		merge.setAttribute("class", "red left")
+		merge.setAttribute("id", "merge")
+		merge.setAttribute("onclick", "window.location = '/clinic'")
+		finish.setAttribute("onclick", "merge();")
+		buttons.appendChild(merge)
+		  
+	}
+	
+	setTimeout("load();", 300)
+	
+	function merge()
+	{
+			if (document.getElementById("user_id").innerHTML != "")
+			{
+				var datastring = 'primary=<%=@user.user_id%>; secondary=' + document.getElementById("user_id").innerHTML;
+				var result = confirm("Are you sure you would like to merge <%= @user.username%> and " + document.getElementById("user_name").innerHTML +"?");
+			
+				if (result == true)
+				{
+					jQuery.ajax({
+          type: "POST",
+          url: "/user/merge",
+          data: datastring,
+          success: function() {
+              alert("Users succesfully merged!");
+              window.location = '/clinic'
+          }
+      });
+      				}	
+			}
+			else
+			{
+				alert("Please select a user to merge with")			
+			}
+	}
+
+	
+</script>
+<style>
+	div{
+		-moz-user-select :none;
+	}
+	div.container{
+		border-radius : 15px;
+		border : 1px solid black;
+		font-size: 20px;
+	}
+	td.one{
+    background: white;
+    font-size: 2em;
+	}
+	td.two{
+    background: lavender;
+    font-size: 2em;
+	}
+	caption.strong{
+		  font-size: 2em;
+	}
+	
+	
+	
+</style>
+
+<div>
+
+	<table align = centre width = 98% style = "margin:10px; ">
+		<caption class = "strong">Merge Users</caption>
+		<tr>
+		<td style = "height:190px;" width = 50%>
+		<div	class = "container">
+			<table width = 100%>
+				<thead>
+					<caption><b>User to Merge With</b></caption>
+				</thead>
+				<tbody>
+					<tr><td>Username</td><td>:</td><td width = 60%><%= @user.username%></td></tr>
+					<tr><td>User ID</td><td>:</td><td><%= @user.user_id%></td></tr>		
+					<tr><td>Person name</td><td>:</td><td><%= @user.person.names.last.given_name%></td></tr>		
+					<tr><td>Person Surname</td><td>:</td><td><%= @user.person.names.last.family_name%></td></tr>										
+
+				</tbody>
+			</table>
+		</div>
+		</td>
+		<td>
+			<div	class = "container">
+			<table width = 100%>
+				<thead>
+					<caption><b>User to Merge</b></caption>
+				</thead>
+				<tbody>
+					<tr><td>Username</td><td>:</td><td width = 60%><div id= "user_name"></div></td></tr>
+					<tr><td>User ID</td><td>:</td><td><div id= "user_id"></div></td></tr>					
+					<tr><td>Person name</td><td>:</td><td id = "name"></td></tr>		
+					<tr><td>Person Surname</td><td>:</td><td id = "surname"></td></tr>
+
+				</tbody>
+			</table>
+			</div>
+		</td></tr>
+		<tr><td colspan = 2>
+				<font size = 5 >Users</font>
+			<div style = "height: 370px; width: 100%; border:1px solid black;  border-radius:20px; overflow: auto;">
+				
+				<table width = 100% >
+					
+					<%@users.each do |user|%> 
+					<tr>
+					
+					<td class= "<%= cycle('one', 'two') %>" id =" <%= user.user_id%>" onclick = "select(<%= user.user_id%>, '<%= user.username%>','<%= user.person.names.last.given_name%>','<%= user.person.names.last.family_name%>')" ><%= user.username%></td>
+					
+					</tr>
+					<%end%>
+
+				</table>
+    
+			</div>
+</td></tr>
+	</table>
+</div>
+
+<script type="text/javascript" lang="javascript">
+	function select(id, username,name,surname)
+	{
+		var usname = document.getElementById("user_name")
+		var usid = document.getElementById("user_id")
+
+		usname.innerHTML = username
+		usid.innerHTML = id
+		document.getElementById("name").innerHTML = name
+		document.getElementById("surname").innerHTML = surname
+
+	}
+
+</script>

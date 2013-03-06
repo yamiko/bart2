@@ -2818,27 +2818,124 @@ end
     render :text => "Next appointment: #{date.strftime('%d %B %Y')} (#{count})"
   end
   
+  def merge_patients
+  
+  found_person = nil
+		if params[:identifier]
+			local_results = PatientService.search_by_identifier(params[:identifier])
+
+			if local_results.length > 1
+				@people = PatientService.person_search(params)
+			elsif local_results.length == 1
+				found_person = local_results.first
+			else
+				# TODO - figure out how to write a test for this
+				# This is sloppy - creating something as the result of a GET
+				if create_from_remote
+					found_person_data = PatientService.find_remote_person_by_identifier(params[:identifier])
+					found_person = PatientService.create_from_form(found_person_data['person']) unless found_person_data.nil?
+				end
+			end
+			if found_person
+
+        patient = DDEService::Patient.new(found_person.patient)
+
+        patient.check_old_national_id(params[:identifier])
+
+				if params[:relation]
+					redirect_to search_complete_url(found_person.id, params[:relation]) and return
+				else
+					redirect_to :action => 'confirm', :found_person_id => found_person.id, :relation => params[:relation] and return
+				end
+			end
+		end
+		@relation = params[:relation]
+		@people = PatientService.person_search(params)
+		@patients = []
+		@people.each do | person |
+			patient = PatientService.get_patient(person) rescue nil
+			@patients << patient
+		end
+
+  end
+  
+  def patient_merge
+  
+  @primary = params[:person]["id"]	rescue nil
+  end
+  
+  def select_for_merge
+
+	@primary = params[:primary_patient]
+	found_person = nil
+		if params[:identifier]
+			local_results = PatientService.search_by_identifier(params[:identifier])
+
+			if local_results.length > 1
+				@people = PatientService.person_search(params)
+			elsif local_results.length == 1
+				found_person = local_results.first
+			else
+				# TODO - figure out how to write a test for this
+				# This is sloppy - creating something as the result of a GET
+				if create_from_remote
+					found_person_data = PatientService.find_remote_person_by_identifier(params[:identifier])
+					found_person = PatientService.create_from_form(found_person_data['person']) unless found_person_data.nil?
+				end
+			end
+			if found_person
+
+        patient = DDEService::Patient.new(found_person.patient)
+
+        patient.check_old_national_id(params[:identifier])
+
+				if params[:relation]
+					redirect_to search_complete_url(found_person.id, params[:relation]) and return
+				else
+					redirect_to :action => 'confirm', :found_person_id => found_person.id, :relation => params[:relation] and return
+				end
+			end
+		end
+		@relation = params[:relation]
+		@people = PatientService.person_search(params)
+		@patients = []
+		@people.each do | person |
+			patient = PatientService.get_patient(person) rescue nil
+			@patients << patient
+		end
+
+
+  
+  end
+  
   def merge
-    old_patient_id = params[:old_id]
-    new_patient_id = params[:new_id]
-    
+
+    old_patient_id = params[:primary_pat]
+    new_patient_id = params[:person]["id"]	rescue nil
+   
+
     old_patient = Patient.find old_patient_id
     new_patient = Patient.find new_patient_id
     
     raise "Old patient does not exist" unless old_patient
     raise "New patient does not exist" unless new_patient
+
+		ActiveRecord::Base.transaction do
     
-    PatientService.merge_patients(old_patient, new_patient)
-    
-    # void patient
-    patient = old_patient.person
-    patient.void("Merged with patient #{new_patient_id}")
-    
-    # void person
-    person = old_patient.person
-    person.void("Merged with person #{new_patient_id}")
-    
-    render :text => 'Done'
+		  PatientService.merge_patients(old_patient, new_patient)
+		  
+		  # void patient
+		  patient = old_patient.person
+		  patient.void("Merged with patient #{new_patient_id}")
+		  
+		  # void person
+		  person = old_patient.person
+		  person.void("Merged with person #{new_patient_id}")
+		  
+		 	flash[:notice] = "Patients Succesfully merged"
+
+   	end
+		redirect_to '/clinic' and return
   end
 
 end

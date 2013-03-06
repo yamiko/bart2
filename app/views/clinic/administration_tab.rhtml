@@ -42,7 +42,7 @@
 <script>
   function setInnerHtmlData(id,path,result, target) {
     td = document.getElementById(id);
-    if (result == "Transfer Patient in") {
+    if ((result == "Transfer Patient in")|| (result == "Merge Patients" )) {
       target = "_parent"
       td.innerHTML = "<a href ='" + path + "' target='" + target + "'>" +  result + "</a>"
       return td.innerHTML
@@ -77,6 +77,7 @@
     count = @reports.length  unless @reports.blank?
     @reports.sort.reverse.map do | path, name | %>
       <script>
+
         setInnerHtmlData("<%=count%>","<%=path%>","<%=name%>", "_self");
       </script>
       <%count-=1%>
