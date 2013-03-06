@@ -2947,7 +2947,7 @@ end
     @logo = CoreService.get_global_property_value("logo")
     @current_location_name = Location.current_health_center.name
     @duplicates = Patient.duplicates(params[:attributes])
-    render(:layout => "layouts/menu")
+    render(:layout => "layouts/report")
   end
   
   def merge_all_patients
