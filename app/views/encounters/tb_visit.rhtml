@@ -246,7 +246,7 @@ end
 <% @smear_positive = @recent_sputum_results.map{|obs| obs.to_s if obs.answer_string.to_s.strip != "Negative"} %>
 
 <form id='appointment' action="/encounters/create" method='post'>
-  <%= hidden_field_tag "encounter[encounter_type_name]", "TB VISIT" %>
+  <%= hidden_field_tag "encounter[encounter_type_name]", "HIV STAGING" %>
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", current_user.user_id %>
