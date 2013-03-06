@@ -184,7 +184,7 @@ class GenericClinicController < ApplicationController
                   ['/clinic/users_tab','User Accounts/Settings'],
                   ['/clinic/location_management_tab','Location Management'],
                   ['/people/tranfer_patient_in','Transfer Patient in'],
-                  ['/patients/merge_patients','Merge Patients'],
+                  ['/patients/merge_patient','Merge Patients'],
                   ['/patients/duplicate_menu','Possible patient duplicates']
 
                 ]

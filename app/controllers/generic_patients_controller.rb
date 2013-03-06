@@ -2820,8 +2820,8 @@ end
     render :text => "Next appointment: #{date.strftime('%d %B %Y')} (#{count})"
   end
   
-  def merge_patients
-  
+  def merge_patient
+
   found_person = nil
 		if params[:identifier]
 			local_results = PatientService.search_by_identifier(params[:identifier])
@@ -2851,6 +2851,7 @@ end
 				end
 			end
 		end
+
 		@relation = params[:relation]
 		@people = PatientService.person_search(params)
 		@patients = []
@@ -2906,10 +2907,8 @@ end
 			@patients << patient
 		end
 
-
-  
   end
-  
+
   def merge
 
     old_patient_id = params[:primary_pat]
@@ -2937,7 +2936,7 @@ end
 		 	flash[:notice] = "Patients Succesfully merged"
 
    	end
-		redirect_to '/clinic' and return
+		return
   end
 
   def duplicate_menu

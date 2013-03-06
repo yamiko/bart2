@@ -189,11 +189,12 @@ end -%>
         }
       }
     } else {
-
-
-	      document.forms[0].action = "merge";
-      	addFields();
-
+      document.forms[0].action = "patient_merge";
+      __$('nextButton').onmousedown = function(){
+        gotoNextPage();
+      }
+      
+      addFields();
     }
   }
 
@@ -211,13 +212,6 @@ end -%>
     __$(control).value = value;
   }
 
-  function newSearch(){
-    if (window.location.href.match(/\?identifier/))
-      window.location.href = "/people/identifiers";
-    else
-      window.location.href = "/people/search";
-  }
-   
   function makeRemoteButton(){
     <% if create_from_dde_server %>
     __$("backButton").innerHTML = "<span>Remote Search</span>";
@@ -225,13 +219,7 @@ end -%>
     __$('backButton').style.display = "block";
     <%end%>
   }
-    
-
-  function newSearch() {
-    document.location = "/people/search?relation=<%=h params[:relation] -%>"
-  }
-
-   
+     
   function search_remote(){
     var url = "/people/dde_search?given_name=<%= params[:given_name] %>" + 
       "&family_name=<%= params[:family_name] %>&gender=<%= params[:gender] %>";  
@@ -324,10 +312,21 @@ end -%>
   }
   
 </script>
-
 <body>
-    <% form_tag "merge", :method => :post do %>
+  <% if (params[:gender].blank? || params[:given_name].blank? || params[:family_name].blank?) && (params[:identifier].blank?) %>
 
+    <% form_tag "merge_patient", :method => :get do %>
+      <%= text_field_tag :given_name, params[:given_name], {:field_type => 'alpha', :helpText => 'First name of Patient to Merge', :ajaxURL => '/person_names/given_names?search_string=', :allowFreeText => true }%>
+      <%= text_field_tag :family_name, params[:family_name], {:field_type => 'alpha', :helpText => 'Last name of Patient to Merge', :ajaxURL => '/person_names/family_names?search_string=', :allowFreeText => true }%>
+      Gender: <%= select_tag :gender, options_for_select({"" => "", "Male" => "M", "Female" => "F"}), {:helpText => "Gender of Patient to merge"} %>
+      <%= hidden_field_tag :create_patient, params[:create_patient] %>
+      <%= hidden_field_tag :relation, params[:relation] %>
+      <%= submit_tag "Find person" %>
+    <% end -%>
+  <% end -%>
+  
+  <% unless (params[:gender].blank? || params[:given_name].blank? || params[:family_name].blank?) && (params[:identifier].blank?) %>
+    <% form_tag "patient_merge", :method => :post do %>
       <% if @people.blank? %>
         <% if @relation.blank? %>
           <label for="person">No patients were found:</label>
@@ -365,12 +364,8 @@ end -%>
       <input type="hidden" id="family_name2" name="family_name2" value="<%=h params[:family_name2] -%>" />
       <input type="hidden" id="address2" name="address2" value="<%=h params[:address2] -%>" />
       <input type="hidden" id="relation" name="relation" value="<%=h params[:relation] -%>" />
-      <input type="hidden" id="primary" name="primary_pat" value="<%=h @primary -%>" />
-      
-    	<%= submit_tag "finish", :confirm => 'Are you sure you want to merge these patients?' %>
+    <% end -%>
   <% end -%>
-
-</body>
 
   <script type="text/javascript" lang="javascript">
     <!--
@@ -390,4 +385,4 @@ end -%>
         
     //-->
   </script>
-
+</body>

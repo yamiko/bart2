@@ -22,7 +22,7 @@
 			if (document.getElementById("user_id").innerHTML != "")
 			{
 				var datastring = 'primary=<%=@user.user_id%>; secondary=' + document.getElementById("user_id").innerHTML;
-				var result = confirm("Are you sure you would like to merge <%= @user.username%> and " + document.getElementById("user_name").innerHTML +"?");
+				var result = confirm("Are you sure you would like to merge <%= @user.username%> and " + document.getElementById("user_name").innerHTML +"?", tstMessageBoxType.YesNo);
 			
 				if (result == true)
 				{
@@ -31,7 +31,8 @@
           url: "/user/merge",
           data: datastring,
           success: function() {
-              alert("Users succesfully merged!");
+
+              showMessage("Users succesfully merged!");
               window.location = '/clinic'
           }
       });
@@ -39,7 +40,7 @@
 			}
 			else
 			{
-				alert("Please select a user to merge with")			
+				showMessage("Please select a user to merge with");
 			}
 	}
 

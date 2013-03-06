@@ -473,7 +473,7 @@ class GenericUserController < ApplicationController
   
   def merge_users
   	     @user = User.find_by_username(params[:user][:username])
-  	     @users = User.find(:all, :conditions => ["user_id != ?", @user.user_id])
+  	     @users = User.find(:all, :conditions => ["user_id != ? ", @user.user_id])
   	render :layout => "menu" 
   end
   
@@ -499,7 +499,7 @@ class GenericUserController < ApplicationController
   			person.date_voided = Time.now
 				user.save 
    			person.save
-			  flash.now[:notice] = "Users Succesfully merged"
+
   	end
   	
   			redirect_to '/clinic' and return
