@@ -85,7 +85,7 @@ class GenericDrugController < ApplicationController
       drug_name = drug.name
       @stock[drug_name] = {"confirmed_closing" => 0,"dispensed" => 0,"current_stock" => 0 ,
         "confirmed_opening" => 0, "start_date" => start_date , "end_date" => end_date,
-        "relocated" => 0, "receipts" => 0,"expected" => 0}
+        "relocated" => 0, "receipts" => 0,"expected" => 0 ,"drug_id" => drug.id }
       @stock[drug_name]["dispensed"] = Pharmacy.dispensed_drugs_since(drug.id,start_date,end_date)
       @stock[drug_name]["confirmed_opening"] = Pharmacy.verify_stock_count(drug.id,start_date,start_date)
       @stock[drug_name]["confirmed_closing"] = Pharmacy.verify_stock_count(drug.id,start_date,end_date)
@@ -159,6 +159,33 @@ class GenericDrugController < ApplicationController
     @names = Drug.find(:all,:conditions =>["name LIKE ? AND drug_id IN (?)","%" + 
           params[:search_string] + "%", ids]).collect{|drug| drug.name}
     render :text => "<li>" + @names.map{|n| n } .join("</li><li>") + "</li>"
+  end
+
+  def stock_report_edit
+    if request.post?
+      obs = params[:observations]
+      edit_reason = obs[0]['value_coded_or_text'] rescue nil                           
+      encounter_datetime = params[:encounter_date]                             
+      drug_id = params[:drug_id]                     
+      pills = (params[:number_of_pills_per_tin].to_i * params[:number_of_tins].to_i)
+      date = encounter_datetime || Date.today                                   
+                                                                                
+      unless edit_reason.blank?
+        Pharmacy.drug_dispensed_stock_adjustment(drug_id,pills,date,edit_reason)
+      else
+        Pharmacy.verified_stock(drug_id,date,pills)
+      end
+
+      redirect_to :action => 'stock_report', :start_date => params[:start_date],                                  
+        :end_date => params[:end_date]
+    else
+      @edit_reason = params[:edit_reason]
+      @drug_id = params[:drug_id]
+      @encounter_date = params[:date]
+      @max_date = params[:max_date]
+      @start_date = params[:start_date]
+      @end_date = params[:end_date]
+    end
   end
 
 end

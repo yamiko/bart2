@@ -665,6 +665,7 @@ class GenericPatientsController < ApplicationController
   end
 
   def treatment_dashboard
+		@dispense = CoreService.get_global_property_value('use_drug_barcodes_only')
 	  @patient_bean = PatientService.get_patient(@patient.person)
     @amount_needed = 0
     @amounts_required = 0
@@ -762,7 +763,8 @@ class GenericPatientsController < ApplicationController
             concept_id,encounter_type.id,date.strftime('%Y-%m-%d 00:00:00'),date.strftime('%Y-%m-%d 23:59:59')])
     count = count.values unless count.blank?
     count = '0' if count.blank?
-    render :text => count
+
+    render :text => (count.first.to_i >= 0 ? {params[:date] => count}.to_json : 0)
   end
 
   def recent_lab_orders_print
@@ -948,7 +950,7 @@ end
     type.id, patient.id,session_date.strftime("%Y-%m-%d 00:00:00"),
     session_date.strftime("%Y-%m-%d 23:59:59")]) != nil                    
 
-    next_appt = Observation.find(:first,:order => "encounter_datetime DESC,encounter.date_created DESC",
+    next_appt = Observation.find(:first,:order => "encounter_datetime ASC,encounter.date_created ASC",
                :joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
                :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
                AND obs_datetime <= ?",ConceptName.find_by_name('Appointment date').concept_id,
@@ -2938,4 +2940,41 @@ end
 		redirect_to '/clinic' and return
   end
 
+  def duplicate_menu
+    
+  end
+  
+  def duplicates
+    @logo = CoreService.get_global_property_value("logo")
+    @current_location_name = Location.current_health_center.name
+    @duplicates = Patient.duplicates(params[:attributes])
+    render(:layout => "layouts/menu")
+  end
+  
+  def merge_all_patients
+    if request.method == :post
+      params[:patient_ids].split(":").each do | ids |
+        master = ids.split(',')[0].to_i ; slaves = ids.split(',')[1..-1]
+        ( slaves || [] ).each do | patient_id  |
+          next if master == patient_id.to_i
+          Patient.merge(master,patient_id.to_i)
+        end
+      end
+      flash[:notice] = "Successfully merged patients"
+    end
+    redirect_to :action => "merge_show" and return
+  end
+
+  def merge_patients
+    master = params[:patient_ids].split(",")[0].to_i
+    slaves = []
+    params[:patient_ids].split(",").each{ | patient_id |
+      next if patient_id.to_i == master
+      slaves << patient_id.to_i
+    }
+    ( slaves || [] ).each do | patient_id  |
+     Patient.merge(master,patient_id)
+    end
+    render :text => "true" and return
+  end
 end

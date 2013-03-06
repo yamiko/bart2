@@ -1,22 +1,34 @@
 <%= javascript_include_tag "date" %>
+
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id -%>";
 <% @session_date = "#{session[:datetime].to_date rescue Date.today}" %>
 <% @todayDate = @session_date.to_date  %>
 <% @alert_date = @session_date.to_date - 90.days %>
+  var ageInMonths = '<%= @patient_bean.age_in_months %>'
+
   function checkTestDate (){
     var dateCheck = "";
-
+	var currentYear = '<%= @todayDate.year %>'
+	var currentMonth = '<%= @todayDate.month %>'
     var testDate = new Date($('hiv_test_year').value, $('hiv_test_month').value - 1, $('hiv_test_day').value);
-<% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
+	<% @session_date = "#{session[:datetime]} rescue #{Date.today}" %>
+	var years = testDate.getFullYear();
+	var month = testDate.getMonth();
 
+	years = currentYear - years;
+	month = currentMonth - month;
+	var total = (years * 12) + month;
     var sessionDate = "<%="#{@session_date.to_date.year},#{@session_date.to_date.month},#{@session_date.to_date.day}"%>";
     var todayDate = new Date(sessionDate);
-
-    if (testDate <= todayDate){
-      dateCheck = 'true'
+	
+	if (total > ageInMonths){
+	  dateCheck = false
+	}
+	else if (testDate <= todayDate){
+      dateCheck = true
 	}else {
-      dateCheck = 'false'
+      dateCheck = false
     }
     return dateCheck
   }
@@ -134,12 +146,15 @@
 	:condition => '$("hiv_status").value != "UNKNOWN"'}
 %>
 
-  <%= select_tag "hiv_test_month", month_name_options, {:helpText => 'HIV test month', :condition => '($("hiv_test_year").value.toLowerCase() != "unknown") && ($("hiv_status").value != "UNKNOWN")', :tt_onLoad => "__$('keyboard').style.display = 'none'"}%>
+  <%= select_tag "hiv_test_month", month_name_options,
+	{:helpText => 'HIV test month',
+	:condition => '($("hiv_test_year").value.toLowerCase() != "unknown") && ($("hiv_status").value != "UNKNOWN")',
+	:tt_onLoad => "__$('keyboard').style.display = 'none'"}%>
 
   <%= text_field_tag "hiv_test_day",  nil,
 	{:field_type => 'number',
 	:helpText => 'HIV test day',
-	:validationCode => "checkTestDate() == 'true'",
+	:validationCode => "checkTestDate()",
 	:validationMessage => "HIV test date greater than #{session[:datetime].to_date rescue Date.today.to_date}",
 	:condition => '($("hiv_test_year").value != "Unknown") && ($("hiv_test_month").value != "Unknown") && ($("hiv_status").value != "UNKNOWN")',
 	:tt_onLoad => "getDayOfMonthPicker($('hiv_test_year').value,$('hiv_test_month').value);",
@@ -157,7 +172,7 @@
   <%= touch_location_tag "LOCATION OF HIV TEST", @patient, nil,
 	{:id => "location_of_hiv_test",
 	:condition => '$("hiv_status").value == "POSITIVE"',
-	:ajaxURL => '/people/tb_initialization_location?search_string=',
+	:ajaxURL => '/encounters/locations?search_string=',
 	:helpText => "Location of HIV test" } %>
 
   <%= touch_numeric_tag "HTC SERIAL NUMBER", @patient, nil,
@@ -169,13 +184,20 @@
   <%= touch_hidden_tag "ART initiation date", @patient, nil, {:id => "hiv_initiation_date", :value_datetime => true}%>
   <%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
 
-  <%= touch_hidden_tag "Refer to HTC", @patient, nil, {:id => "refer_to_htc"}%>
-
   <%= touch_yes_no_unknown_tag "Refer to HTC", @patient, nil,
 	{:id => "refer_to_htc",
-	:condition => '$("hiv_status").value != "POSITIVE" && updateTestDate() == true',
+	:condition => '$("hiv_status").value == "NEGATIVE" && updateTestDate() == true',
 	:tt_pageStyleClass => "NoKeyboard",
 	:helpText => "Patient has been -ve for more than 3 months. Refer patient to HTC?" } %>
+
+  <%= touch_yes_no_unknown_tag "Refer to HTC", @patient, nil,
+      {:id => "refer_to_htc",
+      :condition => '$("hiv_status").value == "UNKNOWN"',
+      :tt_pageStyleClass => "NoKeyboard",
+      :helpText => "Refer patient to HTC?" } %>
+
+  <%= touch_hidden_tag "Refer to HTC", @patient, "NO", {:id => "refer_to_htc",
+	:condition => '$("refer_to_htc").value != "NO" && $("refer_to_htc").value != "YES" && $("refer_to_htc").value != "UNKNOWN"'}%>
 
   <% session_date = session[:datetime].to_date rescue nil
   if session_date %>

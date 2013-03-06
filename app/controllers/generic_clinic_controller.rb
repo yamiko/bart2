@@ -123,6 +123,9 @@ class GenericClinicController < ApplicationController
       ["Supervision","/clinic/supervision_tab"],
       ["Data Cleaning Tools", "/clinic/data_cleaning_tab"],
       ["View appointments","/report/select_date"]
+#      ["View appointments","/properties/select_date"]
+    ]
+
 
     ]
   	if what_app? == 'TB-ART'
@@ -181,7 +184,9 @@ class GenericClinicController < ApplicationController
                   ['/clinic/users_tab','User Accounts/Settings'],
                   ['/clinic/location_management_tab','Location Management'],
                   ['/people/tranfer_patient_in','Transfer Patient in'],
-                  ['/patients/merge_patients','Merge Patients']
+                  ['/patients/merge_patients','Merge Patients'],
+                  ['/patients/duplicate_menu','Possible patient duplicates']
+
                 ]
     if current_user.admin?
       @reports << ['/clinic/management_tab','Drug Management']

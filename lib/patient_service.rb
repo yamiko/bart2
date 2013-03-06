@@ -4,6 +4,15 @@ module PatientService
 	require 'json'
 	require 'rest_client'                                                           
 
+  def self.search_from_remote(params)                                           
+    dde_server = GlobalProperty.find_by_property("dde_server_ip").property_value rescue ""
+    dde_server_username = GlobalProperty.find_by_property("dde_server_username").property_value rescue ""
+    dde_server_password = GlobalProperty.find_by_property("dde_server_password").property_value rescue ""
+    uri = "http://#{dde_server_username}:#{dde_server_password}@#{dde_server}/people/find.json/"
+                                                                                
+    return JSON.parse(RestClient.post(uri,params))                              
+  end
+ 
   def self.create_patient_from_dde(params)
 	  address_params = params["person"]["addresses"]
 		names_params = params["person"]["names"]
@@ -862,6 +871,18 @@ EOF
         :order =>"obs_datetime")
   end
 
+	def self.get_debugger_details(person, current_date = Date.today)
+		patient = PatientBean.new('')
+		patient.person_id = person.id
+		patient.name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
+		patient.patient_id = person.patient.id
+		patient.age = age(person, current_date)
+		patient.age_in_months = age_in_months(person, current_date)
+		patient.arv_number = get_patient_identifier(person.patient, 'ARV Number')
+		patient.splitted_arv_number = patient.arv_number.split("-").last.to_i rescue 0
+		patient
+	end
+
 	def self.get_patient(person, current_date = Date.today)
 		patient = PatientBean.new('')
 		patient.person_id = person.id
@@ -1049,6 +1070,11 @@ EOF
         self.set_birthdate(person, birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
 		  end
 		end
+
+    unless person_params['birthdate_estimated'].blank?                          
+      person.birthdate_estimated = person_params['birthdate_estimated'].to_i    
+    end
+
 		person.save
 	   
 		person.names.create(names_params)

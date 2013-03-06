@@ -459,6 +459,10 @@
 				options = document.getElementsByTagName('li');
 				  for (i = 0 ; i < options.length ; i++) {
 				   if (options[i].getAttribute('tstvalue') == "Pulmonary tuberculosis (current)") {
+					 <% tb_hiv_exclusions = [['Extrapulmonary tuberculosis (EPTB)', 'Extrapulmonary tuberculosis (EPTB)']]
+					  @who_stage_iv = @who_stage_iv - tb_hiv_exclusions
+
+					  %>
 					  updateTouchscreenInputForSelect($("optionValue" + i));
 					  return
 				   }
@@ -483,6 +487,9 @@
 				  options = document.getElementsByTagName('li');
 				  for (i = 0 ; i < options.length ; i++) {
 				   if (options[i].getAttribute('tstvalue') == "Extrapulmonary tuberculosis (EPTB)") {
+					 <% tb_hiv_exclusions = [['Pulmonary tuberculosis (current)', 'Pulmonary tuberculosis (current)']]
+					  @who_stage_iii = @who_stage_iii - tb_hiv_exclusions
+					  %>
 					  updateTouchscreenInputForSelect($("optionValue" + i));
 				   }
 				  }
