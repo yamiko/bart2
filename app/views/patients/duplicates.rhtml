@@ -21,6 +21,9 @@
     search.setAttribute("id","search");
     document.getElementById('search').setAttribute("onclick","showKeyboard();");
     keyboard = document.getElementsByClassName("keypad")[0]
+    document.getElementById("find").style.display = 'none'
+    finish = document.getElementById('logout')
+    finish.setAttribute("class", "green left")
     $("#finishButton").click(function() {
       window.location = "/clinic"
     });
@@ -267,17 +270,36 @@ td {
       cursor: pointer;
   }
 
-  #yes, #no {
+  #yes{
+      position: relative;
       border-radius: 7px;
       background-color: #669999;
       border-bottom: 1px outset black;
       border-style: outset;
       border-top: 1px outset black;
       color: white;
-      padding: 10px 16px 10px 10px;
+      padding: 20px 26px 20px 20px;
       text-align: center;
       text-decoration: none;
       cursor: pointer;
+      top:46px;
+      left: -8px;
+  }
+
+  #no {
+      position: relative;
+      border-radius: 7px;
+      background-color: #669999;
+      border-bottom: 1px outset black;
+      border-style: outset;
+      border-top: 1px outset black;
+      color: white;
+      padding: 20px 26px 20px 20px;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      top:46px;
+      left: 3px;
   }
 </style>
 
@@ -353,8 +375,8 @@ td {
     }
 
 
-    msgbox = $('popup_box');
-    msgbox.innerHTML = "Are you sure?</p><a id='yes' onmousedown='mergePatients(\"" + patient_id + "\",\"" + row_id + "\")'>YES</a>" +
+    msgbox = document.getElementById('popup_box');
+    msgbox.innerHTML = "<span>Are you sure?</span></p><a id='yes' onmousedown='mergePatients(\"" + patient_id + "\",\"" + row_id + "\")'>YES</a>" +
                        "&nbsp;&nbsp;&nbsp;<a id='no' onmousedown='cancelMerge(\"" + previous_color + "\",\"" + row_id + "\")'>NO</a>"
 
     msgbox.style.background = "tomato";
@@ -369,7 +391,7 @@ td {
     if(previous_color == 'blue'){color = 'lightgrey'
     }else{color = 'white'}
 
-    $('popup_box').style.display = 'none';
+    document.getElementById('popup_box').style.display = 'none';
     tds = document.getElementsByClassName("row_number_" + row_id);
     for(i = 0 ; i < tds.length ; i++){
       tds[i].style.background = color;
@@ -387,7 +409,7 @@ td {
         patient_ids+="," + buttons[i].id
     }
     //document.location = "/patient/merge_patients?patient_ids=" + patient_ids
-    $('popup_box').style.display = 'none';
+    document.getElementById('popup_box').style.display = 'none';
 
     new Ajax.Request("/patients/merge_patients?patient_ids=" + patient_ids,{method:'get',onSuccess: function(transport){
     done = transport.responseText || "";
@@ -422,14 +444,14 @@ td {
   }
 */
   function cancelAllMerge(){
-    $('popup_box').style.display = 'none';
-    $('cover').style.display = 'none';
+    document.getElementById('popup_box').style.display = 'none';
+    document.getElementById('cover').style.display = 'none';
     //enableButtons();
   }
 
   function mergeAll(){
     //disableButtons();
-    msgbox = $('popup_box');
+    msgbox = document.getElementById('popup_box');
     msgbox.innerHTML = "Are you sure?</p><a id='yes' onmousedown='mergeAllPatients()'>YES</a>" +
                        "&nbsp;&nbsp;&nbsp;<a id='no' onmousedown='cancelAllMerge()'>NO</a>"
     msgbox.style.background = "tomato";
@@ -463,16 +485,12 @@ td {
 
   }
 </script>
-<div id="popup_box" align="center">
-  <p>Merging patients</p>
-  <p><blink>Please wait.......</blink></p>
-</div>
 
 <style>
   #popup_box {
     display:none;
     z-index:1001;
-    left:314px;
+    left:489px;
     top:100px;
     text-align:center;
     font-size:28;
@@ -485,6 +503,10 @@ td {
     top: 199px;
     width: 421px;
     -moz-user-select:none;
+  }
+  
+    #popup_box span{
+    font-size:40px;
   }
 
   #cover{
@@ -509,4 +531,10 @@ td {
 </div>
 <div id="cover">
   
+</div>
+
+
+<div id="popup_box" align="center">
+  <p>Merging patients</p>
+  <p><blink>Please wait.......</blink></p>
 </div>
