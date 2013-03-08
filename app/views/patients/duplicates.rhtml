@@ -301,6 +301,7 @@ td {
       top:46px;
       left: 3px;
   }
+
 </style>
 
 <%= image_tag(@logo, :class => "logo")%>
@@ -356,7 +357,7 @@ td {
         <button id = '<%=patient.id%>' class ='merge button_row_<%=row_number%>' onmousedown="mergePatient('<%=patient.id%>','<%=row_number%>','<%=color%>');">Merge</button>
       </td>-->
        <td class="color_<%=color%> row_number_<%=row_number%>">
-        <a id = '<%=patient.id%>' class ='merge button_row_<%=row_number%>' onmousedown="mergePatient('<%=patient.id%>','<%=row_number%>','<%=color%>');">Merge</a>
+        <a id = '<%=patient.id%>' class ='merge button_row_<%=row_number%>' onmousedown="showConfirm();confirmMerge('<%=patient.id%>','<%=row_number%>')">Merge</a>
       </td>
     </tr>
   <% end %>
@@ -484,6 +485,85 @@ td {
     form.submit();
 
   }
+
+  function confirmMerge(patient_id, row_id){
+    var master = patient_id;
+    var slaves = []
+    
+    buttons = document.getElementsByClassName("button_row_" + row_id)
+    for(i=0; i<buttons.length; i++){
+      if(buttons[i].id != master){
+        slaves.push(buttons[i].id)
+      }
+      
+    }
+
+new Ajax.Request("/patients/confirm_merge?master_id=" + master + '&slaves_ids=' + slaves,
+    {
+      method:'get',onSuccess: function(transport){
+        patients = transport.responseText;
+        patients = eval('(' + patients + ')')
+        for(patient in patients){
+          for(key in patients[patient]){
+            //alert(key + ':' + patients[patient][key])
+          }
+        }
+        createConfirmPage(patients);
+      }
+    })
+}
+
+function createConfirmPage(patients){
+  confirm_page = document.getElementById('confirmPage')
+  div = document.createElement("div")
+  div.id = "slaves"
+  confirm_page.appendChild(div)
+  slaves_table = document.createElement("table")
+  slaves_table.id = "slaves_table"
+  master_table = document.createElement("table")
+  master_table.id = "master_table"
+  data = "<thead><tr><th></th><th>First Name</th><th>Last Name</th><th>Gender</th><th>Date of Birth</th><th>Village</th><th>T/A</th><th>Date created</th></tr></thead>"
+  html = "<thead><tr><th>First Name</th><th>Last Name</th><th>Gender</th><th>Date of Birth</th><th>Village</th><th>T/A</th><th>Date created</th></tr></thead>"
+  for(patient in patients){
+    if (patients[patient].master) continue
+      data+="<tr><td><input type='checkbox' name='slaves_ids[]' class='myCheckbox'></td>"
+      data+="<td>" + patients[patient].first_name + "</td>"
+      data+="<td>" + patients[patient].last_name + "</td>"
+      data+="<td>" + patients[patient].gender + "</td>"
+      data+="<td>" + patients[patient].date_of_birth + "</td>"
+      data+="<td>" + patients[patient].city_village + "</td>"
+      data+="<td>" + patients[patient].county_district + "</td>"
+      data+="<td>" + patients[patient].date_created + "</td></tr>"
+  }
+
+  for(patient in patients){
+    if (patients[patient].master){
+      html+="<tr><td>" + patients[patient].first_name + "</td>"
+      html+="<td>" + patients[patient].last_name + "</td>"
+      html+="<td>" + patients[patient].gender + "</td>"
+      html+="<td>" + patients[patient].date_of_birth + "</td>"
+      html+="<td>" + patients[patient].city_village + "</td>"
+      html+="<td>" + patients[patient].county_district + "</td>"
+      html+="<td>" + patients[patient].date_created + "</td></tr>"
+    }
+  }
+   slaves_table.innerHTML=data
+   div.appendChild(slaves_table)
+   master_table.innerHTML=html
+   confirm_page.appendChild(master_table)
+}
+
+function hideObject(){
+  document.getElementById('confirmPage').style.display='none'
+  master = document.getElementById('master_table')
+  slaves = document.getElementById('slaves_table')
+  master.parentNode.removeChild(master);
+  slaves.parentNode.removeChild(slaves);
+}
+
+function showConfirm(){
+  document.getElementById('confirmPage').style.display='inline'
+}
 </script>
 
 <style>
@@ -521,6 +601,76 @@ td {
     opacity: 0.5;
 
   }
+
+  #confirmPage{
+    z-index:1002;
+    left:122px;
+    top:51px;
+    text-align:center;
+    font-size:28;
+    background-color: #4E6CA3;
+    color: #FFFFFF;
+    border: 2px solid #9999FF;
+    border-radius: 15px 15px 15px 15px;
+    height: 400px;
+    padding: 5px;
+    position: absolute;
+    top: 150px;
+    width: 1088px;
+    -moz-user-select:none;
+    
+}
+#continue {
+      position: absolute;
+      border-radius: 7px;
+      background-color: #669999;
+      border-bottom: 1px outset black;
+      border-style: outset;
+      border-top: 1px outset black;
+      color: white;
+      padding: 20px 26px 20px 20px;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      top:332px;
+      left: 379px;
+      font-weight: bold;
+      font-size: 18pt;
+  }
+
+  #cancel {
+      position: absolute;
+      border-radius: 7px;
+      background-color: #669999;
+      border-bottom: 1px outset black;
+      border-style: outset;
+      border-top: 1px outset black;
+      color: white;
+      padding: 20px 26px 20px 20px;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      top:332px;
+      left: 645px;
+      font-weight: bold;
+      font-size: 18pt;
+  }
+  
+  #slaves_table{
+  	width: 100%;
+  	line-height: 48px;
+  }
+
+ #slaves{
+ overflow: auto;
+ position: absolute;
+ height: 177px;
+ top: 148px;
+ width: 99%;
+ }
+ #master_table{
+   width:100%;
+}
 </style>
 <div class="horizontal_line">
       <hr width="100%" color="gray"/>
@@ -537,4 +687,9 @@ td {
 <div id="popup_box" align="center">
   <p>Merging patients</p>
   <p><blink>Please wait.......</blink></p>
+</div>
+
+<div id="confirmPage" style="display:none">
+<a id='continue'><span>Continue</span></a>
+<a id='cancel' onmousedown="hideObject()"><span>Cancel</span></a>
 </div>

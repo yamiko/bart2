@@ -45,7 +45,7 @@ def self.duplicates(attributes)
 
     return if search_str.blank?
     duplicates = {}
-    patients = Patient.find(:all,:limit => 5000) # AND DATE(date_created >= ?) AND DATE(date_created <= ?)",
+    patients = Patient.find(:all,:limit => 1000) # AND DATE(date_created >= ?) AND DATE(date_created <= ?)",
               #'2005-01-01'.to_date,'2010-12-31'.to_date])
 
     ( patients || [] ).each do | patient |
