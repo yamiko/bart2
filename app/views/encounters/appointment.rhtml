@@ -2,6 +2,11 @@
   .nonclinic {
 	background: #C0C0C0 ! important;
   }
+  .selected {
+	background: #99EE99 ! important;
+	color: #000000;
+	font-weight:bold;
+  }
   .publicholiday {
 	background: #CD3333 ! important;
   }
@@ -69,6 +74,8 @@ clinic_holidays = clinic_holidays.split(',').to_json
 
 %>
   var clinic_holidays = <%= clinic_holidays %>
+  var totalWeekend = new Array;
+  var totalHoliday = new Array;
   function summary() {
     //updateWhoStage();
     //updateReasonForArtEligibility();
@@ -101,6 +108,7 @@ clinic_holidays = clinic_holidays.split(',').to_json
 		activeCells[i].setAttribute("ajaxCalendarUrl", "/patients/number_of_booked_patients?date=" + weekDay);
 		activeCells[i].className += " nonclinic";
 		activeCells[i].setAttribute('onclick', "showConfirm('Non-clinic day', this);");
+		totalWeekend.push(activeCells[i])
 		   
 	  }
 	  else{
@@ -109,7 +117,7 @@ clinic_holidays = clinic_holidays.split(',').to_json
 		  if (weekDay == clinic_holidays[x]) {
 			activeCells[i].className += " publicholiday";
 			activeCells[i].setAttribute('onclick', "showConfirm('Public Holiday', this);");
-
+			totalHoliday.push(activeCells[i])
 		  }
 		}
 		
@@ -129,7 +137,29 @@ clinic_holidays = clinic_holidays.split(',').to_json
   function showConfirm(attt, field){
 	globalDate = field
 	getTotal();
-
+	
+	if (attt == "Non-clinic day"){
+	  for (x = 0; x< totalWeekend.length; x++){
+		if (field.getAttribute('date') == totalWeekend[x].getAttribute('date')){
+		  field.className = field.className.replace( /(?:^|\s)nonclinic(?!\S)/g , ' selected' );
+		}
+		else{
+		  totalWeekend[x].className = totalWeekend[x].className.replace( /(?:^|\s)selected(?!\S)/g , ' nonclinic' );
+		}
+	  }
+	}
+	else {
+			
+	  for (x = 0; x< totalHoliday.length; x++){
+		if (field.getAttribute('date') == totalHoliday[x].getAttribute('date')){
+		  field.className = field.className.replace( /(?:^|\s)publicholiday(?!\S)/g , ' selected' );
+		}
+		else{
+		  totalHoliday[x].className = totalHoliday[x].className.replace( /(?:^|\s)selected(?!\S)/g , ' publicholiday' );
+		}
+	  }
+	}
+		  
 	var ele = document.getElementById('cover')
 	ele.style.display = "block";
 	document.body.appendChild(ele);

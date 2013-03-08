@@ -95,13 +95,7 @@
 	month = currentMonth - month;
 	var total = (years * 12) + month;
 
-	if (total > ageInMonths){
-	  return false
-	}
-	else if (testDate <= originaltestDate) {
-      return false
-	}
-	else if ( testDate > todayDate){
+	if ((total > ageInMonths) || (testDate <= originaltestDate) || ( testDate > todayDate)){
 	  return false
 	}
 	else {
@@ -138,13 +132,7 @@ function checkConfirmDate(){
 	  }
 	  else{ return true}
 	}
-	else if (total > ageInMonths){
-	  return false
-	}
-	else if (testDate <= originaltestDate) {
-      return false
-	}
-	else if ( testDate > todayDate){
+	else if ((total > ageInMonths) || (testDate <= originaltestDate) || ( testDate > todayDate)){
 	  return false
 	}
 	else {
@@ -175,13 +163,7 @@ function checkConfirmDate(){
 	month = currentMonth - month;
 	var total = (years * 12) + month;
 
-	if (total > ageInMonths){
-	  return false
-	}
-	else if (testDate <= originaltestDate) {
-      return false
-	}
-	else if ( testDate > todayDate){
+	if ((total > ageInMonths) || (testDate <= originaltestDate) || ( testDate > todayDate)){
 	  return false
 	}
 	else {
