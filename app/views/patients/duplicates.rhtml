@@ -357,7 +357,7 @@ td {
         <button id = '<%=patient.id%>' class ='merge button_row_<%=row_number%>' onmousedown="mergePatient('<%=patient.id%>','<%=row_number%>','<%=color%>');">Merge</button>
       </td>-->
        <td class="color_<%=color%> row_number_<%=row_number%>">
-        <a id = '<%=patient.id%>' class ='merge button_row_<%=row_number%>' onmousedown="showConfirm();confirmMerge('<%=patient.id%>','<%=row_number%>')">Merge</a>
+        <a id = '<%=patient.id%>' row="<%=row_number%>" class ='merge button_row_<%=row_number%>' onmousedown="showConfirm();confirmMerge('<%=patient.id%>','<%=row_number%>')">Merge</a>
       </td>
     </tr>
   <% end %>
@@ -429,21 +429,7 @@ td {
       tds[i].style.display = 'none';
     }
   }
-/*
-  function disableButtons(){
-    buttons = document.getElementsByTagName('button');
-    for(i = 0 ; i < buttons.length ; i++){
-      buttons[i].disabled = true
-    }
-  }
 
-  function enableButtons(){
-    buttons = document.getElementsByTagName('button');
-    for(i = 0 ; i < buttons.length ; i++){
-      buttons[i].disabled = false
-    }
-  }
-*/
   function cancelAllMerge(){
     document.getElementById('popup_box').style.display = 'none';
     document.getElementById('cover').style.display = 'none';
@@ -526,7 +512,7 @@ function createConfirmPage(patients){
   html = "<thead><tr><th>First Name</th><th>Last Name</th><th>Gender</th><th>Date of Birth</th><th>Village</th><th>T/A</th><th>Date created</th></tr></thead>"
   for(patient in patients){
     if (patients[patient].master) continue
-      data+="<tr><td><input type='checkbox' name='slaves_ids[]' class='myCheckbox'></td>"
+      data+="<tr><td><input type='checkbox' name='slaves_ids[]' id=" + patient + " src='/touchscreentoolkit/lib/images/unticked.jpg'></td>"
       data+="<td>" + patients[patient].first_name + "</td>"
       data+="<td>" + patients[patient].last_name + "</td>"
       data+="<td>" + patients[patient].gender + "</td>"
@@ -538,7 +524,7 @@ function createConfirmPage(patients){
 
   for(patient in patients){
     if (patients[patient].master){
-      html+="<tr><td>" + patients[patient].first_name + "</td>"
+      html+="<tr class='master_row' id=" + patient + "><td>" + patients[patient].first_name + "</td>"
       html+="<td>" + patients[patient].last_name + "</td>"
       html+="<td>" + patients[patient].gender + "</td>"
       html+="<td>" + patients[patient].date_of_birth + "</td>"
@@ -551,10 +537,12 @@ function createConfirmPage(patients){
    div.appendChild(slaves_table)
    master_table.innerHTML=html
    confirm_page.appendChild(master_table)
+   
 }
 
 function hideObject(){
   document.getElementById('confirmPage').style.display='none'
+  document.getElementById('cover').style.display='none'
   master = document.getElementById('master_table')
   slaves = document.getElementById('slaves_table')
   master.parentNode.removeChild(master);
@@ -563,6 +551,32 @@ function hideObject(){
 
 function showConfirm(){
   document.getElementById('confirmPage').style.display='inline'
+  document.getElementById('cover').style.display='inline'
+}
+
+function grabIds(){
+  inputs = document.getElementsByTagName("input")
+  master_row = document.getElementsByClassName("master_row")[0]
+  patients_ids = []
+  row_number = document.getElementById(master_row.id).getAttribute('row')
+  patients_ids.push(master_row.id)
+  for(i=0; i<inputs.length; i++){
+    if (inputs[i].type != 'checkbox') continue
+    if (inputs[i].checked == true){
+      patients_ids.push(inputs[i].id)
+    }
+    
+  }
+    new Ajax.Request("/patients/merge_patients?patient_ids=" + patients_ids,{method:'get',onSuccess: function(transport){
+    done = transport.responseText || "";
+      if(done == "true"){
+        hideObject();
+        tds = document.getElementsByClassName("row_number_" + row_number)
+          for(i = 0 ; i < tds.length ; i++){
+            tds[i].style.display = 'none';
+          }
+      }
+    }});
 }
 </script>
 
@@ -671,6 +685,7 @@ function showConfirm(){
  #master_table{
    width:100%;
 }
+
 </style>
 <div class="horizontal_line">
       <hr width="100%" color="gray"/>
@@ -690,6 +705,6 @@ function showConfirm(){
 </div>
 
 <div id="confirmPage" style="display:none">
-<a id='continue'><span>Continue</span></a>
-<a id='cancel' onmousedown="hideObject()"><span>Cancel</span></a>
+<a id='continue' onmousedown="grabIds();"><span>Continue</span></a>
+<a id='cancel' onmousedown="hideObject();"><span>Cancel</span></a>
 </div>
