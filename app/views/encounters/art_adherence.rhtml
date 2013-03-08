@@ -16,7 +16,25 @@
 	padding-left: 5px;
 
   }
-
+    #newText{
+	top: 40%;
+    left: 40%;
+	margin-top: -200px;
+    margin-left: -250px;
+	position: absolute;
+	margin-right:auto;
+	width: 800px;
+	height: 38px;
+	padding-bottom: 10px;
+	font-size: 2em;
+	text-align: left;
+	background-color: white;
+	padding: 10px;
+	z-index: 999;
+	border: 5px outset tomato;
+	border-radius: 15px;
+	z-index: 900;
+  }
   #ok {
 	float:right ! important;
 	width: 150px;
@@ -40,8 +58,8 @@
 	display:none;
   }
 
-  #alertPage{
-	top: 40%;
+ #alertPage{
+	top: 50%;
     left: 40%;
 	margin-top: -200px;
     margin-left: -250px;
@@ -59,6 +77,7 @@
 	border-radius: 15px;
 	z-index: 900;
   }
+
 
   .summary div {
 	padding-left:25px;
@@ -151,7 +170,7 @@
 	catch (e){}
 	outcomes = td
 	
-	appendObs("observations[][concept_name]", outcomes);
+	appendObs("observations[][concept_name]", "Reason for poor adherence to antiretroviral therapy");
 	appendObs("observations[][value_text]", td)
 	appendObs("observations[][patient_id]", '<%= @patient.id %>')
 	appendObs("observations[][obs_datetime]", dates);
@@ -380,6 +399,11 @@
 	ele.style.display = "inline";
 	document.body.appendChild(ele);
 
+	var newText = document.createElement('div');
+	newText.id = "newText";
+	newText.innerHTML = "Reason for abnormal adherence";
+	document.body.appendChild(newText);
+
 	var newDiv = document.createElement('div');
 	newDiv.id = "alertPage";
 	newDiv.className = "inputFrameClass";
@@ -398,20 +422,20 @@
 	newBtn.id = "cancel";
 	newBtn.innerHTML = "<span>Cancel</span>";
 	newDiv.appendChild(newBtn);
-	newBtn.setAttribute('onclick', "document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';gotoPage(2, null, true);")
+	newBtn.setAttribute('onclick', "document.getElementById('newText').style.display='none';document.getElementById('cover').style.display='none';document.getElementById('newText').style.display='none'; this.parentNode.style.display='none';gotoPage(2, null, true);")
 
 	var newBtn = document.createElement('button');
 	newBtn.className = "green navButton";
 	newBtn.id = "ok";
 	newBtn.innerHTML = "<span>Next</span>";
 	newDiv.appendChild(newBtn);
-	newBtn.setAttribute('onclick', "document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';gotoNextPage();")
+	newBtn.setAttribute('onclick', "document.getElementById('newText').style.display='none';document.getElementById('cover').style.display='none';document.getElementById('newText').style.display='none';this.parentNode.style.display='none';gotoNextPage();")
 
 	var options = document.getElementById('reason_for_lower_adherence');
 	firstOption = options[0];
 	for (x = 0; x < options.length; x++){
 	  if (x != 0){
-		options[x].setAttribute('onclick', setSelectedValue(options[x].value))
+		options[x].setAttribute('onclick', updateTouchscreenInputForSelect(options[x]))
 	  }
 	}
   }
