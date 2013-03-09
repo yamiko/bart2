@@ -78,7 +78,10 @@
   <% @todayDate = @session_date.to_date %>
   <% @alert_date = @session_date.to_date - 90.days %>
   var todayDate = createDate("<%= @todayDate.year %>","<%= @todayDate.month %>","<%= @todayDate.day %>");
-  var originaltestDate = createDate("<%= @hiv_test_date.year rescue nil %>","<%= @hiv_test_date.month rescue nil %>","<%= @hiv_test_date.day rescue nil %>");
+  var originaltestDate = ""
+  <% if ! @hiv_test_date.blank? %>
+	var originaltestDate = createDate("<%= @hiv_test_date.year rescue nil %>","<%= @hiv_test_date.month rescue nil %>","<%= @hiv_test_date.day rescue nil %>")
+  <% end %>
   var alertDate = createDate("<%= @alert_date.year %>","<%= @alert_date.month %>","<%= @alert_date.day %>");
   //var testDate = null;
   var patient_age = null;
@@ -94,8 +97,17 @@
 	years = currentYear - years;
 	month = currentMonth - month;
 	var total = (years * 12) + month;
+	
+	if (originaltestDate == ""){
+		if ((total > ageInMonths) || ( testDate > todayDate)){
+		  return false
+		}
+		else {
+		  return true
+		}
 
-	if ((total > ageInMonths) || (testDate <= originaltestDate) || ( testDate > todayDate)){
+	}
+	else if ((total > ageInMonths) || (testDate <= originaltestDate) || ( testDate > todayDate)){
 	  return false
 	}
 	else {
