@@ -113,12 +113,14 @@ clinic_holidays = clinic_holidays.split(',').to_json
 	  }
 	  else{
 		activeCells[i].setAttribute("ajaxCalendarUrl", "/patients/number_of_booked_patients?date=" + weekDay)
+		activeCells[i].setAttribute('onclick', "showConfirm('none', this);");
 		for(var x = 0 ; x < clinic_holidays.length; x++){
 		  if (weekDay == clinic_holidays[x]) {
 			activeCells[i].className += " publicholiday";
 			activeCells[i].setAttribute('onclick', "showConfirm('Public Holiday', this);");
 			totalHoliday.push(activeCells[i])
 		  }
+			
 		}
 		
 	  }
@@ -137,43 +139,64 @@ clinic_holidays = clinic_holidays.split(',').to_json
   function showConfirm(attt, field){
 	globalDate = field
 	getTotal();
-	
-	if (attt == "Non-clinic day"){
-	  for (x = 0; x< totalWeekend.length; x++){
-		if (field.getAttribute('date') == totalWeekend[x].getAttribute('date')){
-		  field.className = field.className.replace( /(?:^|\s)nonclinic(?!\S)/g , ' selected' );
+	activeCells = document.getElementsByClassName('cellActive');
+	if (attt == "none"){
+	  for(var i = 0; i < activeCells.length; i++) {
+		if (totalWeekend.indexOf(activeCells[i]) > -1){
+		  activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , ' nonclinic' );
+		}
+		else if (totalHoliday.indexOf(activeCells[i]) > -1){
+		  activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , ' publicholiday' );
+		}
+		else if (field.getAttribute('date') == activeCells[i].getAttribute('date')){
+		  field.className = field.className.replace( /(?:^|\s)selected(?!\S)/g , ' ' );
+		  field.className +=  ' selected';
 		}
 		else{
-		  totalWeekend[x].className = totalWeekend[x].className.replace( /(?:^|\s)selected(?!\S)/g , ' nonclinic' );
+		  activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , '' );
 		}
 	  }
 	}
+
 	else {
-			
-	  for (x = 0; x< totalHoliday.length; x++){
-		if (field.getAttribute('date') == totalHoliday[x].getAttribute('date')){
-		  field.className = field.className.replace( /(?:^|\s)publicholiday(?!\S)/g , ' selected' );
-		}
-		else{
-		  totalHoliday[x].className = totalHoliday[x].className.replace( /(?:^|\s)selected(?!\S)/g , ' publicholiday' );
-		}
-	  }
+			for(var i = 0; i < activeCells.length; i++) {
+			  
+			  if (totalWeekend.indexOf(activeCells[i]) > -1){
+				if (field.getAttribute('date') == activeCells[i].getAttribute('date')){
+				  field.className = field.className.replace( /(?:^|\s)nonclinic(?!\S)/g , ' selected' );
+				}
+				else {
+				activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , ' nonclinic' );
+				}
+			  }
+			  else if (totalHoliday.indexOf(activeCells[i]) > -1){
+				if (field.getAttribute('date') == activeCells[i].getAttribute('date')){
+				  field.className = field.className.replace( /(?:^|\s)publicholiday(?!\S)/g , ' selected' );
+				}
+				else {
+				activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , ' publicholiday' );
+				}
+			  }
+			  else{
+				activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , '' );
+			  }
+			}
+
+	  var ele = document.getElementById('cover')
+	  ele.style.display = "block";
+	  document.body.appendChild(ele);
+
+	  var newDiv = document.createElement('div');
+	  newDiv.id = "alertPage";
+	  newDiv.innerHTML = "<p class='message'>" + attt + "</p>";
+	  document.body.appendChild(newDiv);
+
+	  var newBtn = document.createElement('button');
+	  newBtn.className = "blue";
+	  newBtn.innerHTML = "<span>Ok</span>";
+	  newDiv.appendChild(newBtn);
+	  newBtn.setAttribute('onclick', "document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';");
 	}
-		  
-	var ele = document.getElementById('cover')
-	ele.style.display = "block";
-	document.body.appendChild(ele);
-
-	var newDiv = document.createElement('div');
-	newDiv.id = "alertPage";
-	newDiv.innerHTML = "<p class='message'>" + attt + "</p>";
-	document.body.appendChild(newDiv);
-
-	var newBtn = document.createElement('button');
-	newBtn.className = "blue";
-	newBtn.innerHTML = "<span>Ok</span>";
-	newDiv.appendChild(newBtn);
-	newBtn.setAttribute('onclick', "document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';");
   }
 
   function getTotal() {
