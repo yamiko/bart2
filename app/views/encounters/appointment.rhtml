@@ -141,21 +141,21 @@ clinic_holidays = clinic_holidays.split(',').to_json
 	getTotal();
 	activeCells = document.getElementsByClassName('cellActive');
 	if (attt == "none"){
-	  for(var i = 0; i < activeCells.length; i++) {
-		if (totalWeekend.indexOf(activeCells[i]) > -1){
-		  activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , ' nonclinic' );
-		}
-		else if (totalHoliday.indexOf(activeCells[i]) > -1){
-		  activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , ' publicholiday' );
-		}
-		else if (field.getAttribute('date') == activeCells[i].getAttribute('date')){
-		  field.className = field.className.replace( /(?:^|\s)selected(?!\S)/g , ' ' );
-		  field.className +=  ' selected';
-		}
-		else{
-		  activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , '' );
-		}
-	  }
+			for(var i = 0; i < activeCells.length; i++) {
+				  if (totalWeekend.indexOf(activeCells[i]) > -1){
+						activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , ' nonclinic' );
+				  }
+				  else if (totalHoliday.indexOf(activeCells[i]) > -1){
+						activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , ' publicholiday' );
+				  }
+				  else if (field.getAttribute('date') == activeCells[i].getAttribute('date')){
+						field.className = field.className.replace( /(?:^|\s)selected(?!\S)/g , ' ' );
+						field.className +=  ' selected';
+				  }
+				  else{
+						activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , '' );
+				  }
+			}
 	}
 
 	else {
