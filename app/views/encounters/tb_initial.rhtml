@@ -56,14 +56,14 @@
 			{	:id => "tb_treatment",
 				:tt_onUnload => "$('transfer_in').value = '';",
 				:helpText => 'Ever received TB treatment',
-				:tt_onLoad => 'showCategory("TB Information At Registration")'} %>
+				:tt_onLoad => ''} %>
 	<% end %>
 
   <%= touch_yes_no_unknown_tag "Transfer in", @patient, nil,
       {:id => "transfer_in",
        :condition => "$('tb_treatment').value == 'YES'",
        :helpText => 'Transfer in?',
-	   :tt_onLoad => 'showCategory("TB Information At Registration")'} %>
+	   :tt_onLoad => '")'} %>
 
   <%= touch_text_field_tag "Clinic Location", @patient, nil,
       {:id => "location_of_tb_initiation",

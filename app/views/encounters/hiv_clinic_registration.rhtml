@@ -78,7 +78,7 @@
   <% @todayDate = @session_date.to_date %>
   <% @alert_date = @session_date.to_date - 90.days %>
   var todayDate = createDate("<%= @todayDate.year %>","<%= @todayDate.month %>","<%= @todayDate.day %>");
-  var originaltestDate = createDate("<%= @hiv_test_date.year %>","<%= @hiv_test_date.month %>","<%= @hiv_test_date.day %>");
+  var originaltestDate = createDate("<%= @hiv_test_date.year rescue nil %>","<%= @hiv_test_date.month rescue nil %>","<%= @hiv_test_date.day rescue nil %>");
   var alertDate = createDate("<%= @alert_date.year %>","<%= @alert_date.month %>","<%= @alert_date.day %>");
   var testDate = null;
   var patient_age = null;
@@ -661,7 +661,7 @@ function checkConfirmDate(){
         :tt_onUnLoad => "updateTestDate();",
         :validationCode => "checkTestDate();",
         :id => "day_art_last_taken" ,                                              
-        :validationMessage => "Date ART last taken out of range #{@hiv_test_date.to_date} and #{@todayDate.to_date}"%>
+        :validationMessage => "Date ART last taken out of range #{@hiv_test_date.to_date rescue nil} and #{@todayDate.to_date rescue nil}"%>
                                                                                 
    <%= touch_hidden_tag "DATE ART LAST TAKEN", @patient, nil, {:id => "date_art_last_taken", :value_datetime => true}%>
 
@@ -867,7 +867,7 @@ function checkConfirmDate(){
 					  :validationCode => "checkStartDate();",
 					  :id => "day_started_art" ,
 					  :tt_onUnLoad => "updateStartDate();setUnkownStage();",
-					  :validationMessage => "Date ART started out of range #{@hiv_test_date.to_date} and #{@todayDate.to_date}"%>
+					  :validationMessage => "Date ART started out of range #{@hiv_test_date.to_date rescue nil} and #{@todayDate.to_date rescue nil}"%>
 
 			  <%= touch_hidden_tag "Date antiretrovirals started", @patient, "", :id => "date_started_art", :value_datetime => true %>
 		<% end %>
@@ -961,7 +961,7 @@ function checkConfirmDate(){
 			:tt_onLoad => "getDayOfMonthPicker($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value);$('nextButton').style.display = 'block';",
 			:validationCode => "checkConfirmDate()",
 			:id => "confirmatory_hiv_test_day" ,                                              
-			:validationMessage => "Confirmatory Test Date out of range #{@hiv_test_date.to_date} and #{@todayDate.to_date}"%>
+			:validationMessage => "Confirmatory Test Date out of range #{@hiv_test_date.to_date rescue nil} and #{@todayDate.to_date rescue nil}"%>
 
 			<%= touch_hidden_tag "confirmatory hiv test date", @patient, "", :id => "confirmatory_hiv_test_date", :value_datetime => true %>
 		<% if @retrospective %>

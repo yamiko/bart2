@@ -130,13 +130,13 @@ class CohortToolController < GenericCohortToolController
 
     other_encounters = Encounter.find_by_sql("SELECT encounter.* FROM encounter
                         INNER JOIN obs ON encounter.encounter_id = obs.encounter_id
-                        WHERE ((encounter.encounter_datetime BETWEEN '#{start_date}' AND '#{end_date}'))
+                        WHERE (encounter.encounter_datetime BETWEEN '#{start_date}' AND '#{end_date}')
                         GROUP BY encounter.encounter_id
                         ORDER BY encounter.encounter_type, encounter.patient_id")
 
-    drug_encounters = Encounter.find_by_sql("SELECT encounter.* as duration FROM encounter
+    drug_encounters = Encounter.find_by_sql("SELECT encounter.* FROM encounter
                         INNER JOIN orders ON encounter.encounter_id = orders.encounter_id
-                        WHERE ((encounter.encounter_datetime BETWEEN '#{start_date}' AND '#{end_date}'))
+                        WHERE (encounter.encounter_datetime BETWEEN '#{start_date}' AND '#{end_date}')
                         ORDER BY encounter.encounter_type")
 
     voided_encounters = []
@@ -880,7 +880,7 @@ class CohortToolController < GenericCohortToolController
 		session[:list_of_patients] = nil
 
 		@patients = adherence_over_hundred(params[:quarter],min_range,max_range,missing_adherence)
-		cohort.regimens_with_patient_ids(@first_registration_date)
+		Cohort.regimens_with_patient_ids(@first_registration_date)
 		@quarter = params[:quarter] + ": (#{@patients.length})" rescue  params[:quarter]
 		if missing_adherence
 			@report_type = "Patient(s) with missing adherence"

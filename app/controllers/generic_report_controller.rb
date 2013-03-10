@@ -318,15 +318,17 @@ class GenericReportController < ApplicationController
         GROUP BY patient_id")
     
     patient_with_dispensations.each do |patient_data_row|
+				
         person = Person.find(patient_data_row[:patient_id].to_i)
-        
+        #raise person.patient.to_yaml
         next if !PatientService.reason_for_art_eligibility(Patient.find(patient_data_row[:patient_id].to_i)).blank?
         
         outcome = outcome(person.id, patient_data_row[:encounter_datetime])
         art_date = art_start_date(person.id)
-        @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> PatientService.get_patient_identifier(person, 'ARV Number'), 'name'=> person.name,
+				name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
+        @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> PatientService.get_patient_identifier(person, 'ARV Number'), 'name'=>  name,
                    'birthdate'=> person.birthdate, 'national_id' => PatientService.get_national_id(person.patient) , 'gender' => person.gender,
-                   'age'=> person.age, 'phone_numbers'=> PatientService.phone_numbers(person),
+                   'age'=> PatientService.age(person, Date.today), 'phone_numbers'=> PatientService.phone_numbers(person),
                    'art_start_date'=>art_start_date(person.id), "date_registered_at_clinic" => person.patient.date_created.strftime('%d-%b-%Y'),
                    'art_start_age' => age_at(art_date, person.birthdate), 'start_reason' => PatientService.reason_for_art_eligibility(person.patient), 'outcome' => outcome(person.id, end_date)}
     end
