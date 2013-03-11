@@ -508,18 +508,18 @@ function createConfirmPage(patients){
   slaves_table.id = "slaves_table"
   master_table = document.createElement("table")
   master_table.id = "master_table"
-  data = "<thead><tr><th></th><th>First Name</th><th>Last Name</th><th>Gender</th><th>Date of Birth</th><th>Village</th><th>T/A</th><th>Date created</th></tr></thead>"
+  data = "<thead><tr><th>First Name</th><th>Last Name</th><th>Gender</th><th>Date of Birth</th><th>Village</th><th>T/A</th><th>Date created</th></tr></thead>"
   html = "<thead><tr><th>First Name</th><th>Last Name</th><th>Gender</th><th>Date of Birth</th><th>Village</th><th>T/A</th><th>Date created</th></tr></thead>"
   for(patient in patients){
     if (patients[patient].master) continue
-      data+="<tr><td><input type='checkbox' name='slaves_ids[]' id=" + patient + " src='/touchscreentoolkit/lib/images/unticked.jpg'></td>"
-      data+="<td>" + patients[patient].first_name + "</td>"
+      data+="<tr><td>" + patients[patient].first_name + "</td>"
       data+="<td>" + patients[patient].last_name + "</td>"
       data+="<td>" + patients[patient].gender + "</td>"
       data+="<td>" + patients[patient].date_of_birth + "</td>"
       data+="<td>" + patients[patient].city_village + "</td>"
       data+="<td>" + patients[patient].county_district + "</td>"
-      data+="<td>" + patients[patient].date_created + "</td></tr>"
+      data+="<td>" + patients[patient].date_created + "</td>"
+      data+="<td><input type='checkbox' name='slaves_ids[]' id=" + patient + "></td></tr>"
   }
 
   for(patient in patients){
@@ -566,6 +566,9 @@ function grabIds(){
       patients_ids.push(inputs[i].id)
     }
     
+  }
+  if ((patients_ids.length) == 1){
+  	return
   }
     new Ajax.Request("/patients/merge_patients?patient_ids=" + patients_ids,{method:'get',onSuccess: function(transport){
     done = transport.responseText || "";
@@ -622,7 +625,7 @@ function grabIds(){
     top:51px;
     text-align:center;
     font-size:28;
-    background-color: #4E6CA3;
+    background-color: #3D3D3D;;
     color: #FFFFFF;
     border: 2px solid #9999FF;
     border-radius: 15px 15px 15px 15px;
@@ -684,6 +687,10 @@ function grabIds(){
  }
  #master_table{
    width:100%;
+}
+input[type="checkbox"] {
+   -moz-transform: scale(2);
+
 }
 
 </style>
