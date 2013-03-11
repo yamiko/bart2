@@ -16,6 +16,7 @@
             "bPaginate": false,
             "bSort": false
           });
+
     search_box = $('#table_id').dataTable()
     search = document.getElementsByTagName("input")[0];
     search.setAttribute("id","search");
@@ -347,16 +348,16 @@ td {
         patient_ids = "#{patient.id}" if patient_ids.blank?
   %>
     <tr>
-      <td class="color_<%=color%> row_number_<%=row_number%>"><%= PatientService.get_national_id(patient) %></td>
-      <td class="color_<%=color%> row_number_<%=row_number%>"><%= patient.name || '&nbsp;' %></td>
-      <td class="color_<%=color%> row_number_<%=row_number%>"><%= patient.person.birthdate || '&nbsp;' %> </td>
-      <td class="color_<%=color%> row_number_<%=row_number%>"><%= patient.person.gender || '&nbsp;' %></td>
-      <td class="color_<%=color%> row_number_<%=row_number%>"><%= PatientService.age(patient.person) %></td>
+      <td class="color_<%=color%> color=<%=color%> row_number_<%=row_number%>"><%= PatientService.get_national_id(patient) %></td>
+      <td class="color_<%=color%> color=<%=color%> row_number_<%=row_number%>"><%= patient.name || '&nbsp;' %></td>
+      <td class="color_<%=color%> color=<%=color%> row_number_<%=row_number%>"><%= patient.person.birthdate || '&nbsp;' %> </td>
+      <td class="color_<%=color%> color=<%=color%> row_number_<%=row_number%>"><%= patient.person.gender || '&nbsp;' %></td>
+      <td class="color_<%=color%> color=<%=color%> row_number_<%=row_number%>"><%= PatientService.age(patient.person) %></td>
       <!--
       <td class="color_<%=color%> row_number_<%=row_number%>">
         <button id = '<%=patient.id%>' class ='merge button_row_<%=row_number%>' onmousedown="mergePatient('<%=patient.id%>','<%=row_number%>','<%=color%>');">Merge</button>
       </td>-->
-       <td class="color_<%=color%> row_number_<%=row_number%>">
+       <td class="color_<%=color%> color=<%=color%> row_number_<%=row_number%>">
         <a id = '<%=patient.id%>' row="<%=row_number%>" class ='merge button_row_<%=row_number%>' onmousedown="showConfirm();confirmMerge('<%=patient.id%>','<%=row_number%>')">Merge</a>
       </td>
     </tr>
@@ -504,11 +505,15 @@ function createConfirmPage(patients){
   div = document.createElement("div")
   div.id = "slaves"
   confirm_page.appendChild(div)
-  slaves_table = document.createElement("table")
-  slaves_table.id = "slaves_table"
+  //slaves_table = document.createElement("table")
+  //slaves_table.id = "slaves_table"
   master_table = document.createElement("table")
   master_table.id = "master_table"
-  data = "<thead><tr><th>First Name</th><th>Last Name</th><th>Gender</th><th>Date of Birth</th><th>Village</th><th>T/A</th><th>Date created</th></tr></thead>"
+  data = "<table style='postion:absolute; margin-top:80px' cellspacing='0' cellpadding='0' border='0' width='100%';>"
+  data += "<tr><td><table cellspacing='0' cellpadding='1' border='1' width='100%' >"
+  data += "<tr style='text-align: left; background-color: #669999;'><th>First Name</th><th>Last Name</th><th>Gender</th><th>Date of Birth</th><th>Village</th><th>T/A</th><th>Date created</th><th>&nbsp;</th></tr></table></td></tr>"
+  data += "<tr><td><div style='width:100%; height:327px; overflow:auto; border:0px'>"
+  data +="<table cellspacing='0' cellpadding='1' border='1' width='100%' >"
   html = "<thead><tr><th>First Name</th><th>Last Name</th><th>Gender</th><th>Date of Birth</th><th>Village</th><th>T/A</th><th>Date created</th></tr></thead>"
   for(patient in patients){
     if (patients[patient].master) continue
@@ -521,7 +526,7 @@ function createConfirmPage(patients){
       data+="<td>" + patients[patient].date_created + "</td>"
       data+="<td><input type='checkbox' name='slaves_ids[]' id=" + patient + "></td></tr>"
   }
-
+  data+="</table></div></td></tr></table>"
   for(patient in patients){
     if (patients[patient].master){
       html+="<tr class='master_row' id=" + patient + "><td>" + patients[patient].first_name + "</td>"
@@ -533,10 +538,9 @@ function createConfirmPage(patients){
       html+="<td>" + patients[patient].date_created + "</td></tr>"
     }
   }
-   slaves_table.innerHTML=data
-   div.appendChild(slaves_table)
-   master_table.innerHTML=html
-   confirm_page.appendChild(master_table)
+	div.innerHTML = data
+	master_table.innerHTML=html
+	confirm_page.appendChild(master_table)
    
 }
 
@@ -544,7 +548,7 @@ function hideObject(){
   document.getElementById('confirmPage').style.display='none'
   document.getElementById('cover').style.display='none'
   master = document.getElementById('master_table')
-  slaves = document.getElementById('slaves_table')
+  slaves = document.getElementById('slaves')
   master.parentNode.removeChild(master);
   slaves.parentNode.removeChild(slaves);
 }
@@ -577,6 +581,11 @@ function grabIds(){
         tds = document.getElementsByClassName("row_number_" + row_number)
           for(i = 0 ; i < tds.length ; i++){
             tds[i].style.display = 'none';
+            if (i<tds.length) continue
+              rows = document.getElementsByTagName('td')
+              for(j=i; j<rows.length; j++){
+                color = rows[j].getAttribute('color')
+              }
           }
       }
     }});
@@ -621,19 +630,18 @@ function grabIds(){
 
   #confirmPage{
     z-index:1002;
-    left:122px;
-    top:51px;
+    left:48px;
+    top:30px !important;
     text-align:center;
     font-size:28;
     background-color: white;
     color: black;
     border: 8px solid #669999;
     border-radius: 15px 15px 15px 15px;
-    height: 400px;
+    height: 579px;
     padding: 5px;
     position: absolute;
-    top: 150px;
-    width: 1088px;
+    width: 1260px;
     -moz-user-select:none;
     
 }
@@ -649,7 +657,7 @@ function grabIds(){
       text-align: center;
       text-decoration: none;
       cursor: pointer;
-      top:332px;
+      top:512px;
       left: 379px;
       font-weight: bold;
       font-size: 18pt;
@@ -667,8 +675,8 @@ function grabIds(){
       text-align: center;
       text-decoration: none;
       cursor: pointer;
-      top:332px;
-      left: 645px;
+      top:512px;
+      left: 747px;
       font-weight: bold;
       font-size: 18pt;
   }
@@ -679,15 +687,25 @@ function grabIds(){
   }
 
  #slaves{
- overflow: auto;
+ 
  position: absolute;
- height: 177px;
- top: 148px;
+ height: 359px;
+ top: 62px;
  width: 99%;
  }
  #master_table{
    width:100%;
 }
+#slaves table tr th{
+min-width: 89px;
+border: 0px;
+}
+
+#slaves table tr td{
+min-width:149px
+
+}
+
 input[type="checkbox"] {
    -moz-transform: scale(2);
 
