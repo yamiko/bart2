@@ -348,16 +348,16 @@ td {
         patient_ids = "#{patient.id}" if patient_ids.blank?
   %>
     <tr>
-      <td class="color_<%=color%> color=<%=color%> row_number_<%=row_number%>"><%= PatientService.get_national_id(patient) %></td>
-      <td class="color_<%=color%> color=<%=color%> row_number_<%=row_number%>"><%= patient.name || '&nbsp;' %></td>
-      <td class="color_<%=color%> color=<%=color%> row_number_<%=row_number%>"><%= patient.person.birthdate || '&nbsp;' %> </td>
-      <td class="color_<%=color%> color=<%=color%> row_number_<%=row_number%>"><%= patient.person.gender || '&nbsp;' %></td>
-      <td class="color_<%=color%> color=<%=color%> row_number_<%=row_number%>"><%= PatientService.age(patient.person) %></td>
+      <td class="color_<%=color%> row_number_<%=row_number%>" color="<%=color%>"><%= PatientService.get_national_id(patient) %></td>
+      <td class="color_<%=color%> row_number_<%=row_number%>" color="<%=color%>"><%= patient.name || '&nbsp;' %></td>
+      <td class="color_<%=color%> row_number_<%=row_number%>" color="<%=color%>"><%= patient.person.birthdate || '&nbsp;' %> </td>
+      <td class="color_<%=color%> row_number_<%=row_number%>" color="<%=color%>"><%= patient.person.gender || '&nbsp;' %></td>
+      <td class="color_<%=color%> row_number_<%=row_number%>" color="<%=color%>"><%= PatientService.age(patient.person) %></td>
       <!--
       <td class="color_<%=color%> row_number_<%=row_number%>">
         <button id = '<%=patient.id%>' class ='merge button_row_<%=row_number%>' onmousedown="mergePatient('<%=patient.id%>','<%=row_number%>','<%=color%>');">Merge</button>
       </td>-->
-       <td class="color_<%=color%> color=<%=color%> row_number_<%=row_number%>">
+       <td class="color_<%=color%> row_number_<%=row_number%>" color="<%=color%>">
         <a id = '<%=patient.id%>' row="<%=row_number%>" class ='merge button_row_<%=row_number%>' onmousedown="showConfirm();confirmMerge('<%=patient.id%>','<%=row_number%>')">Merge</a>
       </td>
     </tr>
@@ -581,11 +581,7 @@ function grabIds(){
         tds = document.getElementsByClassName("row_number_" + row_number)
           for(i = 0 ; i < tds.length ; i++){
             tds[i].style.display = 'none';
-            if (i<tds.length) continue
-              rows = document.getElementsByTagName('td')
-              for(j=i; j<rows.length; j++){
-                color = rows[j].getAttribute('color')
-              }
+            
           }
       }
     }});
