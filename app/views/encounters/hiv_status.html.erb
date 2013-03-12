@@ -22,13 +22,10 @@
     var sessionDate = "<%="#{@session_date.to_date.year},#{@session_date.to_date.month},#{@session_date.to_date.day}"%>";
     var todayDate = new Date(sessionDate);
 	
-	if (total > ageInMonths){
+	if ((total > ageInMonths) || (testDate > todayDate)){
 	  dateCheck = false
-	}
-	else if (testDate <= todayDate){
-      dateCheck = true
 	}else {
-      dateCheck = false
+      dateCheck = true
     }
     return dateCheck
   }

@@ -66,11 +66,8 @@
  function checkInitiationDate(){
     var testDate = $('date_of_art_initiation').value;
 	testDate = new Date(testDate)
-    if (testDate <= originaltestDate) {
+    if ((testDate <= originaltestDate) || ( testDate > todayDate)) {
       return false
-	}
-	else if ( testDate > todayDate){
-	  return false
 	}
 	else {
       return true
@@ -82,11 +79,8 @@
 
     var testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
 
-    if (testDate <= originaltestDate) {
+    if ((testDate <= originaltestDate) || ( testDate > todayDate)) {
       return false
-	}
-	else if ( testDate > todayDate){
-	  return false
 	}
 	else {
       return true
