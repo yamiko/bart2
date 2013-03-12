@@ -104,15 +104,18 @@ clinic_holidays = clinic_holidays.split(',').to_json
 	  var days = '<%= days.join(',') %>';
 	  days = days.split(',');
 	  if (days[nn] == ""){
+
 		activeCells[i].setAttribute("ajaxCalendarUrl", "/patients/number_of_booked_patients?date=" + weekDay);
 		activeCells[i].className += " nonclinic";
 		activeCells[i].setAttribute('onclick', "showConfirm('Non-clinic day', this);");
+		
 		totalWeekend.push(activeCells[i])
 		   
 	  }
 	  else{
 		activeCells[i].setAttribute("ajaxCalendarUrl", "/patients/number_of_booked_patients?date=" + weekDay)
 		activeCells[i].setAttribute('onclick', "showConfirm('none', this);");
+		
 		for(var x = 0 ; x < clinic_holidays.length; x++){
 		  if (weekDay == clinic_holidays[x]) {
 			activeCells[i].className += " publicholiday";
@@ -142,7 +145,7 @@ clinic_holidays = clinic_holidays.split(',').to_json
 	if (attt == "none"){
 
 			for(var i = 0; i < activeCells.length; i++) {
-			  
+				  activeCells[i].style.backgroundColor = "white"
 				  if (totalWeekend.indexOf(activeCells[i]) > -1){
 						activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , ' nonclinic' );
 				  }
@@ -161,7 +164,7 @@ clinic_holidays = clinic_holidays.split(',').to_json
 
 	else {
 			for(var i = 0; i < activeCells.length; i++) {
-			 
+			 activeCells[i].style.backgroundColor = "white"
 			  if (totalWeekend.indexOf(activeCells[i]) > -1){
 				if (field.getAttribute('date') == activeCells[i].getAttribute('date')){
 				  field.className = field.className.replace( /(?:^|\s)nonclinic(?!\S)/g , ' selected' );
