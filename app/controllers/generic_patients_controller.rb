@@ -2819,95 +2819,92 @@ end
     count = '0' if count.blank?
     render :text => "Next appointment: #{date.strftime('%d %B %Y')} (#{count})"
   end
-  
-  def merge_patient
 
-  found_person = nil
-		if params[:identifier]
-			local_results = PatientService.search_by_identifier(params[:identifier])
 
-			if local_results.length > 1
-				@people = PatientService.person_search(params)
-			elsif local_results.length == 1
-				found_person = local_results.first
+	def patient_merge
+		
+
+		@values = Hash.new("")
+		if !params["name"].blank?
+		
+			if params[:type] == "primary"
+					pre_fix = "pri"
 			else
-				# TODO - figure out how to write a test for this
-				# This is sloppy - creating something as the result of a GET
-				if create_from_remote
-					found_person_data = PatientService.find_remote_person_by_identifier(params[:identifier])
-					found_person = PatientService.create_from_form(found_person_data['person']) unless found_person_data.nil?
+					pre_fix = "sec"
+			end
+#			raise params.to_yaml
+			person = PatientService.get_patient(Person.find(params["name"]))
+			
+			@values[pre_fix + "_name"] = person.name
+			@values[pre_fix + "_gender"] = person.sex
+			@values[pre_fix + "_birthdate"] = person.birth_date
+			@values[pre_fix + "_age"] = person.age
+			@values[pre_fix + "_district"] = person.home_district
+			@values[pre_fix + "_ta"] = person.traditional_authority
+			@values[pre_fix + "_residence"] = person.current_residence
+			@values[pre_fix + "_nat_id"] = person.national_id
+			@values[pre_fix + "_pat_id"] = person.patient_id
+
+			if !params[:pri_id].blank? || !params[:sec_id].blank?
+				if ((params[:pri_id].blank?) && (params[:type] != "sec"))
+						pre_fix2 = "sec"
+						person = PatientService.get_patient(Person.find(params["sec_id"]))
+						@values[pre_fix2 + "_name"] = person.name
+						@values[pre_fix2 + "_gender"] = person.sex
+						@values[pre_fix2 + "_birthdate"] = person.birth_date
+						@values[pre_fix2 + "_age"] = person.age
+						@values[pre_fix2 + "_district"] = person.home_district
+						@values[pre_fix2 + "_ta"] = person.traditional_authority
+						@values[pre_fix2 + "_residence"] = person.current_residence
+						@values[pre_fix2 + "_nat_id"] = person.national_id
+						@values[pre_fix2 + "_pat_id"] = person.patient_id
+
+				else if ((params[:sec_id].blank?) && (params[:type] != "pri"))
+
+						pre_fix2 = "pri"				
+						person = PatientService.get_patient(Person.find(params["pri_id"]))
+						@values[pre_fix2 + "_name"] = person.name
+						@values[pre_fix2 + "_gender"] = person.sex
+						@values[pre_fix2 + "_birthdate"] = person.birth_date
+						@values[pre_fix2 + "_age"] = person.age
+						@values[pre_fix2 + "_district"] = person.home_district
+						@values[pre_fix2 + "_ta"] = person.traditional_authority
+						@values[pre_fix2 + "_residence"] = person.current_residence
+						@values[pre_fix2 + "_nat_id"] = person.national_id
+						@values[pre_fix2 + "_pat_id"] = person.patient_id
+
 				end
 			end
-			if found_person
-
-        patient = DDEService::Patient.new(found_person.patient)
-
-        patient.check_old_national_id(params[:identifier])
-
-				if params[:relation]
-					redirect_to search_complete_url(found_person.id, params[:relation]) and return
-				else
-					redirect_to :action => 'confirm', :found_person_id => found_person.id, :relation => params[:relation] and return
-				end
-			end
+			end	
 		end
+		
+    render:layout => "menu"
+	end
+	
+	def get_similar_patients
+				@type = params[:type]
+	end
+	
+	def	patient_to_merge
+		
+		string = ""
+		
+		if !params[:search_string].blank?
+		
+    	@names = PersonName.find(:all, :conditions =>["(given_name like (?) or family_name like (?)) and person_id not in (?)", "%#{params[:search_string]}%", "%#{params[:search_string]}%", ["#{params[:sec_id]}, #{params[:pri_id]}"]])
+    
+ 	    string = @names.map{|name| "<li value='#{name.person_id}'>#{name.given_name} #{name.family_name} </li>" }
+    
+    else
+    
+    	@names = Patient.find(:all, :conditions => ["patient_id not in (?)", ["#{params[:sec_id]}, #{params[:pri_id]}"]], :limit => 200)
+ 	    string = @names.map{|pat| "<li value='#{pat.patient_id}'>#{pat.person.names.last.given_name} #{pat.person.names.last.family_name} </li>" }
+ 	    
+    end
+    
+    render :text => string
 
-		@relation = params[:relation]
-		@people = PatientService.person_search(params)
-		@patients = []
-		@people.each do | person |
-			patient = PatientService.get_patient(person) rescue nil
-			@patients << patient
-		end
-
-  end
-  
-  def patient_merge
-  
-  @primary = params[:person]["id"]	rescue nil
-  end
-  
-  def select_for_merge
-
-	@primary = params[:primary_patient]
-	found_person = nil
-		if params[:identifier]
-			local_results = PatientService.search_by_identifier(params[:identifier])
-
-			if local_results.length > 1
-				@people = PatientService.person_search(params)
-			elsif local_results.length == 1
-				found_person = local_results.first
-			else
-				# TODO - figure out how to write a test for this
-				# This is sloppy - creating something as the result of a GET
-				if create_from_remote
-					found_person_data = PatientService.find_remote_person_by_identifier(params[:identifier])
-					found_person = PatientService.create_from_form(found_person_data['person']) unless found_person_data.nil?
-				end
-			end
-			if found_person
-
-        patient = DDEService::Patient.new(found_person.patient)
-
-        patient.check_old_national_id(params[:identifier])
-
-				if params[:relation]
-					redirect_to search_complete_url(found_person.id, params[:relation]) and return
-				else
-					redirect_to :action => 'confirm', :found_person_id => found_person.id, :relation => params[:relation] and return
-				end
-			end
-		end
-		@relation = params[:relation]
-		@people = PatientService.person_search(params)
-		@patients = []
-		@people.each do | person |
-			patient = PatientService.get_patient(person) rescue nil
-			@patients << patient
-		end
-
-  end
+	end
 
   def merge
 
@@ -2933,7 +2930,7 @@ end
 		  person = old_patient.person
 		  person.void("Merged with person #{new_patient_id}")
 		  
-		 	flash[:notice] = "Patients Succesfully merged"
+		
 
    	end
 		return
