@@ -9,7 +9,7 @@
 
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>";
-
+  var response
 /*
   function set_TB_program_values() {
     var tb_type = $('touchscreenInput'+tstCurrentPage).value;
@@ -136,6 +136,27 @@ function tb_number(){
 
   }
 
+  function checkNumber(td) {
+    var aUrl = "/encounters/check_tb_number?value=" + td;
+    var httpRequest = new XMLHttpRequest();
+    httpRequest.onreadystatechange = function() {
+      set_number(httpRequest);
+    };
+   
+      httpRequest.open('GET', aUrl, false);
+      httpRequest.send(null);
+	  if (response == "true")
+		return true
+	  if (response == "false")
+		return false;
+  }
+
+  function set_number(req) {
+	if (req.readyState == 4 && req.status == 200) {
+      response = JSON.parse(req.responseText);
+    }
+  }
+
 </script>
 
 <!--.........TODO...........
@@ -184,6 +205,8 @@ Check applicability of code below
              :optional => false,
 			 :value => @tb_auto_number,
              :tt_onLoad => "tb_number();",
+			 :validationCode => 'checkNumber(this.value)',
+			 :validationMessage => "The number entered is already occupied",
              :tt_pageStyleClass => "NumbersOnlyWithDecimal",
              :helpText => "TB registration number" } %>
     <%else%>

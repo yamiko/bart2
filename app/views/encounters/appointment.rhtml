@@ -1,16 +1,15 @@
 <style>                                                                         
   .nonclinic {
-	background: #C0C0C0 ! important;
+	background-color: #C0C0C0 ! important;
   }
   .selected {
-	background: #99EE99 ! important;
+	background-color: #99EE99 ! important;
 	color: #000000;
 	font-weight:bold;
   }
   .publicholiday {
-	background: #CD3333 ! important;
+	background-color: #CD3333 ! important;
   }
-
   div {
 	-moz-user-select: none;
   }
@@ -141,7 +140,9 @@ clinic_holidays = clinic_holidays.split(',').to_json
 	getTotal();
 	activeCells = document.getElementsByClassName('cellActive');
 	if (attt == "none"){
+
 			for(var i = 0; i < activeCells.length; i++) {
+			  
 				  if (totalWeekend.indexOf(activeCells[i]) > -1){
 						activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , ' nonclinic' );
 				  }
@@ -160,7 +161,7 @@ clinic_holidays = clinic_holidays.split(',').to_json
 
 	else {
 			for(var i = 0; i < activeCells.length; i++) {
-			  
+			 
 			  if (totalWeekend.indexOf(activeCells[i]) > -1){
 				if (field.getAttribute('date') == activeCells[i].getAttribute('date')){
 				  field.className = field.className.replace( /(?:^|\s)nonclinic(?!\S)/g , ' selected' );
