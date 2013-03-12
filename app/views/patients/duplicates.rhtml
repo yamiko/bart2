@@ -496,6 +496,7 @@ new Ajax.Request("/patients/confirm_merge?master_id=" + master + '&slaves_ids=' 
           }
         }
         createConfirmPage(patients);
+        
       }
     })
 }
@@ -541,12 +542,21 @@ function createConfirmPage(patients){
 	div.innerHTML = data
 	master_table.innerHTML=html
 	confirm_page.appendChild(master_table)
-   
+ 
+	confirmPage = document.getElementById('confirmPage')
+    img = document.createElement('img')
+    img.src='/images/pointer.png'
+    img.className = 'pointer'
+    confirmPage.appendChild(img)
+
+ 
 }
 
 function hideObject(){
   document.getElementById('confirmPage').style.display='none'
   document.getElementById('cover').style.display='none'
+  pointer = document.getElementsByClassName('pointer')[0]
+  pointer.parentNode.removeChild(pointer)
   master = document.getElementById('master_table')
   slaves = document.getElementById('slaves')
   master.parentNode.removeChild(master);
@@ -707,6 +717,13 @@ input[type="checkbox"] {
 
 }
 
+.pointer{
+	position: absolute;
+	top: 71px;
+	width: 66px;
+	height: 65px;
+	left: 623px;
+}
 </style>
 <div class="horizontal_line">
       <hr width="100%" color="gray"/>
