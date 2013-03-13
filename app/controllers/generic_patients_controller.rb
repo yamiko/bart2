@@ -2979,7 +2979,7 @@ end
 		patient_id = params[:patient_id] 
 
 		session_date = session[:datetime].to_date.strftime(' %d- %b- %Y') rescue Date.today
-		arv_start_date = PatientService.patient_art_start_date(Person.find(patient_id)).to_date.strftime(' %d- %b- %Y') rescue nil
+		arv_start_date = PatientService.patient_art_start_date(patient_id).to_date.strftime(' %d- %b- %Y') rescue nil
 		
 		duration = (session_date.year * 12 + session_date.month) - (arv_start_date.year *12 + arv_start_date.month)
 		
