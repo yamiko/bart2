@@ -21,12 +21,35 @@
 	{
 			if (document.getElementById("user_id").innerHTML != "")
 			{
-				var datastring = 'primary=<%=@user.user_id%>; secondary=' + document.getElementById("user_id").innerHTML;
-				var result = confirm("Are you sure you would like to merge <%= @user.username%> and " + document.getElementById("user_name").innerHTML +"?", tstMessageBoxType.YesNo);
+	
+
+			msgbox = document.getElementById('popup_box');
+			msgbox.innerHTML = "<span>Are you sure you would like to merge these users?</span></p><a id='yes' onmousedown='mergeConfirmed()'>YES</a>" +
+				                   "&nbsp;&nbsp;&nbsp;<a id='no' onmousedown='cancelAllMerge()'>NO</a>"
+
+		  msgbox.style.background = "tomato";
+		  msgbox.style.height = "150";
+		  javascript:window.scrollTo(0,0);
+		  msgbox.style.display = 'inline';
 			
-				if (result == true)
-				{
-					jQuery.ajax({
+			}
+			else
+			{
+				showMessage("Please select a user to merge with");
+			}
+	}
+
+	function cancelAllMerge(){
+		  document.getElementById('popup_box').style.display = 'none';
+		  document.getElementById('cover').style.display = 'none';
+		  //enableButtons();
+		}
+		
+	function mergeConfirmed(){
+
+			var datastring = 'primary=<%=@user.user_id%>; secondary=' + document.getElementById("user_id").innerHTML;
+	
+			jQuery.ajax({
           type: "POST",
           url: "/user/merge",
           data: datastring,
@@ -36,14 +59,9 @@
               window.location = '/clinic'
           }
       });
-      				}	
-			}
-			else
-			{
-				showMessage("Please select a user to merge with");
-			}
+      
+	
 	}
-
 	
 </script>
 <style>
@@ -55,6 +73,7 @@
 		border : 1px solid black;
 		font-size: 20px;
 	}
+	
 	td.one{
     background: lightblue;
     font-size: 2em;
@@ -67,9 +86,56 @@
 		  font-size: 2em;
 	}
 	
-	
-	
 </style>
+<style>
+  #popup_box {
+    display:none;
+    z-index:1001;
+    left:300px;
+    top:100px;
+    text-align:center;
+    font-size:28;
+    color: black;
+    border: 2px solid #9999FF;
+    border-radius: 15px 15px 15px 15px;
+    border-style: outset;
+    height: 160px;
+    padding: 5px;
+    position: absolute;
+    top: 199px;
+    width: 450px;
+    -moz-user-select:none;
+  }
+  
+  #popup_box span{
+    font-size:35px;
+  }
+  
+  #popup_box a{
+			background-color: silver;
+      border-bottom: 1px outset black;
+      border-style: outset;
+      padding: 10px 25px 10px 25px;
+      border-radius:5px;
+      font-size:29;
+      cursor: pointer;
+
+  }
+
+  #cover{
+    display: none;
+    position: absolute;
+    background-color: black;
+    width: 100%;
+    height: 102%;
+    left: 0%;
+    top: 0%;
+    z-index: 1000;
+    opacity: 0.5;
+
+  }
+</style>
+
 
 <div>
 
@@ -127,6 +193,12 @@
 			</div>
 </td></tr>
 	</table>
+	
+</div>
+
+<div id="popup_box" align="center">
+  <p>Merging patients</p>
+  <p><blink>Please wait.......</blink></p>
 </div>
 
 <script type="text/javascript" lang="javascript">
