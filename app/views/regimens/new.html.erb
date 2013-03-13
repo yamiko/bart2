@@ -1,9 +1,9 @@
-<% reason_for_treatment_change = ['Jandice/hepatitis','Anaemia < 8g/dl','History of psychiatric illness','Renal failure','Child under 12 years', 'Abacavir hypersensitivity', 'Other'] %>
+<% %>
 <script>
 </script>
 <style type="text/css">
 
-  #reason_for_tb_treatment_change, #reason_for_art_treatment_change{
+  #reason_for_tb_treatment_change {
 	height:80%;
 	width:100%;
 	background:none repeat scroll 0 0 light-grey;
@@ -16,8 +16,35 @@
 
   }
 
-  #tt_page_reason_for_tb_treatment_change, #tt_page_reason_for_art_treatment_change{
-	display:none;
+  #reason_for_art_treatment_change{
+	height:80%;
+	width:100%;
+	background:none repeat scroll 0 0 light-grey;
+	border-color: -moz-use-text-color -moz-use-text-color silver;
+	border-style: none none solid;
+	border-width: medium medium 1px;
+	font-family: "Nimbus Sans L","Arial Narrow",sans-serif;
+	font-size: 2.2em;
+	padding-left: 5px;
+
+  }
+  select {
+    border-bottom: 1px solid silver ! important;
+   
+  }
+  option {
+	background-color: silver ! important;
+	display:block;
+    font-family: "Nimbus Sans L","Arial Narrow",sans-serif;
+    font-size: 1.2em;
+    list-style: none outside none;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  .selectedOption {
+    background-color: lightblue;
   }
   #ok {
 	float:right ! important;
@@ -42,8 +69,28 @@
 	display:none;
   }
 
-  #alertPage{
+  #newText{
 	top: 40%;
+    left: 40%;
+	margin-top: -200px;
+    margin-left: -250px;
+	position: absolute;
+	margin-right:auto;
+	width: 800px;
+	height: 38px;
+	padding-bottom: 10px;
+	font-size: 2em;
+	text-align: left;
+	background-color: white;
+	padding: 10px;
+	z-index: 999;
+	border: 5px outset tomato;
+	border-radius: 15px;
+	z-index: 900;
+	display:none;
+  }
+  #alertPage{
+	top: 50%;
     left: 40%;
 	margin-top: -200px;
     margin-left: -250px;
@@ -163,6 +210,10 @@
   .NoKeyboard .inputFrameClass {
 	height:600;
   }
+    .message{
+	top: 1%;
+    left: 1%;
+  }
 </style>
 
 <%= javascript_include_tag "prototype"%>
@@ -185,21 +236,105 @@
 		updateTouchscreenInputForSelect(l[i]);
 	}
   }
-  
-  function checkRegimen(td){
+  var reasons = ['Jandice/hepatitis','Anaemia < 8g/dl','History of psychiatric illness','Renal failure','Child under 12 years', 'Abacavir hypersensitivity', 'Other'] ;
+  function checkRegimen(){
+	
+	if (document.getElementById('continue_existing_regimen').value == "NO"){
 	var ele = document.getElementById('cover')
 	ele.style.display = "inline";
 	document.body.appendChild(ele);
 
+	var newText = document.createElement('div');
+	newText.style.display = "inline";
+	newText.id = "newText";
+	newText.innerHTML = "Reason antiretrovirals changed or stopped";
+	document.body.appendChild(newText);
+
+	var newDiv = document.createElement('div');
+	newDiv.id = "alertPage";
+	document.body.appendChild(newDiv);
+
+	var newSelect = document.createElement('select')
+	newSelect.id = 'reason_for_art_treatment_change'
+	newSelect.name = 'Reason antiretrovirals changed'
+	newSelect.size = 3
+	for (x = 0; x < reasons.length; x++){
+	  newSelect.options[x] = new Option(reasons[x],reasons[x])
+	}
+	newDiv.appendChild(newSelect);
+
+	//var reason = document.getElementById('reason_for_art_treatment_change');
+	//reason.style.display = "block";
+	//reason.className = "touchscreenTextInput";
+	//newDiv.appendChild(reason);
+
+	var newBtn = document.createElement('button');
+	newBtn.className = "navButton red";
+	newBtn.id = "cancel";
+	newBtn.innerHTML = "<span>Cancel</span>";
+	newDiv.appendChild(newBtn);
+	newBtn.setAttribute('onclick', "document.getElementById('newText').style.display='none';document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';gotoPage(2, null, true);")
+
+	var newBtn = document.createElement('button');
+	newBtn.className = "green navButton";
+	newBtn.id = "ok";
+	newBtn.innerHTML = "<span>Next</span>";
+	newDiv.appendChild(newBtn);
+	newBtn.setAttribute('onclick', "document.getElementById('newText').style.display='none';document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';updateConcept();gotoNextPage();")
+	}
+  }
+
+  function updateConcept(){
+
+	var dates = new Date();
+	var myForm = document.getElementById('regimen_form')
+	var newOption = document.createElement("input");
+		
+	newOption.type = "hidden"
+	newOption.name = 'observations[][concept_name]';
+	newOption.value = 'Reason antiretrovirals changed or stopped';
+	myForm.appendChild(newOption);
+
+	alert("here")
+	var newOption = document.createElement("input");
+	newOption.type = "hidden"
+	newOption.name = "observations[][value_text]";
+	newOption.value = document.getElementById('reason_for_art_treatment_change').value;
+	myForm.appendChild(newOption);
+
+	var newOption = document.createElement("input");
+	newOption.type = "hidden"
+	newOption.name = "observations[][patient_id]";
+	newOption.value = '<%= @patient.id %>';
+	myForm.appendChild(newOption);
+
+	var newOption = document.createElement("input");
+	newOption.type = "hidden"
+	newOption.name = "observations[][obs_datetime]";
+	newOption.value = dates;
+	myForm.appendChild(newOption);
+  }
+
+  function checkTbRegimen(){
+	var ele = document.getElementById('cover')
+	ele.style.display = "inline";
+	document.body.appendChild(ele);
+
+	var newText = document.createElement('div');
+	newText.id = "newText";
+	newText.style.display = "inline";
+	newText.innerHTML = "Reason TB treatment changed";
+	document.body.appendChild(newText);
+
 	var newDiv = document.createElement('div');
 	newDiv.id = "alertPage";
 	newDiv.className = "inputFrameClass";
-	//newDiv.innerHTML = "<p class='message'>" + attt + "</p>";
+	//newDiv.innerHTML = "<p>Help</p>";
 	document.body.appendChild(newDiv);
 
-	document.getElementById(td).setAttribute('multiple', 'multiple')
+	document.getElementById('reason_for_tb_treatment_change').setAttribute('multiple', 'multiple')
 
-	var reason = document.getElementById(td);
+	var reason = document.getElementById('reason_for_tb_treatment_change');
 	reason.style.display = "block";
 	reason.className = "touchscreenTextInput";
 	newDiv.appendChild(reason);
@@ -209,14 +344,14 @@
 	newBtn.id = "cancel";
 	newBtn.innerHTML = "<span>Cancel</span>";
 	newDiv.appendChild(newBtn);
-	newBtn.setAttribute('onclick', "document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';gotoPage(2, null, true);")
+	newBtn.setAttribute('onclick', "document.getElementById('newText').style.display='none';document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';gotoPage(2, null, true);")
 
 	var newBtn = document.createElement('button');
 	newBtn.className = "green navButton";
 	newBtn.id = "ok";
 	newBtn.innerHTML = "<span>Next</span>";
 	newDiv.appendChild(newBtn);
-	newBtn.setAttribute('onclick', "document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';gotoNextPage();")
+	newBtn.setAttribute('onclick', "document.getElementById('cover').style.display='none';document.getElementById('newText').style.display='none';this.parentNode.style.display='none';gotoNextPage();")
 
   }
   function set_patient_program_for_suggestions(programId) {
@@ -494,14 +629,10 @@ end
 	  :allowFreeText => 'false',
 	  :condition => 'current_regimens_for_programs[$("tb_patient_program").value] != null && $("prescribe_tb_drugs").value == "YES"',
 	  :tt_onLoad => 'showTbDrugs();setAttributes();',
-	  :tt_onUnLoad => 'resetAttributes();',
+	  :tt_onUnLoad => 'resetAttributes();checkTbRegimen();',
 	  :helpText => "Continue current TB regimen?" } %>
 
-	<%=  select_tag "Reason tuberculosis treatment changed or stopped", options_for_select(reason_for_treatment_change),{
-	  :id => "reason_for_tb_treatment_change",
-	  :condition => "$('tb_continue_existing_regimen').value == 'NO'",
-	  :tt_onLoad => "checkRegimen('reason_for_tb_treatment_change');",
-	  :helpText  => "Reason tuberculosis treatment changed" } %>
+	
 
 	<%	initial_regimen_help_text = "Select TB regimen"
 	if @transfer_out_patient
@@ -610,15 +741,10 @@ end
 	:tt_onLoad => 'showDrugs();setAttributes();',
 	:validationCode => "continueRegimen() != 'true';",
 	:validationMessage => "Patient is starting a new regimen",
-	:tt_onUnLoad => 'resetAttributes();',
+	:tt_onUnLoad => 'resetAttributes();checkRegimen();',
 	:condition => 'existingRegimen();',
 	:helpText => "Continue current ARV drugs?"}%>
 
-  <%=  select_tag "Reason antiretrovirals changed or stopped", options_for_select(reason_for_treatment_change),{
-	  :id => "reason_for_art_treatment_change",
-	  :condition => "$('continue_existing_regimen').value == 'NO'",
-	  :tt_onLoad => "checkRegimen(reason_for_art_treatment_change);",
-	  :helpText  => "Reason antiretrovirals changed" } %>
 
   <%= select_tag :regimen_concept_id, nil, {
 	:ajaxUrl => "",
