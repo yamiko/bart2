@@ -2843,4 +2843,80 @@ end
     render :text => 'Done'
   end
 
+  def duplicate_menu
+    
+  end
+  
+  def duplicates
+    @logo = CoreService.get_global_property_value("logo")
+    @current_location_name = Location.current_health_center.name
+    @duplicates = Patient.duplicates(params[:attributes])
+    render(:layout => "layouts/report")
+  end
+  
+  def merge_all_patients
+    if request.method == :post
+      params[:patient_ids].split(":").each do | ids |
+        master = ids.split(',')[0].to_i ; slaves = ids.split(',')[1..-1]
+        ( slaves || [] ).each do | patient_id  |
+          next if master == patient_id.to_i
+          Patient.merge(master,patient_id.to_i)
+        end
+      end
+      flash[:notice] = "Successfully merged patients"
+    end
+    redirect_to :action => "merge_show" and return
+  end
+
+  def merge_patients
+    master = params[:patient_ids].split(",")[0].to_i
+    slaves = []
+    params[:patient_ids].split(",").each{ | patient_id |
+      next if patient_id.to_i == master
+      slaves << patient_id.to_i
+    }
+    ( slaves || [] ).each do | patient_id  |
+     Patient.merge(master,patient_id)
+    end
+    render :text => "true" and return
+  end
+
+  def confirm_merge
+    master = params[:master_id]
+    slaves = params[:slaves_ids]
+    primary = Patient.find(master)
+    all_patients = []
+    primary_patient = {}
+    primary_patient[primary.id] = {}
+    primary_patient[primary.id][:first_name] = primary.person.names[0].given_name
+    primary_patient[primary.id][:last_name] = primary.person.names[0].family_name
+    primary_patient[primary.id][:gender] = primary.person.gender
+    primary_patient[primary.id][:date_of_birth] = primary.person.birthdate.strftime("%d-%B-%Y")
+    primary_patient[primary.id][:city_village] = primary.person.addresses[0].city_village
+    primary_patient[primary.id][:county_district] = primary.person.addresses[0].county_district
+    primary_patient[primary.id][:date_created] = primary.date_created.strftime("%d-%B-%Y at (%H:%M)")
+    primary_patient[primary.id][:master] = true
+    secondary_patients = {}
+    (slaves.split(",") || []).each{ |slave|
+      slave = Patient.find(slave)
+      secondary_patients[slave.id] = {}
+      secondary_patients[slave.id][:first_name] = slave.person.names[0].given_name
+      secondary_patients[slave.id][:last_name] = slave.person.names[0].family_name
+      secondary_patients[slave.id][:gender] = slave.person.gender
+      secondary_patients[slave.id][:date_of_birth] = slave.person.birthdate.strftime("%d-%B-%Y")
+      secondary_patients[slave.id][:city_village] = slave.person.addresses[0].city_village
+      secondary_patients[slave.id][:county_district] = slave.person.addresses[0].county_district
+      secondary_patients[slave.id][:date_created] = slave.date_created.strftime("%d-%B-%Y at (%H:%M)")
+    }
+    all_patients.push(primary_patient)
+    all_patients.push(secondary_patients)
+    patients ={}
+    all_patients.each do |patient|
+      patient.each do |key,value|
+        patients[key] = value
+      end
+
+    end
+    render :json => patients
+  end
 end

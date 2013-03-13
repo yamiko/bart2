@@ -47,6 +47,11 @@
       td.innerHTML = "<a href ='" + path + "' target='" + target + "'>" +  result + "</a>"
       return td.innerHTML
     }
+    if (result == "Possible patient duplicates") {
+      target = "_parent"
+      td.innerHTML = "<a href ='" + path + "' target='" + target + "'>" +  result + "</a>"
+      return td.innerHTML
+    }
     path += "?dashboard=<%=@landing_dashboard%>"
     td.innerHTML = "<a href ='" + path + "' target='" + target + "'>" +  result + "</a>"
   }

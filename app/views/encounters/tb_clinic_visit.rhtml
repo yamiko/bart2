@@ -45,14 +45,12 @@
     var todayDate = new Date(sessionDate);
 	var convert = new Date(hivTestedDate)
 	
-    if (testDate < convert ) {
+    if ((testDate < convert ) || (todayDate < testDate )) {
 	  <%  displayedDate = @hiv_test_date %>
 	  dateCheck = false
-	}else if(todayDate > testDate ){
-	  dateCheck = true
 	}else {
 	  <%  displayedDate = @session_date %>
-      dateCheck = false
+      dateCheck = true
     }
     return dateCheck
   }

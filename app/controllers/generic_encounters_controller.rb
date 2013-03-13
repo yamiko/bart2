@@ -1,7 +1,7 @@
 class GenericEncountersController < ApplicationController
   def create(params=params, session=session)
-		#raise params[:identifiers].to_yaml
-    if params[:change_appointment_date] == "true"
+
+		if params[:change_appointment_date] == "true"
       session_date = session[:datetime].to_date rescue Date.today
       type = EncounterType.find_by_name("APPOINTMENT")                            
       appointment_encounter = Observation.find(:first,                            
@@ -448,6 +448,11 @@ class GenericEncountersController < ApplicationController
 							prefix = "#{PatientIdentifier.site_prefix}-TB"
 							tb_identifier = identifier[:identifier].to_i
 							identifier[:identifier] = "#{PatientIdentifier.site_prefix}-TB #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "#{PatientIdentifier.site_prefix}-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
+						end
+						#raise identifier[:identifier].to_yaml
+						#PatientIdentifier.find_by_identifier(identifier[:identifier])
+						if ! PatientIdentifier.find_by_identifier(identifier[:identifier]).blank?
+							redirect_to "encounters/new/tb_registration?action=show&patient_id=#{@patient.id}" and return
 						end
           else
             identifier[:identifier] = "#{PatientIdentifier.site_prefix}-ARV-#{arv_number}"
