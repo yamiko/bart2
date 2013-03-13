@@ -2973,4 +2973,42 @@ end
     end
     render :text => "true" and return
   end
+  
+  def viral_load_check
+
+		session_date = session[:datetime].to_date.strftime(' %d- %b- %Y') rescue Date.today
+		arv_start_date = PatientService.patient_art_start_date(@patient.person).to_date.strftime(' %d- %b- %Y') rescue nil
+		
+		duration = (session_date.year * 12 + session_date.month) - (arv_start_date.year *12 + arv_start_date.month)
+		
+		if (duration >= 6)
+
+			# eligible for viral load test
+			last_viral_load = Observation.find(:last, :conditions => ["person_id = ? and concept_id = ?", @patient.id, Concept.find_by_name("viral load done").concept_id]).obs_datetime.to_date	rescue nil
+			
+			if (last_viral_load.blank?)
+				
+				#popup
+				#patient has been on arv for 6 or more months and has not had viral load taken
+
+				return true
+
+			else
+			
+				if ((duration/24) > 0) && (last_viral_load < arv_start_date +(duration - duration % 24).months - 2.weeks)
+				
+					#popup
+					#patient has been on arv for 2 or more years and last viral load is from before the milestone
+				
+					return true
+				
+				end
+			
+			end
+			
+		end
+		
+		return false
+	end
+  
 end
