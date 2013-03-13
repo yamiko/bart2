@@ -5,8 +5,10 @@
 @reports << ['Preffered keyboard',"/user/properties/#{current_user.id}"]
 
 if not Location.current_location.name.match(/Outpatient/i)
-  @reports << ['Activities',"/user/activities/#{current_user.id}"]
+  program = "#{current_program_location.upcase}"
+  @reports << ['Activities',"/user/activities?id=#{current_user.id}&selected_program=#{program}"]
 end
+
 if current_user.admin?
   @reports << ['Create user',"/user/new"]
   @reports << ['Edit user',"/user/select_user"]
