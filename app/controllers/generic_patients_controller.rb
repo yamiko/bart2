@@ -2962,5 +2962,4 @@ end
     end
     render :json => patients
   end
->>>>>>> 287fcb0d0c81fc8585955e9396287845a1d644cf
 end
