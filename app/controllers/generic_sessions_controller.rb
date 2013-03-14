@@ -56,7 +56,7 @@ class GenericSessionsController < ApplicationController
 		end
 		self.current_location = location
 		if use_user_selected_activities and not location.name.match(/Outpatient/i)
-			redirect_to "/user/activities/#{current_user.id}"
+			redirect_to "/user/programs/#{current_user.id}"
 		else
 			redirect_to '/clinic'
 		end
