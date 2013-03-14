@@ -1,6 +1,6 @@
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
-  var originaltestDate = createDate("<%= @hiv_test_date.year %>","<%= @hiv_test_date.month %>","<%= @hiv_test_date.day %>");
+  var originaltestDate = createDate("<%= @hiv_test_date.year rescue nil %>","<%= @hiv_test_date.month rescue nil %>","<%= @hiv_test_date.day rescue nil%>");
   <% @session_date = "#{session[:datetime].to_date rescue Date.today}" %>
   <% @todayDate = @session_date.to_date %>
   var todayDate = createDate("<%= @todayDate.year %>","<%= @todayDate.month %>","<%= @todayDate.day %>");
@@ -505,7 +505,7 @@ end
 	  {:id => "date_of_art_initiation",
 	  :condition => "$('ever_registered_at_ART_clinic').value =='YES' && $('refer_to_clinician').value != 'YES'",
 	  :validationCode => "checkInitiationDate()",
-	  :validationMessage => "Art initiation date out of range #{@hiv_test_date.to_date} and #{@todayDate.to_date}",
+	  :validationMessage => "Art initiation date out of range",
 	  :max => "#{session[:datetime].to_date rescue Date.today}",
 	  :helpText => "ART initiation date"} %>
 
