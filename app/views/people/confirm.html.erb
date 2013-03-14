@@ -45,12 +45,17 @@
 
 			function changeAttributes(){
 				document.getElementById("btnNext").innerHTML = "<span>Continue</span>" 
-				document.getElementById("btnNext").setAttribute("onclick","showPopup();")
+				<% if require_viral_load_check(@person.patient) == true %>
+					document.getElementById("btnNext").setAttribute("onclick","showPopup();")
+				<% end %>
 			}
 			
 			function showPopup(){
-				document.getElementById('popup').style.display='inline'
-				document.getElementById('cover').style.display='inline'
+				popup = document.getElementById('popup')
+				if (typeof popup != 'undefined'){
+					document.getElementById('popup').style.display='inline'
+					document.getElementById('cover').style.display='inline'
+				}
 			}
 			
 			function confirmAction(status){
@@ -137,7 +142,8 @@
 
 			<input type='submit' value='Finish' />
 		</form>
-
+		
+<% if require_viral_load_check(@person.patient) == true %>
 		<div id="popup" style="display:none">
             
             <div class="art_container">
@@ -179,6 +185,7 @@
 
 		<div id="cover">
 		</div>
+<% end %>
 		<script>
 			function removePopup(){
 				popup = document.getElementById('popup')
