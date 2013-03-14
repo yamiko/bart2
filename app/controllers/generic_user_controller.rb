@@ -2,7 +2,7 @@ class GenericUserController < ApplicationController
 
   def login
     if request.get?
-      current_user.user_id = nil if current_user
+      current_user.user_id = nil
     else
       @user=User.new(params[:user])
       logged_in_user=@user.try_to_login
