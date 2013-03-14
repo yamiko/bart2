@@ -2973,48 +2973,34 @@ end
     end
     render :text => "true" and return
   end
-
-  
-  def viral_load_check
-
-		patient_id = params[:patient_id] 
-
-		session_date = session[:datetime].to_date.strftime(' %d- %b- %Y') rescue Date.today
-		arv_start_date = PatientService.patient_art_start_date(patient_id).to_date.strftime(' %d- %b- %Y') rescue nil
+ 
+	def viral_load_test_done()
+	
+		patient_id = params[:patient_id]
+	
+		enc = Encounter.new()
 		
-		duration = (session_date.year * 12 + session_date.month) - (arv_start_date.year *12 + arv_start_date.month)
+		enc.encounter_type = EncounterType.find_by_name("PROCEDURES DONE").id
+		enc.patient_id = 		patient_id
+		enc.creator = current_user.id
+		enc.location_id = Location.current_location
+	
+		enc.save()
 		
-		if (duration >= 6)
-
-			# eligible for viral load test
-			last_viral_load = Observation.find(:last, :conditions => ["person_id = ? and concept_id = ?", patient_id, Concept.find_by_name("Viral load").concept_id]).obs_datetime.to_date	rescue nil
-			
-			if (last_viral_load.blank?)
-				
-				#popup
-				#patient has been on arv for 6 or more months and has not had viral load taken
-
-				return true
-
-			else
-			
-				if ((duration/24) > 0) && (last_viral_load < arv_start_date +(duration - duration % 24).months - 2.weeks)
-				
-					#popup
-					#patient has been on arv for 2 or more years and last viral load is from before the milestone
-				
-					return true
-				
-				end
-			
-			end
-			
-		end
+		obs = Observation.new()
+		obs.person_id = patient_id
+		obs.creator = current_user.id
+		obs.location_id = Location.current_location
+		obs.value_coded = Concept.find_by_name("Yes").concept_id
+		obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
+		obs.encounter_id = enc.id
+		obs.obs_datetime = Time.now
 		
-		return false
+		obs.save()		
+		
+    render :text => "true" and return
+		
 	end
-  
-
 
   def confirm_merge
     master = params[:master_id]

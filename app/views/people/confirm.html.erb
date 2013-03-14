@@ -172,7 +172,7 @@
             </div>
            
 			<hr class="popup_hr"></hr>
-            <a id='viral_load_done'><span>Viral load done</span></a>
+            <a id='viral_load_done' onclick = "viral_done();" ><span>Viral load done</span></a>
 			<a id='lab_trail' onclick="window.location='/lab/results/<%=@person.id%>'"><span>View Lab Trail</span></a>
 			<a id='reminder' onclick="removePopup();"><span>Remind me later</span></a>
 		</div>
@@ -194,6 +194,22 @@
 				<% else %> 
 					window.location="<%= next_task(@person.patient)%>"
 				<% end %>	
+			}
+			
+			function viral_done(){
+			
+				jQuery.ajax({
+					type: "POST",
+					url: "/patients/viral_load_test_done",
+					data: "patient_id="+<%=@person.patient.id %>,
+					success: function(){
+						window.location="<%= next_task(@person.patient)%>"
+					},
+					error: function() {
+						alert("Unable to change patient status")
+					}
+					
+				});
 			}
 		</script>
 		<style>	

@@ -333,4 +333,43 @@ module ApplicationHelper
     end                                                                         
   end 
 
+  def require_viral_load_check(patient)
+
+		session_date = session[:datetime].to_date rescue Date.today
+		arv_start_date = PatientService.patient_art_start_date(patient).to_date rescue nil
+		
+		duration = (session_date.to_date - arv_start_date.to_date).to_i/28  
+		puts duration
+#		(session_date.year * 12 + session_date.month) - (arv_start_date.year * 12 + arv_start_date.month)
+		
+		if (duration >= 6)
+
+			# eligible for viral load test
+			last_viral_load = Observation.find(:last, :conditions => ["person_id = ? and concept_id = ?", patient.patient_id, Concept.find_by_name("Viral load").concept_id]).obs_datetime.to_date	rescue nil
+			
+			if (last_viral_load.blank?)
+				
+				#popup
+				#patient has been on arv for 6 or more months and has not had viral load taken
+
+				return true
+
+			else
+			
+				if ((duration/24) > 0) && (last_viral_load < arv_start_date +(duration - duration % 24).months - 2.weeks)
+				
+					#popup
+					#patient has been on arv for 2 or more years and last viral load is from before the milestone
+				
+					return true
+				
+				end
+			
+			end
+			
+		end
+		
+		return false
+	end
+
 end
