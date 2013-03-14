@@ -1,11 +1,15 @@
 <style>                                                                         
   .nonclinic {
-	background: #C0C0C0 ! important;
+	background-color: #C0C0C0 ! important;
+  }
+  .selected {
+	background-color: #99EE99 ! important;
+	color: #000000;
+	font-weight:bold;
   }
   .publicholiday {
-	background: #CD3333 ! important;
+	background-color: #CD3333 ! important;
   }
-
   div {
 	-moz-user-select: none;
   }
@@ -69,6 +73,8 @@ clinic_holidays = clinic_holidays.split(',').to_json
 
 %>
   var clinic_holidays = <%= clinic_holidays %>
+  var totalWeekend = new Array;
+  var totalHoliday = new Array;
   function summary() {
     //updateWhoStage();
     //updateReasonForArtEligibility();
@@ -98,19 +104,25 @@ clinic_holidays = clinic_holidays.split(',').to_json
 	  var days = '<%= days.join(',') %>';
 	  days = days.split(',');
 	  if (days[nn] == ""){
+
 		activeCells[i].setAttribute("ajaxCalendarUrl", "/patients/number_of_booked_patients?date=" + weekDay);
 		activeCells[i].className += " nonclinic";
 		activeCells[i].setAttribute('onclick', "showConfirm('Non-clinic day', this);");
+		
+		totalWeekend.push(activeCells[i])
 		   
 	  }
 	  else{
 		activeCells[i].setAttribute("ajaxCalendarUrl", "/patients/number_of_booked_patients?date=" + weekDay)
+		activeCells[i].setAttribute('onclick', "showConfirm('none', this);");
+		
 		for(var x = 0 ; x < clinic_holidays.length; x++){
 		  if (weekDay == clinic_holidays[x]) {
 			activeCells[i].className += " publicholiday";
 			activeCells[i].setAttribute('onclick', "showConfirm('Public Holiday', this);");
-
+			totalHoliday.push(activeCells[i])
 		  }
+			
 		}
 		
 	  }
@@ -129,21 +141,66 @@ clinic_holidays = clinic_holidays.split(',').to_json
   function showConfirm(attt, field){
 	globalDate = field
 	getTotal();
+	activeCells = document.getElementsByClassName('cellActive');
+	if (attt == "none"){
 
-	var ele = document.getElementById('cover')
-	ele.style.display = "block";
-	document.body.appendChild(ele);
+			for(var i = 0; i < activeCells.length; i++) {
+				  activeCells[i].style.backgroundColor = "white"
+				  if (totalWeekend.indexOf(activeCells[i]) > -1){
+						activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , ' nonclinic' );
+				  }
+				  else if (totalHoliday.indexOf(activeCells[i]) > -1){
+						activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , ' publicholiday' );
+				  }
+				  else if (field.getAttribute('date') == activeCells[i].getAttribute('date')){
+						field.className = field.className.replace( /(?:^|\s)selected(?!\S)/g , ' ' );
+						field.className +=  ' selected';
+				  }
+				  else{
+						activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , '' );
+				  }
+			}
+	}
 
-	var newDiv = document.createElement('div');
-	newDiv.id = "alertPage";
-	newDiv.innerHTML = "<p class='message'>" + attt + "</p>";
-	document.body.appendChild(newDiv);
+	else {
+			for(var i = 0; i < activeCells.length; i++) {
+			 activeCells[i].style.backgroundColor = "white"
+			  if (totalWeekend.indexOf(activeCells[i]) > -1){
+				if (field.getAttribute('date') == activeCells[i].getAttribute('date')){
+				  field.className = field.className.replace( /(?:^|\s)nonclinic(?!\S)/g , ' selected' );
+				}
+				else {
+				activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , ' nonclinic' );
+				}
+			  }
+			  else if (totalHoliday.indexOf(activeCells[i]) > -1){
+				if (field.getAttribute('date') == activeCells[i].getAttribute('date')){
+				  field.className = field.className.replace( /(?:^|\s)publicholiday(?!\S)/g , ' selected' );
+				}
+				else {
+				activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , ' publicholiday' );
+				}
+			  }
+			  else{
+				activeCells[i].className = activeCells[i].className.replace( /(?:^|\s)selected(?!\S)/g , '' );
+			  }
+			}
 
-	var newBtn = document.createElement('button');
-	newBtn.className = "blue";
-	newBtn.innerHTML = "<span>Ok</span>";
-	newDiv.appendChild(newBtn);
-	newBtn.setAttribute('onclick', "document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';");
+	  var ele = document.getElementById('cover')
+	  ele.style.display = "block";
+	  document.body.appendChild(ele);
+
+	  var newDiv = document.createElement('div');
+	  newDiv.id = "alertPage";
+	  newDiv.innerHTML = "<p class='message'>" + attt + "</p>";
+	  document.body.appendChild(newDiv);
+
+	  var newBtn = document.createElement('button');
+	  newBtn.className = "blue";
+	  newBtn.innerHTML = "<span>Ok</span>";
+	  newDiv.appendChild(newBtn);
+	  newBtn.setAttribute('onclick', "document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';");
+	}
   }
 
   function getTotal() {

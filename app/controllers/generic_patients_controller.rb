@@ -2973,6 +2973,7 @@ end
     end
     render :text => "true" and return
   end
+
   
   def viral_load_check
 
@@ -3013,4 +3014,45 @@ end
 		return false
 	end
   
+
+
+  def confirm_merge
+    master = params[:master_id]
+    slaves = params[:slaves_ids]
+    primary = Patient.find(master)
+    all_patients = []
+    primary_patient = {}
+    primary_patient[primary.id] = {}
+    primary_patient[primary.id][:first_name] = primary.person.names[0].given_name
+    primary_patient[primary.id][:last_name] = primary.person.names[0].family_name
+    primary_patient[primary.id][:gender] = primary.person.gender
+    primary_patient[primary.id][:date_of_birth] = primary.person.birthdate.strftime("%d-%B-%Y")
+    primary_patient[primary.id][:city_village] = primary.person.addresses[0].city_village
+    primary_patient[primary.id][:county_district] = primary.person.addresses[0].county_district
+    primary_patient[primary.id][:date_created] = primary.date_created.strftime("%d-%B-%Y at (%H:%M)")
+    primary_patient[primary.id][:master] = true
+    secondary_patients = {}
+    (slaves.split(",") || []).each{ |slave|
+      slave = Patient.find(slave)
+      secondary_patients[slave.id] = {}
+      secondary_patients[slave.id][:first_name] = slave.person.names[0].given_name
+      secondary_patients[slave.id][:last_name] = slave.person.names[0].family_name
+      secondary_patients[slave.id][:gender] = slave.person.gender
+      secondary_patients[slave.id][:date_of_birth] = slave.person.birthdate.strftime("%d-%B-%Y")
+      secondary_patients[slave.id][:city_village] = slave.person.addresses[0].city_village
+      secondary_patients[slave.id][:county_district] = slave.person.addresses[0].county_district
+      secondary_patients[slave.id][:date_created] = slave.date_created.strftime("%d-%B-%Y at (%H:%M)")
+    }
+    all_patients.push(primary_patient)
+    all_patients.push(secondary_patients)
+    patients ={}
+    all_patients.each do |patient|
+      patient.each do |key,value|
+        patients[key] = value
+      end
+
+    end
+    render :json => patients
+  end
+
 end

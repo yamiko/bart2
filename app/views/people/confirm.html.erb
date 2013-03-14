@@ -31,6 +31,7 @@
 		<script>
 
 			tt_cancel_destination = "/clinic";
+				
 			<%if !@patient_bean.archived_filing_number.blank? %>
 				tt_cancel_show = "javascript:confirmAction(0)";  
 				<% elsif @transferred_out  %>
@@ -39,12 +40,19 @@
 				tt_cancel_show = "javascript:confirmAction(2)";
 			<% else %> 
 				tt_cancel_show = "<%=@task.url%>";
+				
 			<% end %>
 
 			function changeAttributes(){
 				document.getElementById("btnNext").innerHTML = "<span>Continue</span>" 
+				document.getElementById("btnNext").setAttribute("onclick","showPopup();")
 			}
-
+			
+			function showPopup(){
+				document.getElementById('popup').style.display='inline'
+				document.getElementById('cover').style.display='inline'
+			}
+			
 			function confirmAction(status){
 				if(status == 0) {
 					confirmOperation("Patient files in archive cabinets.Move to active cabinets?",
@@ -64,9 +72,8 @@
 				__$("buttonlinks").style.display = "none";
 				__$("patient-dashboard-main").style.width = "100%";
 			}
-
+			
 			setTimeout('reSize()',500);
-
 		</script>
 	</head>
 	<body onload = "setTimeout('changeAttributes()',500);">
@@ -130,6 +137,171 @@
 
 			<input type='submit' value='Finish' />
 		</form>
+
+		<div id="popup" style="display:none">
+            
+            <div class="art_container">
+		        <table  border="2px">
+		        	<tr>
+		        		<td><span>ART start date</span></td>
+		        		<td style='text-align:right'><span><%= @art_start_date.strftime("%d-%B-%Y") rescue '' %></span></td>
+		        	</tr>
+		        	
+		        	<tr>
+		        		<td><span>Duration on ART (Months)</span></td>
+		        		<td style='text-align:right'><span><%= @duration_in_months %></span></td>
+		        	</tr>    
+		        	
+		        	<% unless @results.blank?%>
+		        	<tr>
+		        		<td><span>Latest viral load (<%= @latest_date.strftime("%A, %d %B %Y")%>)</span></td>
+		        		<td style='text-align:right'><span><%= @modifier + ' ' + @latest_result.to_s %></span></td>
+		        	</tr>  
+		        	<% end %>
+		        	
+		        	<tr>
+		        		<td><span>Outcome</span></td>
+		        		<td style='text-align:right'><span><%= @outcome %></span></td>
+		        	</tr>  
+		        	
+		        	<tr>
+		        		<td><span>Reason for starting</span></td>
+		        		<td style='text-align:right'><span><%=@reason_for_art%></span></td>
+		        	</tr>       	
+		        </table>
+            </div>
+           
+			<hr class="popup_hr"></hr>
+            <a id='viral_load_done'><span>Viral load done</span></a>
+			<a id='lab_trail' onclick="window.location='/lab/results/<%=@person.id%>'"><span>View Lab Trail</span></a>
+			<a id='reminder' onclick="removePopup();"><span>Remind me later</span></a>
+		</div>
+
+		<div id="cover">
+		</div>
+		<script>
+			function removePopup(){
+				popup = document.getElementById('popup')
+				popup.parentNode.removeChild(popup)
+				cover = document.getElementById('cover')
+				cover.parentNode.removeChild(cover)
+				<%if !@patient_bean.archived_filing_number.blank? %>
+					javascript:confirmAction(0);  
+				<% elsif @transferred_out  %>
+					javascript:confirmAction(1);  
+				<% elsif @defaulted  %>
+					javascript:confirmAction(2);
+				<% else %> 
+					window.location="<%= next_task(@person.patient)%>"
+				<% end %>	
+			}
+		</script>
+		<style>	
+		.art_container table{
+			background-color: #669999;
+			color: white;
+			font-size: 18pt;
+			font-weight: bold;
+			left: 7px;
+			line-height: 35px;
+			position: absolute;
+			top: 20px;
+			width: 941px;
+		}
+		 #popup{
+			-moz-user-select: none;
+			background-color: white;
+			border: 7px solid #C6C6C6;
+			border-radius: 15px 15px 15px 15px;
+			color: black;
+			font-size: 28px;
+			height: 579px;
+			left: 327px;
+			padding: 5px;
+			position: absolute;
+			text-align: center;
+			top: 39px !important;
+			width: 947px;
+			z-index: 991;
+		}
+		#cover{
+			display:none;
+			position: absolute;
+			background-color: black;
+			width: 100%;
+			height: 102%;
+			left: 0%;
+			top: 0%;
+			z-index: 990;
+			opacity: 0.5;
+		  }
+		  
+		  #viral_load_done {
+			  position: absolute;
+			  border-radius: 7px;
+			  background-color: #669999;
+			  border-bottom: 1px outset black;
+			  border-style: outset;
+			  border-top: 1px outset black;
+			  color: white;
+			  padding: 9px 16px 16px 19px;
+			  text-align: center;
+			  text-decoration: none;
+			  cursor: pointer;
+			  bottom: 0px;
+			  left: 54px;
+			  font-weight: bold;
+			  font-size: 18pt;
+  			}
+  		
+  		#lab_trail {
+			  position: absolute;
+			  border-radius: 7px;
+			  background-color: #669999;
+			  border-bottom: 1px outset black;
+			  border-style: outset;
+			  border-top: 1px outset black;
+			  color: white;
+			  padding: 9px 16px 16px 19px;
+			  text-align: center;
+			  text-decoration: none;
+			  cursor: pointer;
+			  bottom: 0px;
+			  left: 372px;
+			  font-weight: bold;
+			  font-size: 18pt;
+  			}
+  			
+  			
+  		#reminder {
+			  position: absolute;
+			  border-radius: 7px;
+			  background-color: #669999;
+			  border-bottom: 1px outset black;
+			  border-style: outset;
+			  border-top: 1px outset black;
+			  color: white;
+			  padding: 9px 16px 16px 19px;
+			  text-align: center;
+			  text-decoration: none;
+			  cursor: pointer;
+			  bottom: 0px;
+			  left: 671px;
+			  font-weight: bold;
+			  font-size: 18pt;
+  			}
+		  
+		.popup_hr{
+			position: absolute;
+			background-color: #669999;
+			height: 5px;
+			width: 99%;
+			bottom: 55px;
+		
+		} 
+		  
+		  
+		  
+		</style>
 	</body>
 </html>
-
