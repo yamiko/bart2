@@ -335,7 +335,7 @@ module ApplicationHelper
 
   def require_viral_load_check(patient)
 
-		session_date = session[:datetime].to_date rescue Date.today
+		session_date = Date.today
 		arv_start_date = PatientService.patient_art_start_date(patient).to_date rescue nil
 		duration = (session_date.to_date - arv_start_date.to_date).to_i/28 
 		if (duration >= 6)

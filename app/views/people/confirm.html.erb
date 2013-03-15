@@ -148,33 +148,35 @@
 		<div id="popup" style="display:none">
             
             <div class="art_container">
-		        <table  border="2px">
+		        <table  border=0.5 style = "border-radius:10px;">
 		        	<tr>
 		        		<td><span>ART start date</span></td>
-		        		<td style='text-align:right'><span><%= @art_start_date.strftime("%d-%B-%Y") rescue '' %></span></td>
+		        		<td style='text-align:left'><span><%= @art_start_date.strftime("%d-%B-%Y") rescue '' %></span></td>
 		        	</tr>
-		        	
+		        	<tr><td colspan =2><hr/></td></tr>
 		        	<tr>
 		        		<td><span>Duration on ART (Months)</span></td>
-		        		<td style='text-align:right'><span><%= @duration_in_months %></span></td>
+		        		<td style='text-align:left'><span><%= @duration_in_months %></span></td>
 		        	</tr>    
-		        	
+		        	<tr><td colspan =2><hr/></td></tr>
 		        	<% unless @results.blank?%>
 		        	<tr>
 		        		<td><span>Latest viral load (<%= @latest_date.strftime("%A, %d %B %Y")%>)</span></td>
-		        		<td style='text-align:right'><span><%= @modifier + ' ' + @latest_result.to_s %></span></td>
+		        		<td style='text-align:left'><span><%= @modifier + ' ' + @latest_result.to_s %></span></td>
 		        	</tr>  
+		        	<tr><td colspan =2><hr/></td></tr>
 		        	<% end %>
 		        	
 		        	<tr>
 		        		<td><span>Outcome</span></td>
-		        		<td style='text-align:right'><span><%= @outcome %></span></td>
+		        		<td style='text-align:left'><span><%= @outcome %></span></td>
 		        	</tr>  
-		        	
+		        	<tr><td colspan =2><hr/></td></tr>		        	
 		        	<tr>
 		        		<td><span>Reason for starting</span></td>
-		        		<td style='text-align:right'><span><%=@reason_for_art%></span></td>
+		        		<td style='text-align:left'><span><%=@reason_for_art%></span></td>
 		        	</tr>       	
+		        	
 		        </table>
             </div>
            
@@ -222,8 +224,8 @@
 		</script>
 		<style>	
 		.art_container table{
-			background-color: #669999;
-			color: white;
+			background-color:gold;
+			color: black;
 			font-size: 18pt;
 			font-weight: bold;
 			left: 7px;
@@ -231,11 +233,12 @@
 			position: absolute;
 			top: 20px;
 			width: 941px;
+			border: 1px solid black;
 		}
 		 #popup{
 			-moz-user-select: none;
 			background-color: white;
-			border: 7px solid #C6C6C6;
+			border: 4px solid #C6C6C6;
 			border-radius: 15px 15px 15px 15px;
 			color: black;
 			font-size: 28px;
@@ -263,7 +266,7 @@
 		  #viral_load_done {
 			  position: absolute;
 			  border-radius: 7px;
-			  background-color: #669999;
+			  background-color:	#2E8B57;
 			  border-bottom: 1px outset black;
 			  border-style: outset;
 			  border-top: 1px outset black;
@@ -281,7 +284,7 @@
   		#lab_trail {
 			  position: absolute;
 			  border-radius: 7px;
-			  background-color: #669999;
+			  background-color: #2E8B57;
 			  border-bottom: 1px outset black;
 			  border-style: outset;
 			  border-top: 1px outset black;
@@ -300,7 +303,7 @@
   		#reminder {
 			  position: absolute;
 			  border-radius: 7px;
-			  background-color: #669999;
+			  background-color: #2E8B57;
 			  border-bottom: 1px outset black;
 			  border-style: outset;
 			  border-top: 1px outset black;
