@@ -17,11 +17,11 @@
 
   }
 
-    #newText{
+  #newText{
 	top: 40%;
-    left: 40%;
+  left: 40%;
 	margin-top: -200px;
-    margin-left: -250px;
+  margin-left: -250px;
 	position: absolute;
 	margin-right:auto;
 	width: 800px;
@@ -36,16 +36,19 @@
 	border-radius: 15px;
 	z-index: 900;
   }
+
   #ok {
 	float:right ! important;
 	width: 150px;
   }
+
   #main_head{
 	float: left;
 	width: 100%;
 	font-size: 23px;
 	font-weight:bold;
   }
+
   #cancel {
 	float:left ! important;
 	width: 150px;
@@ -66,9 +69,9 @@
 
   #alertPage{
 	top: 50%;
-    left: 40%;
+  left: 40%;
 	margin-top: -200px;
-    margin-left: -250px;
+  margin-left: -250px;
 	position: absolute;
 	margin-right:auto;
 	width: 800px;
@@ -122,10 +125,12 @@
   .unknownButton .numericKeyboard #char, #decimal, #slash, #star, #plus, #date, #minus, #comma, #percent {
 	display: none;
   }
-    #popup {
+
+  #popup {
     top: 50px;
-	height:80% ! important;
+	  height:80% ! important;
   }
+
 </style>
 
 <%ask_pills_remaining_at_home =  CoreService.get_global_property_value("ask.pills.remaining.at.home").to_s == "true" rescue false %>
@@ -284,33 +289,45 @@
 	  :helpText  => "Reason for lower adherence" } %>
 	<script>
 	  var abnormalAdherence;
-	 function changeButton(){
-		element = document.getElementById('nextButton')
-		element.setAttribute("onmousedown", "checkAdherence()")
+
+	  function changeButton(){
+		  element = document.getElementById('nextButton')
+		  element.setAttribute("onmousedown", "checkAdherence()")
 	  }
+
 	 function removeButton(){
-		element = document.getElementById('nextButton')
-		element.setAttribute("onmousedown", "gotoNextPage()")
+	   element = document.getElementById('nextButton')
+		 element.setAttribute("onmousedown", "gotoNextPage()")
 	 }
 
 	 function removeObs(td){
+     /*var reasons  = document.getElementsByClassName('reasons');
+     for(var i = 0; i < reasons.length; i++) {
+       if(td != reasons[i]) {
+         reasons[i].style.background = '';
+       }else{
+         reasons[i].setAttribute('style', 'background-color:lightblue !important');
+       }
+     }*/
 	   document.getElementById("reason_for_adherence").value = td.value
 	 }
+
 	 function updateForm(){
 	   document.getElementById('Reason_for_poor_adherence_to_antiretroviral_therapy').value = document.getElementById("reason_for_adherence").value;
-	}
-	  function adherenceReport(){
-		var i = 0;
-		var amount_remaining = 0;
-		var summary = new Array;
+	 }
 
-		var summary = "<div class='summary' style='height:670px'>";
-		var amount_brought = 0;
-		var amount_others = 0;
+	 function adherenceReport(){
+	   var i = 0;
+		 var amount_remaining = 0;
+		 var summary = new Array;
 
-		abnormalAdherence = 0;
-		//for (var i=0; i <  drug_names.length; i++){
-		for(i in drug_names){
+		 var summary = "<div class='summary' style='height:670px'>";
+		 var amount_brought = 0;
+		 var amount_others = 0;
+
+		 abnormalAdherence = 0;
+		 //for (var i=0; i <  drug_names.length; i++){
+		 for(i in drug_names){
           if ($("amount_brought_" + i).value == "Unknown"){
 			amount_brought = 0;
           } else {
@@ -323,12 +340,12 @@
 			amount_others = $("amount_other_" + i).value;
           }
 
-<% if ask_pills_remaining_at_home %>
-		amount_remaining = parseFloat(amount_brought);
-		amount_remaining += parseFloat(amount_others);
-<%else%>
-		amount_remaining = parseFloat(amount_brought);
-<%end%>
+    <% if ask_pills_remaining_at_home %>
+		  amount_remaining = parseFloat(amount_brought);
+		  amount_remaining += parseFloat(amount_others);
+    <%else%>
+		  amount_remaining = parseFloat(amount_brought);
+    <%end%>
 
 	  var days_overdue_for_visit = since(auto_expire_date[i]);
 	  var doses_missed = 0;
@@ -411,7 +428,7 @@
 	display += "<div height='800'><select id='reason_for_adherence' size='6'>";
 	display += "<option value=''></option>"
 	for (x=0; x < reasonForLowerAdherence.length; x++){
-	  display += "<option value='" + reasonForLowerAdherence[x] + "' onmousedown='removeObs(this)'>" + reasonForLowerAdherence[x] + "</option>";
+	  display += "<option class='reasons' value='" + reasonForLowerAdherence[x] + "' onmousedown='removeObs(this)'>" + reasonForLowerAdherence[x] + "</option>";
 	}
 	display += "</select></div>";
 	newDiv.innerHTML = '<div id="popup">' + display + '</div>' ;
