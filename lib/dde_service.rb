@@ -69,11 +69,11 @@ module DDEService
     end
 
     def current_address1
-      "#{self.person.addresses.last.address1}" rescue nil
+      "#{self.person.addresses.last.county_district}" rescue nil
     end
 
     def current_district
-      "#{self.person.addresses.last.address2}" rescue nil
+      "#{self.person.addresses.last.state_province}" rescue nil
     end
 
     def current_address
@@ -81,7 +81,7 @@ module DDEService
     end
 
     def home_district
-      "#{self.person.addresses.last.subregion}" rescue nil
+      "#{self.person.addresses.last.address2}" rescue nil
     end
 
     def home_ta
@@ -98,71 +98,7 @@ module DDEService
       id ||= PatientIdentifierType.find_by_name("National id").next_identifier(:patient => self.patient).identifier
       id
     end
-=begin
-    def check_old_national_id(identifier)
-      create_from_dde_server = CoreService.get_global_property_value('create.from.dde.server').to_s == "true" rescue false
-      if create_from_dde_server
 
-        if identifier.to_s.strip.length != 6 and identifier == self.national_id
-
-          dde_server = GlobalProperty.find_by_property("dde_server_ip").property_value rescue ""
-          dde_server_username = GlobalProperty.find_by_property("dde_server_username").property_value rescue ""
-          dde_server_password = GlobalProperty.find_by_property("dde_server_password").property_value rescue ""
-          uri = "http://#{dde_server_username}:#{dde_server_password}@#{dde_server}/people/find.json"
-          uri += "?value=#{identifier}"
-          p = JSON.parse(RestClient.get(uri)).first rescue nil
-
-          return true if !p.blank?
-
-          # birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"]
-          person = {"person" => {
-              "birthdate_estimated" => (self.person.birthdate_estimated rescue nil),
-              "gender" => (self.person.gender rescue nil),
-              "birthdate" => (self.person.birthdate rescue nil),
-              "birth_year" => (self.person.birthdate.to_date.year rescue nil),
-              "birth_month" => (self.person.birthdate.to_date.month rescue nil),
-              "birth_day" => (self.person.birthdate.to_date.date rescue nil),
-              "names" => {
-                "given_name" => self.first_name,
-                "family_name" => self.last_name
-              },
-              "patient" => {
-                "identifiers" => {
-                  "diabetes_number" => "",
-                  "old_identification_number" => self.national_id
-                }
-              },
-              "attributes" => {
-                "occupation" => (self.get_full_attribute("Occupation").value rescue nil),
-                "cell_phone_number" => (self.get_full_attribute("Cell Phone Number").value rescue nil),
-                "citizenship" => (self.get_full_attribute("Citizenship").value rescue nil),
-                "race" => (self.get_full_attribute("Race").value rescue nil)
-              },
-              "addresses" => {
-                "address1" => (self.current_address1 rescue nil),
-                "city_village" => (self.current_address2 rescue nil),
-                "address2" => (self.current_district rescue nil),
-                "subregion" => (self.home_district rescue nil),
-                "county_district" => (self.home_ta rescue nil),
-                "neighborhood_cell" => (self.home_village rescue nil)
-              }
-            }
-          }
-
-          current_national_id = self.get_full_identifier("National id")
-
-          national_id = DDEService.create_patient_from_dde(person, true)
-
-          self.set_identifier("National id", national_id)
-
-          self.set_identifier("Old Identification Number", current_national_id.identifier)
-
-          current_national_id.void("National ID version change")
-
-        end
-      end
-    end
-=end
   def check_old_national_id(identifier)
       create_from_dde_server = CoreService.get_global_property_value('create.from.dde.server').to_s == "true" rescue false
       if create_from_dde_server
@@ -220,10 +156,10 @@ module DDEService
           },
           "addresses" => {
             "address1" => (self.current_address1 rescue nil),
+            "address2" => (self.home_district rescue nil),
             "city_village" => (self.current_address2 rescue nil),
-            "address2" => (self.current_district rescue nil),
-            "subregion" => (self.home_district rescue nil),
             "county_district" => (self.home_ta rescue nil),
+            "state_province" => (self.current_district rescue nil),
             "neighborhood_cell" => (self.home_village rescue nil)
           }
         }
@@ -558,10 +494,12 @@ module DDEService
     passed_params = {"person"=>
         {"data" =>
           {"addresses"=>
-            {"state_province"=> (address_params["address2"] rescue ""),
-            "address2"=> (address_params["address1"] rescue ""),
-            "city_village"=> (address_params["city_village"] rescue ""),
-            "county_district"=> (address_params["county_district"] rescue "")
+            {"state_province"=> address_params["state_province"],
+            "address2"=> address_params["address2"],
+            "address1"=> address_params["address1"],
+            "neighborhood_cell"=> address_params["neighborhood_cell"],
+            "city_village"=> address_params["city_village"],
+            "county_district"=> address_params["county_district"]
           },
           "attributes"=>
             {"occupation"=> (params["person"]["occupation"] rescue ""),
