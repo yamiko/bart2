@@ -77,31 +77,36 @@
   <% @session_date = "#{session[:datetime].to_date rescue Date.today}" %>
   <% @todayDate = @session_date.to_date %>
   <% @alert_date = @session_date.to_date - 90.days %>
-  var todayDate = createDate("<%= @todayDate.year %>","<%= @todayDate.month %>","<%= @todayDate.day %>");
-  var originaltestDate = createDate("<%= @hiv_test_date.year rescue nil %>","<%= @hiv_test_date.month rescue nil %>","<%= @hiv_test_date.day rescue nil %>");
-  var alertDate = createDate("<%= @alert_date.year %>","<%= @alert_date.month %>","<%= @alert_date.day %>");
+  var todayDate = createDates("<%= @todayDate.year %>","<%= @todayDate.month %>","<%= @todayDate.day %>");
+  var originaltestDate = ""
+  <% if ! @hiv_test_date.blank? %>
+	var originaltestDate = createDates("<%= @hiv_test_date.year rescue nil %>","<%= @hiv_test_date.month rescue nil %>","<%= @hiv_test_date.day rescue nil %>")
+  <% end %>
+  var alertDate = createDates("<%= @alert_date.year %>","<%= @alert_date.month %>","<%= @alert_date.day %>");
   //var testDate = null;
   var patient_age = null;
   var ageInMonths = '<%= @patient_bean.age_in_months %>'
   var currentYear = '<%= @todayDate.year %>'
   var currentMonth = '<%= @todayDate.month %>'
 
-  function checkTestDate(){
-    var testDate = createDate($('year_art_last_taken').value, $('month_art_last_taken').value , $('day_art_last_taken').value);
+  function checkTestDate(td){
+    var testDate = createDates($('year_art_last_taken').value, $('month_art_last_taken').value , td.value);
     var years = testDate.getFullYear();
 	var month = testDate.getMonth() + 1;
-
 	years = currentYear - years;
 	month = currentMonth - month;
 	var total = (years * 12) + month;
+	
+	if (originaltestDate == ""){
+		if ((total > ageInMonths) || ( testDate > todayDate)){
+		  return false
+		}
+		else {
+		  return true
+		}
 
-	if (total > ageInMonths){
-	  return false
 	}
-	else if (testDate <= originaltestDate) {
-      return false
-	}
-	else if ( testDate > todayDate){
+	else if ((total > ageInMonths) || (testDate <= originaltestDate) || ( testDate > todayDate)){
 	  return false
 	}
 	else {
@@ -112,7 +117,7 @@
 
   //checks if the patient needs to be referred to HTC basesd on the test date
   function updateTestDate(){
-    var testDate = createDate($('year_art_last_taken').value, $('month_art_last_taken').value , $('day_art_last_taken').value);
+    var testDate = createDates($('year_art_last_taken').value, $('month_art_last_taken').value , $('day_art_last_taken').value);
     $('date_art_last_taken').value = testDate;
 	 if (testDate == 'Invalid Date'){
 	  return true
@@ -123,7 +128,7 @@
   }
 
 function checkConfirmDate(){
-    var testDate = createDate($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value , $('confirmatory_hiv_test_day').value);
+    var testDate = createDates($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value , $('confirmatory_hiv_test_day').value);
 	var years = testDate.getFullYear();
 	var month = testDate.getMonth() + 1;
 
@@ -138,13 +143,7 @@ function checkConfirmDate(){
 	  }
 	  else{ return true}
 	}
-	else if (total > ageInMonths){
-	  return false
-	}
-	else if (testDate <= originaltestDate) {
-      return false
-	}
-	else if ( testDate > todayDate){
+	else if ((total > ageInMonths) || (testDate <= originaltestDate) || ( testDate > todayDate)){
 	  return false
 	}
 	else {
@@ -156,7 +155,7 @@ function checkConfirmDate(){
   //checks if the patient needs to be referred to HTC basesd on the test date
   function updateConfirmDate(){
 
-    var testDate = createDate($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value , $('confirmatory_hiv_test_day').value);
+    var testDate = createDates($('confirmatory_hiv_test_year').value, $('confirmatory_hiv_test_month').value , $('confirmatory_hiv_test_day').value);
     $('confirmatory_hiv_test_date').value = testDate;
 	 if (testDate == 'Invalid Date'){
 	  return true
@@ -167,7 +166,7 @@ function checkConfirmDate(){
   }
 
   function checkStartDate(){
-    var testDate = createDate($('year_started_art').value, $('month_started_art').value , $('day_started_art').value);
+    var testDate = createDates($('year_started_art').value, $('month_started_art').value , $('day_started_art').value);
     var years = testDate.getFullYear();
 	var month = testDate.getMonth() + 1;
 
@@ -175,13 +174,7 @@ function checkConfirmDate(){
 	month = currentMonth - month;
 	var total = (years * 12) + month;
 
-	if (total > ageInMonths){
-	  return false
-	}
-	else if (testDate <= originaltestDate) {
-      return false
-	}
-	else if ( testDate > todayDate){
+	if ((total > ageInMonths) || (testDate <= originaltestDate) || ( testDate > todayDate)){
 	  return false
 	}
 	else {
@@ -193,7 +186,7 @@ function checkConfirmDate(){
 
   //checks if the patient needs to be referred to HTC basesd on the test date
   function updateStartDate(){
-    var testDate = createDate($('year_started_art').value, $('month_started_art').value , $('day_started_art').value);
+    var testDate = createDates($('year_started_art').value, $('month_started_art').value , $('day_started_art').value);
     $('date_started_art').value = testDate;
 	 if (testDate == 'Invalid Date'){
 	  return true
@@ -205,7 +198,7 @@ function checkConfirmDate(){
 
  function updateInitiationDate(){
 
-   var testDate = createDate($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
+   var testDate = createDates($('hiv_initiation_year').value, $('hiv_initiation_month').value , $('hiv_initiation_day').value);
     $('hiv_initiation_date').value = testDate;
     return isTestOverDue(testDate,alertDate);
   }
@@ -218,7 +211,7 @@ function checkConfirmDate(){
     }
   }
 
-  function createDate(year,month,day) {
+  function createDates(year,month,day) {
     date_str = year
 
     if(month.length == 1)
@@ -686,13 +679,14 @@ function checkConfirmDate(){
         :validationMessage => 'Please enter a valid date'}%>                    
                                                                                 
     <%= text_field_tag "day_art_last_taken",  nil,                                 
-        :field_type => 'number', :helpText => 'Day ART last taken',                
+        :field_type => 'number',
+		:helpText => 'Day ART last taken',
         :condition => '($("year_art_last_taken").value !="Unknown") && ($("month_art_last_taken").value != "Unknown") && $("ever_received_art"). value == "YES"',
         :tt_onLoad => "getDayOfMonthPicker($('year_art_last_taken').value, $('month_art_last_taken').value);$('nextButton').style.display = 'block';",
         :tt_onUnLoad => 'updateTestDate();',
-        :validationCode => 'checkTestDate();',
+        :validationCode => 'checkTestDate(this);',
         :id => "day_art_last_taken" ,                                              
-        :validationMessage => "Date ART last taken out of range #{@hiv_test_date.to_date rescue nil} and #{@todayDate.to_date rescue nil}"%>
+        :validationMessage => "Date ART last taken out of range"%>
                                                                                 
    <%= touch_hidden_tag "DATE ART LAST TAKEN", @patient, nil, {:id => "date_art_last_taken", :value_datetime => true}%>
 

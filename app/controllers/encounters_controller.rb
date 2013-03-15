@@ -410,6 +410,20 @@ class EncountersController < GenericEncountersController
 		
 	end
 
+	def check_tb_number
+						value = params[:value]
+            if PatientIdentifier.site_prefix == "MPC"
+							tb_identifier = value.to_i
+							value = "LL-TB  #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "LL-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
+						else
+							tb_identifier = value.to_i
+							value = "#{PatientIdentifier.site_prefix}-TB #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "#{PatientIdentifier.site_prefix}-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
+						end
+
+						 render :text => ("false".to_json) if ! PatientIdentifier.find_by_identifier(value).blank?
+
+						 render :text => ("true".to_json) if  PatientIdentifier.find_by_identifier(value).blank?
+	end
 	def tb_art_patient(patient,program)
     program_id = Program.find_by_name(program).id
     enrolled = PatientProgram.find(:first,:conditions =>["program_id = ? AND patient_id = ?",program_id,patient.id]).blank?

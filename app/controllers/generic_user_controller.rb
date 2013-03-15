@@ -2,7 +2,7 @@ class GenericUserController < ApplicationController
 
   def login
     if request.get?
-      current_user.user_id=nil
+      current_user.user_id = nil
     else
       @user=User.new(params[:user])
       logged_in_user=@user.try_to_login
@@ -20,7 +20,7 @@ class GenericUserController < ApplicationController
 
         show_activites_property = CoreService.get_global_property_value("show_activities_after_login") rescue "false"
         if show_activites_property == "true"
-          redirect_to(:action => "activities") 
+          redirect_to(:action => "programs") 
         else                   
           redirect_to("/")
         end
@@ -29,6 +29,15 @@ class GenericUserController < ApplicationController
       end      
     end
   end          
+
+  def programs
+    if request.post?
+      redirect_to(:action => "activities", 
+        :id => params[:user_id],:selected_program => params[:program]) 
+    else
+      @user_id = (params[:id])
+    end
+  end
 
   # List roles containing the string given in params[:value]
   def role
@@ -302,6 +311,18 @@ class GenericUserController < ApplicationController
    
     #raise @privileges.to_yaml
     encounter_privilege_hash = generate_encounter_privilege_map   
+
+    if params[:selected_program] == 'HIV PROGRAM' or params[:selected_program] == 'HIV'
+      tb_encounters = ['Manage TB Treatment Visits','Manage TB adherence',
+        'Manage TB initial visits','Manage Lab Results','Manage HIV Status Visits',
+        'Manage Lab Orders','Manage TB Registration Visits',
+        'Manage TB Reception Visits','Give Lab Results','Manage Source of Referral',
+        'Manage Sputum Submissions','Manage TB Clinic Visits']
+      encounter_privilege_hash.delete_if do |key,value|
+        tb_encounters.include?(key)
+      end
+    end
+
     @privileges = @privileges.collect do |privilege|
       if !encounter_privilege_hash[privilege.privilege.squish].nil?
           encounter_privilege_hash[privilege.privilege.squish].humanize
@@ -324,7 +345,7 @@ class GenericUserController < ApplicationController
     available_privileges_not_from_encounters_folder += privileges_not_from_encounters_folder.select{|pri| @privileges.include?(pri)}
 
     @privileges =   @privileges - (@privileges - @available_encounter_types) + available_privileges_not_from_encounters_folder
-
+    
     @activities = @activities.collect do |activity| 
       if !encounter_privilege_hash[activity].nil?
           encounter_privilege_hash[activity.squish].gsub('Hiv','HIV').gsub('Tb','TB').gsub('Art','ART').gsub('hiv','HIV')

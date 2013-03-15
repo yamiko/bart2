@@ -137,7 +137,7 @@
   function checkTbHivStatus(){
 	  options = document.getElementsByTagName('li');
 				  for (i = 0 ; i < options.length ; i++) {
-				   if (options[i].getAttribute('tstvalue') == consultation_tb_status) {
+				   if ((options[i].getAttribute('tstvalue') == consultation_tb_status) && (consultation_tb_status.toLowerCase() != 'unknown')) {
 					  updateTouchscreenInputForSelect(options[i]);
 				   }
 				  }

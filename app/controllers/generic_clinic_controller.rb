@@ -176,7 +176,8 @@ class GenericClinicController < ApplicationController
     @reports =  [
                   ['/clinic/users_tab','User Accounts/Settings'],
                   ['/clinic/location_management_tab','Location Management'],
-                  ['/people/tranfer_patient_in','Transfer Patient in']
+                  ['/people/tranfer_patient_in','Transfer Patient in'],
+                  ['/patients/duplicate_menu','Possible patient duplicates']
                 ]
     if current_user.admin?
       @reports << ['/clinic/management_tab','Drug Management']
