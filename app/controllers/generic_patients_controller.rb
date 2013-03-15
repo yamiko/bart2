@@ -2962,5 +2962,4 @@ end
     end
     render :json => patients
   end
-
 end

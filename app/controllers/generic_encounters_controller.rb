@@ -1,7 +1,7 @@
 class GenericEncountersController < ApplicationController
   def create(params=params, session=session)
-
-		if params[:change_appointment_date] == "true"
+		
+    if params[:change_appointment_date] == "true"
       session_date = session[:datetime].to_date rescue Date.today
       type = EncounterType.find_by_name("APPOINTMENT")                            
       appointment_encounter = Observation.find(:first,                            

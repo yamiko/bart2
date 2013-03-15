@@ -82,9 +82,12 @@ class GenericLabController < ApplicationController
     @results = []
     params[:results].split(';').map do | result |
       date = result.split(',')[0].to_date rescue '1900-01-01'
-      value = result.split(',')[1].sub('<','').sub('>','').sub('=','')
+      value = result.split(',')[1].sub('more_than','').sub('less_than','').sub('=','') rescue nil
+      next if value.blank?
+      value = value.to_f
       @results << [ date , value ]
     end 
+
     @patient = Patient.find(params[:patient_id])
     @patient_bean = PatientService.get_patient(@patient.person)
     @type = params[:type]

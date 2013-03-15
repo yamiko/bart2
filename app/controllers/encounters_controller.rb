@@ -266,6 +266,18 @@ class EncountersController < GenericEncountersController
 			end
     end
 
+		if CoreService.get_global_property_value('use.normal.staging.questions').to_s == "true"
+			@who_stage_peds_i = concept_set('WHO STAGE I PEDS')
+			@who_stage_peds_ii = concept_set('WHO STAGE II PEDS')
+			@who_stage_peds_iii = concept_set('WHO STAGE III PEDS')
+			@who_stage_peds_iv = concept_set('WHO STAGE IV PEDS')
+
+			@who_stage_adults_i = concept_set('WHO STAGE I ADULT')
+			@who_stage_adults_ii = concept_set('WHO STAGE II ADULT')
+			@who_stage_adults_iii = concept_set('WHO STAGE III ADULT')
+			@who_stage_adults_iv = concept_set('WHO STAGE IV ADULT')
+		end
+
 		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' or (params[:encounter_type].upcase rescue '') == 'HIV_CLINIC_REGISTRATION'
 			if @patient_bean.age > 14 
 				@who_stage_i = concept_set('WHO STAGE I ADULT AND PEDS') + concept_set('WHO STAGE I ADULT')
@@ -376,6 +388,12 @@ class EncountersController < GenericEncountersController
 				prefix = "#{PatientIdentifier.site_prefix}-TB"
 		end
 		@tb_auto_number = create_tb_number(PatientIdentifierType.find_by_name('District TB Number').id, prefix)
+
+		if params["staging_conditions"] == "YES"
+			@obs = params["observations"]
+			render :template => 'encounters/normal_staging_summary', :layout => "normal_staging" and return
+		end
+		
 		redirect_to "/" and return unless @patient
 
 		redirect_to next_task(@patient) and return unless params[:encounter_type]
@@ -384,6 +402,8 @@ class EncountersController < GenericEncountersController
 		
 		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (CoreService.get_global_property_value('use.extended.staging.questions').to_s == "true" rescue false)
 			render :template => 'encounters/extended_hiv_staging'
+		#elsif (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (CoreService.get_global_property_value('use.normal.staging.questions').to_s == "true" rescue false)
+		#	render :template => 'encounters/normal_hiv_staging'
 		else
 			render :action => params[:encounter_type] if params[:encounter_type]
 		end
@@ -697,12 +717,12 @@ class EncountersController < GenericEncountersController
                                                                                 
     (bookings ||{}).sort_by { |dates,num| num }.reverse.each do |dates , num|   
       next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
-      if num <= clinic_appointment_limit                                  
+      if num < clinic_appointment_limit                                  
         recommended_date = dates                                                  
         break 
       end
-    end                                                                         
-                                                                                
+    end          
+                                                                   
     (bookings ||{}).sort_by { |dates,num| num }.each do |dates , num|   
       next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
       recommended_date = dates                                                  
@@ -712,17 +732,19 @@ class EncountersController < GenericEncountersController
     if recommended_date.blank?                                                  
       expiry_date_rec = expiry_date
       1.upto(5).each do |num|                                                   
-        if clinic_days.collect{|c|c.upcase}.include?(expiry_date.strftime('%A').upcase)
+        if clinic_days.collect{|c|c.upcase}.include?(expiry_date_rec.strftime('%A').upcase)
           unless is_holiday(expiry_date_rec,holidays)                                       
             recommended_date = expiry_date_rec 
             break                                                                 
           end
           expiry_date_rec -= 1
+        else
+          expiry_date_rec -= 1
         end                                                                     
       end                                                                       
     end                                                                         
                                                                                 
-    recommended_date = expiry_date if recommended_date.blank?
+    recommended_date = (expiry_date - 2.day) if recommended_date.blank?
     return recommended_date
 	end
 
@@ -757,7 +779,7 @@ class EncountersController < GenericEncountersController
 		clinic_days = clinic_days.split(',')		
 
 		bookings = bookings_within_range(expiry_date)
-		clinic_holidays = CoreService.get_global_property_value('clinic.holidays') || '1900-12-25,1900-03-03'
+		clinic_holidays = CoreService.get_global_property_value('clinic.holidays') 
 		clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',').split(',') rescue []
 		
 		limit = CoreService.get_global_property_value('clinic.appointment.limit') rescue 0
@@ -873,8 +895,22 @@ class EncountersController < GenericEncountersController
       booked_dates[obs.value_datetime.to_date]+=1
     end  
 
-    return booked_dates
+    clinic_holidays = CoreService.get_global_property_value('clinic.holidays')  
+    clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',').split(',') rescue []
+    return_booked_dates = {}
+  
+    unless clinic_holidays.blank?
+      (booked_dates || {}).each do |date , c|
+        next if is_holiday(date,clinic_holidays)
+        return_booked_dates[date] = c
+      end
+    else
+      return_booked_dates = booked_dates
+    end
+
+    return return_booked_dates
   end
+
   def create_remote
     location = Location.find(params["location"]) rescue nil
     user = User.first rescue nil
