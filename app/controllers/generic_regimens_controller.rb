@@ -27,6 +27,7 @@ class GenericRegimensController < ApplicationController
 		@tb_regimen_formulations = []
     (@current_regimens_for_programs || {}).each do |patient_program_id , regimen_id|
       @regimen_formulations = formulation(@patient,regimen_id) if PatientProgram.find(patient_program_id).program.name.match(/HIV PROGRAM/i)
+			@hiv_regimen_map = regimen_id if PatientProgram.find(patient_program_id).program.name.match(/HIV PROGRAM/i)
 			@tb_regimen_formulations = formulation(@patient,regimen_id) if PatientProgram.find(patient_program_id).program.name.match(/TB PROGRAM/i)
     end
 		@current_regimen_names_for_programs = current_regimen_names_for_programs
@@ -102,12 +103,31 @@ class GenericRegimensController < ApplicationController
 			@patient.id, EncounterType.find(:all,:select => 'encounter_type_id', 
       :conditions => ["name IN (?)",["HIV CLINIC CONSULTATION"]]),session_date.to_date]).observations rescue []
 
+		concept_id = concept_id = ConceptName.find_by_name("COMMON MALAWI ART SYMPTOM SET").concept_id
+    set = ConceptSet.find_all_by_concept_set(concept_id, :order => 'sort_weight')
+    hiv_symptoms_ids = set.map{|item|next if item.concept.blank? ; item.concept_id }
+
+		concept_id = concept_id = ConceptName.find_by_name("ADDITIONAL MALAWI ART SYMPTOM SET").concept_id
+    set = ConceptSet.find_all_by_concept_set(concept_id, :order => 'sort_weight')
+    hiv_additional_symptoms_ids = set.map{|item|next if item.concept.blank? ; item.concept_id }
+
+		hiv_symptoms_ids += hiv_additional_symptoms_ids
+		@found_symptoms = []
+
 		@prescribe_art_drugs = false
 		(hiv_clinic_consultation_obs || []).each do | obs |
 			if obs.concept_id == (Concept.find_by_name('Prescribe drugs').concept_id rescue nil)
 				@prescribe_art_drugs = true if Concept.find(obs.value_coded).fullname.upcase == 'YES' and !arvs_prescribed
 			end
+			if hiv_symptoms_ids.include?(obs.value_coded) and !@found_symptoms.include?(Concept.find(obs.value_coded).fullname.upcase.to_s)
+					@found_symptoms += [Concept.find(obs.value_coded).fullname.upcase.to_s]
+			end
 		end
+
+		@adverse_events = regimen_options
+		@regimen_index = Regimen.find_by_sql("select distinct(c.name) as name, r.regimen_index as reg_index from concept_name c
+										inner join regimen r on r.concept_id = c.concept_id
+										where c.concept_id = '#{@hiv_regimen_map}' and  concept_name_type = 'short' limit 1").map{|regimen| regimen.reg_index}
 
 	    session_date = session[:datetime].to_date rescue Date.today
         current_encounters = @patient.encounters.find_by_date(session_date)
@@ -144,7 +164,203 @@ class GenericRegimensController < ApplicationController
             end
         end
 	end
-  
+
+  def check_current_regimen_index
+		session_date = session[:datetime].to_date rescue Date.today
+		patient_program = PatientProgram.find(params[:id])
+		options = []
+		current_weight = PatientService.get_patient_attribute_value(patient_program.patient, "current_weight", session_date)
+		options = MedicationService.regimen_options(current_weight, patient_program.program)
+		render :text => (options.to_json)
+	end
+
+	def regimen_options
+    adverse_options = {
+      '1' => { 'adverse' => [
+        ['Neuropathy','Neuropathy'],
+        ['Hepatitis, Skin rash','Hepatitis, Skin rash'],
+        ['Lipodystrophy, Lactic acidocis','Lipodystrophy, Lactic acidocis'],
+        ['Treatment failure','Treatment failure']
+      ],
+				'contraindications' => [
+					['Hepatitis/Jaundice','Hepatitis/Jaundice']
+				],
+				'alt1' => [
+				['Neuropathy','2'],
+        ['Hepatitis, Skin rash','3'],
+        ['Lipodystrophy, Lactic acidocis','5'],
+        ['Treatment failure','7']
+				],
+				'alt2'=> [
+				['Neuropathy','5 or 6'],
+        ['Hepatitis, Skin rash',' None'],
+        ['Lipodystrophy, Lactic acidocis','NS'],
+        ['Treatment failure','9']
+				]
+			},
+			'2' => { 'adverse' =>[
+				['Hepatitis, Skin rash','Hepatitis, Skin rash'],
+				['Treatment failure','Treatment failure'],
+				['Lipodystrophy, Lactic acidocis','Lipodystrophy, Lactic acidocis'],
+				['Anemia','Anemia']
+			],
+				'contraindications' => [
+					['Hepatitis/Jaundice','Hepatitis/Jaundice'],
+					['Anaemia <8g/dl','Anaemia <8g/dl']
+				],
+				'alt1' => [
+				['Hepatitis, Skin rash','4'],
+				['Treatment failure','7'],
+				['Lipodystrophy, Lactic acidocis','5'],
+				['Anemia','1']
+				],
+				'alt2'=> [
+				['Hepatitis, Skin rash','3'],
+				['Treatment failure','9'],
+				['Lipodystrophy, Lactic acidocis','NS'],
+				['Anemia','5 or 6']
+				]},
+			'3' => { 'adverse' =>[
+				['Neuropathy','Neuropathy'],
+				['Hepatitis, Skin rash, psychiat disorder','Hepatitis, Skin rash, psychiat disorder'],
+				['Lipodystrophy, Lactic acidocis','Lipodystrophy, Lactic acidocis'],
+				['Treatment failure','Treatment failure']
+			],
+				'contraindications' => [
+					['History of psychiatric illness','History of psychiatric illness']
+				],
+				'alt1' => [
+				['Neuropathy','2'],
+				['Hepatitis, Skin rash, psychiat disorder','1'],
+				['Lipodystrophy, Lactic acidocis','5'],
+				['Treatment failure','7']
+				],
+				'alt2'=> [
+				['Neuropathy','5 or 6 or NS'],
+				['Hepatitis, Skin rash, psychiat disorder','NS'],
+				['Lipodystrophy, Lactic acidocis','None'],
+				['Treatment failure','None']
+				]},
+			'4' => { 'adverse' => [
+				['Anemia','Anemia'],
+				['Lipodystrophy, Lactic acidocis','Lipodystrophy, Lactic acidocis'],
+				['Hepatitis, Skin rash, psychiat disorder','Hepatitis, Skin rash, psychiat disorder'],
+				['Treatment failure','Treatment failure']
+			],
+				'contraindications' => [
+					['History of psychiatric illness','History of psychiatric illness'],
+					['Anaemia <8g/dl','Anaemia <8g/dl']
+				],
+				'alt1' => [
+				['Anemia','3'],
+				['Lipodystrophy, Lactic acidocis','5'],
+				['Hepatitis, Skin rash, psychiat disorder','2'],
+				['Treatment failure','7']
+				],
+				'alt2'=> [
+				['Anemia','5'],
+				['Lipodystrophy, Lactic acidocis','9'],
+				['Hepatitis, Skin rash, psychiat disorder','NS'],
+				['Treatment failure','9']
+				]},
+			'5' => { 'adverse' =>[
+				['Renal Failure','Renal Failure'],
+				['Hepatitis, Skin rash, psychiat disorder','Hepatitis, Skin rash, psychiat disorder'],
+				['Treatment failure','Treatment failure']
+				],
+				'contraindications' => [
+					['History of psychiatric illness','History of psychiatric illness'],
+					['Renal failure','Renal failure'],
+					['Child under 12 years','Child under 12 years']
+				],
+				'alt1' => [
+				['Renal Failure','Lower dose'],
+				['Hepatitis, Skin rash, psychiat disorder','6'],
+				['Treatment failure','8']
+				],
+				'alt2'=> [
+				['Renal Failure','2'],
+				['Hepatitis, Skin rash, psychiat disorder','NS'],
+				['Treatment failure','None']
+				]},
+			'6' => { 'adverse' =>[
+				['Renal failure','Renal failure'],
+				['Hepatitis, Skin rash','Hepatitis, Skin rash'],
+				['Treatment failure','Treatment failure']
+				],
+				'contraindications' => [
+					['Hepatitis/Jaundice','Hepatitis/Jaundice'],
+					['Renal failure','Renal failure'],
+					['Child under 12 years','Child under 12 years']
+				],
+				'alt1' => [
+				['Renal failure','Lower dose'],
+				['Hepatitis, Skin rash','5'],
+				['Treatment failure','8']
+				],
+				'alt2'=> [
+				['Renal failure','2'],
+				['Hepatitis, Skin rash','NS'],
+				['Treatment failure','None']
+				]},
+			'7' =>{ 'adverse' =>[
+				['Nausia, vomiting','Nausia, vomiting'],
+				['Renal failure','Renal failure'],
+				['Treatment failure','Treatment failure']
+				],
+				'contraindications' => [
+					['Renal failure','Renal failure'],
+					['Child under 12 years','Child under 12 years']
+				],
+				'alt1' => [
+				['Nausia, vomiting','8'],
+				['Renal failure','NS'],
+				['Treatment failure','None']
+				],
+				'alt2'=> [
+				['Nausia, vomiting','None'],
+				['Renal failure','None'],
+				['Treatment failure','(3rd line)']
+				]},
+			'8' => { 'adverse' => [
+				['Nausia, vomiting','Nausia, vomiting'],
+				['Anemia','Anemia'],
+				['Treatment failure','Treatment failure']
+				],
+				'contraindications' => [
+					['Anaemia <8g/dl','Anaemia <8g/dl']
+				],
+				'alt1' => [
+				['Nausia, vomiting','7'],
+				['Anemia','NS'],
+				['Treatment failure','None']
+				],
+				'alt2'=> [
+				['Nausia, vomiting','None'],
+				['Anemia','None'],
+				['Treatment failure','(3rd line)']
+				]},
+			'9' => { 'adverse' =>[
+				['ABC hypersensitivity','ABC hypersensitivity'],
+				['Treatment failure','Treatment failure']
+				],
+				'contraindications' => [
+					['Abacavir hypersensitivity','Abacavir hypersensitivity']
+				],
+				'alt1' => [
+				['ABC hypersensitivity','8 or 7'],
+				['Treatment failure','None']
+				],
+				'alt2'=> [
+				['ABC hypersensitivity','None'],
+				['Treatment failure','(3rd line)']
+				]
+				}
+
+		}
+
+	end
+
 	def create
 
 		prescribe_tb_drugs = false   
