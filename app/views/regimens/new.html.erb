@@ -294,6 +294,7 @@
   var tb_regimen_id = null;
   var reasons = ['Jandice/hepatitis','Anaemia < 8g/dl','History of psychiatric illness','Renal failure','Child under 12 years', 'Abacavir hypersensitivity', 'Other'] ;
   var regimens = [];
+  var realTime = '<%=  @retrospective  %>';
 
   function changeRegimen(){
 	<% unless @found_symptoms.blank? %>
@@ -321,13 +322,26 @@
 	  }
 	 }
 
-  function updateForm(){
-	   document.getElementById('reason_antiretrovirals_changed_or_stopped').value = document.getElementById("reason_for_change").value;
-	}
+  function updateForm(td){
+	  if (document.getElementById("reason_for_change").value != ""){
+			document.getElementById('reason_antiretrovirals_changed_or_stopped').value = document.getElementById("reason_for_change").value;
+			document.getElementById('cover').style.display='none';
+			td.parentNode.style.display='none';
+			gotoNextPage();
+		}
+  }
 
   function changeButton(){
-		element = document.getElementById('nextButton')
-		element.setAttribute("onmousedown", "checkRegimen()")
+		if (realTime == "false"){
+			   try {
+				  document.getElementById("reason_for_change").value = "";
+				}
+				catch (e){
+
+				}
+			  element = document.getElementById('nextButton')
+			  element.setAttribute("onmousedown", "checkRegimen()")
+		  }
   }
 
   function resetRegimen(){
@@ -384,7 +398,8 @@
 				  }
 
 				}
-				if (foundEvents.length > 0){
+				
+				if ((foundEvents.length > 0) && (realTime == "false" )){
 				var chart_color = " adults";
 				
 				<% if @patient_bean.age < 15%>
@@ -524,7 +539,7 @@
 	newBtn.id = "ok";
 	newBtn.innerHTML = "<span>Next</span>";
 	newDiv.appendChild(newBtn);
-	newBtn.setAttribute('onclick', "updateForm();document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';gotoNextPage();")
+	newBtn.setAttribute('onclick', "updateForm(this);")
 	
 	}
 	else {

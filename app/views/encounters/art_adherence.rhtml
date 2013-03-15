@@ -19,9 +19,9 @@
 
   #newText{
 	top: 40%;
-  left: 40%;
+	left: 40%;
 	margin-top: -200px;
-  margin-left: -250px;
+	margin-left: -250px;
 	position: absolute;
 	margin-right:auto;
 	width: 800px;
@@ -69,9 +69,9 @@
 
   #alertPage{
 	top: 50%;
-  left: 40%;
+	left: 40%;
 	margin-top: -200px;
-  margin-left: -250px;
+	margin-left: -250px;
 	position: absolute;
 	margin-right:auto;
 	width: 800px;
@@ -85,6 +85,7 @@
 	border: 5px outset tomato;
 	border-radius: 15px;
 	z-index: 900;
+	display:none;
   }
 
 
@@ -161,6 +162,7 @@
   var theForm;
   var outcomes;
   var selected = [];
+  var realTime = '<%=  @retrospective  %>';
   
   function dateCreate(date_str){
 	intyear = 0 ; intmonth = 0 ; intday = 0;
@@ -291,8 +293,16 @@
 	  var abnormalAdherence;
 
 	  function changeButton(){
+		if (realTime == "false"){
+		  try {
+			document.getElementById("reason_for_adherence").value = "";
+		  }
+		  catch (e){
+			
+		  }
 		  element = document.getElementById('nextButton')
 		  element.setAttribute("onmousedown", "checkAdherence()")
+		}
 	  }
 
 	 function removeButton(){
@@ -312,8 +322,14 @@
 	   document.getElementById("reason_for_adherence").value = td.value
 	 }
 
-	 function updateForm(){
-	   document.getElementById('Reason_for_poor_adherence_to_antiretroviral_therapy').value = document.getElementById("reason_for_adherence").value;
+	 function updateForm(td){
+	    if (document.getElementById("reason_for_adherence").value != ""){
+		  document.getElementById('Reason_for_poor_adherence_to_antiretroviral_therapy').value = document.getElementById("reason_for_adherence").value;
+		  document.getElementById('cover').style.display='none';
+		  td.parentNode.style.display='none';
+		  gotoNextPage();
+		}
+	   
 	 }
 
 	 function adherenceReport(){
@@ -411,7 +427,7 @@
 	$("clearButton").style.display = 'none';
   }
   function checkAdherence(){
-	if (abnormalAdherence < 95 || abnormalAdherence > 105){
+	if (abnormalAdherence != 0){
 	var reasonForLowerAdherence = ['Run out of drugs','Sharing of drugs','Overdose','Pills misplaced','Other']
 	var ele = document.getElementById('cover')
 	ele.style.display = "inline";
@@ -419,6 +435,7 @@
 
 	var newDiv = document.createElement('div');
 	newDiv.id = "alertPage";
+	newDiv.style.display = "inline";
 	newDiv.style.left = "32%";
 	newDiv.style.top = "30%";
 	newDiv.style.width = "840px";
@@ -446,7 +463,7 @@
 	newBtn.id = "ok";
 	newBtn.innerHTML = "<span>Next</span>";
 	newDiv.appendChild(newBtn);
-	newBtn.setAttribute('onclick', "updateForm();document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';gotoNextPage();")
+	newBtn.setAttribute('onclick', "updateForm(this);")
 
 	}
 	else {
