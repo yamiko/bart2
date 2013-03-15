@@ -151,7 +151,7 @@
 		        <table  border=0.5 style = "border-radius:10px;">
 		        	<tr>
 		        		<td><span>ART start date</span></td>
-		        		<td style='text-align:left'><span><%= @art_start_date.strftime("%d-%B-%Y") rescue '' %></span></td>
+		        		<td style='text-align:left'><span><%= @art_start_date.strftime("%A, %d %B %Y") rescue '' %></span></td>
 		        	</tr>
 		        	<tr><td colspan =2><hr/></td></tr>
 		        	<tr>
@@ -243,11 +243,11 @@
 			color: black;
 			font-size: 28px;
 			height: 579px;
-			left: 375px;
+			left: 30px !important;
 			padding: 5px;
 			position: absolute;
 			text-align: center;
-			top: 45px !important;
+			top: 39px !important;
 			width: 947px;
 			z-index: 991;
 		}
