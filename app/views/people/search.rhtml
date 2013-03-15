@@ -50,7 +50,7 @@ pos = 1
       people[<%= pos %>]["Ancestral Traditional Authority(T/A)"] = null;
     }
     try {
-      people[<%= pos %>]["Current Residence"] = "" //"<%#=h person.current_residence -%>";
+      people[<%= pos %>]["Current Residence"] = "<%=h person.current_residence -%>";
     }catch(e){
       people[<%= pos %>]["Current Residence"] = null;
     }
@@ -108,31 +108,33 @@ end -%>
         "relation",
         "birthdate",
         "birthdate_estimated",
-        "state_province",
+        "home_district",
         "city_village",
         "county_district",
         "occupation",
         "cell_phone_number",
-        "national_id"
+        "national_id",
+        "state_province"
       ]
 
       createControlAndAssignValue("remote", "remote", "true");
 
       <%(@search_results).each do |npid,data| %>
-          createControlAndAssignValue("gender", "person[gender]","<%=data.sex%>");
-          createControlAndAssignValue("given_name", "person[names][given_name]","<%=data.name.split(' ')[0]%>");
-          createControlAndAssignValue("family_name", "person[names][family_name]","<%=data.name.split(' ')[1]%>")
-          createControlAndAssignValue("address2", "person[addresses][address2]","<%=data.current_residence%>")
-          createControlAndAssignValue("person_birth_year", "person[birth_year]","<%=data.birthdate.year%>")
-          createControlAndAssignValue("person_birth_month", "person[birth_month]","<%=data.birthdate.month%>")
-          createControlAndAssignValue("person_birth_day", "person[birth_day]","<%=data.birthdate.day%>")
-          createControlAndAssignValue("birthdate_estimated", "person[birthdate_estimated]", "<%=data.birthdate_estimated%>");
-          createControlAndAssignValue("state_province", "person[addresses][state_province]","<%=data.home_district.squish rescue nil-%>")
-          createControlAndAssignValue("city_village", "person[addresses][city_village]","<%=data.current_residence%>")
-          createControlAndAssignValue("county_district", "person[addresses][county_district]","<%=data.traditional_authority%>")
-          createControlAndAssignValue("occupation", "person[occupation]","<%=data.occupation%>")
-          createControlAndAssignValue("national_id", "person[patient][identifiers][National id]","<%=data.national_id%>")
-      <%end%>
+        createControlAndAssignValue("gender", "person[gender]","<%=data.sex%>");
+        createControlAndAssignValue("given_name", "person[names][given_name]","<%=data.name.split(' ')[0]%>");
+        createControlAndAssignValue("family_name", "person[names][family_name]","<%=data.name.split(' ')[1]%>")
+        createControlAndAssignValue("address2", "person[addresses][city_village]","<%=data.current_residence%>")
+        createControlAndAssignValue("person_birth_year", "person[birth_year]","<%=data.birthdate.year%>")
+        createControlAndAssignValue("person_birth_month", "person[birth_month]","<%=data.birthdate.month%>")
+        createControlAndAssignValue("person_birth_day", "person[birth_day]","<%=data.birthdate.day%>")
+        createControlAndAssignValue("birthdate_estimated", "person[birthdate_estimated]", "<%=data.birthdate_estimated%>");
+        createControlAndAssignValue("home_district", "person[addresses][address2]","<%=data.home_district.squish rescue nil-%>")
+        createControlAndAssignValue("city_village", "person[addresses][city_village]","<%=data.current_residence%>")
+        createControlAndAssignValue("county_district", "person[addresses][county_district]","<%=data.traditional_authority%>")
+        createControlAndAssignValue("occupation", "person[occupation]","<%=data.occupation%>")
+        createControlAndAssignValue("national_id", "person[patient][identifiers][National id]","<%=data.national_id%>")
+        createControlAndAssignValue("state_province", "person[addresses][state_province]","<%=data.current_district%>")
+    <%end%>
     } else {
       document.forms[0].action = "select";
       __$('nextButton').onmousedown = function(){
