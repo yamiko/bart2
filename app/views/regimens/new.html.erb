@@ -15,24 +15,30 @@
 	padding-left: 5px;
 
   }
+  #main_head{
+	float: left;
+	width: 100%;
+	font-size: 23px;
+	font-weight:bold;
+  }
   .adults{
 	background:none repeat scroll 0 0 #87cefa;
 	color:black;
-	font-size: 18px;
+	font-size: 12px;
   }
   .paeds{
 	background:none repeat scroll 0 0 yellow;
 	color:black;
-	font-size: 18px;
+	font-size: 12px;
   }
   .title{
 	font-weight:bold;
-	font-size:21px;
+	font-size:12px;
 	padding: 5px;
   }
   .footer{
 	font-weight:bold;
-	font-size:18px;
+	font-size:12px;
 	padding: 5px;
   }
   table {
@@ -41,7 +47,7 @@
   tr th {
 	background-color:gray;
 	padding:10px;
-	font-size:18px;
+	font-size:12px;
   }
   td {
 	text-align:left;
@@ -51,8 +57,8 @@
 	background-color:gray;
 	padding:10px;
   }
-  #reason_for_art_treatment_change{
-	height:80%;
+  #reason_for_change{
+	height:379px;
 	width:100%;
 	background:none repeat scroll 0 0 light-grey;
 	border-color: -moz-use-text-color -moz-use-text-color silver;
@@ -65,10 +71,12 @@
   }
   select {
     border-bottom: 1px solid silver ! important;
+	background-color: grey ! important;
    
   }
+
   option {
-	background-color: silver ! important;
+	background-color: white ! important;
 	display:block;
     font-family: "Nimbus Sans L","Arial Narrow",sans-serif;
     font-size: 1.2em;
@@ -255,6 +263,10 @@
 	top: 1%;
     left: 1%;
   }
+   #popup {
+    top: 50px;
+	height:80% ! important;
+  }
 </style>
 
 <%= javascript_include_tag "prototype"%>
@@ -282,6 +294,31 @@
 	<% else %>
 	  resetRegimen();
 	<%  end %>
+  }
+
+  function removeObs(td){
+	var reasons = document.getElementsByClassName('reasons')
+	  if (td.style.background != "#87cefa") {
+		td.style.background = "#87cefa"
+		document.getElementById("reason_for_change").value = td.value
+	  } else{
+		td.style.background = "#87cefa"
+		document.getElementById("reason_for_change").value = null
+	  }
+	  for (x= 0; x < reasons.length;  x ++){
+		if (reasons[x] != td){
+		  reasons[x].style.background = "";
+		}
+	  }
+	 }
+
+  function updateForm(){
+	   document.getElementById('reason_antiretrovirals_changed_or_stopped').value = document.getElementById("reason_for_change").value;
+	}
+
+  function changeButton(){
+		element = document.getElementById('nextButton')
+		element.setAttribute("onmousedown", "checkRegimen()")
   }
 
   function resetRegimen(){
@@ -350,9 +387,9 @@
 
 				var newDiv = document.createElement('div');
 				newDiv.id = "alertPage";
-				newDiv.style.left = "35%";
-				newDiv.style.top = "40%";
-				newDiv.style.width = "1010px";
+				newDiv.style.left = "32%";
+				newDiv.style.top = "30%";
+				newDiv.style.width = "850px";
 				newDiv.style.height = "500px";
 
 				var display = "<div><table><tr valign='top'><th></th><th class='title'>Regimen: </th>";
@@ -400,14 +437,14 @@
 				for (x=0; x < adverse_events[selected.toString()]["alt2"].length; x++){
 				   display += "<tr><td>" + adverse_events[selected.toString()]["alt2"][x][1] + "</td></tr>"
 				}
-				display += "</table></td></tr><tr><td colspan='6'><hr></td></tr><tr valign='top'><td colspan='2' class='footer'>Observed Symptoms:</th><td><table>";
+				display += "</table></td></tr><tr><td colspan='6'><hr></td></tr><tr valign='top'><td colspan='2' class='footer'>Observed Symptoms:</td><td><table>";
 				<% (@found_symptoms || []).each do |data| %>
-					  display += "<tr><td>" + "<%=  data.humanize %>" + "</td></tr>"
+					  display += "<tr><td style='font-size:12px;'>" + "<%=  data.humanize %>" + "</td></tr>"
 				<%end%>
 				display += "</table></td><td colspan='2' class='footer'>Matching with <br>Contraindicators and events</td><td><table>"
 				
 				for (x=0; x < foundEvents.length; x++){
-				   display += "<tr><td>" + foundEvents[x] + "</td></tr>"
+				   display += "<tr><td style='font-size:12px;'>" + foundEvents[x] + "</td></tr>"
 				}
 				display += "</table></td></tr><tr><td colspan='6'><hr></td></tr></table></div>"; //Alt 2
 
@@ -449,43 +486,41 @@
 	ele.style.display = "inline";
 	document.body.appendChild(ele);
 
-	var newText = document.createElement('div');
-	newText.style.display = "inline";
-	newText.id = "newText";
-	newText.innerHTML = "Reason antiretrovirals changed or stopped";
-	document.body.appendChild(newText);
-
 	var newDiv = document.createElement('div');
 	newDiv.id = "alertPage";
-	document.body.appendChild(newDiv);
+	newDiv.style.left = "32%";
+	newDiv.style.top = "30%";
+	newDiv.style.width = "840px";
+	newDiv.style.height = "500px";
 
-	var newSelect = document.createElement('select')
-	newSelect.id = 'reason_for_art_treatment_change'
-	newSelect.name = 'Reason antiretrovirals changed'
-	newSelect.size = 3
-	for (x = 0; x < reasons.length; x++){
-	  newSelect.options[x] = new Option(reasons[x],reasons[x])
+	var display = "<div id='main_head'><span>Reason for regimen change</span></div>";
+	display += "<div height='800'><select id='reason_for_change' size='6'>";
+	display += "<option value=''></option>"
+	for (x=0; x < reasons.length; x++){
+	  display += "<option value='" + reasons[x] + "' onmousedown='removeObs(this)' class='reasons'>" + reasons[x] + "</option>";
 	}
-	newDiv.appendChild(newSelect);
-
-	//var reason = document.getElementById('reason_for_art_treatment_change');
-	//reason.style.display = "block";
-	//reason.className = "touchscreenTextInput";
-	//newDiv.appendChild(reason);
+	display += "</select></div>";
+	newDiv.innerHTML = '<div id="popup">' + display + '</div>' ;
+	document.body.appendChild(newDiv);
 
 	var newBtn = document.createElement('button');
 	newBtn.className = "navButton red";
 	newBtn.id = "cancel";
 	newBtn.innerHTML = "<span>Cancel</span>";
 	newDiv.appendChild(newBtn);
-	newBtn.setAttribute('onclick', "document.getElementById('newText').style.display='none';document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';gotoPage(2, null, true);")
+	newBtn.setAttribute('onclick', "document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';")
 
 	var newBtn = document.createElement('button');
 	newBtn.className = "green navButton";
 	newBtn.id = "ok";
 	newBtn.innerHTML = "<span>Next</span>";
 	newDiv.appendChild(newBtn);
-	newBtn.setAttribute('onclick', "document.getElementById('newText').style.display='none';document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';updateConcept();gotoNextPage();")
+	newBtn.setAttribute('onclick', "updateForm();document.getElementById('cover').style.display='none'; this.parentNode.style.display='none';gotoNextPage();")
+	
+	}
+	else {
+	  resetRegimen();
+	  gotoNextPage();
 	}
   }
 
@@ -938,14 +973,25 @@ end
 	:condition => 'hasReasonForART() == true && prescribeAntiretroviralDrugs() == true',
 	:helpText => "Prescribe ARVs?" } %>
 
+  <%#= select_tag :continue_existing_regimen, options_for_select([['',''],['Yes','YES'],['No','NO']], ''), {
+	:textCase => "upper",
+	:allowFreeText => 'false',
+	:id => "continue_existing_regimen",
+	:tt_onLoad => 'showDrugs();setAttributes();changeButton();',
+	:validationCode => "continueRegimen() != 'true';",
+	:validationMessage => "Patient is starting a new regimen",
+	:tt_onUnLoad => 'resetAttributes();',
+	:condition => 'existingRegimen();',
+	:helpText => "Continue current ARV drugs?"}%>
+  <%= touch_hidden_tag "Reason antiretrovirals changed or stopped", @patient, nil, {
+	  :id => 'reason_antiretrovirals_changed_or_stopped'} %>
+
   <%= select_tag :continue_existing_regimen, options_for_select([['',''],['Yes','YES'],['No','NO']], ''), {
 	:textCase => "upper",
 	:allowFreeText => 'false',
 	:id => "continue_existing_regimen",
-	:tt_onLoad => 'showDrugs();setAttributes();',
-	:validationCode => "continueRegimen() != 'true';",
-	:validationMessage => "Patient is starting a new regimen",
-	:tt_onUnLoad => 'resetAttributes();checkRegimen();',
+	:tt_onLoad => 'showDrugs();setAttributes();changeButton();',
+	:tt_onUnLoad => 'resetAttributes();resetRegimen();',
 	:condition => 'existingRegimen();',
 	:helpText => "Continue current ARV drugs?"}%>
 
