@@ -1,0 +1,12 @@
+<script type="text/javascript">
+  var tt_cancel_destination = "/patients/patient_merge";  //users"
+</script>
+ 
+  <% form_tag "patient_merge", :method => :post do %>
+		<%= text_field_tag :name, params[:name], {:field_type => 'alpha', :helpText => 'Select '+ params[:type]+ ' patient', :ajaxURL => '/patients/patient_to_merge?search_string=', :allowFreeText => true }%>
+
+   <input type="hidden" id="primary" name="type" value="<%= params[:type]%>" />
+   <input type="hidden" name="sec_id" value="<%= params[:sec_id]%>" />
+   <input type="hidden" name="pri_id" value="<%= params[:pri_id]%>" />
+  <% end %>
+ 

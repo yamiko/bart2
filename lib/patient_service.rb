@@ -718,10 +718,25 @@ module PatientService
   end
 
   def self.sputum_results_by_date(patient_id)
-    sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
+    sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results"]
     sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
     obs = Observation.find(:all, :conditions => ["person_id = ? AND concept_id IN (?)", patient_id, sputum_concept_ids], :order => "obs_datetime desc")
   end
+
+	def self.sputum_by_date(sputum_list, date)
+		i = 0;
+		list = Hash.new("")
+		while (i < sputum_list.count) 
+			if ((sputum_list[i].obs_datetime.to_date >= date - 10) && (sputum_list[i].obs_datetime.to_date <= date + 10))
+					list["acc1"] = sputum_list[i].accession_number
+					list["result1"] = sputum_list[i].answer_string
+					list["acc2"] = sputum_list[i+1].accession_number
+					list["result2"] = sputum_list[i+1].answer_string
+					return list
+			end rescue nil
+			i+=1
+		end
+	end
 
   def self.sputum_orders_without_submission(patient_id)
     self.recent_sputum_orders(patient_id).collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", patient_id, Concept.find_by_name("Sputum submission")]).map{|o| o.accession_number}.include?(order.accession_number)}.compact #rescue []

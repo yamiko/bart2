@@ -49,4 +49,13 @@ ORDER BY DATE(TESTDATE) DESC",patient_ids,type
     results_hash
   end
 
+def self.latest_result_by_test_type(patient,test_type,patient_ids)            
+    results = self.results_by_type(patient, test_type, patient_ids)             
+    unless results.blank?                                                       
+      return results.sort{|a,b|b[0].split("::")[0].to_date <=> a[0].split("::")[0].to_date}[0]
+    else                                                                        
+      return []                                                                 
+    end                                                                         
+end
+
 end
