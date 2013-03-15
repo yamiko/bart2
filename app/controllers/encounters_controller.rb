@@ -703,12 +703,12 @@ class EncountersController < GenericEncountersController
                                                                                 
     (bookings ||{}).sort_by { |dates,num| num }.reverse.each do |dates , num|   
       next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
-      if num <= clinic_appointment_limit                                  
+      if num < clinic_appointment_limit                                  
         recommended_date = dates                                                  
         break 
       end
-    end                                                                         
-                                                                                
+    end          
+                                                                   
     (bookings ||{}).sort_by { |dates,num| num }.each do |dates , num|   
       next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
       recommended_date = dates                                                  
@@ -718,17 +718,19 @@ class EncountersController < GenericEncountersController
     if recommended_date.blank?                                                  
       expiry_date_rec = expiry_date
       1.upto(5).each do |num|                                                   
-        if clinic_days.collect{|c|c.upcase}.include?(expiry_date.strftime('%A').upcase)
+        if clinic_days.collect{|c|c.upcase}.include?(expiry_date_rec.strftime('%A').upcase)
           unless is_holiday(expiry_date_rec,holidays)                                       
             recommended_date = expiry_date_rec 
             break                                                                 
           end
           expiry_date_rec -= 1
+        else
+          expiry_date_rec -= 1
         end                                                                     
       end                                                                       
     end                                                                         
                                                                                 
-    recommended_date = expiry_date if recommended_date.blank?
+    recommended_date = (expiry_date - 2.day) if recommended_date.blank?
     return recommended_date
 	end
 
@@ -763,7 +765,7 @@ class EncountersController < GenericEncountersController
 		clinic_days = clinic_days.split(',')		
 
 		bookings = bookings_within_range(expiry_date)
-		clinic_holidays = CoreService.get_global_property_value('clinic.holidays') || '1900-12-25,1900-03-03'
+		clinic_holidays = CoreService.get_global_property_value('clinic.holidays') 
 		clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',').split(',') rescue []
 		
 		limit = CoreService.get_global_property_value('clinic.appointment.limit') rescue 0
@@ -879,8 +881,22 @@ class EncountersController < GenericEncountersController
       booked_dates[obs.value_datetime.to_date]+=1
     end  
 
-    return booked_dates
+    clinic_holidays = CoreService.get_global_property_value('clinic.holidays')  
+    clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',').split(',') rescue []
+    return_booked_dates = {}
+  
+    unless clinic_holidays.blank?
+      (booked_dates || {}).each do |date , c|
+        next if is_holiday(date,clinic_holidays)
+        return_booked_dates[date] = c
+      end
+    else
+      return_booked_dates = booked_dates
+    end
+
+    return return_booked_dates
   end
+
   def create_remote
     location = Location.find(params["location"]) rescue nil
     user = User.first rescue nil

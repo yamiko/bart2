@@ -1,6 +1,6 @@
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
-  var originaltestDate = createDate("<%= @hiv_test_date.year rescue nil %>","<%= @hiv_test_date.month rescue nil %>","<%= @hiv_test_date.day rescue nil%>");
+  var originaltestDate = createDate("<%= @hiv_test_date.year rescue Date.today.year %>","<%= @hiv_test_date.month rescue Date.today.month %>","<%= @hiv_test_date.day rescue Date.today.day %>");
   <% @session_date = "#{session[:datetime].to_date rescue Date.today}" %>
   <% @todayDate = @session_date.to_date %>
   var todayDate = createDate("<%= @todayDate.year %>","<%= @todayDate.month %>","<%= @todayDate.day %>");
@@ -477,7 +477,7 @@ end
 	  {:field_type => 'number',
 	  :helpText => 'Day of ART initiation',
 	  :validationCode => "checkTestDate();",
-	  :validationMessage => "HIV initiation date out of range #{@hiv_test_date.to_date} and #{@todayDate.to_date}",
+	  :validationMessage => "HIV initiation date out of range #{@hiv_test_date.to_date rescue @todayDate} and #{@todayDate.to_date}",
 	  :condition => '($("hiv_initiation_year").value != "Unknown") && ($("hiv_initiation_month").value != "Unknown")  && ($("art_status").value == "YES")',
 	  :tt_onLoad => "getDayOfMonthPicker($('hiv_initiation_year').value, $('hiv_initiation_month').value)",
 	  :tt_onUnload=> "updateInitiationDate();"
@@ -505,7 +505,7 @@ end
 	  {:id => "date_of_art_initiation",
 	  :condition => "$('ever_registered_at_ART_clinic').value =='YES' && $('refer_to_clinician').value != 'YES'",
 	  :validationCode => "checkInitiationDate()",
-	  :validationMessage => "Art initiation date out of range",
+	  :validationMessage => "Art initiation date out of range #{@hiv_test_date.to_date rescue @todayDate} and #{@todayDate.to_date}",
 	  :max => "#{session[:datetime].to_date rescue Date.today}",
 	  :helpText => "ART initiation date"} %>
 
