@@ -333,4 +333,38 @@ module ApplicationHelper
     end                                                                         
   end 
 
+  def require_viral_load_check(patient)
+
+		session_date = Date.today
+		arv_start_date = PatientService.patient_art_start_date(patient).to_date rescue nil
+		duration = (session_date.to_date - arv_start_date.to_date).to_i/28 
+		if (duration >= 6)
+      obs = Observation.find(:all, :conditions => ["person_id = ? and concept_id = ?",
+          patient.patient_id, Concept.find_by_name("Viral load").concept_id])
+      return true if obs == []
+      if !(obs.empty?)
+        viral_loads = obs.map(&:obs_datetime)
+        if (viral_loads.length == 1)
+          viral_load_date = viral_loads.first.to_date
+          duration = (Date.today - viral_load_date).to_i/28
+          if (duration/24 >= 1)
+            return true
+          else
+            return false
+          end
+        end
+
+        if (viral_loads.length > 1)
+          viral_load_date = viral_loads.last.to_date
+          duration = (Date.today - viral_load_date).to_i/28
+          if (duration/24 >= 1)
+            return true
+          else
+            return false
+          end
+        end
+      end
+    end
+	end
+
 end

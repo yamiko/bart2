@@ -122,9 +122,16 @@ class GenericClinicController < ApplicationController
       ["Cohort","/cohort_tool/cohort_menu"],
       ["Supervision","/clinic/supervision_tab"],
       ["Data Cleaning Tools", "/clinic/data_cleaning_tab"],
-      ["View appointments","/properties/select_date"]
+      ["View appointments","/report/select_date"]
+      #["View appointments","/properties/select_date"]
     ]
 
+
+    
+  	if what_app? == 'TB-ART'
+  		@reports <<  ["Case Findings", "/cohort_tool/case_findings_quarter"] << ["TB Register","/cohort_tool/report_duration?report_name=tb_register"] #<< ["Laboratory Register","/cohort_tool/report_duration?report_name=lab_register"]
+  		
+  	end
     @reports = [
       ["Diagnosis","/drug/date_select?goto=/report/age_group_select?type=diagnosis"],
      # ["Patient Level Data","/drug/date_select?goto=/report/age_group_select?type=patient_level_data"],
@@ -177,7 +184,9 @@ class GenericClinicController < ApplicationController
                   ['/clinic/users_tab','User Accounts/Settings'],
                   ['/clinic/location_management_tab','Location Management'],
                   ['/people/tranfer_patient_in','Transfer Patient in'],
+                  ['/patients/patient_merge','Merge Patients'],
                   ['/patients/duplicate_menu','Possible patient duplicates']
+
                 ]
     if current_user.admin?
       @reports << ['/clinic/management_tab','Drug Management']

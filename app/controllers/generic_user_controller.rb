@@ -491,4 +491,38 @@ class GenericUserController < ApplicationController
   def users
   		@users = User.find(:all)
   end
+  
+  def merge_users
+  	     @user = User.find_by_username(params[:user][:username])
+  	     @users = User.find(:all, :conditions => ["user_id != ? ", @user.user_id])
+  	render :layout => "menu" 
+  end
+  
+  def merge
+  	primary = params[:primary]
+  	secondary = params[:secondary]
+
+  	ActiveRecord::Base.transaction do
+  			person = Person.find(primary)
+  			user= User.find(primary)
+  			reason = "merged with user #{secondary}"	 
+		    person.names.each{|row| row.void(reason) }
+				person.addresses.each{|row| row.void(reason) }
+				person.relationships.each{|row| row.void(reason) }
+				person.person_attributes.each{|row| row.void(reason) }
+				user.retired = 1
+				user.retire_reason = reason
+				user.retired_by = current_user.user_id
+				user.date_retired = Time.now()
+  			person.voided = 1 
+  			person.voided_by = current_user.user_id
+  			person.void_reason = reason
+  			person.date_voided = Time.now
+				user.save 
+   			person.save
+
+  	end
+  	
+  			redirect_to '/clinic' and return
+  end
 end

@@ -845,14 +845,14 @@ class GenericPatientsController < ApplicationController
 	@variables = Hash.new()
 	@patient_bean = PatientService.get_patient(@patient.person)
 	@variables["hiv"] =  PatientService.patient_hiv_status(@patient.person) rescue nil
-	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", 78, @patient.person]) rescue nil
+	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", EncounterType.find_by_name("tb registration").id, @patient.person]) rescue nil
 if (tbStart != nil)	
 	duration = Time.now.to_date - tbStart.encounter_datetime.to_date
-	@variables["patientId"] = PatientIdentifier.identifier(@patient_bean.patient_id, "7").identifier
+	@variables["patientId"] = PatientIdentifier.identifier(@patient_bean.patient_id, PatientIdentifierType.find_by_name("District TB Number").id).identifier
   	@variables["tbStart"] = tbStart.encounter_datetime.to_time.strftime('%A, %d %B %Y') rescue nil
 	@variables["arvStart"] = PatientService.patient_art_start_date(@patient.person).to_date.strftime(' %d- %b- %Y') rescue nil
 	@variables["regimen"] = Concept.find(:first, :conditions => ["concept_id = ?" ,PatientProgram.find(:all, :conditions => ["patient_id =? AND program_id = ?", @patient.person, 2]).last.current_regimen]).shortname rescue nil
-	encounters = [14,15,77,78,87,86,85]	
+
 	status = @variables["arvStart"].to_date - tbStart.encounter_datetime.to_date rescue nil
 
 	if status == nil
@@ -892,7 +892,7 @@ end
 	  	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", EncounterType.find_by_name("TB Registration").id, @patient.person]) rescue nil
 	  	@variables = Hash.new("")
 	  	
-	  		obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime = ?",@patient.person,5089, 			tbStart.encounter_datetime]) rescue nil
+	  		obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime = ?",@patient.person,ConceptName.find_by_name("Weight").concept_id,tbStart.encounter_datetime]) rescue nil
 
 	#retrieve hiv status as required
 	@variables["hiv1"]=@variables["hiv2"]=@variables["hiv3"]=@variables["hiv4"] = " "
@@ -915,10 +915,10 @@ if (obs != nil)
 	@variables["startWeight"] = obs.value_numeric rescue nil
 	@variables["startWeightdate"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
 	temp = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
-	@variables["smear1AAccession"] = temp["acc1"] +"/"+temp["acc2"]
-	@variables["smear1Aresult"] = temp["result1"] +"/"+ temp["result2"]
+	@variables["smear1AAccession"] = temp["acc1"] +"/"+temp["acc2"] rescue nil
+	@variables["smear1Aresult"] = temp["result1"] +"/"+ temp["result2"] rescue nil
 end
-	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime > ?",@patient.person,5089, tbStart.encounter_datetime]) rescue nil
+	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime > ?",@patient.person,ConceptName.find_by_name("Weight").concept_id, tbStart.encounter_datetime]) rescue nil
 	@variables["weight2"] = obs.value_numeric rescue nil
 	@variables["weight2date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
 	temp1 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
@@ -929,7 +929,7 @@ end
 
 	end
 
-	obs = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",@patient.person,5089, tbStart.encounter_datetime.to_date + 145,tbStart.encounter_datetime.to_date + 160 ]) rescue nil
+	obs = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",@patient.person,ConceptName.find_by_name("Weight").concept_id, tbStart.encounter_datetime.to_date + 145,tbStart.encounter_datetime.to_date + 160 ]) rescue nil
 	@variables["weight3"].obs.value_numeric rescue nil
 	@variables["weight3date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
 	temp3 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
@@ -939,7 +939,7 @@ end
 
 	end
 
-	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",@patient.person,5089, tbStart.encounter_datetime.to_date + 175,tbStart.encounter_datetime.to_date + 245 ]) rescue nil
+	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",@patient.person,ConceptName.find_by_name("Weight").concept_id, tbStart.encounter_datetime.to_date + 175,tbStart.encounter_datetime.to_date + 245 ]) rescue nil
 
 	@variables["weight4"] = obs.value_numeric rescue nil
 	@variables["weight4date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
@@ -956,7 +956,7 @@ end
   
   def get_previous_tb_visits(patient_id)
   
-  	start = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", 78, @patient.person]).encounter_datetime rescue nil
+  	start = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", EncounterType.find_by_name("tb registration").id, @patient.person]).encounter_datetime rescue nil
 
 	type = EncounterType.find_by_name("TB Adherence").id rescue nil
   results = Array.new()
@@ -2862,28 +2862,121 @@ end
     count = '0' if count.blank?
     render :text => "Next appointment: #{date.strftime('%d %B %Y')} (#{count})"
   end
-  
-  def merge
-    old_patient_id = params[:old_id]
-    new_patient_id = params[:new_id]
+
+
+	def patient_merge
+		
+
+		@values = Hash.new("")
+		if !params["name"].blank?
+		
+			if params[:type] == "primary"
+					pre_fix = "pri"
+			else
+					pre_fix = "sec"
+			end
+#			raise params.to_yaml
+			person = PatientService.get_patient(Person.find(params["name"]))
+			
+			@values[pre_fix + "_name"] = person.name
+			@values[pre_fix + "_gender"] = person.sex
+			@values[pre_fix + "_birthdate"] = person.birth_date
+			@values[pre_fix + "_age"] = person.age
+			@values[pre_fix + "_district"] = person.home_district
+			@values[pre_fix + "_ta"] = person.traditional_authority
+			@values[pre_fix + "_residence"] = person.current_residence
+			@values[pre_fix + "_nat_id"] = person.national_id
+			@values[pre_fix + "_pat_id"] = person.patient_id
+
+			if !params[:pri_id].blank? || !params[:sec_id].blank?
+				if ((params[:pri_id].blank?) && (params[:type] != "sec"))
+						pre_fix2 = "sec"
+						person = PatientService.get_patient(Person.find(params["sec_id"]))
+						@values[pre_fix2 + "_name"] = person.name
+						@values[pre_fix2 + "_gender"] = person.sex
+						@values[pre_fix2 + "_birthdate"] = person.birth_date
+						@values[pre_fix2 + "_age"] = person.age
+						@values[pre_fix2 + "_district"] = person.home_district
+						@values[pre_fix2 + "_ta"] = person.traditional_authority
+						@values[pre_fix2 + "_residence"] = person.current_residence
+						@values[pre_fix2 + "_nat_id"] = person.national_id
+						@values[pre_fix2 + "_pat_id"] = person.patient_id
+
+				else if ((params[:sec_id].blank?) && (params[:type] != "pri"))
+
+						pre_fix2 = "pri"				
+						person = PatientService.get_patient(Person.find(params["pri_id"]))
+						@values[pre_fix2 + "_name"] = person.name
+						@values[pre_fix2 + "_gender"] = person.sex
+						@values[pre_fix2 + "_birthdate"] = person.birth_date
+						@values[pre_fix2 + "_age"] = person.age
+						@values[pre_fix2 + "_district"] = person.home_district
+						@values[pre_fix2 + "_ta"] = person.traditional_authority
+						@values[pre_fix2 + "_residence"] = person.current_residence
+						@values[pre_fix2 + "_nat_id"] = person.national_id
+						@values[pre_fix2 + "_pat_id"] = person.patient_id
+
+				end
+			end
+			end	
+		end
+		
+    render:layout => "menu"
+	end
+	
+	def get_similar_patients
+				@type = params[:type]
+	end
+	
+	def	patient_to_merge
+		
+		string = ""
+		
+		if !params[:search_string].blank?
+		
+    	@names = PersonName.find(:all, :conditions =>["(given_name like (?) or family_name like (?)) and person_id not in (?)", "%#{params[:search_string]}%", "%#{params[:search_string]}%", ["#{params[:sec_id]}, #{params[:pri_id]}"]])
     
+ 	    string = @names.map{|name| "<li value='#{name.person_id}'>#{name.given_name} #{name.family_name} </li>" }
+    
+    else
+    
+    	@names = Patient.find(:all, :conditions => ["patient_id not in (?)", ["#{params[:sec_id]}, #{params[:pri_id]}"]], :limit => 200)
+ 	    string = @names.map{|pat| "<li value='#{pat.patient_id}'>#{pat.person.names.last.given_name} #{pat.person.names.last.family_name} </li>" }
+ 	    
+    end
+    
+    render :text => string
+
+	end
+
+  def merge
+
+    old_patient_id = params[:primary_pat]
+    new_patient_id = params[:person]["id"]	rescue nil
+   
+
     old_patient = Patient.find old_patient_id
     new_patient = Patient.find new_patient_id
     
     raise "Old patient does not exist" unless old_patient
     raise "New patient does not exist" unless new_patient
+
+		ActiveRecord::Base.transaction do
     
-    PatientService.merge_patients(old_patient, new_patient)
-    
-    # void patient
-    patient = old_patient.person
-    patient.void("Merged with patient #{new_patient_id}")
-    
-    # void person
-    person = old_patient.person
-    person.void("Merged with person #{new_patient_id}")
-    
-    render :text => 'Done'
+		  PatientService.merge_patients(old_patient, new_patient)
+		  
+		  # void patient
+		  patient = old_patient.person
+		  patient.void("Merged with patient #{new_patient_id}")
+		  
+		  # void person
+		  person = old_patient.person
+		  person.void("Merged with person #{new_patient_id}")
+		  
+		
+
+   	end
+		return
   end
 
   def duplicate_menu
@@ -2923,6 +3016,34 @@ end
     end
     render :text => "true" and return
   end
+ 
+	def viral_load_test_done()
+	
+		patient_id = params[:patient_id]
+	
+		enc = Encounter.new()
+		
+		enc.encounter_type = EncounterType.find_by_name("PROCEDURES DONE").id
+		enc.patient_id = 		patient_id
+		enc.creator = current_user.id
+		enc.location_id = Location.current_location
+	
+		enc.save()
+		
+		obs = Observation.new()
+		obs.person_id = patient_id
+		obs.creator = current_user.id
+		obs.location_id = Location.current_location
+		obs.value_coded = Concept.find_by_name("Yes").concept_id
+		obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
+		obs.encounter_id = enc.id
+		obs.obs_datetime = Time.now
+		
+		obs.save()		
+		
+    render :text => "true" and return
+		
+	end
 
   def confirm_merge
     master = params[:master_id]
@@ -2962,4 +3083,5 @@ end
     end
     render :json => patients
   end
+
 end

@@ -238,7 +238,29 @@ class GenericPeopleController < ApplicationController
 		@defaulted = "#{defaulter}" == "0" ? nil : true
 		@task = main_next_task(Location.current_location, @person.patient, session_date)		
 		@arv_number = PatientService.get_patient_identifier(@person, 'ARV Number')
-		@patient_bean = PatientService.get_patient(@person)                                                             
+		@patient_bean = PatientService.get_patient(@person)  
+		
+		
+		@art_start_date = PatientService.date_antiretrovirals_started(@person.patient) rescue nil
+		@duration_in_months = (Time.now.to_date - @art_start_date.to_date).to_i/28  
+        patient = @person.patient
+		@identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+			identifier_types = PatientIdentifierType.find(:all,                         
+			  :conditions=>["name IN (?)",@identifier_types]                              
+			).collect{| type |type.id }                                                 
+                                                                            
+		@patient_identifiers = PatientIdentifier.find(:all,                                                
+		  :conditions=>["patient_id=? AND identifier_type IN (?)",                  
+			patient.id,identifier_types]).collect{| i | i.identifier }
+			
+        @results = Lab.latest_result_by_test_type(@person.patient, 'HIV_viral_load', @patient_identifiers) rescue nil
+       	@results.to_yaml
+        @latest_date = @results[0].sub("::HIV_RNA_PCR",'').to_date rescue nil
+        @latest_result = @results[1]["TestValue"] rescue nil
+        @modifier = @results[1]["Range"] rescue nil
+        @reason_for_art = PatientService.reason_for_art_eligibility(patient)
+		@outcome = patient.patient_programs.last.patient_states.last.program_workflow_state.concept.fullname
+		                                                         
 		render :layout => false
 	end
 
