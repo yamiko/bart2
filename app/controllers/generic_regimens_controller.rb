@@ -362,7 +362,7 @@ class GenericRegimensController < ApplicationController
 	end
 
 	def create
-
+		#raise params[:observations].to_yaml
 		prescribe_tb_drugs = false   
 		prescribe_tb_continuation_drugs = false   
 		prescribe_arvs = false
@@ -370,6 +370,7 @@ class GenericRegimensController < ApplicationController
 		prescribe_ipt = false
 		clinical_notes = nil
 		condoms = nil
+		reason = nil
 		(params[:observations] || []).each do |observation|
 			if observation['concept_name'].upcase == 'PRESCRIBE DRUGS'
 				prescribe_tb_drugs = ('YES' == observation['value_coded_or_text'])
@@ -384,6 +385,8 @@ class GenericRegimensController < ApplicationController
 				clinical_notes = observation['value_text']
 			elsif observation['concept_name'] == 'CONDOMS'
 				condoms = observation['value_numeric']
+			elsif observation['concept_name'] == 'Reason antiretrovirals changed or stopped'
+				reason = observation['value_coded_or_text']
 			end
 		end
 
@@ -556,13 +559,13 @@ class GenericRegimensController < ApplicationController
 				order.equivalent_daily_dose)    
 			end
 		end
-   
+
 		obs = Observation.create(
-			:concept_name => "CLINICAL NOTES CONSTRUCT",
+			:concept_name => "Reason antiretrovirals changed or stopped",
 			:person_id => @patient.person.person_id,
 			:encounter_id => encounter.encounter_id,
-			:value_text => clinical_notes,
-			:obs_datetime => start_date) if !clinical_notes.blank?
+			:value_text => reason,
+			:obs_datetime => start_date) if !reason.blank?
 
 		obs = Observation.create(
 			:concept_name => "CONDOMS",

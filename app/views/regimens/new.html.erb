@@ -297,13 +297,14 @@
   }
 
   function removeObs(td){
+	document.getElementById("reason_for_change").value = td.value
 	var reasons = document.getElementsByClassName('reasons')
 	  if (td.style.background != "#87cefa") {
 		td.style.background = "#87cefa"
-		document.getElementById("reason_for_change").value = td.value
+		
 	  } else{
 		td.style.background = "#87cefa"
-		document.getElementById("reason_for_change").value = null
+		//document.getElementById("reason_for_change").value = null
 	  }
 	  for (x= 0; x < reasons.length;  x ++){
 		if (reasons[x] != td){
