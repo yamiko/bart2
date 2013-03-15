@@ -283,26 +283,28 @@ module DDEService
       gender = p["person"]["gender"] == "F" ? "Female" : "Male"
 
       passed = {
-        "person"=>{"occupation"=>p["person"]["data"]["attributes"]["occupation"],
-          "age_estimate"=>"",
-          "cell_phone_number"=>p["person"]["data"]["attributes"]["cell_phone_number"],
-          "birth_month"=> birthdate_month ,
-          "addresses"=>{"address1"=>p["person"]["data"]["addresses"]["county_district"],
+       "person"=>{"occupation"=>p["person"]["data"]["attributes"]["occupation"],
+       "age_estimate"=> birthdate_estimated,
+       "cell_phone_number"=>p["person"]["data"]["attributes"]["cell_phone_number"],
+       "birth_month"=> birthdate_month ,
+       "addresses"=>{"address1"=>p["person"]["data"]["addresses"]["address1"],
             "address2"=>p["person"]["data"]["addresses"]["address2"],
             "city_village"=>p["person"]["data"]["addresses"]["city_village"],
-            "county_district"=>""},
-          "gender"=> gender ,
-          "patient"=>{"identifiers"=>{"National id" => p["person"]["value"]}},
-          "birth_day"=>birthdate_day,
-          "home_phone_number"=>p["person"]["data"]["attributes"]["home_phone_number"],
-          "names"=>{"family_name"=>p["person"]["family_name"],
-            "given_name"=>p["person"]["given_name"],
-            "middle_name"=>""},
-          "birth_year"=>birthdate_year},
-        "filter_district"=>"Chitipa",
-        "filter"=>{"region"=>"Northern Region",
-          "t_a"=>""},
-        "relation"=>""
+            "state_province"=>p["person"]["data"]["addresses"]["state_province"],
+            "neighborhood_cell"=>p["person"]["data"]["addresses"]["neighborhood_cell"],
+            "county_district"=>p["person"]["data"]["addresses"]["county_district"]},
+       "gender"=> gender ,
+       "patient"=>{"identifiers"=>{"National id" => p["person"]["value"]}},
+       "birth_day"=>birthdate_day,
+       "home_phone_number"=>p["person"]["data"]["attributes"]["home_phone_number"],
+       "names"=>{"family_name"=>p["person"]["family_name"],
+       "given_name"=>p["person"]["given_name"],
+       "middle_name"=>""},
+       "birth_year"=>birthdate_year},
+       "filter_district"=>"",
+       "filter"=>{"region"=>"",
+       "t_a"=>""},
+       "relation"=>""
       }
 
       return [self.create_from_form(passed["person"])]
@@ -567,7 +569,6 @@ module DDEService
                         :conditions => ["patient_id = ? AND voided = 0 AND
                         identifier_type = ?",local_person_id , identifier_type.id])
 
-
     patient_identifier = PatientIdentifier.new
     patient_identifier.type = PatientIdentifierType.find_by_name("National id")
     patient_identifier.identifier = new_npid
@@ -597,27 +598,29 @@ module DDEService
     gender = p["person"]["data"]["gender"] == "F" ? "Female" : "Male"
 
     passed = {
-     "person"=>{"occupation"=>p["person"]["data"]["attributes"]["occupation"],
-     "age_estimate"=> birthdate_estimated,
-     "cell_phone_number"=>p["person"]["data"]["attributes"]["cell_phone_number"],
-     "birth_month"=> birthdate_month ,
-     "addresses"=>{"address1"=>p["person"]["data"]["addresses"]["county_district"],
-     "address2"=>p["person"]["data"]["addresses"]["address2"],
-     "city_village"=>p["person"]["data"]["addresses"]["city_village"],
-     "county_district"=>""},
-     "gender"=> gender ,
-     "patient"=>{"identifiers"=>{"National id" => p["npid"]["value"]}},
-     "birth_day"=>birthdate_day,
-     "home_phone_number"=>p["person"]["data"]["attributes"]["home_phone_number"],
-     "names"=>{"family_name"=>p["person"]["data"]["names"]["family_name"],
-     "given_name"=>p["person"]["data"]["names"]["given_name"],
-     "middle_name"=>""},
-     "birth_year"=>birthdate_year},
-     "filter_district"=>"",
-     "filter"=>{"region"=>"",
-     "t_a"=>""},
-     "relation"=>""
-    }
+       "person"=>{"occupation"=>p["person"]["data"]["attributes"]["occupation"],
+       "age_estimate"=> birthdate_estimated,
+       "cell_phone_number"=>p["person"]["data"]["attributes"]["cell_phone_number"],
+       "birth_month"=> birthdate_month ,
+       "addresses"=>{"address1"=>p["person"]["data"]["addresses"]["address1"],
+            "address2"=>p["person"]["data"]["addresses"]["address2"],
+            "city_village"=>p["person"]["data"]["addresses"]["city_village"],
+            "state_province"=>p["person"]["data"]["addresses"]["state_province"],
+            "neighborhood_cell"=>p["person"]["data"]["addresses"]["neighborhood_cell"],
+            "county_district"=>p["person"]["data"]["addresses"]["county_district"]},
+       "gender"=> gender ,
+       "patient"=>{"identifiers"=>{"National id" => p["person"]["value"]}},
+       "birth_day"=>birthdate_day,
+       "home_phone_number"=>p["person"]["data"]["attributes"]["home_phone_number"],
+       "names"=>{"family_name"=>p["person"]["family_name"],
+       "given_name"=>p["person"]["given_name"],
+       "middle_name"=>""},
+       "birth_year"=>birthdate_year},
+       "filter_district"=>"",
+       "filter"=>{"region"=>"",
+       "t_a"=>""},
+       "relation"=>""
+      }
 
     passed["person"].merge!("identifiers" => {"National id" => p["npid"]["value"]})
     return PatientService.create_from_form(passed["person"])
