@@ -8,9 +8,9 @@ class EncountersController < GenericEncountersController
 			@tb_status = tb_art_patient(@patient,"TB program") rescue ""
 			@show_tb_types = false
 			consultation_tb_status = Patient.find_by_sql("
-											SELECT patient_id, current_state_for_program(patient_id, 2, '#{session_date}') AS state, c.name
+											SELECT patient_id, current_state_for_program(patient_id, 2, '#{session_date}') AS state, c.name as status
 											FROM patient p INNER JOIN program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(patient_id, 2, '#{session_date}')
-											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{@patient.patient_id}'").first.name rescue ""
+											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{@patient.patient_id}'").first.status rescue ""
 			 if consultation_tb_status == "Currently in treatment"
 				 @consultation_tb_status = "Confirmed TB on treatment"
 			 elsif consultation_tb_status == "Symptomatic but NOT in treatment" or @hiv_status.to_s.upcase == "POSITIVE"
@@ -20,11 +20,11 @@ class EncountersController < GenericEncountersController
 				 @consultation_tb_status = "Unknown"
 			 end
 		@current_hiv_program_status = Patient.find_by_sql("
-											SELECT patient_id, current_state_for_program(patient_id, 1, '#{session_date}') AS state, c.name
+											SELECT patient_id, current_state_for_program(patient_id, 1, '#{session_date}') AS state, c.name as status
 											FROM patient p INNER JOIN program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(patient_id, 1, '#{session_date}')
-											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{@patient.patient_id}'").first.name rescue "Unknown"
-		
-    if (params[:from_anc] == 'true')
+											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{@patient.patient_id}'").first.status rescue "Unknown"
+	
+		if (params[:from_anc] == 'true')
       bart_activities = ['Manage Vitals','Manage HIV clinic consultations',
         'Manage ART adherence','Manage HIV staging visits','Manage HIV first visits',
         'Manage HIV reception visits','Manage drug dispensations','Manage prescription']

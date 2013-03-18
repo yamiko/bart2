@@ -1,7 +1,12 @@
+
 <% %>
 <script>
 </script>
 <style type="text/css">
+ #popup {
+ 	top: 50px;
+	height:80% ! important;
+  }
 
   #reason_for_tb_treatment_change {
 	height:80%;
@@ -15,48 +20,14 @@
 	padding-left: 5px;
 
   }
+
   #main_head{
 	float: left;
 	width: 100%;
 	font-size: 23px;
 	font-weight:bold;
   }
-  .adults{
-	background:none repeat scroll 0 0 #87cefa;
-	color:black;
-	font-size: 12px;
-  }
-  .paeds{
-	background:none repeat scroll 0 0 yellow;
-	color:black;
-	font-size: 12px;
-  }
-  .title{
-	font-weight:bold;
-	font-size:12px;
-	padding: 5px;
-  }
-  .footer{
-	font-weight:bold;
-	font-size:12px;
-	padding: 5px;
-  }
-  table {
-	width:100%;
-  }
-  tr th {
-	background-color:gray;
-	padding:10px;
-	font-size:12px;
-  }
-  td {
-	text-align:left;
-	text-transform: capitalize;
-  }
-  .main {
-	background-color:gray;
-	padding:10px;
-  }
+
   #reason_for_change{
 	height:379px;
 	width:100%;
@@ -69,26 +40,7 @@
 	padding-left: 5px;
 
   }
-  select {
-    border-bottom: 1px solid silver ! important;
-	background-color: grey ! important;
-   
-  }
 
-  option {
-	background-color: white ! important;
-	display:block;
-    font-family: "Nimbus Sans L","Arial Narrow",sans-serif;
-    font-size: 1.2em;
-    list-style: none outside none;
-    margin-bottom: 5px;
-    margin-top: 5px;
-    padding-left: 5px;
-    padding-right: 5px;
-  }
-  .selectedOption {
-    background-color: lightblue;
-  }
   #ok {
 	float:right ! important;
 	width: 150px;
@@ -114,9 +66,9 @@
 
   #newText{
 	top: 40%;
-    left: 40%;
+    	left: 40%;
 	margin-top: -200px;
-    margin-left: -250px;
+    	margin-left: -250px;
 	position: absolute;
 	margin-right:auto;
 	width: 800px;
@@ -132,11 +84,12 @@
 	z-index: 900;
 	display:none;
   }
+
   #alertPage{
 	top: 50%;
-    left: 40%;
+    	left: 40%;
 	margin-top: -200px;
-    margin-left: -250px;
+ 	margin-left: -250px;
 	position: absolute;
 	margin-right:auto;
 	width: 800px;
@@ -152,99 +105,122 @@
 	z-index: 900;
   }
 
-  table {
-    -moz-user-select:none;
-  }
-
-  .prescription_container {
-    border-style: solid;
-    height: 350px;
-    width: 96%;
-    margin-left: 26px;
-    overflow: auto;
-  }
-
-  .prescription_container table {
-    -moz-user-select:none;
-    width: 100%;
-    font-size: 20px;
-  }
-
-  .prescription_container th {
-    text-align: left;
-    font-size: 25px;
-    background-color: lightgrey;
-  }
-
-  .tr_blue {
-    background-color: #E6E6FF;
-  }
   #summary {
-    top: 60px;
+    	top: 60px;
 	overflow:auto;
 	height:450px ! important;
   }
 
   #contraindicators {
-    top: 50px;
+    	top: 50px;
 	overflow:auto;
 	height:80% ! important;
   }
-  .tt_controls_duration .abcKeyboard {
-    display: none;
-  }
-
-  .tt_controls_select_art_regimen .abcKeyboard {
-    display: none;
-  }
-
-  .tt_controls_select_art_regimen .qwertyKeyboard {
-    display: none;
-  }
-
-  .tt_controls_select_tb_regimen .qwertyKeyboard {
-    display: none;
-  }
-
-  .tt_controls_select_tb_regimen .abcKeyboard {
-    display: none;
-  }
 
   #tt_page_select_regimen #viewport {
-    height: 18em;
+    	height: 18em;
   }
 
   #tt_page_select_art_regimen .inputFrameClass {                                                            
-    height: 520px; 
+    	height: 520px; 
   }
 
   #tt_page_select_art_regimen #viewport {
-    height: 470px; 
+    	height: 470px; 
   }
 
-  .tt_controls_number_of_condoms_given #qwerty {
-    display: none; 
-  }
+  #tt_page_duration_of_art_drugs .options {  height: 90%; }
+
+  #tt_page_duration_of_art_drugs .inputFrameClass {  height: 86%; }
+
+  #tt_page_duration_of_prescribed_drugs .options {  height: 90%; }
+
+  #tt_page_duration_of_prescribed_drugs .inputFrameClass {  height: 86%; }
 
   #previous_drugs_dispensed {
-    bottom: 380px;
-    font-size: 20px;
-    left: 25px;
-    position: absolute;
-    z-index: 600;
-    border-radius: 10px 10px 10px 10px;
-    width: 95%;
-    display: none;
+    	bottom: 380px;
+    	font-size: 20px;
+    	left: 25px;
+    	position: absolute;
+    	z-index: 600;
+    	border-radius: 10px 10px 10px 10px;
+    	width: 95%;
+    	display: none;
   }  
 
   #previous_drugs_dispensed table th{
-    border-style: solid;
-    border-width: 1px;
-    background-color: lightgrey;
+    	border-style: solid;
+    	border-width: 1px;
+    	background-color: lightgrey;
   }
 
   #previous_drugs_dispensed table {
-    width: 100%;
+    	width: 100%;
+  }
+
+  .tt_controls_duration_of_art_drugs .keyboard { display:none !important; }                    
+
+  .unknownButton .numericKeyboard #char, #decimal, #slash, #star, #plus, #date, #minus, #comma, #percent {
+	display: none;
+  }
+
+  .tt_controls_number_of_condoms_given #qwerty {
+    	display: none;
+  }
+
+  .NoKeyboard .inputFrameClass {
+	height:600;
+  }
+
+  .tt_controls_duration .abcKeyboard {
+   	 display: none;
+  }
+
+  .tt_controls_select_art_regimen .abcKeyboard {
+   	 display: none;
+  }
+
+  .tt_controls_select_art_regimen .qwertyKeyboard {
+    	display: none;
+  }
+
+  .tt_controls_select_tb_regimen .qwertyKeyboard {
+    	display: none;
+  }
+
+  .tt_controls_select_tb_regimen .abcKeyboard {
+    	display: none;
+  }
+
+  .message{
+	 top: 1%;
+  	 left: 1%;
+  }
+  
+  .adults{
+	background:none repeat scroll 0 0 #87cefa;
+	color:black;
+	font-size: 12px;
+  }
+
+  .paeds{
+	background:none repeat scroll 0 0 yellow;
+	color:black;
+	font-size: 12px;
+  }
+  .title{
+	font-weight:bold;
+	font-size:12px;
+	padding: 5px;
+  }
+  .footer{
+	font-weight:bold;
+	font-size:12px;
+	padding: 5px;
+  }
+
+  table {
+	width:100%;
   }
 
   .tt_controls_duration_of_art_drugs .keyboard { display:none !important; }                    
@@ -253,28 +229,76 @@
 
   #tt_page_duration_of_art_drugs .inputFrameClass {  height: 86%; }
 
-  #tt_page_duration_of_prescribed_drugs .options {  height: 90%; }                         
-
-  #tt_page_duration_of_prescribed_drugs .inputFrameClass {  height: 86%; }
-
-  .unknownButton .numericKeyboard #char, #decimal, #slash, #star, #plus, #date, #minus, #comma, #percent {
-	  display: none;
+  tr th {
+	background-color:gray;
+	padding:10px;
+	font-size:12px;
   }
 
+  td {
+	text-align:left;
+	text-transform: capitalize;
+  }
+ 
+  select {
+    	border-bottom: 1px solid silver ! important;
+	background-color: grey ! important;
+
+  }
+
+  option {
+	background-color: white ! important;
+	display:block;
+	font-family: "Nimbus Sans L","Arial Narrow",sans-serif;
+    	font-size: 1.2em;
+    	list-style: none outside none;
+    	margin-bottom: 5px;
+    	margin-top: 5px;
+    	padding-left: 5px;
+    	padding-right: 5px;
+  }
+
+<<<<<<< HEAD
   .NoKeyboard .inputFrameClass {
 	height:600;
+=======
+  .selectedOption {
+    	background-color: lightblue;
   }
 
-  .message{
-	  top: 1%;
-    left: 1%;
+   table {
+    	-moz-user-select:none;
   }
 
-  #popup {
-    top: 50px;
-	  height:80% ! important;
+  .prescription_container {
+    	border-style: solid;
+    	height: 350px;
+    	width: 96%;
+    	margin-left: 26px;
+    	overflow: auto;
   }
 
+  .prescription_container table {
+    	-moz-user-select:none;
+    	width: 100%;
+    	font-size: 20px;
+>>>>>>> ad31c5ab06ec408982e580b8565c22733893d126
+  }
+
+  .prescription_container th {
+    	text-align: left;
+    	font-size: 25px;
+    	background-color: lightgrey;
+  }
+
+  .tr_blue {
+    	background-color: #E6E6FF;
+  }
+
+  .main {
+	background-color:gray;
+	padding:10px;
+  }
 </style>
 
 <%= javascript_include_tag "prototype"%>
@@ -320,7 +344,7 @@
 		  reasons[x].style.background = "";
 		}
 	  }
-	 }
+  }
 
   function updateForm(td){
 	  if (document.getElementById("reason_for_change").value != ""){
@@ -328,7 +352,7 @@
 			document.getElementById('cover').style.display='none';
 			td.parentNode.style.display='none';
 			gotoNextPage();
-		}
+	 }
   }
 
   function changeButton(){
@@ -348,6 +372,7 @@
 	element = document.getElementById('nextButton')
 	element.setAttribute("onmousedown", "gotoNextPage()")
   }
+<<<<<<< HEAD
     function getArt(programId) {
     var aUrl = "/regimens/check_current_regimen_index?patient_age=<%= @patient_bean.age %>&id=" + programId + "&search_string=";
     var httpRequest = new XMLHttpRequest();
@@ -374,6 +399,8 @@
      response = JSON.parse(req.responseText);
     }
   }
+=======
+>>>>>>> ad31c5ab06ec408982e580b8565c22733893d126
 
   function contraindicators(){
 				var foundEvents = []
@@ -493,8 +520,8 @@
 			  resetRegimen();
 			  gotoNextPage();
 			}
-	//getArt($('patient_program').value);
   }
+
   function setSelectedRow() {
 	l = document.getElementsByTagName('li');
 	for (i = 0 ; i < l.length ; i++) {
@@ -763,19 +790,18 @@
 	var innerHtml = '';
 	var resultString = '';
 
-<% if @patient_bean.sex == 'Female' && @patient_bean.age > 14 %>
-	  resultString = '<b>Pregnancy Status:</b><%=" #{@is_patient_pregnant_value}"%><br><br>'
-<% end %>
+	<% if @patient_bean.sex == 'Female' && @patient_bean.age > 14 %>
+	 	 resultString = '<b>Pregnancy Status:</b><%=" #{@is_patient_pregnant_value}"%><br><br>'
+	<% end %>
 
-
-<% if @family_planning_methods.length != 0 %>
-	  resultString += '<b>Family Planning Methods:</b><br><ul>'
-  <%
-  family_planning_methods = @family_planning_methods.uniq.sort.map do |method|
-	"<li> #{method}</li>"
-  end
-end
-%>
+	<% if @family_planning_methods.length != 0 %>
+	  	resultString += '<b>Family Planning Methods:</b><br><ul>'
+  		<%
+  		family_planning_methods = @family_planning_methods.uniq.sort.map do |method|
+			"<li> #{method}</li>"
+  		end
+	end
+	%>
 
 	resultString += <%= "'#{family_planning_methods}'" %>
 	resultString += '</ul>'
@@ -791,13 +817,13 @@ end
 	var prescription_container = $("previous_drugs_dispensed");
 	var html = "<table>"
 	html += "<tr><th>Drug name</th><th>Dose</th><th>Units</th><th>Daily dose</th></tr>"
-<% (@regimen_formulations || []).each do |data| %>
-	  regimen_id = <%= data[4]%>
-	  html += "<tr><td>" + "<%=data[0]%>" + "</td>"
-	  html += "<td style='text-align:center;'>" + "<%=data[1]%>" + "</td>"
-	  html += "<td>" + "<%=data[3]%>" + "</td>"
-	  html += "<td>" + "<%=data[2]%>" + "</td></tr>"
-<%end%>
+	<% (@regimen_formulations || []).each do |data| %>
+		regimen_id = <%= data[4]%>
+		html += "<tr><td>" + "<%=data[0]%>" + "</td>"
+		html += "<td style='text-align:center;'>" + "<%=data[1]%>" + "</td>"
+		html += "<td>" + "<%=data[3]%>" + "</td>"
+		html += "<td>" + "<%=data[2]%>" + "</td></tr>"
+	<%end%>
 	html += "</table>"
 	prescription_container.innerHTML = html
 	prescription_container.style.display = "inline";
@@ -822,8 +848,8 @@ end
 	$("nextButton").setAttribute("onmousedown","gotoNextPage();");
   }
 
-  function resetRegimen() {
-  }
+  //function resetRegimen() {
+  //}
 
   function hideKeyBoard() {
 	$('page'+tstCurrentPage).getElementsByClassName("keyboard")[0].style.display='none';
@@ -894,7 +920,7 @@ end
 	  :allowFreeText => 'false',
 	  :condition => 'current_regimens_for_programs[$("tb_patient_program").value] != null && $("prescribe_tb_drugs").value == "YES"',
 	  :tt_onLoad => 'showTbDrugs();setAttributes();',
-	  :tt_onUnLoad => 'resetAttributes();checkTbRegimen();',
+	  :tt_onUnLoad => 'resetAttributes();',
 	  :helpText => "Continue current TB regimen?" } %>
 
 	<%	initial_regimen_help_text = "Select TB regimen"
