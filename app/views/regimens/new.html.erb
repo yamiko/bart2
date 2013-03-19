@@ -258,52 +258,10 @@
     	padding-right: 5px;
   }
 
-<<<<<<< HEAD
-.NoKeyboard .inputFrameClass {
-height:600;
-}
-
-.selectedOption {
-    background-color: lightblue;
-}
-
- table {
-    -moz-user-select:none;
-}
-
-.prescription_container {
-    border-style: solid;
-    height: 350px;
-    width: 96%;
-    margin-left: 26px;
-    overflow: auto;
-}
-
-.prescription_container table {
-    -moz-user-select:none;
-    width: 100%;
-    font-size: 20px;
-}
-
-.prescription_container th {
-    text-align: left;
-    font-size: 25px;
-    background-color: lightgrey;
-}
-
-.tr_blue {
-    background-color: #E6E6FF;
-}
-
-.main {
-background-color:gray;
-padding:10px;
-}
-=======
-
   .NoKeyboard .inputFrameClass {
 	height:600;
-
+  }
+  
   .selectedOption {
     	background-color: lightblue;
   }
@@ -340,7 +298,6 @@ padding:10px;
 	background-color:gray;
 	padding:10px;
   }
->>>>>>> bart2
 </style>
 
 <%= javascript_include_tag "prototype"%>
@@ -415,14 +372,6 @@ element = document.getElementById('nextButton')
 element.setAttribute("onmousedown", "gotoNextPage()")
 }
 
-<<<<<<< HEAD
-=======
-  function resetRegimen(){
-	element = document.getElementById('nextButton')
-	element.setAttribute("onmousedown", "gotoNextPage()")
-  }
-
->>>>>>> bart2
     function getArt(programId) {
     var aUrl = "/regimens/check_current_regimen_index?patient_age=<%= @patient_bean.age %>&id=" + programId + "&search_string=";
     var httpRequest = new XMLHttpRequest();
@@ -446,10 +395,6 @@ element.setAttribute("onmousedown", "gotoNextPage()")
      response = JSON.parse(req.responseText);
     }
   }
-<<<<<<< HEAD
-=======
-
->>>>>>> bart2
 
   function contraindicators(){
 				var foundEvents = []
