@@ -106,12 +106,10 @@ var positive
     attrs = '';
 	positive = 0;
 	var append_color;
-    for(i = 0 ; i < result_filed_ids.length ; i++) {
+    for(i = 0 ; i < result_filed_ids.length ; i++) {  
       if ($(result_filed_ids[i]).value != 'NEGATIVE') {
 		positive += 1;
-        tb_status =  'Confirmed TB NOT on treatment'
 		append_color = "yes"
-        //attrs = " class='alert'"
       }
       var specimen = $(specimen_field_ids[i]).value
 	  if(append_color == "yes") {
@@ -125,9 +123,11 @@ var positive
 	  }
 	  append_color = "";
     }
+	if (positive != 0){
+	  tb_status =  'Confirmed TB NOT on treatment'
+	}
     results += '</ul>';
 
-    //var display = "<div><span class='title'>TB Status: " + tb_status + "</span></div>";
     var display = "<div><span class='title' style='font-size:25px;padding-top:7px;'>" + results + "</span></div>";
     $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + display + '</div>' ;
     //if(tb_status == 'Confirmed TB NOT on treatment') {
@@ -259,7 +259,7 @@ var positive
       {:id => "sputum_specimen_#{i+1}_result",
       :tt_pageStyleClass => "NoKeyboard",
       :accession_number => i + 1,
-      :tt_onUnload => "summary();delete acc_numbers_check[__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value]",
+      :tt_onUnload => "delete acc_numbers_check[__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value]",
       :tt_onLoad => "__$('helpText' + tstCurrentPage).innerHTML= acc_numbers[__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value] + ' Results (Accession number: ' +__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value + ')'",
 
       :helpText => "'#{@sputum_submission_waiting_results[acc_numbers[i]]}  Results (Accession number: ' +__$('specimen'+__$('sputum_specimen_#{i+1}_result').getAttribute('accession_number')).value + ')'" } %>

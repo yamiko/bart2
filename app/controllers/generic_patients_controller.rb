@@ -21,12 +21,18 @@ class GenericPatientsController < ApplicationController
 			@prescriptions = restriction.filter_orders(@prescriptions)
 			@programs = restriction.filter_programs(@programs)
 		end
+		#@tb_status = PatientService.patient_tb_status(@patient)
+		#raise @tb_status.downcase.to_yaml
 
 		@date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
 
 		@location = Location.find(session[:location_id]).name rescue ""
-	
 
+		@tb_registration_date = Observation.find_by_sql("select encounter_datetime from obs o
+														inner join encounter e on e.encounter_id = o.encounter_id
+														inner join encounter_type en on en.encounter_type_id = e.encounter_type
+														where o.person_id = #{@patient.id} and en.name = 'tb registration' order by obs_datetime desc limit 1").first.encounter_datetime rescue nil
+		
 		if @location.downcase == "outpatient" || params[:source]== 'opd'
 			render :template => 'dashboards/opdtreatment_dashboard', :layout => false
 		else
@@ -1428,7 +1434,7 @@ end
 
     # Print information on Diagnosis!
     art_start_date = PatientService.date_antiretrovirals_started(patient).strftime("%d-%b-%Y") rescue nil
-    label.draw_multi_text("Diagnosis", {:font_reverse => true})
+    label.draw_multi_text("Stage defining conditions", {:font_reverse => true})
     label.draw_multi_text("Reason for starting: #{who_stage}", {:font_reverse => false})
     label.draw_multi_text("ART start date: #{art_start_date}",{:font_reverse => false})
     label.draw_multi_text("Other diagnosis:", {:font_reverse => true})
@@ -2177,6 +2183,10 @@ end
     when "ta"
       county_district = params[:person][:addresses]
       patient.person.addresses.first.update_attributes(county_district) if county_district
+		when "home_district"
+      home_district = params[:person][:addresses]
+      patient.person.addresses.first.update_attributes(home_district) if home_district
+
     when "cell_phone_number"
       attribute_type = PersonAttributeType.find_by_name("Cell Phone Number").id
       person_attribute = patient.person.person_attributes.find_by_person_attribute_type_id(attribute_type)

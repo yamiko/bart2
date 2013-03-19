@@ -13,8 +13,17 @@
       var message = '<%= params[:error] rescue "" %>';
 
       //setTimeout("confirmOperation('" + message + "', null, true)", 300);
+	  
       
     </script>
+	<style>
+	  #patient-dashboard-main {
+		width: 98% ! important;
+	  }
+	  #buttonlinks {
+		width: 0% ! important;
+	  }
+	</style>
   </head>
   <body><div id='content'>
       <div id='description' style='color:#777;position:absolute;margin-top:-70px;'></div><center>
@@ -72,12 +81,13 @@
 
                <% end %>
             </div>
-            <select id="tabs">
+            <select id="tabs" style="width:100%">
               <option value='/patients/programs?patient_id=<%= @patient.id %>'>Outcomes</option>
             </select>
-          	<select id="links">
+          	<!-- <select id="links">
               <option value='/patients/exitcare_dashboard/<%= @patient.id -%>'>Exit from care</option>
             </select>
+		   -->
             <tr>
               <td align='center'>
                 <input type='submit' value='Finish' />

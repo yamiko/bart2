@@ -47,6 +47,7 @@ end
 
   def rebuild_program_states(patient_program_id, patient_id)
 
+		#raise patient_program_id.to_yaml
     current_patient_program = PatientProgram.find(patient_program_id)
     # gather initial data for the particular program required data
       program_id = current_patient_program.program_id
@@ -114,7 +115,7 @@ end
     reason_for_exiting_care = ConceptName.find_by_name("REASON FOR EXITING CARE").concept_id
     date_of_exiting_care = ConceptName.find_by_name("DATE OF EXITING CARE").concept_id
 
-
+		#raise exit_from_care_encounter.to_yaml
     exit_from_care_encounter.each do |encounter| #loop through the encounters of exit from care encounters
       exit_from_care_type = ''
       exit_from_care_date = ''
@@ -156,12 +157,14 @@ end
           :start_date => exit_from_care_date,
           :creator => User.current.user_id)
         stopped_patient_state.save      
-      end 
-      #update the the on_arvs state, append the exit from care date
-      
-        on_arv_state[:end_date] = exit_from_care_date
-        on_arv_state.save
-            
+      end
+			
+      #update the the on_arvs state, append the exit from care date if the patient is on arvs
+			if ! on_arv_state.nil?
+				on_arv_state[:end_date] = exit_from_care_date.to_date
+				on_arv_state.save
+			end
+
       #update the end date for the patient program    
       current_patient_program.date_completed = exit_from_care_date
       current_patient_program.save
