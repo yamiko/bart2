@@ -88,37 +88,37 @@
 	display:none;
   }
 
-
   .summary div {
 	padding-left:25px;
 	font-size:22px;
   }
 
   .title {
-    margin-right:10px;
-    font-weight:bold;
-    font-size:30px;
+	margin-right:10px;
+    	font-weight:bold;
+    	font-size:30px;
   }
 
   .recommendation {
-    font-style:italic;
+    	font-style:italic;
   }
 
   .warning {
-    color:red;
+    	color:red;
   }
   
   .values {
-    font-size:25px;
+    	font-size:25px;
   }
 
   #tt_page_summary .inputFrameClass {                                                            
-    top: 60px; 
+    	top: 60px; 
   }  
 
   #tt_page_reason_for_lower_adherence{
 	display:none;
   }
+
   #qwerty {
 	display: none;
   }
@@ -128,8 +128,8 @@
   }
 
   #popup {
-    top: 50px;
-	  height:80% ! important;
+    	top: 50px;
+	height:80% ! important;
   }
 
 </style>
@@ -180,18 +180,19 @@
   }
 
   function setAttributes() {
-    page = $("page"+tstCurrentPage);
-    page.style.cssText = "height: 95% !important;";
-    divSummary = document.getElementsByClassName("summary")[0];
-    divSummary.style.cssText = "height: 95%;"
-    flame = document.getElementsByClassName("inputFrameClass")[0];
-    flame.style.cssText = "height: 90%;overflow: auto !important;"
+    	page = $("page"+tstCurrentPage);
+    	page.style.cssText = "height: 95% !important;";
+    	divSummary = document.getElementsByClassName("summary")[0];
+    	divSummary.style.cssText = "height: 95%;"
+    	flame = document.getElementsByClassName("inputFrameClass")[0];
+    	flame.style.cssText = "height: 90%;overflow: auto !important;"
 	/* flame.style.cssText = "overflow: auto !important;"
-    flame2 = document.getElementById("inputFrame2");
-    flame2.style.cssText = "height: 90%;overflow: auto !important;"*/
+    	flame2 = document.getElementById("inputFrame2");
+    	flame2.style.cssText = "height: 90%;overflow: auto !important;"*/
   }
 
 </script>
+
 <body>
   <div id="cover" align="center">
   </div>
@@ -289,12 +290,13 @@
 	  :condition => "abnormalAdherence = 'YES'",
 	  :tt_onLoad => "checkAdherence()",
 	  :helpText  => "Reason for lower adherence" } %>
-	<script>
-	  var abnormalAdherence;
 
-	  function changeButton(){
-		if (realTime == "false"){
-		  try {
+<script>
+  var abnormalAdherence;
+
+  function changeButton(){
+	if (realTime == "false"){
+		 try {
 			document.getElementById("reason_for_adherence").value = "";
 		  }
 		  catch (e){
@@ -303,129 +305,129 @@
 		  element = document.getElementById('nextButton')
 		  element.setAttribute("onmousedown", "checkAdherence()")
 		}
-	  }
+ }
 
-	 function removeButton(){
-	   element = document.getElementById('nextButton')
-		 element.setAttribute("onmousedown", "gotoNextPage()")
-	 }
+  function removeButton(){
+	 element = document.getElementById('nextButton')
+	 element.setAttribute("onmousedown", "gotoNextPage()")
+  }
 
-	 function removeObs(td){
-     /*var reasons  = document.getElementsByClassName('reasons');
-     for(var i = 0; i < reasons.length; i++) {
-       if(td != reasons[i]) {
-         reasons[i].style.background = '';
-       }else{
-         reasons[i].setAttribute('style', 'background-color:lightblue !important');
-       }
-     }*/
-	   document.getElementById("reason_for_adherence").value = td.value
-	 }
+  function removeObs(td){
+	 /*var reasons  = document.getElementsByClassName('reasons');
+     	for(var i = 0; i < reasons.length; i++) {
+       		if(td != reasons[i]) {
+         		reasons[i].style.background = '';
+       		}else{
+        		 reasons[i].setAttribute('style', 'background-color:lightblue !important');
+       		}
+     	}*/
+	  	 document.getElementById("reason_for_adherence").value = td.value
+  }
 
-	 function updateForm(td){
-	    if (document.getElementById("reason_for_adherence").value != ""){
-		  document.getElementById('Reason_for_poor_adherence_to_antiretroviral_therapy').value = document.getElementById("reason_for_adherence").value;
-		  document.getElementById('cover').style.display='none';
-		  td.parentNode.style.display='none';
-		  gotoNextPage();
-		}
+  function updateForm(td){
+	if (document.getElementById("reason_for_adherence").value != ""){
+		 document.getElementById('Reason_for_poor_adherence_to_antiretroviral_therapy').value = document.getElementById("reason_for_adherence").value;
+		 document.getElementById('cover').style.display='none';
+		 td.parentNode.style.display='none';
+		 gotoNextPage();
+	}
 	   
-	 }
+  }
 
-	 function adherenceReport(){
-	   var i = 0;
-		 var amount_remaining = 0;
-		 var summary = new Array;
-
-		 var summary = "<div class='summary' style='height:670px'>";
-		 var amount_brought = 0;
-		 var amount_others = 0;
-
-		 abnormalAdherence = 0;
-		 //for (var i=0; i <  drug_names.length; i++){
-		 for(i in drug_names){
-          if ($("amount_brought_" + i).value == "Unknown"){
+  function adherenceReport(){
+	 var i = 0;
+	 var amount_remaining = 0;
+	 var summary = new Array;
+	 var summary = "<div class='summary' style='height:670px'>";
+	 var amount_brought = 0;
+	 var amount_others = 0;
+	 abnormalAdherence = 0;
+	 //for (var i=0; i <  drug_names.length; i++){
+	 
+	 for(i in drug_names){
+        	 if ($("amount_brought_" + i).value == "Unknown"){
 			amount_brought = 0;
-          } else {
+         	 } else {
 			amount_brought = $("amount_brought_" + i).value;
-          }
+          	}
 
-          if ($("amount_other_" + i).value == "Unknown" || $("amount_other_" + i).value == ""){
+          	if ($("amount_other_" + i).value == "Unknown" || $("amount_other_" + i).value == ""){
 			amount_others = 0;
-          } else {
+         	 } else {
 			amount_others = $("amount_other_" + i).value;
-          }
+          	}
 
-    <% if ask_pills_remaining_at_home %>
-		  amount_remaining = parseFloat(amount_brought);
-		  amount_remaining += parseFloat(amount_others);
-    <%else%>
-		  amount_remaining = parseFloat(amount_brought);
-    <%end%>
+    		<% if ask_pills_remaining_at_home %>
+			  amount_remaining = parseFloat(amount_brought);
+			  amount_remaining += parseFloat(amount_others);
+		 <%else%>
+			  amount_remaining = parseFloat(amount_brought);
+   		 <%end%>
 
-	  var days_overdue_for_visit = since(auto_expire_date[i]);
-	  var doses_missed = 0;
-	  var last_visit_date = dateCreate(order_start_date[i]);
-	  var num_days = since(last_visit_date);
-	  var expected_amount_remaining = parseFloat(amount_given_last_time[i] - (num_days * daily_consumption[i]));
+	  	var days_overdue_for_visit = since(auto_expire_date[i]);
+	  	var doses_missed = 0;
+	  	var last_visit_date = dateCreate(order_start_date[i]);
+	  	var num_days = since(last_visit_date);
+	  	var expected_amount_remaining = parseFloat(amount_given_last_time[i] - (num_days * daily_consumption[i]));
 
-	  expected_amount_remaining = expected_amount_remaining.toFixed(2);
+	  	expected_amount_remaining = expected_amount_remaining.toFixed(2);
 
-	  if(expected_amount_remaining == amount_remaining) {
-		doses_missed = 0;
-	  }else{
-		doses_missed = parseFloat((expected_amount_remaining - amount_remaining) / daily_consumption[i]);
-		doses_missed = Math.round(doses_missed);
-	  }
+	  	if(expected_amount_remaining == amount_remaining) {
+			doses_missed = 0;
+	  	}else{
+			doses_missed = parseFloat((expected_amount_remaining - amount_remaining) / daily_consumption[i]);
+			doses_missed = Math.round(doses_missed);
+	 	 }
 
-	  var adherence = Math.round(100*(amount_given_last_time[i] - amount_remaining) / (amount_given_last_time[i] - expected_amount_remaining))
-
-
-	  if (adherence > 100){
-		adherence = 100 - (adherence - 100);
-	  }
-
-	  if (adherence < 0){
-		adherence = 0;
-	  }
+	  	var adherence = Math.round(100*(amount_given_last_time[i] - amount_remaining) / (amount_given_last_time[i] - expected_amount_remaining))
 
 
-	  $('adherence_'+i).value = adherence;
+	  	if (adherence > 100){
+			adherence = 100 - (adherence - 100);
+	  	}
 
-	  var drug_name = drug_names[i];
-	  var warning = (adherence < 95) ? 'warning' : '';
+	  	if (adherence < 0){
+			adherence = 0;
+	  	}
 
-	  summary += "<div><span class='title'></span><span class='title'>"+drug_name+"</span></div>"
-	  summary += "<div><span >Last visit date:&nbsp;</span><span class='value'>"+dateFormat(last_visit_date,"dddd, mmmm dS, yyyy")+"</span></div>"
-	  if (doses_missed >= 0){
-		summary += "<div><span class='value'>Doses unaccounted for:&nbsp;</span><span class='value'>"+doses_missed+"</span></div>"
-		document.getElementById("doses_missed_" + i).value = doses_missed;
-	  }
+
+	  	$('adherence_'+i).value = adherence;
+
+	  	var drug_name = drug_names[i];
+	  	var warning = (adherence < 95) ? 'warning' : '';
+
+	  	summary += "<div><span class='title'></span><span class='title'>"+drug_name+"</span></div>"
+	  	summary += "<div><span >Last visit date:&nbsp;</span><span class='value'>"+dateFormat(last_visit_date,"dddd, mmmm dS, yyyy")+"</span></div>"
+	  	
+		if (doses_missed >= 0){
+			summary += "<div><span class='value'>Doses unaccounted for:&nbsp;</span><span class='value'>"+doses_missed+"</span></div>"
+			document.getElementById("doses_missed_" + i).value = doses_missed;
+	  	}
 			     
-	  if (doses_missed < 0) {
-		summary += "<div><span>Doses missed:&nbsp;</span><span class='value'>"+(-doses_missed)+"</span></div>"
-		document.getElementById("doses_missed_" + i).value = (-doses_missed);
-	  }
-	  summary += "<div><span>Tablets given last time:&nbsp;</span><span class='value'>"+(amount_given_last_time[i])+"</span></div>"
-	  summary += "<div><span>Daily consumption:&nbsp;</span><span class='value'>"+(daily_consumption[i])+"</span></div>"
-	  if (expected_amount_remaining >= 0) summary += "<div><span >Expected tablets remaining:&nbsp;</span><span class='value'>"+expected_amount_remaining+"</span></div>"
-	  if (expected_amount_remaining < 0 && days_overdue_for_visit > 0) summary += "<div><span>Days overdue for visit:&nbsp;</span><span class='value'>"+days_overdue_for_visit+"</span></div>"
-	  summary += "<div><span>Actual tablets remaining:&nbsp;</span><span class='value'>"+amount_remaining+"</span></div>"
+		if (doses_missed < 0) {
+			summary += "<div><span>Doses missed:&nbsp;</span><span class='value'>"+(-doses_missed)+"</span></div>"
+			document.getElementById("doses_missed_" + i).value = (-doses_missed);
+	  	}
+	  	summary += "<div><span>Tablets given last time:&nbsp;</span><span class='value'>"+(amount_given_last_time[i])+"</span></div>"
+	  	summary += "<div><span>Daily consumption:&nbsp;</span><span class='value'>"+(daily_consumption[i])+"</span></div>"
+	  	if (expected_amount_remaining >= 0) summary += "<div><span >Expected tablets remaining:&nbsp;</span><span class='value'>"+expected_amount_remaining+"</span></div>"
+	  	if (expected_amount_remaining < 0 && days_overdue_for_visit > 0) summary += "<div><span>Days overdue for visit:&nbsp;</span><span class='value'>"+days_overdue_for_visit+"</span></div>"
+	  	summary += "<div><span>Actual tablets remaining:&nbsp;</span><span class='value'>"+amount_remaining+"</span></div>"
 
-	  document.getElementById("doses_missed_" + i).value = doses_missed;
+	  	document.getElementById("doses_missed_" + i).value = doses_missed;
 
-	  summary += "<div class='value'><span>Percentage of doses taken:&nbsp;</span><span class='value'>"+ adherence +"%</span></div>"
-	  if (adherence < 95 || adherence > 105){
-		summary += "<div class='" + warning + "'><span style='color:red' class='recommendation'>Patient needs counseling</span></div><br /><br />"
-		abnormalAdherence = adherence
-	  }
-			    
+	  	summary += "<div class='value'><span>Percentage of doses taken:&nbsp;</span><span class='value'>"+ adherence +"%</span></div>"
+	  	if (adherence < 95 || adherence > 105){
+			summary += "<div class='" + warning + "'><span style='color:red' class='recommendation'>Patient needs counseling</span></div><br /><br />"
+			abnormalAdherence = adherence
+	  	}			    
 	}
 	summary += "</div>"
 
 	$('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + summary + '</div>' ;
 	$("clearButton").style.display = 'none';
   }
+
   function checkAdherence(){
 	if (abnormalAdherence != 0){
 	var reasonForLowerAdherence = ['Run out of drugs','Sharing of drugs','Overdose','Pills misplaced','Other']
@@ -481,7 +483,8 @@
 	var months = new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
 	return ""+date.getDate()+"-"+months[date.getMonth()]+"-"+date.getFullYear();
   }
-	</script>
+
+</script>
 
 	<%
 

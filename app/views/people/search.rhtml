@@ -370,6 +370,7 @@ end -%>
         <% @patients.each do | patient |
           next if patient.blank?
           -%>
+						
 				<% if @relation.blank? %>
 					<option value="<%= patient.person_id %>" onmousedown="changeNextButtonText('Select Patient')">
 				<% else %>
@@ -382,6 +383,9 @@ end -%>
           </option>
         <% end -%>
       </select>
+	  <% unless @relation.blank? %>
+		 <input type="hidden" id="patient_guardian" name="patient_guardian" value="YES" />
+	 <% end %>
       <input type="hidden" id="identifier" name="identifier" value="<%=h params[:identifier] -%>" />
       <input type="hidden" id="gender" name="gender" value="<%=h params[:gender] -%>" />
       <input type="hidden" id="given_name" name="given_name" value="<%=h params[:given_name] -%>" />

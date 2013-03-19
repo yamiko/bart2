@@ -340,12 +340,17 @@ class GenericPeopleController < ApplicationController
     elsif params[:person][:id] != '0' && Person.find(params[:person][:id]).dead == 1
       redirect_to :controller => :patients, :action => :show, :id => params[:person][:id]
     else
+			#raise params.to_yaml
       if params[:person][:id] != '0'
         person = Person.find(params[:person][:id])
         patient = DDEService::Patient.new(person.patient)
         patient_id = PatientService.get_patient_identifier(person.patient, "National id")
         if patient_id.length != 6 and create_from_dde_server
           patient.check_old_national_id(patient_id)
+					unless params[:patient_guardian].blank?
+							 print_and_redirect("/patients/national_id_label?patient_id=#{person.id}", "/patients/guardians_dashboard/#{person.id}") and return
+					end
+
           print_and_redirect("/patients/national_id_label?patient_id=#{person.id}", next_task(person.patient)) and return
         end
       end
