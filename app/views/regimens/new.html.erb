@@ -172,7 +172,6 @@
 	height:600;
   }
 
-
   .tt_controls_duration .abcKeyboard {
    	 display: none;
   }
@@ -224,6 +223,12 @@
 	width:100%;
   }
 
+  .tt_controls_duration_of_art_drugs .keyboard { display:none !important; }                    
+
+  #tt_page_duration_of_art_drugs .options {  height: 90%; }                         
+
+  #tt_page_duration_of_art_drugs .inputFrameClass {  height: 86%; }
+
   tr th {
 	background-color:gray;
 	padding:10px;
@@ -253,6 +258,10 @@
     	padding-right: 5px;
   }
 
+<<<<<<< HEAD
+  .NoKeyboard .inputFrameClass {
+	height:600;
+=======
   .selectedOption {
     	background-color: lightblue;
   }
@@ -273,6 +282,7 @@
     	-moz-user-select:none;
     	width: 100%;
     	font-size: 20px;
+>>>>>>> ad31c5ab06ec408982e580b8565c22733893d126
   }
 
   .prescription_container th {
@@ -362,6 +372,35 @@
 	element = document.getElementById('nextButton')
 	element.setAttribute("onmousedown", "gotoNextPage()")
   }
+<<<<<<< HEAD
+    function getArt(programId) {
+    var aUrl = "/regimens/check_current_regimen_index?patient_age=<%= @patient_bean.age %>&id=" + programId + "&search_string=";
+    var httpRequest = new XMLHttpRequest();
+    httpRequest.onreadystatechange = function() {
+      set_total(httpRequest);
+    };
+      httpRequest.open('GET', aUrl, false);
+      httpRequest.send(null);
+	  for (x=0; x < response.length; x ++){
+		for (i =0; i < regimens.length; i ++){
+		  alert(regimens[i])
+		  alert(response[x][0].split('-')[1])
+		  if (response[x][0].split('-')[1].toString().downcase == regimens[i].toString().downcase){
+
+			found = response[x][0].split('-')[0]
+		  }
+		}
+	  }
+	  alert(found)
+  }
+
+  function set_total(req) {
+    if (req.readyState == 4 && req.status == 200) {
+     response = JSON.parse(req.responseText);
+    }
+  }
+=======
+>>>>>>> ad31c5ab06ec408982e580b8565c22733893d126
 
   function contraindicators(){
 				var foundEvents = []

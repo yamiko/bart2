@@ -305,7 +305,7 @@ td {
 
 </style>
 
-<%#= image_tag(@logo, :class => "logo")%>
+<%= image_tag(@logo, :class => "logo")%>
 <br /><b style="margin-left:75px"><%= @current_location_name %></b><br />
 <b style="position:relative; top:0px;margin-left:75px">Possible patient duplicates</b>
 
@@ -403,7 +403,7 @@ td {
   }
 
   function mergePatients(patient_id,row_id){
-     
+
     buttons = document.getElementsByClassName('button_row_' + row_id)
     patient_ids = patient_id
     for(i = 0 ; i < buttons.length ; i++){
@@ -476,13 +476,13 @@ td {
   function confirmMerge(patient_id, row_id){
     var master = patient_id;
     var slaves = []
-    
+
     buttons = document.getElementsByClassName("button_row_" + row_id)
     for(i=0; i<buttons.length; i++){
       if(buttons[i].id != master){
         slaves.push(buttons[i].id)
       }
-      
+
     }
 
 new Ajax.Request("/patients/confirm_merge?master_id=" + master + '&slaves_ids=' + slaves,
@@ -496,7 +496,7 @@ new Ajax.Request("/patients/confirm_merge?master_id=" + master + '&slaves_ids=' 
           }
         }
         createConfirmPage(patients);
-        
+
       }
     })
 }
@@ -510,16 +510,16 @@ function createConfirmPage(patients){
   //slaves_table.id = "slaves_table"
   master_table = document.createElement("table")
   master_table.id = "master_table"
-  data = "<table style='postion:absolute; margin-top:80px' cellspacing='0' cellpadding='0' border='0' width='100%';>"
-  data += "<tr><td><table cellspacing='0' cellpadding='1' border='1' width='100%' >"
-  data += "<tr style='text-align: left; background-color: #669999;'><th>First Name</th><th>Last Name</th><th>Gender</th><th>Date of Birth</th><th>Village</th><th>T/A</th><th>Date created</th><th>&nbsp;</th></tr></table></td></tr>"
-  data += "<tr><td><div style='width:100%; height:327px; overflow:auto; border:0px'>"
-  data +="<table cellspacing='0' cellpadding='1' border='1' width='100%' >"
-  html = "<thead><tr><th>First Name</th><th>Last Name</th><th>Gender</th><th>Date of Birth</th><th>Village</th><th>T/A</th><th>Date created</th></tr></thead>"
+  data = "<table style='position:absolute; margin-top:80px; font-size:10pt' cellspacing='0' cellpadding='0' border='0' width='900px';>"
+  data += "<tr><td><table cellspacing='0' cellpadding='1' border='1' width='900px' >"
+  data += "<tr style='text-align: left; background-color: #8FBC8F;'><th>Name</th><th>Gender</th><th>Date of Birth</th><th>Village</th><th>T/A</th><th>Date created</th><th>&nbsp;</th></tr></table></td></tr>"
+  data += "<tr><td style='width:600px'><div style='width:900px; height:327px; overflow:auto; border:0px'>"
+  data +="<table cellspacing='0' cellpadding='1' border='1' width='50px' >"
+  html = "<thead><tr><th>Name</th><th>Gender</th><th>Date of Birth</th><th>Village</th><th>T/A</th><th>Date created</th></tr></thead>"
   for(patient in patients){
     if (patients[patient].master) continue
-      data+="<tr><td>" + patients[patient].first_name + "</td>"
-      data+="<td>" + patients[patient].last_name + "</td>"
+      data+="<tr><td>" + patients[patient].first_name + ' ' + patients[patient].last_name + "</td>"
+      //data+="<td>" + patients[patient].last_name + "</td>"
       data+="<td>" + patients[patient].gender + "</td>"
       data+="<td>" + patients[patient].date_of_birth + "</td>"
       data+="<td>" + patients[patient].city_village + "</td>"
@@ -530,8 +530,8 @@ function createConfirmPage(patients){
   data+="</table></div></td></tr></table>"
   for(patient in patients){
     if (patients[patient].master){
-      html+="<tr class='master_row' id=" + patient + "><td>" + patients[patient].first_name + "</td>"
-      html+="<td>" + patients[patient].last_name + "</td>"
+      html+="<tr class='master_row' id=" + patient + "><td>" + patients[patient].first_name + ' ' + patients[patient].last_name + "</td>"
+      //html+="<td>" + patients[patient].last_name + "</td>"
       html+="<td>" + patients[patient].gender + "</td>"
       html+="<td>" + patients[patient].date_of_birth + "</td>"
       html+="<td>" + patients[patient].city_village + "</td>"
@@ -542,14 +542,14 @@ function createConfirmPage(patients){
 	div.innerHTML = data
 	master_table.innerHTML=html
 	confirm_page.appendChild(master_table)
- 
+
 	confirmPage = document.getElementById('confirmPage')
     img = document.createElement('img')
     img.src='/images/pointer.png'
     img.className = 'pointer'
     confirmPage.appendChild(img)
 
- 
+
 }
 
 function hideObject(){
@@ -579,7 +579,7 @@ function grabIds(){
     if (inputs[i].checked == true){
       patients_ids.push(inputs[i].id)
     }
-    
+
   }
   if ((patients_ids.length) == 1){
   	return
@@ -591,7 +591,7 @@ function grabIds(){
         tds = document.getElementsByClassName("row_number_" + row_number)
           for(i = 0 ; i < tds.length ; i++){
             tds[i].style.display = 'none';
-            
+
           }
       }
     }});
@@ -616,7 +616,7 @@ function grabIds(){
     width: 421px;
     -moz-user-select:none;
   }
-  
+
     #popup_box span{
     font-size:40px;
   }
@@ -647,14 +647,14 @@ function grabIds(){
     height: 579px;
     padding: 5px;
     position: absolute;
-    width: 1260px;
+    width: 900px;
     -moz-user-select:none;
-    
+
 }
 #continue {
       position: absolute;
       border-radius: 7px;
-      background-color: #669999;
+      background-color: #57C057;
       border-bottom: 1px outset black;
       border-style: outset;
       border-top: 1px outset black;
@@ -664,7 +664,7 @@ function grabIds(){
       text-decoration: none;
       cursor: pointer;
       top:512px;
-      left: 747px;
+      left: 555px;
       font-weight: bold;
       font-size: 18pt;
   }
@@ -672,7 +672,7 @@ function grabIds(){
   #cancel {
       position: absolute;
       border-radius: 7px;
-      background-color: #669999;
+      background-color: #57C057;
       border-bottom: 1px outset black;
       border-style: outset;
       border-top: 1px outset black;
@@ -682,18 +682,18 @@ function grabIds(){
       text-decoration: none;
       cursor: pointer;
       top:512px;
-      left: 379px;
+      left: 190px;
       font-weight: bold;
       font-size: 18pt;
   }
-  
+
   #slaves_table{
   	width: 100%;
   	line-height: 48px;
   }
 
  #slaves{
- 
+
  position: absolute;
  height: 359px;
  top: 62px;
@@ -708,7 +708,7 @@ border: 0px;
 }
 
 #slaves table tr td{
-min-width:149px
+min-width:124px;
 
 }
 
@@ -722,7 +722,7 @@ input[type="checkbox"] {
 	top: 71px;
 	width: 66px;
 	height: 65px;
-	left: 623px;
+	left: 419px;
 }
 </style>
 <div class="horizontal_line">
@@ -733,7 +733,7 @@ input[type="checkbox"] {
       </span>
 </div>
 <div id="cover">
-  
+
 </div>
 
 

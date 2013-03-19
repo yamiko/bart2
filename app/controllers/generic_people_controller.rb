@@ -164,7 +164,7 @@ class GenericPeopleController < ApplicationController
       results.national_id = national_id
       results.current_residence =data["person"]["data"]["addresses"]["city_village"]
       results.person_id = 0
-      results.home_district = data["person"]["data"]["addresses"]["state_province"]
+      results.home_district = data["person"]["data"]["addresses"]["address2"]
       results.traditional_authority =  data["person"]["data"]["addresses"]["county_district"]
       results.name = data["person"]["data"]["names"]["given_name"] + " " + data["person"]["data"]["names"]["family_name"]
       gender = data["person"]["data"]["gender"]
@@ -187,6 +187,7 @@ class GenericPeopleController < ApplicationController
       results.guardian = patient.guardian
       results.person_id = patient.person_id
       results.home_district = patient.home_district
+      results.current_district = patient.current_district
       results.traditional_authority = patient.traditional_authority
       results.mothers_surname = patient.mothers_surname
       results.dead = patient.dead
@@ -203,9 +204,8 @@ class GenericPeopleController < ApplicationController
 		(@search_results || {}).each do | npid , data |
 			@patients << data
 		end
-    
 	end
-
+  
   def search_from_dde
 		found_person = PatientService.person_search_from_dde(params)
     if found_person
@@ -252,14 +252,14 @@ class GenericPeopleController < ApplicationController
 		@patient_identifiers = PatientIdentifier.find(:all,                                                
 		  :conditions=>["patient_id=? AND identifier_type IN (?)",                  
 			patient.id,identifier_types]).collect{| i | i.identifier }
-			
+			if show_lab_results
         @results = Lab.latest_result_by_test_type(@person.patient, 'HIV_viral_load', @patient_identifiers) rescue nil
-       	@results.to_yaml
         @latest_date = @results[0].sub("::HIV_RNA_PCR",'').to_date rescue nil
         @latest_result = @results[1]["TestValue"] rescue nil
         @modifier = @results[1]["Range"] rescue nil
+      end
         @reason_for_art = PatientService.reason_for_art_eligibility(patient)
-		@outcome = patient.patient_programs.last.patient_states.last.program_workflow_state.concept.fullname
+        @outcome = patient.patient_programs.last.patient_states.last.program_workflow_state.concept.fullname
 		                                                         
 		render :layout => false
 	end
