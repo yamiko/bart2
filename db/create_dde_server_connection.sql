@@ -12,5 +12,5 @@ INSERT INTO global_property (property, property_value, `description`, uuid) VALU
 
 DELETE FROM global_property WHERE property = 'create.from.dde.server';
 
-INSERT INTO global_property (property, property_value, `description`, uuid) VALUES ('create.from.dde.server', 'false', '', (SELECT UUID()));
+INSERT INTO global_property (property, property_value, `description`, uuid) VALUES ('create.from.dde.server', 'false', 'Demographics Data Exchange connection parameter', (SELECT UUID()));
 
