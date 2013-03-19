@@ -2177,6 +2177,10 @@ end
     when "ta"
       county_district = params[:person][:addresses]
       patient.person.addresses.first.update_attributes(county_district) if county_district
+		when "home_district"
+      home_district = params[:person][:addresses]
+      patient.person.addresses.first.update_attributes(home_district) if home_district
+
     when "cell_phone_number"
       attribute_type = PersonAttributeType.find_by_name("Cell Phone Number").id
       person_attribute = patient.person.person_attributes.find_by_person_attribute_type_id(attribute_type)
