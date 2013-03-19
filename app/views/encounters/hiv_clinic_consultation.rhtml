@@ -278,12 +278,12 @@
 
   <%
   art_adherence_to_be_done = false
-  (PatientService.drug_given_before(@patient,date) || []).uniq.each do |order|  
-      next unless MedicationService.arv(order.drug_order.drug)
+  (PatientService.art_drug_given_before(@patient,date) || []).uniq.each do |order|  
+      #next unless MedicationService.arv(order.drug_order.drug)
       art_adherence_to_be_done = true
       break
   end
-  
+ 
   if art_adherence_to_be_done
     e = EncounterType.find_by_name("ART ADHERENCE")
     art_adherence_to_be_done = Encounter.find(:first,

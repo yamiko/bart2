@@ -4,6 +4,7 @@ module PatientService
 	require 'json'
 	require 'rest_client'
 	require 'dde_service'
+	require 'medication_service'
 
   def self.search_from_remote(params)
     return [] if params[:given_name].blank?
@@ -1867,8 +1868,10 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
                       'SOURCE OF REFERRAL','UPDATE HIV STATUS','LAB ORDERS',
                       'SPUTUM SUBMISSION','LAB RESULTS','TB_INITIAL',
                       'TB RECEPTION','TB REGISTRATION','TB VISIT',
-                      'TB ADHERENCE','TB CLINIC VISIT'
+                      'TB ADHERENCE','TB CLINIC VISIT','DISPENSING'
                      ]
+
+    clinic_encounters  =  ['DISPENSING']
 
     encounter_type_ids = EncounterType.find_all_by_name(clinic_encounters).collect{|e|e.id}
 
@@ -1895,9 +1898,11 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
 
   def self.art_drug_given_before(patient, date = Date.today)
     clinic_encounters  =  [
-                      'HIV CLINIC REGISTRATION','HIV STAGING',
+                      'HIV CLINIC REGISTRATION','HIV STAGING','DISPENSING',
                       'HIV CLINIC CONSULTATION','ART ADHERENCE','HIV RECEPTION'
                      ]
+
+    clinic_encounters  =  ['DISPENSING']
 
     encounter_type_ids = EncounterType.find_all_by_name(clinic_encounters).collect{|e|e.id}
 
@@ -1918,7 +1923,8 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
         :order =>"obs_datetime")
 
     (orders || []).reject do |order|
-      !MedicationService.arv(order.drug_order.drug)
+      drug = order.drug_order.drug
+      !MedicationService.arv(drug)
     end
   end
 end

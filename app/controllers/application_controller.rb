@@ -800,7 +800,7 @@ class ApplicationController < GenericApplicationController
 		reason_for_art = nil				
 	end
 	 #raise encounters.to_yaml
-    encounters.each do | type |
+    (encounters || []).each do | type |
 		type =type.squish
       encounter_available = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ? AND DATE(encounter_datetime) = ?",
                                      patient.id,EncounterType.find_by_name(type).id, session_date],
@@ -845,10 +845,11 @@ class ApplicationController < GenericApplicationController
               :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
 
             arv_drugs_given = false                                               
-            PatientService.drug_given_before(patient,session_date).each do |order|
-              next unless MedicationService.arv(order.drug_order.drug)            
+            PatientService.art_drug_given_before(patient,session_date).each do |order|
               arv_drugs_given = true                                              
-            end                                                                   
+              break
+            end     
+                                                                          
             if arv_drugs_given                                           
               if adherence_encounter_available.blank? and user_selected_activities.match(/Manage ART adherence/i)
                 task.encounter_type = "ART ADHERENCE"
@@ -858,7 +859,7 @@ class ApplicationController < GenericApplicationController
                 task.encounter_type = "ART ADHERENCE"
                 task.url = "/patients/show/#{patient.id}"                           
                 return task                                                         
-              end if not PatientService.drug_given_before(patient,session_date).blank?
+              end if not PatientService.art_drug_given_before(patient,session_date).blank?
             end
           end if refer_to_clinician 
 
@@ -979,18 +980,20 @@ class ApplicationController < GenericApplicationController
           end if show_treatment
         when 'ART ADHERENCE'
           arv_drugs_given = false 
-          PatientService.drug_given_before(patient,session_date).each do |order|
-            next unless MedicationService.arv(order.drug_order.drug)
+          PatientService.art_drug_given_before(patient,session_date).each do |order|
             arv_drugs_given = true
+            break
           end
+          
           next unless arv_drugs_given
+
           if encounter_available.blank? and user_selected_activities.match(/Manage ART adherence/i)
             task.url = "/encounters/new/art_adherence?show&patient_id=#{patient.id}"
             return task
           elsif encounter_available.blank? and not user_selected_activities.match(/Manage ART adherence/i)
             task.url = "/patients/show/#{patient.id}"
             return task
-          end if not PatientService.drug_given_before(patient,session_date).blank?
+          end if not PatientService.art_drug_given_before(patient,session_date).blank?
       end
     end
     #task.encounter_type = 'Visit complete ...'
@@ -1113,9 +1116,9 @@ class ApplicationController < GenericApplicationController
       end
 
       arv_drugs_given = false
-      PatientService.drug_given_before(patient,session_date).each do |order|
-        next unless MedicationService.arv(order.drug_order.drug)            
+      PatientService.art_drug_given_before(patient,session_date).each do |order|
         arv_drugs_given = true                                              
+        break
       end
 
       if task.encounter_type == 'ART ADHERENCE' and not arv_drugs_given
