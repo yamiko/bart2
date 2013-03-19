@@ -21,6 +21,8 @@ class GenericPatientsController < ApplicationController
 			@prescriptions = restriction.filter_orders(@prescriptions)
 			@programs = restriction.filter_programs(@programs)
 		end
+		#@tb_status = PatientService.patient_tb_status(@patient)
+		#raise @tb_status.downcase.to_yaml
 
 		@date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
 
