@@ -1427,7 +1427,7 @@ end
     # Patient personanl data 
     label.draw_multi_text("#{Location.current_health_center.name} transfer out label", {:font_reverse => true})
     label.draw_multi_text("To #{destination}", {:font_reverse => false}) unless destination.blank?
-    label.draw_multi_text("ARV numbers: #{demographics.arv_number}", {:font_reverse => true})
+    label.draw_multi_text("ARV number: #{demographics.arv_number}", {:font_reverse => true})
     label.draw_multi_text("Name: #{demographics.name} (#{demographics.sex.first})\nAge: #{demographics.age}", {:font_reverse => false})
 
     # Print information on Diagnosis!
