@@ -25,8 +25,12 @@ class GenericPatientsController < ApplicationController
 		@date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
 
 		@location = Location.find(session[:location_id]).name rescue ""
-	
 
+		@tb_registration_date = Observation.find_by_sql("select encounter_datetime from obs o
+														inner join encounter e on e.encounter_id = o.encounter_id
+														inner join encounter_type en on en.encounter_type_id = e.encounter_type
+														where o.person_id = #{@patient.id} and en.name = 'tb registration' order by obs_datetime desc limit 1").first.encounter_datetime rescue nil
+		
 		if @location.downcase == "outpatient" || params[:source]== 'opd'
 			render :template => 'dashboards/opdtreatment_dashboard', :layout => false
 		else
@@ -1423,12 +1427,12 @@ end
     # Patient personanl data 
     label.draw_multi_text("#{Location.current_health_center.name} transfer out label", {:font_reverse => true})
     label.draw_multi_text("To #{destination}", {:font_reverse => false}) unless destination.blank?
-    label.draw_multi_text("ARV number: #{demographics.arv_number}", {:font_reverse => true})
+    label.draw_multi_text("ARV numbers: #{demographics.arv_number}", {:font_reverse => true})
     label.draw_multi_text("Name: #{demographics.name} (#{demographics.sex.first})\nAge: #{demographics.age}", {:font_reverse => false})
 
     # Print information on Diagnosis!
     art_start_date = PatientService.date_antiretrovirals_started(patient).strftime("%d-%b-%Y") rescue nil
-    label.draw_multi_text("Diagnosis", {:font_reverse => true})
+    label.draw_multi_text("Stage defining conditions", {:font_reverse => true})
     label.draw_multi_text("Reason for starting: #{who_stage}", {:font_reverse => false})
     label.draw_multi_text("ART start date: #{art_start_date}",{:font_reverse => false})
     label.draw_multi_text("Other diagnosis:", {:font_reverse => true})
