@@ -2885,7 +2885,7 @@ end
 			else
 					pre_fix = "sec"
 			end
-#			raise params.to_yaml
+
 			person = PatientService.get_patient(Person.find(params["name"]))
 			
 			@values[pre_fix + "_name"] = person.name

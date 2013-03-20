@@ -82,7 +82,7 @@ class ApplicationController < GenericApplicationController
     end
 
     tb_encounters.each do | type |
-      task.encounter_type = type 
+			task.encounter_type = type
 
       case type
         when 'SOURCE OF REFERRAL'
@@ -425,6 +425,7 @@ class ApplicationController < GenericApplicationController
                                          patient.id,EncounterType.find_by_name(type).id],
                                          :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
 
+				#raise user_selected_activities.to_yaml
           if hiv_clinic_registration.blank? and user_selected_activities.match(/Manage HIV first visits/i)
             task.url = "/encounters/new/hiv_clinic_registration?show&patient_id=#{patient.id}"
             return task

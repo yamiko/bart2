@@ -1449,8 +1449,10 @@ class EncountersController < GenericEncountersController
 	end
 
   def lab_results_label(patient_id)
-			patient = Patient.find(patient_id)
-			patient_bean = PatientService.get_patient(patient.person)
+		patient = Patient.find(patient_id)
+		patient_bean = PatientService.get_patient(patient.person)
+
+		begin
 			observation = patient_recent_lab_results(patient_id)
 			sputum_results = [['NEGATIVE','NEGATIVE'], ['SCANTY','SCANTY'], ['WEAKLY POSITIVE','1+'], ['MODERATELY POSITIVE','2+'], ['STRONGLY POSITIVE','3+']]
 			concept_one = ConceptName.find_by_name("First sputum for AAFB results").concept_id
@@ -1509,6 +1511,9 @@ class EncountersController < GenericEncountersController
       end
 
       return print_labels
+		rescue
+			return
+		end
   end
 	
 	
