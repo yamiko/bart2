@@ -18,17 +18,19 @@ $tb_outc = { 1 => Concept.find_by_name("currently in treatment").fullname, 2 => 
 $hiv_status = { 1 => Concept.find_by_name("positive").id, 0 => Concept.find_by_name("negative").id, 2 => Concept.find_by_name("unknown").id, 9 => Concept.find_by_name("unknown").id }
 
 
+$arv_status = {1 => Concept.find_by_name("Yes").id, 2 => Concept.find_by_name("Yes").id, 3 => Concept.find_by_name("No").id, 9 => Concept.find_by_name("Unknown").id}
+
 
 def import
 
-	mpc_records = MysqlConnection.connection.select_all("SELECT * FROM CSVImport limit 200")
-	encounter_types = [EncounterType.find_by_name("TB_initial").id,EncounterType.find_by_name("TB registration").id,EncounterType.find_by_name("TB visit").id,EncounterType.find_by_name("treatment").id,EncounterType.find_by_name("Dispensing").id, EncounterType.find_by_name("update hiv status").id,EncounterType.find_by_name("lab results").id ,EncounterType.find_by_name("tb clinic visit").id, EncounterType.find_by_name("give lab results").id]	
+	mpc_records = MysqlConnection.connection.select_all("SELECT * FROM CSVImport limit 1000")
+	encounter_types = [EncounterType.find_by_name("TB_initial").id,EncounterType.find_by_name("TB registration").id,EncounterType.find_by_name("TB visit").id,EncounterType.find_by_name("treatment").id,EncounterType.find_by_name("Dispensing").id, EncounterType.find_by_name("update hiv status").id,EncounterType.find_by_name("lab results").id, EncounterType.find_by_name("tb clinic visit").id, EncounterType.find_by_name("give lab results").id]	
 	
 	count = mpc_records.length
 	puts "Patients to be migrated #{count}"
 	mpc_records.each do |record|
 
-		puts "#{count} patients to go. Patient: #{record['patientID']}"
+		puts "#{count} patients to go. Patient: #{record['patientID']}, Record ID: #{record['RecID']} "
 
 		$entry = record
 	
@@ -51,8 +53,12 @@ def import
 
 		registration_enc(create_encounter(encounter_types[1],record), record["patientID"],record["pat_cat"],record["tb_type"], record["tb_ID"] ,record["tb_regdate"], 1, record["tb_outc"], record["tb_outcdate"])
 	
+
 		visit_enc(create_encounter(encounter_types[2],record), record)
 		
+			tb_clinic_visit_enc(create_encounter(encounter_types[7],record), record["patientID"],record["tb_regdate"],1, record["arv_status"]) unless $arv_status[record["arv_status"].to_i].nil?
+			
+
 		if !record["tb_txreg"].nil? || !record["tb_txreg"] == " "
 			treatment_enc(create_encounter(encounter_types[3],record), record)
 			treatment_encounter = current_treatment_encounter(Patient.find(record["patientID"]),record["tb_regdate"], $creator)
@@ -175,8 +181,6 @@ def initial_enc(enc_id, pat_id, smear_result, reg_date, location)
 
 	create_obs(pat_id, enc_id,Concept.find_by_name("ever received tb treatment").id,ans, reg_date,$tb_place[location])
 
-#	create_obs(pat_id, enc_id,Concept.find_by_name("on art").id,$entry["arv_status"], reg_date,$tb_place[location])
-
 end
 
 def lab_orders(enc_id, accession1, accession2) 
@@ -218,7 +222,12 @@ def registration_enc(id, pat_id, pat_cat, tb_type, tb_ID, regdate, tb_place, out
 	create_obs(pat_id, id, Concept.find_by_name("tb classification").id, $tb_type[tb_type.to_i], regdate, $tb_place[tb_place.to_i]) unless $tb_type[tb_type.to_i].nil?
 	create_obs(pat_id, id, Concept.find_by_name("tb patient category").id, $pat_cat[pat_cat.to_i], regdate, $tb_place[tb_place.to_i]) unless $pat_cat[pat_cat.to_i].nil?
 	create_obs(pat_id, id, Concept.find_by_name("tb susceptibility").id, Concept.find_by_name("susceptible").id, regdate, $tb_place[1])
+	
+	if $pat_cat[pat_cat.to_i] == 1
+		create_obs(pat_id, id, Concept.find_by_name("Directly observed treatment option").id, Concept.find_by_name("guardian").id, regdate, $tb_place[1])
+	else
 		create_obs(pat_id, id, Concept.find_by_name("Directly observed treatment option").id, Concept.find_by_name("hospital").id, regdate, $tb_place[1])
+	end
 	
 	tb_number = PatientIdentifier.new()
 	tb_number.patient_id =  pat_id
@@ -252,10 +261,11 @@ def visit_enc(id, details)
 end
 
 
-def tb_clinic_visit_enc( status)
+def tb_clinic_visit_enc(enc_id, pat_id,reg_date, tb_place, status)
 
-	if !$arv_status[status].nil?
-		#write if the patient is on arv. Used for mastercards to determine A,B,C values			
+	if !$entry["arv_status"].nil?
+		create_obs(pat_id, enc_id,Concept.find_by_name("on art").id,$arv_status[status.to_i], reg_date,$tb_place[tb_place])
+
 	end
 
 end
