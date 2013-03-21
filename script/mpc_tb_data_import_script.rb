@@ -11,7 +11,7 @@ $pat_cat = { 1 => Concept.find_by_name("NEW PATIENT").id, 2 => Concept.find_by_n
 
 $tb_txreg ={1 => Concept.find_by_name("RHZE").id, 2 => Concept.find_by_name("Isoniazid").id, 3 => Concept.find_by_name("Pyrazinamide").id, 4 => Concept.find_by_name("Ethambutol").id , 5 => Concept.find_by_name("Streptomycin").id , 6 => Concept.find_by_name("Other").id,7 =>Concept.find_by_name("RHZ").id , 8 => Concept.find_by_name("RH+Z+S").id, 9 => Concept.find_by_name("unknown").id, 10 => Concept.find_by_name("RHZE+S").id , 11 => Concept.find_by_name("RH+Z+S").id} 
 
-$smear_initial = {1 => Concept.find_by_name("positive").id, 2 => Concept.find_by_name("negative").id, 3 => Concept.find_by_name("unknown").id }
+$smear_initial = {1 => Concept.find_by_name("moderately positive").id, 2 => Concept.find_by_name("negative").id, 3 => Concept.find_by_name("unknown").id }
 
 $tb_outc = { 1 => Concept.find_by_name("currently in treatment").fullname, 2 => Concept.find_by_name("patient cured").fullname, 3 => Concept.find_by_name("treatment complete").fullname, 4 => Concept.find_by_name("patient died").fullname, 5 => Concept.find_by_name("Defaulted").fullname, 6 => Concept.find_by_name("patient transferred out").fullname, 7 =>  Concept.find_by_name("regimen failure").fullname, 9 => Concept.find_by_name("unknown").fullname }
 
@@ -21,14 +21,14 @@ $hiv_status = { 1 => Concept.find_by_name("positive").id, 0 => Concept.find_by_n
 
 def import
 
-	mpc_records = MysqlConnection.connection.select_all("SELECT * FROM CSVImport limit 20")
-	encounter_types = [EncounterType.find_by_name("TB_initial").id,EncounterType.find_by_name("TB registration").id,EncounterType.find_by_name("TB visit").id,EncounterType.find_by_name("treatment").id,EncounterType.find_by_name("Dispensing").id, EncounterType.find_by_name("update hiv status").id,EncounterType.find_by_name("lab results").id ,EncounterType.find_by_name("tb clinic visit").id ]	
+	mpc_records = MysqlConnection.connection.select_all("SELECT * FROM CSVImport limit 200")
+	encounter_types = [EncounterType.find_by_name("TB_initial").id,EncounterType.find_by_name("TB registration").id,EncounterType.find_by_name("TB visit").id,EncounterType.find_by_name("treatment").id,EncounterType.find_by_name("Dispensing").id, EncounterType.find_by_name("update hiv status").id,EncounterType.find_by_name("lab results").id ,EncounterType.find_by_name("tb clinic visit").id, EncounterType.find_by_name("give lab results").id]	
 	
 	count = mpc_records.length
 	puts "Patients to be migrated #{count}"
 	mpc_records.each do |record|
 
-		puts "#{count} patients to go"
+		puts "#{count} patients to go. Patient: #{record['patientID']}"
 
 		$entry = record
 	
@@ -39,7 +39,13 @@ def import
 		initial_enc(create_encounter(encounter_types[0],record), record["patientID"],record["smear_initial"].to_i,record["tb_regdate"], 1) 	
 		
 		if !$smear_initial[record["smear_initial"].to_i].nil?
-			lab_results_enc(create_encounter(encounter_types[6],record), record["patientID"],record["smear_initial"].to_i,record["tb_regdate"], 1) 
+
+			accession1 = rand(999999)
+			accession2 = rand(999999)
+			lab_orders(create_encounter(EncounterType.find_by_name("Lab Orders").id, record), accession1, accession2)
+			sputum_submission_orders(create_encounter(EncounterType.find_by_name("sputum submission").id, record), accession1, accession2)
+			lab_results_enc(create_encounter(encounter_types[6],record), record["patientID"],record["smear_initial"].to_i,record["tb_regdate"], 1, accession1, accession2) 
+			give_lab_results_enc(create_encounter(encounter_types[8],record))
 
 		end
 
@@ -62,7 +68,6 @@ def import
 		count -=1
 
 	end
-	
 	
 end
 
@@ -87,6 +92,12 @@ def treatment_enc(id, details)
 	
 		create_drug_order(Patient.find(details["patientID"]),details["tb_regdate"],$tb_txreg[details["tb_txreg"].to_i])
 	end
+	
+end
+
+def give_lab_results_enc(enc_id)
+
+	create_obs($entry["patientID"], enc_id, Concept.find_by_name("laboratory results given to patient").id,Concept.find_by_name("yes").id ,$entry["tb_regdate"], $tb_place[1] )
 	
 end
 
@@ -168,10 +179,37 @@ def initial_enc(enc_id, pat_id, smear_result, reg_date, location)
 
 end
 
-def lab_results_enc(enc_id, pat_id, smear_result, reg_date, location)
+def lab_orders(enc_id, accession1, accession2) 
 
-	create_obs(pat_id, enc_id,Concept.find_by_name("AAFB(1st) results").id,$smear_initial[smear_result], reg_date,$tb_place[location])
-	create_obs(pat_id, enc_id,Concept.find_by_name("AAFB(2nd) results").id,$smear_initial[smear_result], reg_date,$tb_place[location])
+	create_lab_results($entry["patientID"], enc_id, Concept.find_by_name("tests ordered").id, Concept.find_by_name("AAFB(1st)").id, $entry["tb_regdate"],$tb_place[1], accession1)
+
+	create_lab_results($entry["patientID"], enc_id, Concept.find_by_name("tests ordered").id ,Concept.find_by_name("AAFB(2nd)").id, $entry["tb_regdate"],$tb_place[1], accession2)
+
+end
+
+def	sputum_submission_orders(enc_id, accession1, accession2) 
+
+	create_lab_results($entry["patientID"], enc_id, Concept.find_by_name("sputum submission").id, Concept.find_by_name("AAFB(1st)").id, $entry["tb_regdate"],$tb_place[1], accession1)
+
+	create_lab_results($entry["patientID"], enc_id, Concept.find_by_name("sputum submission").id ,Concept.find_by_name("AAFB(2nd)").id, $entry["tb_regdate"],$tb_place[1], accession2)
+
+
+end
+
+def lab_results_enc(enc_id, pat_id,smear_result,reg_date, location, accession1, accession2) 
+
+	create_lab_results(pat_id, enc_id, Concept.find_by_name("AAFB(1st) results").id,$smear_initial[smear_result], reg_date,$tb_place[location], accession1)
+	create_lab_results(pat_id, enc_id, Concept.find_by_name("AAFB(2nd) results").id,$smear_initial[smear_result], reg_date,$tb_place[location],accession2)
+	
+	if $smear_initial[smear_result] == 1
+		ans = Concept.find_by_name("confirmed tb not on treatment").id
+	elsif $smear_initial[smear_result] == 2
+		ans = Concept.find_by_name("tb not suspected").id
+	else
+		ans = Concept.find_by_name("unknown").id
+	end
+	
+	create_obs(pat_id, enc_id,Concept.find_by_name("tb status").id,ans, reg_date,$tb_place[1])
 
 end
 
@@ -179,12 +217,13 @@ def registration_enc(id, pat_id, pat_cat, tb_type, tb_ID, regdate, tb_place, out
 
 	create_obs(pat_id, id, Concept.find_by_name("tb classification").id, $tb_type[tb_type.to_i], regdate, $tb_place[tb_place.to_i]) unless $tb_type[tb_type.to_i].nil?
 	create_obs(pat_id, id, Concept.find_by_name("tb patient category").id, $pat_cat[pat_cat.to_i], regdate, $tb_place[tb_place.to_i]) unless $pat_cat[pat_cat.to_i].nil?
-		create_obs(pat_id, id, Concept.find_by_name("tb susceptibility").id, Concept.find_by_name("susceptible").id, regdate, $tb_place[1])
+	create_obs(pat_id, id, Concept.find_by_name("tb susceptibility").id, Concept.find_by_name("susceptible").id, regdate, $tb_place[1])
+		create_obs(pat_id, id, Concept.find_by_name("Directly observed treatment option").id, Concept.find_by_name("hospital").id, regdate, $tb_place[1])
 	
 	tb_number = PatientIdentifier.new()
 	tb_number.patient_id =  pat_id
 	tb_number.identifier_type = PatientIdentifierType.find_by_name("district tb number").id
-	tb_number.identifier = "MPC-TB " + regdate.to_date.year.to_s + tb_ID
+	tb_number.identifier = "MPC-TB " + regdate.to_date.year.to_s+" "+ tb_ID
 	tb_number.location_id = $tb_place[tb_place]
 	tb_number.creator = $creator
 	tb_number.date_created = regdate
@@ -243,6 +282,21 @@ def create_obs(pat_id, enc_id, concept, value, date,location )
 
 end
 
+def create_lab_results(pat_id, enc_id, concept, value, date,location, acc_num )
+
+		obs = Observation.new()
+		obs.person_id = pat_id
+		obs.creator = $creator
+		obs.location_id = location
+		obs.value_coded = value
+		obs.concept_id = concept
+		obs.encounter_id = enc_id
+		obs.obs_datetime = date
+		obs.accession_number = acc_num
+		obs.save!
+
+end
+
 def	create_patient_program_and_state(pat_id, regdate, outcome, outcome_date)
 
 	program = PatientProgram.new()
@@ -254,8 +308,8 @@ def	create_patient_program_and_state(pat_id, regdate, outcome, outcome_date)
 	
 	User.current = User.find($creator) 
 	patient = Patient.find(pat_id)
-	patient.patient_programs.find_last_by_program_id(Program.find_by_name("TB PROGRAM")).transition(
-             :state => $tb_outc[outcome.to_i],:start_date => regdate)                
+#	patient.patient_programs.find_last_by_program_id(Program.find_by_name("TB PROGRAM")).transition(:state => Concept.find_by_name("currently in treatment").id,:start_date => regdate)                
+	patient.patient_programs.find_last_by_program_id(Program.find_by_name("TB PROGRAM")).transition(:state => $tb_outc[outcome.to_i],:start_date => outcome_date)                
 
 =begin
 
