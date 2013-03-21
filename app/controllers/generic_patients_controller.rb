@@ -656,7 +656,7 @@ class GenericPatientsController < ApplicationController
               :conditions => ["encounter.voided = ? and patient_id = ? and encounter.encounter_datetime <= ?", 0, patient_id, session_date],
               :include => [:observations],:order => "encounter.encounter_datetime DESC"
             )
-
+			
     return previous_encounters
   end
 
@@ -1497,10 +1497,15 @@ end
 						culture[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_four
 						culture[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_five
 			end
-			if concept.length < 2
+			first = ""
+			second = ""
+			#raise " yalakwa : #{culture.length}"
+			if culture.length > 0
 						first = "Culture-1 Results: #{sputum_results.assoc("#{culture[0].upcase}")[1]}"
 						second = "Culture-2 Results: #{sputum_results.assoc("#{culture[1].upcase}")[1]}"
-			else
+			end
+			
+			if concept.length > 2
 						lab_result = []
 						h = 0
 						(0..2).each do |x|
@@ -1512,8 +1517,8 @@ end
 						first = "AAFB(1st) results: #{lab_result[0][1] rescue ""}"
 						second = "AAFB(2nd) results: #{lab_result[1][1] rescue ""}"
 				end
-
-
+				
+		
     date = session[:datetime].to_date rescue Date.today
     patient = Patient.find(patient_id)
     patient_bean = PatientService.get_patient(patient.person)

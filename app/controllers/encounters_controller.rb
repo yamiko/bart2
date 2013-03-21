@@ -225,13 +225,18 @@ class EncountersController < GenericEncountersController
           session_date, @patient.id, EncounterType.find_by_name('TB CLINIC VISIT').id]).observations rescue []
 
 			(tb_clinic_visit_obs || []).each do | obs | 
-				if (obs.concept_id == (Concept.find_by_name('TB type').concept_id rescue nil) || obs.concept_id == (Concept.find_by_name('TB classification').concept_id rescue nil) || 	obs.concept_id == (Concept.find_by_name('EPTB classification').concept_id rescue nil))
-					@tb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if Concept.find_by_name('TB classification').concept_id
-					@eptb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('EPTB classification').concept_id
-					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('TB type').concept_id
+				if obs.concept_id == Concept.find_by_name('EPTB classification').concept_id
+					#@tb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if Concept.find_by_name('TB classification').concept_id
+					@eptb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname #if obs.concept_id == Concept.find_by_name('EPTB classification').concept_id
+					#@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('TB type').concept_id
  				end
+				if  obs.concept_id == Concept.find_by_name('TB classification').concept_id
+					 @tb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name
+				end
+				if obs.concept_id == Concept.find_by_name('TB type').concept_id
+					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name
+				end
 			end
-			
 
 		end
 

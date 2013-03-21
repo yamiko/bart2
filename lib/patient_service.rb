@@ -769,6 +769,7 @@ module PatientService
         :order => "obs_datetime DESC,date_created DESC",
         :conditions => ["value_coded IS NOT NULL AND person_id = ? AND concept_id = ?", patient.id,
           ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
+
     if status.upcase == 'UNKNOWN'
       return patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') ? 'Positive' : status
     end
