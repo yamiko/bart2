@@ -850,7 +850,7 @@ module PatientService
 			programs = patient.patient_programs.all
 			programs.each do |prog|
 				if prog.program.name.upcase == "TB PROGRAM"
-					state = ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname
+					state = ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname rescue "UNKNOWN"
 				end
 			end
 			state
