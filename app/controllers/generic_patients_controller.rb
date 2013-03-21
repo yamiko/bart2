@@ -848,10 +848,10 @@ class GenericPatientsController < ApplicationController
 	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", EncounterType.find_by_name("tb registration").id, @patient.person]) rescue nil
 if (tbStart != nil)	
 	duration = Time.now.to_date - tbStart.encounter_datetime.to_date
-	@variables["patientId"] = PatientIdentifier.identifier(@patient_bean.patient_id, PatientIdentifierType.find_by_name("District TB Number").id).identifier
+	@variables["patientId"] = PatientIdentifier.find(:first, :conditions => ["patient_id = ? and identifier_type = ?",18438,PatientIdentifierType.find_by_name("district tb number").id]).identifier rescue " "
   	@variables["tbStart"] = tbStart.encounter_datetime.to_time.strftime('%A, %d %B %Y') rescue nil
 	@variables["arvStart"] = PatientService.patient_art_start_date(@patient.person).to_date.strftime(' %d- %b- %Y') rescue nil
-	@variables["regimen"] = Concept.find(:first, :conditions => ["concept_id = ?" ,PatientProgram.find(:all, :conditions => ["patient_id =? AND program_id = ?", @patient.person, 2]).last.current_regimen]).shortname rescue nil
+	@variables["regimen"] = Concept.find(:first, :conditions => ["concept_id = ?" ,PatientProgram.find(:all, :conditions => ["patient_id =? AND program_id = ?", @patient.person, Program.find_by_name("tb program").id]).last.current_regimen]).shortname rescue nil
 
 	status = @variables["arvStart"].to_date - tbStart.encounter_datetime.to_date rescue nil
 
@@ -918,14 +918,14 @@ if (obs != nil)
 	@variables["smear1AAccession"] = temp["acc1"] +"/"+temp["acc2"] rescue nil
 	@variables["smear1Aresult"] = temp["result1"] +"/"+ temp["result2"] rescue nil
 end
+
 	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime > ?",@patient.person,ConceptName.find_by_name("Weight").concept_id, tbStart.encounter_datetime]) rescue nil
 	@variables["weight2"] = obs.value_numeric rescue nil
 	@variables["weight2date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
 	temp1 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
-	if(temp1 != nil)
-		@variables["smear2AAccession"] = temp1["acc1"] +"/" + temp1["acc2"]
-		@variables["smear2Aresult"] = temp1["result1"] +"/"+ temp1["result2"]
-
+	if(!temp1.nil?)
+		@variables["smear2AAccession"] = temp1["acc1"] +"/" + temp1["acc2"] rescue nil
+		@variables["smear2Aresult"] = temp1["result1"] +"/"+ temp1["result2"] rescue nil
 
 	end
 
@@ -934,8 +934,8 @@ end
 	@variables["weight3date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
 	temp3 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
 	if (temp3 != nil)
-		@variables["smear3AAccesion"] = temp3["acc1"] + "/" + temp3["acc2"]
-		@variables["smear3Aresult"] = temp3["result1"] + "/" + temp3["result2"]
+		@variables["smear3AAccesion"] = temp3["acc1"] + "/" + temp3["acc2"] rescue nil
+		@variables["smear3Aresult"] = temp3["result1"] + "/" + temp3["result2"] rescue nil
 
 	end
 
@@ -945,11 +945,10 @@ end
 	@variables["weight4date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
 	temp4 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
 	if (temp4 != nil)
-		@variables["smear4AAccesion"] = temp4["acc1"] + "/" + temp4["acc2"]
-		@variables["smear4Aresult"] = temp4["result1"] + "/" + temp4["result2"]
+		@variables["smear4AAccesion"] = temp4["acc1"] + "/" + temp4["acc2"] rescue nil
+		@variables["smear4Aresult"] = temp4["result1"] + "/" + temp4["result2"] rescue nil
 	end
 
-	  	
 	  	
 	render:layout => 'menu'
   end
