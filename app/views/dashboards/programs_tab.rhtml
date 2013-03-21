@@ -54,7 +54,7 @@
     }
 <!--% end %-->
 </script>
-<%hiv_program_id = Program.find_by_name("HIV PROGRAM").id %>
+<%#  hiv_program_id = Program.find_by_name("HIV PROGRAM").id %>
 <style>
   h2 {
     margin: 0px;
@@ -90,7 +90,7 @@
           <button id="status" class="silver" style="margin-top:10px;float:right;"><span>Update Outcomes</span></button>
         <% end %>
 		<% if !@programs.blank? %>
-          <button id="viewhiv" class="silver" style="margin-top:10px;float:right;"><span>Exit from care</span></button>
+          <button id="viewhiv" class="silver" style="margin-top:10px;float:right;"><span>Update Outcomes</span></button>
         <% end %>
    </div>
     </div>

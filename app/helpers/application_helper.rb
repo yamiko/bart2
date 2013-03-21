@@ -337,6 +337,7 @@ module ApplicationHelper
 
 		session_date = Date.today
 		arv_start_date = PatientService.patient_art_start_date(patient).to_date rescue nil
+    return false if arv_start_date.blank?
 		duration = (session_date.to_date - arv_start_date.to_date).to_i/28 
 		if (duration >= 6)
       obs = Observation.find(:all, :conditions => ["person_id = ? and concept_id = ?",

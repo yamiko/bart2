@@ -241,8 +241,8 @@ class GenericPeopleController < ApplicationController
 		@patient_bean = PatientService.get_patient(@person)  
 		
 		
-		@art_start_date = PatientService.date_antiretrovirals_started(@person.patient) rescue nil
-		@duration_in_months = (Time.now.to_date - @art_start_date.to_date).to_i/28  
+		@art_start_date = PatientService.date_antiretrovirals_started(@person.patient) 
+		@duration_in_months = ((Time.now.to_date - @art_start_date.to_date).to_i/28) unless @art_start_date.blank?  
         patient = @person.patient
 		@identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
 			identifier_types = PatientIdentifierType.find(:all,                         
@@ -259,7 +259,8 @@ class GenericPeopleController < ApplicationController
         @modifier = @results[1]["Range"] rescue nil
       end
         @reason_for_art = PatientService.reason_for_art_eligibility(patient)
-        @outcome = patient.patient_programs.last.patient_states.last.program_workflow_state.concept.fullname
+
+		@outcome = patient.patient_programs.last.patient_states.last.program_workflow_state.concept.fullname rescue nil
 		                                                         
 		render :layout => false
 	end
@@ -344,7 +345,7 @@ class GenericPeopleController < ApplicationController
         person = Person.find(params[:person][:id])
         patient = DDEService::Patient.new(person.patient)
         patient_id = PatientService.get_patient_identifier(person.patient, "National id")
-        if patient_id.length != 6
+        if patient_id.length != 6 and create_from_dde_server
           patient.check_old_national_id(patient_id)
 					unless params[:patient_guardian].blank?
 							 print_and_redirect("/patients/national_id_label?patient_id=#{person.id}", "/patients/guardians_dashboard/#{person.id}") and return

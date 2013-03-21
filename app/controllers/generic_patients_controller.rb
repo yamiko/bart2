@@ -656,7 +656,7 @@ class GenericPatientsController < ApplicationController
               :conditions => ["encounter.voided = ? and patient_id = ? and encounter.encounter_datetime <= ?", 0, patient_id, session_date],
               :include => [:observations],:order => "encounter.encounter_datetime DESC"
             )
-
+			
     return previous_encounters
   end
 
@@ -998,7 +998,7 @@ end
     type.id, patient.id,session_date.strftime("%Y-%m-%d 00:00:00"),
     session_date.strftime("%Y-%m-%d 23:59:59")]) != nil                    
 
-    next_appt = Observation.find(:first,:order => "encounter_datetime ASC,encounter.date_created ASC",
+    next_appt = Observation.find(:first,:order => "encounter_datetime DESC,encounter.date_created DESC",
                :joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
                :conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
                AND obs_datetime <= ?",ConceptName.find_by_name('Appointment date').concept_id,
@@ -1496,10 +1496,15 @@ end
 						culture[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_four
 						culture[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_five
 			end
-			if concept.length < 2
+			first = ""
+			second = ""
+			#raise " yalakwa : #{culture.length}"
+			if culture.length > 0
 						first = "Culture-1 Results: #{sputum_results.assoc("#{culture[0].upcase}")[1]}"
 						second = "Culture-2 Results: #{sputum_results.assoc("#{culture[1].upcase}")[1]}"
-			else
+			end
+			
+			if concept.length > 2
 						lab_result = []
 						h = 0
 						(0..2).each do |x|
@@ -1511,8 +1516,8 @@ end
 						first = "AAFB(1st) results: #{lab_result[0][1] rescue ""}"
 						second = "AAFB(2nd) results: #{lab_result[1][1] rescue ""}"
 				end
-
-
+				
+		
     date = session[:datetime].to_date rescue Date.today
     patient = Patient.find(patient_id)
     patient_bean = PatientService.get_patient(patient.person)
@@ -2884,7 +2889,7 @@ end
 			else
 					pre_fix = "sec"
 			end
-#			raise params.to_yaml
+
 			person = PatientService.get_patient(Person.find(params["name"]))
 			
 			@values[pre_fix + "_name"] = person.name

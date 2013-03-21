@@ -4,6 +4,7 @@ module PatientService
 	require 'json'
 	require 'rest_client'
 	require 'dde_service'
+	require 'medication_service'
 
   def self.search_from_remote(params)
     return [] if params[:given_name].blank?
@@ -281,9 +282,9 @@ module PatientService
       @dde_server_password = GlobalProperty.find_by_property("dde_server_password").property_value rescue ""
 
       uri = "http://#{@dde_server_username}:#{@dde_server_password}@#{@dde_server}/people.json/"
-      recieved_params = RestClient.post(uri,passed_params)
+      received_params = RestClient.post(uri,passed_params)
 
-      national_id = JSON.parse(recieved_params)["npid"]["value"]
+      national_id = JSON.parse(received_params)["npid"]["value"]
     else
       national_id = params["person"]["patient"]["identifiers"]["National id"]
     end
@@ -768,6 +769,7 @@ module PatientService
         :order => "obs_datetime DESC,date_created DESC",
         :conditions => ["value_coded IS NOT NULL AND person_id = ? AND concept_id = ?", patient.id,
           ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
+
     if status.upcase == 'UNKNOWN'
       return patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') ? 'Positive' : status
     end
@@ -1415,7 +1417,7 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
   end
 
   def self.search_by_identifier(identifier)
-    identifier = identifier.gsub("-","").strip
+    #identifier = identifier.gsub("-","").strip
     people = PatientIdentifier.find_all_by_identifier(identifier).map{|id|
       id.patient.person
     } unless identifier.blank? rescue nil
@@ -1867,8 +1869,10 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
                       'SOURCE OF REFERRAL','UPDATE HIV STATUS','LAB ORDERS',
                       'SPUTUM SUBMISSION','LAB RESULTS','TB_INITIAL',
                       'TB RECEPTION','TB REGISTRATION','TB VISIT',
-                      'TB ADHERENCE','TB CLINIC VISIT'
+                      'TB ADHERENCE','TB CLINIC VISIT','DISPENSING'
                      ]
+
+    clinic_encounters  =  ['DISPENSING']
 
     encounter_type_ids = EncounterType.find_all_by_name(clinic_encounters).collect{|e|e.id}
 
@@ -1895,9 +1899,11 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
 
   def self.art_drug_given_before(patient, date = Date.today)
     clinic_encounters  =  [
-                      'HIV CLINIC REGISTRATION','HIV STAGING',
+                      'HIV CLINIC REGISTRATION','HIV STAGING','DISPENSING',
                       'HIV CLINIC CONSULTATION','ART ADHERENCE','HIV RECEPTION'
                      ]
+
+    clinic_encounters  =  ['DISPENSING']
 
     encounter_type_ids = EncounterType.find_all_by_name(clinic_encounters).collect{|e|e.id}
 
@@ -1918,7 +1924,8 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
         :order =>"obs_datetime")
 
     (orders || []).reject do |order|
-      !MedicationService.arv(order.drug_order.drug)
+      drug = order.drug_order.drug
+      !MedicationService.arv(drug)
     end
   end
 end

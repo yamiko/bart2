@@ -225,13 +225,18 @@ class EncountersController < GenericEncountersController
           session_date, @patient.id, EncounterType.find_by_name('TB CLINIC VISIT').id]).observations rescue []
 
 			(tb_clinic_visit_obs || []).each do | obs | 
-				if (obs.concept_id == (Concept.find_by_name('TB type').concept_id rescue nil) || obs.concept_id == (Concept.find_by_name('TB classification').concept_id rescue nil) || 	obs.concept_id == (Concept.find_by_name('EPTB classification').concept_id rescue nil))
-					@tb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if Concept.find_by_name('TB classification').concept_id
-					@eptb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('EPTB classification').concept_id
-					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('TB type').concept_id
+				if obs.concept_id == Concept.find_by_name('EPTB classification').concept_id
+					#@tb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if Concept.find_by_name('TB classification').concept_id
+					@eptb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname #if obs.concept_id == Concept.find_by_name('EPTB classification').concept_id
+					#@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('TB type').concept_id
  				end
+				if  obs.concept_id == Concept.find_by_name('TB classification').concept_id
+					 @tb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name
+				end
+				if obs.concept_id == Concept.find_by_name('TB type').concept_id
+					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name
+				end
 			end
-			
 
 		end
 
@@ -1449,8 +1454,10 @@ class EncountersController < GenericEncountersController
 	end
 
   def lab_results_label(patient_id)
-			patient = Patient.find(patient_id)
-			patient_bean = PatientService.get_patient(patient.person)
+		patient = Patient.find(patient_id)
+		patient_bean = PatientService.get_patient(patient.person)
+
+		begin
 			observation = patient_recent_lab_results(patient_id)
 			sputum_results = [['NEGATIVE','NEGATIVE'], ['SCANTY','SCANTY'], ['WEAKLY POSITIVE','1+'], ['MODERATELY POSITIVE','2+'], ['STRONGLY POSITIVE','3+']]
 			concept_one = ConceptName.find_by_name("First sputum for AAFB results").concept_id
@@ -1509,6 +1516,9 @@ class EncountersController < GenericEncountersController
       end
 
       return print_labels
+		rescue
+			return
+		end
   end
 	
 	

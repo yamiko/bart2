@@ -258,10 +258,10 @@
     	padding-right: 5px;
   }
 
-
   .NoKeyboard .inputFrameClass {
 	height:600;
-
+  }
+  
   .selectedOption {
     	background-color: lightblue;
   }
@@ -303,74 +303,74 @@
 <%= javascript_include_tag "prototype"%>
 
 <script>
-  var patient_id = "<%= @patient.patient_id %>";
-  var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_id %>"
-  var current_regimens_for_programs = <%= @current_regimens_for_programs.to_json -%>;
-  var current_regimen_names_for_programs = <%= @current_regimen_names_for_programs.to_json -%>;
-  var reason_for_art = "<%= @reason_for_art_eligibility %>";
-  var prescribeTBDrugs = "<%= @prescribe_tb_drugs %>";
-  var prescribeARTDrugs = "<%= @prescribe_art_drugs %>";
-  var artVisit = "<%= @hiv_clinic_consultation %>";
-  var adverse_events = <%= @adverse_events.to_json %>
-  var regimen_index = '<%= @regimen_index %>';
-  var regimen_id = null;
-  var tb_regimen_id = null;
-  var reasons = ['Jandice/hepatitis','Anaemia < 8g/dl','History of psychiatric illness','Renal failure','Child under 12 years', 'Abacavir hypersensitivity', 'Other'] ;
-  var regimens = [];
-  var realTime = '<%=  @retrospective  %>';
+var patient_id = "<%= @patient.patient_id %>";
+var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_id %>"
+var current_regimens_for_programs = <%= @current_regimens_for_programs.to_json -%>;
+var current_regimen_names_for_programs = <%= @current_regimen_names_for_programs.to_json -%>;
+var reason_for_art = "<%= @reason_for_art_eligibility %>";
+var prescribeTBDrugs = "<%= @prescribe_tb_drugs %>";
+var prescribeARTDrugs = "<%= @prescribe_art_drugs %>";
+var artVisit = "<%= @hiv_clinic_consultation %>";
+var adverse_events = <%= @adverse_events.to_json %>
+var regimen_index = '<%= @regimen_index %>';
+var regimen_id = null;
+var tb_regimen_id = null;
+var reasons = ['Jandice/hepatitis','Anaemia < 8g/dl','History of psychiatric illness','Renal failure','Child under 12 years', 'Abacavir hypersensitivity', 'Other'] ;
+var regimens = [];
+var realTime = '<%=  @retrospective  %>';
 
-  function changeRegimen(){
-	<% unless @found_symptoms.blank? %>
-	element = document.getElementById('nextButton')
-	element.setAttribute("onmousedown", "contraindicators()")
-	<% else %>
-	  resetRegimen();
-	<%  end %>
+function changeRegimen(){
+<% unless @found_symptoms.blank? %>
+element = document.getElementById('nextButton')
+element.setAttribute("onmousedown", "contraindicators()")
+<% else %>
+  resetRegimen();
+<%  end %>
+}
+
+function removeObs(td){
+document.getElementById("reason_for_change").value = td.value
+var reasons = document.getElementsByClassName('reasons')
+  if (td.style.background != "#87cefa") {
+  td.style.background = "#87cefa"
+  
+  } else{
+  td.style.background = "#87cefa"
+  //document.getElementById("reason_for_change").value = null
   }
-
-  function removeObs(td){
-	document.getElementById("reason_for_change").value = td.value
-	var reasons = document.getElementsByClassName('reasons')
-	  if (td.style.background != "#87cefa") {
-		td.style.background = "#87cefa"
-		
-	  } else{
-		td.style.background = "#87cefa"
-		//document.getElementById("reason_for_change").value = null
-	  }
-	  for (x= 0; x < reasons.length;  x ++){
-		if (reasons[x] != td){
-		  reasons[x].style.background = "";
-		}
-	  }
+  for (x= 0; x < reasons.length;  x ++){
+  if (reasons[x] != td){
+    reasons[x].style.background = "";
   }
-
-  function updateForm(td){
-	  if (document.getElementById("reason_for_change").value != ""){
-			document.getElementById('reason_antiretrovirals_changed_or_stopped').value = document.getElementById("reason_for_change").value;
-			document.getElementById('cover').style.display='none';
-			td.parentNode.style.display='none';
-			gotoNextPage();
-	 }
   }
+}
 
-  function changeButton(){
-		if (realTime == "false"){
-			   try {
-				  document.getElementById("reason_for_change").value = "";
-				}
-				catch (e){
+function updateForm(td){
+  if (document.getElementById("reason_for_change").value != ""){
+    document.getElementById('reason_antiretrovirals_changed_or_stopped').value = document.getElementById("reason_for_change").value;
+    document.getElementById('cover').style.display='none';
+    td.parentNode.style.display='none';
+    gotoNextPage();
+ }
+}
 
-				}
-			  element = document.getElementById('nextButton')
-			  element.setAttribute("onmousedown", "checkRegimen()")
-		  }
-  }
+function changeButton(){
+  if (realTime == "false"){
+       try {
+        document.getElementById("reason_for_change").value = "";
+      }
+      catch (e){
 
-  function resetRegimen(){
-	element = document.getElementById('nextButton')
-	element.setAttribute("onmousedown", "gotoNextPage()")
-  }
+      }
+      element = document.getElementById('nextButton')
+      element.setAttribute("onmousedown", "checkRegimen()")
+    }
+}
+
+function resetRegimen(){
+element = document.getElementById('nextButton')
+element.setAttribute("onmousedown", "gotoNextPage()")
+}
 
     function getArt(programId) {
     var aUrl = "/regimens/check_current_regimen_index?patient_age=<%= @patient_bean.age %>&id=" + programId + "&search_string=";
@@ -382,15 +382,12 @@
       httpRequest.send(null);
 	  for (x=0; x < response.length; x ++){
 		for (i =0; i < regimens.length; i ++){
-		  alert(regimens[i])
-		  alert(response[x][0].split('-')[1])
 		  if (response[x][0].split('-')[1].toString().downcase == regimens[i].toString().downcase){
 
 			found = response[x][0].split('-')[0]
 		  }
 		}
 	  }
-	  alert(found)
   }
 
   function set_total(req) {
@@ -398,7 +395,6 @@
      response = JSON.parse(req.responseText);
     }
   }
-
 
   function contraindicators(){
 				var foundEvents = []
