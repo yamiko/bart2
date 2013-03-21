@@ -85,8 +85,8 @@
 
     <tr>
       <th>Home district</th>
-      <td class="data"><%=@patient_bean.home_district%></td>
-      <td><%= link_to "Edit", "#",
+	  <td class="data"><%=@patient_bean.home_district%></td>
+      <td><%= link_to "Edit", "/patients/mastercard_modify?field=home_district&id=#{@person.id}&from_demo=true",
           :class => "anchor_class" %>
       </td>
     </tr>

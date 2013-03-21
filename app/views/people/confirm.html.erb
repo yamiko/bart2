@@ -45,7 +45,8 @@
 
 			function changeAttributes(){
 				document.getElementById("btnNext").innerHTML = "<span>Continue</span>" 
-				<% if require_viral_load_check(@person.patient) == true %>
+				<% if require_viral_load_check(@person.patient) == true && show_lab_results &&
+	 	(current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
 					document.getElementById("btnNext").setAttribute("onclick","showPopup();")
 				<% end %>
 			}

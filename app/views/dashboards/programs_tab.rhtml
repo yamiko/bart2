@@ -40,18 +40,21 @@
     function showUpdateStateButton(parent_program_id) {
 		if(parent_program_id == 1) {
 			$('#status').css("display", "none");
+			$('#viewhiv').css("display", "block");
 		} else {
 			$('#status').css("display", "block");
+			$('#viewhiv').css("display", "none");
 		}
     }
 
 <!--% unless @programs.blank? %-->
     function setUpdateStateButtonPath(program_id) {
       $('#status').click(function() { window.parent.location = '/programs/update/' + program_id })
+	  $('#viewhiv').click(function() { window.parent.location = '/patients/exitcare_dashboard/' + <%= @patient.id -%> })
     }
 <!--% end %-->
 </script>
-
+<%hiv_program_id = Program.find_by_name("HIV PROGRAM").id %>
 <style>
   h2 {
     margin: 0px;
@@ -73,11 +76,11 @@
           <% if @programs.blank? %>
             <li class="data">This patient is not enrolled in any programs</li>
           <% end %>
-        </ul>
+       </ul>
         <button id="enroll" class="silver" style="margin-top:10px;"><span>Enroll in program</span></button>
 
-      </div>
-      <div style="display: table-cell; width: 50%;">
+    </div>
+    <div style="display: table-cell; width: 50%;">
 
         <h2>Outcomes</h2>
         <ul id="states" class="list" style="width:100%; height: 210px; border-radius: 15px;">
@@ -86,7 +89,9 @@
         <% if !@programs.blank? %>
           <button id="status" class="silver" style="margin-top:10px;float:right;"><span>Update Outcomes</span></button>
         <% end %>
-
-      </div>
+		<% if !@programs.blank? %>
+          <button id="viewhiv" class="silver" style="margin-top:10px;float:right;"><span>Exit from care</span></button>
+        <% end %>
+   </div>
     </div>
   </div>

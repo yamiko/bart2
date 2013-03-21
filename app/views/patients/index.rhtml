@@ -1,4 +1,4 @@
-<% art_start_date = PatientService.date_antiretrovirals_started(@patient) rescue nil%>
+<% art_start_date = PatientService.date_antiretrovirals_started(@patient) rescue nil %>
 <html>
   <head>
     <title>Patient Dashboard</title>
@@ -45,6 +45,9 @@
             <div id="patient_card">
             	<% if !art_start_date.blank? %>
                 <span value="<%= "#{(Time.now.to_date-art_start_date.to_date).to_i/28} month(s)" %>"> Period on ART </span>
+            	<% end %>
+				<% if !@tb_registration_date.blank? %>
+				 <span value="<%= "#{(Time.now.to_date-@tb_registration_date.to_date).to_i/28} month(s)" %>"> Period on TB </span>
             	<% end %>
               <% if (@reason_for_art_eligibility rescue nil) != nil && (@reason_for_art_eligibility) != "" %>
                 <span value="<%= @reason_for_art_eligibility rescue "" %>">Reason for Starting</span>

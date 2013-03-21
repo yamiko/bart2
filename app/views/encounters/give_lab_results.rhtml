@@ -18,7 +18,7 @@
 
         <% recent_lab_results = nil%>
         <% if !@recent_lab_results.nil? %>
-            <%
+            <%  #raise @recent_lab_results.to_s.to_yaml
             recent_lab_results = @recent_lab_results.map do |observation|
 
                     if observation.concept.fullname.humanize != "Workstation location".humanize
