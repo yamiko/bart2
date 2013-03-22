@@ -1887,13 +1887,14 @@ end
             patient_visits[visit_date].visit_by = '' if patient_visits[visit_date].visit_by.blank?
             patient_visits[visit_date].visit_by+= "P" if obs.to_s.squish.match(/Patient present for consultation: Yes/i)
             patient_visits[visit_date].visit_by+= "G" if obs.to_s.squish.match(/Responsible person present: Yes/i)
-         elsif concept_name.upcase == 'TB STATUS' 
-            status = ConceptName.find(obs.value_coded_name_id).name.upcase rescue nil
+         elsif concept_name.upcase == 'TB STATUS'
+            status = tb_status(patient_obj).upcase rescue nil
             patient_visits[visit_date].tb_status = status
             patient_visits[visit_date].tb_status = 'noSup' if status == 'TB NOT SUSPECTED'
             patient_visits[visit_date].tb_status = 'sup' if status == 'TB SUSPECTED'
             patient_visits[visit_date].tb_status = 'noRx' if status == 'CONFIRMED TB NOT ON TREATMENT'
             patient_visits[visit_date].tb_status = 'Rx' if status == 'CONFIRMED TB ON TREATMENT'
+						patient_visits[visit_date].tb_status = 'Rx' if status == 'CURRENTLY IN TREATMENT'
 
          elsif concept_name.upcase == 'AMOUNT DISPENSED'
 
@@ -2003,6 +2004,21 @@ end
 
     patient_visits
   end  
+
+	  def tb_status(patient)
+		state = Concept.find(Observation.find(:first,
+        :order => "obs_datetime DESC,date_created DESC",
+        :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL",
+          patient.id,
+          ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
+			programs = patient.patient_programs.all
+			programs.each do |prog|
+				if prog.program.name.upcase == "TB PROGRAM"
+					state = ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname rescue state
+				end
+			end
+		state
+  end
 
   def mastercard_visit_label(patient,date = Date.today)
   	patient_bean = PatientService.get_patient(patient.person)
