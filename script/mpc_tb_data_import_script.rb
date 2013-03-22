@@ -23,14 +23,14 @@ $arv_status = {1 => Concept.find_by_name("Yes").id, 2 => Concept.find_by_name("Y
 
 def import
 
-	mpc_records = MysqlConnection.connection.select_all("SELECT * FROM CSVImport limit 1000")
+	mpc_records = MysqlConnection.connection.select_all("SELECT * FROM CSVImport where RecID > 34894 limit 1000")
 	encounter_types = [EncounterType.find_by_name("TB_initial").id,EncounterType.find_by_name("TB registration").id,EncounterType.find_by_name("TB visit").id,EncounterType.find_by_name("treatment").id,EncounterType.find_by_name("Dispensing").id, EncounterType.find_by_name("update hiv status").id,EncounterType.find_by_name("lab results").id, EncounterType.find_by_name("tb clinic visit").id, EncounterType.find_by_name("give lab results").id]	
 	
 	count = mpc_records.length
 	puts "Patients to be migrated #{count}"
 	mpc_records.each do |record|
 
-		puts "#{count} patients to go. Patient: #{record['patientID']}, Record ID: #{record['RecID']} "
+		puts "#{count} patients to go. Current Patient: #{record['patientID']}, Record ID: #{record['RecID']} "
 
 		$entry = record
 	
@@ -223,7 +223,7 @@ def registration_enc(id, pat_id, pat_cat, tb_type, tb_ID, regdate, tb_place, out
 	create_obs(pat_id, id, Concept.find_by_name("tb patient category").id, $pat_cat[pat_cat.to_i], regdate, $tb_place[tb_place.to_i]) unless $pat_cat[pat_cat.to_i].nil?
 	create_obs(pat_id, id, Concept.find_by_name("tb susceptibility").id, Concept.find_by_name("susceptible").id, regdate, $tb_place[1])
 	
-	if $pat_cat[pat_cat.to_i] == 1
+	if pat_cat.to_i == 1
 		create_obs(pat_id, id, Concept.find_by_name("Directly observed treatment option").id, Concept.find_by_name("guardian").id, regdate, $tb_place[1])
 	else
 		create_obs(pat_id, id, Concept.find_by_name("Directly observed treatment option").id, Concept.find_by_name("hospital").id, regdate, $tb_place[1])
