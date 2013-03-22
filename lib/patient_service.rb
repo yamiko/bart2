@@ -834,32 +834,18 @@ module PatientService
   end
 
   def self.patient_tb_status(patient)
-			state = "UNKNOWN"
-			#tb_status_hash = {} ; status = []
-			#tb_status_hash['TB STATUS'] = {'Unknown' => 0,'Suspected' => 0,'Not Suspected' => 0,'On Treatment' => 0,'Not on treatment' => 0} 
-			#tb_status_concept_id = ConceptName.find_by_name('TB STATUS').concept_id
-			#hiv_clinic_consultation_encounter_id = EncounterType.find_by_name('HIV CLINIC CONSULTATION').id
-		#	Concept.find(PatientState.find_by_sql(
-		#	"SELECT e.patient_id, o.value_coded
-		#									FROM earliest_start_date e
-		#									INNER JOIN encounter en ON en.patient_id = e.patient_id
-		#									INNER JOIN obs o ON o.person_id = e.patient_id
-		#									WHERE o.concept_id = #{tb_status_concept_id}
-			#								AND e.patient_id = #{patient.id}
-			#								ORDER BY en.encounter_datetime ASC").first.value_coded).fullname
+		state = Concept.find(Observation.find(:first,
+        :order => "obs_datetime DESC,date_created DESC",
+        :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL",
+          patient.id,
+          ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
 			programs = patient.patient_programs.all
 			programs.each do |prog|
 				if prog.program.name.upcase == "TB PROGRAM"
-					state = ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname rescue "UNKNOWN"
+					state = ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname rescue state
 				end
 			end
-			state
-			#state = Concept.find(state).fullname
-    #Concept.find(Observation.find(:first,
-       # :order => "obs_datetime DESC,date_created DESC",
-       # :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL",
-        #  patient.id,
-        #  ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
+		state
   end
 
   def self.reason_for_art_eligibility(patient)
