@@ -1857,16 +1857,22 @@ end
           patient_obj.patient_id,encounter_date.to_date, concept_ids],
         :order =>"obs_datetime").map{|obs| obs if !obs.concept.nil?}
     end
-
+			#raise observations.last.concept_id.to_s.to_yaml
       gave_hash = Hash.new(0) 
       observations.map do |obs|
+				 drug = Drug.find(obs.order.drug_order.drug_inventory_id) rescue nil
+				 if !drug.blank?
+						 tb_medical = MedicationService.tb_medication(drug)
+						 next if tb_medical == true
+				 end
          encounter_name = obs.encounter.name rescue []
          next if encounter_name.blank?
          next if encounter_name.match(/REGISTRATION/i)
          next if encounter_name.match(/HIV STAGING/i)
          visit_date = obs.obs_datetime.to_date
          patient_visits[visit_date] = Mastercard.new() if patient_visits[visit_date].blank?
-         
+
+				 
          concept_name = obs.concept.fullname
          
          if concept_name.upcase == 'APPOINTMENT DATE'
@@ -1889,14 +1895,18 @@ end
             patient_visits[visit_date].tb_status = 'noRx' if status == 'CONFIRMED TB NOT ON TREATMENT'
             patient_visits[visit_date].tb_status = 'Rx' if status == 'CONFIRMED TB ON TREATMENT'
 
-         elsif concept_name.upcase == 'AMOUNT DISPENSED' 
+         elsif concept_name.upcase == 'AMOUNT DISPENSED'
+
             drug = Drug.find(obs.value_drug) rescue nil
+						tb_medical = MedicationService.tb_medication(drug)
+						next if tb_medical == true
             next if drug.blank?
             drug_name = drug.concept.shortname rescue drug.name
             if drug_name.match(/Cotrimoxazole/i) || drug_name.match(/CPT/i)
               patient_visits[visit_date].cpt += obs.value_numeric unless patient_visits[visit_date].cpt.blank?
               patient_visits[visit_date].cpt = obs.value_numeric if patient_visits[visit_date].cpt.blank?
             else
+							tb_medical = MedicationService.tb_medication(drug)
               patient_visits[visit_date].gave = [] if patient_visits[visit_date].gave.blank?
               patient_visits[visit_date].gave << [drug_name,obs.value_numeric]
               drugs_given_uniq = Hash.new(0)
@@ -1907,7 +1917,14 @@ end
               (drugs_given_uniq || {}).each do |drug_given_name,quantity_given|
                 patient_visits[visit_date].gave << [drug_given_name,quantity_given]
               end
-            end   
+            end
+						if !drug.blank?
+								tb_medical = MedicationService.tb_medication(drug)
+								#patient_visits[visit_date].ipt = [] if patient_visits[visit_date].ipt.blank?
+								#patient_visits[visit_date].tb_status = "tb medical" if tb_medical == true
+								#raise patient_visits[visit_date].tb_status.to_yaml
+						end
+
          elsif concept_name.upcase == 'ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT'
 			     patient_visits[visit_date].reg = 'Unknown' if obs.value_coded == ConceptName.find_by_name("Unknown antiretroviral drug").concept_id 
            patient_visits[visit_date].reg =  Concept.find_by_concept_id(obs.value_coded).concept_names.typed("SHORT").first.name if !patient_visits[visit_date].reg
@@ -1920,12 +1937,17 @@ end
             
          elsif concept_name.upcase == 'AMOUNT OF DRUG BROUGHT TO CLINIC' 
             drug = Drug.find(obs.order.drug_order.drug_inventory_id) rescue nil
+						tb_medical = MedicationService.tb_medication(drug)
+						next if tb_medical == true
             next if drug.blank?
             drug_name = drug.concept.shortname rescue drug.name
             patient_visits[visit_date].pills = [] if patient_visits[visit_date].pills.blank?
             patient_visits[visit_date].pills << [drug_name,obs.value_numeric] rescue []
             
-         elsif concept_name.upcase == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER' 
+         elsif concept_name.upcase == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'
+					  drug = Drug.find(obs.order.drug_order.drug_inventory_id) rescue nil
+						tb_medical = MedicationService.tb_medication(drug)
+						next if tb_medical == true
             next if obs.value_numeric.blank?
             patient_visits[visit_date].adherence = [] if patient_visits[visit_date].adherence.blank?
             patient_visits[visit_date].adherence << [Drug.find(obs.order.drug_order.drug_inventory_id).name,(obs.value_numeric.to_s + '%')]
