@@ -23,54 +23,54 @@ $arv_status = {1 => Concept.find_by_name("Yes").id, 2 => Concept.find_by_name("Y
 
 def import
 
-	mpc_records = MysqlConnection.connection.select_all("SELECT * FROM CSVImport limit 1000")
+	mpc_records = MysqlConnection.connection.select_all("SELECT * FROM CSVImport where patientID = 0")
 	encounter_types = [EncounterType.find_by_name("TB_initial").id,EncounterType.find_by_name("TB registration").id,EncounterType.find_by_name("TB visit").id,EncounterType.find_by_name("treatment").id,EncounterType.find_by_name("Dispensing").id, EncounterType.find_by_name("update hiv status").id,EncounterType.find_by_name("lab results").id, EncounterType.find_by_name("tb clinic visit").id, EncounterType.find_by_name("give lab results").id]	
 	
 	count = mpc_records.length
 	puts "Patients to be migrated #{count}"
 	mpc_records.each do |record|
 
-		puts "#{count} patients to go. Patient: #{record['patientID']}, Record ID: #{record['RecID']} "
+		puts "#{count} patients to go. Current Patient: #{record['patientID']}, Record ID: #{record['RecID']} "
 
 		$entry = record
-	
-		#initialise a global user for all records of the patient
-		$creator = User.find_by_username(details["UserStamp"].to_i).id rescue 1
+		if (!Patient.find(record['patientID']).nil? rescue false)
+				#initialise a global user for all records of the patient
+				$creator = User.find_by_username(details["UserStamp"].to_i).id rescue 1
 			
-		#creating encounters
-		initial_enc(create_encounter(encounter_types[0],record), record["patientID"],record["smear_initial"].to_i,record["tb_regdate"], 1) 	
+				#creating encounters
+				initial_enc(create_encounter(encounter_types[0],record), record["patientID"],record["smear_initial"].to_i,record["tb_regdate"], 1) 	
 		
-		if !$smear_initial[record["smear_initial"].to_i].nil?
+				if !$smear_initial[record["smear_initial"].to_i].nil?
 
-			accession1 = rand(999999)
-			accession2 = rand(999999)
-			lab_orders(create_encounter(EncounterType.find_by_name("Lab Orders").id, record), accession1, accession2)
-			sputum_submission_orders(create_encounter(EncounterType.find_by_name("sputum submission").id, record), accession1, accession2)
-			lab_results_enc(create_encounter(encounter_types[6],record), record["patientID"],record["smear_initial"].to_i,record["tb_regdate"], 1, accession1, accession2) 
-			give_lab_results_enc(create_encounter(encounter_types[8],record))
+					accession1 = rand(999999)
+					accession2 = rand(999999)
+					lab_orders(create_encounter(EncounterType.find_by_name("Lab Orders").id, record), accession1, accession2)
+					sputum_submission_orders(create_encounter(EncounterType.find_by_name("sputum submission").id, record), accession1, accession2)
+					lab_results_enc(create_encounter(encounter_types[6],record), record["patientID"],record["smear_initial"].to_i,record["tb_regdate"], 1, accession1, accession2) 
+					give_lab_results_enc(create_encounter(encounter_types[8],record))
 
-		end
+				end
 
-		registration_enc(create_encounter(encounter_types[1],record), record["patientID"],record["pat_cat"],record["tb_type"], record["tb_ID"] ,record["tb_regdate"], 1, record["tb_outc"], record["tb_outcdate"])
+				registration_enc(create_encounter(encounter_types[1],record), record["patientID"],record["pat_cat"],record["tb_type"], record["tb_ID"] ,record["tb_regdate"], 1, record["tb_outc"], record["tb_outcdate"])
 	
 
-		visit_enc(create_encounter(encounter_types[2],record), record)
+				visit_enc(create_encounter(encounter_types[2],record), record)
 		
-			tb_clinic_visit_enc(create_encounter(encounter_types[7],record), record["patientID"],record["tb_regdate"],1, record["arv_status"]) unless $arv_status[record["arv_status"].to_i].nil?
+					tb_clinic_visit_enc(create_encounter(encounter_types[7],record), record["patientID"],record["tb_regdate"],1, record["arv_status"]) unless $arv_status[record["arv_status"].to_i].nil?
 			
 
-		if !record["tb_txreg"].nil? || !record["tb_txreg"] == " "
-			treatment_enc(create_encounter(encounter_types[3],record), record)
-			treatment_encounter = current_treatment_encounter(Patient.find(record["patientID"]),record["tb_regdate"], $creator)
-			unless treatment_encounter.blank?
-				dispensation_enc(create_encounter(encounter_types[4],record), record, treatment_encounter)
-			end
+				if !record["tb_txreg"].nil? || !record["tb_txreg"] == " "
+					treatment_enc(create_encounter(encounter_types[3],record), record)
+					treatment_encounter = current_treatment_encounter(Patient.find(record["patientID"]),record["tb_regdate"], $creator)
+					unless treatment_encounter.blank?
+						dispensation_enc(create_encounter(encounter_types[4],record), record, treatment_encounter)
+					end
+				end
+
+				if !record["hiv_status"].nil?
+					update_hiv_status_enc(create_encounter(encounter_types[5],record), record)
+				end		
 		end
-
-		if !record["hiv_status"].nil?
-			update_hiv_status_enc(create_encounter(encounter_types[5],record), record)
-		end		
-
 		count -=1
 
 	end
@@ -223,7 +223,7 @@ def registration_enc(id, pat_id, pat_cat, tb_type, tb_ID, regdate, tb_place, out
 	create_obs(pat_id, id, Concept.find_by_name("tb patient category").id, $pat_cat[pat_cat.to_i], regdate, $tb_place[tb_place.to_i]) unless $pat_cat[pat_cat.to_i].nil?
 	create_obs(pat_id, id, Concept.find_by_name("tb susceptibility").id, Concept.find_by_name("susceptible").id, regdate, $tb_place[1])
 	
-	if $pat_cat[pat_cat.to_i] == 1
+	if pat_cat.to_i == 1
 		create_obs(pat_id, id, Concept.find_by_name("Directly observed treatment option").id, Concept.find_by_name("guardian").id, regdate, $tb_place[1])
 	else
 		create_obs(pat_id, id, Concept.find_by_name("Directly observed treatment option").id, Concept.find_by_name("hospital").id, regdate, $tb_place[1])
