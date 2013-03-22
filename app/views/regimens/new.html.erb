@@ -315,7 +315,12 @@ var adverse_events = <%= @adverse_events.to_json %>
 var regimen_index = '<%= @regimen_index %>';
 var regimen_id = null;
 var tb_regimen_id = null;
-var reasons = ['Jandice/hepatitis','Anaemia < 8g/dl','History of psychiatric illness','Renal failure','Child under 12 years', 'Abacavir hypersensitivity', 'Other'] ;
+
+var reasons = ['Jandice/hepatitis','Anaemia < 8g/dl','History of psychiatric illness','Renal failure', 'Abacavir hypersensitivity', 'Other'] ;
+<% if @patient_bean.age < 12 %>
+  reason += "Child under 12 years";
+<% end %>
+alert(reason)
 var regimens = [];
 var realTime = '<%=  @retrospective  %>';
 
