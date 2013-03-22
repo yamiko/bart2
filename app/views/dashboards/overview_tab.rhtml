@@ -104,6 +104,7 @@
             <div id="alerts">
               <!-- h2>Alerts</h2 -->
               <ul class="list" style="height:140px; border-radius: 15px;">
+               <% if !@alerts.nil?%>
                 <% for alert in @alerts do %>
                     <% if alert.include?("Missed") %>
                       <li class="data <%= cycle('even', 'odd') %>"
@@ -117,6 +118,7 @@
                       </li>
                      <% end %>
                   <% end %>
+                 <% end %>
                   <% if @alerts.blank? %>
                     <li class="data even">
                       <div class="alert">There are no alerts for this patient</div>

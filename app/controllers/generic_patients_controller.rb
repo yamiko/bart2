@@ -849,26 +849,26 @@ class GenericPatientsController < ApplicationController
 
   def tb_treatment_card # to look at later - To test that is
 
-		@variables = Hash.new()
-		@patient_bean = PatientService.get_patient(@patient.person)
-		@variables["hiv"] =  PatientService.patient_hiv_status(@patient.person) rescue nil
-		tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", EncounterType.find_by_name("tb registration").id, @patient.person]) rescue nil
-		if (tbStart != nil)
-			duration = Time.now.to_date - tbStart.encounter_datetime.to_date
-			@variables["patientId"] = PatientIdentifier.identifier(@patient_bean.patient_id, PatientIdentifierType.find_by_name("District TB Number").id).identifier
-			@variables["tbStart"] = tbStart.encounter_datetime.to_time.strftime('%A, %d %B %Y') rescue nil
-			@variables["arvStart"] = PatientService.patient_art_start_date(@patient.person).to_date.strftime(' %d- %b- %Y') rescue nil
-			@variables["regimen"] = Concept.find(:first, :conditions => ["concept_id = ?" ,PatientProgram.find(:all, :conditions => ["patient_id =? AND program_id = ?", @patient.person, 2]).last.current_regimen]).shortname rescue nil
+	@variables = Hash.new()
+	@patient_bean = PatientService.get_patient(@patient.person)
+	@variables["hiv"] =  PatientService.patient_hiv_status(@patient.person) rescue nil
+	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", EncounterType.find_by_name("tb registration").id, @patient.person]) rescue nil
+if (tbStart != nil)	
+	duration = Time.now.to_date - tbStart.encounter_datetime.to_date
+	@variables["patientId"] = PatientIdentifier.find(:first, :conditions => ["patient_id = ? and identifier_type = ?",@patient_bean.patient_id, PatientIdentifierType.find_by_name("district tb number").id]).identifier rescue " "
+  	@variables["tbStart"] = tbStart.encounter_datetime.to_time.strftime('%A, %d %B %Y') rescue nil
+	@variables["arvStart"] = PatientService.patient_art_start_date(@patient.person).to_date.strftime(' %d- %b- %Y') rescue nil
+	@variables["regimen"] = Concept.find(:first, :conditions => ["concept_id = ?" ,PatientProgram.find(:all, :conditions => ["patient_id =? AND program_id = ?", @patient.person, Program.find_by_name("tb program").id]).last.current_regimen]).shortname rescue nil
 
-			status = @variables["arvStart"].to_date - tbStart.encounter_datetime.to_date rescue nil
+	status = @variables["arvStart"].to_date - tbStart.encounter_datetime.to_date rescue nil
 
-			if status == nil
-				@variables["status"] = "C"
-			elsif sputum !=nil and sputum > 0
-				@variables["status"] = "A"
-			else
-				@variables["status"] = "B"
-			end
+	if status == nil
+			@variables["status"] = "C"
+	elsif sputum !=nil and sputum > 0
+			@variables["status"] = "A"
+	else
+			@variables["status"] = "B"
+	end
 
 	
 			@observations = Observation.find(:all, :conditions => ["encounter_id = ?", tbStart.encounter_id]) rescue nil
@@ -917,48 +917,48 @@ class GenericPatientsController < ApplicationController
 			end
 		end
 
-	
-		if (obs != nil)
-			@variables["startWeight"] = obs.value_numeric rescue nil
-			@variables["startWeightdate"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
-			temp = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
-			@variables["smear1AAccession"] = temp["acc1"] +"/"+temp["acc2"] rescue nil
-			@variables["smear1Aresult"] = temp["result1"] +"/"+ temp["result2"] rescue nil
+if (obs != nil)	
+	@variables["startWeight"] = obs.value_numeric rescue nil
+	@variables["startWeightdate"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
+	temp = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
+	@variables["smear1AAccession"] = temp["acc1"] +"/"+temp["acc2"] rescue nil
+	@variables["smear1Aresult"] = temp["result1"] +"/"+ temp["result2"] rescue nil
+end
+
+	obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime > ?",@patient.person,ConceptName.find_by_name("Weight").concept_id, tbStart.encounter_datetime]) rescue nil
+	@variables["weight2"] = obs.value_numeric rescue nil
+	@variables["weight2date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
+	temp1 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
+	if(!temp1.nil?)
+		@variables["smear2AAccession"] = temp1["acc1"] +"/" + temp1["acc2"] rescue nil
+		@variables["smear2Aresult"] = temp1["result1"] +"/"+ temp1["result2"] rescue nil
+
 		end
-		obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime > ?",@patient.person,ConceptName.find_by_name("Weight").concept_id, tbStart.encounter_datetime]) rescue nil
-		@variables["weight2"] = obs.value_numeric rescue nil
-		@variables["weight2date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
-		temp1 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
-		if(temp1 != nil)
-			@variables["smear2AAccession"] = temp1["acc1"] +"/" + temp1["acc2"]
-			@variables["smear2Aresult"] = temp1["result1"] +"/"+ temp1["result2"]
 
+	obs = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",@patient.person,ConceptName.find_by_name("Weight").concept_id, tbStart.encounter_datetime.to_date + 145,tbStart.encounter_datetime.to_date + 160 ]) rescue nil
+	@variables["weight3"].obs.value_numeric rescue nil
+	@variables["weight3date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
+	temp3 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
+	if (temp3 != nil)
+		@variables["smear3AAccesion"] = temp3["acc1"] + "/" + temp3["acc2"] rescue nil
+		@variables["smear3Aresult"] = temp3["result1"] + "/" + temp3["result2"] rescue nil
 
-		end
-
-		obs = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",@patient.person,ConceptName.find_by_name("Weight").concept_id, tbStart.encounter_datetime.to_date + 145,tbStart.encounter_datetime.to_date + 160 ]) rescue nil
-		@variables["weight3"].obs.value_numeric rescue nil
-		@variables["weight3date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
-		temp3 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
-		if (temp3 != nil)
-			@variables["smear3AAccesion"] = temp3["acc1"] + "/" + temp3["acc2"]
-			@variables["smear3Aresult"] = temp3["result1"] + "/" + temp3["result2"]
 
 		end
 
 		obs = Observation.find(:first, :conditions => ["person_id = ? AND concept_id = ? AND obs_datetime >= ? AND obs_datetime <= ?",@patient.person,ConceptName.find_by_name("Weight").concept_id, tbStart.encounter_datetime.to_date + 175,tbStart.encounter_datetime.to_date + 245 ]) rescue nil
 
-		@variables["weight4"] = obs.value_numeric rescue nil
-		@variables["weight4date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
-		temp4 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
-		if (temp4 != nil)
-			@variables["smear4AAccesion"] = temp4["acc1"] + "/" + temp4["acc2"]
-			@variables["smear4Aresult"] = temp4["result1"] + "/" + temp4["result2"]
-		end
+
+	@variables["weight4"] = obs.value_numeric rescue nil
+	@variables["weight4date"] = obs.obs_datetime.strftime('%d/%m/%Y') rescue nil
+	temp4 = PatientService.sputum_by_date(smears, obs.obs_datetime.to_date) rescue nil
+	if (temp4 != nil)
+		@variables["smear4AAccesion"] = temp4["acc1"] + "/" + temp4["acc2"] rescue nil
+		@variables["smear4Aresult"] = temp4["result1"] + "/" + temp4["result2"] rescue nil
+	end
 
 	  	
-	  	
-		render:layout => 'menu'
+	render:layout => 'menu'
   end
   
   def get_previous_tb_visits(patient_id)
@@ -2949,9 +2949,8 @@ class GenericPatientsController < ApplicationController
 
 	def patient_merge
 		
-
 		@values = Hash.new("")
-		if !params["name"].blank?
+		if !params["person"].blank?
 		
 			if params[:type] == "primary"
 				pre_fix = "pri"
@@ -2959,7 +2958,7 @@ class GenericPatientsController < ApplicationController
 				pre_fix = "sec"
 			end
 
-			person = PatientService.get_patient(Person.find(params["name"]))
+			person = PatientService.get_patient(Person.find(params["person"]["id"]))
 			
 			@values[pre_fix + "_name"] = person.name
 			@values[pre_fix + "_gender"] = person.sex
@@ -3009,6 +3008,113 @@ class GenericPatientsController < ApplicationController
 	
 	def get_similar_patients
 		@type = params[:type]
+    found_person = nil
+    if params[:identifier]
+      local_results = PatientService.search_by_identifier(params[:identifier])
+      if local_results.length > 1
+        redirect_to :action => 'duplicates' ,:search_params => params
+        return
+      elsif local_results.length == 1
+        if create_from_dde_server
+          dde_server = GlobalProperty.find_by_property("dde_server_ip").property_value rescue ""
+          dde_server_username = GlobalProperty.find_by_property("dde_server_username").property_value rescue ""
+          dde_server_password = GlobalProperty.find_by_property("dde_server_password").property_value rescue ""
+          uri = "http://#{dde_server_username}:#{dde_server_password}@#{dde_server}/people/find.json"
+          uri += "?value=#{params[:identifier]}"
+          output = RestClient.get(uri)
+          p = JSON.parse(output)
+          if p.count > 1
+            redirect_to :action => 'duplicates' ,:search_params => params
+            return
+          end
+        end
+        found_person = local_results.first
+      else
+        # TODO - figure out how to write a test for this
+        # This is sloppy - creating something as the result of a GET
+        if create_from_remote
+          found_person_data = PatientService.find_remote_person_by_identifier(params[:identifier])
+          found_person = PatientService.create_from_form(found_person_data['person']) unless found_person_data.blank?
+        end
+      end
+      if found_person
+        if params[:identifier].length != 6 and create_from_dde_server
+          patient = DDEService::Patient.new(found_person.patient)
+          national_id_replaced = patient.check_old_national_id(params[:identifier])
+          if national_id_replaced.to_s != "true" and national_id_replaced.to_s !="false"
+            redirect_to :action => 'remote_duplicates' ,:search_params => params
+            return
+          end
+        end
+
+        if params[:relation]
+          redirect_to search_complete_url(found_person.id, params[:relation]) and return
+        elsif national_id_replaced.to_s == "true"
+          print_and_redirect("/patients/national_id_label?patient_id=#{found_person.id}", next_task(found_person.patient)) and return
+          redirect_to :action => 'confirm', :found_person_id => found_person.id, :relation => params[:relation] and return
+        else
+          redirect_to :action => 'confirm',:found_person_id => found_person.id, :relation => params[:relation] and return
+        end
+      end
+    end
+
+    @relation = params[:relation]
+    @people = PatientService.person_search(params)
+    @search_results = {}
+    @patients = []
+
+    (PatientService.search_from_remote(params) || []).each do |data|
+      national_id = data["person"]["data"]["patient"]["identifiers"]["National id"] rescue nil
+      national_id = data["person"]["value"] if national_id.blank? rescue nil
+      national_id = data["npid"]["value"] if national_id.blank? rescue nil
+      national_id = data["person"]["data"]["patient"]["identifiers"]["old_identification_number"] if national_id.blank? rescue nil
+
+      next if national_id.blank?
+      results = PersonSearch.new(national_id)
+      results.national_id = national_id
+      results.current_residence =data["person"]["data"]["addresses"]["city_village"]
+      results.person_id = 0
+      results.home_district = data["person"]["data"]["addresses"]["address2"]
+      results.traditional_authority =  data["person"]["data"]["addresses"]["county_district"]
+      results.name = data["person"]["data"]["names"]["given_name"] + " " + data["person"]["data"]["names"]["family_name"]
+      gender = data["person"]["data"]["gender"]
+      results.occupation = data["person"]["data"]["occupation"]
+      results.sex = (gender == 'M' ? 'Male' : 'Female')
+      results.birthdate_estimated = (data["person"]["data"]["birthdate_estimated"]).to_i
+      results.birth_date = birthdate_formatted((data["person"]["data"]["birthdate"]).to_date , results.birthdate_estimated)
+      results.birthdate = (data["person"]["data"]["birthdate"]).to_date
+      results.age = cul_age(results.birthdate.to_date , results.birthdate_estimated)
+      @search_results[results.national_id] = results
+    end if create_from_dde_server
+
+    (@people || []).each do | person |
+      patient = PatientService.get_patient(person) rescue nil
+      next if patient.blank?
+      results = PersonSearch.new(patient.national_id || patient.patient_id)
+      results.national_id = patient.national_id
+      results.birth_date = patient.birth_date
+      results.current_residence = patient.current_residence
+      results.guardian = patient.guardian
+      results.person_id = patient.person_id
+      results.home_district = patient.home_district
+      results.current_district = patient.current_district
+      results.traditional_authority = patient.traditional_authority
+      results.mothers_surname = patient.mothers_surname
+      results.dead = patient.dead
+      results.arv_number = patient.arv_number
+      results.eid_number = patient.eid_number
+      results.pre_art_number = patient.pre_art_number
+      results.name = patient.name
+      results.sex = patient.sex
+      results.age = patient.age
+      @search_results.delete_if{|x,y| x == results.national_id }
+      @patients << results
+    end
+
+		(@search_results || {}).each do | npid , data |
+			@patients << data
+		end
+
 	end
 	
 	def	patient_to_merge

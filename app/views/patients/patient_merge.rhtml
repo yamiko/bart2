@@ -32,7 +32,8 @@
 				}
 				else if (sec_id == pri_id)
 				{
-						showMessage("Primary and Secondary patients must be different");
+						showMessage("Unable to merge. Primary and Secondary patients must be different");
+						window.location = "/patients/patient_merge"
 				}
 				else
 				{
