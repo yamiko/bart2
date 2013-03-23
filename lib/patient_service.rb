@@ -1589,6 +1589,24 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
   end
 
   def self.checks_if_vitals_are_need(patient , session_date, task , user_selected_activities)
+
+    #..............................................................................
+    if self.current_program_location == 'TB program'
+      reception = Encounter.find(:first,:conditions =>["patient_id = ? AND 
+        DATE(encounter_datetime) = ? AND encounter_type = ?",patient.id,session_date,
+        EncounterType.find_by_name('TB RECEPTION').id]).observations.collect{| r | r.to_s}.join(',') rescue ''
+    else
+      reception = Encounter.find(:first,:conditions =>["patient_id = ? AND 
+        DATE(encounter_datetime) = ? AND encounter_type = ?",patient.id,session_date,
+        EncounterType.find_by_name('HIV RECEPTION').id]).observations.collect{| r | r.to_s}.join(',') rescue ''
+    end
+
+    if reception.match(/PATIENT PRESENT FOR CONSULTATION:  NO/i)
+      return nil
+    end
+    #..............................................................................
+
+
     first_vitals = Encounter.find(:first,:order => "encounter_datetime DESC",
       :conditions =>["patient_id = ? AND encounter_type = ?",
         patient.id,EncounterType.find_by_name('VITALS').id])
@@ -1934,4 +1952,21 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
       !MedicationService.arv(drug)
     end
   end
+
+  private
+
+  def self.current_program_location                                                  
+    current_user_activities = User.current.activities                           
+    if Location.current_location.name.downcase == 'outpatient'                  
+      return "OPD"                                                              
+    elsif current_user_activities.include?('Manage Lab Orders') or current_user_activities.include?('Manage Lab Results') or
+       current_user_activities.include?('Manage Sputum Submissions') or current_user_activities.include?('Manage TB Clinic Visits') or
+       current_user_activities.include?('Manage TB Reception Visits') or current_user_activities.include?('Manage TB Registration Visits') or
+       current_user_activities.include?('Manage HIV Status Visits')             
+       return 'TB program'                                                      
+    else #if current_user_activities                                            
+       return 'HIV program'                                                     
+    end                                                                         
+  end
+
 end
