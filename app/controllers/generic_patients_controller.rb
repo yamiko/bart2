@@ -1961,7 +1961,7 @@ end
             
 			elsif concept_name.upcase == 'AMOUNT OF DRUG BROUGHT TO CLINIC'
 				drug = Drug.find(obs.order.drug_order.drug_inventory_id) rescue nil
-				tb_medical = MedicationService.tb_medication(drug)
+				tb_medical = MedicationService.tb_medication(drug) unless drug.nil?
 				next if tb_medical == true
 				next if drug.blank?
 				drug_name = drug.concept.shortname rescue drug.name
@@ -1970,7 +1970,7 @@ end
             
 			elsif concept_name.upcase == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'
 				drug = Drug.find(obs.order.drug_order.drug_inventory_id) rescue nil
-				tb_medical = MedicationService.tb_medication(drug)
+				tb_medical = MedicationService.tb_medication(drug) unless drug.nil?
 				next if tb_medical == true
 				next if obs.value_numeric.blank?
 				patient_visits[visit_date].adherence = [] if patient_visits[visit_date].adherence.blank?
