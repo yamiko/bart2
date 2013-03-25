@@ -20,10 +20,13 @@ $hiv_status = { 1 => Concept.find_by_name("positive").id, 0 => Concept.find_by_n
 
 $arv_status = {1 => Concept.find_by_name("Yes").id, 2 => Concept.find_by_name("Yes").id, 3 => Concept.find_by_name("No").id, 9 => Concept.find_by_name("Unknown").id}
 
+$creator = User.find_by_username("migrator").id 
+$provider = User.find_by_username("mikkal").person_id 
+
 
 def import
 
-	mpc_records = MysqlConnection.connection.select_all("SELECT * FROM CSVImport where patientID = 0")
+	mpc_records = MysqlConnection.connection.select_all("SELECT * FROM CSVImport limit 3")
 	encounter_types = [EncounterType.find_by_name("TB_initial").id,EncounterType.find_by_name("TB registration").id,EncounterType.find_by_name("TB visit").id,EncounterType.find_by_name("treatment").id,EncounterType.find_by_name("Dispensing").id, EncounterType.find_by_name("update hiv status").id,EncounterType.find_by_name("lab results").id, EncounterType.find_by_name("tb clinic visit").id, EncounterType.find_by_name("give lab results").id]	
 	
 	count = mpc_records.length
@@ -35,7 +38,7 @@ def import
 		$entry = record
 		if (!Patient.find(record['patientID']).nil? rescue false)
 				#initialise a global user for all records of the patient
-				$creator = User.find_by_username(details["UserStamp"].to_i).id rescue 1
+			
 			
 				#creating encounters
 				initial_enc(create_encounter(encounter_types[0],record), record["patientID"],record["smear_initial"].to_i,record["tb_regdate"], 1) 	
@@ -84,9 +87,10 @@ def create_encounter(enc_type, record)
 		enc.location_id = $tb_place[1]			
 		enc.patient_id = record["patientID"]
 		enc.creator = $creator
-		enc.provider_id = $creator
+		enc.provider_id = $provider
 		enc.encounter_datetime = record["tb_regdate"]
 		enc.save!
+		create_obs(record["patientID"], enc.id, Concept.find_by_name("data migration notes").id,Concept.find_by_name("yes").id ,record["tb_regdate"], $tb_place[1] )
 		return enc.id
 
 end

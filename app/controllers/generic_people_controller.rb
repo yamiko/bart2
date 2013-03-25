@@ -259,9 +259,8 @@ class GenericPeopleController < ApplicationController
         @modifier = @results[1]["Range"] rescue nil
       end
         @reason_for_art = PatientService.reason_for_art_eligibility(patient)
-
-		@outcome = patient.patient_programs.last.patient_states.last.program_workflow_state.concept.fullname rescue nil
-		                                                         
+        @outcome = patient.patient_programs.last.patient_states.last.program_workflow_state.concept.fullname rescue nil
+                                                         
 		render :layout => false
 	end
 

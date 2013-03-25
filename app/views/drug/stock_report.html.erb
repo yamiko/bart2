@@ -10,6 +10,9 @@
     color: navy;
     text-decoration: none;
   }
+  .logo {
+    float:left
+  }
 </style>
 
 <%= stylesheet_link_tag "stock_report" %>
@@ -29,10 +32,13 @@
 </script>
 
 <div id="general_dashboard">
-  <h2>Drug stock report</h2><h3>From: <%= @start_date.strftime("%A, %Y %b %d")%> 
-    <br/>To: <%=@end_date.strftime("%A, %Y %b %d")%></br></h3>
+  <%= image_tag(@logo, :class => "logo")%><br />
+  <br /><b style="margin-left:75px"><%= @current_location_name %></b><br />
+  <b style="position:relative; top:0px;margin-left:75px">Drug stock report</b><br />
+  <b style="position:relative; top:0px;margin-left:75px">From : <%= @start_date.strftime("%A, %Y %b %d")%></b><br />
+  <b style="position:relative; top:0px;margin-left:75px">To : <%=@end_date.strftime("%A, %Y %b %d")%></b><br />
 <%#= render :partial => "header" %>
-  </br>
+  <br /><br />
   <table class="main-table">
   <tr class="header">
     <td>
@@ -63,7 +69,7 @@
           <td colspan="2" style="text-align:center;">Total adjustments in interval</td>
         </tr>
         <tr>
-          <td style="vertical-align: bottom;">Recieved</td>
+          <td style="vertical-align: bottom;">Received</td>
           <td style="text-align:right;">Relocated <br />out/disposed</td>
         </tr>
       </table>
@@ -192,7 +198,7 @@
     <td class="color_<%=color%> caldata" id="dispensed_<%=count%>">
       <%                                                                        
         verified = (values['confirmed_closing'] / 60).round                     
-        difference = ((verified.to_f/expected.to_f)*100).round                                      
+        difference = ((verified.to_f/expected.to_f)*100).round rescue 0
       %> 
       <table class="inner-data">
         <tr>
