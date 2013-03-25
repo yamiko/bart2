@@ -282,9 +282,9 @@ module PatientService
       @dde_server_password = GlobalProperty.find_by_property("dde_server_password").property_value rescue ""
 
       uri = "http://#{@dde_server_username}:#{@dde_server_password}@#{@dde_server}/people.json/"
-      recieved_params = RestClient.post(uri,passed_params)
+      received_params = RestClient.post(uri,passed_params)
 
-      national_id = JSON.parse(recieved_params)["npid"]["value"]
+      national_id = JSON.parse(received_params)["npid"]["value"]
     else
       national_id = params["person"]["patient"]["identifiers"]["National id"]
     end
@@ -769,6 +769,7 @@ module PatientService
         :order => "obs_datetime DESC,date_created DESC",
         :conditions => ["value_coded IS NOT NULL AND person_id = ? AND concept_id = ?", patient.id,
           ConceptName.find_by_name("HIV STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
+
     if status.upcase == 'UNKNOWN'
       return patient.patient_programs.collect{|p|p.program.name}.include?('HIV PROGRAM') ? 'Positive' : status
     end
@@ -1416,7 +1417,7 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
   end
 
   def self.search_by_identifier(identifier)
-    identifier = identifier.gsub("-","").strip
+    #identifier = identifier.gsub("-","").strip
     people = PatientIdentifier.find_all_by_identifier(identifier).map{|id|
       id.patient.person
     } unless identifier.blank? rescue nil

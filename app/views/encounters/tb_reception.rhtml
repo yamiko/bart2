@@ -86,7 +86,12 @@
         <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
         <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
     <% else %>
-      <label for='guardian_present'>Guardian Present (<%=@patient.person.relationships.map{|r|Person.find(r.person_b).name}[0] rescue ''%>)</label>
+	   <% related = @patient.person.relationships.map{|r|Person.find(r.person_b).name}[0] rescue ''
+	 if related == '' %>
+	   <label for='guardian_present'>Guardian Present <%=@patient.person.relationships.map{|r|Person.find(r.person_b).name}[0] rescue ''%></label>
+	 <% else %>
+	   <label for='guardian_present'>Guardian Present (<%=@patient.person.relationships.map{|r|Person.find(r.person_b).name}[0] rescue ''%>)</label>
+	 <% end %>  
         <%= select_tag "observations[][value_text]", relationship_options(@patient),
           {:id => "guardian_present",
            :multiple => false,

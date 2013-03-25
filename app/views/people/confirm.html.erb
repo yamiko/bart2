@@ -65,10 +65,10 @@
 					"/patients/set_new_filing_number/<%=@person.patient.id %>");
 				} else if(status == 1) {
 					confirmOperation("Patient was transferred out. Do you wish to continue?",
-					"/patients/show/<%=@person.patient.id %>");
+					"<%=@task.url%>");
 				} else if(status == 2) {
 					confirmOperation("Patient is a defaulter. Do you wish to continue?",
-					"/patients/show/<%=@person.patient.id %>");
+					"<%=@task.url%>");
 				}
 
 				return;

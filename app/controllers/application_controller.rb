@@ -82,7 +82,7 @@ class ApplicationController < GenericApplicationController
     end
 
     tb_encounters.each do | type |
-      task.encounter_type = type 
+			task.encounter_type = type
 
       case type
         when 'SOURCE OF REFERRAL'
@@ -373,10 +373,12 @@ class ApplicationController < GenericApplicationController
                                       :conditions =>["patient_id = ? AND encounter_type = ?",
                                       patient.id,EncounterType.find_by_name(type).id])
 
-          clinic_visit_obs = !clinic_visit.observations.map{|o|
-            o.to_s.downcase.strip.squish
-          }.include?("further examination for tb required: none") rescue false
-
+          #clinic_visit_obs = !clinic_visit.observations.map{|o|
+            #o.to_s.downcase.strip.squish
+         # }.include?("further examination for tb required: none") rescue false
+				 clinic_visit_obs = false
+				 clinic_visit_obs = true if clinic_visit.observations.to_s.match(/further examination for tb required: none/i)
+				#raise clinic_visit_obs.to_yaml
           if clinic_visit_obs
             if user_selected_activities.match(/Manage TB clinic visits/i)
               task.url = "/encounters/new/tb_clinic_visit?show&patient_id=#{patient.id}"
@@ -423,6 +425,7 @@ class ApplicationController < GenericApplicationController
                                          patient.id,EncounterType.find_by_name(type).id],
                                          :order =>'encounter_datetime DESC,date_created DESC',:limit => 1)
 
+				#raise user_selected_activities.to_yaml
           if hiv_clinic_registration.blank? and user_selected_activities.match(/Manage HIV first visits/i)
             task.url = "/encounters/new/hiv_clinic_registration?show&patient_id=#{patient.id}"
             return task
@@ -592,6 +595,7 @@ class ApplicationController < GenericApplicationController
         when 'TB ADHERENCE'
           drugs_given_before = false
           PatientService.drug_given_before(patient,session_date).each do |order|
+						next unless MedicationService.tb_medication(order.drug_order.drug)
             drugs_given_before = true                                              
           end
            

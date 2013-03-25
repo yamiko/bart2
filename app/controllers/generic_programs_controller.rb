@@ -93,6 +93,7 @@ class GenericProgramsController < ApplicationController
   end
   
   def states
+		tb_states = ["currently in treatment", "patient cured", "patient transferred out", "regimen failure","treatment complete","patient died"]
     if params[:show_non_terminal_states_only].to_s == true.to_s
        @states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ? AND terminal = 0', params[:workflow]], :include => :concept)
     else
@@ -100,9 +101,12 @@ class GenericProgramsController < ApplicationController
     end
     
     @names = @states.map{|state|
+
       name = state.concept.concept_names.typed("SHORT").first.name rescue state.concept.fullname
-      next if name.blank? 
-      "<li value='#{state.id}'>#{name}</li>" unless name == params[:current_state]
+      next if name.blank?
+			if tb_states.include?(name.downcase.to_s)
+				 "<li value='#{state.id}'>#{name}</li>" unless name == params[:current_state]
+			end
     }
     render :text => @names.join('')  
   end
@@ -113,7 +117,7 @@ class GenericProgramsController < ApplicationController
     if request.method == :post
 
       patient_program = PatientProgram.find(params[:patient_program_id])
-      #we don't want to have more than one open states - so we have to close the current active on before opening/creating a new one
+			 #we don't want to have more than one open states - so we have to close the current active on before opening/creating a new one
 
       current_active_state = patient_program.patient_states.last
       current_active_state.end_date = params[:current_date].to_date
