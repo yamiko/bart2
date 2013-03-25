@@ -558,6 +558,7 @@
   }
 
   function removeValues(){
+    return
 			  <% if @patient.person.observations.to_s.include?('Ever received TB treatment:  Yes')
 					  tb_hiv_exclusions = [['Tuberculosis (PTB or EPTB) within the last 2 years','Tuberculosis (PTB or EPTB) within the last 2 years']]
 					  @who_stage_iii = @who_stage_iii - tb_hiv_exclusions
@@ -583,22 +584,25 @@
 					option4 = "YES";
 			  <%  end %>
   }
-  function updateSelectedOptions(){
-			  condition_number = '<%= count %>';
-			  <% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve') %>
-					 condition_number += 1
-					 selected_stage_conditions[condition_number] = 'Pulmonary tuberculosis (current)'
-			  <% end  %>
 
-			  <% if  @patient.person.observations.to_s.include?('Extrapulmonary tuberculosis (EPTB)') %>
-					condition_number += 1
-					selected_stage_conditions[condition_number] = 'Extrapulmonary tuberculosis (EPTB)'
-			  <%  end %>
-			  <% if @patient.person.observations.to_s.include?('Ever received TB treatment:  Yes') %>
-					condition_number += 1
-					selected_stage_conditions[condition_number] = 'Tuberculosis (PTB or EPTB) within the last 2 years'
-			  <%  end %>
+  function updateSelectedOptions(){
+    return 
+    condition_number = '<%= count %>';
+    <% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve') %>
+       condition_number += 1
+       selected_stage_conditions[condition_number] = 'Pulmonary tuberculosis (current)'
+    <% end  %>
+
+    <% if  @patient.person.observations.to_s.include?('Extrapulmonary tuberculosis (EPTB)') %>
+      condition_number += 1
+      selected_stage_conditions[condition_number] = 'Extrapulmonary tuberculosis (EPTB)'
+    <%  end %>
+    <% if @patient.person.observations.to_s.include?('Ever received TB treatment:  Yes') %>
+      condition_number += 1
+      selected_stage_conditions[condition_number] = 'Tuberculosis (PTB or EPTB) within the last 2 years'
+    <%  end %>
   }
+
 </script>
 <style type="text/css">
   .small .options li { font-size:1.1em; }
