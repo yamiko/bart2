@@ -834,11 +834,17 @@ module PatientService
   end
 
   def self.patient_tb_status(patient)
-    Concept.find(Observation.find(:first,
-        :order => "obs_datetime DESC,date_created DESC",
-        :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL",
-          patient.id,
-          ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
+		state = Concept.find(Observation.find(:first,
+				:order => "obs_datetime DESC,date_created DESC",
+				:conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL", patient.id,
+				ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
+			programs = patient.patient_programs.all
+			programs.each do |prog|
+				if prog.program.name.upcase == "TB PROGRAM"
+					state = ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname rescue state
+				end
+			end
+		state
   end
 
   def self.reason_for_art_eligibility(patient)

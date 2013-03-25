@@ -65,14 +65,16 @@
     <%end%>
   <%end%>
   }
-</script>  
+</script>
+
 <form id='appointment' action="/encounters/create" method='post'>
   <%= hidden_field_tag "encounter[encounter_type_name]", "TB RECEPTION" %>
-  <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
+  <%= hidden_field_tag "encounter[patient_id]", @patient.patient_id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", current_user.user_id %>
 
   <% if session[:guardian_added] == nil  %>
+
     <% if Person.find(@patient.patient_id).relationships.first.blank? %>
        <label for='guardian_present'>Guardian Present</label>
         <%= select_tag "observations[][value_text]", relationship_options(@patient),
@@ -83,7 +85,8 @@
            :tt_onUnLoad => "forcePatientPresentYes(),setTimeout(cleanup_guardian_options() , 500);" } %>
         <%= hidden_field_tag("observations[][value_coded_or_text]", nil) %>
         <%= hidden_field_tag("observations[][concept_name]", "GUARDIAN PRESENT") %>
-        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
+        <%= hidden_field_tag("observations[][patient_id]", @patient.patient_id) %>
+	    <%= hidden_field_tag("observations[][person_id]", @patient.patient_id) %>
         <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
     <% else %>
 	   <% related = @patient.person.relationships.map{|r|Person.find(r.person_b).name}[0] rescue ''
@@ -91,7 +94,7 @@
 	   <label for='guardian_present'>Guardian Present <%=@patient.person.relationships.map{|r|Person.find(r.person_b).name}[0] rescue ''%></label>
 	 <% else %>
 	   <label for='guardian_present'>Guardian Present (<%=@patient.person.relationships.map{|r|Person.find(r.person_b).name}[0] rescue ''%>)</label>
-	 <% end %>  
+	 <% end %>
         <%= select_tag "observations[][value_text]", relationship_options(@patient),
           {:id => "guardian_present",
            :multiple => false,
@@ -101,11 +104,12 @@
          } %>
         <%= hidden_field_tag("observations[][value_coded_or_text]", nil) %>
         <%= hidden_field_tag("observations[][concept_name]", "GUARDIAN PRESENT") %>
-        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
+        <%= hidden_field_tag("observations[][patient_id]", @patient.patient_id) %>
+		<%= hidden_field_tag("observations[][person_id]", @patient.patient_id) %>
         <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
     <% end %>
   <% else %>
-    <%= touch_hidden_tag("GUARDIAN PRESENT", @patient.id, "Yes", {:id=>"guardian_present"}) %>
+    <%= touch_hidden_tag("GUARDIAN PRESENT", @patient.patient_id, "Yes", {:id=>"guardian_present"}) %>
   <% end %>
   <% session[:guardian_added] = nil %>
 
@@ -116,7 +120,7 @@
        :tt_onLoad => 'hide_new_relationship_button()'} %>
     <%= hidden_field_tag("observations[][value_text]", nil) %>
     <%= hidden_field_tag("observations[][concept_name]", "PATIENT PRESENT") %>
-    <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
+    <%= hidden_field_tag("observations[][patient_id]", @patient.patient_id) %>
     <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>  
 
   <%# if ask_sms_for_TB_therapy and phone_number_available %>
