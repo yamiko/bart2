@@ -809,6 +809,7 @@ class EncountersController < GenericEncountersController
     arvs_given = true
 		regimen_type = false
 		
+    logger.info('========================== Suggesting appointment date YYYYYY =================================== @ '  + Time.now.to_s)
 		orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o|
 								 !MedicationService.tb_medication(o.drug_order.drug) }
 
@@ -880,6 +881,7 @@ class EncountersController < GenericEncountersController
 		end
 
 		buffer = 0 if !arvs_given
+    logger.info('========================== Completed suggesting appointment date XXXXXX =================================== @ '  + Time.now.to_s)
 		return auto_expire_date - buffer.days
 	end
 	
