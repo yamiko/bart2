@@ -888,7 +888,9 @@ class EncountersController < GenericEncountersController
 	end
 	
   def bookings_within_range(end_date = nil)
-    encounter_type = EncounterType.find_by_name('APPOINTMENT')
+    @encounter_type = EncounterType.find_by_name('APPOINTMENT')
+    @concept_id = ConceptName.find_by_name('APPOINTMENT DATE').concept_id
+
     booked_dates = Hash.new(0)
    
     clinic_days = GlobalProperty.find_by_property("clinic.days")
@@ -906,13 +908,10 @@ class EncountersController < GenericEncountersController
     end_date = end_date.strftime('%Y-%m-%d 23:59:59')
 
     logger.info('========================== start booking =================================== @ '  + Time.now.to_s)
-    Observation.find_by_sql("SELECT * FROM obs INNER JOIN encounter e 
-      ON e.encounter_id = obs.encounter_id AND encounter_type = #{encounter_type.id}
-      WHERE value_datetime >= '#{start_date}' 
-      AND value_datetime <= '#{end_date}'").map do | obs |                  
-      next unless clinic_days.include?(obs.value_datetime.to_date.strftime("%A"))
-      booked_dates[obs.value_datetime.to_date]+=1                               
-    end                                          
+    booked_dates.each do |date,count|
+      next unless clinic_days.include?(date.to_date.strftime("%A"))
+      booked_dates[date] = number_of_booked_patients(date)              
+    end         
     logger.info('========================== end booking =================================== @ '  + Time.now.to_s)
 
     clinic_holidays = CoreService.get_global_property_value('clinic.holidays')  
@@ -1536,5 +1535,20 @@ class EncountersController < GenericEncountersController
 		end
   end
 	
-	
+  protected
+  
+  def number_of_booked_patients(date)                                                 
+    start_date = date.strftime('%Y-%m-%d 00:00:00')                             
+    end_date = date.strftime('%Y-%m-%d 23:59:59')                               
+                                                                                
+    appointments = Observation.find_by_sql("SELECT count(value_datetime) AS count FROM obs 
+      INNER JOIN encounter e USING(encounter_id) WHERE concept_id = #{@concept_id} 
+      AND encounter_type = #{@encounter_type.id} AND value_datetime >= '#{start_date}' 
+      AND value_datetime <= '#{end_date}' GROUP BY value_datetime LIMIT 1")     
+    count = appointments.count unless appointments.blank?                       
+    count = 0 if count.blank?                                                 
+                                                                                
+    return count
+  end 	
+
 end
