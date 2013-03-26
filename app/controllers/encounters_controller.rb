@@ -724,7 +724,7 @@ class EncountersController < GenericEncountersController
 		return within_limit
 	end
 
-	def suggested_date(expiry_date, holidays, bookings = {}, clinic_days)
+	def suggested_date(expiry_date, holidays, bookings, clinic_days)
     bookings.delete_if{|k,v| holidays.collect{|h|h.to_date.to_s[5..-1]}.include?(k.to_date.to_s[5..-1])}
   
     recommended_date = nil                                                      
