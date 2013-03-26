@@ -780,9 +780,7 @@ class EncountersController < GenericEncountersController
 		#@number_of_days_to_add_to_next_appointment_date = number_of_days_to_add_to_next_appointment_date(@patient, session[:datetime] || Date.today)
 
 		dispensed_date = session[:datetime].to_date rescue Date.today
-    logger.info('========================== prescription_expiry_date =================================== @ '  + Time.now.to_s)
 		expiry_date = prescription_expiry_date(@patient, dispensed_date)
-    logger.info('========================== prescription_expiry_date =================================== @ '  + Time.now.to_s)
 		
 		#if the patient is a child (age 14 or less) and the peads clinic days are set - we
 		#use the peads clinic days to set the next appointment date		
@@ -906,13 +904,14 @@ class EncountersController < GenericEncountersController
       start_date = (start_date + 1.day)                               
     end
     
-    start_date = (end_date - 4.days)
+    start_date = (end_date - 4.days).strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.strftime('%Y-%m-%d 23:59:59')
 
     Observation.find_by_sql("SELECT * FROM obs INNER JOIN encounter e 
       ON e.encounter_id = obs.encounter_id
       WHERE encounter_type = #{encounter_type.id} AND value_datetime IS NOT NULL        
-      AND (DATE(value_datetime) >= '#{start_date}' 
-      AND DATE(value_datetime) <= '#{end_date}')").map do | obs |                  
+      AND value_datetime >= '#{start_date}' 
+      AND value_datetime <= '#{end_date}')").map do | obs |                  
       next unless clinic_days.include?(obs.value_datetime.to_date.strftime("%A"))
       booked_dates[obs.value_datetime.to_date]+=1                               
     end                                          
