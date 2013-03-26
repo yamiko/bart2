@@ -780,24 +780,24 @@ class EncountersController < GenericEncountersController
 		#@number_of_days_to_add_to_next_appointment_date = number_of_days_to_add_to_next_appointment_date(@patient, session[:datetime] || Date.today)
 
 		dispensed_date = session[:datetime].to_date rescue Date.today
+    logger.info('========================== prescription_expiry_date =================================== @ '  + Time.now.to_s)
 		expiry_date = prescription_expiry_date(@patient, dispensed_date)
+    logger.info('========================== prescription_expiry_date =================================== @ '  + Time.now.to_s)
 		
 		#if the patient is a child (age 14 or less) and the peads clinic days are set - we
 		#use the peads clinic days to set the next appointment date		
 		peads_clinic_days = CoreService.get_global_property_value('peads.clinic.days')
 				
-    logger.info('========================== 1-1 =================================== @ '  + Time.now.to_s)
 		if (@patient_bean.age <= 14 && !peads_clinic_days.blank?)
 			clinic_days = peads_clinic_days
 		else
 			clinic_days = CoreService.get_global_property_value('clinic.days') || 'Monday,Tuesday,Wednesday,Thursday,Friday'		
 		end
 		clinic_days = clinic_days.split(',')		
-    logger.info('========================== 1-2 =================================== @ '  + Time.now.to_s)
 
-    logger.info('========================== 2-1 =================================== @ '  + Time.now.to_s)
+    logger.info('========================== start booking =================================== @ '  + Time.now.to_s)
 		bookings = bookings_within_range(expiry_date)
-    logger.info('========================== 2-2 =================================== @ '  + Time.now.to_s)
+    logger.info('========================== end booking =================================== @ '  + Time.now.to_s)
     
 		clinic_holidays = CoreService.get_global_property_value('clinic.holidays') 
 		clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',').split(',') rescue []
@@ -908,7 +908,8 @@ class EncountersController < GenericEncountersController
     
     start_date = (end_date - 4.days)
 
-    Observation.find_by_sql("SELECT * FROM obs INNER JOIN encounter e USING(encounter_id)
+    Observation.find_by_sql("SELECT * FROM obs INNER JOIN encounter e 
+      ON e.encounter_id = obs.encounter_id
       WHERE encounter_type = #{encounter_type.id} AND value_datetime IS NOT NULL        
       AND (DATE(value_datetime) >= '#{start_date}' 
       AND DATE(value_datetime) <= '#{end_date}')").map do | obs |                  
