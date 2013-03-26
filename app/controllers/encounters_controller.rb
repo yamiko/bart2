@@ -842,18 +842,39 @@ class EncountersController < GenericEncountersController
 			starter_pack = true
 		end
 
+    #==========================================================================================
     calculated_expire_date = auto_expire_date
 		orders_made.each do |order|
+=begin
+      amounts_dispensed = Observation.find_by_sql("SELECT * FROM obs WHERE 
+        concept_id = #{ConceptName.find_by_name("AMOUNT DISPENSED").concept_id}
+        AND order_id = #{order.id}")
+
+			total_dispensed = amounts_dispensed.sum{|amount| amount.value_numeric}
+=end
+
+=begin	
 			amounts_dispensed = Observation.all(:conditions => ['concept_id = ? AND order_id = ?', 
           ConceptName.find_by_name("AMOUNT DISPENSED").concept_id , order.id])
-			total_dispensed = amounts_dispensed.sum{|amount| amount.value_numeric}
-			
+
 			amounts_brought_to_clinic = Observation.all(:joins => 'INNER JOIN drug_order USING (order_id)', 
 				:conditions => ['obs.concept_id = ? AND drug_order.drug_inventory_id = ? 
         AND obs.obs_datetime >= ? AND obs.obs_datetime <= ? AND person_id = ?', 
           ConceptName.find_by_name("AMOUNT OF DRUG BROUGHT TO CLINIC").concept_id ,
           order.drug_order.drug_inventory_id, session_date.to_date,
           session_date.to_date.to_s + ' 23:59:59',patient.person.id])
+=end
+
+
+    amounts_brought_to_clinic = Observation.find_by_sql("SELECT * FROM obs 
+      INNER JOIN drug_order USING (order_id) 
+      WHERE obs.concept_id = #{ConceptName.find_by_name('AMOUNT OF DRUG BROUGHT TO CLINIC').concept_id}
+      AND drug_order.drug_inventory_id = #{order.drug_order.drug_inventory_id}
+      AND obs.obs_datetime >= '#{session_date.to_date}' 
+      AND obs.obs_datetime <= '#{session_date.to_date.strftime('%Y-%m-%d 23:59:59')}'
+      AND person_id = #{patient.id}")
+
+    #==========================================================================================
 
 			total_brought_to_clinic = amounts_brought_to_clinic.sum{|amount| amount.value_numeric}
 
