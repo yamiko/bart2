@@ -724,13 +724,13 @@ class EncountersController < GenericEncountersController
 		return within_limit
 	end
 
-	def suggested_date(expiry_date, holidays, bookings, clinic_days)
+	def suggested_date(expiry_date, holidays, bookings = {}, clinic_days)
     bookings.delete_if{|k,v| holidays.collect{|h|h.to_date.to_s[5..-1]}.include?(k.to_date.to_s[5..-1])}
   
     recommended_date = nil                                                      
     clinic_appointment_limit = CoreService.get_global_property_value('clinic.appointment.limit').to_i rescue 0
                                                                                 
-    (bookings ||{}).sort_by { |dates,num| dates }.reverse.each do |dates , num|   
+    (bookings || {}).sort_by { |dates,num| dates }.reverse.each do |dates , num|   
       next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
       if num < clinic_appointment_limit                                  
         recommended_date = dates                                                  
@@ -738,7 +738,7 @@ class EncountersController < GenericEncountersController
       end
     end          
                                                                    
-    (bookings ||{}).sort_by { |dates,num| num }.each do |dates , num|   
+    (bookings || {}).sort_by { |dates,num| num }.each do |dates , num|   
       next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
       recommended_date = dates                                                  
       break 
@@ -908,8 +908,7 @@ class EncountersController < GenericEncountersController
     logger.info('========================== start booking =================================== @ '  + Time.now.to_s)
     Observation.find_by_sql("SELECT * FROM obs INNER JOIN encounter e 
       ON e.encounter_id = obs.encounter_id AND encounter_type = #{encounter_type.id}
-      WHERE encounter_type = #{encounter_type.id}        
-      AND value_datetime >= '#{start_date}' 
+      WHERE value_datetime >= '#{start_date}' 
       AND value_datetime <= '#{end_date}'").map do | obs |                  
       next unless clinic_days.include?(obs.value_datetime.to_date.strftime("%A"))
       booked_dates[obs.value_datetime.to_date]+=1                               
