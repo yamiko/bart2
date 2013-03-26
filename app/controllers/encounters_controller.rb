@@ -725,25 +725,32 @@ class EncountersController < GenericEncountersController
 	end
 
 	def suggested_date(expiry_date, holidays, bookings, clinic_days)
-    bookings.delete_if{|k,v| holidays.collect{|h|h.to_date.to_s[5..-1]}.include?(k.to_date.to_s[5..-1])}
-  
+    bookings.delete_if{|bd| holidays.collect{|h|h.to_date.to_s[5..-1]}.include?(bd.to_s[5..-1])}
     recommended_date = nil                                                      
     clinic_appointment_limit = CoreService.get_global_property_value('clinic.appointment.limit').to_i rescue 0
-                                                                                
-    (bookings || {}).sort_by { |dates,num| dates }.reverse.each do |dates , num|   
-      next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
-      if num < clinic_appointment_limit                                  
-        recommended_date = dates                                                  
+
+    @encounter_type = EncounterType.find_by_name('APPOINTMENT')                  
+    @concept_id = ConceptName.find_by_name('APPOINTMENT DATE').concept_id        
+          
+    number_of_bookings = {}
+                                                                      
+    (bookings || []).sort.reverse.each do |date|   
+      next if not clinic_days.collect{|c|c.upcase}.include?(date.strftime('%A').upcase)
+      limit = number_of_booked_patients(date.to_date)
+      if limit < clinic_appointment_limit                                  
+        recommended_date = date
         break 
+      else
+        number_of_bookings[date] = limit
       end
     end          
                                                                    
-    (bookings || {}).sort_by { |dates,num| num }.each do |dates , num|   
+    (number_of_bookings || {}).sort_by { |dates,num| num }.each do |dates , num|   
       next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
       recommended_date = dates                                                  
       break 
     end if recommended_date.blank?                                                                        
-                                                                                
+=begin                                                                                
     if recommended_date.blank?                                                  
       expiry_date_rec = expiry_date
       1.upto(5).each do |num|                                                   
@@ -758,7 +765,7 @@ class EncountersController < GenericEncountersController
         end                                                                     
       end                                                                       
     end                                                                         
-                                                                                
+=end                                                                          
     recommended_date = (expiry_date - 2.day) if recommended_date.blank?
     return recommended_date
 	end
@@ -888,40 +895,24 @@ class EncountersController < GenericEncountersController
 	end
 	
   def bookings_within_range(end_date = nil)
-    @encounter_type = EncounterType.find_by_name('APPOINTMENT')
-    @concept_id = ConceptName.find_by_name('APPOINTMENT DATE').concept_id
-
-    booked_dates = Hash.new(0)
-   
     clinic_days = GlobalProperty.find_by_property("clinic.days")
     clinic_days = clinic_days.property_value.split(',') rescue 'Monday,Tuesday,Wednesday,Thursday,Friday'.split(',')
 
     start_date = (end_date - 4.days)
-    
-    booked_dates[end_date] = 0
+    booked_dates = [end_date]
+  
     (1.upto(4)).each do |num|
-      booked_dates[start_date] = 0
-      start_date = (start_date + 1.day)                               
+      booked_dates << (end_date - num.day)                               
     end
     
-    start_date = (end_date - 4.days).strftime('%Y-%m-%d 00:00:00')
-    end_date = end_date.strftime('%Y-%m-%d 23:59:59')
-
-    logger.info('========================== start booking =================================== @ '  + Time.now.to_s)
-    #booked_dates.each do |date,count|
-     # next unless clinic_days.include?(date.to_date.strftime("%A"))
-      #booked_dates[date] = number_of_booked_patients(date)              
-    #end         
-    logger.info('========================== end booking =================================== @ '  + Time.now.to_s)
-
     clinic_holidays = CoreService.get_global_property_value('clinic.holidays')  
     clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',').split(',') rescue []
-    return_booked_dates = {}
+    return_booked_dates = []
   
     unless clinic_holidays.blank?
-      (booked_dates || {}).each do |date , c|
+      (booked_dates || []).each do |date|
         next if is_holiday(date,clinic_holidays)
-        return_booked_dates[date] = c
+        return_booked_dates << date
       end
     else
       return_booked_dates = booked_dates
@@ -1534,21 +1525,21 @@ class EncountersController < GenericEncountersController
 			return
 		end
   end
-	
+
   protected
-  
-  def number_of_booked_patients(date)                                                 
+
+  def number_of_booked_patients(date)                          
+                                                                                
     start_date = date.strftime('%Y-%m-%d 00:00:00')                             
     end_date = date.strftime('%Y-%m-%d 23:59:59')                               
                                                                                 
     appointments = Observation.find_by_sql("SELECT count(value_datetime) AS count FROM obs 
-      INNER JOIN encounter e ON obs.encounter_id = e.encounter_id AND concept_id = #{@concept_id} 
+      INNER JOIN encounter e USING(encounter_id) WHERE concept_id = #{@concept_id} 
       AND encounter_type = #{@encounter_type.id} AND value_datetime >= '#{start_date}' 
-      WHERE value_datetime <= '#{end_date}' GROUP BY value_datetime LIMIT 1")     
+      AND value_datetime <= '#{end_date}' GROUP BY value_datetime LIMIT 1")     
     count = appointments.count unless appointments.blank?                       
     count = 0 if count.blank?                                                 
                                                                                 
     return count
   end 	
-
 end
