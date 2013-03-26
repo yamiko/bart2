@@ -780,9 +780,7 @@ class EncountersController < GenericEncountersController
 		#@number_of_days_to_add_to_next_appointment_date = number_of_days_to_add_to_next_appointment_date(@patient, session[:datetime] || Date.today)
 
 		dispensed_date = session[:datetime].to_date rescue Date.today
-    logger.info('========================== prescription_expiry_date =================================== @ '  + Time.now.to_s)
 		expiry_date = prescription_expiry_date(@patient, dispensed_date)
-    logger.info('========================== prescription_expiry_date =================================== @ '  + Time.now.to_s)
 		
 		#if the patient is a child (age 14 or less) and the peads clinic days are set - we
 		#use the peads clinic days to set the next appointment date		
@@ -800,7 +798,10 @@ class EncountersController < GenericEncountersController
 		clinic_holidays = CoreService.get_global_property_value('clinic.holidays') 
 		clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',').split(',') rescue []
 		
-		return suggested_date(expiry_date ,clinic_holidays, bookings, clinic_days)
+    logger.info('========================== suggested_date =================================== @ '  + Time.now.to_s)
+		date = suggested_date(expiry_date ,clinic_holidays, bookings, clinic_days)
+    logger.info('========================== suggested_date =================================== @ '  + Time.now.to_s)
+    return date
 	end
 	
 	def prescription_expiry_date(patient, dispensed_date)
