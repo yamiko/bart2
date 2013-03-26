@@ -726,11 +726,11 @@ class EncountersController < GenericEncountersController
 
 	def suggested_date(expiry_date, holidays, bookings, clinic_days)
     bookings.delete_if{|k,v| holidays.collect{|h|h.to_date.to_s[5..-1]}.include?(k.to_date.to_s[5..-1])}
-                                                                                
+  
     recommended_date = nil                                                      
     clinic_appointment_limit = CoreService.get_global_property_value('clinic.appointment.limit').to_i rescue 0
                                                                                 
-    (bookings ||{}).sort_by { |dates,num| num }.reverse.each do |dates , num|   
+    (bookings ||{}).sort_by { |dates,num| dates }.reverse.each do |dates , num|   
       next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
       if num < clinic_appointment_limit                                  
         recommended_date = dates                                                  
@@ -794,46 +794,51 @@ class EncountersController < GenericEncountersController
 		clinic_days = clinic_days.split(',')		
 
 		bookings = bookings_within_range(expiry_date)
+    
 		clinic_holidays = CoreService.get_global_property_value('clinic.holidays') 
 		clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',').split(',') rescue []
 		
-		limit = CoreService.get_global_property_value('clinic.appointment.limit') rescue 0
-
-
 		return suggested_date(expiry_date ,clinic_holidays, bookings, clinic_days)
 	end
 	
 	def prescription_expiry_date(patient, dispensed_date)
     session_date = dispensed_date.to_date
         
-    arvs_given = true
-		regimen_type = false
+    arvs_given = false
 		
-		orders_made = PatientService.drugs_given_on(patient, session_date).reject{|o|
-								 !MedicationService.tb_medication(o.drug_order.drug) }
+    #get all drug dispensed on set clinic day
+		drugs_given_on = PatientService.drugs_given_on(patient, session_date)
 
-    arvs_given = false if orders_made.blank?
-		regimen_type = true if orders_made.blank?
-        
+		orders_made = drugs_given_on.reject do |o|
+      !MedicationService.tb_medication(o.drug_order.drug) 
+    end
+
 		auto_expire_date = Date.today + 2.days
 		
 		if orders_made.blank?
-			orders_made = PatientService.drugs_given_on(patient, session_date)
-			auto_expire_date = orders_made.sort_by(&:auto_expire_date).first.auto_expire_date.to_date if !orders_made.blank?
+			orders_made = drugs_given_on
+			auto_expire_date = orders_made.sort_by(&:auto_expire_date).first.auto_expire_date.to_date unless orders_made.blank?
+      
+      regimen_type_concept = nil
+      (orders_made || []).each do |o|
+        next unless MedicationService.arv(o.drug_order.drug)
+        regimen_type_concept = ConceptName.find_by_name("ARV REGIMEN TYPE").concept_id 
+        arvs_given = true
+        break
+      end
 		else
 			auto_expire_date = orders_made.sort_by(&:auto_expire_date).first.auto_expire_date.to_date
+      regimen_type_concept = ConceptName.find_by_name("TB REGIMEN TYPE").concept_id
 		end
 
-		regimen_type_concept = ConceptName.find_by_name("TB REGIMEN TYPE").concept_id
-		regimen_type_concept = ConceptName.find_by_name("ARV REGIMEN TYPE").concept_id if regimen_type == false
-		
 		treatment_encounter = orders_made.first.encounter
-		arv_regimen_obs = Observation.find(:first, 
-					:conditions => ["concept_id = ? AND encounter_id = ?",
-					regimen_type_concept, treatment_encounter.id])
+
+    arv_regimen_obs = Observation.find_by_sql("SELECT * FROM obs 
+      WHERE concept_id = #{regimen_type_concept} 
+      AND encounter_id = #{treatment_encounter.id} LIMIT 1")
 
 		arv_regimen_type = "" 
-		if !arv_regimen_obs.blank?
+		unless arv_regimen_obs.blank?
 			arv_regimen_type = arv_regimen_obs.to_s
 		end
 
@@ -844,54 +849,32 @@ class EncountersController < GenericEncountersController
 
     #==========================================================================================
     calculated_expire_date = auto_expire_date
-		orders_made.each do |order|
-=begin
-      amounts_dispensed = Observation.find_by_sql("SELECT * FROM obs WHERE 
-        concept_id = #{ConceptName.find_by_name("AMOUNT DISPENSED").concept_id}
-        AND order_id = #{order.id}")
 
-			total_dispensed = amounts_dispensed.sum{|amount| amount.value_numeric}
-=end
+    order = orders_made.sort_by(&:auto_expire_date).first 
 
-=begin	
-			amounts_dispensed = Observation.all(:conditions => ['concept_id = ? AND order_id = ?', 
-          ConceptName.find_by_name("AMOUNT DISPENSED").concept_id , order.id])
-
-			amounts_brought_to_clinic = Observation.all(:joins => 'INNER JOIN drug_order USING (order_id)', 
-				:conditions => ['obs.concept_id = ? AND drug_order.drug_inventory_id = ? 
-        AND obs.obs_datetime >= ? AND obs.obs_datetime <= ? AND person_id = ?', 
-          ConceptName.find_by_name("AMOUNT OF DRUG BROUGHT TO CLINIC").concept_id ,
-          order.drug_order.drug_inventory_id, session_date.to_date,
-          session_date.to_date.to_s + ' 23:59:59',patient.person.id])
-=end
-
-
-    amounts_brought_to_clinic = Observation.find_by_sql("SELECT * FROM obs 
-      INNER JOIN drug_order USING (order_id) 
+    #............................................................................................ 
+    amounts_brought_to_clinic = Observation.find_by_sql("SELECT * FROM obs      
+      INNER JOIN drug_order USING (order_id)                                    
       WHERE obs.concept_id = #{ConceptName.find_by_name('AMOUNT OF DRUG BROUGHT TO CLINIC').concept_id}
-      AND drug_order.drug_inventory_id = #{order.drug_order.drug_inventory_id}
-      AND obs.obs_datetime >= '#{session_date.to_date}' 
+      AND drug_order.drug_inventory_id = #{order.drug_order.drug_inventory_id}  
+      AND obs.obs_datetime >= '#{session_date.to_date}'                         
       AND obs.obs_datetime <= '#{session_date.to_date.strftime('%Y-%m-%d 23:59:59')}'
-      AND person_id = #{patient.id}")
+      AND person_id = #{patient.id}")                                           
+                                                                                
+    total_brought_to_clinic = amounts_brought_to_clinic.sum{|amount| amount.value_numeric}
+                                                                                
+    total_brought_to_clinic = total_brought_to_clinic + amounts_brought_to_clinic.sum{|amount| (amount.value_text.to_f rescue 0)}
+                                                                                
+    hanging_pills_duration = ((total_brought_to_clinic)/order.drug_order.equivalent_daily_dose).to_i
+                                                                                
+    expire_date = order.auto_expire_date + hanging_pills_duration.days        
+                                                                                
+    calculated_expire_date = expire_date.to_date if expire_date.to_date > calculated_expire_date
 
-    #==========================================================================================
+    #............................................................................................ 
 
-			total_brought_to_clinic = amounts_brought_to_clinic.sum{|amount| amount.value_numeric}
 
-			total_brought_to_clinic = total_brought_to_clinic + amounts_brought_to_clinic.sum{|amount| (amount.value_text.to_f rescue 0)}
-
-			#prescription_duration = ((total_dispensed + total_brought_to_clinic)/order.drug_order.equivalent_daily_dose).to_i
-
-			hanging_pills_duration = ((total_brought_to_clinic)/order.drug_order.equivalent_daily_dose).to_i
-
-			expire_date = order.auto_expire_date + hanging_pills_duration.days
-
-			calculated_expire_date = expire_date.to_date if expire_date.to_date > calculated_expire_date
-		end
-		
-		if calculated_expire_date > auto_expire_date
-      auto_expire_date = calculated_expire_date
-		end 
+    auto_expire_date = calculated_expire_date
 		
 		buffer = 0		
 		if starter_pack
@@ -911,25 +894,23 @@ class EncountersController < GenericEncountersController
     clinic_days = GlobalProperty.find_by_property("clinic.days")
     clinic_days = clinic_days.property_value.split(',') rescue 'Monday,Tuesday,Wednesday,Thursday,Friday'.split(',')
 
-    count = 0
-    start_date = end_date 
-    while (count < 4)
-      if clinic_days.include?(start_date.strftime("%A"))
-        start_date -= 1.day
-        count+=1
-      else
-        start_date -= 1.day
-      end
+    start_date = (end_date - 4.days)
+    
+    booked_dates[end_date] = 0
+    (1.upto(4)).each do |num|
+      booked_dates[start_date] = 0
+      start_date = (start_date + 1.day)                               
     end
+    
+    start_date = (end_date - 4.days)
 
-    Observation.find(:all,:order => "value_datetime DESC",
-      :joins => "INNER JOIN encounter e USING(encounter_id)",
-      :conditions => ["encounter_type = ? AND value_datetime IS NOT NULL
-    AND (DATE(value_datetime) >= ? AND DATE(value_datetime) <= ?)",
-        encounter_type.id,start_date,end_date]).map do | obs |
+    Observation.find_by_sql("SELECT * FROM obs INNER JOIN encounter e USING(encounter_id)
+      WHERE encounter_type = #{encounter_type.id} AND value_datetime IS NOT NULL        
+      AND (DATE(value_datetime) >= '#{start_date}' 
+      AND DATE(value_datetime) <= '#{end_date}')").map do | obs |                  
       next unless clinic_days.include?(obs.value_datetime.to_date.strftime("%A"))
-      booked_dates[obs.value_datetime.to_date]+=1
-    end  
+      booked_dates[obs.value_datetime.to_date]+=1                               
+    end                                          
 
     clinic_holidays = CoreService.get_global_property_value('clinic.holidays')  
     clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',').split(',') rescue []
