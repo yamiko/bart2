@@ -556,13 +556,13 @@
       return 'false';
     }
   }
-
+<%#= raise  @patient.person.observations.to_s.to_yaml %>
   function removeValues(){
 			  <% if @patient.person.observations.to_s.include?('Ever received TB treatment:  Yes')
 					  tb_hiv_exclusions = [['Tuberculosis (PTB or EPTB) within the last 2 years','Tuberculosis (PTB or EPTB) within the last 2 years']]
 					  @who_stage_iii = @who_stage_iii - tb_hiv_exclusions
 			  end %>
-			  <% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve') %>
+			  <% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis (current):  Yes' || 'Smear +ve') %>
 					  <% tb_hiv_exclusions = [['Pulmonary tuberculosis (current)', 'Pulmonary tuberculosis (current)'],
 											  ['Extrapulmonary tuberculosis (EPTB)', 'Extrapulmonary tuberculosis (EPTB)']
 											]
@@ -572,7 +572,7 @@
 					option3 = "YES";
 			  <% end  %>
 			
-			  <% if  @patient.person.observations.to_s.include?('Extrapulmonary tuberculosis (EPTB)') %>
+			  <% if  @patient.person.observations.to_s.include?('Extrapulmonary tuberculosis (EPTB):  Yes') %>
 					<% tb_hiv_exclusions = [['Extrapulmonary tuberculosis (EPTB)', 'Extrapulmonary tuberculosis (EPTB)'],
 											['Pulmonary tuberculosis (current)', 'Pulmonary tuberculosis (current)']
 											]
@@ -583,14 +583,15 @@
 					option4 = "YES";
 			  <%  end %>
   }
+
   function updateSelectedOptions(){
 			  condition_number = '<%= count %>';
-			  <% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve') %>
+			  <% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis (current):  Yes' || 'Smear +ve') %>
 					 condition_number += 1
 					 selected_stage_conditions[condition_number] = 'Pulmonary tuberculosis (current)'
 			  <% end  %>
 
-			  <% if  @patient.person.observations.to_s.include?('Extrapulmonary tuberculosis (EPTB)') %>
+			  <% if  @patient.person.observations.to_s.include?('Extrapulmonary tuberculosis (EPTB):  Yes') %>
 					condition_number += 1
 					selected_stage_conditions[condition_number] = 'Extrapulmonary tuberculosis (EPTB)'
 			  <%  end %>
