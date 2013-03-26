@@ -107,6 +107,9 @@ class GenericProgramsController < ApplicationController
 			if tb_states.include?(name.downcase.to_s)
 				 "<li value='#{state.id}'>#{name}</li>" unless name == params[:current_state]
 			end
+			if params[:show_non_terminal_states_only].to_s == true.to_s
+				 "<li value='#{state.id}'>#{name}</li>" unless name == params[:current_state]
+			end
     }
     render :text => @names.join('')  
   end

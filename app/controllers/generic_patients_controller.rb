@@ -7,6 +7,9 @@ class GenericPatientsController < ApplicationController
 			redirect_to return_uri.to_s
 			return
 		end
+		current_state = tb_status(@patient).downcase
+		@show_period = false
+		@show_period = true if current_state.match(/in treatment/i)
 		session[:mastercard_ids] = []
 		session_date = session[:datetime].to_date rescue Date.today
 		@patient_bean = PatientService.get_patient(@patient.person)

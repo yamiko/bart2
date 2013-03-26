@@ -5,6 +5,15 @@ class EncountersController < GenericEncountersController
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
 
+		if (params[:encounter_type].upcase rescue '') == 'APPOINTMENT'
+			@todays_date = session_date
+			logger.info('========================== Suggesting appointment date =================================== @ '  + Time.now.to_s)
+			@suggested_appointment_date = suggest_appointment_date
+			logger.info('========================== Completed suggesting appointment date =================================== @ '  + Time.now.to_s)
+      render :action => params[:encounter_type] and return
+		end
+
+
 			@hiv_status = tb_art_patient(@patient,"hiv program") rescue ""
 			@tb_status = tb_art_patient(@patient,"TB program") rescue ""
 			@show_tb_types = false

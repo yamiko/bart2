@@ -455,6 +455,7 @@
 	return true;
   }
 	function checkPtb(){
+    return
 			<% if  @patient.person.observations.to_s.include?('Pulmonary tuberculosis' || 'Smear +ve') %>
 				options = document.getElementsByTagName('li');
 				  for (i = 0 ; i < options.length ; i++) {
@@ -471,6 +472,7 @@
 	}
 	
 	function checkPastTb(){
+    return
 		  <% if @patient.person.observations.to_s.include?('Ever received TB treatment:  Yes') %>
 			  options = document.getElementsByTagName('li');
 				  for (i = 0 ; i < options.length ; i++) {
@@ -483,6 +485,7 @@
 	}
 	
 	function checkEptb(){
+    return
 			  <% if  @patient.person.observations.to_s.include?('Extrapulmonary tuberculosis (EPTB)') %>
 				  options = document.getElementsByTagName('li');
 				  for (i = 0 ; i < options.length ; i++) {
