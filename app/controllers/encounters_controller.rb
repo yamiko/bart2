@@ -793,9 +793,7 @@ class EncountersController < GenericEncountersController
 		end
 		clinic_days = clinic_days.split(',')		
 
-    logger.info('========================== start booking =================================== @ '  + Time.now.to_s)
 		bookings = bookings_within_range(expiry_date)
-    logger.info('========================== end booking =================================== @ '  + Time.now.to_s)
     
 		clinic_holidays = CoreService.get_global_property_value('clinic.holidays') 
 		clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',').split(',') rescue []
@@ -907,6 +905,7 @@ class EncountersController < GenericEncountersController
     start_date = (end_date - 4.days).strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.strftime('%Y-%m-%d 23:59:59')
 
+    logger.info('========================== start booking =================================== @ '  + Time.now.to_s)
     Observation.find_by_sql("SELECT * FROM obs INNER JOIN encounter e 
       ON e.encounter_id = obs.encounter_id AND encounter_type = #{encounter_type.id}
       WHERE encounter_type = #{encounter_type.id}        
@@ -915,6 +914,7 @@ class EncountersController < GenericEncountersController
       next unless clinic_days.include?(obs.value_datetime.to_date.strftime("%A"))
       booked_dates[obs.value_datetime.to_date]+=1                               
     end                                          
+    logger.info('========================== end booking =================================== @ '  + Time.now.to_s)
 
     clinic_holidays = CoreService.get_global_property_value('clinic.holidays')  
     clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',').split(',') rescue []
