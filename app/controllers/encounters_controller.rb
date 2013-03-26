@@ -786,6 +786,7 @@ class EncountersController < GenericEncountersController
 		#if the patient is a child (age 14 or less) and the peads clinic days are set - we
 		#use the peads clinic days to set the next appointment date		
 		peads_clinic_days = CoreService.get_global_property_value('peads.clinic.days')
+    logger.info('========================== prescription_expiry_date =================================== @ '  + Time.now.to_s)
 				
 		if (@patient_bean.age <= 14 && !peads_clinic_days.blank?)
 			clinic_days = peads_clinic_days
@@ -798,7 +799,6 @@ class EncountersController < GenericEncountersController
     
 		clinic_holidays = CoreService.get_global_property_value('clinic.holidays') 
 		clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',').split(',') rescue []
-    logger.info('========================== prescription_expiry_date =================================== @ '  + Time.now.to_s)
 		
 		return suggested_date(expiry_date ,clinic_holidays, bookings, clinic_days)
 	end
