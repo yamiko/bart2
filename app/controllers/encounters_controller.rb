@@ -908,10 +908,10 @@ class EncountersController < GenericEncountersController
     end_date = end_date.strftime('%Y-%m-%d 23:59:59')
 
     logger.info('========================== start booking =================================== @ '  + Time.now.to_s)
-    booked_dates.each do |date,count|
-      next unless clinic_days.include?(date.to_date.strftime("%A"))
-      booked_dates[date] = number_of_booked_patients(date)              
-    end         
+    #booked_dates.each do |date,count|
+     # next unless clinic_days.include?(date.to_date.strftime("%A"))
+      #booked_dates[date] = number_of_booked_patients(date)              
+    #end         
     logger.info('========================== end booking =================================== @ '  + Time.now.to_s)
 
     clinic_holidays = CoreService.get_global_property_value('clinic.holidays')  
