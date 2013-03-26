@@ -908,10 +908,10 @@ class EncountersController < GenericEncountersController
     end_date = end_date.strftime('%Y-%m-%d 23:59:59')
 
     Observation.find_by_sql("SELECT * FROM obs INNER JOIN encounter e 
-      ON e.encounter_id = obs.encounter_id
-      WHERE encounter_type = #{encounter_type.id} AND value_datetime IS NOT NULL        
+      ON e.encounter_id = obs.encounter_id AND encounter_type = #{encounter_type.id}
+      WHERE encounter_type = #{encounter_type.id}        
       AND value_datetime >= '#{start_date}' 
-      AND value_datetime <= '#{end_date}')").map do | obs |                  
+      AND value_datetime <= '#{end_date}'").map do | obs |                  
       next unless clinic_days.include?(obs.value_datetime.to_date.strftime("%A"))
       booked_dates[obs.value_datetime.to_date]+=1                               
     end                                          
