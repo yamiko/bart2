@@ -782,20 +782,22 @@ class EncountersController < GenericEncountersController
 		dispensed_date = session[:datetime].to_date rescue Date.today
 		expiry_date = prescription_expiry_date(@patient, dispensed_date)
 		
-    logger.info('========================== prescription_expiry_date =================================== @ '  + Time.now.to_s)
 		#if the patient is a child (age 14 or less) and the peads clinic days are set - we
 		#use the peads clinic days to set the next appointment date		
 		peads_clinic_days = CoreService.get_global_property_value('peads.clinic.days')
-    logger.info('========================== prescription_expiry_date =================================== @ '  + Time.now.to_s)
 				
+    logger.info('========================== 1-1 =================================== @ '  + Time.now.to_s)
 		if (@patient_bean.age <= 14 && !peads_clinic_days.blank?)
 			clinic_days = peads_clinic_days
 		else
 			clinic_days = CoreService.get_global_property_value('clinic.days') || 'Monday,Tuesday,Wednesday,Thursday,Friday'		
 		end
 		clinic_days = clinic_days.split(',')		
+    logger.info('========================== 1-2 =================================== @ '  + Time.now.to_s)
 
+    logger.info('========================== 2-1 =================================== @ '  + Time.now.to_s)
 		bookings = bookings_within_range(expiry_date)
+    logger.info('========================== 2-2 =================================== @ '  + Time.now.to_s)
     
 		clinic_holidays = CoreService.get_global_property_value('clinic.holidays') 
 		clinic_holidays = clinic_holidays.split(',').map{|day|day.to_date}.join(',').split(',') rescue []
