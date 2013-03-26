@@ -822,7 +822,7 @@ class EncountersController < GenericEncountersController
       regimen_type_concept = nil
       (orders_made || []).each do |o|
         next unless MedicationService.arv(o.drug_order.drug)
-        regimen_type_concept = ConceptName.find_by_name("ARV REGIMEN TYPE").concept_id 
+        regimen_type_concept = ConceptName.find_by_name("ARV regimens received abstracted construct").concept_id 
         arvs_given = true
         break
       end
@@ -843,7 +843,7 @@ class EncountersController < GenericEncountersController
 		end
 
 		starter_pack = false
-		if arv_regimen_type.match(/STARTER PACKs/i)
+		if arv_regimen_type.match(/STARTER PACK/i)
 			starter_pack = true
 		end
 
