@@ -780,7 +780,9 @@ class EncountersController < GenericEncountersController
 		#@number_of_days_to_add_to_next_appointment_date = number_of_days_to_add_to_next_appointment_date(@patient, session[:datetime] || Date.today)
 
 		dispensed_date = session[:datetime].to_date rescue Date.today
+    logger.info('========================== prescription_expiry_date =================================== @ '  + Time.now.to_s)
 		expiry_date = prescription_expiry_date(@patient, dispensed_date)
+    logger.info('========================== prescription_expiry_date =================================== @ '  + Time.now.to_s)
 		
 		#if the patient is a child (age 14 or less) and the peads clinic days are set - we
 		#use the peads clinic days to set the next appointment date		
