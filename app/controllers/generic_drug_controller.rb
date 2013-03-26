@@ -56,6 +56,8 @@ class GenericDrugController < ApplicationController
   end
 
   def stock_report
+    @logo = CoreService.get_global_property_value('logo') rescue ''
+    @current_location_name = Location.current_health_center.name rescue ''
     @start_date = params[:start_date].to_date
     @end_date = params[:end_date].to_date
     

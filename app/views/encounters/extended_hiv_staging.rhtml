@@ -558,6 +558,7 @@
   }
 <%#= raise  @patient.person.observations.to_s.to_yaml %>
   function removeValues(){
+    return
 			  <% if @patient.person.observations.to_s.include?('Ever received TB treatment:  Yes')
 					  tb_hiv_exclusions = [['Tuberculosis (PTB or EPTB) within the last 2 years','Tuberculosis (PTB or EPTB) within the last 2 years']]
 					  @who_stage_iii = @who_stage_iii - tb_hiv_exclusions
@@ -600,6 +601,7 @@
 					selected_stage_conditions[condition_number] = 'Tuberculosis (PTB or EPTB) within the last 2 years'
 			  <%  end %>
   }
+
 </script>
 <style type="text/css">
   .small .options li { font-size:1.1em; }
