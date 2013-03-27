@@ -814,7 +814,7 @@ class GenericPatientsController < ApplicationController
     start_date = date.strftime('%Y-%m-%d 00:00:00')
     end_date = date.strftime('%Y-%m-%d 23:59:59')
 
-    appointments = Observation.find_by_sql("SELECT value_datetime,count(*) AS count FROM obs 
+    appointments = Observation.find_by_sql("SELECT count(*) AS count FROM obs 
       INNER JOIN encounter e USING(encounter_id) WHERE concept_id = #{concept_id} 
       AND encounter_type = #{encounter_type.id} AND value_datetime >= '#{start_date}' 
       AND value_datetime <= '#{end_date}' GROUP BY value_datetime")
