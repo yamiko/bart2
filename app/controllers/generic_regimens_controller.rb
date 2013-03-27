@@ -362,7 +362,7 @@ class GenericRegimensController < ApplicationController
 	end
 
 	def create
-		#raise params[:observations].to_yaml
+
 		prescribe_tb_drugs = false   
 		prescribe_tb_continuation_drugs = false   
 		prescribe_arvs = false
@@ -389,7 +389,7 @@ class GenericRegimensController < ApplicationController
 				reason = observation['value_coded_or_text']
 			end
 		end
-
+		#raise prescribe_arvs.to_yaml
 		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
 		session_date = session[:datetime] || Time.now()
 
@@ -408,6 +408,7 @@ class GenericRegimensController < ApplicationController
 		auto_tb_expire_date = session[:datetime] + params[:tb_duration].to_i.days rescue Time.now + params[:tb_duration].to_i.days
 		auto_tb_continuation_expire_date = session[:datetime] + params[:tb_continuation_duration].to_i.days rescue Time.now + params[:tb_continuation_duration].to_i.days
 		auto_cpt_ipt_expire_date = session[:datetime] + params[:duration].to_i.days rescue Time.now + params[:duration].to_i.days
+
 
 		orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:tb_regimen]})
 		ActiveRecord::Base.transaction do
@@ -530,7 +531,7 @@ class GenericRegimensController < ApplicationController
 				:obs_datetime => start_date) 
 
 			next if concept == 'NO'
-
+			auto_cpt_ipt_expire_date = session[:datetime] + params[:cpt_duration].to_i.days rescue Time.now + params[:cpt_duration].to_i.days
 			if concept_name == 'CPT STARTED'
 				drug = Drug.find_by_name('Cotrimoxazole (480mg tablet)')
 			else
@@ -542,24 +543,44 @@ class GenericRegimensController < ApplicationController
 			
 			orders = RegimenDrugOrder.all(:conditions => {:regimen_id => regimen_id})			
 			# orders = RegimenDrugOrder.all(:conditions => {:regimen_id => Regimen.find_by_concept_id(drug.concept_id).regimen_id})
-			orders.each do |order|
-				drug = Drug.find(order.drug_inventory_id)
-				regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept_names.typed("FULLY_SPECIFIED").first).name
-				DrugOrder.write_order(
-				encounter, 
-				@patient, 
-				obs, 
-				drug, 
-				start_date, 
-				auto_cpt_ipt_expire_date, 
-				order.dose, 
-				order.frequency, 
-				order.prn, 
-				"#{drug.name}: #{order.instructions} (#{regimen_name})",
-				order.equivalent_daily_dose)    
+			if prescribe_arvs == false || prescribe_tb_drugs == false
+					orders = orders.first
+					drug = Drug.find(orders.drug_inventory_id)
+					regimen_name = (orders.regimen.concept.concept_names.typed("SHORT").first || orders.regimen.concept_names.typed("FULLY_SPECIFIED").first).name
+					#raise orders.frequency.to_yaml
+					DrugOrder.write_order(
+					encounter,
+					@patient,
+					obs,
+					drug,
+					start_date,
+					auto_cpt_ipt_expire_date,
+					orders.dose,
+					orders.frequency,
+					orders.prn,
+					"#{drug.name}: #{orders.instructions} (#{regimen_name})",
+					orders.equivalent_daily_dose)
+					#raise drug.to_yaml
+			else
+					orders.each do |order|
+						drug = Drug.find(order.drug_inventory_id)
+						regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept_names.typed("FULLY_SPECIFIED").first).name
+						DrugOrder.write_order(
+						encounter,
+						@patient,
+						obs,
+						drug,
+						start_date,
+						auto_cpt_ipt_expire_date,
+						order.dose,
+						order.frequency,
+						order.prn,
+						"#{drug.name}: #{order.instructions} (#{regimen_name})",
+						order.equivalent_daily_dose)
+					end
 			end
 		end
-
+		
 		obs = Observation.create(
 			:concept_name => "Reason antiretrovirals changed or stopped",
 			:person_id => @patient.person.person_id,
