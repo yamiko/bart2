@@ -1099,6 +1099,16 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	<%= touch_hidden_tag "ISONIAZID", @patient, "", :id => "ipt_given" %>
   <%end%>
 
+  <%= select_tag :cpt_duration, optionsString,
+	  {	:condition => '$("prescribe_arvs").value == "NO" && ($("cpt_given").value == "YES" || $("ipt_given").value == "YES")',
+	  :tt_onLoad => "__$('keyboard').style.display = 'none'",
+	  :helpText => 'Duration' } %>
+
+   <%#= select_tag :ipt_duration, optionsString,
+	  {	:condition => '$("prescribe_arvs").value == "NO" && $("ipt_given").value == "YES"',
+	  :tt_onLoad => "__$('keyboard').style.display = 'none'",
+	  :helpText => 'Duration' } %>
+
   <% if @patient_bean.age >= 14 %>
 	<% if @retrospective %>
 	  <%= touch_numeric_tag "CONDOMS", @patient, nil,

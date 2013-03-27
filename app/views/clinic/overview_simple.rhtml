@@ -5,7 +5,9 @@
   }
 
   #stats {
+	overflow:scroll ! important;
     width:98%;
+	height: 75% ! important;
     border:1px solid #eee;
     margin:10px;
     background:white;
@@ -18,16 +20,18 @@
   }
 
   #table_div {
-    overflow:auto;
     height: 320px;
     background-color: white;
     border: solid 1px #eee;
     border-width: 1px;
-    overflow: hidden;
+  }
+  #tabs{
+	width:98%;
+	height:98%;
   }
 
 </style>
-<div id="tab" style="">
+<div id="tabs" style="">
   <h2>Current patient statistics</h2>
     <div id="table_div">
 
@@ -41,7 +45,7 @@
       </tr>
       <% @types.each do |type| %>
         <tr class="<%= cycle('even', 'odd') %>">
-          <td style="text-align:left;"><%= type.capitalize.humanize.gsub('hiv','HIV').gsub('Hiv','HIV').gsub('art','ART').gsub('Art','ART') %></td>
+          <td style="text-align:left;"><%= type.capitalize.humanize.gsub('hiv','HIV').gsub('Hiv','HIV').gsub('art','ART').gsub('Art','ART').gsub('Tb','TB') %></td>
           <td><%= @me[type].to_i %></td>
           <td><%= @today[type].to_i %></td>
         </tr>
