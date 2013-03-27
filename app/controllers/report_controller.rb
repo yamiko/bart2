@@ -32,4 +32,69 @@ class ReportController < GenericReportController
 		return demographics
 	end
 
+  def drug_menu
+    render :layout => "menu"
+  end
+
+  def drug_report
+    @logo = CoreService.get_global_property_value('logo') rescue nil
+    @location_name = Location.current_health_center.name rescue nil
+    start_year = params[:start_year]
+    start_month = params[:start_month]
+    start_day = params[:start_day]
+    start_date = (start_year + '-' + start_month + '-' + start_day).to_date
+    @start_date = start_date
+    end_year = params[:end_year]
+    end_month = params[:end_month]
+    end_day = params[:end_day]
+    end_date = (end_year + '-' + end_month + '-' + end_day).to_date
+    @end_date = end_date
+
+    @drugs = {}
+    drug_order_id = OrderType.find_by_name('Drug Order').id
+    orders = Order.find(:all, :conditions => ["DATE(date_created) >= ? and DATE(date_created) <= ?
+       AND order_type_id =?",start_date, end_date, drug_order_id])
+    orders.each do |order|
+      @drugs[order.drug_order.drug.name] = {}
+      amount_prescribed = []
+      drug_id = order.drug_order.drug_inventory_id rescue nil
+      drug_orders = DrugOrder.find_by_sql(["SELECT * FROM drug_order INNER JOIN orders ON
+      drug_order.order_id = orders.order_id WHERE DATE(orders.date_created) >= ? AND
+     DATE(orders.date_created) <= ? AND drug_order.drug_inventory_id =?", start_date, end_date,drug_id])
+      drug_orders.each do |drug_order|
+        if (drug_order.order rescue nil) #Avoid a drug_order without an order. Consider data cleaning
+          order_date = drug_order.order.date_created.to_date
+          if (order_date >= start_date && order_date <= end_date)
+            equivalent_daily_dose = drug_order.equivalent_daily_dose
+            duration =  (drug_order.order.auto_expire_date.to_date - drug_order.order.start_date.to_date).to_i rescue nil
+            amount_prescribed << (equivalent_daily_dose * duration) rescue nil
+          end
+        end
+      end
+      amount_prescribed = amount_prescribed.sum{|value|value.to_i}
+      if (@drugs[order.drug_order.drug.name][:amount_prescribed].blank?)
+      	@drugs[order.drug_order.drug.name][:amount_prescribed] = amount_prescribed
+      else
+      	@drugs[order.drug_order.drug.name][:amount_prescribed] += amount_prescribed
+      end
+
+      observations = Observation.find(:all,:conditions => ["DATE(date_created) >= ? and DATE(date_created) <= ?
+       and value_drug =?" ,start_date, end_date, order.drug_order.drug_inventory_id] )
+
+      unless (observations == [])
+        quantity = observations.map(&:value_numeric)
+        quantity = quantity.sum{|value|value.to_i}
+        if ( @drugs[order.drug_order.drug.name][:amount_dispensed].blank?)
+        	@drugs[order.drug_order.drug.name][:amount_dispensed] = quantity
+        else
+        	@drugs[order.drug_order.drug.name][:amount_dispensed] += quantity
+        end
+      else
+        @drugs[order.drug_order.drug.name][:amount_dispensed] = 0
+      end
+    end
+	@drugs
+  render:layout=>"report"
+  end
+  
 end

@@ -1834,11 +1834,13 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
   def self.date_antiretrovirals_started(patient)
 
     concept_id = ConceptName.find_by_name('Date antiretrovirals started').concept_id
-
+		start_date = Observation.find(:all, :conditions => ["concept_id = ? and person_id = ?", concept_id, patient.id]).first.value_text rescue ""
+		#raise start_date.to_yaml
+		if start_date.blank? || start_date == ""
     start_date = ActiveRecord::Base.connection.select_value "
       SELECT earliest_start_date FROM earliest_start_date
       WHERE patient_id = #{patient.id} LIMIT 1"
-
+		end
     start_date.to_date rescue nil
   end
 
