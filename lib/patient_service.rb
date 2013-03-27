@@ -1059,13 +1059,19 @@ EOF
     clinic_encounters = ["APPOINTMENT", "VITALS","ART_INITIAL","HIV RECEPTION",
       "ART VISIT","TREATMENT","DISPENSING",'ART ADHERENCE','HIV STAGING']
     encounter_type_ids = EncounterType.find_all_by_name(clinic_encounters).collect{|e|e.id}
-
+=begin
     latest_encounter_date = Encounter.find(:first,
         :conditions =>["patient_id = ? AND encounter_datetime >= ?
         AND encounter_datetime <=? AND encounter_type IN(?)",
         patient.id,date.strftime('%Y-%m-%d 00:00:00'),
         date.strftime('%Y-%m-%d 23:59:59'),encounter_type_ids],
         :order =>"encounter_datetime DESC").encounter_datetime rescue nil
+=end
+    latest_encounter_date = Encounter.find_by_sql("SELECT * FROM encounter
+    WHERE patient_id = #{patient.id} AND encounter_datetime >= '#{date.strftime('%Y-%m-%d 00:00:00')}' 
+    AND encounter_datetime <= '#{date.strftime('%Y-%m-%d 23:59:59')}'
+    AND encounter_type IN(#{encounter_type_ids.join(',')})
+    ORDER BY encounter_datetime DESC LIMIT 1").first.encounter_datetime rescue nil
 
     return [] if latest_encounter_date.blank?
 
@@ -1073,11 +1079,19 @@ EOF
     end_date = latest_encounter_date.strftime('%Y-%m-%d 23:59:59')
 
     concept_id = Concept.find_by_name('AMOUNT DISPENSED').id
+=begin
     Order.find(:all,:joins =>"INNER JOIN obs ON obs.order_id = orders.order_id",
         :conditions =>["obs.person_id = ? AND obs.concept_id = ?
         AND obs_datetime >=? AND obs_datetime <=?",
         patient.id,concept_id,start_date,end_date],
         :order =>"obs_datetime")
+=end
+
+    Order.find_by_sql("SELECT * FROM orders INNER JOIN obs ON obs.order_id = orders.order_id
+      WHERE obs.person_id = #{patient.id} AND obs.concept_id = #{concept_id} 
+      AND obs_datetime >= '#{start_date}' AND obs_datetime <= '#{end_date}' 
+      ORDER BY obs_datetime")
+
   end
 
   def self.get_debugger_details(person, current_date = Date.today)
