@@ -274,25 +274,7 @@
 <script >
   tt_cancel_destination = "/Report/data_cleaning";
 </script>
-<style>
-  .phone_type {
-    position:relative;
-    float:left;
-    padding-left:20px;
-    width:180px;
-  }
 
-  .phone_colon {
-    position:relative;
-    float:left;
-    padding-right:15px;
-  }
-
-  .phone_number {
-    position:relative;
-    float:left;
-  }
-</style>
 <%= image_tag(@logo, :class => "logo")%>
 <br /><b style="margin-left:75px"><%= @location_name %></b><br />
 <b style="position:relative; top:0px;margin-left:75px">Data Consistency Checks</b><br />
@@ -334,11 +316,11 @@
         <%
         phone_numbers = ""
         data_row['phone'].map do |phone_type, phone_number|
-          phone_numbers += '<span class="phone_type" >' + phone_type.to_s.humanize  +  '</span>' + "<span class='phone_colon' > : </span>" +'<span class="phone_number">' + phone_number.to_s + '</span>' + "<br />" if !phone_number.to_s.blank?
+          phone_numbers += phone_type.to_s.humanize.slice(0..3) + ' : ' + phone_number.to_s  + "<br />" if !phone_number.to_s.blank?
         end
       %>
-        <td align='left'><%= phone_numbers%></td>
-        <td align='center'><%= data_row['date_created']%></td>
+        <td align='left' style="width:160px" ><%= phone_numbers%></td>
+        <td align='center' style="width:130px"><%= data_row['date_created'].strftime("%a, %d/%m/%Y") %></td>
       </tr>
     <%end%>
 
