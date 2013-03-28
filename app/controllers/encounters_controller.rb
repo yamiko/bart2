@@ -837,12 +837,14 @@ class EncountersController < GenericEncountersController
 			auto_expire_date = orders_made.sort_by(&:auto_expire_date).first.auto_expire_date.to_date
       regimen_type_concept = ConceptName.find_by_name("TB REGIMEN TYPE").concept_id
 		end
+		
+		treatment_encounter = orders_made.first
 
-		treatment_encounter = orders_made.first.encounter
-
+		treatment_encounter = treatment_encounter.encounter.id rescue treatment_encounter.encounter_id
+		#raise treatment_encounter.to_yaml
     arv_regimen_obs = Observation.find_by_sql("SELECT * FROM obs 
       WHERE concept_id = #{regimen_type_concept} 
-      AND encounter_id = #{treatment_encounter.id} LIMIT 1")
+      AND encounter_id = #{treatment_encounter} LIMIT 1")
 
 		arv_regimen_type = "" 
 		unless arv_regimen_obs.blank?
@@ -1536,8 +1538,8 @@ class EncountersController < GenericEncountersController
     appointments = Observation.find_by_sql("SELECT count(value_datetime) AS count FROM obs 
       INNER JOIN encounter e USING(encounter_id) WHERE concept_id = #{@concept_id} 
       AND encounter_type = #{@encounter_type.id} AND value_datetime >= '#{start_date}' 
-      AND value_datetime <= '#{end_date}' GROUP BY value_datetime LIMIT 1")     
-    count = appointments.count unless appointments.blank?                       
+      AND value_datetime <= '#{end_date}' GROUP BY value_datetime")     
+    count = appointments.first.count unless appointments.blank?                       
     count = 0 if count.blank?                                                 
                                                                                 
     return count
