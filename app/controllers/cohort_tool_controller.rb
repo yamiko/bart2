@@ -639,7 +639,8 @@ class CohortToolController < GenericCohortToolController
 
   def visits_by_day
     @quarter    = params[:quarter]
-
+    @logo = CoreService.get_global_property_value('logo').to_s
+    @current_location = Location.current_health_center.name
     date_range          = Report.generate_cohort_date_range(@quarter)
     @start_date         = date_range.first
     @end_date           = date_range.last
@@ -648,7 +649,7 @@ class CohortToolController < GenericCohortToolController
     @visits_by_day      = visits_by_week(visits)
     @visits_by_week_day = visits_by_week_day(visits)
 
-    render :layout => false
+    render :layout => "report"
   end
 
   def visits_by_week(visits)

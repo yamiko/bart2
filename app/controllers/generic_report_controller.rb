@@ -222,6 +222,8 @@ class GenericReportController < ApplicationController
   end
 
   def appointment_dates
+    @logo = CoreService.get_global_property_value('logo').to_s
+    @current_location = Location.current_health_center.name
     @report = []
     if (!params[:date].blank?) # retrieve appointment dates for a given day
       @date       = params[:date].to_date
@@ -270,7 +272,7 @@ class GenericReportController < ApplicationController
 
     end
     
-    render :layout => 'appointment_dates'
+    render :layout => 'report'
   end
 
   def missed_appointments
