@@ -1538,8 +1538,8 @@ class EncountersController < GenericEncountersController
     appointments = Observation.find_by_sql("SELECT count(value_datetime) AS count FROM obs 
       INNER JOIN encounter e USING(encounter_id) WHERE concept_id = #{@concept_id} 
       AND encounter_type = #{@encounter_type.id} AND value_datetime >= '#{start_date}' 
-      AND value_datetime <= '#{end_date}' GROUP BY value_datetime LIMIT 1")     
-    count = appointments.count unless appointments.blank?                       
+      AND value_datetime <= '#{end_date}' GROUP BY value_datetime")     
+    count = appointments.first.count unless appointments.blank?                       
     count = 0 if count.blank?                                                 
                                                                                 
     return count

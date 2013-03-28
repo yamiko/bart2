@@ -531,7 +531,9 @@ class GenericRegimensController < ApplicationController
 				:obs_datetime => start_date) 
 
 			next if concept == 'NO'
-			#auto_cpt_ipt_expire_date = session[:datetime] + params[:cpt_duration].to_i.days rescue Time.now + params[:cpt_duration].to_i.days
+
+      params[:cpt_duration] =  params[:duration] if params[:cpt_duration].blank?
+			auto_cpt_ipt_expire_date = session[:datetime] + params[:cpt_duration].to_i.days rescue Time.now + params[:cpt_duration].to_i.days
 			if concept_name == 'CPT STARTED'
 				drug = Drug.find_by_name('Cotrimoxazole (480mg tablet)')
 			else
