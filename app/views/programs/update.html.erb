@@ -7,13 +7,19 @@
 <script>
   var tt_cancel_destination = "/patients/programs_dashboard/<%= @patient.patient_id %>"
   var program_date_completed = "<%= @program_date_completed %>"
+  var tb_program_id = '<%=  PatientProgram.find(@patient_program_id).program_id.to_i %>'
 
   var current_state_input_box = null
   function set_workflow_for_states() {
     var workflow_id = <%= @program_workflow_id %>
-    var current_state = '<%=@current_state%>'
-    $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/programs/states?workflow=" + workflow_id + "&current_state=" + current_state);
-    current_state_input_box = $('touchscreenInput'+tstCurrentPage)
+    var current_state = '<%= @current_state%>'
+	if (tb_program_id == 2){
+	  $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/programs/show?workflow=" + workflow_id + "&current_state=" + current_state);
+    }
+	else {
+	  $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/programs/states?workflow=" + workflow_id + "&current_state=" + current_state);
+    }
+	current_state_input_box = $('touchscreenInput'+tstCurrentPage)
     listSuggestions(tstCurrentPage); 
   }
 
@@ -59,6 +65,7 @@
 
 
 </script>
+
 <form id='program' action="/programs/update" method = 'post'>
   <%= hidden_field_tag :patient_id, @patient.id %>
   <%= hidden_field_tag :patient_program_id, @patient_program_id %>
