@@ -450,9 +450,9 @@ class GenericEncountersController < ApplicationController
 						end
 						#raise identifier[:identifier].to_yaml
 						#PatientIdentifier.find_by_identifier(identifier[:identifier])
-						if ! PatientIdentifier.find_by_identifier(identifier[:identifier]).blank?
-							redirect_to "encounters/new/tb_registration?action=show&patient_id=#{@patient.id}" and return
-						end
+						#if ! PatientIdentifier.find_by_identifier(identifier[:identifier]).blank?
+						#	redirect_to "/encounters/new/tb_registration?action=show&patient_id=#{@patient.id}" and return
+						#end
           else
             identifier[:identifier] = "#{PatientIdentifier.site_prefix}-ARV-#{arv_number}"
           end
