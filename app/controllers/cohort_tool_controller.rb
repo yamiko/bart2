@@ -345,14 +345,15 @@ class CohortToolController < GenericCohortToolController
 
   def records_that_were_updated
     @quarter    = params[:quarter]
-
+    @logo = CoreService.get_global_property_value('logo').to_s
+    @current_location = Location.current_health_center.name
     date_range  = Report.generate_cohort_date_range(@quarter)
     @start_date = date_range.first
     @end_date   = date_range.last
 
     @encounters = records_that_were_corrected(@quarter)
 
-    render :layout => false
+     render:layout =>"report"
   end
 
   def records_that_were_corrected(quarter)
@@ -1079,12 +1080,16 @@ class CohortToolController < GenericCohortToolController
   end
 
   def adherence
+    @logo = CoreService.get_global_property_value('logo').to_s
+    @current_location = Location.current_health_center.name
     adherences = get_adherence(params[:quarter])
+    @adherences = adherences
     @quarter = params[:quarter]
     type = "patients_with_adherence_greater_than_hundred"
+    @type = type
     @report_type = "Adherence Histogram for all patients"
-    @adherence_summary = "&nbsp;&nbsp;<button onclick='adhSummary();'>Summary</button>" unless adherences.blank?
-    @adherence_summary+="<input class='test_name' type=\"button\" onmousedown=\"document.location='/cohort_tool/reports?report=#{@quarter}&report_type=#{type}';\" value=\"Over 100% Adherence\"/>"  unless adherences.blank?
+    #@adherence_summary = "&nbsp;&nbsp;<button onclick='adhSummary();'>Summary</button>" unless adherences.blank?
+    #@adherence_summary+="<input class='test_name' type=\"button\" onmousedown=\"document.location='/cohort_tool/reports?report=#{@quarter}&report_type=#{type}';\" value=\"Over 100% Adherence\"/>"  unless adherences.blank?
     @adherence_summary_hash = Hash.new(0)
     adherences.each{|adherence,value|
       adh_value = value.to_i
@@ -1109,7 +1114,7 @@ class CohortToolController < GenericCohortToolController
     @results = @results.each {|result| result[0] = result[0]}.sort_by{|result| result[0]}
     @results.each{|result| @graph_max = result[1].to_f if result[1].to_f > (@graph_max || 0)}
     @graph_max ||= 0
-    render :layout => false
+    render :layout => "report"
   end
 
   def patients_with_adherence_greater_than_hundred
