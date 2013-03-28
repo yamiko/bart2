@@ -749,7 +749,8 @@ class CohortToolController < GenericCohortToolController
 
   def prescriptions_without_dispensations
 		include_url_params_for_back_button
-
+    @logo = CoreService.get_global_property_value('logo').to_s rescue nil
+    @current_location = Location.current_health_center.name
 		date_range  = Report.generate_cohort_date_range(params[:quarter])
 		start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
 		end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
@@ -760,7 +761,8 @@ class CohortToolController < GenericCohortToolController
   
   def  dispensations_without_prescriptions
 		include_url_params_for_back_button
-
+    @logo = CoreService.get_global_property_value('logo').to_s rescue nil
+    @current_location = Location.current_health_center.name
 		date_range  = Report.generate_cohort_date_range(params[:quarter])
 		start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
 		end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
@@ -771,7 +773,8 @@ class CohortToolController < GenericCohortToolController
   
   def  patients_with_multiple_start_reasons
 		include_url_params_for_back_button
-
+    @logo = CoreService.get_global_property_value('logo').to_s rescue nil
+    @current_location = Location.current_health_center.name
 		date_range  = Report.generate_cohort_date_range(params[:quarter])
 		start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
 		end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
@@ -783,7 +786,8 @@ class CohortToolController < GenericCohortToolController
   def out_of_range_arv_number
 
 		include_url_params_for_back_button
-
+    @logo = CoreService.get_global_property_value('logo').to_s rescue nil
+    @current_location = Location.current_health_center.name
 		date_range        = Report.generate_cohort_date_range(params[:quarter])
 		start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
 		end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
@@ -799,7 +803,8 @@ class CohortToolController < GenericCohortToolController
 		date_range  = Report.generate_cohort_date_range(params[:quarter])
 		start_date  = date_range.first.beginning_of_day.strftime("%Y-%m-%d %H:%M:%S")
 		end_date    = date_range.last.end_of_day.strftime("%Y-%m-%d %H:%M:%S")
-
+    @logo = CoreService.get_global_property_value('logo').to_s rescue nil
+    @location_name = Location.current_health_center.name
 		@dead_patients_with_visits       = report_dead_with_visits(start_date, end_date)
 		@males_allegedly_pregnant        = report_males_allegedly_pregnant(start_date, end_date)
 		@move_from_second_line_to_first =  report_patients_who_moved_from_second_to_first_line_drugs(start_date, end_date)
@@ -819,7 +824,8 @@ class CohortToolController < GenericCohortToolController
   def list
     @report = []
     include_url_params_for_back_button
-
+    @logo = CoreService.get_global_property_value('logo').to_s rescue nil
+    @current_location = Location.current_health_center.name
     case params[:check_type]
 		when 'Dead patients with visits' then
 			@report  =  session[:data_consistency_check][:dead_patients_with_visits]
