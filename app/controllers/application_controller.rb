@@ -594,6 +594,7 @@ class ApplicationController < GenericApplicationController
         when 'TB ADHERENCE'
           drugs_given_before = false
           PatientService.drug_given_before(patient,session_date).each do |order|
+						next unless MedicationService.tb_medication(order.drug_order.drug)
             drugs_given_before = true                                              
           end
            
