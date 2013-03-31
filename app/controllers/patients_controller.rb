@@ -64,7 +64,7 @@ class PatientsController < GenericPatientsController
 
     # Print information on Diagnosis!
     art_start_date = PatientService.date_antiretrovirals_started(patient).strftime("%d-%b-%Y") rescue nil
-    label.draw_multi_text("Diagnosis", {:font_reverse => true})
+    label.draw_multi_text("Stage defining conditions:", {:font_reverse => true})
     label.draw_multi_text("Reason for starting: #{who_stage}", {:font_reverse => false})
     label.draw_multi_text("ART start date: #{art_start_date}",{:font_reverse => false})
     label.draw_multi_text("Other diagnosis:", {:font_reverse => true})
