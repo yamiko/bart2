@@ -844,7 +844,7 @@ class EncountersController < GenericEncountersController
 		#raise treatment_encounter.to_yaml
     arv_regimen_obs = Observation.find_by_sql("SELECT * FROM obs 
       WHERE concept_id = #{regimen_type_concept} 
-      AND encounter_id = #{treatment_encounter} LIMIT 1")
+      AND encounter_id = #{treatment_encounter} LIMIT 1") rescue []
 
 		arv_regimen_type = "" 
 		unless arv_regimen_obs.blank?
