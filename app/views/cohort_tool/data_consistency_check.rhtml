@@ -253,19 +253,29 @@
         position:absolute;
         bottom:104px;
       }
-     #number{
+     #number a{
       background-color: #4A708B;
       border-bottom: 1px outset black;
-      text-decoration: none;
+      border-style: outset;
+      border-top: 1px outset black;
       color: white;
+      display: block;
       padding: 10px 16px 10px 10px;
       text-align: center;
       text-decoration: none;
     }
-    #number a{
+    /*#number a{
+    -moz-user-select: none;
+    background-color: #669999;
+    border-bottom: 1px outset black;
+    border-style: outset;
+    border-top: 1px outset black;
     color: white;
-    font-size: 14pt;
-    }
+    display: block;
+    padding: 10px 16px 10px 10px;
+    text-align: center;
+    text-decoration: none;
+    }*/
     </style>
   </head>
 <%= image_tag(@logo, :class => "logo")%>

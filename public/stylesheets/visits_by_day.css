@@ -214,6 +214,9 @@ width:            300px;
 #tabbed-content {
   padding: 15px 0px 0px;
   border: 2px solid #eee;
+  position: absolute;
+  top: 200px;
+  width:98%;
 }
 
 #tabbed-content #tab-menu {

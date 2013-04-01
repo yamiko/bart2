@@ -35,6 +35,52 @@
     padding-right:15px;
   }
 
+
+  
+    #number{
+      background-color: #4A708B;
+      border-bottom: 1px outset black;
+      border-style: outset;
+      border-top: 1px outset black;
+      color: white;
+      display: block;
+      padding: 10px 16px 10px 10px;
+      text-align: center;
+      text-decoration: none;
+      width: 200px;
+      cursor: pointer;
+    }
+    .logo {
+        float:left
+      }
+
+      #items{
+        left: 772px;
+    position: absolute;
+    top: 306px;
+}
+
+#placeholder{
+  position: absolute;
+  top: 65px;
+  left: 63px;
+}
+#yaxis{
+  left: 1%;
+    position: absolute;
+    top: 49%;
+}
+#xaxis{
+    position: absolute;
+    top: 82%;
+    left: 23%;
+}
+div{
+  -moz-user-select: none;
+}
+#find{
+ display: none;
+}
 </style>
 
 <script language="javascript">
@@ -47,37 +93,16 @@
   }
 </script>
 
-<div id="header">
-  <%= @report_type + "</p>" + @quarter + @adherence_summary rescue  @report_type + "</p>" + @quarter %>  
-</div>
-<table>
-<tr>
-<td id='y_axis'>
-<ul id="vertical">
-<li>
-  <em>P</em>
-  <em>a</em>
-  <em>t</em>
-  <em>i</em>
-  <em>e</em>
-  <em>n</em>
-  <em>t</em>
-  <em>s</em>
-</li>
-</ul>
-</td>
-<td id="graph_td">
-  <%= render :partial => "adherence_graph" %>
-</td>
-</tr>
-<tr>
-  <td></td><td id='x_axis'></br>Adherence (%)</td>
-</tr>
-</table>
+<%= image_tag(@logo, :class => "logo")%>
+    <br /><b style="margin-left:75px"><%= @location_name %></b><br />
+    <b style="position:relative; top:0px;margin-left:75px"><%= @report_type %></b><br />
+    <b style="position:relative; top:0px;margin-left:75px"><%=  params[:quarter] %></b><br /><br />
 
-<div class = "buttonsDiv">
-  <button id='done_button' onmousedown="javascript:document.location='/cohort_tool/select?report_type=adherence_histogram_for_all_patients_in_the_quarter'">Done</button>
-</div>
+
+<div id="yaxis">Patients</div>
+<div id="xaxis">Adherence (%)</div>
+
+  <%= render :partial => "adherence_graph" %>
 
 <div id = "adherence_summary">
   <table>
@@ -90,5 +115,13 @@
     <tr><td class='summary_title'>Over 100%</td><td class='summary_results'><%= @adherence_summary_hash["> 100"] %></td></tr>
     <tr><td class='summary_title'><a href="/cohort_tool/patients_with_adherence_greater_than_hundred/?quarter=<%=@quarter%>&show_missing_adherence=yes">Missing</a></td><td class='summary_results'><%= @adherence_summary_hash["missing"] %></td></tr>
     <tr><td class='summary_title'>Total</td><td class='summary_results'><b><%= @adherence_summary_hash["total"] %></b></td></tr>
-  </table></br><button onClick="closeSummary()">Close</button>
+  </table><!--</br><button onClick="closeSummary()">Close</button>-->
+</div>
+
+<div id="items">
+    <a style="position:absolute; width:200px" id="number" onClick="closeSummary()">Close</a><br /><br /><br />
+    <% unless @adherences.blank? %>
+      <a style="position:absolute; width:200px" id="number" onclick='adhSummary();'><span>Summary</span></a><br /><br /><br />
+      <a style="position:absolute; width:200px" id="number" onclick="document.location='/cohort_tool/reports?report=#{@quarter}&report_type=#{@type}';"><span>Over 100% Adherence</span></a>
+    <% end %>
 </div>
