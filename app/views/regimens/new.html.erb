@@ -881,7 +881,7 @@
 	  :allowFreeText => 'false',
 	  :condition => 'current_regimens_for_programs[$("tb_patient_program").value] != null && $("prescribe_tb_drugs").value == "YES"',
 	  :tt_onLoad => 'showTbDrugs();setAttributes();',
-	  :tt_onUnLoad => 'resetAttributes();',
+	  :tt_onUnLoad => 'resetAttributes();checkTbRegimen();',
 	  :helpText => "Continue current TB regimen?" } %>
 
 	<%	initial_regimen_help_text = "Select TB regimen"
