@@ -677,6 +677,32 @@ class GenericEncountersController < ApplicationController
 
 	def void
 		@encounter = Encounter.find(params[:id])
+
+    if @encounter.name.upcase == 'ART ADHERENCE'
+      art_adherence = EncounterType.find_by_name('HIV CLINIC CONSULTATION').id
+      hiv_clinic_consultation = Encounter.find(:first,
+        :conditions => ["patient_id = ? AND encounter_datetime >= ? AND 
+        encounter_datetime <= ? AND encounter_type = ?",@encounter.patient_id,
+        @encounter.encounter_datetime.strftime("%Y-%m-%d 00:00:00"),
+        @encounter.encounter_datetime.strftime("%Y-%m-%d 23:59:59"),
+        art_adherence],:order => "encounter_datetime DESC")
+
+      (hiv_clinic_consultation.observations || []).each do |ob|
+        ob.void_reason = 'Voided ART Adherence'
+        obs_name = ob.to_s
+        if obs_name.match(/Refer to ART clinician/i)
+          ob.voided = 1
+          ob.save
+        elsif obs_name.match(/Prescribe drugs/i)
+          ob.voided = 1
+          ob.save
+        elsif obs_name.match(/sulphur/i)
+          ob.voided = 1
+          ob.save
+        end
+      end if hiv_clinic_consultation
+    end
+
 		@encounter.void
 		head :ok
 	end
