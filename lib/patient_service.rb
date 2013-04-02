@@ -1840,6 +1840,11 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
     start_date = ActiveRecord::Base.connection.select_value "
       SELECT earliest_start_date FROM earliest_start_date
       WHERE patient_id = #{patient.id} LIMIT 1"
+    art_start_date = start_date
+      if art_start_date.blank?
+        concept_id = ConceptName.find_by_name('ART START DATE').concept_id
+        start_date = Observation.find(:all, :conditions => ["concept_id = ? and person_id = ?", concept_id, patient.id]).first.value_datetime rescue ""
+      end
 		end
     start_date.to_date rescue nil
   end
