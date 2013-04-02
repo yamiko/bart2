@@ -844,7 +844,7 @@ class EncountersController < GenericEncountersController
 		#raise treatment_encounter.to_yaml
     arv_regimen_obs = Observation.find_by_sql("SELECT * FROM obs 
       WHERE concept_id = #{regimen_type_concept} 
-      AND encounter_id = #{treatment_encounter} LIMIT 1")
+      AND encounter_id = #{treatment_encounter} LIMIT 1") rescue []
 
 		arv_regimen_type = "" 
 		unless arv_regimen_obs.blank?
@@ -1538,7 +1538,7 @@ class EncountersController < GenericEncountersController
     appointments = Observation.find_by_sql("SELECT count(value_datetime) AS count FROM obs 
       INNER JOIN encounter e USING(encounter_id) WHERE concept_id = #{@concept_id} 
       AND encounter_type = #{@encounter_type.id} AND value_datetime >= '#{start_date}' 
-      AND value_datetime <= '#{end_date}' GROUP BY value_datetime")     
+      AND value_datetime <= '#{end_date}' AND obs.voided = 0 GROUP BY value_datetime")     
     count = appointments.first.count unless appointments.blank?                       
     count = 0 if count.blank?                                                 
                                                                                 

@@ -137,6 +137,11 @@
 
   #tt_page_duration_of_prescribed_drugs .inputFrameClass {  height: 86%; }
 
+
+  #tt_page_duration .options {  height: 90%; }
+
+  #tt_page_duration .inputFrameClass {  height: 86%; }
+
   #previous_drugs_dispensed {
     	bottom: 380px;
     	font-size: 20px;
@@ -320,7 +325,7 @@ var reasons = ['Jandice/hepatitis','Anaemia < 8g/dl','History of psychiatric ill
 <% if @patient_bean.age < 12 %>
   reason += "Child under 12 years";
 <% end %>
-alert(reason)
+
 var regimens = [];
 var realTime = '<%=  @retrospective  %>';
 
@@ -1100,7 +1105,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   <%end%>
 
   <%= select_tag :cpt_duration, optionsString,
-	  {	:condition => '$("prescribe_arvs").value == "NO" && ($("cpt_given").value == "YES" || $("ipt_given").value == "YES")',
+	  {	:condition => '($("prescribe_arvs").value == "NO" || $("prescribe_arvs").value == "") && ($("cpt_given").value == "YES" || $("ipt_given").value == "YES")',
 	  :tt_onLoad => "__$('keyboard').style.display = 'none'",
 	  :helpText => 'Duration' } %>
 
