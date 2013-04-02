@@ -23,17 +23,19 @@ class Encounter < ActiveRecord::Base
   end
 
   def after_void(reason = nil)
-    self.observations.each do |row| 
-      if not row.order_id.blank?
-        ActiveRecord::Base.connection.execute <<EOF
-UPDATE drug_order SET quantity = NULL WHERE order_id = #{row.order_id};
+    unless self.name.upcase == 'ART ADHERENCE'
+      self.observations.each do |row| 
+        if not row.order_id.blank?
+          ActiveRecord::Base.connection.execute <<EOF
+            UPDATE drug_order SET quantity = NULL WHERE order_id = #{row.order_id};
 EOF
-      end rescue nil
-      row.void(reason) 
-    end rescue []
+        end rescue nil
+        row.void(reason) 
+      end rescue []
 
-    self.orders.each do |order|
-      order.void(reason) 
+      self.orders.each do |order|
+        order.void(reason) 
+      end
     end
   end
 
