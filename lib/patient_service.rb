@@ -740,8 +740,8 @@ module PatientService
 	end
 
 	def self.pre_art_start_date(patient)
-		start_date = Observation.find(:first, conditions = ["concept_id = ? and person_id = ?",
-															ConceptName.find_by_name("TREATMENT").concept_id, patient.id]).obs_datetime rescue " "
+		start_date = Observation.find(:first, :conditions => ["concept_id = ? and person_id = ?",
+															ConceptName.find_by_name("TREATMENT").concept_id, patient.id]).obs_datetime rescue nil
  rescue " "
 	end
   def self.sputum_orders_without_submission(patient_id)
