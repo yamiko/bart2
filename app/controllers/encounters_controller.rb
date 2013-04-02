@@ -1281,8 +1281,9 @@ class EncountersController < GenericEncountersController
         work_station_concept_id = ConceptName.find_by_name("Workstation location").concept_id
 
         vitals_encounter_id = EncounterType.find_by_name("VITALS").encounter_type_id
-        enc = Encounter.find(:all, :conditions => ["encounter_type = ? AND patient_id = ?
-                                                                                                AND voided=0", vitals_encounter_id, @patient.id])
+        enc = Encounter.find(:all, 
+          :conditions => ["encounter_type = ? AND patient_id = ? AND voided = 0", 
+          vitals_encounter_id, @patient.id])
 
         encounter.observations.each do |o|
           height = o.answer_string.squish if o.concept_id == height_concept_id
