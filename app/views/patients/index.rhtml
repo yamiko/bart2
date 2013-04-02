@@ -64,6 +64,9 @@
               <% if (@patient_bean.filing_number rescue nil) != nil && (@patient_bean.filing_number) != " " %>
                 <span value="<%= @patient_bean.filing_number rescue "" %>">Filing Number</span>
               <% end %>
+			  <% if art_start_date.blank? and @pre_art_start_date != " " %>
+                <span value="<%= "#{(Time.now.to_date-@pre_art_start_date.to_date).to_i/28} month(s)" %>">Period on Pre-ART</span>
+              <% end %>
               <% if (@patient_bean.pre_art_number rescue nil) != nil && (@patient_bean.pre_art_number) != " " %>
                 <span value="<%= @patient_bean.pre_art_number rescue "" %>">Pre-ART Number</span>
               <% end 

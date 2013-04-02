@@ -41,6 +41,8 @@ class GenericPatientsController < ApplicationController
 		else
 			@task = main_next_task(Location.current_location, @patient, session_date)
 			@hiv_status = PatientService.patient_hiv_status(@patient)
+			@pre_art_start_date = PatientService.pre_art_start_date(@patient)
+			#raise @pre_art_start_date.strftime("%Y-%m-%d").to_yaml
 			@reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
 			if  !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.upcase == 'NONE'
 				@reason_for_art_eligibility = nil				

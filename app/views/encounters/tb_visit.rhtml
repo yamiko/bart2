@@ -383,9 +383,8 @@ end
   tb_clinic = Encounter.find(:first,:order => "encounter_datetime DESC",
 	:conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type IN (?)",
 	  date,@patient.id,types])
-  if tb_clinic.blank? and not (@current_user_role.include?("Doctor") || @current_user_role.include?("Clinician"))
+  if tb_clinic.blank? and not (@current_user_role.include?("Doctor") || @current_user_role.include?("Clinician")) || ! @patient_present.to_s.match(/patient present for consultation:  no/i)
   %>
-
 	<%= touch_yes_no_tag "ANY NEED TO SEE A CLINICIAN", @patient, nil,
 	  {	:id => "refer_to_clinician",
 	  :helpText => "Refer patient to clinician" } %>

@@ -739,6 +739,11 @@ module PatientService
 		end
 	end
 
+	def self.pre_art_start_date(patient)
+		start_date = Observation.find(:first, conditions = ["concept_id = ? and person_id = ?",
+															ConceptName.find_by_name("TREATMENT").concept_id, patient.id]).obs_datetime rescue " "
+ rescue " "
+	end
   def self.sputum_orders_without_submission(patient_id)
     self.recent_sputum_orders(patient_id).collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", patient_id, Concept.find_by_name("Sputum submission")]).map{|o| o.accession_number}.include?(order.accession_number)}.compact #rescue []
   end

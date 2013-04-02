@@ -216,6 +216,10 @@ class ApplicationController < GenericApplicationController
                                   :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
                                   session_date.to_date,patient.id,EncounterType.find_by_name(type).id])
 
+				patient_present = Observation.find(:all, :limit => 1, :conditions => ["DATE(obs_datetime) = ? AND concept_id = ? AND person_id = ?",
+																						session_date.to_date, ConceptName.find_by_name("Patient present for consultation").concept_id, patient.id])
+				#raise patient_present.to_s.to_yaml
+					next if patient_present.to_s.match(/patient present for consultation:  no/i)
           if vitals.blank? and user_selected_activities.match(/Manage Vitals/i) 
             task.encounter_type = 'VITALS'
             task.url = "/encounters/new/vitals?patient_id=#{patient.id}"
@@ -225,7 +229,6 @@ class ApplicationController < GenericApplicationController
             task.url = "/patients/show/#{patient.id}"
             return task
           end 
-
         when 'TB RECEPTION'
           reception = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
                                      :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
