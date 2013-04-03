@@ -26,7 +26,7 @@ class GenericPatientsController < ApplicationController
 		end
 		#@tb_status = PatientService.patient_tb_status(@patient)
 		#raise @tb_status.downcase.to_yaml
-
+		@art_start_date = definitive_state_date(@patient, "ON ARV")
 		@date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
 
 		@location = Location.find(session[:location_id]).name rescue ""
@@ -39,11 +39,7 @@ class GenericPatientsController < ApplicationController
 		else
 			@task = main_next_task(Location.current_location, @patient, session_date)
 			@hiv_status = PatientService.patient_hiv_status(@patient)
-			@pre_art_start_date = PatientService.pre_art_start_date(@patient)
-
-			if @pre_art_start_date.blank?
-				@pre_art_start_date = definitive_state_date(@patient, "HIV PROGRAM")
-			end
+			@pre_art_start_date = definitive_state_date(@patient, "HIV PROGRAM")
 
 			@reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
 			if  !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.upcase == 'NONE'
@@ -2065,8 +2061,19 @@ end
 		state_date = ""
 		programs = patient.patient_programs.all rescue []
 		programs.each do |prog|
-			if prog.program.name.upcase == program
+			if prog.program.name.upcase == program and program == "HIV PROGRAM"
+				if ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname.downcase.match(/pre-art/i)
+						
+						state_date = prog.date_enrolled
+				end
+			end
+			if prog.program.name.upcase == program and program != "HIV PROGRAM" and program != "ON ARV"
 				state_date = prog.date_enrolled
+			end
+			if prog.program.name.upcase == "HIV PROGRAM" and program == "ON ARV"
+				if ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname.downcase.match(/on antiretrovirals/i)
+						state_date = prog.date_enrolled
+				end
 			end
 		end
 		state_date
