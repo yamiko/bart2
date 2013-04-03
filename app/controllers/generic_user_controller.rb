@@ -35,14 +35,8 @@ class GenericUserController < ApplicationController
       redirect_to(:action => "activities", 
         :id => params[:user_id],:selected_program => params[:program]) 
     else
-			program_selection = CoreService.get_global_property_value("select_program") rescue true
-			if program_selection == true
       @user_id = (params[:id])
-			else
-				redirect_to(:action => "activities",
-        :id => @user_id,:selected_program => "HIV PROGRAM")
-     end
-		end 
+		end
   end
 
   # List roles containing the string given in params[:value]
