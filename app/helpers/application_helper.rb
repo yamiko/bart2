@@ -335,10 +335,11 @@ module ApplicationHelper
 
   def require_viral_load_check(patient)
 
-		session_date = Date.today
+		#session_date = Date.today
 		arv_start_date = PatientService.patient_art_start_date(patient).to_date rescue nil
     return false if arv_start_date.blank?
-		duration = (session_date.to_date - arv_start_date.to_date).to_i/28 
+		#duration = (session_date.to_date - arv_start_date.to_date).to_i/28
+    duration = PatientService.period_on_treatment(arv_start_date) rescue nil
 		if (duration >= 6)
       obs = Observation.find(:all, :conditions => ["person_id = ? and concept_id = ?",
           patient.patient_id, Concept.find_by_name("Viral load").concept_id])
@@ -347,7 +348,8 @@ module ApplicationHelper
         viral_loads = obs.map(&:obs_datetime)
         if (viral_loads.length == 1)
           viral_load_date = viral_loads.first.to_date
-          duration = (Date.today - viral_load_date).to_i/28
+          #duration = (Date.today - viral_load_date).to_i/28
+          duration = PatientService.period_on_treatment(viral_load_date)
           if (duration/24 >= 1)
             return true
           else
@@ -357,7 +359,8 @@ module ApplicationHelper
 
         if (viral_loads.length > 1)
           viral_load_date = viral_loads.last.to_date
-          duration = (Date.today - viral_load_date).to_i/28
+          #duration = (Date.today - viral_load_date).to_i/28
+          duration = PatientService.period_on_treatment(viral_load_date)
           if (duration/24 >= 1)
             return true
           else

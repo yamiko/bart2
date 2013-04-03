@@ -242,9 +242,10 @@ class GenericPeopleController < ApplicationController
 		
 		
 		@art_start_date = PatientService.date_antiretrovirals_started(@person.patient) 
-		@duration_in_months = ((Time.now.to_date - @art_start_date.to_date).to_i/28) unless @art_start_date.blank?  
-        patient = @person.patient
-		@identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+		#@duration_in_months = ((Time.now.to_date - @art_start_date.to_date).to_i/28) unless @art_start_date.blank?
+    patient = @person.patient
+		@duration_in_months = PatientService.period_on_treatment(@art_start_date) rescue nil
+    @identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
 			identifier_types = PatientIdentifierType.find(:all,                         
 			  :conditions=>["name IN (?)",@identifier_types]                              
 			).collect{| type |type.id }                                                 
