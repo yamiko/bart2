@@ -1160,6 +1160,7 @@ class GenericEncountersController < ApplicationController
   end
 
   def is_tb_patient(patient)
+		#raise "here"
     return given_tb_medication_before(patient)
   end
 
@@ -1173,7 +1174,7 @@ class GenericEncountersController < ApplicationController
       next if drug_order == nil
       next unless drug_order_quantity > 0
       return true if MedicationService.tb_medication(drug_order.drug)
-    }
+    } rescue false
     false
   end
 
