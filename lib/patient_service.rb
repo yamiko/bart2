@@ -740,9 +740,12 @@ module PatientService
 	end
 
 	def self.pre_art_start_date(patient)
-		start_date = Observation.find(:first, :conditions => ["concept_id = ? and person_id = ?",
-															ConceptName.find_by_name("TREATMENT").concept_id, patient.id]).obs_datetime rescue nil
- rescue " "
+
+		 start_date = Encounter.find_by_sql(" SELECT * FROM encounter e
+								INNER JOIN encounter_type et ON et.encounter_type_id = e.encounter_type
+								INNER JOIN obs ON obs.encounter_id = e.encounter_id
+								WHERE obs.person_id = '#{patient.id}' AND et.name = 'HIV RECEPTION'
+								ORDER BY e.encounter_datetime DESC LIMIT 1").first.obs_datetime rescue nil
 	end
   def self.sputum_orders_without_submission(patient_id)
     self.recent_sputum_orders(patient_id).collect{|order| order unless Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?", patient_id, Concept.find_by_name("Sputum submission")]).map{|o| o.accession_number}.include?(order.accession_number)}.compact #rescue []

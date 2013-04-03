@@ -3,13 +3,13 @@ class GenericPatientsController < ApplicationController
   
 	def show
 		return_uri = session[:return_uri]
-		if !return_uri.blank?
+		if !return_uri.blank? || @patient.blank?
 			redirect_to return_uri.to_s
 			return
 		end
 		current_state = tb_status(@patient).downcase
 		@show_period = false
-		@show_period = true if current_state.match(/in treatment/i)
+		@show_period = true if current_state.match(/currently in treatment/i)
 		session[:mastercard_ids] = []
 		session_date = session[:datetime].to_date rescue Date.today
 		@patient_bean = PatientService.get_patient(@patient.person)
@@ -30,11 +30,9 @@ class GenericPatientsController < ApplicationController
 		@date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
 
 		@location = Location.find(session[:location_id]).name rescue ""
-
-		@tb_registration_date = Observation.find_by_sql("select encounter_datetime from obs o
-														inner join encounter e on e.encounter_id = o.encounter_id
-														inner join encounter_type en on en.encounter_type_id = e.encounter_type
-														where o.person_id = #{@patient.id} and en.name = 'tb registration' order by obs_datetime desc limit 1").first.encounter_datetime rescue nil
+		if @show_period == true
+			@tb_registration_date = definitive_state_date(@patient, "TB PROGRAM")
+		end
 		
 		if @location.downcase == "outpatient" || params[:source]== 'opd'
 			render :template => 'dashboards/opdtreatment_dashboard', :layout => false
@@ -42,7 +40,11 @@ class GenericPatientsController < ApplicationController
 			@task = main_next_task(Location.current_location, @patient, session_date)
 			@hiv_status = PatientService.patient_hiv_status(@patient)
 			@pre_art_start_date = PatientService.pre_art_start_date(@patient)
-			#raise @pre_art_start_date.strftime("%Y-%m-%d").to_yaml
+
+			if @pre_art_start_date.blank?
+				@pre_art_start_date = definitive_state_date(@patient, "HIV PROGRAM")
+			end
+
 			@reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
 			if  !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.upcase == 'NONE'
 				@reason_for_art_eligibility = nil				
@@ -2051,7 +2053,7 @@ end
         :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL",
           patient.id,
           ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
-		programs = patient.patient_programs.all
+		programs = patient.patient_programs.all rescue []
 		programs.each do |prog|
 			if prog.program.name.upcase == "TB PROGRAM"
 				state = ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname rescue state
@@ -2059,7 +2061,16 @@ end
 		end
 		state
   end
-
+	def definitive_state_date(patient, program) #written to avoid causing conflicts in other methods
+		state_date = ""
+		programs = patient.patient_programs.all rescue []
+		programs.each do |prog|
+			if prog.program.name.upcase == program
+				state_date = prog.date_enrolled
+			end
+		end
+		state_date
+	end
   def mastercard_visit_label(patient,date = Date.today)
   	patient_bean = PatientService.get_patient(patient.person)
     visit = visits(patient,date)[date] rescue {}
