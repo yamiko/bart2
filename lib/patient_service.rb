@@ -1870,12 +1870,18 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
   def self.date_antiretrovirals_started(patient)
     concept_id = ConceptName.find_by_name('ART START DATE').concept_id
     start_date = Observation.find(:first, :conditions => ["concept_id = ? AND
-    person_id = ?", concept_id, patient.id]).value_datetime rescue []
+    person_id = ?", concept_id, patient.id]).value_datetime rescue ""
 
     if start_date.blank? || start_date == ""
       concept_id = ConceptName.find_by_name('Date antiretrovirals started').concept_id
       start_date = Observation.find(:first, :conditions => ["concept_id = ? AND
-      person_id = ?", concept_id, patient.id]).value_text rescue []
+      person_id = ?", concept_id, patient.id]).value_text rescue ""
+      art_start_date = start_date
+      if art_start_date.blank? || art_start_date == ""
+        start_date = ActiveRecord::Base.connection.select_value "
+        SELECT earliest_start_date FROM earliest_start_date
+        WHERE patient_id = #{patient.id} LIMIT 1"
+      end
     end
 
     start_date.to_date rescue nil
