@@ -250,6 +250,7 @@ end
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", current_user.user_id %>
+  <%= touch_hidden_tag "Patient enrolled in HIV program", @patient, nil, { :id => "enroll_patient_in_art"} %>
 
   <% if @previous_tb_visit.length != 0 %>
 	<%= text_field_tag :task_name, nil,
@@ -457,7 +458,7 @@ end
 	<%else%>
 	  <%= touch_hidden_tag "ON ART", @patient, nil,
 		{:id => "art_status"} %>
-	<%  end %>
+	<% end %>
 
 	<%= text_field_tag "hiv_initiation_year", nil, {
 	  :helpText => 'Year of ART initiation',
@@ -485,17 +486,13 @@ end
 	<%= touch_location_tag "Location Of ART Initiation", @patient, nil, {:id => "location_of_art_intiation", :value_datetime => true,:helpText => "Location Of ART Initiation", :condition => '$("art_status").value == "YES"'}%>
 	<%= touch_hidden_tag "HIV TEST DATE", @patient, nil, {:id => "hiv_test_date", :value_datetime => true}%>
 	<%= touch_hidden_tag "ART initiation date", @patient, nil, {:id => "hiv_initiation_date", :value_datetime => true}%>
+    
 
-  <% if ! @patient.person.observations.to_s.downcase.include?('in hiv program:') %>
-	  <%= touch_yes_no_tag "Patient enrolled in HIV program", @patient, nil,
-		{   :id => "enroll_patient_in_art",
-		:condition => '$("refer_to_clinician").value != "YES"',
-		:helpText => 'Enroll for HIV care' } %>
-
-	<%else%>
-	  <%= touch_hidden_tag "Patient enrolled in HIV program", @patient, nil,
-		{   :id => "enroll_patient_in_art",
-		:condition => '$("refer_to_clinician").value != "YES"' } %>
+	<% if ! @patient.person.observations.to_s.downcase.include?('in hiv program:') %>
+		<%= touch_yes_no_tag "Patient enrolled in HIV program", @patient, nil,
+		  {   :id => "enroll_patient_in_art",
+		  :condition => '$("refer_to_clinician").value != "YES"',
+		  :helpText => 'Enroll for HIV care' } %>
 	<%  end %>
   <% end %>
 

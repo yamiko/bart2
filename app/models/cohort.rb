@@ -955,7 +955,7 @@ class Cohort
     regimen_hash
   end
 
-=begin  
+ 
   def regimens_with_patient_ids(start_date = @start_date, end_date = @end_date)
     regimens = []
     regimen_hash = {}
@@ -988,7 +988,6 @@ class Cohort
 		                              end
                                 end
   end
-=end
 
 
   def patients_reinitiated_on_art(start_date = @start_date, end_date = @end_date)
