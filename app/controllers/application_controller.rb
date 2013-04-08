@@ -57,14 +57,23 @@ class ApplicationController < GenericApplicationController
     #8. Manage HIV status updates - UPDATE HIV STATUS
     #8. Manage prescriptions - TREATMENT
     #8. Manage dispensations - DISPENSING
-
-    tb_encounters =  [
+		if patient.person.observations.to_s.match(/smear result:  Yes/i)
+			tb_encounters =  [
+                      'SOURCE OF REFERRAL','UPDATE HIV STATUS',
+                      'SPUTUM SUBMISSION','LAB RESULTS','TB_INITIAL',
+                      'TB RECEPTION','TB REGISTRATION','TB VISIT','TB ADHERENCE',
+                      'TB CLINIC VISIT','HIV CLINIC REGISTRATION','VITALS','HIV STAGING',
+                      'HIV CLINIC CONSULTATION','ART ADHERENCE','TREATMENT','DISPENSING'
+                     ]
+		else
+			tb_encounters =  [
                       'SOURCE OF REFERRAL','UPDATE HIV STATUS','LAB ORDERS',
                       'SPUTUM SUBMISSION','LAB RESULTS','TB_INITIAL',
                       'TB RECEPTION','TB REGISTRATION','TB VISIT','TB ADHERENCE',
                       'TB CLINIC VISIT','HIV CLINIC REGISTRATION','VITALS','HIV STAGING',
                       'HIV CLINIC CONSULTATION','ART ADHERENCE','TREATMENT','DISPENSING'
-                     ] 
+                     ]
+		end
     user_selected_activities = current_user.activities.collect{|a| a.upcase }.join(',') rescue []
     if user_selected_activities.blank? or tb_encounters.blank?
       task.url = "/patients/show/#{patient.id}"
