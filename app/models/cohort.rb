@@ -308,7 +308,7 @@ class Cohort
 		  end
 		end
 
-
+		#raise self.corrected_regimens(@@first_registration_date).to_yaml
 		threads << Thread.new do
 			begin
 				logger.info("regimens " + Time.now.to_s)
@@ -399,20 +399,26 @@ class Cohort
 				(cohort_report['Stopped taking ARVs'] || []) +
 				(cohort_report['Transferred out'] || []))
 		
-		patients_with_0_6_doses_missed = []; patients_with_7_doses_missed = []
+		#patients_with_0_6_doses_missed = []; patients_with_7_doses_missed = []
+
+		#patients_with_0_6_doses_missed = cohort_report['Patients with 0 - 6 doses missed at their last visit']
+		#patients_with_7_doses_missed = cohort_report['Patients with 7+ doses missed at their last visit']
+
+		#patients_with_0_6_doses_missed = cohort_report['Patients with 0 - 6 doses missed at their last visit'].map{|person| person.person_id}
+		#patients_with_7_doses_missed = cohort_report['Patients with 7+ doses missed at their last visit'].map{|person| person.person_id}
 		
-		patients_with_0_6_doses_missed = cohort_report['Patients with 0 - 6 doses missed at their last visit'].map{|person| person.person_id}
-		patients_with_7_doses_missed = cohort_report['Patients with 7+ doses missed at their last visit'].map{|person| person.person_id}
-		
+		#cohort_report['Unknown adherence'] = (cohort_report['Total alive and on ART'] -
+			#	patients_with_0_6_doses_missed - patients_with_7_doses_missed)
+			#raise cohort_report['Patients with 0 - 6 doses missed at their last visit'].to_yaml
 		cohort_report['Unknown adherence'] = (cohort_report['Total alive and on ART'] -
-				patients_with_0_6_doses_missed - patients_with_7_doses_missed)
-		
+				cohort_report['Patients with 0 - 6 doses missed at their last visit'] - cohort_report['Patients with 7+ doses missed at their last visit'])
 		cohort_report['Earliest_start_dates'] = @patient_earliest_start_date
-	
+
 		self.cohort = cohort_report
 		self.cohort
 	end
 
+	
 	def total_registered(start_date = @start_date, end_date = @end_date)
 		patients = []
 	  PatientProgram.find_by_sql("SELECT * FROM earliest_start_date 
@@ -934,7 +940,7 @@ class Cohort
 
     dispensing_encounter_id = EncounterType.find_by_name("DISPENSING").id
     regimen_category = ConceptName.find_by_name("REGIMEN CATEGORY").concept_id
-
+		
     PatientProgram.find_by_sql(
       "SELECT e.patient_id,
               last_text_for_obs(e.patient_id, #{dispensing_encounter_id}, #{regimen_category}, '#{end_date}') AS regimen_category 
@@ -942,7 +948,8 @@ class Cohort
       WHERE patient_id IN(#{patient_ids.join(',')}) AND
             earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
       ").each do | value |
-  
+
+			
 			if value.regimen_category.blank?
 				regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] ||= []
 				regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] << value.patient_id
@@ -1052,16 +1059,34 @@ class Cohort
 		art_adherence_concept = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
 		art_adherence_encounter = EncounterType.find_by_name("ART ADHERENCE").id
 
-		patients = Observation.find_by_sql("SELECT DISTINCT e.patient_id, person_id AS person_id,
-          earliest_start_date, current_text_for_obs(obs.person_id,#{art_adherence_encounter},#{art_adherence_concept},'#{end_date}') AS current_text 
-          FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
-					AND concept_id = #{art_adherence_concept} 
-					AND voided = 0 
-          AND current_text_for_obs(obs.person_id,#{art_adherence_encounter},#{art_adherence_concept},'#{end_date}') NOT BETWEEN 95 AND 105  
+		#patients = Observation.find_by_sql("SELECT DISTINCT e.patient_id, person_id AS person_id,
+        #  earliest_start_date, current_text_for_obs(obs.person_id,#{art_adherence_encounter},#{art_adherence_concept},'#{end_date}') AS current_text
+         # FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
+				#	AND concept_id = #{art_adherence_concept}
+				#	AND voided = 0
+        #  AND current_text_for_obs(obs.person_id,#{art_adherence_encounter},#{art_adherence_concept},'#{end_date}') NOT BETWEEN 95 AND 105
 					
-					AND earliest_start_date >= '#{start_date}'
-					AND earliest_start_date <= '#{end_date}'
-					AND person_id IN (#{patient_ids.join(',')})")
+				#	AND earliest_start_date >= '#{start_date}'
+				#	AND earliest_start_date <= '#{end_date}'
+				#	AND person_id IN (#{patient_ids.join(',')})")
+				patients = []
+		Encounter.find_by_sql("SELECT e.patient_id, o.person_id AS person_id, value_text
+			FROM encounter e
+			INNER JOIN obs o ON o.encounter_id = e.encounter_id
+			WHERE e.encounter_type = #{art_adherence_encounter}
+			AND o.concept_id = #{art_adherence_concept}
+			AND e.patient_id in (#{patient_ids.join(',')})
+			AND o.voided = 0
+			AND o.value_text IS NOT NULL
+			GROUP BY patient_id
+			ORDER BY o.obs_datetime DESC").each{|person|
+					if person.value_text.to_i >= 0 and person.value_text.to_i < 95
+						patients << person.person_id
+					elsif person.value_text.to_i > 105
+						patients << person.person_id
+					end
+			}
+					
 		return patients
 	end
 	
@@ -1074,17 +1099,32 @@ class Cohort
 		art_adherence_concept = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
 		art_adherence_encounter = EncounterType.find_by_name("ART ADHERENCE").id
 
-		patients = Observation.find_by_sql("SELECT DISTINCT e.patient_id, person_id AS person_id,
-          earliest_start_date, current_text_for_obs(obs.person_id,#{art_adherence_encounter},#{art_adherence_concept},'#{end_date}')
-          FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
-					AND concept_id = #{art_adherence_concept} 
-					AND voided = 0 
-          AND current_text_for_obs(obs.person_id,#{art_adherence_encounter},
+		#patients = Observation.find_by_sql("SELECT DISTINCT e.patient_id, person_id AS person_id,
+         # earliest_start_date, current_text_for_obs(obs.person_id,#{art_adherence_encounter},#{art_adherence_concept},'#{end_date}')
+         # FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
+					#AND concept_id = #{art_adherence_concept}
+				#	AND voided = 0
+         # AND current_text_for_obs(obs.person_id,#{art_adherence_encounter},
           #{art_adherence_concept},'#{end_date}') BETWEEN 95 AND 105  
 					
-					AND earliest_start_date >= '#{start_date}'
-					AND earliest_start_date <= '#{end_date}'
-					AND person_id IN (#{patient_ids.join(',')})")
+				#	AND earliest_start_date >= '#{start_date}'
+				#	AND earliest_start_date <= '#{end_date}'
+				#	AND person_id IN (#{patient_ids.join(',')})")
+				patients = []
+		Encounter.find_by_sql("SELECT e.patient_id, o.person_id AS person_id, value_text
+			FROM encounter e
+			INNER JOIN obs o ON o.encounter_id = e.encounter_id
+			WHERE e.encounter_type = #{art_adherence_encounter}
+			AND o.concept_id = #{art_adherence_concept}
+			AND e.patient_id in (#{patient_ids.join(',')})
+			AND o.voided = 0
+			AND o.value_text IS NOT NULL
+			GROUP BY patient_id
+			ORDER BY o.obs_datetime DESC").each{|person|
+					if person.value_text.to_i >= 95 and person.value_text.to_i <= 105
+						patients << person.person_id
+					end
+			}
 		return patients
 	end
 	
