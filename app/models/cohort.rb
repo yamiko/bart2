@@ -1070,22 +1070,17 @@ class Cohort
 				#	AND earliest_start_date <= '#{end_date}'
 				#	AND person_id IN (#{patient_ids.join(',')})")
 				patients = []
-		Encounter.find_by_sql("SELECT e.patient_id, o.person_id AS person_id, value_text
-			FROM encounter e
-			INNER JOIN obs o ON o.encounter_id = e.encounter_id
-			WHERE e.encounter_type = #{art_adherence_encounter}
-			AND o.concept_id = #{art_adherence_concept}
-			AND e.patient_id in (#{patient_ids.join(',')})
-			AND o.voided = 0
-			AND o.value_text IS NOT NULL
-			GROUP BY patient_id
-			ORDER BY o.obs_datetime DESC").each{|person|
-					if person.value_text.to_i >= 0 and person.value_text.to_i < 95
-						patients << person.person_id
-					elsif person.value_text.to_i > 105
-						patients << person.person_id
-					end
-			}
+		Encounter.find_by_sql("SELECT distinct(person_id)
+														FROM  obs
+														WHERE  concept_id = #{art_adherence_concept}
+														AND person_id IN (#{patient_ids.join(',')})
+														AND ((current_text_for_obs(person_id, 68, 6987,'2013-03-31') BETWEEN 0 AND 94)
+																			OR
+																(current_text_for_obs(person_id, 68, 6987,'2013-03-31') > 105))
+														AND value_text IS NOT NULL
+														AND Voided = 0").each{|person|
+																	patients << person.person_id
+														}
 					
 		return patients
 	end
@@ -1111,20 +1106,15 @@ class Cohort
 				#	AND earliest_start_date <= '#{end_date}'
 				#	AND person_id IN (#{patient_ids.join(',')})")
 				patients = []
-		Encounter.find_by_sql("SELECT e.patient_id, o.person_id AS person_id, value_text
-			FROM encounter e
-			INNER JOIN obs o ON o.encounter_id = e.encounter_id
-			WHERE e.encounter_type = #{art_adherence_encounter}
-			AND o.concept_id = #{art_adherence_concept}
-			AND e.patient_id in (#{patient_ids.join(',')})
-			AND o.voided = 0
-			AND o.value_text IS NOT NULL
-			GROUP BY patient_id
-			ORDER BY o.obs_datetime DESC").each{|person|
-					if person.value_text.to_i >= 95 and person.value_text.to_i <= 105
-						patients << person.person_id
-					end
-			}
+		Encounter.find_by_sql("SELECT distinct(person_id)
+														FROM  obs
+														WHERE  concept_id = #{art_adherence_concept}
+														AND person_id IN (#{patient_ids.join(',')})
+														AND current_text_for_obs(obs.person_id,#{art_adherence_encounter},#{art_adherence_concept},'#{end_date}') BETWEEN 95 AND 105
+														AND value_text IS NOT NULL
+														AND Voided = 0").each{|person|
+																	patients << person.person_id
+														}
 		return patients
 	end
 	
