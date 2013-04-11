@@ -1561,6 +1561,27 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
     (years * 12) + months
   end
 
+  def self.date_started_second_line_regimen(patient)
+    regimen_category = Concept.find_by_name("Regimen Category")
+    regimen_indices = ["7A","8A","9P"]
+    regimen_indices = "'" + regimen_indices.join("','") + "'"
+    encounter_datetime = Observation.find_by_sql("SELECT * FROM obs o INNER JOIN encounter enc ON
+      o.encounter_id= enc.encounter_id AND
+      enc.encounter_type= (SELECT encounter_type_id FROM encounter_type WHERE
+      name='DISPENSING') AND o.concept_id=#{regimen_category.id} AND enc.patient_id=#{patient.id} AND
+      value_text IN (#{regimen_indices}) AND enc.voided = 0
+      order by enc.date_created ASC LIMIT 1").first.encounter_datetime rescue ""
+    if (encounter_datetime.blank? || encounter_datetime == "")
+      encounter_datetime = Observation.find_by_sql("SELECT * FROM obs o INNER JOIN encounter enc ON
+      o.encounter_id= enc.encounter_id AND
+      enc.encounter_type= (SELECT encounter_type_id FROM encounter_type WHERE
+      name='TREATMENT') AND o.concept_id=#{regimen_category.id} AND enc.patient_id=#{patient.id} AND
+      value_text IN (#{regimen_indices}) AND enc.voided = 0
+      order by enc.date_created ASC LIMIT 1").first.encounter_datetime rescue ""
+    end
+    return encounter_datetime
+  end
+
   def self.get_attribute(person, attribute)
     PersonAttribute.find(:first,:conditions =>["voided = 0 AND person_attribute_type_id = ? AND person_id = ?",
         PersonAttributeType.find_by_name(attribute).id, person.id]).value rescue nil
