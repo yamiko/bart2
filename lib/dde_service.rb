@@ -537,7 +537,8 @@ module DDEService
 
     else
       national_id = params["person"]["patient"]["identifiers"]["National id"]
-      # national_id = params["person"]["patient"]["identifiers"]["old_identification_number"]
+      national_id = params["person"]["value"] if national_id.blank? rescue nil
+      return national_id
     end
 
     if (dont_recreate_local == false)
@@ -612,8 +613,8 @@ module DDEService
        "patient"=>{"identifiers"=>{"National id" => p["person"]["value"]}},
        "birth_day"=>birthdate_day,
        "home_phone_number"=>p["person"]["data"]["attributes"]["home_phone_number"],
-       "names"=>{"family_name"=>p["person"]["family_name"],
-       "given_name"=>p["person"]["given_name"],
+       "names"=>{"family_name"=>p["person"]["data"]["names"]["family_name"],
+       "given_name"=>p["person"]["data"]["names"]["given_name"],
        "middle_name"=>""},
        "birth_year"=>birthdate_year},
        "filter_district"=>"",

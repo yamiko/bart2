@@ -1458,17 +1458,25 @@ class GenericEncountersController < ApplicationController
 		current_date = Date.today.to_s
 		current_date = session[:datetime] if !session[:datetime].blank?
 		 session_date = "#{prefix} #{session[:datetime].to_date.year.to_s}%" if !session[:datetime].blank?
-		 #
-		 patient_exists = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ? AND patient_id = ?', type_id, session_date, @patient.id])
+		 patient_exists = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ? AND patient_id = ?', type_id, session_date, @patient.id]).first
 		 type = patient_exists
-		 if patient_exists.blank?
-			type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ?', type_id, session_date],:order => 'patient_identifier_id DESC')
+		 state = ""
+		 @patient.patient_programs.each do |prog|
+			 state = prog.patient_states.last.to_s if prog.program.name.humanize == "Tb program"
 		 end
+		if ! patient_exists.blank? and state.downcase.match(/treatment complete/i)
+			patient_exists.voided = 1
+			patient_exists.save
+		end
+		#if patient_exists.blank?
+			type = PatientIdentifier.find_by_sql("SELECT * FROM patient_identifier
+																						WHERE identifier_type = #{type_id} and identifier LIKE '%#{session_date}%'
+																						ORDER BY patient_identifier_id DESC")
+			#type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ?', type_id, session_date],:order => 'patient_identifier_id DESC')
+		#end
 		 type = type.first.identifier.split(" ") rescue ""
-		 
 		 if type.include?(current_date.to_date.year.to_s)
-			return (type.last.to_i + 1) if patient_exists.blank?
-			return (type.last.to_i) if ! patient_exists.blank?
+			return (type.last.to_i + 1) 
 		 else
 			return 1
 		 end
