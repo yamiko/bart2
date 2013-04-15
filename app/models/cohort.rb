@@ -1059,6 +1059,18 @@ class Cohort
 		art_adherence_concept = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
 		art_adherence_encounter = EncounterType.find_by_name("ART ADHERENCE").id
 
+    latest_patient_obs = Observation.find(:all, :joins => [:encounter], :select => ["MAX(obs_id) obs_id, person_id"],
+      :conditions => ["concept_id = ? AND DATE(obs_datetime) <= ? AND person_id IN (?) AND " +
+          "encounter_type = ? AND value_text REGEXP ?", art_adherence_concept, end_date,
+        patient_ids, EncounterType.find_by_name("ART ADHERENCE").id, '^-?[0-9]+$'],
+      :group => [:person_id]).map{|o| o.obs_id}.uniq
+
+    patients = Observation.find(:all, :joins => [:encounter], :select => ["person_id"],
+      :conditions => ["obs_id IN (?) AND concept_id = ? AND DATE(obs_datetime) <= ? " +
+          " AND person_id IN (?) AND encounter_type = ? AND value_text REGEXP ? AND value_text < 95", latest_patient_obs,
+        art_adherence_concept, end_date, patient_ids, EncounterType.find_by_name("ART ADHERENCE").id, '^-?[0-9]+$']
+    ).map{|o| o.person_id}.uniq
+
 		#patients = Observation.find_by_sql("SELECT DISTINCT e.patient_id, person_id AS person_id,
         #  earliest_start_date, current_text_for_obs(obs.person_id,#{art_adherence_encounter},#{art_adherence_concept},'#{end_date}') AS current_text
          # FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
@@ -1069,6 +1081,7 @@ class Cohort
 				#	AND earliest_start_date >= '#{start_date}'
 				#	AND earliest_start_date <= '#{end_date}'
 				#	AND person_id IN (#{patient_ids.join(',')})")
+=begin
 				patients = []
 		Encounter.find_by_sql("SELECT distinct(person_id)
 														FROM  obs
@@ -1083,6 +1096,7 @@ class Cohort
 														}
 					
 		return patients
+=end
 	end
 	
 	def patients_adherent_at_their_last_visit(start_date = @start_date, end_date = @end_date)
@@ -1091,9 +1105,26 @@ class Cohort
 		patient_ids = @patients_alive_and_on_art
     patient_ids = [0] if patient_ids.blank?
    
+    patient_ids = patient_ids - self.patients_not_adherent_at_their_last_visit
+
+    return patient_ids
+
+=begin
 		art_adherence_concept = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
 		art_adherence_encounter = EncounterType.find_by_name("ART ADHERENCE").id
 
+    latest_patient_obs = Observation.find(:all, :joins => [:encounter], :select => ["MAX(obs_id) obs_id, person_id"],
+      :conditions => ["concept_id = ? AND DATE(obs_datetime) <= ? AND person_id IN (?) AND " + 
+          "encounter_type = ? AND value_text REGEXP ?", art_adherence_concept, end_date,
+        patient_ids, EncounterType.find_by_name("ART ADHERENCE").id, '^-?[0-9]+$'],
+      :group => [:person_id]).map{|o| o.obs_id}.uniq
+
+    patients = Observation.find(:all, :joins => [:encounter], :select => ["person_id"],
+      :conditions => ["obs_id IN (?) AND concept_id = ? AND DATE(obs_datetime) <= ? " +
+          " AND person_id IN (?) AND encounter_type = ? AND value_text REGEXP ? AND value_text >= 95", latest_patient_obs,
+        art_adherence_concept, end_date, patient_ids, EncounterType.find_by_name("ART ADHERENCE").id, '^-?[0-9]+$']
+    ).map{|o| o.person_id}.uniq
+=end
 		#patients = Observation.find_by_sql("SELECT DISTINCT e.patient_id, person_id AS person_id,
          # earliest_start_date, current_text_for_obs(obs.person_id,#{art_adherence_encounter},#{art_adherence_concept},'#{end_date}')
          # FROM obs INNER JOIN earliest_start_date e ON obs.person_id = e.patient_id
@@ -1105,6 +1136,7 @@ class Cohort
 				#	AND earliest_start_date >= '#{start_date}'
 				#	AND earliest_start_date <= '#{end_date}'
 				#	AND person_id IN (#{patient_ids.join(',')})")
+=begin
 				patients = []
 		Encounter.find_by_sql("SELECT distinct(person_id)
 														FROM  obs
@@ -1116,6 +1148,7 @@ class Cohort
 																	patients << person.person_id
 														}
 		return patients
+=end
 	end
 	
 	def patients_with_0_to_6_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
