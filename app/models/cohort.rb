@@ -941,14 +941,15 @@ class Cohort
     dispensing_encounter_id = EncounterType.find_by_name("DISPENSING").id
     regimen_category = ConceptName.find_by_name("REGIMEN CATEGORY").concept_id
 		
-    PatientProgram.find_by_sql(
+    earliest_start_dates = PatientProgram.find_by_sql(
       "SELECT e.patient_id,
               last_text_for_obs(e.patient_id, #{dispensing_encounter_id}, #{regimen_category}, '#{end_date}') AS regimen_category 
       FROM earliest_start_date e
       WHERE patient_id IN(#{patient_ids.join(',')}) AND
             earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
-      ").each do | value |
-
+      ")
+    
+    (earliest_start_date || []).each do | value |
 			
 			if value.regimen_category.blank?
 				regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] ||= []

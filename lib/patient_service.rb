@@ -1449,7 +1449,10 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
   end
 
   def self.search_by_identifier(identifier)
-    identifier = identifier.gsub("-","").strip
+    unless identifier.match(/#{CoreService.get_global_property_value("site_prefix")}-ARV/i)
+      identifier = identifier.gsub("-","").strip
+    end
+
     people = PatientIdentifier.find_all_by_identifier(identifier).map{|id|
       id.patient.person
     } unless identifier.blank? rescue nil
