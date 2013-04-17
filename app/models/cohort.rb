@@ -949,7 +949,7 @@ class Cohort
             earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
       ")
     
-    (earliest_start_date || []).each do | value |
+    (earliest_start_dates || []).each do | value |
 			
 			if value.regimen_category.blank?
 				regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] ||= []
