@@ -736,7 +736,7 @@ class EncountersController < GenericEncountersController
                                                                       
     (bookings || []).sort.reverse.each do |date|   
       next if not clinic_days.collect{|c|c.upcase}.include?(date.strftime('%A').upcase)
-      limit = number_of_booked_patients(date.to_date)
+      limit = number_of_booked_patients(date.to_date).to_i rescue 0
       if limit < clinic_appointment_limit                                  
         recommended_date = date
         break 

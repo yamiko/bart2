@@ -1,3 +1,4 @@
+=begin
 unless Rails.env.to_s == 'test'
   module ActiveRecord::ConnectionAdapters
     class Mysql2Adapter
@@ -17,3 +18,4 @@ unless Rails.env.to_s == 'test'
     end
   end
 end
+=end
