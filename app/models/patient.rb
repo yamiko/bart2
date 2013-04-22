@@ -155,7 +155,12 @@ def self.merge(patient_id, secondary_patient_id)
   ActiveRecord::Base.transaction do
     secondary_patient.patient_identifiers.each {|r|
       if patient.patient_identifiers.map(&:identifier).each{| i | i.upcase }.include?(r.identifier.upcase)
-        r.void("merged with patient #{patient_id}")
+        ActiveRecord::Base.connection.execute("
+          UPDATE patient_identifier SET voided = 1, date_voided=NOW(),voided_by=#{User.current.user_id},
+          void_reason = 'merged with patient #{patient_id}'
+          WHERE patient_id = #{secondary_patient_id}
+          AND identifier_type = #{r.identifier_type}
+          AND identifier = '#{r.identifier}'")
       else
         ActiveRecord::Base.connection.execute <<EOF
 UPDATE patient_identifier SET patient_id = #{patient_id}
@@ -163,46 +168,55 @@ WHERE patient_id = #{secondary_patient_id}
 AND identifier_type = #{r.identifier_type}
 AND identifier = "#{r.identifier}"
 EOF
-      end rescue r.void("merged with patient #{patient_id}")
+      end
     }
 
     secondary_patient.person.names.each {|r|
       if patient.person.names.map{|pn| "#{pn.given_name.upcase rescue ''} #{pn.family_name.upcase rescue ''}"}.include?("#{r.given_name.upcase rescue ''} #{r.family_name.upcase rescue ''}")
-        r.void("merged with patient #{patient_id}")
-      else
-        ActiveRecord::Base.connection.execute <<EOF
-UPDATE person_name SET person_id = #{patient_id}
-WHERE person_id = #{secondary_patient_id}
-AND person_name_id = #{r.person_name_id}
-EOF
-      end rescue r.void("merged with patient #{patient_id}")
+      ActiveRecord::Base.connection.execute("
+        UPDATE person_name SET voided = 1, date_voided=NOW(),voided_by=#{User.current.user_id},
+        void_reason = 'merged with patient #{patient_id}'
+        WHERE person_id = #{secondary_patient_id}
+        AND person_name_id = #{r.person_name_id}")
+      end
     }
 
     secondary_patient.person.addresses.each {|r|
       if patient.person.addresses.map{|pa| "#{pa.city_village.upcase rescue ''}"}.include?("#{r.city_village.upcase rescue ''}")
-        r.void("merged with patient #{patient_id}")
+      ActiveRecord::Base.connection.execute("
+        UPDATE person_address SET voided = 1, date_voided=NOW(),voided_by=#{User.current.user_id},
+        void_reason = 'merged with patient #{patient_id}'
+        WHERE person_id = #{secondary_patient_id}")
       else
         ActiveRecord::Base.connection.execute <<EOF
 UPDATE person_address SET person_id = #{patient_id}
 WHERE person_id = #{secondary_patient_id}
 AND person_address_id = #{r.person_address_id}
 EOF
-      end rescue r.void("merged with patient #{patient_id}")
+      end
     }
 
     secondary_patient.patient_programs.each {|r|
       if patient.patient_programs.map(&:program_id).include?(r.program_id)
-        r.void("merged with patient #{patient_id}")
+      ActiveRecord::Base.connection.execute("
+        UPDATE patient_program SET voided = 1, date_voided=NOW(),voided_by=#{User.current.user_id},
+        void_reason = 'merged with patient #{patient_id}'
+        WHERE patient_id = #{secondary_patient_id}
+        AND patient_program_id = #{r.patient_program_id}")
       else
         ActiveRecord::Base.connection.execute <<EOF
 UPDATE patient_program SET patient_id = #{patient_id}
 WHERE patient_id = #{secondary_patient_id}
-AND patient_program_id = #{r.person_name_id}
+AND patient_program_id = #{r.patient_program_id}
 EOF
-      end rescue r.void("merged with patient #{patient_id}")
+      end
     }
 
-    secondary_patient.void("merged with patient #{patient_id}")
+    ActiveRecord::Base.connection.execute("
+        UPDATE patient SET voided = 1, date_voided=NOW(),voided_by=#{User.current.user_id},
+        void_reason = 'merged with patient #{patient_id}'
+        WHERE patient_id = #{secondary_patient_id}")
+
     ActiveRecord::Base.connection.execute("UPDATE person_attribute SET person_id = #{patient_id} WHERE person_id = #{secondary_patient_id}")
     ActiveRecord::Base.connection.execute("UPDATE person_address SET person_id = #{patient_id} WHERE person_id = #{secondary_patient_id}")
     ActiveRecord::Base.connection.execute("UPDATE encounter SET patient_id = #{patient_id} WHERE patient_id = #{secondary_patient_id}")
