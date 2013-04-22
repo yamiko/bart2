@@ -214,7 +214,7 @@ class CohortToolController < GenericCohortToolController
 			elsif patientclass == "Relapse MDR-TB patient"
 				store = age.to_s+gender.to_s+"Pulrel"
 			else 
-				if (recc = "Yes")
+				if (recc == "Yes")
 					store = age.to_s+gender.to_s+"oth"
 				end
 			end
