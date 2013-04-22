@@ -336,7 +336,7 @@ module ApplicationHelper
   def require_viral_load_check(patient)
 
 		arv_start_date = PatientService.patient_art_start_date(patient).to_date rescue nil
-    second_line_art_start_date = PatientService.date_started_second_line_regimen(patient) rescue nil
+    second_line_art_start_date = PatientService.date_started_second_line_regimen(patient).to_date rescue nil
     return false if arv_start_date.blank?
     duration = PatientService.period_on_treatment(arv_start_date) rescue nil
     unless (second_line_art_start_date.blank? || second_line_art_start_date == "")
