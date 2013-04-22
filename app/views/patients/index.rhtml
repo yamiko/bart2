@@ -46,7 +46,7 @@
             	<% if !@art_start_date.blank?  %>
                 <span value="<%= "#{PatientService.period_on_treatment(@art_start_date)} month(s)" %>"> Period on ART </span>
             	<% end %>
-                <% if (!(@second_line_treatment_start_date.blank?) || (@second_line_treatment_start_date != ""))  %>
+                <% unless @second_line_treatment_start_date.blank? %>
                 <span value="<%= "#{PatientService.period_on_treatment(@second_line_treatment_start_date)} month(s)" %>"> Period on 2<sup>nd</sup>Line</span>
             	<% end %>
 				<% if !@tb_registration_date.blank? and @show_period == true %>
