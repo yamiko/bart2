@@ -1586,7 +1586,7 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
       value_text IN (#{regimen_indices}) AND enc.voided = 0
       order by enc.date_created ASC LIMIT 1").first.encounter_datetime rescue ""
     end
-    return encounter_datetime
+    return encounter_datetime.to_date rescue nil
   end
 
   def self.get_attribute(person, attribute)
