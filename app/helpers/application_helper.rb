@@ -338,9 +338,9 @@ module ApplicationHelper
 		arv_start_date = PatientService.patient_art_start_date(patient).to_date rescue nil
     second_line_art_start_date = PatientService.date_started_second_line_regimen(patient) rescue nil
     return false if arv_start_date.blank?
-    duration = PatientService.period_on_treatment(arv_start_date) rescue nil
+    duration = PatientService.period_on_treatment(arv_start_date).to_i rescue 0
     unless (second_line_art_start_date.blank? || second_line_art_start_date == "")
-      duration = PatientService.period_on_treatment(second_line_art_start_date) rescue nil
+      duration = PatientService.period_on_treatment(second_line_art_start_date).to_i rescue 0
     end
     if (second_line_art_start_date.blank? || second_line_art_start_date == "")
       if (duration >= 6)
@@ -351,7 +351,7 @@ module ApplicationHelper
           viral_loads = obs.map(&:obs_datetime)
           if (viral_loads.length == 1)
             viral_load_date = viral_loads.first.to_date
-            duration = PatientService.period_on_treatment(viral_load_date)
+            duration = PatientService.period_on_treatment(viral_load_date).to_i
             if (duration/24 >= 1)
               return true
             else
@@ -361,7 +361,7 @@ module ApplicationHelper
 
           if (viral_loads.length > 1)
             viral_load_date = viral_loads.last.to_date
-            duration = PatientService.period_on_treatment(viral_load_date)
+            duration = PatientService.period_on_treatment(viral_load_date).to_i
             if (duration/24 >= 1)
               return true
             else

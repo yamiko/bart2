@@ -768,13 +768,13 @@ class Cohort
 		end
 		# make sure that patients that do not have a TB Status observation,
     # are added to the unknown category  
-    other_unknowns = @patient_id_on_art_and_alive - (tb_status_hash['TB STATUS']['Not Suspected'] +
-                                    tb_status_hash['TB STATUS']['Suspected'] +
-                                    tb_status_hash['TB STATUS']['On Treatment'] +
-                                    tb_status_hash['TB STATUS']['Not on treatment'] +
-                                    tb_status_hash['TB STATUS']['Unknown'])
+   # other_unknowns = @patient_id_on_art_and_alive - (tb_status_hash['TB STATUS']['Not Suspected'] +
+     #                               tb_status_hash['TB STATUS']['Suspected'] +
+     #                               tb_status_hash['TB STATUS']['On Treatment'] +
+      #                              tb_status_hash['TB STATUS']['Not on treatment'] +
+      #                              tb_status_hash['TB STATUS']['Unknown'])
 
-    tb_status_hash['TB STATUS']['Unknown'] += other_unknowns
+   # tb_status_hash['TB STATUS']['Unknown'] += other_unknowns
 		tb_status_hash
 	end
 

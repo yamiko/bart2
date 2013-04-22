@@ -2018,7 +2018,7 @@ end
       patient_visits[visit_date].outcome = latest_state(patient_obj,visit_date)
       patient_visits[visit_date].date_of_outcome = visit_date
 
-			status = tb_status(patient_obj).upcase rescue nil
+			status = tb_status(patient_obj, visit_date).upcase rescue nil
 			patient_visits[visit_date].tb_status = status
 			patient_visits[visit_date].tb_status = 'noSup' if status == 'TB NOT SUSPECTED'
 			patient_visits[visit_date].tb_status = 'sup' if status == 'TB SUSPECTED'
@@ -2044,12 +2044,12 @@ end
     patient_visits
   end  
 
-	def tb_status(patient)
+	def tb_status(patient, visit_date)
 		state = Concept.find(Observation.find(:first,
         :order => "obs_datetime DESC,date_created DESC",
-        :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL",
+        :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL AND obs_datetime <= ",
           patient.id,
-          ConceptName.find_by_name("TB STATUS").concept_id]).value_coded).fullname rescue "UNKNOWN"
+          ConceptName.find_by_name("TB STATUS").concept_id, visit_date]).value_coded).fullname rescue "UNKNOWN"
 		programs = patient.patient_programs.all rescue []
 		programs.each do |prog|
 			if prog.program.name.upcase == "TB PROGRAM"
