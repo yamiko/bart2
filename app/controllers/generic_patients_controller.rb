@@ -2044,7 +2044,7 @@ end
     patient_visits
   end  
 
-	def tb_status(patient, visit_date)
+	def tb_status(patient, visit_date = Date.today)
 		state = Concept.find(Observation.find(:first,
         :order => "obs_datetime DESC,date_created DESC",
         :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL AND obs_datetime <= ",
