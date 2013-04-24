@@ -686,18 +686,18 @@ module PatientService
   	services = Observation.find(:all, :conditions => ["DATE(date_created) = ? AND concept_id = ?", Date.today.to_date, ConceptName.find_by_name("SERVICES").concept_id], :order => "obs_datetime desc")
   end
 
-  def self.patient_national_id_label(patient,copies = 2)
+  def self.patient_national_id_label(patient)
 	  patient_bean = get_patient(patient.person)
     return unless patient_bean.national_id
     sex =  patient_bean.sex.match(/F/i) ? "(F)" : "(M)"
-    address = ""
-    if !patient_bean.state_province.blank? and !patient_bean.current_residence.blank?
-      address = patient_bean.state_province + ", " + patient_bean.current_residence
-    elsif !patient_bean.state_province.blank? and patient_bean.current_residence.blank?
-      address = patient_bean.state_province
-    elsif patient_bean.state_province.blank? and !patient_bean.current_residence.blank?
-      address = patient_bean.current_residence
+
+    address = patient_bean.current_district rescue ""
+    if address.blank?
+      address = patient_bean.current_residence rescue ""
+    else
+      address += ", " + patient_bean.current_residence unless patient_bean.current_residence.blank?
     end
+    
     label = ZebraPrinter::StandardLabel.new
     label.font_size = 2
     label.font_horizontal_multiplier = 2
@@ -707,7 +707,7 @@ module PatientService
     label.draw_multi_text("#{patient_bean.name.titleize}")
     label.draw_multi_text("#{patient_bean.national_id_with_dashes} #{patient_bean.birth_date}#{sex}")
     label.draw_multi_text("#{address}" ) unless address.blank?
-    label.print(copies)
+    label.print(1)
   end
 
   def self.recent_sputum_submissions(patient_id)
