@@ -395,4 +395,70 @@ module ApplicationHelper
     end
 	end
 
+
+  def new_viral_load_check(patient)
+
+		arv_start_date = PatientService.patient_art_start_date(patient).to_date rescue nil
+    return false if arv_start_date.blank?
+    period_on_art_in_months = PatientService.period_on_treatment(arv_start_date).to_i rescue 0
+    second_line_art_start_date = PatientService.date_started_second_line_regimen(patient).to_date rescue nil
+    return false unless second_line_art_start_date.blank?
+    today = Date.today
+
+    milestones = {
+                  6 => (6..7), 24 => (24..26), 48 => (48..50),
+                  72 => (72..74), 96 => (96..98), 120 => (120..122),
+                  144 => (144..146), 168 => (168..170), 192 => (192..194),
+                  216 => (216..218), 240 => (240..242), 260 => (260..262)
+                 }
+
+    viral_loads = Observation.find(:all, :conditions => ["person_id = ? and concept_id = ?",
+            patient.patient_id, Concept.find_by_name("Viral load").concept_id])
+
+    latest_viral_load = viral_loads.last.obs_datetime.to_date rescue nil
+
+    @identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+		identifier_types = PatientIdentifierType.find(:all,:conditions=>["name IN (?)",@identifier_types]).collect{| type |type.id }
+
+		patient_identifiers = PatientIdentifier.find(:all, :conditions=>["patient_id=? AND identifier_type IN (?)",
+        patient.id,identifier_types]).collect{| i | i.identifier }
+		
+    results = Lab.latest_result_by_test_type(patient, 'HIV_viral_load', patient_identifiers) rescue nil
+    latest_viral_results_date = results[0].sub("::HIV_RNA_PCR",'').to_date rescue nil
+    return false if latest_viral_results_date.blank?
+    
+      milestones.each do |key, value|
+
+        if (period_on_art_in_months >= key)
+          range = value.to_a
+          grace_period = range.last - range.first
+          mile_stone_date = arv_start_date + key.months
+          mile_stone_grace_period = mile_stone_date + grace_period.months
+
+          if (today >= mile_stone_date && today <=  mile_stone_grace_period)
+
+            if (latest_viral_results_date >= mile_stone_date && latest_viral_results_date <= mile_stone_grace_period)
+               if latest_viral_load.blank?
+                 return true
+               end
+               if (latest_viral_load >= mile_stone_date && latest_viral_load <= mile_stone_grace_period)
+                 return false
+               else
+                 return true
+               end
+            else
+              return false
+            end
+          else
+            return false
+          end
+
+        else
+          return false
+        end
+
+      end
+   
+	end
+  
 end
