@@ -460,38 +460,35 @@ module ApplicationHelper
       end
    
 	end
-  ###########################################################################################################################
-  ###########################################################################################################################
-
+  
   def modified_viral_load_check(patient)
 
 		arv_start_date = PatientService.patient_art_start_date(patient).to_date rescue nil
     return false if arv_start_date.blank?
     period_on_art_in_months = PatientService.period_on_treatment(arv_start_date).to_i rescue 0
+    return false if (period_on_art_in_months < 6)
     second_line_art_start_date = PatientService.date_started_second_line_regimen(patient).to_date rescue nil
     return false unless second_line_art_start_date.blank?
     today = Date.today
 
     milestones = {
-                  6 => (6..7), 24 => (24..26), 48 => (48..50),
-                  72 => (72..74), 96 => (96..98), 120 => (120..122),
-                  144 => (144..146), 168 => (168..170), 192 => (192..194),
-                  216 => (216..218), 240 => (240..242), 260 => (260..262)
+                  6 => [6,8], 24 => [24,27], 48 => [48,51],
+                  72 => [72,75], 96 => [96,99], 120 => [120,123],
+                  144 => [144,147], 168 => [168,171], 192 => [192,195],
+                  216 => [216,219], 240 => [240,243], 260 => [260,263]
                  }
 
     viral_loads = Observation.find(:all, :conditions => ["person_id = ? and concept_id = ?",
             patient.patient_id, Concept.find_by_name("Viral load").concept_id])
 
     latest_viral_load = viral_loads.last.obs_datetime.to_date rescue nil
-
+    milestone_exceeded = true
       milestones.each do |key, value|
-
-        if (period_on_art_in_months >= key)
-          range = value.to_a
-          grace_period = range.last - range.first
+          grace_period = value.last - value.first
           mile_stone_date = arv_start_date + key.months
           mile_stone_grace_period = mile_stone_date + grace_period.months
-
+         if (period_on_art_in_months >= key && period_on_art_in_months <= value.last)
+           milestone_exceeded = false
           if (today >= mile_stone_date && today <=  mile_stone_grace_period)
             return true if latest_viral_load.blank?
              if (latest_viral_load >= mile_stone_date && latest_viral_load <= mile_stone_grace_period)
@@ -502,14 +499,9 @@ module ApplicationHelper
           else
             return false
           end
-
-        else
-          return false
         end
       end
-
+      return false if milestone_exceeded
 	end
 
-  ###########################################################################################################################
-  ###########################################################################################################################
 end
