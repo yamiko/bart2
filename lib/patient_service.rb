@@ -1445,7 +1445,7 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
   end
 
   def self.search_by_identifier(identifier)
-    #identifier = identifier.gsub("-","").strip
+    identifier = identifier.gsub("-","").strip
     people = PatientIdentifier.find_all_by_identifier(identifier).map{|id|
       id.patient.person
     } unless identifier.blank? rescue nil
@@ -1461,7 +1461,8 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
       return [] if p.blank?
       return "found duplicate identifiers" if p.count > 1
       p = p.first
-      passed_national_id = (p["person"]["patient"]["identifiers"]["National id"])rescue nil
+      passed_national_id = (p["person"]["patient"]["identifiers"]["National id"]) rescue nil
+      passed_national_id = (p["person"]["value"]) if passed_national_id.blank? rescue nil
       if passed_national_id.blank?
        return [DDEService.get_remote_person(p["person"]["id"])]
       end

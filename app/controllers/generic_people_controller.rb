@@ -101,6 +101,7 @@ class GenericPeopleController < ApplicationController
     found_person = nil
     if params[:identifier]
       local_results = PatientService.search_by_identifier(params[:identifier])
+       
       if local_results.length > 1
         redirect_to :action => 'duplicates' ,:search_params => params
         return
@@ -110,7 +111,7 @@ class GenericPeopleController < ApplicationController
           dde_server_username = GlobalProperty.find_by_property("dde_server_username").property_value rescue ""
           dde_server_password = GlobalProperty.find_by_property("dde_server_password").property_value rescue ""
           uri = "http://#{dde_server_username}:#{dde_server_password}@#{dde_server}/people/find.json"
-          uri += "?value=#{params[:identifier]}"
+          uri += "?value=#{params[:identifier].to_s.strip}"
           output = RestClient.get(uri)
           p = JSON.parse(output)
           if p.count > 1
@@ -128,7 +129,7 @@ class GenericPeopleController < ApplicationController
         end
       end
       if found_person
-        if params[:identifier].length != 6 and create_from_dde_server
+        if params[:identifier].to_s.strip.length != 6 and create_from_dde_server
           patient = DDEService::Patient.new(found_person.patient)
           national_id_replaced = patient.check_old_national_id(params[:identifier])
           if national_id_replaced.to_s != "true" and national_id_replaced.to_s !="false"
