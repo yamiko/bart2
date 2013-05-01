@@ -903,15 +903,15 @@ class CohortToolController < GenericCohortToolController
 		if params[:field] == "patients_with_7+_doses_missed_at_their_last_visit" 
 			#raise session[:cohort]["#{params[:field].humanize}"].to_yaml
 			data = []
-			session[:cohort]["#{params[:field].humanize}"].map do |patient_id|
-				data << patient_id.patient_id || patient_id.person_id
+			session[:cohort]["#{params[:field].humanize}"].each do |patient_id|
+				data << patient_id
 			end
 			session[:cohort]["sorted"]["#{params[:field].humanize}"] = true
 
 		elsif params[:field] == "patients_with_0_-_6_doses_missed_at_their_last_visit"
 			data = []
-			session[:cohort]["#{params[:field].humanize}"].map do |patient_id|
-				data <<  patient_id.person_id
+			session[:cohort]["#{params[:field].humanize}"].each do |patient_id|
+				data <<  patient_id
 			end
 			session[:cohort]["sorted"]["#{params[:field].humanize}"] = true
 		elsif params[:field] == "total_patients_with_side_effects"
