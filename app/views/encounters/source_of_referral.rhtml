@@ -317,7 +317,8 @@ end -%>
   <%= select_tag "$('lab_orders').value", options_for_select(@sputum_results),
       {:id => "first_results",
       :helpText => "Result",
-	  :tt_onUnLoad => "createHTML()" } %>
+	  :tt_onUnLoad => "createHTML()",
+	  :condition => '$("sputum_result").value.toLowerCase() == "yes"'} %>
 
   <%= touch_select_tag "TESTS ORDERED", @patient, options_for_select([]),
 		{	:id => "lab_orders2",
@@ -329,7 +330,8 @@ end -%>
     <%= select_tag "$('lab_orders2').value", options_for_select(@sputum_results),
       {	:id => "second_results",
 		:helpText => "Result",
-		:tt_onUnLoad => "createSecondHTML()" } %>
+		:tt_onUnLoad => "createSecondHTML()",
+		:condition => '$("sputum_result").value.toLowerCase() == "yes"'} %>
   
   	<%#= touch_select_tag "TESTS ORDERED", @patient, options_for_select([]),
 		{	:id => "lab_orders",
