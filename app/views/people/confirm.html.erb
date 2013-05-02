@@ -130,6 +130,10 @@
 					<% if (@patient_bean.pre_art_number rescue nil) != nil && (@patient_bean.pre_art_number) != " " %>
 						<span value="<%= @patient_bean.pre_art_number rescue "" %>">Pre-ART Number</span>
 					<% end %>
+                                        <% unless @art_start_date.blank? %>
+                                                <span value="<%= @art_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date</span>
+                                                <span value="<%= @duration_in_months.to_s + ' Months'  rescue "" %>">Duration on ART</span>
+                                        <% end %>
 				<% end %>
 			</div>
 
@@ -151,6 +155,16 @@
 		<div id="popup" style="display:none">
             
             <div class="art_container">
+                    <div class="header" style="position: absolute; left: 150px">
+                      <div id="viral_header">
+                        <u>Routine Viral Load Screening Due</u><br />
+                        <u>Assess Adherence:</u> <br />
+                      </div>
+                         <div id="more_details" style="font-size: 16pt; font-weight:bold; ">
+                           If good then request VL today <br />
+                           If poor then defer VL for three months after intensive adherence support
+                         </div>
+                    </div>
 		        <table  border=0.5 style = "border-radius:10px;">
 		        	<tr>
 		        		<td><span>ART start date</span></td>
@@ -160,8 +174,17 @@
 		        	<tr>
 		        		<td><span>Duration on ART (Months)</span></td>
 		        		<td style='text-align:left'><span><%= @duration_in_months %></span></td>
-		        	</tr>    
+		        	</tr>
 		        	<tr><td colspan =2><hr/></td></tr>
+
+                              <% unless @second_line_treatment_start_date.blank? %>
+                                  <tr>
+                                    <td><span>Duration on 2<sup>nd</sup>Line ART (Months)</span></td>
+                                          <td style='text-align:left'><span><%= @second_line_duration_in_months %></span></td>
+                                  </tr>
+                                  <tr><td colspan =2><hr/></td></tr>
+                                <% end  %>
+                                  
 		        	<% unless @results.blank?%>
 		        	<tr>
 		        		<td><span>Latest viral load (<%= @latest_date.strftime("%A, %d %B %Y")%>)</span></td>
@@ -184,9 +207,9 @@
             </div>
            
 			<hr class="popup_hr"></hr>
-            <a id='viral_load_done' onclick = "viral_done();" ><span>Viral load done</span></a>
-			<a id='lab_trail' onclick="window.location='/lab/results/<%=@person.id%>'"><span>View Lab Trail</span></a>
-			<a id='reminder' onclick="removePopup();"><span>Remind me later</span></a>
+            <a id='viral_load_done' onclick = "viral_done();" ><span>VL Requested Today</span></a>
+			<!--<a id='lab_trail' onclick="window.location='/lab/results/<%=@person.id%>'"><span>View Lab Trail</span></a>-->
+			<a id='reminder' onclick="removePopup();"><span>VL Not Requested Today</span></a>
 		</div>
 
 		<div id="cover">
@@ -234,7 +257,7 @@
 			left: 7px;
 			line-height: 35px;
 			position: absolute;
-			top: 20px;
+			top: 152px;
 			width: 941px;
 			border: 1px solid black;
 		}
@@ -316,7 +339,7 @@
 			  text-decoration: none;
 			  cursor: pointer;
 			  bottom: 0px;
-			  left: 671px;
+			  left: 572px;
 			  font-weight: bold;
 			  font-size: 18pt;
   			}
@@ -330,8 +353,17 @@
 		
 		} 
 		  
-		  
-		  
+                #viral_header{
+                  font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+                  font-weight: bold;
+                  font-size: 18pt;
+                  color: #1874CD;
+                 }
+
+                 #more_details{
+                  font-family: Georgia, Times, "Times New Roman", serif;
+                
+                  }
 		</style>
 	</body>
 </html>
