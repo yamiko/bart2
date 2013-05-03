@@ -26,7 +26,8 @@ class GenericPatientsController < ApplicationController
 		end
 		#@tb_status = PatientService.patient_tb_status(@patient)
 		#raise @tb_status.downcase.to_yaml
-		@art_start_date = definitive_state_date(@patient, "ON ARV")
+    @art_start_date = PatientService.patient_art_start_date(@patient)
+		@art_start_date = definitive_state_date(@patient, "ON ARV") if @art_start_date.blank?
     @second_line_treatment_start_date = PatientService.date_started_second_line_regimen(@patient)
 		@date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
 
