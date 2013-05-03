@@ -478,10 +478,17 @@ module ApplicationHelper
                   216 => [216,219], 240 => [240,243], 260 => [260,263]
                  }
 
-    viral_loads = Observation.find(:all, :conditions => ["person_id = ? and concept_id = ?",
-            patient.patient_id, Concept.find_by_name("Viral load").concept_id])
+    identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_types = PatientIdentifierType.find(:all,
+      :conditions=>["name IN (?)",identifier_types]).collect{| type |type.id }
+                                                                                
+    patient_identifiers = PatientIdentifier.find(:all, 
+      :conditions=>["patient_id=? AND identifier_type IN (?)",
+      patient.id,identifier_types]).collect{| i | i.identifier }              
+                                                                                
+    results = Lab.latest_result_by_test_type(patient, 'HIV_viral_load', patient_identifiers) rescue nil
+    latest_viral_results_date = results[0].split('::')[0].to_date rescue nil
 
-    latest_viral_load = viral_loads.last.obs_datetime.to_date rescue nil
     milestone_exceeded = true
       milestones.each do |key, value|
           grace_period = value.last - value.first
@@ -490,8 +497,8 @@ module ApplicationHelper
          if (period_on_art_in_months >= key && period_on_art_in_months <= value.last)
            milestone_exceeded = false
           if (today >= mile_stone_date && today <=  mile_stone_grace_period)
-            return true if latest_viral_load.blank?
-             if (latest_viral_load >= mile_stone_date && latest_viral_load <= mile_stone_grace_period)
+            return true if latest_viral_results_date.blank?
+             if (latest_viral_results_date >= mile_stone_date && latest_viral_results_date <= mile_stone_grace_period)
                return false
              else
                return true
