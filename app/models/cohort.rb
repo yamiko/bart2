@@ -731,18 +731,17 @@ class Cohort
 		
 		joined_array = @patient_id_on_art_and_alive.join(',')
 		PatientState.find_by_sql(
-			"SELECT e.patient_id, o.value_coded
-											FROM earliest_start_date e
-											INNER JOIN encounter en ON en.patient_id = e.patient_id
-											INNER JOIN obs o ON o.person_id = e.patient_id
-											WHERE earliest_start_date <= '#{@end_date}'
-											AND en.encounter_type = #{hiv_clinic_consultation_encounter_id}
+			"SELECT o.person_id, o.value_coded
+											FROM obs o
+											INNER JOIN encounter en ON en.patient_id = o.person_id
+											WHERE en.encounter_type = #{hiv_clinic_consultation_encounter_id}
 											AND o.concept_id = #{tb_status_concept_id}
-											AND e.patient_id IN (#{joined_array})
+											AND o.obs_datetime <= '#{@end_date}'
+											AND o.person_id IN (#{joined_array})
 											ORDER BY en.encounter_datetime DESC").each do |state|
 			states[state.patient_id] = state.value_coded
 		end
-		
+			
 		tb_not_suspected_id = ConceptName.find_by_name('TB NOT SUSPECTED').concept_id
 		tb_suspected_id = ConceptName.find_by_name('TB SUSPECTED').concept_id
 		tb_confirmed_on_treatment_id = ConceptName.find_by_name('CONFIRMED TB ON TREATMENT').concept_id
