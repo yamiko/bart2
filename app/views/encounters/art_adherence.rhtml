@@ -1,7 +1,20 @@
 <%= javascript_include_tag "dateformat" %>
+<% reason_for_lower_adherence = ['Run out of drugs','Sharing of drugs','Overdose','Pills misplaced','Other'] %>
 
 <style>
-	.summary div {
+    #cover {
+	position: absolute;
+	background-color: black;
+	width: 100%;
+	height: 102%;
+	left: 0%;
+	top: 0%;
+	z-index: 500;
+	opacity: 0.5;
+	align: center;
+	display:none;
+  }
+  .summary div {
 	padding-left:25px;
 	font-size:22px;
 	}
@@ -85,7 +98,9 @@
   }
 
 </script>
-
+<body>
+  <div id="cover">
+  </div>
 <form id='art_adherence' action="/encounters/create" method='post'>
 	<%= hidden_field_tag "encounter[encounter_type_name]", "ART ADHERENCE" %>
 	<%= hidden_field_tag "encounter[patient_id]", @patient.id %>
@@ -170,10 +185,13 @@
     <%= text_field_tag :summary, nil,
       { :tt_onLoad => "adherenceReport();setAttributes();__$('keyboard').style.display = 'none'",
         :optional => "true",
+		:tt_onUnLoad => "checkAdherence()",
         :tt_pageStyleClass => "NoControls" } %>
-
+  <%=  select_tag "reason_for_lower_adherence", options_for_select(reason_for_lower_adherence),{
+	:id => "reason_for_lower_adherence",
+	:helpText  => "Reason for lower adherence", :tt_onLoad => ""} %>
 	<script>
-		
+		var abnormalAdherence;
 		function adherenceReport(){
 		  var i = 0;
       var amount_remaining = 0;
@@ -182,7 +200,7 @@
        var summary = "<div class='summary' style='height:670px'>";
 		   var amount_brought = 0;
 		   var amount_others = 0;
-
+		   abnormalAdherence = ""
 		   //for (var i=0; i <  drug_names.length; i++){
        for(i in drug_names){
           if ($("amount_brought_" + i).value == "Unknown"){
@@ -256,7 +274,10 @@
 			    document.getElementById("doses_missed_" + i).value = doses_missed;
 
 			    summary += "<div class='value'><span>Percentage of doses taken:&nbsp;</span><span class='value'>"+ adherence +"%</span></div>"
-			    if (adherence < 95 || adherence > 105) summary += "<div class='" + warning + "'><span style='color:red' class='recommendation'>Patient needs counseling</span></div><br /><br />"
+			    if (adherence < 95 || adherence > 105){
+				  summary += "<div class='" + warning + "'><span style='color:red' class='recommendation'>Patient needs counseling</span></div><br /><br />"
+				  abnormalAdherence = "YES"
+				}
 			    
 		    }
         summary += "</div>"
@@ -264,7 +285,9 @@
       $('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + summary + '</div>' ;    
       $("clearButton").style.display = 'none';
 		}
-
+		function checkAdherence(){
+		 $("#cover").style.display = "block";
+		}
 		function since(date) {
 			var today = dateCreate('<%=session_date.to_date%>');
 			return (today - date) / (1000 * 60 * 60 * 24);
@@ -337,3 +360,4 @@
     <%end%>
 
 </form>
+</body>
