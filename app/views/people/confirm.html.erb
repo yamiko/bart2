@@ -45,7 +45,8 @@
 
 			function changeAttributes(){
 				document.getElementById("btnNext").innerHTML = "<span>Continue</span>" 
-				<% if improved_viral_load_check(@person.patient) == true && show_lab_results &&
+				<% if improved_viral_load_check(@person.patient) == true &&
+                                    (@task.encounter_type.upcase == "HIV CLINIC CONSULTATION" || @task.encounter_type.upcase == "HIV STAGING") &&  show_lab_results &&
 	 	(current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
 					document.getElementById("btnNext").setAttribute("onclick","showPopup();")
 				<% end %>
@@ -155,17 +156,10 @@
 			<input type='submit' value='Finish' />
 		</form>
 		
-	<% if improved_viral_load_check(@person.patient) == true && show_lab_results &&
+	<% if improved_viral_load_check(@person.patient) == true && 
+            (@task.encounter_type.upcase == "HIV CLINIC CONSULTATION" || @task.encounter_type.upcase == "HIV STAGING") &&
+            show_lab_results &&
 	 	(current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
-
-          <%
-
-
-
-
-
-
-          %>
 
           <div id="popup" style="display:none">
             
