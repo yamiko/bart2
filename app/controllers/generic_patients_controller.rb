@@ -26,7 +26,8 @@ class GenericPatientsController < ApplicationController
 		end
 		#@tb_status = PatientService.patient_tb_status(@patient)
 		#raise @tb_status.downcase.to_yaml
-		@art_start_date = definitive_state_date(@patient, "ON ARV")
+    @art_start_date = PatientService.patient_art_start_date(@patient)
+		@art_start_date = definitive_state_date(@patient, "ON ARV") if @art_start_date.blank?
     @second_line_treatment_start_date = PatientService.date_started_second_line_regimen(@patient)
 		@date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
 
@@ -3267,13 +3268,13 @@ end
     render :text => "true" and return
   end
  
-	def viral_load_test_done()
+	def viral_load_request()
 	
 		patient_id = params[:patient_id]
-	
+    requested_today = params[:requested_today]
 		enc = Encounter.new()
 		
-		enc.encounter_type = EncounterType.find_by_name("PROCEDURES DONE").id
+		enc.encounter_type = EncounterType.find_by_name("REQUEST").id
 		enc.patient_id = 		patient_id
 		enc.creator = current_user.id
 		enc.location_id = Location.current_location
@@ -3284,7 +3285,11 @@ end
 		obs.person_id = patient_id
 		obs.creator = current_user.id
 		obs.location_id = Location.current_location
-		obs.value_coded = Concept.find_by_name("Yes").concept_id
+    unless (requested_today.blank?)
+      obs.value_coded = Concept.find_by_name("Yes").concept_id
+    else
+      obs.value_coded = Concept.find_by_name("No").concept_id
+    end
 		obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
 		obs.encounter_id = enc.id
 		obs.obs_datetime = Time.now

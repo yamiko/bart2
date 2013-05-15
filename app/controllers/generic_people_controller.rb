@@ -243,10 +243,12 @@ class GenericPeopleController < ApplicationController
 		@patient_bean = PatientService.get_patient(@person)  
 		
 		
-		@art_start_date = PatientService.date_antiretrovirals_started(@person.patient) 
+		@art_start_date = PatientService.date_antiretrovirals_started(@person.patient)
+    @second_line_treatment_start_date = PatientService.date_started_second_line_regimen(@person.patient) rescue nil
+    @duration_in_months = PatientService.period_on_treatment(@art_start_date) rescue nil
 		#@duration_in_months = ((Time.now.to_date - @art_start_date.to_date).to_i/28) unless @art_start_date.blank?
     patient = @person.patient
-		@duration_in_months = PatientService.period_on_treatment(@art_start_date) rescue nil
+		@second_line_duration_in_months = PatientService.period_on_treatment(@second_line_treatment_start_date) rescue nil
     @identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
 			identifier_types = PatientIdentifierType.find(:all,                         
 			  :conditions=>["name IN (?)",@identifier_types]                              
@@ -257,7 +259,7 @@ class GenericPeopleController < ApplicationController
 			patient.id,identifier_types]).collect{| i | i.identifier }
 			if show_lab_results
         @results = Lab.latest_result_by_test_type(@person.patient, 'HIV_viral_load', @patient_identifiers) rescue nil
-        @latest_date = @results[0].sub("::HIV_RNA_PCR",'').to_date rescue nil
+        @latest_date = @results[0].split('::')[0].to_date rescue nil
         @latest_result = @results[1]["TestValue"] rescue nil
         @modifier = @results[1]["Range"] rescue nil
       end
