@@ -1100,6 +1100,11 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	  :allowFreeText => 'false',
 	  :condition => "prescribeAntiretroviralDrugs() && $('prescribe_arvs').value != 'YES'",
 	  :helpText => "Prescribe IPT" } %>
+
+    <%= select_tag :ipt_mgs, options_for_select([["300","300"],["100", "100"]]), {
+	  :allowFreeText => 'false',
+	  :condition => "prescribeAntiretroviralDrugs() && $('ipt_given').value == 'YES'",
+	  :helpText => "IPT grams" } %>
   <%else%>
 	<%= touch_hidden_tag "ISONIAZID", @patient, "", :id => "ipt_given" %>
   <%end%>
