@@ -96,14 +96,24 @@ class GenericLabController < ApplicationController
   end
   
   def id_identifiers(patient)
-    identifier_type = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_type = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
     identifier_types = PatientIdentifierType.find(:all,
       :conditions=>["name IN (?)",identifier_type]
     ).collect{| type |type.id }
     
+    identifiers = []
     PatientIdentifier.find(:all,
       :conditions=>["patient_id=? AND identifier_type IN (?)",
-        patient.id,identifier_types]).collect{| i | i.identifier }
+        patient.id,identifier_types]).each{| i | identifiers << i.identifier }
+
+    patient_obj = PatientService.get_patient(patient.person)
+
+    ActiveRecord::Base.connection.select_all("SELECT * FROM patient_identifier 
+      WHERE identifier_type IN(#{identifier_types.join(',')}) 
+      AND voided = 1 AND patient_id = #{patient.id} 
+      AND void_reason LIKE '%Given new national ID: #{patient_obj.national_id}%'").collect{|r| identifiers << r['identifier']}
+
+    return identifiers
   end
   
   def new
