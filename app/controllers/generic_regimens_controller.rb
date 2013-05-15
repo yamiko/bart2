@@ -554,7 +554,7 @@ class GenericRegimensController < ApplicationController
 					auto_cpt_ipt_expire_date = session[:datetime] + params[:cpt_duration].to_i.days rescue Time.now + params[:cpt_duration].to_i.days
 			end
 					orders.each do |order|
-						drug = Drug.find(order.drug_inventory_id) if params[:ipt_mgs].to_i != 300
+						drug = Drug.find(order.drug_inventory_id) if concept_name != 'CPT STARTED'
 						regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept_names.typed("FULLY_SPECIFIED").first).name
 						DrugOrder.write_order(
 						encounter,
