@@ -27,6 +27,7 @@
 </style>
 
 <script>
+ 
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
   var consultation_tb_status = '<%= @consultation_tb_status %>'
 	
@@ -135,6 +136,14 @@
   }
 
   function checkTbHivStatus(){
+	  var i
+	  select = document.getElementById('tb_status')
+	  for (i = select.length - 1; i>=0; i--) {
+		  if (select.options[i].value == "Unknown") {
+			select.remove(i);
+		  }
+		}
+	  
 	  options = document.getElementsByTagName('li');
 				  for (i = 0 ; i < options.length ; i++) {
 				   if ((options[i].getAttribute('tstvalue') == consultation_tb_status) && (consultation_tb_status.toLowerCase() != 'unknown')) {
@@ -251,7 +260,7 @@
  <% end %>
 
   <%  if @tb_programs_state.nil? %>
-	<%= touch_hidden_tag "TB STATUS", @patient, @consultation_tb_status, {:id => "tb_status", :value_datetime => true}%>
+	<%#= touch_hidden_tag "TB STATUS", @patient, @consultation_tb_status, {:id => "tb_status", :value_datetime => true}%>
     <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
       {:id => 'tb_status',
         :multiple => false,
