@@ -365,7 +365,7 @@ class GenericPeopleController < ApplicationController
 	end
 
  def create 
-    
+  
    hiv_session = false
    if current_program_location == "HIV program"
      hiv_session = true
@@ -539,7 +539,7 @@ class GenericPeopleController < ApplicationController
 
     villages = Village.find(:all,:conditions => village_conditions, :order => 'name')
     villages = villages.map do |v|
-      '<li value=' + v.name + '>' + v.name + '</li>'
+      "<li value='" + v.name + "'>" + v.name + "</li>"
     end
     render :text => villages.join('') + "<li value='Other'>Other</li>" and return
   end
