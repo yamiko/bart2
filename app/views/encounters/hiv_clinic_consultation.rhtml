@@ -261,7 +261,7 @@
 
   <%  if @tb_programs_state.nil? %>
 	<%#= touch_hidden_tag "TB STATUS", @patient, @consultation_tb_status, {:id => "tb_status", :value_datetime => true}%>
-    <%= touch_select_tag "TB STATUS", @patient, concept_set_options('TB STATUS'),
+    <%= touch_select_tag "TB STATUS", @patient, concept_set_options_unknown('TB STATUS'),
       {:id => 'tb_status',
         :multiple => false,
        :helpText => "TB Status",

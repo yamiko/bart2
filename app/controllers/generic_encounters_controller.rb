@@ -501,7 +501,7 @@ class GenericEncountersController < ApplicationController
 
     # Go to the next task in the workflow (or dashboard)
     # only redirect to next task if location parameter has not been provided
-
+		
     if params[:location].blank?
 			#find a way of printing the lab_orders labels
 			if params['encounter']['encounter_type_name'].upcase == 'GIVE LAB RESULTS'
