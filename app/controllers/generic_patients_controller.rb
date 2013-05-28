@@ -1894,10 +1894,10 @@ end
 		gave_hash = Hash.new(0)
 		observations.map do |obs|
 			drug = Drug.find(obs.order.drug_order.drug_inventory_id) rescue nil
-			if !drug.blank?
-				tb_medical = MedicationService.tb_medication(drug)
-				next if tb_medical == true
-			end
+			#if !drug.blank?
+				#tb_medical = MedicationService.tb_medication(drug)
+				#next if tb_medical == true
+			#end
 			encounter_name = obs.encounter.name rescue []
 			next if encounter_name.blank?
 			next if encounter_name.match(/REGISTRATION/i)
@@ -1932,8 +1932,8 @@ end
 			elsif concept_name.upcase == 'AMOUNT DISPENSED'
 
 				drug = Drug.find(obs.value_drug) rescue nil
-				tb_medical = MedicationService.tb_medication(drug)
-				next if tb_medical == true
+				#tb_medical = MedicationService.tb_medication(drug)
+				#next if tb_medical == true
 				next if drug.blank?
 				drug_name = drug.concept.shortname rescue drug.name
 				if drug_name.match(/Cotrimoxazole/i) || drug_name.match(/CPT/i)
@@ -1952,12 +1952,12 @@ end
 						patient_visits[visit_date].gave << [drug_given_name,quantity_given]
 					end
 				end
-				if !drug.blank?
-					tb_medical = MedicationService.tb_medication(drug)
+				#if !drug.blank?
+				#	tb_medical = MedicationService.tb_medication(drug)
 					#patient_visits[visit_date].ipt = [] if patient_visits[visit_date].ipt.blank?
 					#patient_visits[visit_date].tb_status = "tb medical" if tb_medical == true
 					#raise patient_visits[visit_date].tb_status.to_yaml
-				end
+				#end
 
 			elsif concept_name.upcase == 'ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT'
 				patient_visits[visit_date].reg = 'Unknown' if obs.value_coded == ConceptName.find_by_name("Unknown antiretroviral drug").concept_id
@@ -1971,8 +1971,8 @@ end
             
 			elsif concept_name.upcase == 'AMOUNT OF DRUG BROUGHT TO CLINIC'
 				drug = Drug.find(obs.order.drug_order.drug_inventory_id) rescue nil
-				tb_medical = MedicationService.tb_medication(drug) unless drug.nil?
-				next if tb_medical == true
+				#tb_medical = MedicationService.tb_medication(drug) unless drug.nil?
+				#next if tb_medical == true
 				next if drug.blank?
 				drug_name = drug.concept.shortname rescue drug.name
 				patient_visits[visit_date].pills = [] if patient_visits[visit_date].pills.blank?
@@ -1980,8 +1980,8 @@ end
             
 			elsif concept_name.upcase == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'
 				drug = Drug.find(obs.order.drug_order.drug_inventory_id) rescue nil
-				tb_medical = MedicationService.tb_medication(drug) unless drug.nil?
-				next if tb_medical == true
+				#tb_medical = MedicationService.tb_medication(drug) unless drug.nil?
+				#next if tb_medical == true
 				next if obs.value_numeric.blank?
 				patient_visits[visit_date].adherence = [] if patient_visits[visit_date].adherence.blank?
 				patient_visits[visit_date].adherence << [Drug.find(obs.order.drug_order.drug_inventory_id).name,(obs.value_numeric.to_s + '%')]
@@ -2065,7 +2065,7 @@ end
 												WHERE patient_program_id = #{patient_program_id}
 												AND voided = 0
 												AND start_date <= '#{visit_date}'
-												ORDER BY start_date DESC LIMIT 1").first.state  rescue state
+												ORDER BY start_date DESC").last.state  rescue state
 				state = ProgramWorkflowState.find_state(state).concept.fullname rescue state
 		end
 
