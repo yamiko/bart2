@@ -19,6 +19,9 @@ BEGIN
 
   DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE; 
 
+	SET @encounter_type_id = (SELECT encounter_type_id FROM encounter_type WHERE name = "ART ADHERENCE" LIMIT 1);
+
+
   OPEN records;
   read_loop: LOOP
   FETCH records into record_patient_id,record_drug_id,record_visit_date;
@@ -26,7 +29,18 @@ BEGIN
     IF done THEN
       LEAVE read_loop;
     END IF;
-    INSERT INTO ad_test (`adherence`) VALUES(adherence_cal(record_patient_id,record_drug_id,record_visit_date));
+    
+/*    
+    INSERT INTO encounter ( patient_id, provider_id, encounter_type,location_id, encounter_datetime, creator, voided, voided_by, date_voided, void_reason, uuid)
+        VALUES ( record_patient_id, 1, @encounter_type_id, @location_id, date_created, @creator, voided, @voided_by, date_voided, void_reason,(SELECT UUID())) ON DUPLICATE KEY UPDATE encounter_id = old_enc_id;
+
+    # Get the latest encounter created
+    SET @encounter_id = (SELECT LAST_INSERT_ID());
+          
+    
+		SET @adherence = adherence_cal(record_patient_id,record_drug_id,record_visit_date));
+*/		
+		
   END LOOP;
   CLOSE records;
   RETURN "done";
