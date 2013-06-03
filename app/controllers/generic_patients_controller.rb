@@ -2017,7 +2017,7 @@ end
 
     patient_visits.each do |visit_date,data| 
       next if visit_date.blank?
-      patient_visits[visit_date].outcome = latest_state(patient_obj,visit_date)
+      patient_visits[visit_date].outcome = hiv_state(patient_obj,visit_date)
       patient_visits[visit_date].date_of_outcome = visit_date
 
 			status = tb_status(patient_obj, visit_date).upcase rescue nil
@@ -2029,49 +2029,64 @@ end
 			patient_visits[visit_date].tb_status = 'Rx' if status == 'CURRENTLY IN TREATMENT'
     end
 
-    unless encounter_date.blank? 
-      outcome = patient_visits[encounter_date].outcome rescue nil
-      if outcome.blank?
-        state = PatientState.find(:first,
-					:joins => "INNER JOIN patient_program p ON p.patient_program_id = patient_state.patient_program_id",
-					:conditions =>["patient_state.voided = 0 AND p.voided = 0 AND p.program_id = ? AND p.patient_id = ?",
-						program_id,patient_obj.patient_id],:order => "date_enrolled DESC,start_date DESC")
+    #unless encounter_date.blank?
+    #  outcome = patient_visits[encounter_date].outcome rescue nil
+    #  if outcome.blank?
+    #    state = PatientState.find(:first,
+		#			:joins => "INNER JOIN patient_program p ON p.patient_program_id = patient_state.patient_program_id",
+		#			:conditions =>["patient_state.voided = 0 AND p.voided = 0 AND p.program_id = ? AND p.patient_id = ?",
+		#				program_id,patient_obj.patient_id],:order => "date_enrolled DESC,start_date DESC")
 
-        patient_visits[encounter_date] = Mastercard.new() if patient_visits[encounter_date].blank?
-        patient_visits[encounter_date].outcome = state.program_workflow_state.concept.fullname rescue 'Unknown state'
-        patient_visits[encounter_date].date_of_outcome = state.start_date rescue nil
-      end
-    end
+     #   patient_visits[encounter_date] = Mastercard.new() if patient_visits[encounter_date].blank?
+     #   patient_visits[encounter_date].outcome = state.program_workflow_state.concept.fullname rescue 'Unknown state'
+     #   patient_visits[encounter_date].date_of_outcome = state.start_date rescue nil
+     # end
+   # end
 
     patient_visits
   end  
 
+
 	def tb_status(patient, visit_date = Date.today)
 		state = Concept.find(Observation.find(:first,
         :order => "obs_datetime DESC,date_created DESC",
-        :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL AND obs_datetime <= ",
-          patient.id,
-          ConceptName.find_by_name("TB STATUS").concept_id, visit_date]).value_coded).fullname rescue "UNKNOWN"
-		programs = patient.patient_programs.all rescue []
-		
-		programs.each do |prog|
-				tb_program = Program.find_by_name('TB PROGRAM').id
-				patient_program_id = PatientProgram.find_by_sql("SELECT  patient_program_id FROM patient_program 
-												WHERE patient_id = #{patient.id}
-												AND program_id = #{tb_program}
-												AND voided = 0 LIMIT 1").first.patient_program_id  rescue state
+        :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL AND obs_datetime <= ?",
+          patient.id, ConceptName.find_by_name("TB STATUS").concept_id, visit_date]).value_coded).fullname rescue "UNKNOWN"
+		#programs = patient.patient_programs.all rescue []
+
+		#programs.each do |prog|
+		#		tb_program = Program.find_by_name('TB PROGRAM').id
+		#		patient_program_id = PatientProgram.find_by_sql("SELECT  patient_program_id FROM patient_program
+		#										WHERE patient_id = #{patient.id}
+		#										AND program_id = #{tb_program}
+		#										AND voided = 0 LIMIT 1").first.patient_program_id  rescue state
 			
-				state = PatientState.find_by_sql("SELECT state  FROM patient_state 
-												WHERE patient_program_id = #{patient_program_id}
-												AND voided = 0
-												AND start_date <= '#{visit_date}'
-												ORDER BY start_date DESC").last.state  rescue state
-				state = ProgramWorkflowState.find_state(state).concept.fullname rescue state
-		end
+		#		state = PatientState.find_by_sql("SELECT state  FROM patient_state
+		#										WHERE patient_program_id = #{patient_program_id}
+		#										AND voided = 0
+		#										AND start_date <= '#{visit_date}'
+		#										ORDER BY start_date DESC").last.state  rescue state
+		#		state = ProgramWorkflowState.find_state(state).concept.fullname rescue state
+		#end
 
 		state
 
   end
+
+	def hiv_state(patient_obj,visit_date)
+     program_id = Program.find_by_name('HIV PROGRAM').id
+     patient_state = PatientState.find(:first,
+       :joins => "INNER JOIN patient_program p
+       ON p.patient_program_id = patient_state.patient_program_id",
+       :conditions =>["patient_state.voided = 0 AND p.voided = 0
+       AND p.program_id = ? AND DATE(start_date) <= DATE('#{visit_date}') AND p.patient_id =?",
+       program_id,patient_obj.id],
+       :order => "start_date DESC")
+
+     return if patient_state.blank?
+     ConceptName.find_by_concept_id(patient_state.program_workflow_state.concept_id).name
+  end
+
 	def definitive_state_date(patient, program) #written to avoid causing conflicts in other methods
 		state_date = ""
 		programs = patient.patient_programs.all rescue []
@@ -2111,7 +2126,7 @@ end
     label.draw_text("#{seen_by(patient,date)}",597,250,0,1,1,1,false)
     label.draw_text("#{date.strftime("%B %d %Y").upcase}",25,30,0,3,1,1,false)
     label.draw_text("#{arv_number}",565,30,0,3,1,1,true)
-    label.draw_text("#{patient_bean.name}(#{patient_bean.sex})#{owner}",25,60,0,3,1,1,false)
+    label.draw_text("#{patient_bean.name}(#{patient_bean.sex})owner",25,60,0,3,1,1,false)
     label.draw_text("#{'(' + visit.visit_by + ')' unless visit.visit_by.blank?}",255,30,0,2,1,1,false)
     label.draw_text("#{visit.height.to_s + 'cm' if !visit.height.blank?}  #{visit.weight.to_s + 'kg' if !visit.weight.blank?}  #{'BMI:' + visit.bmi.to_s if !visit.bmi.blank?} #{'(PC:' + pill_count[0..24] + ')' unless pill_count.blank?}",25,95,0,2,1,1,false)
     label.draw_text("SE",25,130,0,3,1,1,false)
@@ -2189,6 +2204,7 @@ end
   def mastercard_visit_data(visit)
     return if visit.blank?
     data = {}
+		
     data["outcome"] = visit.outcome rescue nil
     data["outcome_date"] = "#{visit.date_of_outcome.to_date.strftime('%b %d %Y')}" if visit.date_of_outcome
 
