@@ -235,14 +235,14 @@ class GenericPeopleController < ApplicationController
 		patient = @person.patient
 		#@outcome = patient.patient_programs.last.patient_states.last.program_workflow_state.concept.fullname rescue nil
 
-		pp = PatientProgram.find(:first, :joins => :location, :conditions => ["program_id = ? AND patient_id = ?", Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id,@person.id]).patient_states.last.program_workflow_state.concept.fullname	rescue ""
+		@pp = PatientProgram.find(:first, :joins => :location, :conditions => ["program_id = ? AND patient_id = ?", Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id,@person.id]).patient_states.last.program_workflow_state.concept.fullname	rescue ""
 		
 		@current_hiv_program_state = PatientProgram.find(:first, :joins => :location, :conditions => ["program_id = ? AND patient_id = ? AND location.location_id = ?", Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id,@person.id, Location.current_health_center.location_id]).patient_states.last.program_workflow_state.concept.fullname rescue ''
 		@transferred_out = @current_hiv_program_state.upcase == "PATIENT TRANSFERRED OUT"? true : nil
 		defaulter = Patient.find_by_sql("SELECT current_defaulter(#{@person.patient.patient_id}, '#{session_date}') 
                                      AS defaulter 
                                      FROM patient_program LIMIT 1")[0].defaulter rescue 0
-		@defaulted = "#{defaulter}" == "0" ? nil : true if ! pp.match(/patient\sdied/i)
+		@defaulted = "#{defaulter}" == "0" ? nil : true if ! @pp.match(/patient\sdied/i)
 		@task = main_next_task(Location.current_location, @person.patient, session_date)		
 		@arv_number = PatientService.get_patient_identifier(@person, 'ARV Number')
 		@patient_bean = PatientService.get_patient(@person)  

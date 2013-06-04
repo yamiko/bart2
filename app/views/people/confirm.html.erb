@@ -32,7 +32,7 @@
 
 			tt_cancel_destination = "/clinic";
 				
-			<%if !@patient_bean.archived_filing_number.blank? %>
+			<%if !@patient_bean.archived_filing_number.blank? && !@pp.match(/patient\sdied/i) %>
 				tt_cancel_show = "javascript:confirmAction(0)";  
 				<% elsif @transferred_out  %>
 				tt_cancel_show = "javascript:confirmAction(1)";  
@@ -44,7 +44,7 @@
 			<% end %>
 
 			function changeAttributes(){
-				document.getElementById("btnNext").innerHTML = "<span>Continue</span>" 
+				document.getElementById("btnNext").innerHTML = "<span>Continue</span>"
 				<% if improved_viral_load_check(@person.patient) == true &&
                                     (@task.encounter_type.upcase == "HIV CLINIC CONSULTATION" || @task.encounter_type.upcase == "HIV STAGING") &&  show_lab_results &&
 	 	(current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
