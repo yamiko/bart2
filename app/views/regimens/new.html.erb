@@ -1104,7 +1104,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
     <%= select_tag :ipt_mgs, options_for_select([["300","300"],["100", "100"]]), {
 	  :allowFreeText => 'false',
 	  :condition => "prescribeAntiretroviralDrugs() && $('ipt_given').value == 'YES'",
-	  :helpText => "IPT grams" } %>
+	  :helpText => "IPT milligrams" } %>
   <%else%>
 	<%= touch_hidden_tag "ISONIAZID", @patient, "", :id => "ipt_given" %>
   <%end%>
