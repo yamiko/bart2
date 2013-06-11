@@ -1875,7 +1875,7 @@ end
 			"BODY MASS INDEX, MEASURED", "RESPONSIBLE PERSON PRESENT",
 			"PATIENT PRESENT FOR CONSULTATION", "TB STATUS",
 			"AMOUNT DISPENSED", "ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT",
-			"SYMPTOM PRESENT", "AMOUNT OF DRUG BROUGHT TO CLINIC",
+			"DRUG INDUCED", "AMOUNT OF DRUG BROUGHT TO CLINIC",
 			"WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER",
 			"CLINICAL NOTES CONSTRUCT"]
     concept_ids = ConceptName.find(:all, :conditions => ["name in (?)", concept_names]).map(&:concept_id)
@@ -1963,8 +1963,8 @@ end
 			elsif concept_name.upcase == 'ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT'
 				patient_visits[visit_date].reg = 'Unknown' if obs.value_coded == ConceptName.find_by_name("Unknown antiretroviral drug").concept_id
 				patient_visits[visit_date].reg =  Concept.find_by_concept_id(obs.value_coded).concept_names.typed("SHORT").first.name if !patient_visits[visit_date].reg
-             
-			elsif concept_name.upcase == 'SYMPTOM PRESENT'
+
+			elsif concept_name.upcase == 'DRUG INDUCED'
 				symptoms = obs.to_s.split(':').map do | sy |
 					sy.sub(concept_name,'').strip.capitalize
 				end rescue []
@@ -2263,8 +2263,10 @@ end
   def art_guardian(patient)
     person_id = Relationship.find(:first,:order => "date_created DESC",
       :conditions =>["person_a = ?",patient.person.id]).person_b rescue nil
-    patient_bean = PatientService.get_patient(Person.find(person_id))
-    patient_bean.name rescue nil
+    #patient_bean = PatientService.get_patient(Person.find(person_id))
+    guardian_name = PatientService.name(Person.find(person_id)) rescue nil
+
+    #patient_bean.name rescue nil
   end
 
   def save_mastercard_attribute(params)
