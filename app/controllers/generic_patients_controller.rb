@@ -619,6 +619,7 @@ class GenericPatientsController < ApplicationController
     @alerts = alerts(@patient, session_date) rescue nil
     # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
+		
     @restricted.each do |restriction|
       @encounters = restriction.filter_encounters(@encounters)
       @prescriptions = restriction.filter_orders(@prescriptions)
@@ -2005,7 +2006,7 @@ end
 					program_id,encounter_date.to_date,patient_obj.patient_id],:order => "patient_state_id ASC")
     end  
 
-=begin
+#=begin
     patient_states.each do |state| 
       visit_date = state.start_date.to_date rescue nil
       next if visit_date.blank?
@@ -2013,12 +2014,12 @@ end
       patient_visits[visit_date].outcome = state.program_workflow_state.concept.fullname rescue 'Unknown state'
       patient_visits[visit_date].date_of_outcome = state.start_date
     end
-=end
+#=end
 
     patient_visits.each do |visit_date,data| 
       next if visit_date.blank?
-      patient_visits[visit_date].outcome = hiv_state(patient_obj,visit_date)
-      patient_visits[visit_date].date_of_outcome = visit_date
+     # patient_visits[visit_date].outcome = hiv_state(patient_obj,visit_date)
+      #patient_visits[visit_date].date_of_outcome = visit_date
 
 			status = tb_status(patient_obj, visit_date).upcase rescue nil
 			patient_visits[visit_date].tb_status = status
@@ -2029,19 +2030,19 @@ end
 			patient_visits[visit_date].tb_status = 'Rx' if status == 'CURRENTLY IN TREATMENT'
     end
 
-    #unless encounter_date.blank?
-    #  outcome = patient_visits[encounter_date].outcome rescue nil
-    #  if outcome.blank?
-    #    state = PatientState.find(:first,
-		#			:joins => "INNER JOIN patient_program p ON p.patient_program_id = patient_state.patient_program_id",
-		#			:conditions =>["patient_state.voided = 0 AND p.voided = 0 AND p.program_id = ? AND p.patient_id = ?",
-		#				program_id,patient_obj.patient_id],:order => "date_enrolled DESC,start_date DESC")
+    unless encounter_date.blank?
+      outcome = patient_visits[encounter_date].outcome rescue nil
+      if outcome.blank?
+        state = PatientState.find(:first,
+					:joins => "INNER JOIN patient_program p ON p.patient_program_id = patient_state.patient_program_id",
+					:conditions =>["patient_state.voided = 0 AND p.voided = 0 AND p.program_id = ? AND p.patient_id = ?",
+						program_id,patient_obj.patient_id],:order => "date_enrolled DESC,start_date DESC")
 
-     #   patient_visits[encounter_date] = Mastercard.new() if patient_visits[encounter_date].blank?
-     #   patient_visits[encounter_date].outcome = state.program_workflow_state.concept.fullname rescue 'Unknown state'
-     #   patient_visits[encounter_date].date_of_outcome = state.start_date rescue nil
-     # end
-   # end
+        patient_visits[encounter_date] = Mastercard.new() if patient_visits[encounter_date].blank?
+        patient_visits[encounter_date].outcome = state.program_workflow_state.concept.fullname rescue 'Unknown state'
+        patient_visits[encounter_date].date_of_outcome = state.start_date rescue nil
+      end
+    end
 
     patient_visits
   end  
@@ -2083,6 +2084,9 @@ end
        program_id,patient_obj.id],
        :order => "start_date DESC")
 
+		#patient_state = PatientState.find(:last,
+     #                         :joins => "INNER JOIN patient_program p ON p.patient_program_id = patient_state.patient_program_id",
+     #                         :conditions =>["patient_state.voided = 0 AND p.voided = 0 AND p.patient_id = #{patient_obj.id} AND DATE(start_date) <= DATE('#{visit_date}') AND p.program_id = #{program_id}"],:order => "start_date DESC")
      return if patient_state.blank?
      ConceptName.find_by_concept_id(patient_state.program_workflow_state.concept_id).name
   end
@@ -2108,25 +2112,28 @@ end
 		end
 		state_date
 	end
-  def mastercard_visit_label(patient,date = Date.today)
+	
+  def mastercard_visit_label(patient, date = Date.today)
   	patient_bean = PatientService.get_patient(patient.person)
-    visit = visits(patient,date)[date] rescue {}
-		owner = ""
+    visit = visits(patient, date)[date] rescue {}
+
+		owner = " :Patient visit"
 
 		if PatientService.patient_and_guardian_present?(patient.id) == false and PatientService.guardian_present?(patient.id) == true
-			owner = "Guardian Visit"
+			owner = " :Guardian Visit"
 		end
-		
-    return if visit.blank? 
+
+    return if visit.blank?
     visit_data = mastercard_visit_data(visit)
     arv_number = patient_bean.arv_number || patient_bean.national_id
     pill_count = visit.pills.collect{|c|c.join(",")}.join(' ') rescue nil
+
     label = ZebraPrinter::StandardLabel.new
     label.draw_text("Printed: #{Date.today.strftime('%b %d %Y')}",597,280,0,1,1,1,false)
     label.draw_text("#{seen_by(patient,date)}",597,250,0,1,1,1,false)
     label.draw_text("#{date.strftime("%B %d %Y").upcase}",25,30,0,3,1,1,false)
     label.draw_text("#{arv_number}",565,30,0,3,1,1,true)
-    label.draw_text("#{patient_bean.name}(#{patient_bean.sex})owner",25,60,0,3,1,1,false)
+    label.draw_text("#{patient_bean.name}(#{patient_bean.sex}) #{owner}",25,60,0,3,1,1,false)
     label.draw_text("#{'(' + visit.visit_by + ')' unless visit.visit_by.blank?}",255,30,0,2,1,1,false)
     label.draw_text("#{visit.height.to_s + 'cm' if !visit.height.blank?}  #{visit.weight.to_s + 'kg' if !visit.weight.blank?}  #{'BMI:' + visit.bmi.to_s if !visit.bmi.blank?} #{'(PC:' + pill_count[0..24] + ')' unless pill_count.blank?}",25,95,0,2,1,1,false)
     label.draw_text("SE",25,130,0,3,1,1,false)
@@ -2139,6 +2146,7 @@ end
     label.draw_text("#{adherence_to_show(visit.adherence).gsub('%', '\\\\%') rescue nil}",185,160,0,2,1,1,false)
     label.draw_text("#{visit_data['outcome']}",577,160,0,2,1,1,false)
     label.draw_text("#{visit_data['outcome_date']}",655,130,0,2,1,1,false)
+    label.draw_text("#{visit_data['next_appointment']}",577,190,0,2,1,1,false) if visit_data['next_appointment']
     starting_index = 25
     start_line = 160
 
@@ -2147,9 +2155,9 @@ end
       next if data.blank?
       bold = false
       #bold = true if key.include?("side_eff") and data !="None"
-      #bold = true if key.include?("arv_given") 
+      #bold = true if key.include?("arv_given")
       starting_index = values.first.to_i
-      starting_line = start_line 
+      starting_line = start_line
       starting_line = start_line + 30 if key.include?("2")
       starting_line = start_line + 60 if key.include?("3")
       starting_line = start_line + 90 if key.include?("4")

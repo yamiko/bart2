@@ -178,7 +178,7 @@ class PatientsController < GenericPatientsController
 
 		owner = " :Patient visit"
 
-		if PatientService.patient_and_guardian_present?(patient.id) == false and PatientService.guardian_present?(patient.id) == true
+		if PatientService.patient_present?(patient.id) == false and PatientService.guardian_present?(patient.id) == true
 			owner = " :Guardian Visit"
 		end
 
