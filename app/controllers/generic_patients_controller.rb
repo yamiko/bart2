@@ -1719,7 +1719,7 @@ end
     visits.hiv_test_location = patient_obj.person.observations.recent(1).question("Confirmatory HIV test location").all rescue nil
     location_name = Location.find_by_location_id(visits.hiv_test_location.to_s.split(':')[1].strip).name rescue nil
     visits.hiv_test_location = location_name rescue nil
-    visits.guardian = art_guardian(patient_obj) rescue nil
+    visits.guardian = art_guardian(patient_obj) #rescue nil
     visits.reason_for_art_eligibility = PatientService.reason_for_art_eligibility(patient_obj)
     visits.transfer_in = PatientService.is_transfer_in(patient_obj) rescue nil #pb: bug-2677 Made this to use the newly created patient model method 'transfer_in?'
     visits.transfer_in == false ? visits.transfer_in = 'NO' : visits.transfer_in = 'YES'
@@ -2263,9 +2263,9 @@ end
   def art_guardian(patient)
     person_id = Relationship.find(:first,:order => "date_created DESC",
       :conditions =>["person_a = ?",patient.person.id]).person_b rescue nil
+
     #patient_bean = PatientService.get_patient(Person.find(person_id))
     guardian_name = PatientService.name(Person.find(person_id)) rescue nil
-
     #patient_bean.name rescue nil
   end
 
