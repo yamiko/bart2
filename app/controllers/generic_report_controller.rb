@@ -441,11 +441,23 @@ class GenericReportController < ApplicationController
   end
 
   def outcome(patient_id, on_date=Date.today)
-    state = PatientState.find(:first,
-                              :joins => "INNER JOIN patient_program p ON p.patient_program_id = patient_state.patient_program_id",
-                              :conditions =>["patient_state.voided = 0 AND p.voided = 0 AND p.patient_id = #{patient_id} AND DATE(start_date) <= DATE('#{on_date}')"],:order => "start_date DESC")
+		 program_id = Program.find_by_name('HIV PROGRAM').id
+     patient_state = PatientState.find(:first,
+       :joins => "INNER JOIN patient_program p
+       ON p.patient_program_id = patient_state.patient_program_id",
+       :conditions =>["patient_state.voided = 0 AND p.voided = 0
+       AND p.program_id = ? AND DATE(start_date) <= DATE('#{on_date}') AND p.patient_id =?",
+       program_id,patient_id],
+       :order => "start_date DESC")
+
+		 return if patient_state.blank?
+     ConceptName.find_by_concept_id(patient_state.program_workflow_state.concept_id).name
+
+    #state = PatientState.find(:first,
+                             # :joins => "INNER JOIN patient_program p ON p.patient_program_id = patient_state.patient_program_id",
+                             # :conditions =>["patient_state.voided = 0 AND p.voided = 0 AND p.patient_id = #{patient_id} AND DATE(start_date) <= DATE('#{on_date}')"],:order => "start_date DESC")
                               
-   state.program_workflow_state.concept.shortname rescue state.program_workflow_state.concept.fullname rescue 'Unknown state'     
+   #state.program_workflow_state.concept.shortname rescue state.program_workflow_state.concept.fullname rescue 'Unknown state'
   end
   
   def art_start_date(patient_id)
