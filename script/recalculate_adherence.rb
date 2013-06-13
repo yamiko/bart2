@@ -9,6 +9,8 @@ def start
   amount_brought_concept_id = ConceptName.find_by_name('AMOUNT OF DRUG BROUGHT TO CLINIC').concept_id
   adherence_concept_id = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
   adherence_encounter_id = EncounterType.find_by_name("ART ADHERENCE").id
+  dispense_concept_id = ConceptName.find_by_name("Amount dispensed").concept_id
+
 
   records = DrugOrder.find_by_sql("SELECT t3.person_id person_id,
     t1.drug_inventory_id drug_id,DATE(t3.obs_datetime) visit_date
@@ -27,7 +29,6 @@ EOF
                                                        
     adherence = adherence.to_i rescue nil
     puts "#{record[0]},#{record[1]},#{record[2]} ============ #{adherence}"                                         
-    next 
 
     Encounter.transaction do 
       adherence_encounter = Encounter.new
@@ -42,6 +43,11 @@ EOF
         obs.obs_datetime = adherence_encounter.encounter_datetime
         obs.value_text = adherence
         obs.save
+				last_dispense = Observation.find(:last,:conditions => ["concept_id =? AND person_id = ? AND obs_datetime < ? AND value_drug = ?",
+				dispense_concept_id, adherence_encounter.patient_id,adherence_encounter.encounter_datetime,record[1]], 
+				:order => "obs_datetime DESC")
+				last_dispense.encounter_id = adherence_encounter.encounter_id
+				last_dispense.save!
       end
     end
     puts "............... count #{adherence}"
