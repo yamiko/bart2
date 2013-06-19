@@ -87,14 +87,17 @@
   function loadChart(){
     
     try{
-<%
-dateToday = session[:datetime].to_date rescue Date.today
-%>
+      <%
+      dateToday = session[:datetime].to_date rescue Date.today
+      %>
       age = "<%=  @patient_bean.age_in_months rescue 99999%>";
       document.getElementById('tabPageContainer').innerHTML = "<div id='summary' style='background: width:100%;'></div>" ;
       if (age <= 60){
         jQuery('#summary').empty();
         jQuery('#summary').load('/patients/baby_chart/<%= @patient_bean.patient_id %>?patient_id=<%= @patient_bean.patient_id %>&tab=true');
+      }else{
+        //jQuery('#summary').empty();
+        //jQuery('#summary').load('/');
       }
     }catch(exp){
       setTimeout("loadChart()", 100);
