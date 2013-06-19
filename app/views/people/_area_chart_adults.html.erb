@@ -73,18 +73,6 @@ $(function () {
       }
       return [{name: 'Weight', data: correctedWeights}];
     }
-/* 
-  function removeHighcharts() { 
-    tspan = document.getElementsByTagName('tspan');
-    for(var i = 0; i < tspan.length; i++){
-      console.log(i)
-      if(tspan[i].innerHTML == 'Highcharts.com'){
-        tspan[i].innerHTML = null;
-        break;
-      }
-    }
-  }
-*/
     </script>
   </head>
   <body>
@@ -92,7 +80,27 @@ $(function () {
 <%= javascript_include_tag "Highcharts/js/highcharts" %>
 <%= javascript_include_tag "Highcharts/js/modules/exporting" %>
 
-<div id="container" style="width: 100%%; height: 90%; margin: 0 auto"></div>
+<div id="container" style="width: 100%; height: 100%; margin: 0 auto">
+</div>
+
+<script> 
+  function removeHighcharts() { 
+    tspan = document.getElementsByTagName('tspan');
+    for(var i = 0; i < tspan.length; i++){
+      if(tspan[i].innerHTML == 'Highcharts.com'){
+        tspan[i].innerHTML = null;
+        break;
+      }
+    }
+
+    try {
+      b = document.getElementsByClassName('highcharts-button')[0];
+      b.innerHTML = null;
+    }catch(e){}
+  }
+
+  setInterval("removeHighcharts();",500);
+</script>
 
 	</body>
 </html>
