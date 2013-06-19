@@ -1719,7 +1719,7 @@ end
     visits.hiv_test_location = patient_obj.person.observations.recent(1).question("Confirmatory HIV test location").all rescue nil
     location_name = Location.find_by_location_id(visits.hiv_test_location.to_s.split(':')[1].strip).name rescue nil
     visits.hiv_test_location = location_name rescue nil
-    visits.guardian = art_guardian(patient_obj) rescue nil
+    visits.guardian = art_guardian(patient_obj) #rescue nil
     visits.reason_for_art_eligibility = PatientService.reason_for_art_eligibility(patient_obj)
     visits.transfer_in = PatientService.is_transfer_in(patient_obj) rescue nil #pb: bug-2677 Made this to use the newly created patient model method 'transfer_in?'
     visits.transfer_in == false ? visits.transfer_in = 'NO' : visits.transfer_in = 'YES'
@@ -1877,7 +1877,7 @@ end
 			"AMOUNT DISPENSED", "ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT",
 			"DRUG INDUCED", "AMOUNT OF DRUG BROUGHT TO CLINIC",
 			"WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER",
-			"CLINICAL NOTES CONSTRUCT"]
+			"CLINICAL NOTES CONSTRUCT", "REGIMEN CATEGORY"]
     concept_ids = ConceptName.find(:all, :conditions => ["name in (?)", concept_names]).map(&:concept_id)
   
     if encounter_date.blank?
@@ -1960,9 +1960,9 @@ end
 					#raise patient_visits[visit_date].tb_status.to_yaml
 				#end
 
-			elsif concept_name.upcase == 'ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT'
-				patient_visits[visit_date].reg = 'Unknown' if obs.value_coded == ConceptName.find_by_name("Unknown antiretroviral drug").concept_id
-				patient_visits[visit_date].reg =  Concept.find_by_concept_id(obs.value_coded).concept_names.typed("SHORT").first.name if !patient_visits[visit_date].reg
+			elsif concept_name.upcase == 'REGIMEN CATEGORY'
+				#patient_visits[visit_date].reg = 'Unknown' if obs.value_coded == ConceptName.find_by_name("Unknown antiretroviral drug").concept_id
+				patient_visits[visit_date].reg = obs.value_text if !patient_visits[visit_date].reg
 
 			elsif concept_name.upcase == 'DRUG INDUCED'
 				symptoms = obs.to_s.split(':').map do | sy |
@@ -2263,9 +2263,9 @@ end
   def art_guardian(patient)
     person_id = Relationship.find(:first,:order => "date_created DESC",
       :conditions =>["person_a = ?",patient.person.id]).person_b rescue nil
+
     #patient_bean = PatientService.get_patient(Person.find(person_id))
     guardian_name = PatientService.name(Person.find(person_id)) rescue nil
-
     #patient_bean.name rescue nil
   end
 

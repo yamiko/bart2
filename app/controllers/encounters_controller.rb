@@ -14,21 +14,21 @@ class EncountersController < GenericEncountersController
 		end
 
 
-			@hiv_status = tb_art_patient(@patient,"hiv program") rescue ""
-			@tb_status = tb_art_patient(@patient,"TB program") rescue ""
-			@show_tb_types = false
-			consultation_tb_status = Patient.find_by_sql("
+    @hiv_status = tb_art_patient(@patient,"hiv program") rescue ""
+    @tb_status = tb_art_patient(@patient,"TB program") rescue ""
+    @show_tb_types = false
+    consultation_tb_status = Patient.find_by_sql("
 											SELECT patient_id, current_state_for_program(patient_id, 2, '#{session_date}') AS state, c.name as status
 											FROM patient p INNER JOIN program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(patient_id, 2, '#{session_date}')
 											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{@patient.patient_id}'").first.status rescue ""
-			 if consultation_tb_status == "Currently in treatment"
-				 @consultation_tb_status = "Confirmed TB on treatment"
-			 elsif consultation_tb_status == "Symptomatic but NOT in treatment" or @hiv_status.to_s.upcase == "POSITIVE"
-				 @consultation_tb_status = "Confirmed TB NOT on treatment"
-			 else
-				 @show_tb_types = true
-				 @consultation_tb_status = "Unknown"
-			 end
+    if consultation_tb_status == "Currently in treatment"
+      @consultation_tb_status = "Confirmed TB on treatment"
+    elsif consultation_tb_status == "Symptomatic but NOT in treatment" or @hiv_status.to_s.upcase == "POSITIVE"
+      @consultation_tb_status = "Confirmed TB NOT on treatment"
+    else
+      @show_tb_types = true
+      @consultation_tb_status = "Unknown"
+    end
 		@current_hiv_program_status = Patient.find_by_sql("
 											SELECT patient_id, current_state_for_program(patient_id, 1, '#{session_date}') AS state, c.name as status
 											FROM patient p INNER JOIN program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(patient_id, 1, '#{session_date}')
@@ -89,6 +89,8 @@ class EncountersController < GenericEncountersController
                             AND DATE(obs_datetime) = ?",@patient.id,
             ConceptName.find_by_name("Allergic to sulphur").concept_id,session_date])).to_s.strip.squish rescue ''
 
+      @use_extended_family_planning = CoreService.get_global_property_value('extended.family.planning') rescue false
+
       @obs_ans = Observation.find(Observation.find(:first,
           :order => "obs_datetime DESC,date_created DESC",
           :conditions => ["person_id = ? AND concept_id = ? AND DATE(obs_datetime) = ?",
@@ -137,7 +139,31 @@ class EncountersController < GenericEncountersController
 		@tb_patient = is_tb_patient(@patient)
 		@art_patient = PatientService.art_patient?(@patient)
 		@recent_lab_results = patient_recent_lab_results(@patient.id)
-		
+
+    if @use_extended_family_planning && is_child_bearing_female(@patient)
+      @select_options['why_no_family_planning_method'] = [
+          ['Not sexually active', 'NOT SEXUALLY ACTIVE'],
+          ['Patient wants to get pregnant','PATIENT WANTS TO GET PREGNANT'],
+          ['Not needed for medical reasons', 'NOT NEEDED FOR MEDICAL REASONS'],
+          ['At risk of unplanned pregnancy', 'AT RISK OF UNPLANNED PREGNANCY']
+      ]
+
+      @select_options['why_no_family_planning_method_specific'] = [
+          ['Following wishes of spouse', 'FOLLOWING WISHES OF SPOUSE'],
+          ['Religious reasons', 'RELIGIOUS REASONS'],
+          ['Afraid of side effects','AFRAID OF SIDE EFFECTS'],
+          ['Never thought about it','NEVER THOUGHT ABOUT IT'],
+          ['Indifferent', 'INDIFFERENT']
+      ]
+
+      @select_options['dual_options'] = [
+          ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
+          ['Depo-Provera', 'DEPO-PROVERA'],
+          ['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
+          ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT']]
+    end
+
+
 		if (params[:encounter_type].upcase rescue '') == 'APPOINTMENT'
 			@todays_date = session_date
 			logger.info('========================== Suggesting appointment date =================================== @ '  + Time.now.to_s)
@@ -241,7 +267,7 @@ class EncountersController < GenericEncountersController
 					#@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue Concept.find(obs.value_coded).fullname if obs.concept_id == Concept.find_by_name('TB type').concept_id
  				end
 				if  obs.concept_id == Concept.find_by_name('TB classification').concept_id
-					 @tb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name
+          @tb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name
 				end
 				if obs.concept_id == Concept.find_by_name('TB type').concept_id
 					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name
@@ -398,9 +424,9 @@ class EncountersController < GenericEncountersController
 		end
 
 		if PatientIdentifier.site_prefix == "MPC"
-				prefix = "LL-TB"
+      prefix = "LL-TB"
 		else
-				prefix = "#{PatientIdentifier.site_prefix}-TB"
+      prefix = "#{PatientIdentifier.site_prefix}-TB"
 		end
 		@tb_auto_number = create_tb_number(PatientIdentifierType.find_by_name('District TB Number').id, prefix)
 
@@ -415,10 +441,14 @@ class EncountersController < GenericEncountersController
 
 		redirect_to :action => :create, 'encounter[encounter_type_name]' => params[:encounter_type].upcase, 'encounter[patient_id]' => @patient.id and return if ['registration'].include?(params[:encounter_type])
 		
-		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (CoreService.get_global_property_value('use.extended.staging.questions').to_s == "true" rescue false)
+		if (params[:encounter_type].upcase rescue '') == 'VITALS'
+      
+      render :action => params[:encounter_type], :layout => "weight_chart"
+
+    elsif (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (CoreService.get_global_property_value('use.extended.staging.questions').to_s == "true" rescue false)
 			render :template => 'encounters/extended_hiv_staging'
-		#elsif (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (CoreService.get_global_property_value('use.normal.staging.questions').to_s == "true" rescue false)
-		#	render :template => 'encounters/normal_hiv_staging'
+      #elsif (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (CoreService.get_global_property_value('use.normal.staging.questions').to_s == "true" rescue false)
+      #	render :template => 'encounters/normal_hiv_staging'
 		else
 			render :action => params[:encounter_type] if params[:encounter_type]
 		end
@@ -426,18 +456,18 @@ class EncountersController < GenericEncountersController
 	end
 
 	def check_tb_number
-						value = params[:value]
-            if PatientIdentifier.site_prefix == "MPC"
-							tb_identifier = value.to_i
-							value = "LL-TB  #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "LL-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
-						else
-							tb_identifier = value.to_i
-							value = "#{PatientIdentifier.site_prefix}-TB #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "#{PatientIdentifier.site_prefix}-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
-						end
+    value = params[:value]
+    if PatientIdentifier.site_prefix == "MPC"
+      tb_identifier = value.to_i
+      value = "LL-TB  #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "LL-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
+    else
+      tb_identifier = value.to_i
+      value = "#{PatientIdentifier.site_prefix}-TB #{session[:datetime].to_date.strftime('%Y')} #{tb_identifier}" rescue  "#{PatientIdentifier.site_prefix}-TB #{Date.today.strftime('%Y')} #{tb_identifier}"
+    end
 
-						 render :text => ("false".to_json) if ! PatientIdentifier.find_by_identifier(value).blank?
+    render :text => ("false".to_json) if ! PatientIdentifier.find_by_identifier(value).blank?
 
-						 render :text => ("true".to_json) if  PatientIdentifier.find_by_identifier(value).blank?
+    render :text => ("true".to_json) if  PatientIdentifier.find_by_identifier(value).blank?
 	end
 	def tb_art_patient(patient,program)
     program_id = Program.find_by_name(program).id
@@ -605,7 +635,7 @@ class EncountersController < GenericEncountersController
         ["Fatigue", "Fatigue"],
         ["Fever", "Relapsing fever"],
         ["Loss of appetite", "Loss of appetite"],
-       # ["Meningitis", "Meningitis"],
+        # ["Meningitis", "Meningitis"],
         ["Night sweats","Night sweats"],
         ["Peripheral neuropathy", "Peripheral neuropathy"],
         ["Shortness of breath", "Shortness of breath"],
@@ -655,7 +685,7 @@ class EncountersController < GenericEncountersController
       'tb_types' => [
         ['',''],
         ['Susceptible', 'Susceptible to tuberculosis drug'],
-       # ['Multi-drug resistant (MDR)', 'Multi-drug resistant tuberculosis'],
+        # ['Multi-drug resistant (MDR)', 'Multi-drug resistant tuberculosis'],
         ['Extensive drug resistant (XDR)', 'Extensive drug resistant tuberculosis']
       ],
       'tb_classification' => [
@@ -675,6 +705,8 @@ class EncountersController < GenericEncountersController
         ['Other','Other']
       ]
     }
+
+
   end
 
 	def is_holiday(suggest_date, holidays)
@@ -1268,7 +1300,7 @@ class EncountersController < GenericEncountersController
         vitals_encounter_id = EncounterType.find_by_name("VITALS").encounter_type_id
         enc = Encounter.find(:all, 
           :conditions => ["encounter_type = ? AND patient_id = ? AND voided = 0", 
-          vitals_encounter_id, @patient.id])
+            vitals_encounter_id, @patient.id])
 
         encounter.observations.each do |o|
           height = o.answer_string.squish if o.concept_id == height_concept_id
@@ -1462,44 +1494,44 @@ class EncountersController < GenericEncountersController
 			culture =[]
 			labels = []
 			observation.each do |obs|
-						next if obs.value_coded.blank?
-						concept[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_one
-						concept[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_two
-						concept[2] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_three
-						culture[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_four
-						culture[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_five
+        next if obs.value_coded.blank?
+        concept[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_one
+        concept[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_two
+        concept[2] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_three
+        culture[0] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_four
+        culture[1] = ConceptName.find_by_concept_id(obs.value_coded).name if obs.concept_id == concept_five
 			end
 			if concept.length < 2
-						first = "Culture-1 Results: #{sputum_results.assoc("#{culture[0].upcase}")[1]}"
-						second = "Culture-2 Results: #{sputum_results.assoc("#{culture[1].upcase}")[1]}"
+        first = "Culture-1 Results: #{sputum_results.assoc("#{culture[0].upcase}")[1]}"
+        second = "Culture-2 Results: #{sputum_results.assoc("#{culture[1].upcase}")[1]}"
 			else
-						lab_result = []
-						h = 0
-						(0..2).each do |x|
-									if concept[x].to_s != ""
-									lab_result[h] = sputum_results.assoc("#{concept[x].upcase}")
-									h += 1
-									end
-						end
-						first = "AAFB(1st) results: #{lab_result[0][1] rescue ""}"
-						second = "AAFB(2nd) results: #{lab_result[1][1] rescue ""}"
-						end
-						i = 0
-    labels = []
+        lab_result = []
+        h = 0
+        (0..2).each do |x|
+          if concept[x].to_s != ""
+            lab_result[h] = sputum_results.assoc("#{concept[x].upcase}")
+            h += 1
+          end
+        end
+        first = "AAFB(1st) results: #{lab_result[0][1] rescue ""}"
+        second = "AAFB(2nd) results: #{lab_result[1][1] rescue ""}"
+      end
+      i = 0
+      labels = []
 
-          label = 'label' + i.to_s
-          label = ZebraPrinter::Label.new(500,165)
-          label.font_size = 2
-          label.font_horizontal_multiplier = 1
-          label.font_vertical_multiplier = 1
-          label.left_margin = 300
-          label.draw_text("Name: #{patient_bean.name}",50,50,0,3,1,1,false)
-          label.draw_text(first,50,90,0,2,1,1)
-          label.draw_text(second,50,130,0,2,1,1)
+      label = 'label' + i.to_s
+      label = ZebraPrinter::Label.new(500,165)
+      label.font_size = 2
+      label.font_horizontal_multiplier = 1
+      label.font_vertical_multiplier = 1
+      label.left_margin = 300
+      label.draw_text("Name: #{patient_bean.name}",50,50,0,3,1,1,false)
+      label.draw_text(first,50,90,0,2,1,1)
+      label.draw_text(second,50,130,0,2,1,1)
 
-          labels << label
+      labels << label
 
-         i = i + 1
+      i = i + 1
 
       print_labels = []
       label = 0
