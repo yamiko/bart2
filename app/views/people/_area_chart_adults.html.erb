@@ -3,7 +3,13 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<title>Bart2 - Weight chart</title>
+    <style>
+      
+      .highcharts-button {
+         display: none;
+      }
 
+    </style>
 		<%= javascript_include_tag "Highcharts/js/jquery.min.js" %>
 		<script type="text/javascript">
 	
@@ -85,6 +91,10 @@ $(function () {
 
 <script> 
   function removeHighcharts() { 
+/*    try {
+      document.getElementsByClassName('highcharts-button')[0].innerHTML = null;
+    }catch(e){}
+ */   
     tspan = document.getElementsByTagName('tspan');
     for(var i = 0; i < tspan.length; i++){
       if(tspan[i].innerHTML == 'Highcharts.com'){
@@ -93,10 +103,6 @@ $(function () {
       }
     }
 
-    try {
-      b = document.getElementsByClassName('highcharts-button')[0];
-      b.innerHTML = null;
-    }catch(e){}
   }
 
   setInterval("removeHighcharts();",300);
