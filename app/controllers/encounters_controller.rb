@@ -153,9 +153,15 @@ class EncountersController < GenericEncountersController
           ['Religious reasons', 'RELIGIOUS REASONS'],
           ['Afraid of side effects','AFRAID OF SIDE EFFECTS'],
           ['Never thought about it','NEVER THOUGHT ABOUT IT'],
-          ['Indifferent', 'INDIFFERENT']
+          ['Indifferent (Does not mind getting pregnant )', 'INDIFFERENT']
       ]
 
+			if @retrospective
+			
+				@select_options['why_no_family_planning_method_specific'] << ['Other', 'OTHER'] << ['Unknown', 'UNKNOWN']
+			
+			end						
+					
       @select_options['dual_options'] = [
           ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
           ['Depo-Provera', 'DEPO-PROVERA'],
