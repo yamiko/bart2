@@ -1487,13 +1487,19 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
   end
 
   def self.search_by_identifier(identifier)
-    unless identifier.match(/#{CoreService.get_global_property_value("site_prefix")}-ARV/i)
+    unless identifier.match(/#{CoreService.get_global_property_value("site_prefix")}-ARV/i) || identifier.match(/#{CoreService.get_global_property_value("site_prefix")}-TB/i)
       identifier = identifier.gsub("-","").strip
     end
 
-    people = PatientIdentifier.find_all_by_identifier(identifier).map{|id|
+		#if identifier.match(/#{CoreService.get_global_property_value("site_prefix")}-TB/i)
+		#	people = PatientIdentifier.find_by_sql("SELECT * FROM patient_identifier WHERE identifier = #{identifier} AND ")
+		#else
+			people = PatientIdentifier.find_all_by_identifier(identifier).map{|id|
       id.patient.person
     } unless identifier.blank? rescue nil
+		#end
+   
+		#raise people.to_yaml
     return people unless people.blank?
     create_from_dde_server = CoreService.get_global_property_value('create.from.dde.server').to_s == "true" rescue false
     if create_from_dde_server
