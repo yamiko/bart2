@@ -275,7 +275,12 @@ class PatientsController < GenericPatientsController
       age = (((session[:datetime].to_date rescue Date.today) - birthdate_sec).days.to_i/(60*60*24)).to_s rescue nil
       @weights << age + "," + weight.to_s if !age.blank? && !weight.blank?
     end
-    render :template => "/patients/baby_chart", :layout => false
+    
+    if params[:tab]
+      render :template => "/patients/tab_baby_chart", :layout => false
+    else
+      render :template => "/patients/baby_chart", :layout => false
+    end
   end
 
 end
