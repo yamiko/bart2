@@ -24,7 +24,7 @@
                   <%#= location_name %>
               </div>
             </h1>
-
+			
             <div id="facility"><%= @facility %></div>
             <div id="location"><%= @location %></div>
             <% retrospective = 'false'
@@ -57,6 +57,9 @@ on the rest of the stations %>
               <%# end %>
 
 <%# Hide Find by ARV Number button on non-HIV workstations %>
+			   <% if @location =~ /TB/ or what_app?.upcase == "TB-ART" %>
+                <option value="/people/find_by_tb_number" ttSize="265px">Find By TB Number</option>
+              <% end %>
               <% if @location =~ /HIV/ %>
                 <option value="/people/find_by_arv_number" ttSize="265px">Find By ARV Number</option>
               <% end %>

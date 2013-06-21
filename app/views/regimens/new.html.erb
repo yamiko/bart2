@@ -1092,6 +1092,11 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	  :allowFreeText => 'false',
 	  :condition => 'prescribeAntiretroviralDrugs() == true',
 	  :helpText => "Prescribe CPT" } %>
+
+	<%= select_tag :cpt_mgs, options_for_select(["480","960"]), {
+	  :allowFreeText => 'false',
+	  :condition => "$('cpt_given').value == 'YES'",
+	  :helpText => "Prescribed cotramoxazole milligrams" } %>
   <% end %>
 
   <% if @patient_bean.age >= 2 && !@current_hiv_program_state.match(/On antiretrovirals/i) && !@current_hiv_program_state.match(/Patient transferred in/i) %>
@@ -1101,7 +1106,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	  :condition => "prescribeAntiretroviralDrugs() && $('prescribe_arvs').value != 'YES'",
 	  :helpText => "Prescribe IPT" } %>
 
-    <%= select_tag :ipt_mgs, options_for_select([["300","300"],["100", "100"]]), {
+    <%= select_tag :ipt_mgs, options_for_select(["300","100"]), {
 	  :allowFreeText => 'false',
 	  :condition => "prescribeAntiretroviralDrugs() && $('ipt_given').value == 'YES'",
 	  :helpText => "IPT milligrams" } %>

@@ -102,7 +102,13 @@ class GenericPeopleController < ApplicationController
     found_person = nil
     if params[:identifier]
       local_results = PatientService.search_by_identifier(params[:identifier])
-       
+
+			if local_results.blank? and (params[:identifier].match(/#{CoreService.get_global_property_value("site_prefix")}-ARV/i) || params[:identifier].match(/-TB/i))
+				flash[:notice] = "No matching person found with number #{params[:identifier]}"
+				redirect_to :action => 'find_by_tb_number' if params[:identifier].match(/-TB/i)
+				redirect_to :action => 'find_by_arv_number' if params[:identifier].match(/#{CoreService.get_global_property_value("site_prefix")}-ARV/i)
+			end
+
       if local_results.length > 1
         redirect_to :action => 'duplicates' ,:search_params => params
         return
@@ -149,7 +155,7 @@ class GenericPeopleController < ApplicationController
         end
       end
     end
-
+		
     @relation = params[:relation]
     @people = PatientService.person_search(params)
     @search_results = {}
@@ -475,7 +481,18 @@ class GenericPeopleController < ApplicationController
         :identifier => "#{site_prefix}-ARV-#{params[:arv_number]}" and return
     end
   end
-  
+
+  def find_by_tb_number
+    if request.post?
+						if PatientIdentifier.site_prefix == "MPC"
+							prefix = "LL"
+						else
+							prefix = PatientIdentifier.site_prefix
+						end
+      redirect_to :action => 'search' ,
+        :identifier => "#{prefix}-TB #{params[:tb_number]}" and return
+    end
+  end
   # List traditional authority containing the string given in params[:value]
   def traditional_authority
     district_id = District.find_by_name("#{params[:filter_value]}").id

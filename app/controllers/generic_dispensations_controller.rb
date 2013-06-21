@@ -13,6 +13,7 @@ class GenericDispensationsController < ApplicationController
 	end
 
   def create
+		
     if (params[:identifier])
       params[:drug_id] = params[:identifier].match(/^\d+/).to_s
       params[:quantity] = params[:identifier].match(/\d+$/).to_s
@@ -47,6 +48,36 @@ class GenericDispensationsController < ApplicationController
     @order = PatientService.current_treatment_encounter( @patient, session_date, user_person_id).drug_orders.find(:first,:conditions => ['drug_order.drug_inventory_id = ?', 
              params[:drug_id]]).order rescue []
 
+		drug_concept = ConceptName.find_by_name("Amount of drug brought to clinic").concept_id
+		drug_left_concept = ConceptName.find_by_name("Amount of drug remaining at home").concept_id
+
+
+		brought_to_clinic = Observation.find(:all, :conditions => ["person_id = ? and concept_id = ? and DATE(obs_datetime) = ?", @patient.id, drug_concept, session_date.to_date])
+
+		left_at_home = Observation.find(:all, :conditions => ["person_id = ? and concept_id = ? and DATE(obs_datetime) = ?", @patient.id, drug_left_concept, session_date.to_date])
+
+		quantity = params[:quantity].to_i
+		
+		(brought_to_clinic || []).each do |current_drug|
+			#raise "brought_to_clinic.to_yaml"
+			drug_name = current_drug.order.instructions.split(":").first rescue ""
+			drug_brought_value = current_drug.to_s.split(":").last rescue 0
+			if drug_name == @drug.name
+				#raise "#{drug_brought_value.to_i} brought"
+				quantity +=  drug_brought_value.to_i
+			end
+		end
+
+		(left_at_home || []).each do |current_drug|
+
+			drug_name = current_drug.order.instructions.split(":").first rescue ""
+			drug_left_value = current_drug.to_s.split(":").last rescue 0
+			if drug_name == @drug.name
+				#raise "#{drug_left_value.to_i} left"
+				quantity +=  drug_left_value.to_i
+			end
+		end
+		#raise "#{params[:quantity]} Original : #{quantity} Total"
     # Do we have an order for the specified drug?
 		if @order.blank?
 			if params[:location]
@@ -84,7 +115,7 @@ class GenericDispensationsController < ApplicationController
 							
 				end
 
-				duration = params[:quantity].to_i / equivalent_daily_dose.to_i
+				duration = quantity / equivalent_daily_dose.to_i
 
 				auto_expire_date = start_date + duration.to_i.days rescue start_date.to_date + duration.to_i.days
 
@@ -124,7 +155,7 @@ class GenericDispensationsController < ApplicationController
       :person_id => @patient.person.person_id,
       :encounter_id => @encounter.id,
       :value_drug => @drug_value,
-      :value_numeric => params[:quantity],
+      :value_numeric => quantity,
       :obs_datetime => session_date || Time.now())
 
     obs.save

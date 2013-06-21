@@ -2053,22 +2053,25 @@ end
         :order => "obs_datetime DESC,date_created DESC",
         :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL AND obs_datetime <= ?",
           patient.id, ConceptName.find_by_name("TB STATUS").concept_id, visit_date]).value_coded).fullname rescue "UNKNOWN"
-		#programs = patient.patient_programs.all rescue []
+		programs = patient.patient_programs.all rescue []
 
-		#programs.each do |prog|
-		#		tb_program = Program.find_by_name('TB PROGRAM').id
-		#		patient_program_id = PatientProgram.find_by_sql("SELECT  patient_program_id FROM patient_program
-		#										WHERE patient_id = #{patient.id}
-		#										AND program_id = #{tb_program}
-		#										AND voided = 0 LIMIT 1").first.patient_program_id  rescue state
+		programs.each do |prog|
+				tb_program = Program.find_by_name('TB PROGRAM').id
+				if prog.program.name.upcase == "TB PROGRAM"
+					state = ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname rescue state
+				end
+				#patient_program_id = PatientProgram.find_by_sql("SELECT  patient_program_id FROM patient_program
+				#								WHERE patient_id = #{patient.id}
+				#								AND program_id = #{tb_program}
+				#								AND voided = 0 LIMIT 1").first.patient_program_id  rescue state
 			
-		#		state = PatientState.find_by_sql("SELECT state  FROM patient_state
-		#										WHERE patient_program_id = #{patient_program_id}
-		#										AND voided = 0
-		#										AND start_date <= '#{visit_date}'
-		#										ORDER BY start_date DESC").last.state  rescue state
-		#		state = ProgramWorkflowState.find_state(state).concept.fullname rescue state
-		#end
+				#state = PatientState.find_by_sql("SELECT state  FROM patient_state
+				#								WHERE patient_program_id = #{patient_program_id}
+				#								AND voided = 0
+				#								AND start_date <= '#{visit_date}'
+				#								ORDER BY start_date DESC").last.state  rescue state
+				#state = ProgramWorkflowState.find_state(state).concept.fullname rescue state
+		end
 
 		state
 
