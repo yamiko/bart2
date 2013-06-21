@@ -86,7 +86,7 @@ class EncountersController < GenericEncountersController
       @allergic_to_sulphur = Observation.find(Observation.find(:first,
           :order => "obs_datetime DESC,date_created DESC",
           :conditions => ["person_id = ? AND concept_id = ?
-                            AND DATE(obs_datetime) = ?",@patient.id,
+                            AND DATE(obs_datetime) <= ?",@patient.id,
             ConceptName.find_by_name("Allergic to sulphur").concept_id,session_date])).to_s.strip.squish rescue ''
 
       @use_extended_family_planning = CoreService.get_global_property_value('extended.family.planning') rescue false
@@ -153,9 +153,15 @@ class EncountersController < GenericEncountersController
           ['Religious reasons', 'RELIGIOUS REASONS'],
           ['Afraid of side effects','AFRAID OF SIDE EFFECTS'],
           ['Never thought about it','NEVER THOUGHT ABOUT IT'],
-          ['Indifferent', 'INDIFFERENT']
+          ['Indifferent (Does not mind getting pregnant )', 'INDIFFERENT']
       ]
 
+			if @retrospective
+			
+				@select_options['why_no_family_planning_method_specific'] << ['Other', 'OTHER'] << ['Unknown', 'UNKNOWN']
+			
+			end						
+					
       @select_options['dual_options'] = [
           ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
           ['Depo-Provera', 'DEPO-PROVERA'],

@@ -4,7 +4,8 @@
     <script type="text/javascript" language="javascript"
     src="/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js" defer  ></script>    
     <meta http-equiv='content-type' content='text/html;charset=UTF-8' />
-    <%= javascript_include_tag "jquery" %>
+    <%#= javascript_include_tag "jquery" %>
+    <%= javascript_include_tag "Highcharts/js/jquery.min.js" %>
     <%= javascript_include_tag "jquery.flot" %>
     <%= javascript_include_tag "prototype" %>
 
@@ -87,14 +88,17 @@
   function loadChart(){
     
     try{
-<%
-dateToday = session[:datetime].to_date rescue Date.today
-%>
+      <%
+      dateToday = session[:datetime].to_date rescue Date.today
+      %>
       age = "<%=  @patient_bean.age_in_months rescue 99999%>";
       document.getElementById('tabPageContainer').innerHTML = "<div id='summary' style='background: width:100%;'></div>" ;
-      if (age < 6){
+      if (age <= 60){
         jQuery('#summary').empty();
         jQuery('#summary').load('/patients/baby_chart/<%= @patient_bean.patient_id %>?patient_id=<%= @patient_bean.patient_id %>&tab=true');
+      }else{
+        jQuery('#summary').empty();
+        jQuery('#summary').load('/people/area_graph_adults?id=<%=@patient_bean.patient_id%>');
       }
     }catch(exp){
       setTimeout("loadChart()", 100);

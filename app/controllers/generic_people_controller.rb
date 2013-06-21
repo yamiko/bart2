@@ -102,7 +102,13 @@ class GenericPeopleController < ApplicationController
     found_person = nil
     if params[:identifier]
       local_results = PatientService.search_by_identifier(params[:identifier])
-       
+
+			if local_results.blank? and (params[:identifier].match(/#{CoreService.get_global_property_value("site_prefix")}-ARV/i) || params[:identifier].match(/-TB/i))
+				flash[:notice] = "No matching person found with number #{params[:identifier]}"
+				redirect_to :action => 'find_by_tb_number' if params[:identifier].match(/-TB/i)
+				redirect_to :action => 'find_by_arv_number' if params[:identifier].match(/#{CoreService.get_global_property_value("site_prefix")}-ARV/i)
+			end
+
       if local_results.length > 1
         redirect_to :action => 'duplicates' ,:search_params => params
         return
@@ -149,7 +155,7 @@ class GenericPeopleController < ApplicationController
         end
       end
     end
-
+		
     @relation = params[:relation]
     @people = PatientService.person_search(params)
     @search_results = {}
@@ -475,7 +481,18 @@ class GenericPeopleController < ApplicationController
         :identifier => "#{site_prefix}-ARV-#{params[:arv_number]}" and return
     end
   end
-  
+
+  def find_by_tb_number
+    if request.post?
+						if PatientIdentifier.site_prefix == "MPC"
+							prefix = "LL"
+						else
+							prefix = PatientIdentifier.site_prefix
+						end
+      redirect_to :action => 'search' ,
+        :identifier => "#{prefix}-TB #{params[:tb_number]}" and return
+    end
+  end
   # List traditional authority containing the string given in params[:value]
   def traditional_authority
     district_id = District.find_by_name("#{params[:filter_value]}").id
@@ -822,6 +839,31 @@ class GenericPeopleController < ApplicationController
     render :text => "" and return if people.blank?
     render :text => PatientService.remote_demographics(people.first).to_json rescue nil
     return
+  end
+
+  def area_graph_adults
+    @patient_bean = PatientService.get_patient(Person.find(params[:id]))
+    weight_obs = Observation.find(:all,:joins =>"INNER JOIN encounter USING(encounter_id)",
+      :conditions =>["patient_id=? AND encounter_type=?
+      AND concept_id=?",params[:id],EncounterType.find_by_name('Vitals').id,
+      ConceptName.find_by_name('WEIGHT (KG)').concept_id],
+      :group =>"Date(encounter_datetime)",
+      :order =>"encounter_datetime DESC")
+    
+    @start_date = weight_obs.last.obs_datetime.to_date rescue Date.today
+    @weights = [] ; weights = {} ; count = 1
+    (weight_obs || []).each do |weight|
+      next if weight.value_numeric.blank?
+      weights[weight.obs_datetime] = weight.value_numeric
+      break if count > 12  
+      count+=1  
+    end
+    (weights || {}).sort{|a,b|a[0].to_date <=> b[0].to_date}.each do |date,weight|
+      @weights << [date.to_date.strftime('%d.%b.%y') , weight]
+    end
+
+    @weights = @weights.to_json
+    render :partial => "area_chart_adults" and return
   end
 
 	private

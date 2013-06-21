@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c3bfc249-e7cd-4bc7-b79a-adbc5a929352" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/db/adherence_calculation.sql" afterPath="$PROJECT_DIR$/db/adherence_calculation.sql" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/db/recalculate_adherence.sql" afterPath="$PROJECT_DIR$/db/recalculate_adherence.sql" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/script/calculate_art_adherence_from_pill_count.rb" afterPath="$PROJECT_DIR$/script/calculate_art_adherence_from_pill_count.rb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/script/.idea/workspace.xml" afterPath="$PROJECT_DIR$/script/.idea/workspace.xml" />
     </list>
     <ignored path="bart2.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -44,14 +44,19 @@
         <option value="$PROJECT_DIR$/script/recal_adherence.rb" />
         <option value="$PROJECT_DIR$/script/recal_calc.rb" />
         <option value="$PROJECT_DIR$/../../facility_dashboard/cron_jobs/latest_attendance_figures.rb" />
+        <option value="$PROJECT_DIR$/app/controllers/clinic_controller.rb" />
+        <option value="$PROJECT_DIR$/app/views/properties/creation.html.erb" />
+        <option value="$PROJECT_DIR$/app/views/encounters/extended_family_planning.rhtml" />
+        <option value="$PROJECT_DIR$/app/views/encounters/hiv_staging.rhtml" />
+        <option value="$PROJECT_DIR$/app/controllers/encounters_controller.rb" />
+        <option value="$PROJECT_DIR$/app/views/encounters/hiv_clinic_consultation.rhtml" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-1" />
-    <option name="y" value="-4" />
-    <option name="width" value="1362" />
-    <option name="height" value="773" />
+    <option name="y" value="24" />
+    <option name="width" value="1366" />
+    <option name="height" value="744" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -79,6 +84,26 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope">
+        <subPane subId="Project Files">
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+      <pane id="RailsProjectView">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="bart2" />
+              <option name="myItemType" value="org.jetbrains.plugins.ruby.rails.projectView.v2.nodes.RailsProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -107,7 +132,11 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="db" />
+              <option name="myItemId" value="app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="views" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -121,32 +150,30 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="db" />
+              <option name="myItemId" value="app" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="migrate" />
+              <option name="myItemId" value="views" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="encounters" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
-        </subPane>
-      </pane>
-      <pane id="Scope">
-        <subPane subId="Project Files">
-          <PATH>
-            <PATH_ELEMENT USER_OBJECT="Root">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-          </PATH>
-        </subPane>
-      </pane>
-      <pane id="RailsProjectView">
-        <subPane>
           <PATH>
             <PATH_ELEMENT>
               <option name="myItemId" value="bart2" />
-              <option name="myItemType" value="org.jetbrains.plugins.ruby.rails.projectView.v2.nodes.RailsProjectNode" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="bart2" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
@@ -237,6 +264,26 @@
         <option name="RakeTask" enabled="false" />
       </method>
     </configuration>
+    <configuration default="true" type="RubyRunConfigurationType" factoryName="Ruby">
+      <module name="" />
+      <RUBY_RUN_CONFIG NAME="RUBY_ARGS" VALUE="-e $stdout.sync=true;$stderr.sync=true;load($0=ARGV.shift)" />
+      <RUBY_RUN_CONFIG NAME="WORK DIR" VALUE="" />
+      <RUBY_RUN_CONFIG NAME="SHOULD_USE_SDK" VALUE="false" />
+      <RUBY_RUN_CONFIG NAME="ALTERN_SDK_NAME" VALUE="" />
+      <RUBY_RUN_CONFIG NAME="myPassParentEnvs" VALUE="true" />
+      <envs />
+      <EXTENSION ID="BundlerRunConfigurationExtension" bundleExecEnabled="false" />
+      <EXTENSION ID="RubyCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" track_test_folders="true" runner="rcov">
+        <COVERAGE_PATTERN ENABLED="true">
+          <PATTERN REGEXPS="/.rvm/" INCLUDED="false" />
+        </COVERAGE_PATTERN>
+      </EXTENSION>
+      <RUBY_RUN_CONFIG NAME="SCRIPT_PATH" VALUE="" />
+      <RUBY_RUN_CONFIG NAME="SCRIPT_ARGS" VALUE="" />
+      <method>
+        <option name="RakeTask" enabled="false" />
+      </method>
+    </configuration>
     <configuration default="true" type="TestUnitRunConfigurationType" factoryName="Test::Unit/Shoulda/Minitest">
       <predefined_log_file id="RUBY_TESTUNIT" enabled="true" />
       <module name="" />
@@ -294,6 +341,15 @@
       <CUCUMBER_RUN_CONFIG_SETTINGS_ID NAME="CUCUMBER_RUNNER_PATH" VALUE="" />
       <CUCUMBER_RUN_CONFIG_SETTINGS_ID NAME="USE_CUSTOM_RUNNER" VALUE="false" />
       <CUCUMBER_RUN_CONFIG_SETTINGS_ID NAME="SETTINGS_VERSION" VALUE="2" />
+      <method>
+        <option name="RakeTask" enabled="false" />
+      </method>
+    </configuration>
+    <configuration default="true" type="JavascriptDebugSession" factoryName="Remote">
+      <JSRemoteDebuggerConfigurationSettings>
+        <option name="engineId" value="embedded" />
+        <option name="fileUrl" />
+      </JSRemoteDebuggerConfigurationSettings>
       <method>
         <option name="RakeTask" enabled="false" />
       </method>
@@ -407,14 +463,14 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1" y="-4" width="1362" height="773" extended-state="6" />
+    <frame x="0" y="24" width="1366" height="744" extended-state="6" />
     <editor active="false" />
     <layout>
       <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.23529412" sideWeight="0.0" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22108346" sideWeight="0.5862069" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
@@ -485,35 +541,88 @@
     <breakpoint-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Capfile">
+    <entry file="file://$PROJECT_DIR$/app/models/global_property.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../facility_dashboard/cron_jobs/latest_attendance_figures.rb">
+    <entry file="file://$PROJECT_DIR$/app/controllers/application_controller.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="41" column="51" selection-start="858" selection-end="858" vertical-scroll-proportion="0.928">
+        <state line="119" column="68" selection-start="6188" selection-end="6188" vertical-scroll-proportion="0.9500832" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/config/application.yml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/views/encounters/appointment.rhtml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="73" column="62" selection-start="2253" selection-end="2253" vertical-scroll-proportion="0.9480069" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/controllers/clinic_controller.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="71" column="88" selection-start="3286" selection-end="3310" vertical-scroll-proportion="0.9136808" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/controllers/generic_properties_controller.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="137" column="46" selection-start="4911" selection-end="4911" vertical-scroll-proportion="0.6710098" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/controllers/generic_clinic_controller.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="177" column="51" selection-start="7304" selection-end="7304" vertical-scroll-proportion="0.8016" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/views/encounters/tb_followup.rhtml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="-0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/views/encounters/hiv_clinic_registration.rhtml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="983" column="154" selection-start="50295" selection-end="50298" vertical-scroll-proportion="0.36813188" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/views/encounters/referral.html.erb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="18" column="0" selection-start="0" selection-end="679" vertical-scroll-proportion="0.4397394" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/views/properties/creation.html.erb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="31" column="18" selection-start="1079" selection-end="1103" vertical-scroll-proportion="0.7881356" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/controllers/generic_encounters_controller.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="878" column="42" selection-start="38597" selection-end="38597" vertical-scroll-proportion="0.024958402" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/views/encounters/hiv_staging.rhtml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="370" column="5" selection-start="13179" selection-end="13345" vertical-scroll-proportion="0.024958402" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/views/encounters/hiv_clinic_consultation.rhtml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="167" column="95" selection-start="5137" selection-end="5137" vertical-scroll-proportion="0.44925123">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/db/adherence_calculation.sql">
+    <entry file="file://$PROJECT_DIR$/app/views/encounters/extended_hiv_staging.rhtml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="11" column="63" selection-start="982" selection-end="982" vertical-scroll-proportion="0.256">
+        <state line="678" column="38" selection-start="28758" selection-end="28758" vertical-scroll-proportion="0.024958402">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/script/recal_calc.rb">
+    <entry file="file://$PROJECT_DIR$/app/controllers/encounters_controller.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="12" column="31" selection-start="521" selection-end="521" vertical-scroll-proportion="0.28213167">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/script/recalculate_adherence.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="50" column="54" selection-start="0" selection-end="2098" vertical-scroll-proportion="0.78840125">
+        <state line="155" column="26" selection-start="8601" selection-end="8601" vertical-scroll-proportion="0.024">
           <folding />
         </state>
       </provider>
