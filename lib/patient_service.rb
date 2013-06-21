@@ -1487,7 +1487,7 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
   end
 
   def self.search_by_identifier(identifier)
-    unless identifier.match(/#{CoreService.get_global_property_value("site_prefix")}-ARV/i) || identifier.match(/#{CoreService.get_global_property_value("site_prefix")}-TB/i)
+    unless identifier.match(/#{CoreService.get_global_property_value("site_prefix")}-ARV/i) || identifier.match(/-TB/i)
       identifier = identifier.gsub("-","").strip
     end
 
@@ -1499,7 +1499,6 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
     } unless identifier.blank? rescue nil
 		#end
    
-		#raise people.to_yaml
     return people unless people.blank?
     create_from_dde_server = CoreService.get_global_property_value('create.from.dde.server').to_s == "true" rescue false
     if create_from_dde_server
