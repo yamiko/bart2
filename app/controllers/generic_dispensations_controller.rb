@@ -68,16 +68,16 @@ class GenericDispensationsController < ApplicationController
 			end
 		end
 
-		(left_at_home || []).each do |current_drug|
+		#(left_at_home || []).each do |current_drug|
 
-			drug_name = current_drug.order.instructions.split(":").first rescue ""
-			drug_left_value = current_drug.to_s.split(":").last rescue 0
-			if drug_name == @drug.name
-				#raise "#{drug_left_value.to_i} left"
-				quantity +=  drug_left_value.to_i
-			end
-		end
-		#raise "#{params[:quantity]} Original : #{quantity} Total"
+		#	drug_name = current_drug.order.instructions.split(":").first rescue ""
+		#	drug_left_value = current_drug.to_s.split(":").last rescue 0
+		#	if drug_name == @drug.name
+		#		#raise "#{drug_left_value.to_i} left"
+		#		quantity +=  drug_left_value.to_i
+		#	end
+		#end
+
     # Do we have an order for the specified drug?
 		if @order.blank?
 			if params[:location]
