@@ -2016,13 +2016,15 @@ end
     end
 #=end
 
-    patient_visits.each do |visit_date,data| 
+    patient_visits.sort.each do |visit_date,data|
       next if visit_date.blank?
      # patient_visits[visit_date].outcome = hiv_state(patient_obj,visit_date)
       #patient_visits[visit_date].date_of_outcome = visit_date
 
 			status = tb_status(patient_obj, visit_date).upcase rescue nil
 			patient_visits[visit_date].tb_status = status
+			patient_visits[visit_date].tb_status = 'unknown' if status == 'MISSING'
+			patient_visits[visit_date].tb_status = 'unknown' if status == 'UNKNOWN'
 			patient_visits[visit_date].tb_status = 'noSup' if status == 'TB NOT SUSPECTED'
 			patient_visits[visit_date].tb_status = 'sup' if status == 'TB SUSPECTED'
 			patient_visits[visit_date].tb_status = 'noRx' if status == 'CONFIRMED TB NOT ON TREATMENT'
@@ -2049,10 +2051,12 @@ end
 
 
 	def tb_status(patient, visit_date = Date.today)
-		state = Concept.find(Observation.find(:first,
-        :order => "obs_datetime DESC,date_created DESC",
-        :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL AND obs_datetime <= ?",
-          patient.id, ConceptName.find_by_name("TB STATUS").concept_id, visit_date]).value_coded).fullname rescue "UNKNOWN"
+		  state = Concept.find(Observation.find(:first, :order => "obs_datetime DESC, date_created DESC", :conditions => ["person_id = ? AND concept_id = ? AND DATE(obs_datetime) <= ? AND value_coded IS NOT NULL", patient.id, ConceptName.find_by_name("TB STATUS").concept_id, visit_date.to_date ]).value_coded).fullname rescue "Unknown"
+
+		#state = Concept.find(Observation.find(:first,
+        #:order => "obs_datetime DESC,date_created DESC",
+        #:conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL AND obs_datetime <= ?",
+          #patient.id, ConceptName.find_by_name("TB STATUS").concept_id, visit_date]).value_coded).fullname rescue "UNKNOWN"
 		programs = patient.patient_programs.all rescue []
 
 		programs.each do |prog|
