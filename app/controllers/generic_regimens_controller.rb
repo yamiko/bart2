@@ -11,7 +11,13 @@ class GenericRegimensController < ApplicationController
 		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
 		@patient_bean = PatientService.get_patient(@patient.person)
 		@programs = @patient.patient_programs.all
-		@hiv_programs = @patient.patient_programs.not_completed.in_programs('HIV PROGRAM')
+		#@hiv_programs = @patient.patient_programs.not_completed.in_programs('HIV PROGRAM')
+    @hiv_programs = []
+    @programs.each do |prog|
+        if prog.program.name.upcase == "HIV PROGRAM"
+          @hiv_programs << prog unless ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname.match(/treatment stopped/i)
+        end
+    end
 
 		@reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
 		@current_weight = PatientService.get_patient_attribute_value(@patient, "current_weight")
@@ -33,9 +39,14 @@ class GenericRegimensController < ApplicationController
     end
 		@current_regimen_names_for_programs = current_regimen_names_for_programs
 		
-		@current_hiv_program_state = PatientProgram.find(:first, :joins => :location, :conditions => ["patient_id = ? AND program_id = ? AND location.location_id = ? AND date_completed IS NULL", @patient.id, Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id, Location.current_health_center]).patient_states.current.first.program_workflow_state.concept.fullname rescue ''		
+		@current_hiv_program_state = PatientProgram.find(:first, :joins => :location, 
+                                 :conditions => ["patient_id = ? AND program_id = ? AND location.location_id = ? AND date_completed IS NULL",
+                                  @patient.id, Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id, Location.current_health_center]).patient_states.current.first.program_workflow_state.concept.fullname rescue ''
 		session_date = session[:datetime].to_date rescue Date.today
+    #raise Location.current_health_center.id.to_yaml
 
+    #raise PatientProgram.find(:first, :joins => :location,
+    #                          :conditions => ["patient_id = ? AND program_id = ? AND location.location_id = ? AND date_completed IS NULL", @patient.id, Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id, Location.current_health_center.id]).to_yaml
 		pre_hiv_clinic_consultation = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
 		    :conditions =>["DATE(encounter_datetime) = ? AND patient_id = ? AND encounter_type = ?",
 		    session_date.to_date, @patient.id, EncounterType.find_by_name('PART_FOLLOWUP').id])

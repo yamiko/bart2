@@ -156,6 +156,16 @@ class EncountersController < GenericEncountersController
           ['Indifferent (Does not mind getting pregnant )', 'INDIFFERENT']
       ]
 
+      @select_options['family_planning_methods_int'] = [
+          ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
+          ['Depo-Provera', 'DEPO-PROVERA'],
+          ['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
+          ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
+          ['Female condoms', 'FEMALE CONDOMS'],
+	        ['Male condoms', 'MALE CONDOMS'],
+          ['Tubal ligation', 'TUBAL LIGATION']
+      ]
+
 			if @retrospective
 			
 				@select_options['why_no_family_planning_method_specific'] << ['Other', 'OTHER'] << ['Unknown', 'UNKNOWN']

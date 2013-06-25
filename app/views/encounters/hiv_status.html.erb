@@ -1,5 +1,4 @@
 <%= javascript_include_tag "date" %>
-
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id -%>";
 <% @session_date = "#{session[:datetime].to_date rescue Date.today}" %>
