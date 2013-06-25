@@ -242,7 +242,6 @@
          :tt_pageStyleClass => "NoKeyboard",
          :helpText => "What method?" } %>
 
-            <%#= raise @use_extended_family_planning.to_s %>
         <% if @use_extended_family_planning == "true"  %>
 
               <%= touch_select_tag "REASON FOR NO FAMILY PLANNING", @patient, options_for_select(@select_options['why_no_family_planning_method']),
@@ -274,7 +273,7 @@
                    }
               %>
 
-              <%= touch_select_tag "FAMILY PLANNING METHOD", @patient, options_for_select(@select_options['family_planning_methods']),
+              <%= touch_select_tag "FAMILY PLANNING METHOD", @patient, options_for_select(@select_options['family_planning_methods_int']),
                    {:id => "fpm_used_intervened",
 	                  :tt_onLoad => "fpm_used_intervened=''",
                     :condition => '$("offer_fpm").value == "YES"',

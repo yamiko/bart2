@@ -13,13 +13,13 @@ def start
 
 
   records = DrugOrder.find_by_sql("SELECT t3.person_id person_id,
-    t1.drug_inventory_id drug_id,DATE(t3.obs_datetime) visit_date
+    t1.drug_inventory_id drug_id,DATE(t3.obs_datetime) visit_date, t1.order_id
     FROM drug_order t1 INNER JOIN orders t2 ON t2.order_id = t1.order_id 
     INNER JOIN obs t3 ON t3.order_id = t2.order_id 
     WHERE t3.concept_id = #{amount_brought_concept_id} 
     AND t3.obs_datetime <= '#{start_date}' GROUP BY t3.person_id,
     obs_datetime,t3.obs_id").collect do |record|
-      [record.person_id,record.drug_id,record.visit_date]
+      [record.person_id,record.drug_id,record.visit_date, record.order_id]
     end
 
   (records || []).each do |record|
@@ -41,7 +41,8 @@ EOF
         obs.encounter_id = adherence_encounter.id
         obs.person_id = adherence_encounter.patient_id
         obs.obs_datetime = adherence_encounter.encounter_datetime
-        obs.value_text = adherence
+        obs.value_numeric = adherence
+        obs.order_id = record[3]
         obs.save
 				last_dispense = Observation.find(:last,:conditions => ["concept_id =? AND person_id = ? AND obs_datetime < ? AND value_drug = ?",
 				dispense_concept_id, adherence_encounter.patient_id,adherence_encounter.encounter_datetime,record[1]], 
