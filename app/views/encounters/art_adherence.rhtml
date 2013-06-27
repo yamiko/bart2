@@ -271,7 +271,7 @@
 		daily_consumption['<%=order.order_id%>'] = "<%=order.drug_order.equivalent_daily_dose %>";
 		order_start_date['<%=order.order_id%>'] = "<%=order.start_date.strftime('%Y-%m-%d') %>";
 		order_auto_expire_date['<%=order.order_id%>'] = "<%= order.auto_expire_date.strftime('%Y-%m-%d') %>";
-		amount_given_last_time['<%=order.order_id%>'] = "<%=PatientService.amount_given(order) %>";
+		amount_given_last_time['<%=order.order_id%>'] = "<%= order.drug_order.quantity %>";
 	  </script>
 
 	<% end rescue [] %>

@@ -2083,12 +2083,6 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
     end
   end
 
-  def self.amount_given(order)
-    concept_id = Concept.find_by_name('AMOUNT DISPENSED').id
-    Observation.find(:first,:conditions =>["order_id = ? AND concept_id = ?",
-      order.id,concept_id]).value_numeric rescue nil
-  end
-
   private
 
   def self.current_program_location                                                  
