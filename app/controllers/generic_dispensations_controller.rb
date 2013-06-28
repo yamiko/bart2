@@ -58,15 +58,14 @@ class GenericDispensationsController < ApplicationController
 
 		quantity = params[:quantity].to_i
 		
-		(brought_to_clinic || []).each do |current_drug|
-			#raise "brought_to_clinic.to_yaml"
-			drug_name = current_drug.order.instructions.split(":").first rescue ""
-			drug_brought_value = current_drug.to_s.split(":").last rescue 0
-			if drug_name == @drug.name
-				#raise "#{drug_brought_value.to_i} brought"
-				quantity +=  drug_brought_value.to_i
-			end
-		end
+		#(brought_to_clinic || []).each do |current_drug|
+		#raise "brought_to_clinic.to_yaml"
+		#drug_name = current_drug.order.instructions.split(":").first rescue ""
+		#drug_brought_value = current_drug.to_s.split(":").last rescue 0
+		#if drug_name == @drug.name
+		#   quantity +=  drug_brought_value.to_i
+		# end
+		#end
 
 		#(left_at_home || []).each do |current_drug|
 
