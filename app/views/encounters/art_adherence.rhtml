@@ -398,6 +398,7 @@
 
 	  	summary += "<div><span class='title'></span><span class='title'>"+drug_name+"</span></div>"
 	  	summary += "<div><span >Last visit date:&nbsp;</span><span class='value'>"+dateFormat(last_visit_date,"dddd, mmmm dS, yyyy")+"</span></div>"
+	  	summary += "<div><span >Number of days gone since then:&nbsp;</span><span class='value'>"+ num_days +"</span></div>"
 	  	
 		if (doses_missed >= 0){
 			summary += "<div><span class='value'>Doses unaccounted for:&nbsp;</span><span class='value'>"+doses_missed+"</span></div>"
