@@ -49,11 +49,11 @@ EOF
         obs.value_numeric = adherence
         obs.order_id = record[3]
         obs.save
-				last_dispense = Observation.find(:last,:conditions => ["concept_id =? AND person_id = ? AND obs_datetime < ? AND value_drug = ?",
-				dispense_concept_id, adherence_encounter.patient_id,adherence_encounter.encounter_datetime,record[1]], 
-				:order => "obs_datetime DESC")
-				last_dispense.encounter_id = adherence_encounter.encounter_id
-				last_dispense.save!
+				#last_dispense = Observation.find(:last,:conditions => ["concept_id =? AND person_id = ? AND obs_datetime < ? AND value_drug = ?",
+				#dispense_concept_id, adherence_encounter.patient_id,adherence_encounter.encounter_datetime,record[1]], 
+				#:order => "obs_datetime DESC")
+				#last_dispense.encounter_id = adherence_encounter.encounter_id
+				#last_dispense.save!
       end
     end
     puts "............... count #{adherence}"
