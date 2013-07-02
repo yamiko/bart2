@@ -1,7 +1,12 @@
 
 
 def start
-  Location.current_location = Location.find(177)
+  @location = Encounter.find(:first, :conditions => ["location_id IS NOT NULL"], :limit => 1).location_id
+
+  Location.current_location = Location.find(@location)
+
+  #Location.current_location = Location.find(641)
+  #raise Location.current_location.to_yaml
   User.current = User.find(1)
 
   start_date = Date.today.strftime('%Y-%m-%d 23:59:59')
@@ -44,11 +49,11 @@ EOF
         obs.value_numeric = adherence
         obs.order_id = record[3]
         obs.save
-				last_dispense = Observation.find(:last,:conditions => ["concept_id =? AND person_id = ? AND obs_datetime < ? AND value_drug = ?",
-				dispense_concept_id, adherence_encounter.patient_id,adherence_encounter.encounter_datetime,record[1]], 
-				:order => "obs_datetime DESC")
-				last_dispense.encounter_id = adherence_encounter.encounter_id
-				last_dispense.save!
+				#last_dispense = Observation.find(:last,:conditions => ["concept_id =? AND person_id = ? AND obs_datetime < ? AND value_drug = ?",
+				#dispense_concept_id, adherence_encounter.patient_id,adherence_encounter.encounter_datetime,record[1]], 
+				#:order => "obs_datetime DESC")
+				#last_dispense.encounter_id = adherence_encounter.encounter_id
+				#last_dispense.save!
       end
     end
     puts "............... count #{adherence}"
