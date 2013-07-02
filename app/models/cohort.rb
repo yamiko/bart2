@@ -738,7 +738,7 @@ class Cohort
 											AND o.concept_id = #{tb_status_concept_id}
 											AND o.obs_datetime <= '#{@end_date}'
 											AND o.person_id IN (#{joined_array})
-											ORDER BY en.encounter_datetime DESC").each do |state|
+											ORDER BY en.encounter_datetime ASC").each do |state|
 			states[state.person_id] = state.value_coded
 		end
 			
