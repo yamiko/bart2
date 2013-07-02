@@ -1230,14 +1230,18 @@ EOF
 
   def self.patient_to_be_archived(patient)
     active_identifier_type = PatientIdentifierType.find_by_name("Filing Number")
-=begin    PatientIdentifier.find_by_sql(["
+=begin    
+    PatientIdentifier.find_by_sql(["
       SELECT * FROM patient_identifier
       WHERE voided = 1 AND identifier_type = ? AND void_reason = ? ORDER BY date_created DESC",
         active_identifier_type.id,"Archived - filing number given to:#{patient.id}"]).first.patient rescue nil
 =end
 
 
-   PatientIdentifier.find_by_sql(["SELECT * FROM patient_identifier WHERE voided = 1 AND identifier_type = ? AND void_reason = 'Archived'  AND patient_id = ? ORDER BY date_created DESC",active_identifier_type.id,patient.id]).first.patient rescue nil
+    PatientIdentifier.find_by_sql(["SELECT * FROM patient_identifier WHERE voided = 1 
+     AND identifier_type = ? AND void_reason = 'Archived - filing number given to:#{patient.id}'  
+     ORDER BY date_created DESC",active_identifier_type.id]).first.patient rescue nil
+
   end
 
   def self.set_patient_filing_number(patient) #changed from set_filing_number after being moved from patient model
@@ -1300,7 +1304,7 @@ EOF
             patient_to_be_archived.id,PatientIdentifierType.find_by_name("Filing Number").id])
 				current_filing_numbers.each do | filing_number |
 					filing_number.voided = 1
-					filing_number.voided_by = current_user.id
+					filing_number.voided_by = User.current.id
 					filing_number.void_reason = "Archived - filing number given to:#{current_patient.id}"
 					filing_number.date_voided = Time.now()
 					filing_number.save
