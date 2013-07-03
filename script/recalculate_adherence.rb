@@ -33,6 +33,36 @@ def start
 EOF
                                                        
     adherence = adherence.to_i rescue nil
+    
+    adherence_to_show = 0
+    adherence_over_100 = 0
+    adherence_below_100 = 0
+    over_100_done = false
+    below_100_done = false
+
+      drug_adherence = adherence
+      if drug_adherence <= 100
+        adherence_below_100 = adherence.to_i if adherence_below_100 == 0
+        adherence_below_100 = adherence.to_i if drug_adherence <= adherence_below_100
+        below_100_done = true
+      else  
+        adherence_over_100 = adherence.to_i if adherence_over_100 == 0
+        adherence_over_100 = adherence.to_i if drug_adherence >= adherence_over_100
+        over_100_done = true
+      end 
+
+    return if !over_100_done and !below_100_done
+    over_100 = 0
+    below_100 = 0
+    over_100 = adherence_over_100 - 100 if over_100_done
+    below_100 = 100 - adherence_below_100 if below_100_done
+
+    if over_100 >= below_100 and over_100_done
+      adherence = 100 - (adherence_over_100 - 100)
+    else
+      adherence = adherence_below_100
+    end
+    
     puts "#{record[0]},#{record[1]},#{record[2]} ============ #{adherence}"                                         
 
     Encounter.transaction do 
@@ -53,7 +83,7 @@ EOF
 				#dispense_concept_id, adherence_encounter.patient_id,adherence_encounter.encounter_datetime,record[1]], 
 				#:order => "obs_datetime DESC")
 				#last_dispense.encounter_id = adherence_encounter.encounter_id
-				#last_dispense.save!
+				#last_dispense.save
       end
     end
     puts "............... count #{adherence}"
