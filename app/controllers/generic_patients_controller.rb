@@ -2012,7 +2012,11 @@ end
       next if visit_date.blank?
       patient_visits[visit_date] = Mastercard.new() if patient_visits[visit_date].blank?
       patient_visits[visit_date].outcome = state.program_workflow_state.concept.fullname rescue 'Unknown state'
+      if patient_visits[visit_date].outcome.match(/transferred in/i)
+         patient_visits[visit_date].outcome = "ON ARV" 
+      end
       patient_visits[visit_date].date_of_outcome = state.start_date
+
     end
 #=end
 
@@ -2042,6 +2046,9 @@ end
 
         patient_visits[encounter_date] = Mastercard.new() if patient_visits[encounter_date].blank?
         patient_visits[encounter_date].outcome = state.program_workflow_state.concept.fullname rescue 'Unknown state'
+        if patient_visits[encounter_date].outcome.match(/transferred in/i)
+          patient_visits[encounter_date].outcome = "ON ARV" 
+        end
         patient_visits[encounter_date].date_of_outcome = state.start_date rescue nil
       end
     end
