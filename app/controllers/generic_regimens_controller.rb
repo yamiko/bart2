@@ -15,7 +15,7 @@ class GenericRegimensController < ApplicationController
     @hiv_programs = []
     @programs.each do |prog|
         if prog.program.name.upcase == "HIV PROGRAM"
-          @hiv_programs << prog unless ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname.match(/treatment stopped/i)
+          @hiv_programs << prog #unless ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname.match(/treatment stopped/i)
         end
     end
 
