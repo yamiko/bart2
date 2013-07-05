@@ -773,9 +773,7 @@ class ApplicationController < GenericApplicationController
       return task
     end
 
-		pp = PatientProgram.find(:first, :joins => :location, 
-                        :conditions => ["program_id = ? AND patient_id = ?",
-                        Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id,patient.id]).patient_states.last.program_workflow_state.concept.fullname	rescue ""
+		pp = PatientProgram.find(:first, :joins => :location, :conditions => ["program_id = ? AND patient_id = ?", Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id,patient.id]).patient_states.last.program_workflow_state.concept.fullname	rescue ""
 
     current_day_encounters = Encounter.find(:all,
               :conditions =>["patient_id = ? AND DATE(encounter_datetime) = ?",
@@ -854,7 +852,7 @@ class ApplicationController < GenericApplicationController
               patient.id, concept_id, session_date, session_date.to_s + ' 23:59:59'],:order =>"obs_datetime DESC, date_created DESC")
 
           refer_to_clinician = ob.to_s.squish.upcase == 'Refer to ART clinician: yes'.upcase
-          
+
 
           if current_user_roles.include?('Nurse')
             adherence_encounter_available = Encounter.find(:first,
@@ -884,8 +882,7 @@ class ApplicationController < GenericApplicationController
           
           if not encounter_available.blank? and refer_to_clinician 
             task.url = "/patients/show/#{patient.id}"
-            #task.encounter_type = "Clinician " + task.encounter_type
-            task.encounter_type = task.encounter_type
+            task.encounter_type = task.encounter_type + " (Clinician)"
             return task
           end if current_user_roles.include?('Nurse')
 
@@ -896,13 +893,11 @@ class ApplicationController < GenericApplicationController
 
             if user_selected_activities.match(/Manage HIV clinic consultations/i)
               task.url = "/encounters/new/hiv_clinic_consultation?patient_id=#{patient.id}"
-              #task.encounter_type = "Clinician " + task.encounter_type
-              task.encounter_type = task.encounter_type
+              task.encounter_type = task.encounter_type + " (Clinician)"
               return task
             elsif not user_selected_activities.match(/Manage HIV clinic consultations/i)
               task.url = "/patients/show/#{patient.id}"
-              #task.encounter_type = "Clinician " + task.encounter_type
-              task.encounter_type = task.encounter_type
+              task.encounter_type = task.encounter_type + " (Clinician)"
               return task
             end 
           end if clinician_or_doctor
