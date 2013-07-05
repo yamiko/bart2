@@ -544,22 +544,22 @@ class GenericRegimensController < ApplicationController
 
 			next if concept == 'NO'
 
-      params[:cpt_duration] =  params[:duration] if params[:cpt_duration].blank?
-			auto_cpt_ipt_expire_date = session[:datetime] + params[:cpt_duration].to_i.days rescue Time.now + params[:cpt_duration].to_i.days
+      if ! params[:cpt_duration].blank?
+        #params[:cpt_duration] =  params[:duration]
+        auto_cpt_ipt_expire_date = session[:datetime] + params[:cpt_duration].to_i.days rescue Time.now + params[:cpt_duration].to_i.days
+      end
 			if concept_name == 'CPT STARTED'
 				if params[:cpt_mgs] == "960"
 					drug = Drug.find_by_name('Cotrimoxazole (960mg)')
 				else
 					drug = Drug.find_by_name('Cotrimoxazole (480mg tablet)')
 				end
-			else
-				#raise params[:ipt_mgs].to_yaml
+      else
 				if params[:ipt_mgs] == "300"
 						drug = Drug.find_by_name('INH or H (Isoniazid 300mg tablet)')	
 				else
 						drug = Drug.find_by_name('INH or H (Isoniazid 100mg tablet)')
-				end
-				
+				end	
 			end
 			
 			weight = @current_weight = PatientService.get_patient_attribute_value(@patient, "current_weight")
@@ -568,16 +568,9 @@ class GenericRegimensController < ApplicationController
 			#raise regimen_id.to_yaml
 
 			orders = RegimenDrugOrder.all(:conditions => {:regimen_id => regimen_id})
-			#raise orders.to_yaml
-			# orders = RegimenDrugOrder.all(:conditions => {:regimen_id => Regimen.find_by_concept_id(drug.concept_id).regimen_id})
-			if prescribe_arvs == false || prescribe_tb_drugs == false
-					auto_cpt_ipt_expire_date = session[:datetime] + params[:cpt_duration].to_i.days rescue Time.now + params[:cpt_duration].to_i.days
-			end
-					#if params[:ipt_mgs] == "300"
-					#	raise drug.to_yaml
-					#end
+			
+					#raise auto_cpt_ipt_expire_date.to_yaml
 					orders.each do |order|
-						drug = Drug.find(order.drug_inventory_id) if concept_name != 'CPT STARTED' and params[:ipt_mgs] != "300"
 						regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept_names.typed("FULLY_SPECIFIED").first).name
 						DrugOrder.write_order(
 						encounter,
