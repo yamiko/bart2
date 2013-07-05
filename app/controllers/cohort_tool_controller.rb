@@ -379,8 +379,32 @@ class CohortToolController < GenericCohortToolController
     other_encounters.delete_if { |encounter| voided_encounters << encounter if (encounter.voided == 1)}
 
     voided_encounters.map do |encounter|
-      patient           = Patient.find(encounter.patient_id)
-      patient_bean = PatientService.get_patient(patient.person)
+      patient           = Patient.find(encounter.patient_id) rescue nil
+      if patient.nil?
+        patient_details = {"patient_id" => encounter.patient_id,
+                           "arv_number" => '',
+                           "patient_name" => '',
+                           "national_id" => ''
+                         }
+        arv_id = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
+        national_id = PatientIdentifierType.find_by_name('National id').patient_identifier_type_id
+        
+        patient_details[:arv_number] = PatientIdentifier.find(:first, 
+                                        :select => "identifier",
+                                        :conditions  =>["patient_id = ? and identifier_type = ?", 
+                                          encounter.patient_id, arv_id],
+                                      :order => "date_created DESC" ).identifier rescue nil
+        patient_details[:national_id] = PatientIdentifier.find(:first, 
+                                        :select => "identifier",
+                                        :conditions  =>["patient_id = ? and identifier_type = ?", 
+                                          encounter.patient_id, national_id],
+                                      :order => "date_created DESC" ).identifier rescue nil
+        person = PersonName.find_by_sql("SELECT pn.* FROM person p INNER JOIN person_name pn ON pn.person_id = p.person_id WHERE p.person_id = #{encounter.patient_id}")
+        patient_details[:patient_name] = person.first.given_name + ' ' + person.first.family_name rescue nil
+        
+      else
+        patient_bean = PatientService.get_patient(patient.person)
+      end
 
       new_encounter  = other_encounters.reduce([])do |result, e|
         result << e if( e.encounter_datetime.strftime("%d-%m-%Y") == encounter.encounter_datetime.strftime("%d-%m-%Y")&&
@@ -395,14 +419,14 @@ class CohortToolController < GenericCohortToolController
 
       voided_observations = voided_observations(encounter)
       changed_to    = changed_to(new_encounter)
-      changed_from  = changed_from(voided_observations)
+      changed_from  = changed_from(voided_observations) if ! voided_observations.nil? 
 
       if( voided_observations && !voided_observations.empty?)
 				voided_records[encounter.id] = {
-					"id"              => patient.patient_id,
-					"arv_number"      => patient_bean.arv_number,
-					"name"            => patient_bean.name,
-					"national_id"     => patient_bean.national_id,
+					"id"              => (patient.nil?) ? encounter.patient_id : patient.patient_id,
+					"arv_number"      => (patient.nil?) ? patient_details[:arv_number] : patient_bean.arv_number,
+					"name"            => (patient.nil?) ? patient_details[:patient_name] : patient_bean.name,
+					"national_id"     => (patient.nil?) ? patient_details[:national_id] : patient_bean.national_id,
 					"encounter_name"  => encounter.name,
 					"voided_date"     => encounter.date_voided,
 					"reason"          => encounter.void_reason,
