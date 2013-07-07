@@ -781,21 +781,26 @@ class EncountersController < GenericEncountersController
     @concept_id = ConceptName.find_by_name('APPOINTMENT DATE').concept_id        
           
     number_of_bookings = {}
-                                                                      
-    (bookings || []).sort.reverse.each do |date|   
+
+      (bookings || []).sort.reverse.each do |date|
       next if not clinic_days.collect{|c|c.upcase}.include?(date.strftime('%A').upcase)
       limit = number_of_booked_patients(date.to_date).to_i rescue 0
-      if limit < clinic_appointment_limit                                  
+      if clinic_appointment_limit == 0
+          recommended_date = date
+          break
+      end
+      if limit < clinic_appointment_limit
         recommended_date = date
-        break 
+        break
       else
         number_of_bookings[date] = limit
       end
-    end          
-                                                                   
+     end
+                                                                 
+    
     (number_of_bookings || {}).sort_by { |dates,num| num }.each do |dates , num|   
       next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
-      recommended_date = dates                                                  
+        recommended_date = dates
       break 
     end if recommended_date.blank?                                                                        
 
