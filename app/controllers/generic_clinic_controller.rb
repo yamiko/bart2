@@ -124,6 +124,7 @@ class GenericClinicController < ApplicationController
       ["Data Cleaning Tools", "/clinic/data_cleaning_tab"],
       #["View appointments","/report/select_date"],
       ["Drug dispensation","/report/drug_menu"],
+      ["Pre-ART","/cohort_tool/cohort_menu?type=pre_art"],
       ["View appointments","/properties/select_date"]
     ]
 
