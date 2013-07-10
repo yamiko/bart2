@@ -129,6 +129,44 @@ class CohortToolController < GenericCohortToolController
 		
 	end
 
+  def pre_art
+    @logo = CoreService.get_global_property_value('logo').to_s
+    @quarter = params[:quarter]
+    start_date,end_date = Report.generate_cohort_date_range(@quarter)
+     #raise CohortTool.new(start_date, end_date).to_yaml
+     @total_reg = CohortTool.total_on_pre_art
+     @registered = CohortTool.registered(start_date, end_date)
+
+     @male_total = CohortTool.male_total(@total_reg)
+     @non_pregnant_female_total = CohortTool.female_non_pregnant(@total_reg)
+     @pregnant_female_total = CohortTool.pregnant_women(@total_reg)
+     @less_2_months_infants = CohortTool.infants_less_than_2_months(@total_reg)
+     @infants_between_2_and_24_months = CohortTool.infants_between_2_and_24_months(@total_reg)
+     @infants_between_24months_and_14_years = CohortTool.infants_between_24months_and_14_years(@total_reg)
+     @adults = CohortTool.adults(@total_reg)
+
+      @confirmed_on_pre_art = CohortTool.confirmed_on_pre_art
+      @exposed_on_pre_art = CohortTool.exposed_on_pre_art
+
+      @alive_on_pre_art = CohortTool.confirmed_on_pre_art(end_date)
+
+      @tranferred_out = CohortTool.outcomes_total('PATIENT TRANSFERRED OUT', end_date)
+      @on_arvs = CohortTool.outcomes_total('ON ARVS', end_date)
+      @defaulted = CohortTool.defaulted_patients(end_date)
+      @died = CohortTool.outcomes_total('PATIENT DIED', end_date)
+
+      #raise CohortTool.defaulted_patients(end_date).to_yaml
+    #logger.info("cohort")
+    #raise @less_2_months_infants.to_yaml
+		#if session[:cohort].blank?
+		  #@cohort = cohort.report(logger)
+		 # session[:cohort]= @cohort
+		#else
+			#@cohort = session[:cohort]
+		#end
+    render :layout => "cohort"
+  end
+
 	def case_findings2
 	
 		@quarter = params[:quarter]
