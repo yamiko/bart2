@@ -2262,6 +2262,10 @@ end
   end
   
   def seen_by(patient,date = Date.today)
+     a = Encounter.find_by_sql("SELECT * FROM encounter WHERE encounter_type = 53
+         AND patient_id = 33317 AND encounter_datetime between '2013-01-01 00:00:00'
+         AND '2013-01-01 23:59:59' ORDER BY date_created DESC").first
+
     provider = patient.encounters.find_by_date(date).collect{|e| next unless e.name == 'HIV CLINIC CONSULTATION' ; [e.name,e.creator]}.compact 
     provider_username = "#{'Seen by: ' + User.find(provider[0].last).username}" unless provider.blank?
     if provider_username.blank? 
