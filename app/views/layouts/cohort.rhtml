@@ -7,7 +7,7 @@
     <script language="javascript">
       tstUsername = "<%= current_user.username unless current_user.nil? %>";
       tstCurrentDate = "<%= Time.now.strftime("%Y-%m-%d") %>";
-      var tt_cancel_destination = null;
+      var tt_cancel_destination = '/clinic';
     </script>
     <%= stylesheet_link_tag "mateme" %>
     <%= stylesheet_link_tag fancy_or_high_contrast_touch %>
