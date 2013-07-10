@@ -1058,7 +1058,8 @@ class CohortToolController < GenericCohortToolController
 
 		#find patient outcome
 		session[:cohort]["outcomes"] = {} if session[:cohort]["outcomes"].blank?
-
+    session[:cohort]["Stopped taking ARVs"] = {} if session[:cohort]["Stopped taking ARVs"].blank?
+    
 		if !session[:cohort]["outcomes"][patient_id.to_s].blank?
 			#we already have the outcome for the patient therefore no need for searching
 
