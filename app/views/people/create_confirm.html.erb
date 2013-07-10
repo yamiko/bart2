@@ -1,0 +1,82 @@
+<style>
+.header {
+  margin: 5px;
+  border-style: solid;
+  border-width: 0px 0px 1px 0px;
+}
+
+.suggestion_results {
+  margin: 5px;
+  border-style: solid;
+  border-width: 0px 0px 1px 0px;
+}
+
+.suggestion-container {
+  overflow: auto; 
+  height: 61%;
+}
+
+.suggestions {
+  width: 100%;
+}
+
+.suggestions th {
+  padding-left: 5px;
+  text-align: left;
+}
+
+.strip_lightgray {
+  background-color: lightgray;
+}
+
+.table-header {
+  text-align: left;
+}
+
+</style>
+
+<script>
+
+function selectPatient(person_id) {
+  document.location = "/people/select?person[id]=" + person_id;
+}
+
+</script>
+
+<div class="header">
+  <h1>Existing people</h1>
+  <p>With similar demographics details</p>
+</div>
+
+<br />
+
+<div class="suggestion-container">
+<%
+  color = 'white'
+  (@people || []).each do |person|
+    if color == 'white'
+      color = 'lightgray'
+    else
+      color = 'white'
+    end
+%>
+<div class="suggestion_results" onmousedown="selectPatient('<%=person.person_id%>');">
+  <table class="suggestions strip_<%=color%>">
+    <tr>
+      <th>Name:</th><td><%=person.name%>&nbsp;(<%=person.sex%>)</td>
+      <th>Birthdate:</th><td><%=person.birth_date%></td>
+    </tr>
+    <tr>
+      <th>TA:</th><td><%=person.traditional_authority%></td>
+      <th>Home district:</th><td><%=person.home_district%></td>
+    </tr>
+    <tr>
+      <th>Home village:</th><td><%=person.home_village%></td>
+    </tr>
+  </table>
+</div>
+<%end%>
+
+</div>
+
+<%raise @parameters.to_yaml%>

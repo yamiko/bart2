@@ -1,5 +1,7 @@
 class GenericPeopleController < ApplicationController
-    
+   
+  @@test  = nil
+ 
 	def index
 		redirect_to "/clinic"
 	end
@@ -10,6 +12,17 @@ class GenericPeopleController < ApplicationController
 
 	def identifiers
 	end
+  
+  def create_confirm
+    @people = []
+    unless params[:people_ids].blank?
+      (params[:people_ids]).each do |person_id|
+        @people << PatientService.get_patient(Person.find(person_id))
+      end
+    end
+    @parameters = params[:user_entered_params]
+    render :layout => 'menu'
+  end
 
 	def create_remote
 
@@ -377,7 +390,65 @@ class GenericPeopleController < ApplicationController
 	end
 
  def create 
-  
+   if confirm_before_creating and not params[:force_create] == 'true'
+     @parameters = params
+     birthday_params = params.reject{|key,value| key.match(/gender/) }
+     unless birthday_params.empty?                                               
+       if params[:person]['birth_year'] == "Unknown"   
+         birthdate = Date.new(Date.today.year - params[:person]["age_estimate"].to_i, 7, 1)
+       else                                                                      
+         year = params[:person]["birth_year"].to_i 
+         month = params[:person]["birth_month"].to_i 
+         day = params[:person]["birth_day"].to_i
+
+         month_i = (month || 0).to_i                                                 
+         month_i = Date::MONTHNAMES.index(month) if month_i == 0 || month_i.blank?   
+         month_i = Date::ABBR_MONTHNAMES.index(month) if month_i == 0 || month_i.blank?
+                                                     
+         if month_i == 0 || month == "Unknown"                                       
+           birthdate = Date.new(year.to_i,7,1)                                
+         elsif day.blank? || day == "Unknown" || day == 0                            
+           birthdate = Date.new(year.to_i,month_i,15)                         
+         else                                                                        
+           birthdate = Date.new(year.to_i,month_i,day.to_i)                   
+         end
+       end                                                                       
+     end                                                                         
+     
+     start_birthdate = (birthdate - 5.year)
+     end_birthdate   = (birthdate + 5.year)                                                                   
+
+     given_name_code = @parameters[:person][:names]['given_name'].soundex
+     family_name_code = @parameters[:person][:names]['family_name'].soundex
+     gender = @parameters[:person]['gender']
+     ta = @parameters[:person][:addresses]['county_district']
+     home_district = @parameters[:person][:addresses]['address2']       
+     home_village = @parameters[:person][:addresses]['neighborhood_cell']
+
+     people = Person.find(:all,:joins =>"INNER JOIN person_name pn 
+       ON person.person_id = pn.person_id
+       INNER JOIN person_name_code pnc ON pnc.person_name_id = pn.person_name_id
+       INNER JOIN person_address pad ON pad.person_id = person.person_id",
+       :conditions =>["(pad.address2 LIKE (?) OR pad.county_district LIKE (?)
+       OR pad.neighborhood_cell LIKE (?)) AND pnc.given_name_code LIKE (?)
+       AND pnc.family_name_code LIKE (?) AND person.gender = '#{gender}'
+       AND (person.birthdate >= ? AND person.birthdate <= ?)","%#{home_district}%",
+       "%#{ta}%","%#{home_village}%","%#{given_name_code}%","%#{family_name_code}%",
+       start_birthdate,end_birthdate],:group => "person.person_id")
+
+     if people
+       people_ids = []
+       (people).each do |person|
+         people_ids << person.id
+       end
+     end
+
+     unless people_ids.blank?
+       redirect_to :action => :create_confirm , :people_ids => people_ids , 
+        :user_entered_params => @parameters and return
+     end
+   end
+
    hiv_session = false
    if current_program_location == "HIV program"
      hiv_session = true
