@@ -390,7 +390,7 @@ class GenericPeopleController < ApplicationController
 	end
 
  def create 
-   if confirm_before_creating and not params[:force_create] == 'true'
+   if confirm_before_creating and not params[:force_create] == 'true' and params[:relation].blank?
      @parameters = params
      birthday_params = params.reject{|key,value| key.match(/gender/) }
      unless birthday_params.empty?                                               
