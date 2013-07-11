@@ -14,12 +14,63 @@ class GenericPeopleController < ApplicationController
 	end
   
   def create_confirm
-    @people = []
-    unless params[:people_ids].blank?
-      (params[:people_ids]).each do |person_id|
-        @people << PatientService.get_patient(Person.find(person_id))
-      end
+    @search_results = {}                                                        
+    @patients = []
+     
+    (PatientService.search_demographics_from_remote(params[:user_entered_params]) || []).each do |data|            
+      national_id = data["person"]["data"]["patient"]["identifiers"]["National id"] rescue nil
+      national_id = data["person"]["value"] if national_id.blank? rescue nil    
+      national_id = data["npid"]["value"] if national_id.blank? rescue nil      
+      national_id = data["person"]["data"]["patient"]["identifiers"]["old_identification_number"] if national_id.blank? rescue nil
+                                                                              
+      next if national_id.blank?                                                
+      results = PersonSearch.new(national_id)                                   
+      results.national_id = national_id                                         
+      results.current_residence = data["person"]["data"]["addresses"]["city_village"]
+      results.person_id = 0                                                     
+      results.home_district = data["person"]["data"]["addresses"]["address2"]   
+      results.neighborhood_cell = data["person"]["data"]["addresses"]["neighborhood_cell"]   
+      results.traditional_authority =  data["person"]["data"]["addresses"]["county_district"]
+      results.name = data["person"]["data"]["names"]["given_name"] + " " + data["person"]["data"]["names"]["family_name"]
+      gender = data["person"]["data"]["gender"]                                 
+      results.occupation = data["person"]["data"]["occupation"]                 
+      results.sex = (gender == 'M' ? 'Male' : 'Female')                         
+      results.birthdate_estimated = (data["person"]["data"]["birthdate_estimated"]).to_i
+      results.birth_date = birthdate_formatted((data["person"]["data"]["birthdate"]).to_date , results.birthdate_estimated)
+      results.birthdate = (data["person"]["data"]["birthdate"]).to_date         
+      results.age = cul_age(results.birthdate.to_date , results.birthdate_estimated)
+      @search_results[results.national_id] = results                            
+    end if create_from_dde_server
+
+    (params[:people_ids]).each do |person_id|
+      patient = PatientService.get_patient(Person.find(person_id))
+
+      results = PersonSearch.new(patient.national_id || patient.patient_id)     
+      results.national_id = patient.national_id                                 
+      results.birth_date = patient.birth_date                                   
+      results.current_residence = patient.current_residence                     
+      results.guardian = patient.guardian                                       
+      results.person_id = patient.person_id                                     
+      results.home_district = patient.home_district                             
+      results.neighborhood_cell = patient.home_village                            
+      results.current_district = patient.current_district                       
+      results.traditional_authority = patient.traditional_authority             
+      results.mothers_surname = patient.mothers_surname                         
+      results.dead = patient.dead                                               
+      results.arv_number = patient.arv_number                                   
+      results.eid_number = patient.eid_number                                   
+      results.pre_art_number = patient.pre_art_number                           
+      results.name = patient.name                                               
+      results.sex = patient.sex                                                 
+      results.age = patient.age                                                 
+      @search_results.delete_if{|x,y| x == results.national_id }
+      @patients << results
     end
+
+		(@search_results || {}).each do | npid , data |
+			@patients << data
+		end
+
     @parameters = params[:user_entered_params]
     render :layout => 'menu'
   end
@@ -390,6 +441,7 @@ class GenericPeopleController < ApplicationController
 	end
 
  def create 
+
    if confirm_before_creating and not params[:force_create] == 'true' and params[:relation].blank?
      @parameters = params
      birthday_params = params.reject{|key,value| key.match(/gender/) }
@@ -443,7 +495,37 @@ class GenericPeopleController < ApplicationController
        end
      end
 
-     unless people_ids.blank?
+    
+     #............................................................................
+     @dde_search_results = {}
+     (PatientService.search_demographics_from_remote(params) || []).each do |data|            
+       national_id = data["person"]["data"]["patient"]["identifiers"]["National id"] rescue nil
+       national_id = data["person"]["value"] if national_id.blank? rescue nil    
+       national_id = data["npid"]["value"] if national_id.blank? rescue nil      
+       national_id = data["person"]["data"]["patient"]["identifiers"]["old_identification_number"] if national_id.blank? rescue nil
+                                                                                
+       next if national_id.blank?                                                
+       results = PersonSearch.new(national_id)                                   
+       results.national_id = national_id                                         
+       results.current_residence = data["person"]["data"]["addresses"]["city_village"]
+       results.person_id = 0                                                     
+       results.home_district = data["person"]["data"]["addresses"]["address2"]   
+       results.neighborhood_cell = data["person"]["data"]["addresses"]["neighborhood_cell"]   
+       results.traditional_authority =  data["person"]["data"]["addresses"]["county_district"]
+       results.name = data["person"]["data"]["names"]["given_name"] + " " + data["person"]["data"]["names"]["family_name"]
+       gender = data["person"]["data"]["gender"]                                 
+       results.occupation = data["person"]["data"]["occupation"]                 
+       results.sex = (gender == 'M' ? 'Male' : 'Female')                         
+       results.birthdate_estimated = (data["person"]["data"]["birthdate_estimated"]).to_i
+       results.birth_date = birthdate_formatted((data["person"]["data"]["birthdate"]).to_date , results.birthdate_estimated)
+       results.birthdate = (data["person"]["data"]["birthdate"]).to_date         
+       results.age = cul_age(results.birthdate.to_date , results.birthdate_estimated)
+       @dde_search_results[results.national_id] = results                            
+       break
+     end if create_from_dde_server
+     #............................................................................
+
+     if not people_ids.blank? or not @dde_search_results.blank?
        redirect_to :action => :create_confirm , :people_ids => people_ids , 
         :user_entered_params => @parameters and return
      end

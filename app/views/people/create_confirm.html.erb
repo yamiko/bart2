@@ -68,8 +68,12 @@
 
 <script>
 
-function selectPatient(person_id) {
-  document.location = "/people/select?person[id]=" + person_id;
+function selectPatient(person_id , national_id) {
+  if (parseInt(person_id) == 0 && national_id) {
+    document.location = "/people/search?identifier=" + national_id;
+  }else{
+    document.location = "/people/select?person[id]=" + person_id;
+  }
 }
 
 </script>
@@ -84,7 +88,7 @@ function selectPatient(person_id) {
 <div class="suggestion-container">
 <%
   color = 'white'
-  (@people || []).each do |person|
+  (@patients || []).each do |person|
     if color == 'white'
       color = 'lightgray'
     else
@@ -92,7 +96,7 @@ function selectPatient(person_id) {
     end
 %>
 <div class="suggestion_results">
-  <a href="javascript:selectPatient('<%=person.person_id%>');">
+  <a href="javascript:selectPatient('<%=person.person_id%>','<%=person.national_id%>');">
   <table class="suggestions strip_<%=color%>">
     <tr>
       <th>Name:</th><td><%=person.name%>&nbsp;(<%=person.sex == 'Female'? 'F' : 'M'%>)</td>
@@ -103,7 +107,7 @@ function selectPatient(person_id) {
       <th>Home district:</th><td><%=person.home_district%></td>
     </tr>
     <tr>
-      <th>Home village:</th><td><%=person.home_village%></td>
+      <th>Home village:</th><td><%=person.neighborhood_cell%></td>
       <th>Current residence:</th><td><%=person.current_residence%></td>
     </tr>
   </table></a>
