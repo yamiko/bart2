@@ -13,7 +13,7 @@ class EncountersController < GenericEncountersController
       render :action => params[:encounter_type] and return
 		end
 
-
+    
     @hiv_status = tb_art_patient(@patient,"hiv program") rescue ""
     @tb_status = tb_art_patient(@patient,"TB program") rescue ""
     @show_tb_types = false
@@ -61,7 +61,7 @@ class EncountersController < GenericEncountersController
 			@retrospective = false
 		end
 		@current_height = PatientService.get_patient_attribute_value(@patient, "current_height", session_date)
-
+    
 		@min_weight = PatientService.get_patient_attribute_value(@patient, "min_weight")
     @max_weight = PatientService.get_patient_attribute_value(@patient, "max_weight")
     @min_height = PatientService.get_patient_attribute_value(@patient, "min_height")
@@ -69,6 +69,7 @@ class EncountersController < GenericEncountersController
     @given_arvs_before = given_arvs_before(@patient)
     @current_encounters = @patient.encounters.find_by_date(session_date)
     @previous_tb_visit = previous_tb_visit(@patient.id)
+    
     @is_patient_pregnant_value = nil
     @is_patient_breast_feeding_value = nil
     @currently_using_family_planning_methods = nil
@@ -101,21 +102,21 @@ class EncountersController < GenericEncountersController
     if (params[:encounter_type].upcase rescue '') == 'UPDATE HIV STATUS'
       @referred_to_htc = get_todays_observation_answer_for_encounter(@patient.id, "UPDATE HIV STATUS", "Refer to HTC")
     end
-
+    
 		@given_lab_results = Encounter.find(:last,
 			:order => "encounter_datetime DESC,date_created DESC",
 			:conditions =>["encounter_type = ? and patient_id = ?",
 				EncounterType.find_by_name("GIVE LAB RESULTS").id,@patient.id]).observations.map{|o|
       o.answer_string if o.to_s.include?("Laboratory results given to patient")} rescue nil
-
+   
 		@transfer_to = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("TB VISIT").id,@patient.id]).observations.map{|o|
       o.answer_string if o.to_s.include?("Transfer out to")} rescue nil
-
+      
 		@recent_sputum_results = PatientService.recent_sputum_results(@patient.id) rescue nil
 
     @recent_sputum_submissions = PatientService.recent_sputum_submissions(@patient.id)
-
+    
 		@continue_treatment_at_site = []
 		Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ? AND DATE(encounter_datetime) = ?",
         EncounterType.find_by_name("TB CLINIC VISIT").id,
@@ -139,7 +140,7 @@ class EncountersController < GenericEncountersController
 		@tb_patient = is_tb_patient(@patient)
 		@art_patient = PatientService.art_patient?(@patient)
 		@recent_lab_results = patient_recent_lab_results(@patient.id)
-
+    
     if @use_extended_family_planning && is_child_bearing_female(@patient)
       @select_options['why_no_family_planning_method'] = [
           ['Not sexually active', 'NOT SEXUALLY ACTIVE'],
@@ -199,7 +200,7 @@ class EncountersController < GenericEncountersController
 		@sputum_visual_appearance = [['Muco-purulent','MUCO-PURULENT'],['Blood-stained','BLOOD-STAINED'],['Saliva','SALIVA']]
 
 		@sputum_results = [['Negative', 'NEGATIVE'], ['Scanty', 'SCANTY'], ['1+', 'Weakly positive'], ['2+', 'Moderately positive'], ['3+', 'Strongly positive']]
-
+    
 		@sputum_orders = Hash.new()
 		@sputum_submission_waiting_results = Hash.new()
 		@sputum_results_not_given = Hash.new()
@@ -225,7 +226,7 @@ class EncountersController < GenericEncountersController
     @cell_number = @patient.person.person_attributes.find_by_person_attribute_type_id(PersonAttributeType.find_by_name("Cell Phone Number").id).value rescue ''
 
     @tb_symptoms = []
-
+   
 		if (params[:encounter_type].upcase rescue '') == 'TB_INITIAL'
 			current_weight = PatientService.get_patient_attribute_value(@patient, "current_weight", session_date)
 			tb_program = Program.find_by_name('TB Program')
