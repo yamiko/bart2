@@ -702,7 +702,8 @@ module PatientService
       encounter = Encounter.find_by_sql("SELECT *
                                         FROM encounter
                                         WHERE patient_id = #{patient_id} AND DATE(date_created) = DATE('#{date.strftime("%Y-%m-%d")}') AND encounter_type = #{encounter_type_id}
-                                        ORDER BY date_created DESC").last rescue nil
+                                        AND voided = 0
+                                        ORDER BY date_created DESC").first rescue nil
 
       guardian_present=encounter.observations.find_last_by_concept_id(concept_id).to_s unless encounter.nil?
 

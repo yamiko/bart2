@@ -882,7 +882,7 @@ class ApplicationController < GenericApplicationController
           
           if not encounter_available.blank? and refer_to_clinician 
             task.url = "/patients/show/#{patient.id}"
-            task.encounter_type = "Clinician " + task.encounter_type
+            task.encounter_type = task.encounter_type + " (Clinician)"
             return task
           end if current_user_roles.include?('Nurse')
 
@@ -893,11 +893,11 @@ class ApplicationController < GenericApplicationController
 
             if user_selected_activities.match(/Manage HIV clinic consultations/i)
               task.url = "/encounters/new/hiv_clinic_consultation?patient_id=#{patient.id}"
-              task.encounter_type = "Clinician " + task.encounter_type
+              task.encounter_type = task.encounter_type + " (Clinician)"
               return task
             elsif not user_selected_activities.match(/Manage HIV clinic consultations/i)
               task.url = "/patients/show/#{patient.id}"
-              task.encounter_type = "Clinician " + task.encounter_type
+              task.encounter_type = task.encounter_type + " (Clinician)"
               return task
             end 
           end if clinician_or_doctor

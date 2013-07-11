@@ -57,6 +57,7 @@ class ClinicController < GenericClinicController
   def properties_tab
     if current_program_location.match(/HIV program/i) or current_program_location.match(/TB program/i)
       @settings = [
+        ["Set filing limit","/properties/filing_number"],
         ["Set Clinic Days","/properties/clinic_days"],
         ["View Clinic Holidays","/properties/clinic_holidays"],
         ["Ask Pills remaining at home","/properties/creation?value=ask_pills_remaining_at_home"],

@@ -129,6 +129,44 @@ class CohortToolController < GenericCohortToolController
 		
 	end
 
+  def pre_art
+    @logo = CoreService.get_global_property_value('logo').to_s
+    @quarter = params[:quarter]
+    start_date,end_date = Report.generate_cohort_date_range(@quarter)
+     #raise CohortTool.new(start_date, end_date).to_yaml
+     @total_reg = CohortTool.total_on_pre_art
+     @registered = CohortTool.registered(start_date, end_date)
+
+     @male_total = CohortTool.male_total(@total_reg)
+     @non_pregnant_female_total = CohortTool.female_non_pregnant(@total_reg)
+     @pregnant_female_total = CohortTool.pregnant_women(@total_reg)
+     @less_2_months_infants = CohortTool.infants_less_than_2_months(@total_reg)
+     @infants_between_2_and_24_months = CohortTool.infants_between_2_and_24_months(@total_reg)
+     @infants_between_24months_and_14_years = CohortTool.infants_between_24months_and_14_years(@total_reg)
+     @adults = CohortTool.adults(@total_reg)
+
+      @confirmed_on_pre_art = CohortTool.confirmed_on_pre_art
+      @exposed_on_pre_art = CohortTool.exposed_on_pre_art
+
+      @alive_on_pre_art = CohortTool.confirmed_on_pre_art(end_date)
+
+      @tranferred_out = CohortTool.outcomes_total('PATIENT TRANSFERRED OUT', end_date)
+      @on_arvs = CohortTool.outcomes_total('ON ARVS', end_date)
+      @defaulted = CohortTool.defaulted_patients(end_date)
+      @died = CohortTool.outcomes_total('PATIENT DIED', end_date)
+
+      #raise CohortTool.defaulted_patients(end_date).to_yaml
+    #logger.info("cohort")
+    #raise @less_2_months_infants.to_yaml
+		#if session[:cohort].blank?
+		  #@cohort = cohort.report(logger)
+		 # session[:cohort]= @cohort
+		#else
+			#@cohort = session[:cohort]
+		#end
+    render :layout => "cohort"
+  end
+
 	def case_findings2
 	
 		@quarter = params[:quarter]
@@ -379,8 +417,32 @@ class CohortToolController < GenericCohortToolController
     other_encounters.delete_if { |encounter| voided_encounters << encounter if (encounter.voided == 1)}
 
     voided_encounters.map do |encounter|
-      patient           = Patient.find(encounter.patient_id)
-      patient_bean = PatientService.get_patient(patient.person)
+      patient           = Patient.find(encounter.patient_id) rescue nil
+      if patient.nil?
+        patient_details = {"patient_id" => encounter.patient_id,
+                           "arv_number" => '',
+                           "patient_name" => '',
+                           "national_id" => ''
+                         }
+        arv_id = PatientIdentifierType.find_by_name('ARV Number').patient_identifier_type_id
+        national_id = PatientIdentifierType.find_by_name('National id').patient_identifier_type_id
+        
+        patient_details[:arv_number] = PatientIdentifier.find(:first, 
+                                        :select => "identifier",
+                                        :conditions  =>["patient_id = ? and identifier_type = ?", 
+                                          encounter.patient_id, arv_id],
+                                      :order => "date_created DESC" ).identifier rescue nil
+        patient_details[:national_id] = PatientIdentifier.find(:first, 
+                                        :select => "identifier",
+                                        :conditions  =>["patient_id = ? and identifier_type = ?", 
+                                          encounter.patient_id, national_id],
+                                      :order => "date_created DESC" ).identifier rescue nil
+        person = PersonName.find_by_sql("SELECT pn.* FROM person p INNER JOIN person_name pn ON pn.person_id = p.person_id WHERE p.person_id = #{encounter.patient_id}")
+        patient_details[:patient_name] = person.first.given_name + ' ' + person.first.family_name rescue nil
+        
+      else
+        patient_bean = PatientService.get_patient(patient.person)
+      end
 
       new_encounter  = other_encounters.reduce([])do |result, e|
         result << e if( e.encounter_datetime.strftime("%d-%m-%Y") == encounter.encounter_datetime.strftime("%d-%m-%Y")&&
@@ -395,14 +457,14 @@ class CohortToolController < GenericCohortToolController
 
       voided_observations = voided_observations(encounter)
       changed_to    = changed_to(new_encounter)
-      changed_from  = changed_from(voided_observations)
+      changed_from  = changed_from(voided_observations) if ! voided_observations.nil? 
 
       if( voided_observations && !voided_observations.empty?)
 				voided_records[encounter.id] = {
-					"id"              => patient.patient_id,
-					"arv_number"      => patient_bean.arv_number,
-					"name"            => patient_bean.name,
-					"national_id"     => patient_bean.national_id,
+					"id"              => (patient.nil?) ? encounter.patient_id : patient.patient_id,
+					"arv_number"      => (patient.nil?) ? patient_details[:arv_number] : patient_bean.arv_number,
+					"name"            => (patient.nil?) ? patient_details[:patient_name] : patient_bean.name,
+					"national_id"     => (patient.nil?) ? patient_details[:national_id] : patient_bean.national_id,
 					"encounter_name"  => encounter.name,
 					"voided_date"     => encounter.date_voided,
 					"reason"          => encounter.void_reason,
@@ -996,7 +1058,8 @@ class CohortToolController < GenericCohortToolController
 
 		#find patient outcome
 		session[:cohort]["outcomes"] = {} if session[:cohort]["outcomes"].blank?
-
+    session[:cohort]["Stopped taking ARVs"] = {} if session[:cohort]["Stopped taking ARVs"].blank?
+    
 		if !session[:cohort]["outcomes"][patient_id.to_s].blank?
 			#we already have the outcome for the patient therefore no need for searching
 
