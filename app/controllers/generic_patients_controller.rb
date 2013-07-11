@@ -2261,13 +2261,16 @@ end
     data
   end
   
-  def seen_by(patient,date = Date.today)
-     a = Encounter.find_by_sql("SELECT * FROM encounter WHERE encounter_type = 53
-         AND patient_id = 33317 AND encounter_datetime between '2013-01-01 00:00:00'
-         AND '2013-01-01 23:59:59' ORDER BY date_created DESC").first
-
-    provider = patient.encounters.find_by_date(date).collect{|e| next unless e.name == 'HIV CLINIC CONSULTATION' ; [e.name,e.creator]}.compact 
-    provider_username = "#{'Seen by: ' + User.find(provider[0].last).username}" unless provider.blank?
+  def seen_by(patient, date = Date.today)
+     encounter_type = EncounterType.find_by_name("HIV CLINIC CONSULTATION").id
+     a = Encounter.find_by_sql("SELECT * FROM encounter WHERE encounter_type = '#{encounter_type}'
+                                AND patient_id = #{patient.id}
+                                AND encounter_datetime between '#{date} 00:00:00'
+                                AND '#{date} 23:59:59'
+                                ORDER BY date_created DESC")
+    provider = [a.first.name, a.first.creator] rescue nil
+   # provider = patient.encounters.find_by_date(date).collect{|e| next unless e.name == 'HIV CLINIC CONSULTATION' ; [e.name,e.creator]}.compact
+    provider_username = "#{'Seen by: ' + User.find(provider[1]).username}" unless provider.blank?
     if provider_username.blank? 
       clinic_encounters = ["HIV CLINIC CONSULTATION","HIV STAGING","ART ADHERENCE","TREATMENT",'DISPENSION','HIV RECEPTION']
       encounter_type_ids = EncounterType.find(:all,:conditions =>["name IN (?)",clinic_encounters]).collect{| e | e.id }
