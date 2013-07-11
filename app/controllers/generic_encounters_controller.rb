@@ -1200,7 +1200,7 @@ class GenericEncountersController < ApplicationController
       next if drug_order == nil
       next if drug_order.quantity == nil
       next unless drug_order.quantity > 0
-      return true if MedicationService.arv(drug_order.drug)
+      return true if MedicationService.arv(drug_order.drug) rescue false
     }
     false
   end
