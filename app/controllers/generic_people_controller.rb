@@ -42,7 +42,7 @@ class GenericPeopleController < ApplicationController
       @search_results[results.national_id] = results                            
     end if create_from_dde_server
 
-    (params[:people_ids]).each do |person_id|
+    (params[:people_ids] || []).each do |person_id|
       patient = PatientService.get_patient(Person.find(person_id))
 
       results = PersonSearch.new(patient.national_id || patient.patient_id)     
