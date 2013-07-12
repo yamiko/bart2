@@ -70,7 +70,6 @@ class CohortTool < ActiveRecord::Base
 					WHERE DATE(pa.date_created) <= '#{end_date}'
           AND pa.patient_id NOT IN (#{regimen_ids})
           AND p.program_id = 1
-          AND pe.dead = 0
           AND pa.voided = 0").each do | patient |
 							patients << patient.patient_id
 					end
@@ -185,7 +184,6 @@ class CohortTool < ActiveRecord::Base
           AND DATE(pa.date_created) >= '#{start_date}'
           AND pa.patient_id NOT IN (#{regimen_id})
           AND p.program_id = 1
-          AND pe.dead = 0
           AND pa.voided = 0").each do | patient |
 							patients << patient.patient_id
 					end
