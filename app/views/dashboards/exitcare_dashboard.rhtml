@@ -79,6 +79,8 @@
 				<% for exit_state in @exit_states do %>
 					<% if exit_state.to_s.upcase == "PATIENT TRANSFERRED OUT"%>
 						<option value='/programs/exitcare?patient_id=<%= @patient.id -%>&exit_state=<%= exit_state%>'>Transferred out</option>
+					<% elsif exit_state.to_s.upcase == "PATIENT TRANSFERRED (EXTERNAL FACILITY)"%>
+						<option value='/programs/exitcare?patient_id=<%= @patient.id -%>&exit_state=<%= exit_state%>'>Transferred out</option>
 					<% else %>
 						<option value='/programs/exitcare?patient_id=<%= @patient.id -%>&exit_state=<%= exit_state%>'><%= exit_state%></option>
 					<% end %>
