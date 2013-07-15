@@ -305,4 +305,33 @@ class CohortTool < ActiveRecord::Base
 		end
     return patients
   end
+
+  def self.patients_initiated_on_pre_art_first_time(patient_ids, end_date, start_date = nil )
+    patients = []
+    if start_date
+      conditions = "AND earliest_start_date >= '#{start_date}'"
+    end
+    PatientProgram.find_by_sql("SELECT esd.*
+      FROM earliest_start_date esd
+      LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
+      LEFT JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
+      WHERE esd.earliest_start_date <= '#{end_date}' #{conditions}
+      AND (ero.obs_id IS NULL)
+      AND esd.patient_id IN (#{patient_ids})
+      GROUP BY esd.patient_id").each do | patient |
+			patients << patient.patient_id
+		end
+    return patients
+  end
+
+  def patients_reinitiated_on_pre_art_ever(patient_ids, end_date, start_date = nil )
+		patients = []
+		Observation.find(:all, :joins => [:encounter], :conditions => ["concept_id = ? AND value_coded IN (?) AND encounter.voided = 0 \
+			AND DATE_FORMAT(obs_datetime, '%Y-%m-%d') <= ? AND person_id IN ('#{patient_ids}')", ConceptName.find_by_name("EVER RECEIVED ART").concept_id,
+				ConceptName.find(:all, :conditions => ["name = 'YES'"]).collect{|c| c.concept_id},
+				@end_date.to_date.strftime("%Y-%m-%d")]).each do | patient |
+			patients << patient.patient_id
+		end
+		return patients
+	end
 end

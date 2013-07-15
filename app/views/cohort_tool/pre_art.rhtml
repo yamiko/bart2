@@ -239,9 +239,9 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;">5</td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><%= link_to "<span class='clinic_data_value' >#{(session[:pre_art]["patients enrolled first time"].length rescue 0)}", "/cohort_tool/list_patients_details?field=#{session[:pre_art]["patients enrolled first time"]}&quarter=#{@quarter}</span>" -%></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;">132</td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><%= link_to "<span class='clinic_data_value' >#{(session[:pre_art]["patients enrolled first time ever"].length rescue 0)}", "/cohort_tool/list_patients_details?field=#{session[:pre_art]["patients enrolled first time ever"]}&quarter=#{@quarter}</span>" -%></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
         </tr>
       </tbody></table>

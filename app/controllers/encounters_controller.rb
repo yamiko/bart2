@@ -229,7 +229,7 @@ class EncountersController < GenericEncountersController
    
 		if (params[:encounter_type].upcase rescue '') == 'TB_INITIAL'
 			current_weight = PatientService.get_patient_attribute_value(@patient, "current_weight", session_date)
-			tb_program = Program.find_by_name('TB Program')
+      tb_program = Program.find_by_name('TB Program')
 			@tb_regimen_array = MedicationService.regimen_options(current_weight, tb_program)
 			tb_program = Program.find_by_name('MDR-TB Program')
 			@tb_regimen_array += MedicationService.regimen_options(current_weight, tb_program)
@@ -1583,5 +1583,12 @@ class EncountersController < GenericEncountersController
     count = 0 if count.blank?                                                 
                                                                                 
     return count
-  end 	
+  end
+
+  def suggested(program_id)
+		session_date = session[:datetime].to_date rescue Date.today
+		patient_program = PatientProgram.find(program_id)
+		current_weight = PatientService.get_patient_attribute_value(patient_program.patient, "current_weight", session_date) rescue []
+		return MedicationService.regimen_options(current_weight, patient_program.program) rescue []
+	end
 end

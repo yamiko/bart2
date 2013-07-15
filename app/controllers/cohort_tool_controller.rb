@@ -130,10 +130,10 @@ class CohortToolController < GenericCohortToolController
 	end
 
   def pre_art
-    session[:pre_art] = {}
-    @logo = CoreService.get_global_property_value('logo').to_s
-    @quarter = params[:quarter]
-    start_date,end_date = Report.generate_cohort_date_range(@quarter)
+     session[:pre_art] = {}
+     @logo = CoreService.get_global_property_value('logo').to_s
+     @quarter = params[:quarter]
+     start_date,end_date = Report.generate_cohort_date_range(@quarter)
      #raise CohortTool.new(start_date, end_date).to_yaml
      program = Program.find_by_name('HIV PROGRAM').id
      regimen_ids = CohortTool.patient_ids_with_regimens(end_date, program).join(",")
@@ -144,6 +144,10 @@ class CohortToolController < GenericCohortToolController
      #@total_reg = CohortTool.total_on_pre_art
      session[:pre_art]["registered"] = CohortTool.registered(start_date, end_date, regimen_ids)
 
+    session[:pre_art]["patients enrolled first time"] = CohortTool.patients_initiated_on_pre_art_first_time(session[:pre_art]["registered"], end_date, start_date)
+
+
+    session[:pre_art]["patients enrolled first time ever"] = CohortTool.patients_initiated_on_pre_art_first_time(session[:pre_art]["total_reg"], end_date)
      #Cumulative section
      session[:pre_art]["male_total"] = CohortTool.male_total(session[:pre_art]["total_reg"])
      session[:pre_art]["non_pregnant_female_total"] = CohortTool.female_non_pregnant(session[:pre_art]["total_reg"])
