@@ -405,6 +405,7 @@ class Cohort
 		#cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_quarterly)
 		#cohort_report['Total Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_cumulative)
 
+  
 		cohort_report['Unknown outcomes'] = cohort_report['Total registered'] -
 			(cohort_report['Total alive and on ART'] +
 				cohort_report['Defaulted'] +
@@ -704,7 +705,10 @@ class Cohort
 	end
 
 	def transferred_out_patients
-		self.outcomes_total('PATIENT TRANSFERRED OUT', @@first_registration_date)
+    outcome = 'PATIENT TRANSFERRED (EXTERNAL FACILITY)' if ! ConceptName.find_all_by_name('PATIENT TRANSFERRED OUT').blank?
+    outcome = 'PATIENT TRANSFERRED OUT' if ! outcome.blank?
+
+		self.outcomes_total(outcome, @@first_registration_date)
 	end
 
 	def art_defaulted_patients
@@ -796,9 +800,7 @@ class Cohort
     state = ProgramWorkflowState.find(:first, :conditions => ["concept_id IN (?)",concept_name.map{|c|c.concept_id}] ).program_workflow_state_id
 		patients = []
 		PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{end_date}') AS state
- 									FROM earliest_start_date e
-									WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
-									HAVING state = '#{state}'").each do | patient |
+ 									FROM earliest_start_date e WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' HAVING state = '#{state}'").each do | patient |
 			patients << patient.patient_id.to_i
 		end
 		return patients
