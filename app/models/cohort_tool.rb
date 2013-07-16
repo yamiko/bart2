@@ -309,8 +309,20 @@ class CohortTool < ActiveRecord::Base
   def self.patients_initiated_on_pre_art_first_time(patient_ids, end_date, start_date = nil )
     patients = []
     if start_date
-      conditions = "AND earliest_start_date >= '#{start_date}'"
+      conditions = "AND DATE(obs_datetime) >= '#{start_date}'"
     end
+    concept = ConceptName.find_by_name("Ever registered at ART clinic").concept_id
+    concept_answer = ConceptName.find_by_name("YES").concept_id
+
+    Observation.find_by_sql("SELECT distinct(person_id) AS patient_id FROM obs
+                             WHERE concept_id = #{concept}
+                             AND value_coded = #{concept_answer}
+                             AND voided = 0
+                             AND person_id IN (#{patient_ids})
+                             AND DATE(obs_datetime) <= '#{end_date}' #{conditions}").each do | patient |
+			patients << patient.patient_id
+		end
+=begin
     PatientProgram.find_by_sql("SELECT esd.*
       FROM earliest_start_date esd
       LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
@@ -321,6 +333,7 @@ class CohortTool < ActiveRecord::Base
       GROUP BY esd.patient_id").each do | patient |
 			patients << patient.patient_id
 		end
+=end
     return patients
   end
 

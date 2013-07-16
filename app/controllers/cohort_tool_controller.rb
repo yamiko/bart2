@@ -144,11 +144,12 @@ class CohortToolController < GenericCohortToolController
      #@total_reg = CohortTool.total_on_pre_art
      session[:pre_art]["registered"] = CohortTool.registered(start_date, end_date, regimen_ids)
 
-    session[:pre_art]["patients enrolled first time"] = CohortTool.patients_initiated_on_pre_art_first_time(session[:pre_art]["registered"], end_date, start_date)
+     session[:pre_art]["patients enrolled first time"] = CohortTool.patients_initiated_on_pre_art_first_time(session[:pre_art]["registered"].join(','), end_date, start_date)
+
+     session[:pre_art]["patients enrolled first time ever"] = CohortTool.patients_initiated_on_pre_art_first_time(session[:pre_art]["total_reg"].join(','), end_date)
 
 
-    session[:pre_art]["patients enrolled first time ever"] = CohortTool.patients_initiated_on_pre_art_first_time(session[:pre_art]["total_reg"], end_date)
-     #Cumulative section
+    #Cumulative section
      session[:pre_art]["male_total"] = CohortTool.male_total(session[:pre_art]["total_reg"])
      session[:pre_art]["non_pregnant_female_total"] = CohortTool.female_non_pregnant(session[:pre_art]["total_reg"])
      session[:pre_art]["pregnant_female_total"] = CohortTool.pregnant_women(session[:pre_art]["total_reg"])
