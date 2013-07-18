@@ -219,9 +219,9 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
-          <td style="border-style:solid;border-width:1px;width:14%;padding-left:5px;"><%= link_to "<span class='clinic_data_value' >#{(@registered.length rescue 0)}", "/cohort_tool/list_patients_details?field=newly_total_registered&quarter=#{@quarter}</span>" -%></td>
+          <td style="border-style:solid;border-width:1px;width:14%;padding-left:5px;"><%= link_to "<span class='clinic_data_value' >#{(session[:pre_art]["registered"].length rescue 0)}", "/cohort_tool/list_patients_details?field=registered&quarter=#{@quarter}</span>" -%></td>
           <td style="border-style:solid;border-width:1px;width:14%;padding-left:5px;">....</td>
-          <td style="border-style:solid;border-width:1px;width:14%;padding-left:5px;"><%= link_to "<span class='clinic_data_value' >#{@total_reg.length rescue 0}", "/cohort_tool/list_patients_details?field=total_registered&quarter=#{@quarter}</span>" -%></td>
+          <td style="border-style:solid;border-width:1px;width:14%;padding-left:5px;"><%= link_to "<span class='clinic_data_value' >#{session[:pre_art]["total_reg"].length rescue 0}", "/cohort_tool/list_patients_details?field=total_reg&quarter=#{@quarter}</span>" -%></td>
           <td style="border-style:solid;border-width:1px;width:14%;padding-left:5px;">....</td>
         </tr>
       </tbody></table>
@@ -239,9 +239,9 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;">5</td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><%= link_to "<span class='clinic_data_value' >#{(session[:pre_art]["patients enrolled first time"].length rescue 0)}", "/cohort_tool/list_patients_details?field=patients_enrolled_first_time&quarter=#{@quarter}</span>" -%></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;">132</td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><%= link_to "<span class='clinic_data_value' >#{(session[:pre_art]["patients enrolled first time ever"].length rescue 0)}", "/cohort_tool/list_patients_details?field=patients_enrolled_first_time_ever&quarter=#{@quarter}</span>" -%></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
         </tr>
       </tbody></table>
@@ -289,9 +289,9 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;">3</td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%=  session[:pre_art]["male"].length rescue 0 %></a></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%=  @male_total.length rescue 0 %></a></td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%=  session[:pre_art]["male_total"].length rescue 0 %></a></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
         </tr>
       </tbody></table>
@@ -304,9 +304,9 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;">3</td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%=  session[:pre_art]["non_pregnant_female"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%=  @non_pregnant_female_total.length rescue 0  %></a></td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%=  session[:pre_art]["non_pregnant_female_total"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
         </tr>
       </tbody></table>
@@ -319,9 +319,9 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;">0</td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%=  session[:pre_art]["pregnant_female"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%=  @pregnant_female_total.length rescue 0  %></a></td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%=  session[:pre_art]["pregnant_female_total"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
         </tr>
       </tbody></table>
@@ -338,9 +338,9 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;">0</td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%=  session[:pre_art]["less_2_months_infants_quater"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%=  @less_2_months_infants.length rescue 0  %></a></td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%=  session[:pre_art]["less_2_months_infants"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
         </tr>
       </tbody></table>
@@ -353,9 +353,9 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;">0</td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%= session[:pre_art]["infants_between_2_and_24_months_quater"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%= @infants_between_2_and_24_months.length rescue 0  %></a></td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%= session[:pre_art]["infants_between_2_and_24_months"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
         </tr>
       </tbody></table>
@@ -368,9 +368,9 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;">0</td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%= session[:pre_art]["infants_between_24months_and_14_years_quater"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%= @infants_between_24months_and_14_years.length rescue 0  %></a></td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%= session[:pre_art]["infants_between_24months_and_14_years"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
         </tr>
       </tbody></table>
@@ -383,9 +383,9 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;">6</td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%= session[:pre_art]["adults_quater"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
-          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%= @adults.length rescue 0  %></a></td>
+          <td style="border-style:solid;border-width:1px;width:14%;width:25%;"><a href="#"><%= session[:pre_art]["adults"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:14%;width:25%;">....</td>
         </tr>
       </tbody></table>
@@ -402,9 +402,9 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
+          <td style="border-style:solid;border-width:1px;width:25%;"><a href="#"><%= session[:pre_art]["exposed_on_pre_art_quater"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:25%;">....</td>
-          <td style="border-style:solid;border-width:1px;width:25%;">....</td>
-          <td style="border-style:solid;border-width:1px;width:25%;"><a href="#"><%= @exposed_on_pre_art.length rescue 0  %></a></td>
+          <td style="border-style:solid;border-width:1px;width:25%;"><a href="#"><%= session[:pre_art]["exposed_on_pre_art"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:25%;">....</td>
         </tr>
       </tbody></table>
@@ -417,9 +417,9 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
+          <td style="border-style:solid;border-width:1px;width:25%;"><a href="#"><%= session[:pre_art]["confirmed_on_pre_art_quater"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:25%;">....</td>
-          <td style="border-style:solid;border-width:1px;width:25%;">....</td>
-          <td style="border-style:solid;border-width:1px;width:25%;"><a href=""><%= @confirmed_on_pre_art.length rescue 0  %></a></td>
+          <td style="border-style:solid;border-width:1px;width:25%;"><a href="#"><%= session[:pre_art]["confirmed_on_pre_art"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;width:25%;">....</td>
         </tr>
       </tbody></table>
@@ -464,7 +464,7 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
-          <td style="border-style:solid;border-width:1px;width:50%;"><a href="#"><%= @alive_on_pre_art.length rescue 0  %></a></td>
+          <td style="border-style:solid;border-width:1px;width:50%;"><%= link_to "<span class='clinic_data_value' >#{(session[:pre_art]["alive_on_pre_art"].length rescue 0)}", "/cohort_tool/list_patients_details?field=alive_on_pre_art&quarter=#{@quarter}</span>" -%> </td>
           <td style="border-style:solid;border-width:1px;">....</td>
         </tr>
       </tbody></table>
@@ -483,7 +483,7 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
-          <td style="border-style:solid;border-width:1px;width:50%;"><a href="#"><%= @on_arvs.length rescue 0  %></a></td>
+          <td style="border-style:solid;border-width:1px;width:50%;"><a href="#"><%= session[:pre_art]["on_arvs"].length rescue 0  %></a></td>
           <td style="border-style:solid;border-width:1px;">....</td>
         </tr>
       </tbody></table>
@@ -498,7 +498,7 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
-            <td style="border-style:solid;border-width:1px;width:50%;"><a href="#"><%= @tranferred_out.length rescue 0  %></a></td>
+            <td style="border-style:solid;border-width:1px;width:50%;"><%= link_to "<span class='clinic_data_value' >#{(session[:pre_art]["tranferred_out"].length rescue 0)}", "/cohort_tool/list_patients_details?field=tranferred_out&quarter=#{@quarter}</span>" -%></td>
           <td style="border-style:solid;border-width:1px;">....</td>
         </tr>
       </tbody></table>
@@ -513,7 +513,7 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
-          <td style="border-style:solid;border-width:1px;width:50%;"><a href="#"><%= @defaulted.length rescue 0 %></a></td>
+          <td style="border-style:solid;border-width:1px;width:50%;"><%= link_to "<span class='clinic_data_value' >#{(session[:pre_art]["defaulted"].length rescue 0)}", "/cohort_tool/list_patients_details?field=defaulted&quarter=#{@quarter}</span>" -%></a></td>
           <td style="border-style:solid;border-width:1px;">....</td>
         </tr>
       </tbody></table>
@@ -528,7 +528,7 @@ table.scrollable{
      <td colspan="5">
       <table>
         <tbody><tr>
-          <td style="border-style:solid;border-width:1px;width:50%;"><a href="#"><%= @died.length rescue 0 %></a></td>
+          <td style="border-style:solid;border-width:1px;width:50%;"><%= link_to "<span class='clinic_data_value' >#{(session[:pre_art]["died"].length rescue 0)}", "/cohort_tool/list_patients_details?field=died&quarter=#{@quarter}</span>" -%></td>
           <td style="border-style:solid;border-width:1px;">....</td>
         </tr>
       </tbody></table>

@@ -405,6 +405,7 @@ class Cohort
 		#cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_quarterly)
 		#cohort_report['Total Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_cumulative)
 
+  
 		cohort_report['Unknown outcomes'] = cohort_report['Total registered'] -
 			(cohort_report['Total alive and on ART'] +
 				cohort_report['Defaulted'] +
@@ -704,7 +705,10 @@ class Cohort
 	end
 
 	def transferred_out_patients
-		self.outcomes_total('PATIENT TRANSFERRED OUT', @@first_registration_date)
+    outcome = 'PATIENT TRANSFERRED (EXTERNAL FACILITY)' if ConceptName.find_all_by_name('PATIENT TRANSFERRED OUT').blank?
+    outcome = 'PATIENT TRANSFERRED OUT' if outcome.blank?
+
+		self.outcomes_total(outcome, @@first_registration_date)
 	end
 
 	def art_defaulted_patients
@@ -793,17 +797,11 @@ class Cohort
 
   def outcomes_total(outcome, start_date=@start_date, end_date=@end_date)
     concept_name = ConceptName.find_all_by_name(outcome)
-    state = ProgramWorkflowState.find(
-      :first,
-      :conditions => ["concept_id IN (?)",
-				concept_name.map{|c|c.concept_id}]
-    ).program_workflow_state_id
+    state = ProgramWorkflowState.find(:first, :conditions => ["concept_id IN (?)",concept_name.map{|c|c.concept_id}] ).program_workflow_state_id
 		patients = []
 		PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{end_date}') AS state
- 									FROM earliest_start_date e
-									WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
-									HAVING state = #{state}").each do | patient | 
-			patients << patient.patient_id
+ 									FROM earliest_start_date e WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' HAVING state = '#{state}'").each do | patient |
+			patients << patient.patient_id.to_i
 		end
 		return patients
   end
@@ -840,7 +838,7 @@ class Cohort
 			AND DATE_FORMAT(obs_datetime, '%Y-%m-%d') <= ?", ConceptName.find_by_name("EVER RECEIVED ART").concept_id,
 				ConceptName.find(:all, :conditions => ["name = 'YES'"]).collect{|c| c.concept_id},
 				@end_date.to_date.strftime("%Y-%m-%d")]).each do | patient |
-			patients << patient.patient_id
+			patients << patient.patient_id.to_i
 		end
 		return patients
 	end
@@ -883,7 +881,7 @@ class Cohort
         AND p.program_id = #{program_id}
         AND s.start_date <= '#{outcome_end_date}'
 			").each do |patient_id|
-			states << patient_id.patient_id
+			states << patient_id.patient_id.to_i
 		end
 
 		return states
@@ -915,7 +913,7 @@ class Cohort
 						  (o.concept_id = '#{breast_feeding_id}'
 								AND o.value_coded = '#{coded_id}'))
 					").each do |patient_id|
-			states << patient_id.patient_id
+			states << patient_id.patient_id.to_i
 		end
 		
 		return states
@@ -936,7 +934,7 @@ class Cohort
 
       if reg_name == regimen_category
         patient_ids.each do |patient_id|
-					regimens << patient_id
+					regimens << patient_id.to_i
         end
       end
     end
@@ -965,10 +963,10 @@ class Cohort
 			
 			if value.regimen_category.blank?
 				regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] ||= []
-				regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] << value.patient_id
+				regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] << value.patient_id.to_i
 			else
 				regimen_hash[value.regimen_category] ||= []
-				regimen_hash[value.regimen_category] << value.patient_id
+				regimen_hash[value.regimen_category] << value.patient_id.to_i
 			end
 		end
 
@@ -1038,7 +1036,7 @@ class Cohort
             AND
             esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
       GROUP BY esd.patient_id").each do | patient | 
-			patients << patient.patient_id
+			patients << patient.patient_id.to_i
 		end
 		return patients
   end

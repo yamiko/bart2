@@ -761,20 +761,41 @@ module PatientService
 
   def self.recent_sputum_submissions(patient_id)
     sputum_concept_names = ["AAFB(1st)", "AAFB(2nd)", "AAFB(3rd)", "Culture(1st)", "Culture(2nd)"]
-    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
-    Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?) OR value_text in (?))",patient_id, ConceptName.find_by_name('Sputum submission').concept_id, sputum_concept_ids, sputum_concept_names], :order => "obs_datetime desc", :limit => 3) rescue []
+    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id).join(",")
+    main_concept = ConceptName.find_by_name('Sputum submission').concept_id
+
+    obs = Observation.find_by_sql("SELECT * FROM obs WHERE person_id = #{patient_id} AND concept_id = #{main_concept}
+                                  AND (value_coded in ('#{sputum_concept_ids}')
+                                    OR value_text in ('#{sputum_concept_names}'))
+                                  ORDER BY obs_datetime DESC LIMIT 3")
+
+    #Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? AND (value_coded in (?)
+     #               OR value_text in (?))",patient_id,
+      #  ConceptName.find_by_name('Sputum submission').concept_id, sputum_concept_ids, sputum_concept_names],
+      #:order => "obs_datetime desc", :limit => 3) rescue []
   end
 
   def self.recent_sputum_results(patient_id)
     sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results", "Culture(1st) Results", "Culture-2 Results"]
-    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
-    obs = Observation.find(:all, :conditions => ["person_id = ? AND concept_id IN (?)", patient_id, sputum_concept_ids], :order => "obs_datetime desc", :limit => 3)
+    sputum_concept_ids = ConceptName.find(:all, 
+                          :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id).join(",")
+    obs = Observation.find_by_sql("SELECT * FROM obs WHERE person_id = #{patient_id} AND concept_id IN ('#{sputum_concept_ids}')
+                                  ORDER BY obs_datetime DESC LIMIT 3")
+    #obs = Observation.find_by_sql(:all,
+    #                      :conditions => ["person_id = ? AND concept_id IN (?)", patient_id, sputum_concept_ids],
+    #                      :order => "obs_datetime desc",
+    #                      :limit => 3)
   end
 
   def self.sputum_results_by_date(patient_id)
     sputum_concept_names = ["AAFB(1st) results", "AAFB(2nd) results", "AAFB(3rd) results"]
-    sputum_concept_ids = ConceptName.find(:all, :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id)
-    obs = Observation.find(:all, :conditions => ["person_id = ? AND concept_id IN (?)", patient_id, sputum_concept_ids], :order => "obs_datetime desc")
+    sputum_concept_ids = ConceptName.find(:all, 
+                                          :conditions => ["name IN (?)", sputum_concept_names]).map(&:concept_id).join(",")
+    obs = Observation.find_by_sql("SELECT * FROM obs WHERE person_id = #{patient_id} AND concept_id IN ('#{sputum_concept_ids}')
+                                  ORDER BY obs_datetime DESC")
+    #obs = Observation.find(:all,
+    #                  :conditions => ["person_id = ? AND concept_id IN (?)", patient_id, sputum_concept_ids],
+    #                  :order => "obs_datetime desc")
   end
 
 	def self.sputum_by_date(sputum_list, date)

@@ -1,7 +1,7 @@
 module MedicationService
 
 	def self.arv(drug)
-		arv_drugs.map(&:concept_id).include?(drug.concept_id)
+		arv_drugs.map(&:concept_id).include?(drug.concept_id) rescue false
 	end
 
 	def self.arv_drugs
