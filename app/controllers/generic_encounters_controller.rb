@@ -22,7 +22,7 @@ class GenericEncountersController < ApplicationController
       end
     end
 
-    if params['encounter']['encounter_type_name'] == 'HIV_CLINIC_REGISTRATION'
+    if params['encounter']['encounter_type_name'] == 'HIV CLINIC REGISTRATION'
 
       has_tranfer_letter = false
       (params["observations"]).each do |ob|

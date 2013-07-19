@@ -336,7 +336,7 @@ class EncountersController < GenericEncountersController
 			@who_stage_adults_iv = concept_set('WHO STAGE IV ADULT')
 		end
 
-		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' or (params[:encounter_type].upcase rescue '') == 'HIV_CLINIC_REGISTRATION'
+		if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' or (params[:encounter_type].upcase rescue '') == 'HIV CLINIC REGISTRATION'
 			if @patient_bean.age > 14 
 				@who_stage_i = concept_set('WHO STAGE I ADULT AND PEDS') + concept_set('WHO STAGE I ADULT')
 				@who_stage_ii = concept_set('WHO STAGE II ADULT AND PEDS') + concept_set('WHO STAGE II ADULT')
@@ -406,7 +406,7 @@ class EncountersController < GenericEncountersController
 
 		@arv_drugs = nil
 
-		if (params[:encounter_type].upcase rescue '') == 'HIV_CLINIC_REGISTRATION'
+		if (params[:encounter_type].upcase rescue '') == 'HIV CLINIC REGISTRATION'
 			other = []
 
 =begin
@@ -1004,7 +1004,7 @@ class EncountersController < GenericEncountersController
         end
       end
 
-      if params[:encounter]['encounter_type_name'] == 'HIV_CLINIC_REGISTRATION'
+      if params[:encounter]['encounter_type_name'] == 'HIV CLINIC REGISTRATION'
 
         has_tranfer_letter = false
         (params[:observations]).each do |ob|
