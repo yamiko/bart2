@@ -630,7 +630,7 @@ module DDEService
   def self.create_footprint(national_id, location_id)
     create_from_dde_server = CoreService.get_global_property_value('create.from.dde.server').to_s == "true" rescue false
     return unless create_from_dde_server
-    paramz = {:value => national_id, :location_id => location_id}
+    paramz = {:value => national_id, :workstation_location => location_name}
     dde_server = GlobalProperty.find_by_property("dde_server_ip").property_value rescue ""
     dde_server_username = GlobalProperty.find_by_property("dde_server_username").property_value rescue ""
     dde_server_password = GlobalProperty.find_by_property("dde_server_password").property_value rescue ""
