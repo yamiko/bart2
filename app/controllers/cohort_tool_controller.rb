@@ -138,15 +138,23 @@ class CohortToolController < GenericCohortToolController
      program = Program.find_by_name('HIV PROGRAM').id
      regimen_ids = CohortTool.patient_ids_with_regimens(end_date, program).join(",")
 
+     #raise CohortTool.defaulted_patients(end_date, regimen_ids).to_yaml
      session[:pre_art]["outcomes"] = {}
-     session[:pre_art]["total_reg"] = CohortTool.total_on_pre_art(Date.today, regimen_ids)
      
-     #@total_reg = CohortTool.total_on_pre_art
+     session[:pre_art]["total_reg"], session[:pre_art]["earliest_start_date"] = CohortTool.total_on_pre_art(Date.today, regimen_ids)
+     #raise session[:pre_art]["earliest_start_date"].to_yaml
      session[:pre_art]["registered"] = CohortTool.registered(start_date, end_date, regimen_ids)
 
-     session[:pre_art]["patients enrolled first time"] = CohortTool.patients_initiated_on_pre_art_first_time(session[:pre_art]["registered"].join(','), end_date, start_date)
+     session[:pre_art]["patients_enrolled_first_time"] = CohortTool.patients_initiated_on_pre_art_first_time(session[:pre_art]["registered"].join(','), end_date, start_date) rescue []
+     session[:pre_art]["patients_enrolled_first_time_ever"] = CohortTool.patients_initiated_on_pre_art_first_time(session[:pre_art]["total_reg"].join(','), end_date) rescue []
 
-     session[:pre_art]["patients enrolled first time ever"] = CohortTool.patients_initiated_on_pre_art_first_time(session[:pre_art]["total_reg"].join(','), end_date)
+     session[:pre_art]["patients_reinrolled"] = CohortTool.patients_reinitiated_on_pre_art(session[:pre_art]["registered"].join(','), end_date, start_date) rescue []
+     session[:pre_art]["patients_reinrolled_ever"] = CohortTool.patients_reinitiated_on_pre_art(session[:pre_art]["total_reg"].join(','), end_date) rescue []
+
+     #raise session[:pre_art]["patients_reinrolled_ever"].to_yaml
+
+     session[:pre_art]["patients_transferred_in"] = CohortTool.patients_transferred_in(session[:pre_art]["registered"].join(','), end_date, start_date) rescue []
+     session[:pre_art]["patients_transferred_in_ever"] = CohortTool.patients_transferred_in(session[:pre_art]["total_reg"].join(','), end_date) rescue []
 
 
     #Cumulative section
@@ -158,7 +166,7 @@ class CohortToolController < GenericCohortToolController
      session[:pre_art]["infants_between_24months_and_14_years"] = CohortTool.infants_between_24months_and_14_years(session[:pre_art]["total_reg"])
      session[:pre_art]["adults"] = CohortTool.adults(session[:pre_art]["total_reg"])
 
-     session[:pre_art]["confirmed_on_pre_art"] = CohortTool.confirmed_on_pre_art(Date.today, start_date, regimen_ids)
+     session[:pre_art]["confirmed_on_pre_art"] = CohortTool.confirmed_on_pre_art(Date.today, start_date, regimen_ids) rescue []
      session[:pre_art]["exposed_on_pre_art"] = CohortTool.exposed_on_pre_art
 
      #Current quater section
@@ -170,18 +178,22 @@ class CohortToolController < GenericCohortToolController
       session[:pre_art]["infants_between_24months_and_14_years_quater"] = CohortTool.infants_between_24months_and_14_years(session[:pre_art]["registered"])
       session[:pre_art]["adults_quater"] = CohortTool.adults(session[:pre_art]["registered"])
 
-      session[:pre_art]["confirmed_on_pre_art_quater"] = CohortTool.confirmed_on_pre_art(end_date, start_date, regimen_ids)
+      session[:pre_art]["confirmed_on_pre_art_quater"] = CohortTool.confirmed_on_pre_art(end_date, start_date, regimen_ids) rescue []
       session[:pre_art]["exposed_on_pre_art_quater"] = CohortTool.exposed_on_pre_art(end_date, start_date)
 
+
+      #raise CohortTool.outcomes_total('On antiretrovirals', end_date).to_yaml
+
       session[:pre_art]["defaulted"] = []
-      CohortTool.defaulted_patients(end_date, regimen_ids).each do |patient|
+      (CohortTool.defaulted_patients(end_date, regimen_ids) || []).each do |patient|
                   if session[:pre_art]["total_reg"].include?(patient)
                        session[:pre_art]["defaulted"] << patient
                        session[:pre_art]["outcomes"][patient.to_s] = "DEFAULTED"
                    end
                end
+      #raise session[:pre_art]["defaulted"].to_yaml
       session[:pre_art]["alive_on_pre_art"] = []
-      CohortTool.confirmed_on_pre_art(end_date, nil, regimen_ids).each do |patient|
+      (CohortTool.confirmed_on_pre_art(end_date, nil, regimen_ids) rescue []).each do |patient|
                   if ! session[:pre_art]["defaulted"].include?(patient) and session[:pre_art]["total_reg"].include?(patient)
                        session[:pre_art]["alive_on_pre_art"] << patient
                        session[:pre_art]["outcomes"][patient.to_s] = "Pre-ART"
@@ -189,22 +201,22 @@ class CohortToolController < GenericCohortToolController
                 end
 
       session[:pre_art]["tranferred_out"] = []
-      CohortTool.outcomes_total('PATIENT TRANSFERRED OUT', end_date).each do |patient|
+      (CohortTool.outcomes_total('PATIENT TRANSFERRED OUT', end_date) || []).each do |patient|
                   if ! session[:pre_art]["defaulted"].include?(patient) and session[:pre_art]["total_reg"].include?(patient)
                        session[:pre_art]["tranferred_out"] << patient
                        session[:pre_art]["outcomes"][patient.to_s] = "TRANSFERRED OUT"
                      end
                   end
       session[:pre_art]["on_arvs"] = []
-      CohortTool.outcomes_total('ON ARVS', end_date).each do |patient|
-                  if ! session[:pre_art]["defaulted"].include?(patient) and session[:pre_art]["total_reg"].include?(patient)
+      (CohortTool.outcomes_total('On antiretrovirals', end_date) || []).each do |patient|
+                  if ! session[:pre_art]["defaulted"].include?(patient) #and session[:pre_art]["total_reg"].include?(patient)
                        session[:pre_art]["on_arvs"] << patient
                        session[:pre_art]["outcomes"][patient.to_s] = "On ARV's"
                      end
                   end
       
       session[:pre_art]["died"] = []
-      CohortTool.outcomes_total('PATIENT DIED', end_date).each do |patient|
+      (CohortTool.outcomes_total('PATIENT DIED', end_date) || []).each do |patient|
                   if session[:pre_art]["total_reg"].include?(patient)
                        session[:pre_art]["died"] << patient
                        session[:pre_art]["outcomes"][patient.to_s] = "PATIENT DIED"
@@ -1001,7 +1013,7 @@ class CohortToolController < GenericCohortToolController
 	end
 	
   def list_patients_details
-    #raise session[:pre_art]["outcomes"].to_yaml
+    #raise session[:pre_art].to_yaml
 		@logo = CoreService.get_global_property_value('logo').to_s
     @report = []
     @quarter = params[:quarter]
@@ -1023,7 +1035,7 @@ class CohortToolController < GenericCohortToolController
         }.first.to_s
         data = session[:pre_art][key]
       (data || []).each do |patient_id|
-        patient = Patient.find(patient_id)
+        patient = Patient.find(patient_id) rescue Patient.find(patient_id.person_id)  rescue Patient.find(patient_id.patient_id)
         @report << PatientService.get_debugger_details(patient.person)
 
         #find start reason

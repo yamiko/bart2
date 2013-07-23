@@ -59,22 +59,27 @@ class CohortTool < ActiveRecord::Base
 
 
   def self.total_on_pre_art(end_date = Date.today, regimen_ids=[])
+
      patients = []
+     earliest_start_date = {}
+     return if regimen_ids.blank?
      concept_name = ConceptName.find_all_by_name("Pre-art (continue)")
      state = ProgramWorkflowState.find( :first, :conditions => ["concept_id IN (?)",
               concept_name.map{|c|c.concept_id}]).program_workflow_state_id
       PatientProgram.find_by_sql(
-					"SELECT p.patient_id FROM patient_program p
+					"SELECT p.patient_id, earliest_start_date FROM patient_program p
+          INNER JOIN earliest_start_date e ON e.patient_id = p.patient_id
           INNER JOIN person pe ON pe.person_id = p.patient_id
           INNER JOIN patient pa ON pe.person_id = pa.patient_id
 					WHERE DATE(pa.date_created) <= '#{end_date}'
           AND pa.patient_id NOT IN (#{regimen_ids})
           AND p.program_id = 1
           AND pa.voided = 0").each do | patient |
+              earliest_start_date[patient.patient_id] = patient.earliest_start_date
 							patients << patient.patient_id
 					end
 
-		return patients
+		return patients, earliest_start_date
 
   end
 
@@ -83,9 +88,10 @@ class CohortTool < ActiveRecord::Base
     Observation.find_by_sql("SELECT person_id, order_id FROM obs
                              WHERE  DATE(obs_datetime) <= '#{end_date}'
                              AND order_id IS NOT NULL").each do |patient|
+                                    next if patient_ids.include?(patient.person_id)
                                     medication = MedicationService.arv(DrugOrder.find(patient.order_id).drug) rescue nil
                                     if  medication == true
-                                       patient_ids << patient.person_id
+                                       patient_ids << patient.person_id # if ! patient_ids.include?(patient.person_id)
                                     end
                              end
     return patient_ids.uniq
@@ -96,13 +102,12 @@ class CohortTool < ActiveRecord::Base
      if start_date
       conditions = "AND earliest_start_date >= '#{start_date}'"
     end
-     concept_name = ConceptName.find_all_by_name("Pre-art (continue)")
-     state = ProgramWorkflowState.find( :first, :conditions => ["concept_id IN (?)",
-              concept_name.map{|c|c.concept_id}]).program_workflow_state_id
+     concept_id = ConceptName.find_all_by_name("Pre-art (continue)").first.concept_id
+     state = ProgramWorkflowState.find( :first,
+            :conditions => ["concept_id = '#{concept_id}'"]).program_workflow_state_id
 
      PatientProgram.find_by_sql(
-						"SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{end_date}') AS state, death_date,
-					IF(ISNULL(MIN(sdo.value_datetime)), earliest_start_date, MIN(sdo.value_datetime)) AS initiation_date
+						"SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{end_date}') AS state
 					FROM earliest_start_date e
 					LEFT JOIN start_date_observation sdo ON e.patient_id = sdo.person_id
           LEFT JOIN patient p ON e.patient_id = p.patient_id
@@ -119,6 +124,7 @@ class CohortTool < ActiveRecord::Base
   
   def self.defaulted_patients(end_date, regimen_ids=[])
 		patients = []
+    return patients if regimen_ids.blank?
 		PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{end_date}') AS def
 											FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
 											WHERE e.earliest_start_date <=  '#{end_date}' AND p.dead=0
@@ -130,6 +136,10 @@ class CohortTool < ActiveRecord::Base
 	end
 
   def self.outcomes_total(outcome, end_date=Date.today)
+
+    outcome = 'PATIENT TRANSFERRED (EXTERNAL FACILITY)' if ConceptName.find_all_by_name('PATIENT TRANSFERRED OUT').blank? and outcome.upcase == "PATIENT TRANSFERRED OUT"
+    outcome = 'PATIENT TRANSFERRED (WITHIN FACILITY)' if ConceptName.find_all_by_name('PATIENT TRANSFERRED IN').blank? and outcome.upcase == "PATIENT TRANSFERRED IN"
+
     concept_name = ConceptName.find_all_by_name(outcome)
     state = ProgramWorkflowState.find(
       :first,
@@ -137,11 +147,15 @@ class CohortTool < ActiveRecord::Base
 				concept_name.map{|c|c.concept_id}]
     ).program_workflow_state_id
 		patients = []
+
+
 		PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{end_date}') AS state
  									FROM earliest_start_date e
 									WHERE earliest_start_date <= '#{end_date}'
 									HAVING state = #{state}").each do | patient |
-			patients << patient.patient_id
+      Patient.find(patient.patient_id).patient_programs.not_completed.in_programs('HIV Program').each do |program|
+        patients << patient.patient_id if program.patient_states.to_s.match(/Pre-ART/i)
+      end
 		end
 		return patients
   end
@@ -170,8 +184,9 @@ class CohortTool < ActiveRecord::Base
 
   end
 
-  def self.registered(start_date, end_date, regimen_id)
+  def self.registered(start_date, end_date, regimen_id=[])
      patients = []
+     return if regimen_id.blank?
      concept_name = ConceptName.find_all_by_name("Pre-art (continue)")
      state = ProgramWorkflowState.find( :first, :conditions => ["concept_id IN (?)",
               concept_name.map{|c|c.concept_id}]).program_workflow_state_id
@@ -312,39 +327,54 @@ class CohortTool < ActiveRecord::Base
       conditions = "AND DATE(obs_datetime) >= '#{start_date}'"
     end
     concept = ConceptName.find_by_name("Ever registered at ART clinic").concept_id
+    concept_answer = ConceptName.find_by_name("NO").concept_id
+
+    Observation.find_by_sql("SELECT distinct(person_id) , concept_id, value_coded
+                             FROM obs
+                             WHERE voided = 0
+                             AND person_id IN (#{patient_ids})
+                             AND DATE(obs_datetime) <= '#{end_date}' #{conditions}").each do | patient |
+			raise patient.to_s.to_yaml
+      patients << patient.person_id
+		end
+
+    return patients
+  end
+
+  def self.patients_reinitiated_on_pre_art(patient_ids, end_date, start_date = nil )
+    patients = []
+		if start_date
+      conditions = "AND DATE(obs_datetime) >= '#{start_date}'"
+    end
+    concept = ConceptName.find_by_name("Ever registered at ART clinic").concept_id
     concept_answer = ConceptName.find_by_name("YES").concept_id
 
-    Observation.find_by_sql("SELECT distinct(person_id) AS patient_id FROM obs
+    Observation.find_by_sql("SELECT person_id FROM obs
+                             WHERE concept_id = #{concept}
+                             AND value_coded = #{concept_answer}
+                             AND voided = 0
+                             AND person_id IN (#{patient_ids})
+                             AND DATE(obs_datetime) <= '#{end_date}' #{conditions}").each do | person |
+			next if patients.include?(person.person_id)
+      patients << person.person_id
+		end
+  end
+
+  def self.patients_transferred_in(patient_ids, end_date, start_date = nil )
+    patients = []
+		if start_date
+      conditions = "AND DATE(obs_datetime) >= '#{start_date}'"
+    end
+    concept = ConceptName.find_by_name("has transfer letter").concept_id
+    concept_answer = ConceptName.find_by_name("YES").concept_id
+
+    Observation.find_by_sql("SELECT distinct(person_id) FROM obs
                              WHERE concept_id = #{concept}
                              AND value_coded = #{concept_answer}
                              AND voided = 0
                              AND person_id IN (#{patient_ids})
                              AND DATE(obs_datetime) <= '#{end_date}' #{conditions}").each do | patient |
-			patients << patient.patient_id
+			patients << patient.person_id
 		end
-=begin
-    PatientProgram.find_by_sql("SELECT esd.*
-      FROM earliest_start_date esd
-      LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
-      LEFT JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
-      WHERE esd.earliest_start_date <= '#{end_date}' #{conditions}
-      AND (ero.obs_id IS NULL)
-      AND esd.patient_id IN (#{patient_ids})
-      GROUP BY esd.patient_id").each do | patient |
-			patients << patient.patient_id
-		end
-=end
-    return patients
   end
-
-  def patients_reinitiated_on_pre_art_ever(patient_ids, end_date, start_date = nil )
-		patients = []
-		Observation.find(:all, :joins => [:encounter], :conditions => ["concept_id = ? AND value_coded IN (?) AND encounter.voided = 0 \
-			AND DATE_FORMAT(obs_datetime, '%Y-%m-%d') <= ? AND person_id IN ('#{patient_ids}')", ConceptName.find_by_name("EVER RECEIVED ART").concept_id,
-				ConceptName.find(:all, :conditions => ["name = 'YES'"]).collect{|c| c.concept_id},
-				@end_date.to_date.strftime("%Y-%m-%d")]).each do | patient |
-			patients << patient.patient_id
-		end
-		return patients
-	end
 end
