@@ -257,13 +257,14 @@
 							<th>Outcome Status</th>
 							<th>&nbsp;<br></th>
 					</tr>
+                                        
 			 </thead>
 			  <tbody>
 							<% session[:mastercard_ids] = [] %>
 							<% session[:mastercard_counter] = 0 %>
 							<% @report.each do |data_row| %>
 									<% session[:mastercard_ids] << data_row.person_id %>
-
+                                                                        <%#= raise session[:pre_art]["earliest_start_date"].to_yaml %>
 									<tr>
 										  <td align='center'><%= data_row.arv_number %></td>
 										  <td><%= data_row.name %></td>
