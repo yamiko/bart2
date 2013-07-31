@@ -399,7 +399,7 @@ class GenericPatientsController < ApplicationController
       @source = nil
     end
 
-    render :layout => false
+    render :layout => "menu"
     
   end
 
@@ -791,7 +791,7 @@ class GenericPatientsController < ApplicationController
     @patient_bean = PatientService.get_patient(@patient.person)
 		@guardian_phone_number = PatientService.get_attribute(Person.find(@patient.person.relationships.first.person_b), 'Cell phone number') rescue nil
 		@patient_phone_number = PatientService.get_attribute(@patient.person, 'Cell phone number')
-    render :layout => false
+    #render :layout => false
   end
 
   def patient_details

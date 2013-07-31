@@ -458,16 +458,16 @@ class EncountersController < GenericEncountersController
 
 		redirect_to :action => :create, 'encounter[encounter_type_name]' => params[:encounter_type].upcase, 'encounter[patient_id]' => @patient.id and return if ['registration'].include?(params[:encounter_type])
 		
-		if (params[:encounter_type].upcase rescue '') == 'VITALS'
+		#if (params[:encounter_type].upcase rescue '') == 'VITALS'
       
-      render :action => params[:encounter_type], :layout => "weight_chart"
+     # render :action => params[:encounter_type], :layout => "weight_chart"
 
-    elsif (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (CoreService.get_global_property_value('use.extended.staging.questions').to_s == "true" rescue false)
-			render :template => 'encounters/extended_hiv_staging'
+    if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (CoreService.get_global_property_value('use.extended.staging.questions').to_s == "true" rescue false)
+			render :template => 'encounters/extended_hiv_staging', :layout => "weight_chart"
       #elsif (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (CoreService.get_global_property_value('use.normal.staging.questions').to_s == "true" rescue false)
       #	render :template => 'encounters/normal_hiv_staging'
 		else
-			render :action => params[:encounter_type] if params[:encounter_type]
+			render :action => params[:encounter_type], :layout => "weight_chart" if params[:encounter_type]
 		end
 		
 	end
