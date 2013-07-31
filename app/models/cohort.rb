@@ -35,6 +35,8 @@ class Cohort
     @art_defaulters ||= self.art_defaulted_patients
 
     logger.info("alive_on_art " + Time.now.to_s)
+
+    #raise self.art_stopped_patients.to_yaml
     @patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
 		threads = []
 
