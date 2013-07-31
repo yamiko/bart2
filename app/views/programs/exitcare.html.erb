@@ -65,7 +65,7 @@
        :validationJS =>"validProgram()",
        :validationMessage => "#{@program_name}<br/>is closed<br/>Closed on: #{@program_date_completed}",
        :allowFreeText => false } %-->
-
+       
 	<%= hidden_field_tag :current_state, @exit_from_care_state %>
 
   <% initial_date = "#{session[:datetime].strftime('%Y-%m-%d')}" rescue "#{(Date.today).strftime('%Y-%m-%d')}"%>

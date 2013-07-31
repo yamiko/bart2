@@ -799,13 +799,17 @@ class Cohort
 	end
 
   def outcomes_total(outcome, start_date=@start_date, end_date=@end_date)
+    #raise outcome.to_yaml
     concept_name = ConceptName.find_all_by_name(outcome)
+    
     state = ProgramWorkflowState.find(:first, :conditions => ["concept_id IN (?)",concept_name.map{|c|c.concept_id}] ).program_workflow_state_id
 		patients = []
+    
 		PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{end_date}') AS state
  									FROM earliest_start_date e WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' HAVING state = '#{state}'").each do | patient |
 			patients << patient.patient_id.to_i
 		end
+    
 		return patients
   end
 
