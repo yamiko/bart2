@@ -616,6 +616,7 @@ class GenericPatientsController < ApplicationController
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
+    #raise @programs.patient_states.to_yaml
     @alerts = alerts(@patient, session_date) rescue nil
     # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
@@ -625,7 +626,16 @@ class GenericPatientsController < ApplicationController
       @prescriptions = restriction.filter_orders(@prescriptions)
       @programs = restriction.filter_programs(@programs)
     end
-
+   @program_state =  []
+   @programs.each do | prog |
+    
+    patient_states = PatientState.find(:all,
+				:joins => "INNER JOIN patient_program p ON p.patient_program_id = patient_state.patient_program_id",
+				:conditions =>["patient_state.voided = 0 AND p.voided = 0 AND p.program_id = ? AND start_date <= ? AND p.patient_id =?",
+					prog.program_id, session_date, @patient.id],:order => "patient_state_id ASC")
+     @program_state << [prog.to_s,  patient_states.last.to_s, prog.program_id, prog.date_enrolled]
+    end
+    
     render :template => 'dashboards/overview_tab', :layout => false
   end
 
