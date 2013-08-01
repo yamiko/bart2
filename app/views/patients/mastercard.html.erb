@@ -5,7 +5,7 @@
     <%= stylesheet_link_tag fancy_or_high_contrast_touch %>
 
     <script type="text/javascript">
-      var tt_cancel_destination = "/patients/show/?patient_id=" + "<%=@patient_id%>"
+      var tt_cancel_destination = "/patients/show/" + "<%=@patient_id%>"
 
      var total  = <%="#{session[:mastercard_ids].length.to_i}" rescue 0%>;
      var current = <%="#{session[:mastercard_counter].to_i + 1}" rescue 0%>;
@@ -143,14 +143,14 @@
                   %>?patient_id=<%=@patient_id%>&type=<%= @type %>"></iframe>
 
       <div id="footer" style="">
-      	<% report_url = "/patients/show/?patient_id=#{@patient_id}" %>
+      	<% report_url = "/patients/show/#{@patient_id}" %>
       	
 		    <% if (@show_mastercard_counter.to_s == "true") || (@from_report.to_s == "true") %>
 		    		<% report_url = session[:report_url] if !session[:report_url].blank? %>
 		    <% end %>
-		    
+		   
         <button onclick="window.location ='<%="#{report_url}"%>';" class="button navButton green"
-                id="nextButton" style="float: right; margin-right: 10px;" ><span>Finish</span>
+          id="nextButton" style="float: right; margin-right: 10px;" ><span>Finish</span>
         </button>
 
         <% if @source.nil? %>
