@@ -33,7 +33,7 @@ class Cohort
 
     logger.info("defaulted " + Time.now.to_s)  
     @art_defaulters ||= self.art_defaulted_patients
-
+    #raise self.art_stopped_patients.to_yaml
     logger.info("alive_on_art " + Time.now.to_s)
 
     #raise self.art_stopped_patients.to_yaml
@@ -804,11 +804,33 @@ class Cohort
     
     state = ProgramWorkflowState.find(:first, :conditions => ["concept_id IN (?)",concept_name.map{|c|c.concept_id}] ).program_workflow_state_id
 		patients = []
-    
+
 		PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{end_date}') AS state
  									FROM earliest_start_date e WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' HAVING state = '#{state}'").each do | patient |
 			patients << patient.patient_id.to_i
 		end
+
+=begin
+    PatientProgram.find_by_sql("Select patient_id, state from patient_state
+                    INNER JOIN patient_program p ON p.patient_program_id = patient_state.patient_program_id
+                    WHERE patient_state.voided = 0
+                    AND p.voided = 0
+                    AND p.program_id = 1
+                    AND start_date BETWEEN '#{start_date}' AND '#{end_date}'
+                    ORDER BY date_enrolled DESC, start_date DESC")
+
+
+    .each do |patient|
+                          
+                          if  ! patients.include?(patient.patient_id.to_i) and ! excluded.include?(patient.patient_id.to_i)
+                            if patient.state.to_i == state
+                             patients << patient.patient_id.to_i
+                            else
+                             excluded << patient.patient_id.to_i
+                            end
+                          end
+                    end
+=end
     
 		return patients
   end
