@@ -1,60 +1,60 @@
 class ProgramsController < GenericProgramsController
 
-def create_exit_from_care_encounter(given_params)
-states_to_create_encounter_for = []
-concept_set("EXIT FROM CARE").each{|concept| states_to_create_encounter_for << concept.uniq.to_s}
+  def create_exit_from_care_encounter(given_params)
+    states_to_create_encounter_for = []
+    concept_set("EXIT FROM CARE").each{|concept| states_to_create_encounter_for << concept.uniq.to_s}
 
-current_state = given_params[:current_state]
+    current_state = given_params[:current_state]
 
-if states_to_create_encounter_for.include? current_state
-new_encounter = {"encounter_datetime"=> given_params[:current_date],
-"encounter_type_name"=>"EXIT FROM HIV CARE",
-"patient_id"=> params[:patient_id],
-"provider_id"=>params[:encounter][:provider_id]}
+    if states_to_create_encounter_for.include? current_state
+      new_encounter = {"encounter_datetime"=> given_params[:current_date],
+        "encounter_type_name"=>"EXIT FROM HIV CARE",
+        "patient_id"=> params[:patient_id],
+        "provider_id"=>params[:encounter][:provider_id]}
 
-encounter = Encounter.new(new_encounter)
-encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
-encounter.save
+      encounter = Encounter.new(new_encounter)
+      encounter.encounter_datetime = session[:datetime] unless session[:datetime].blank?
+      encounter.save
 
-reason_obs = {}
-reason_obs[:concept_name] = 'REASON FOR EXITING CARE'
-reason_obs[:encounter_id] = encounter.id
-reason_obs[:obs_datetime] = encounter.encounter_datetime || Time.now()
-reason_obs[:person_id] ||= encounter.patient_id
-reason_obs['value_coded_or_text'] = current_state
-Observation.create(reason_obs)
+      reason_obs = {}
+      reason_obs[:concept_name] = 'REASON FOR EXITING CARE'
+      reason_obs[:encounter_id] = encounter.id
+      reason_obs[:obs_datetime] = encounter.encounter_datetime || Time.now()
+      reason_obs[:person_id] ||= encounter.patient_id
+      reason_obs['value_coded_or_text'] = current_state
+      Observation.create(reason_obs)
 
-date_obs = {}
-date_obs[:concept_name] = 'DATE OF EXITING CARE'
-date_obs[:encounter_id] = encounter.id
-date_obs[:obs_datetime] = encounter.encounter_datetime || Time.now()
-date_obs[:person_id] ||= encounter.patient_id
-date_obs['value_datetime'] = given_params[:current_date]
-Observation.create(date_obs)
+      date_obs = {}
+      date_obs[:concept_name] = 'DATE OF EXITING CARE'
+      date_obs[:encounter_id] = encounter.id
+      date_obs[:obs_datetime] = encounter.encounter_datetime || Time.now()
+      date_obs[:person_id] ||= encounter.patient_id
+      date_obs['value_datetime'] = given_params[:current_date]
+      Observation.create(date_obs)
 
-if current_state.upcase == 'PATIENT TRANSFERRED OUT'
-observation = {}
-observation[:concept_name] = 'TRANSFER OUT TO'
-observation[:encounter_id] = encounter.id
-observation[:obs_datetime] = encounter.encounter_datetime || Time.now()
-observation[:person_id] ||= encounter.patient_id
-observation['value_numeric'] = params[:transfer_out_location_id]
-Observation.create(observation)
-end
-rebuild_program_states(given_params[:patient_program_id], given_params[:encounter][:patient_id])
-end
-end
+      if current_state.upcase == 'PATIENT TRANSFERRED OUT'
+        observation = {}
+        observation[:concept_name] = 'TRANSFER OUT TO'
+        observation[:encounter_id] = encounter.id
+        observation[:obs_datetime] = encounter.encounter_datetime || Time.now()
+        observation[:person_id] ||= encounter.patient_id
+        observation['value_numeric'] = params[:transfer_out_location_id]
+        Observation.create(observation)
+      end
+      rebuild_program_states(given_params[:patient_program_id], given_params[:encounter][:patient_id])
+    end
+  end
 
   def rebuild_program_states(patient_program_id, patient_id)
 
 		#raise patient_program_id.to_yaml
     current_patient_program = PatientProgram.find(patient_program_id)
     # gather initial data for the particular program required data
-      program_id = current_patient_program.program_id
-      location_id = current_patient_program.location_id
-      initial_date = Date.today
-      program_states_to_void = [2,3,6,7] #transferred out, dead, treatment stopped, on arvs
-      pre_art_state = 1
+    program_id = current_patient_program.program_id
+    location_id = current_patient_program.location_id
+    initial_date = Date.today
+    program_states_to_void = [2,3,6,7] #transferred out, dead, treatment stopped, on arvs
+    pre_art_state = 1
 
     # find patient
     patient = Patient.find(patient_id)
@@ -67,11 +67,11 @@ end
     pre_art_state_exists = true if current_patient_program.patient_states.map(&:state).include? pre_art_state
     # create pre ART state for the program
     if ! pre_art_state_exists == true
-        initial_patient_state = current_patient_program.patient_states.build(
-          :state => 1, #TODO find a better way of getting the this state rather than hard coding
-          :start_date => initial_date,
-          :creator => User.current.user_id)
-        initial_patient_state.save 
+      initial_patient_state = current_patient_program.patient_states.build(
+        :state => 1, #TODO find a better way of getting the this state rather than hard coding
+        :start_date => initial_date,
+        :creator => User.current.user_id)
+      initial_patient_state.save
     else 
       #ensure that initial state is known, so that we can assign 
       #end date of the beginning of the on arv state
@@ -108,9 +108,9 @@ end
 
     exit_from_care_encounter_type = EncounterType.find_by_name("EXIT FROM HIV CARE").id
     exit_from_care_encounter = Encounter.find(:all,
-                                              :conditions => ["encounter_type = ? AND patient_id = ? AND voided = 0",
-                                                exit_from_care_encounter_type, patient.patient_id]
-                                              )
+      :conditions => ["encounter_type = ? AND patient_id = ? AND voided = 0",
+        exit_from_care_encounter_type, patient.patient_id]
+    )
 
     reason_for_exiting_care = ConceptName.find_by_name("REASON FOR EXITING CARE").concept_id
     date_of_exiting_care = ConceptName.find_by_name("DATE OF EXITING CARE").concept_id
@@ -191,14 +191,17 @@ end
   end
 
   def exitcare
-@exit_from_care_state = params[:exit_state]
-@patient = Patient.find(params[:patient_id])
-hiv_program_id = Program.find_by_name("HIV PROGRAM").id
-patient_program = PatientProgram.find(:all,
-:conditions => ["patient_id = ? and program_id = ?",
-params[:patient_id], hiv_program_id]).first rescue nil
 
-@patient_program_id = patient_program.patient_program_id
+    @exit_from_care_state = params[:exit_state]
+    @patient = Patient.find(params[:patient_id])
+    hiv_program_id = Program.find_by_name("HIV PROGRAM").id
+    patient_program = PatientProgram.find(:all,
+      :conditions => ["patient_id = ? and program_id = ?",
+        params[:patient_id], hiv_program_id]).first rescue nil
+
+
+    @patient_program_id = patient_program.patient_program_id
+
   end
 
   def exitcarestates
@@ -216,26 +219,30 @@ params[:patient_id], hiv_program_id]).first rescue nil
     render :text => @names.join('')
   end
 
- def update_exitcare
+  def update_exitcare
+    
+    patient_program = PatientProgram.find(params[:patient_program_id])
+    #we don't want to have more than one open states - so we have to close the current active on before opening/creating a new one
 
-      patient_program = PatientProgram.find(params[:patient_program_id])
-      #we don't want to have more than one open states - so we have to close the current active on before opening/creating a new one
-
-      current_active_state = patient_program.patient_states.last
-      current_active_state.end_date = params[:current_date].to_date
-
-       # set current location via params if given
-      Location.current_location = Location.find(params[:location]) if params[:location]
-state_concept = ConceptName.find_by_name(params[:current_state]).concept
-program_workflow_state = ProgramWorkflowState.find(:first, :joins => "INNER JOIN program_workflow USING (program_workflow_id) INNER JOIN program USING (program_id)", :conditions => ["program_workflow.program_id = ? AND program_workflow_state.concept_id = ?", patient_program.program_id, state_concept.id])
-#raise program_workflow_state.to_yaml
-      patient_state = patient_program.patient_states.build(
-        :state => program_workflow_state.id,
-        :start_date => params[:current_date])
-      if patient_state.save
-        # Close and save current_active_state if a new state has been created
-       current_active_state.save
-
+    current_active_state = patient_program.patient_states.last
+    current_active_state.end_date = params[:current_date].to_date
+    #raise current_active_state.to_s.to_yaml
+    # set current location via params if given
+    Location.current_location = Location.find(params[:location]) if params[:location]
+    state_concept = ConceptName.find_by_name(params[:current_state]).concept
+    program_workflow_state = ProgramWorkflowState.find(:first, 
+      :joins => "INNER JOIN program_workflow USING (program_workflow_id) INNER JOIN program USING (program_id)",
+      :conditions => ["program_workflow.program_id = ? AND program_workflow_state.concept_id = ?", patient_program.program_id, state_concept.id])
+    
+    patient_state = patient_program.patient_states.build(
+      :state => program_workflow_state.id,
+      :start_date => params[:current_date])
+   
+    if patient_state.save
+     
+      # Close and save current_active_state if a new state has been created
+      current_active_state.save
+      
 =begin
 if patient_state.program_workflow_state.concept.fullname.upcase == 'PATIENT TRANSFERRED OUT'
 encounter = Encounter.new(params[:encounter])
@@ -264,77 +271,77 @@ Observation.create(observation)
 end
 =end
 
-        updated_state = patient_state.program_workflow_state.concept.fullname
+      updated_state = patient_state.program_workflow_state.concept.fullname
 
+     
+      #disabled redirection during import in the code below
+      # Changed the terminal state conditions from hardcoded ones to terminal indicator from the updated state object
+      if patient_state.program_workflow_state.terminal == 1
+        #the following code updates the person table to died yes if the state is Died/Death
+        if updated_state.match(/DIED/i)
+          person = patient_program.patient.person
+          person.dead = 1
+          unless params[:current_date].blank?
+            person.death_date = params[:current_date].to_date
+          end
+          person.save
 
-    #disabled redirection during import in the code below
-    # Changed the terminal state conditions from hardcoded ones to terminal indicator from the updated state object
-        if patient_state.program_workflow_state.terminal == 1
-          #the following code updates the person table to died yes if the state is Died/Death
-          if updated_state.match(/DIED/i)
-            person = patient_program.patient.person
-            person.dead = 1
-            unless params[:current_date].blank?
-              person.death_date = params[:current_date].to_date
-            end
-            person.save
+          #updates the state of all patient_programs to patient died and save the
+          #end_date of the last active state.
+          current_programs = PatientProgram.find(:all,:conditions => ["patient_id = ?",@patient.id])
+          current_programs.each do |program|
+            if patient_program.to_s != program.to_s
+              current_active_state = program.patient_states.last
+              current_active_state.end_date = params[:current_date].to_date
 
-            #updates the state of all patient_programs to patient died and save the
-            #end_date of the last active state.
-            current_programs = PatientProgram.find(:all,:conditions => ["patient_id = ?",@patient.id])
-            current_programs.each do |program|
-              if patient_program.to_s != program.to_s
-                current_active_state = program.patient_states.last
-                current_active_state.end_date = params[:current_date].to_date
+              Location.current_location = Location.find(params[:location]) if params[:location]
 
-                Location.current_location = Location.find(params[:location]) if params[:location]
+              patient_state = program.patient_states.build(
+                :state => program_workflow_state.id,
+                :start_date => params[:current_date])
+              if patient_state.save
+                current_active_state.save
 
-                patient_state = program.patient_states.build(
-                    :state => program_workflow_state.id,
-                    :start_date => params[:current_date])
-                if patient_state.save
-                  current_active_state.save
-
-              # date_completed = session[:datetime].to_time rescue Time.now()
+                # date_completed = session[:datetime].to_time rescue Time.now()
                 date_completed = params[:current_date].to_date rescue Time.now()
                 PatientProgram.update_all "date_completed = '#{date_completed.strftime('%Y-%m-%d %H:%M:%S')}'",
-                                       "patient_program_id = #{program.patient_program_id}"
-                end
-             end
+                  "patient_program_id = #{program.patient_program_id}"
+              end
             end
           end
-
-          # date_completed = session[:datetime].to_time rescue Time.now()
-          date_completed = params[:current_date].to_date rescue Time.now()
-          PatientProgram.update_all "date_completed = '#{date_completed.strftime('%Y-%m-%d %H:%M:%S')}'",
-                                     "patient_program_id = #{patient_program.patient_program_id}"
-        else
-          person = patient_program.patient.person
-          person.dead = 0
-          person.save
-          date_completed = nil
-          PatientProgram.update_all "date_completed = NULL",
-                                     "patient_program_id = #{patient_program.patient_program_id}"
         end
 
-        create_exit_from_care_encounter(params)
-#print the transfer out label if patient was transfered out
-if patient_state.program_workflow_state.concept.fullname.upcase == 'PATIENT TRANSFERRED OUT'
-print_and_redirect("/patients/transfer_out_label?patient_id=#{params[:patient_id]}", "/patients/exitcare_dashboard/#{params[:patient_id]}")
-else
-redirect_to :controller => :patients, :action => :exitcare_dashboard, :id => params[:patient_id]
-end
-
+        # date_completed = session[:datetime].to_time rescue Time.now()
+        date_completed = params[:current_date].to_date rescue Time.now()
+        PatientProgram.update_all "date_completed = '#{date_completed.strftime('%Y-%m-%d %H:%M:%S')}'",
+          "patient_program_id = #{patient_program.patient_program_id}"
       else
-        redirect_to :controller => :patients, :action => :exitcare_dashboard, :id => params[:patient_id],:error => "Unable to update state"
+        person = patient_program.patient.person
+        person.dead = 0
+        person.save
+        date_completed = nil
+        PatientProgram.update_all "date_completed = NULL",
+          "patient_program_id = #{patient_program.patient_program_id}"
       end
+
+      create_exit_from_care_encounter(params)
+      #print the transfer out label if patient was transfered out
+      if patient_state.program_workflow_state.concept.fullname.upcase == 'PATIENT TRANSFERRED OUT'
+        print_and_redirect("/patients/transfer_out_label?patient_id=#{params[:patient_id]}", "/patients/exitcare_dashboard/#{params[:patient_id]}")
+      else
+        redirect_to :controller => :patients, :action => :exitcare_dashboard, :id => params[:patient_id]
+      end
+
+    else
+      redirect_to :controller => :patients, :action => :exitcare_dashboard, :id => params[:patient_id],:error => "Unable to update state"
+    end
   end
 
   def void_exitcare
     hiv_program_id = Program.find_by_name("HIV PROGRAM").id
     patient_program = PatientProgram.find(:all,
-                     :conditions => ["patient_id = ? AND program_id = ? AND voided = 0",
-                       params[:patient_id], hiv_program_id]).first rescue nil
+      :conditions => ["patient_id = ? AND program_id = ? AND voided = 0",
+        params[:patient_id], hiv_program_id]).first rescue nil
     if ! patient_program.nil?
       rebuild_program_states(patient_program.patient_program_id, params[:patient_id])
     end
@@ -344,9 +351,9 @@ end
 	def show
 		tb_states = ["currently in treatment", "patient cured", "patient transferred out", "regimen failure","treatment complete","patient died"]
     if params[:show_non_terminal_states_only].to_s == true.to_s
-       @states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ? AND terminal = 0', params[:workflow]], :include => :concept)
+      @states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ? AND terminal = 0', params[:workflow]], :include => :concept)
     else
-       @states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ?', params[:workflow]], :include => :concept)
+      @states = ProgramWorkflowState.all(:conditions => ['program_workflow_id = ?', params[:workflow]], :include => :concept)
     end
 
     @names = @states.map{|state|
@@ -354,10 +361,10 @@ end
       name = state.concept.concept_names.typed("SHORT").first.name rescue state.concept.fullname
       next if name.blank?
 			if tb_states.include?(name.downcase.to_s)
-				 "<li value='#{state.id}'>#{name}</li>" unless name == params[:current_state]
+        "<li value='#{state.id}'>#{name}</li>" unless name == params[:current_state]
 			end
     }
     render :text => @names.join('')
- end
+  end
 
 end
