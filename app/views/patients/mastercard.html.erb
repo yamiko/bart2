@@ -137,7 +137,7 @@
 
   </head>
   <body onload="hideLoadMsg();">
-    <div id="content">
+    <div id="content"  style = "position : relative; width : 98%; margin-left : -49%;">
       <iframe id="main" style="border: 0px solid #fff;"
               src="/patients/<%= (!@type.nil? ? "general_mastercard" : "mastercard_printable")
                   %>?patient_id=<%=@patient_id%>&type=<%= @type %>"></iframe>
