@@ -114,9 +114,9 @@
         position:absolute;
         left:50%;
         top:50%;
-        width:1000px;
+        width:98%;
         height:750px;
-        margin-left:-500px;
+        margin-left:-49%;
         margin-top:-380px;
         -moz-user-select:none;
 
@@ -137,7 +137,7 @@
 
   </head>
   <body onload="hideLoadMsg();">
-    <div id="content"  style = "position : relative; width : 98%; margin-left : -49%;">
+    <div id="content">
       <iframe id="main" style="border: 0px solid #fff;"
               src="/patients/<%= (!@type.nil? ? "general_mastercard" : "mastercard_printable")
                   %>?patient_id=<%=@patient_id%>&type=<%= @type %>"></iframe>
