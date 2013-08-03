@@ -78,15 +78,15 @@
 				</select>
 
 				<select id="links">
-					<option value='/regimens/new?patient_id=<%= @patient.id -%>'>Regimen</option>
+					<optgroup value='/regimens/new?patient_id=<%= @patient.id -%>'label="Regimen"></optgroup>
 
 					<% if advanced_prescription_interface %>
-						<option value='/prescriptions/generic_advanced_prescription?patient_id=<%= @patient.id -%>'>Other drugs</option>
+						<optgroup value='/prescriptions/generic_advanced_prescription?patient_id=<%= @patient.id -%>' label="Other drugs"></optgroup>
 					<% else %>
-						<option value='/prescriptions/auto?patient_id=<%= @patient.id -%>'>Other drugs</option>
+						<optgroup value='/prescriptions/auto?patient_id=<%= @patient.id -%>' label="Other drugs"></optgroup>
 					<% end %>
 					<% if @dispense.to_s.downcase == "false" %>
-					 <option value='/dispensations/new?patient_id=<%= @patient.id -%>'>Dispense</option> 
+					 <optgroup value='/dispensations/new?patient_id=<%= @patient.id -%>' label="Dispense"></optgroup>
 					<%  end %>
 				</select>
 				<input type='submit' value='Finish' />

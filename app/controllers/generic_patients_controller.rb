@@ -399,7 +399,7 @@ class GenericPatientsController < ApplicationController
       @source = nil
     end
 
-    render :layout => false
+    render :layout => "menu"
     
   end
 
@@ -801,7 +801,7 @@ class GenericPatientsController < ApplicationController
     @patient_bean = PatientService.get_patient(@patient.person)
 		@guardian_phone_number = PatientService.get_attribute(Person.find(@patient.person.relationships.first.person_b), 'Cell phone number') rescue nil
 		@patient_phone_number = PatientService.get_attribute(@patient.person, 'Cell phone number')
-    render :layout => false
+    #render :layout => false
   end
 
   def patient_details
@@ -1990,12 +1990,13 @@ end
 				patient_visits[visit_date].pills << [drug_name,obs.value_numeric] rescue []
             
 			elsif concept_name.upcase == 'WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER'
+        
 				drug = Drug.find(obs.order.drug_order.drug_inventory_id) rescue nil
 				#tb_medical = MedicationService.tb_medication(drug) unless drug.nil?
 				#next if tb_medical == true
-				next if obs.value_numeric.blank?
+				next if  obs.to_s.split(':')[1].to_i.blank?
 				patient_visits[visit_date].adherence = [] if patient_visits[visit_date].adherence.blank?
-				patient_visits[visit_date].adherence << [Drug.find(obs.order.drug_order.drug_inventory_id).name,(obs.value_numeric.to_s + '%')]
+				patient_visits[visit_date].adherence << [Drug.find(obs.order.drug_order.drug_inventory_id).name,(obs.to_s.split(':')[1] + '%')]
 			elsif concept_name == 'CLINICAL NOTES CONSTRUCT' || concept_name == 'Clinical notes construct'
 				patient_visits[visit_date].notes+= '<br/>' + obs.value_text unless patient_visits[visit_date].notes.blank?
 				patient_visits[visit_date].notes = obs.value_text if patient_visits[visit_date].notes.blank?
