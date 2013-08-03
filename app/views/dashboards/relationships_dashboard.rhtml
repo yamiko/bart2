@@ -62,7 +62,7 @@
                   <option value='/patients/guardians?patient_id=<%= @patient.id %>'>Guardians</option>
                 </select>
                 <select id="links">
-                  <option value='/relationships/search?patient_id=<%= @patient.id -%>'>New Guardian</option>
+                  <optgroup value='/relationships/search?patient_id=<%= @patient.id -%>' label="New Guardian"></optgroup>
                 </select>
               </td>
             </tr>

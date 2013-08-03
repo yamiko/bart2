@@ -76,13 +76,14 @@
               <option value='/patients/exitcare_history?patient_id=<%= @patient.id %>'>History</option>
             </select>
 			<select id="links">
+                                 <%#= raise @exit_states.to_yaml  %>
 				<% for exit_state in @exit_states do %>
 					<% if exit_state.to_s.upcase == "PATIENT TRANSFERRED OUT"%>
-						<option value='/programs/exitcare?patient_id=<%= @patient.id -%>&exit_state=<%= exit_state%>'>Transferred out</option>
+						<optgroup value='/programs/exitcare?patient_id=<%= @patient.id -%>&exit_state=<%= exit_state%>' label="Transferred out"></optgroup>
 					<% elsif exit_state.to_s.upcase == "PATIENT TRANSFERRED (EXTERNAL FACILITY)"%>
-						<option value='/programs/exitcare?patient_id=<%= @patient.id -%>&exit_state=<%= exit_state%>'>Transferred out</option>
+						<optgroup value='/programs/exitcare?patient_id=<%= @patient.id -%>&exit_state=<%= exit_state%>' label="Transferred out"></optgroup>
 					<% else %>
-						<option value='/programs/exitcare?patient_id=<%= @patient.id -%>&exit_state=<%= exit_state%>'><%= exit_state%></option>
+						<optgroup value='/programs/exitcare?patient_id=<%= @patient.id -%>&exit_state=<%= exit_state%>' label='<%= exit_state%>'></optgroup>
 					<% end %>
 				<% end %>
 			</select>
