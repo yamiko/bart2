@@ -490,7 +490,7 @@ BEGIN
 		WHERE patient_program_id = @patient_program_id
 			AND voided = 0
 			AND start_date <= my_end_date
-		ORDER BY start_date DESC, date_created DESC LIMIT 1;
+		ORDER BY start_date DESC, date_created DESC, patient_state_id DESC LIMIT 1;
 
 	RETURN @state_id;
 END */;;
