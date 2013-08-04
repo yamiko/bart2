@@ -43,6 +43,7 @@
   var cd4_count_numeric, cd4_count_estimate, cd4_count_modifier;
   var selected_stage_conditions = {};
   var retrospective_entry = <%= @retrospective %>
+  var tstCurrentDate = '<%= session[:datetime].to_date.strftime("%Y-%m-%d") rescue Date.today.strftime("%Y-%m-%d") %>'
 
   function resetPad() {
     curr_page = tstCurrentPage - 1 
