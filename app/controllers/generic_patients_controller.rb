@@ -626,6 +626,8 @@ class GenericPatientsController < ApplicationController
       @prescriptions = restriction.filter_orders(@prescriptions)
       @programs = restriction.filter_programs(@programs)
     end
+    
+=begin
    @program_state =  []
    @programs.each do | prog |
     
@@ -635,7 +637,7 @@ class GenericPatientsController < ApplicationController
 					prog.program_id, session_date, @patient.id],:order => "patient_state_id ASC")
      @program_state << [prog.to_s,  patient_states.last.to_s, prog.program_id, prog.date_enrolled]
     end
-    
+=end
     render :template => 'dashboards/overview_tab', :layout => false
   end
 

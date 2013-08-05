@@ -78,6 +78,7 @@
               task_name = (task.encounter_type || 'NONE').upcase rescue 'NONE'
             %>
             </div>
+            
             <select id="tabs">
               <option value='/patients/overview?patient_id=<%= @patient.id %>'>Overview</option>
               <option value='/patients/visit_history?patient_id=<%= @patient.id %>'>Current Visit</option>
@@ -89,7 +90,7 @@
             </select>
             <% if @patient.person.dead == 1%>
               <select id="links">
-                <option value='/patients/programs_dashboard/<%= @patient.id -%>'>Outcomes</option>
+                <optgroup value='/patients/programs_dashboard/<%= @patient.id -%>' label="Outcomes"></optgroup>
               </select>
               <select id="navigation_links">
                 <option link="/patients/mastercard_menu?patient_id=<%= @patient.id -%>&source=<%= @source -%>">Mastercard</option>

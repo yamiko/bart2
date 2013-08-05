@@ -50,17 +50,16 @@
       <div id="programs">
         <!-- h2>Programs</h2 -->
         <ul class="list small" style="height:140px; border-radius: 15px;">
-          <% for prog in @program_state do %>
-              <%#=  raise prog[3].to_yaml %>
-              <li class="data <%= cycle('even', 'odd') %>" program="<%= prog[2] %>">
+          <% for prog in @programs do %>
+              <li class="data <%= cycle('even', 'odd') %>" program="<%= prog.id %>">
                 <div class="program">
-                  <%=(h prog[0].humanize).gsub('Hiv','HIV').gsub('Tb','TB') %> started <%=h prog[3].strftime("%b-%Y") rescue 'Unknown' %>
-                  <br /><font class='patient_state'>Current state: <%=h prog[1].humanize.gsub('-art','-ART').gsub('arvs','ARVs') %></font>
+                  <%=(h prog.program.name.humanize).gsub('Hiv','HIV').gsub('Tb','TB') %> started <%=h prog.date_enrolled.strftime("%b-%Y") rescue 'Unknown' %>
+                  <br /><font class='patient_state'>Current state: <%=h prog.patient_states.last.to_s.humanize.gsub('-art','-ART').gsub('arvs','ARVs') %></font>
                 </div>
               </li>
             <%
              end %>
-            <% if @program_state.empty? %>
+            <% if @programs.empty? %>
               <li class="data even">
                 <div class="program">There are no current programs for this patient</div>
               </li>
