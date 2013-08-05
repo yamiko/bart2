@@ -36,7 +36,7 @@ class Cohort
     #raise self.art_stopped_patients.to_yaml
     logger.info("alive_on_art " + Time.now.to_s)
 
-    #raise self.art_stopped_patients.to_yaml
+    #raise self.total_number_of_dead_patients.to_yaml
     @patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
 		threads = []
 
@@ -411,9 +411,9 @@ class Cohort
 		cohort_report['Unknown outcomes'] = cohort_report['Total registered'] -
 			(cohort_report['Total alive and on ART'] +
 				cohort_report['Defaulted'] +
-				(cohort_report['Died total'] || []) +
-				(cohort_report['Stopped taking ARVs'] || []) +
-				(cohort_report['Transferred out'] || []))
+				(cohort_report['Died total'] ) +
+				(cohort_report['Stopped taking ARVs'] ) +
+				(cohort_report['Transferred out']))
 		
 		#patients_with_0_6_doses_missed = []; patients_with_7_doses_missed = []
 
@@ -805,32 +805,20 @@ class Cohort
     state = ProgramWorkflowState.find(:first, :conditions => ["concept_id IN (?)",concept_name.map{|c|c.concept_id}] ).program_workflow_state_id
 		patients = []
 
-		PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{end_date}') AS state
- 									FROM earliest_start_date e WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' HAVING state = '#{state}'").each do | patient |
+    PatientProgram.find_by_sql("SELECT p.patient_id, current_state_for_program(p.patient_id, 1, '#{end_date}') AS state, c.name as status FROM patient p
+                                INNER JOIN  program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(p.patient_id, 1, '#{end_date}')
+                                INNER join earliest_start_date e ON e.patient_id = p.patient_id
+                                INNER JOIN concept_name c ON c.concept_id = pw.concept_id
+                                WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
+                                AND  name = '#{outcome}'").each do | patient |
 			patients << patient.patient_id.to_i
 		end
 
-=begin
-    PatientProgram.find_by_sql("Select patient_id, state from patient_state
-                    INNER JOIN patient_program p ON p.patient_program_id = patient_state.patient_program_id
-                    WHERE patient_state.voided = 0
-                    AND p.voided = 0
-                    AND p.program_id = 1
-                    AND start_date BETWEEN '#{start_date}' AND '#{end_date}'
-                    ORDER BY date_enrolled DESC, start_date DESC")
 
-
-    .each do |patient|
-                          
-                          if  ! patients.include?(patient.patient_id.to_i) and ! excluded.include?(patient.patient_id.to_i)
-                            if patient.state.to_i == state
-                             patients << patient.patient_id.to_i
-                            else
-                             excluded << patient.patient_id.to_i
-                            end
-                          end
-                    end
-=end
+		#PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{end_date}') AS state
+ 		#							FROM earliest_start_date e WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' HAVING state = '#{state}'").each do | patient |
+		#	patients << patient.patient_id.to_i
+		#end
     
 		return patients
   end
