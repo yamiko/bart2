@@ -1903,7 +1903,17 @@ end
           patient_obj.patient_id,encounter_date.to_date, concept_ids],
         :order =>"obs_datetime").map{|obs| obs if !obs.concept.nil?}
     end
-		#raise observations.last.concept_id.to_s.to_yaml
+        hiv_program = Program.find_by_name("HIV program").id
+        tb_program = Program.find_by_name("TB program").id
+        patient_in_programs = PatientProgram.find_by_sql("
+                            SELECT * FROM patient_program
+                            WHERE patient_id = #{patient_obj.id}
+                            AND program_id IN (#{hiv_program}, #{tb_program})
+                            AND voided = 0")
+
+        return if patient_in_programs.blank?
+
+
 		gave_hash = Hash.new(0)
 		observations.map do |obs|
 			drug = Drug.find(obs.order.drug_order.drug_inventory_id) rescue nil
