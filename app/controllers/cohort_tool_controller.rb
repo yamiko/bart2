@@ -1170,6 +1170,7 @@ class CohortToolController < GenericCohortToolController
   end
   
   def cohort
+    session[:pre_art] = []
 		@logo = CoreService.get_global_property_value('logo').to_s
     @quarter = params[:quarter]
     start_date,end_date = Report.generate_cohort_date_range(@quarter)

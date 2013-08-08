@@ -183,7 +183,6 @@ class ReportController < GenericReportController
   def defaulted_patients_report
     @data = []
     @report = "defaulted"
-    #@start_date = (params[:start_month].to_s + "/" + params[:start_day].to_s + "/" + params[:start_year].to_s).to_date
 
     @end_date = (params[:end_month].to_s + "/" + params[:end_day].to_s + "/" + params[:end_year].to_s).to_date
 
