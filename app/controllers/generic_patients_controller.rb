@@ -2,6 +2,7 @@ class GenericPatientsController < ApplicationController
 	before_filter :find_patient, :except => [:void]
   
 	def show
+    
 		return_uri = session[:return_uri]
 		if !return_uri.blank? || @patient.blank?
 			redirect_to return_uri.to_s
@@ -12,6 +13,7 @@ class GenericPatientsController < ApplicationController
 		@show_period = false
 		@show_period = true if current_state.match(/currently in treatment/i)
 		session[:mastercard_ids] = []
+    session[:datetime] = params[:session] if params[:session]
 		session_date = session[:datetime].to_date rescue Date.today
 		@patient_bean = PatientService.get_patient(@patient.person)
 		@encounters = @patient.encounters.find_by_date(session_date)
