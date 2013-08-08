@@ -125,7 +125,9 @@ class GenericClinicController < ApplicationController
       #["View appointments","/report/select_date"],
       ["Drug dispensation","/report/drug_menu"],
       ["Pre-ART","/cohort_tool/cohort_menu?type=pre_art"],
-      ["View appointments","/properties/select_date"]
+      ["View appointments","/properties/select_date"],
+      ["Missed Appointments", "/report/missed_appointment_duration?type=missed"],
+      ["Defaulted patients", "/report/missed_appointment_duration?type=defaulter"]
     ]
 
 

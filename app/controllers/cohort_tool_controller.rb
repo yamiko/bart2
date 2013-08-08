@@ -1170,6 +1170,7 @@ class CohortToolController < GenericCohortToolController
   end
   
   def cohort
+    session[:pre_art] = []
 		@logo = CoreService.get_global_property_value('logo').to_s
     @quarter = params[:quarter]
     start_date,end_date = Report.generate_cohort_date_range(@quarter)
@@ -1186,6 +1187,16 @@ class CohortToolController < GenericCohortToolController
     render :layout => 'cohort'
   end
 
+  def missed_appointment
+    @logo = CoreService.get_global_property_value('logo').to_s
+    @quarter = params[:quarter]
+    @start_date, @end_date = Report.generate_cohort_date_range(@quarter)
+
+    @missed_patients = Cohort.miss_appointment(@start_date, @end_date)
+    
+    render :layout => 'report'
+  end
+  
 	def survival_analysis
 		session[:field] = nil
 		session[:cohort]["outcomes"] = {} if session[:cohort]["outcomes"].blank?
