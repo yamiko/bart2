@@ -159,11 +159,16 @@ class ReportController < GenericReportController
       last_obs = Observation.find_by_sql("SELECT * FROM obs WHERE person_id = #{last_app.person_id}
                                           AND DATE(obs_datetime) = DATE('#{last_app.value_datetime.to_date}')  LIMIT 1")
 
+       first_obs = Observation.find_by_sql("SELECT person_id, obs_datetime FROM obs
+                                            WHERE person_id = #{last_app.person_id}
+                                            AND voided = 0 order by obs_datetime ASC LIMIT 1").first
+
       if last_obs.nil?
         result = adherence(last_app.person_id, last_app.value_datetime)
         next_visit = Observation.find(:first, :conditions =>  ["person_id = ? AND obs_datetime > ?",
                                                                last_app.person_id, last_app.value_datetime]).nil? ? " " : "Yes"
         details ={
+            'patient_id' => last_app.person_id,
             'name' => last_app.encounter.patient.name,
             'age' => PatientService.cul_age(last_app.encounter.patient.person.birthdate , last_app.encounter.patient.person.birthdate_estimated ),
             'dosses_missed' => result['missed_dosses'],
@@ -171,7 +176,9 @@ class ReportController < GenericReportController
             'booked_date' => last_app.obs_datetime.to_date.strftime('%d/%b/%Y') ,
             'phone_number' => get_phone(last_app.person_id),
             'overdue' => (Date.today.to_date - last_app.obs_datetime.to_date).to_i,
-            'came_late' => next_visit
+            'came_late' => next_visit,
+            'date_registered' => first_obs.obs_datetime.to_date,
+            'last_visit_date' => last_app.obs_datetime.to_date
         }
         @data << details
       end
@@ -198,27 +205,29 @@ class ReportController < GenericReportController
                                 ORDER BY obs_datetime LIMIT 1").first
 
      
-       #raise last_obs.person_id.to_yaml
+       first_obs = Observation.find_by_sql("SELECT person_id, obs_datetime FROM obs
+                                            WHERE person_id = #{person_id}
+                                            AND voided = 0 order by obs_datetime ASC LIMIT 1").first
       
         unless last_appointment.blank?
               result = adherence(last_appointment.person_id, last_appointment.value_datetime) rescue []
         
           details ={
+            'patient_id' => person_id,
             'name' => patient.name,
             'age' => PatientService.cul_age(patient.person.birthdate , patient.person.birthdate_estimated ),
             'dosses_missed' => (result['missed_dosses'] rescue []),
             'exp_tab_remaining' => (result['expected_remaining'] || []),
             'booked_date' => last_appointment.obs_datetime.to_date.strftime('%d/%b/%Y') ,
             'phone_number' => get_phone(person_id),
-            'overdue' => (@end_date.to_date - last_appointment.value_datetime.to_date).to_i
+            'overdue' => (@end_date.to_date - last_appointment.value_datetime.to_date).to_i,
+            'date_registered' => first_obs.obs_datetime.to_date,
+            'last_visit_date' => last_appointment.obs_datetime.to_date
         }  
         @data << details
         end
-  
-
     end
 
-    #raise @data.to_yaml
     render "missed_appointment_report"
   end
   
