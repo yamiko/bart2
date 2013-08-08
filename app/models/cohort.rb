@@ -706,6 +706,19 @@ class Cohort
 		return patients
 	end
 
+  def self.miss_appointment(start_date, end_date)
+      obs = []
+      Observation.find_by_sql("
+                  SELECT DISTINCT(person_id), obs_datetime, value_datetime FROM obs
+                  WHERE concept_id = (SELECT concept_id FROM concept_name WHERE name = 'appointment date' LIMIT 1)
+                  AND value_datetime BETWEEN '#{start_date}' AND '#{end_date}'
+                  ORDER BY obs_datetime DESC").each { |person|
+              patient = Person.find(person.person_id)
+              obs << [patient.names.first.given_name, patient.names.first.family_name, person.value_datetime, person.obs_datetime]
+              }
+    return obs
+  end
+
 	def transferred_out_patients
 	  #PB--reversed the code below to the original code after fixing the metadata
     #outcome = 'PATIENT TRANSFERRED (EXTERNAL FACILITY)' if ConceptName.find_all_by_name('PATIENT TRANSFERRED OUT').blank?

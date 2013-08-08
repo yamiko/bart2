@@ -9,10 +9,12 @@
 	height:550px ! important;
   }
 </style>
-<% if params[:type].blank? %>
-<form id='quarter' action="cohort" method='post'>
+<% if params[:type] == "pre_art" %>
+  <form id='quarter' action="cohort" method='post'>
+<% elsif params[:type] == "appointment" %>
+  <form id='quarter' action="missed_appointment" method='post'>
 <% else %>
-  <form id='quarter' action="pre_art" method='post'>
+   <form id='quarter' action="pre_art" method='post'>
 <% end %>
   <%
     qtrs = ['']

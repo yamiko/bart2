@@ -19,14 +19,14 @@ class GenericReportController < ApplicationController
                                   :group =>   "name",
                                   :select => "concept_name.concept_id,concept_name.name,obs.value_coded,obs.obs_datetime,obs.voided")
     @patient = Person.find(:all,
-                           :joins => 
-                                "INNER JOIN obs ON 
+                           :joins =>
+                                "INNER JOIN obs ON
                                  person.person_id = obs.person_id AND obs.voided = 0",
                            :conditions => ["date_format(obs_datetime, '%Y-%m-%d') >= ? AND date_format(obs_datetime, '%Y-%m-%d') <= ?",
                                             @start_date, @end_date],
                            :select => "person.voided,obs.value_coded,obs.obs_datetime,obs.voided ")
-  
-    @times = []                         
+
+    @times = []
     @data_hash = Hash.new
     start_date = @start_date
     end_date = @end_date
@@ -40,7 +40,7 @@ class GenericReportController < ApplicationController
         end_date = @end_date
       end
     end
-    
+
     @times.each{|t|
       @diagnoses_hash = {}
       patients = []
@@ -70,10 +70,10 @@ class GenericReportController < ApplicationController
       sum = 0
       @times.each{|t|
         @data_hash.each{|time,data|
-          if t.to_date == time.to_date 
+          if t.to_date == time.to_date
             data.each{|k,v|
             if k == d.name
-              sum = sum + v 
+              sum = sum + v
             end
           }
           end
@@ -111,16 +111,16 @@ class GenericReportController < ApplicationController
                                             @start_date, @end_date],
                                   :group =>   "name",
                                   :select => "concept_name.concept_id,concept_name.name,obs.value_coded,obs.obs_datetime,obs.voided")
-  #getting list of all patients who were diagnosed within the set period-to avoid getting all patients                          
+  #getting list of all patients who were diagnosed within the set period-to avoid getting all patients
   @patient = Person.find(:all,
-                           :joins => 
-                                "INNER JOIN obs ON 
+                           :joins =>
+                                "INNER JOIN obs ON
                                  person.person_id = obs.person_id AND obs.voided = 0",
                            :conditions => ["date_format(obs_datetime, '%Y-%m-%d') >= ? AND date_format(obs_datetime, '%Y-%m-%d') <= ?",
                                             @start_date, @end_date],
                            :select => "person.gender,person.birthdate,person.birthdate_estimated,person.date_created,
                                       person.voided,obs.value_coded,obs.obs_datetime,obs.voided ")
-  
+
   sort_hash = Hash.new
 
   #sorting the diagnoses using frequency with the highest first
@@ -132,7 +132,7 @@ class GenericReportController < ApplicationController
       end
     }
     sort_hash[diagnosis.name] = count
-  
+
   }
   #A sorted array of diagnoses to be sent to be sent to form
   @diagnoses = Array.new
@@ -142,20 +142,20 @@ class GenericReportController < ApplicationController
    sort_hash.each{|x| diagnosis_names << x[0]}
    diagnosis_names.each{|d|
      diagnoses.each{|diag|
-       @diagnoses << diag if d == diag.name     
+       @diagnoses << diag if d == diag.name
      }
    }
-   
+
    @patient_record = []
    @patient.each do |patient|
    patient_bean = PatientService.get_patient(patient.person)
    @patient_record << {
-   					   'age' => patient_bean.age, 
+   					   'age' => patient_bean.age,
    					   'sex' => patient_bean.sex,
 					   'value_coded' => patient.value_coded
 					  }
    end
-   
+
   end
 
   def referral
@@ -167,14 +167,14 @@ class GenericReportController < ApplicationController
         return
       end
 
-    @referrals = Observation.find(:all, :conditions => ["concept_id = ? AND date_format(obs_datetime, '%Y-%m-%d') >= ? AND 
+    @referrals = Observation.find(:all, :conditions => ["concept_id = ? AND date_format(obs_datetime, '%Y-%m-%d') >= ? AND
                                   date_format(obs_datetime, '%Y-%m-%d') <= ?", 2227, @start_date, @end_date])
     @facilities = Observation.find(:all, :conditions => ["concept_id = ?", 2227], :group => "value_text")
   end
 
   def report_date_select
   end
-  
+
   def select
   end
 
@@ -241,7 +241,7 @@ class GenericReportController < ApplicationController
 
     @patients.each do |patient|
     	patient_bean = PatientService.get_patient(patient.person)
-    	
+
         last_appointment_date = last_appointment_date(patient.id, @date)
         drugs_given_to_patient = patient_present?(patient.id, last_appointment_date)
         drugs_given_to_guardian = guardian_present?(patient.id, last_appointment_date)
@@ -252,7 +252,7 @@ class GenericReportController < ApplicationController
         visit_by = "PG visit" if drugs_given_to_both_patient_and_guardian
 
         phone_number = nil
-        
+
         PatientService.phone_numbers(patient.person).each do |type,number|
             case type
                 when "Cell phone number"
@@ -263,7 +263,7 @@ class GenericReportController < ApplicationController
                     phone_number = number if number.match(/\d+/)
             end
         end rescue nil
-        
+
         last_visit = last_appointment_date.strftime('%Y-%m-%d') rescue ""
         outcome = outcome(patient.id, @date)
         @report << {'arv_number'=> patient_bean.arv_number, 'name'=> patient_bean.name,
@@ -271,28 +271,28 @@ class GenericReportController < ApplicationController
                    'visit_by'=> visit_by, 'phone_number'=>phone_number, 'outcome'=>outcome, 'patient_id'=>patient.id}
 
     end
-    
+
     render :layout => 'report'
   end
 
   def missed_appointments
 
-    @report_url =  params[:report_url] 
+    @report_url =  params[:report_url]
     @patients =  all_appointment_dates(params[:date])
     @report  = []
-    
+
     @patients.each do |patient_data_row|
 
         next if (Encounter.find_by_sql("SELECT encounter_id
                                          FROM encounter
                                          WHERE patient_id=#{patient_data_row.patient_id}
                                                AND DATE(date_created)=DATE('#{params[:date]}')
-                                               AND voided = 0").map{|e|e.encounter_id}.count > 0)    
-        
+                                               AND voided = 0").map{|e|e.encounter_id}.count > 0)
+
         patient        = Person.find(patient_data_row[:patient_id].to_i)
     	patient_bean   = PatientService.get_patient(patient.person)
         last_visit = last_appointment_date(patient.id, params[:date]).strftime('%Y-%m-%d') rescue ""
-        
+
         @report << {'patient_id' => patient_data_row[:patient_id], 'arv_number' => patient_bean.arv_number, 'name' => patient_bean.name,
                    'birthdate' => patient_bean.birth_date, 'national_id' => patient_bean.national_id, 'gender' => patient_bean.sex,
                    'age'=> patient_bean.age, 'phone_numbers' => PatientService.phone_numbers(patient), 'last_visit'=> last_visit,
@@ -300,17 +300,17 @@ class GenericReportController < ApplicationController
     end
     @report
   end
-  
+
   def non_eligible_patients_in_art
     @report_type = params[:report_type]
     start_date = params[:start_date]
     end_date   = params[:end_date]
     encounter_type = EncounterType.find_by_name("DISPENSING").encounter_type_id
-    
+
     @report  = []
 
     patient_with_dispensations = Encounter.find_by_sql("
-        SELECT * 
+        SELECT *
         FROM (
                 SELECT patient_id, DATE(encounter_datetime) AS encounter_datetime
                 FROM encounter
@@ -318,13 +318,13 @@ class GenericReportController < ApplicationController
                       AND DATE(encounter_datetime) < DATE('#{end_date}')
                 ORDER BY patient_id ASC, encounter_datetime ASC) AS patient_with_dispensations
         GROUP BY patient_id")
-    
+
     patient_with_dispensations.each do |patient_data_row|
-				
+
         person = Person.find(patient_data_row[:patient_id].to_i)
         #raise person.patient.to_yaml
         next if !PatientService.reason_for_art_eligibility(Patient.find(patient_data_row[:patient_id].to_i)).blank?
-        
+
         outcome = outcome(person.id, patient_data_row[:encounter_datetime])
         art_date = art_start_date(person.id)
 				name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
@@ -334,7 +334,7 @@ class GenericReportController < ApplicationController
                    'art_start_date'=>art_start_date(person.id), "date_registered_at_clinic" => person.patient.date_created.strftime('%d-%b-%Y'),
                    'art_start_age' => age_at(art_date, person.birthdate), 'start_reason' => PatientService.reason_for_art_eligibility(person.patient), 'outcome' => outcome(person.id, end_date)}
     end
-    
+
      @report
   end
 
@@ -347,7 +347,7 @@ class GenericReportController < ApplicationController
                     'Data Consistency Check'=>'data_consistency_check'
                  }
     @landing_dashboard = params[:dashboard]
-    
+
     render :layout => false
   end
 
@@ -358,10 +358,10 @@ class GenericReportController < ApplicationController
                 "> 14 to < 20","20 to < 30",
                 "30 to < 40","40 to < 50",
                 "50 and above","none"]
-                
+
     @start_date = params[:start_date]
     @end_date = params[:end_date]
-    @report = params[:type] 
+    @report = params[:type]
     render :layout => 'application'
   end
 
@@ -394,14 +394,14 @@ class GenericReportController < ApplicationController
                               concept_id,"%#{params[:search_string]}%"],:group =>'name').map{|c|c.name}
     render :text => "<li>" + @names.map{|n| n } .join("</li><li>") + "</li>"
   end
-  
-    
+
+
   def last_appointment_date(patient_id, date=Date.today)
     encounter_type_id = EncounterType.find_by_name("HIV Reception").id
     enc = Encounter.find(:first,:conditions =>["patient_id=? and encounter_type=#{encounter_type_id} and Date(encounter_datetime) <=DATE(?)",patient_id, date.to_date],:order => "encounter_datetime desc")
     enc.encounter_datetime rescue nil
   end
-  
+
   def patient_present?(patient_id, date=Date.today)
       encounter_type_id = EncounterType.find_by_name("HIV Reception").id
       concept_id  = ConceptName.find_by_name("Patient present").concept_id
@@ -409,7 +409,7 @@ class GenericReportController < ApplicationController
                                         FROM encounter
                                         WHERE patient_id = #{patient_id} AND DATE(date_created) = DATE('#{date.strftime("%Y-%m-%d")}') AND encounter_type = #{encounter_type_id}
                                         ORDER BY date_created DESC").last rescue nil
-                                        
+
       patient_present = encounter.observations.find_last_by_concept_id(concept_id).to_s unless encounter.nil?
 
       return false if patient_present.blank?
@@ -456,13 +456,13 @@ class GenericReportController < ApplicationController
     #state = PatientState.find(:first,
                              # :joins => "INNER JOIN patient_program p ON p.patient_program_id = patient_state.patient_program_id",
                              # :conditions =>["patient_state.voided = 0 AND p.voided = 0 AND p.patient_id = #{patient_id} AND DATE(start_date) <= DATE('#{on_date}')"],:order => "start_date DESC")
-                              
+
    #state.program_workflow_state.concept.shortname rescue state.program_workflow_state.concept.fullname rescue 'Unknown state'
  # end
-  
+
   def art_start_date(patient_id)
     selected_state = nil
-    
+
     Patient.find(patient_id).patient_programs.in_programs("HIV PROGRAM").each do |program|
         program.patient_states.each do |state|
             if !state.to_s.match(/On ARVs/).nil?
@@ -474,21 +474,21 @@ class GenericReportController < ApplicationController
             end
         end
     end
-    
+
     selected_state.date_created.to_date rescue nil
   end
-  
+
   def age_at(date, dob)
-        
+
       year = nil
-      
+
       if !date.blank? && !dob.blank?
        day_diff = date.day - dob.day
        month_diff = date.month - dob.month - (day_diff < 0 ? 1 : 0)
        year = date.year - dob.year - (month_diff < 0 ? 1 : 0)
-      end 
-      
-      year  
+      end
+
+      year
   end
 
   def all_appointment_dates(start_date, end_date = nil)
