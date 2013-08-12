@@ -56,6 +56,7 @@ class GenericDrugController < ApplicationController
   end
 
   def stock_report
+    #raise params.to_yaml
     @logo = CoreService.get_global_property_value('logo') rescue ''
     @current_location_name = Location.current_health_center.name rescue ''
     @start_date = params[:start_date].to_date
@@ -74,6 +75,7 @@ class GenericDrugController < ApplicationController
     }
 
     @stock = {}
+    
     current_stock.each{|delivery_id , delivery|
       first_date = Pharmacy.active.find(:first,:conditions =>["drug_id =?",
                    delivery.drug_id],:order => "encounter_date").encounter_date.to_date rescue nil
@@ -85,6 +87,8 @@ class GenericDrugController < ApplicationController
                    
       drug = Drug.find(delivery.drug_id)
       drug_name = drug.name
+
+      #Pharmacy.verify_stock_count(drug.id,start_date,end_date)
       @stock[drug_name] = {"confirmed_closing" => 0,"dispensed" => 0,"current_stock" => 0 ,
         "confirmed_opening" => 0, "start_date" => start_date , "end_date" => end_date,
         "relocated" => 0, "receipts" => 0,"expected" => 0 ,"drug_id" => drug.id }

@@ -197,7 +197,13 @@
     </td>
     <td class="color_<%=color%> caldata" id="dispensed_<%=count%>">
       <%                                                                        
-        verified = (values['confirmed_closing'] / 60).round                     
+        verified = (values['confirmed_closing'] / 60).round
+
+       # if verified > 0
+           # current = expected.to_f - verified.to_f
+       # end
+       
+
         difference = ((verified.to_f/expected.to_f)*100).round rescue 0
       %> 
       <table class="inner-data">

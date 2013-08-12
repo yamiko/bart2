@@ -51,18 +51,20 @@ class ReportController < GenericReportController
     @end_date = end_date
 
     @drugs = {}
+    
     drug_order_id = OrderType.find_by_name('Drug Order').id
     #orders = Order.find(:all, :conditions => ["DATE(date_created) >= ? and DATE(date_created) <= ?
        #AND order_type_id =?",start_date, end_date, drug_order_id])
     orders = Order.find_by_sql(["SELECT * FROM orders WHERE DATE(date_created) >= ? AND
-       DATE(date_created) <= ? AND order_type_id =? AND voided = 0",start_date, end_date, drug_order_id])
+                                 DATE(date_created) <= ? AND order_type_id =? AND voided = 0",start_date, end_date, drug_order_id])
     orders.each do |order|
+      next if order.drug_order.drug.blank?
       @drugs[order.drug_order.drug.name] = {}
       amount_prescribed = []
       drug_id = order.drug_order.drug_inventory_id rescue nil
       drug_orders = DrugOrder.find_by_sql(["SELECT * FROM drug_order INNER JOIN orders ON
       drug_order.order_id = orders.order_id WHERE DATE(orders.date_created) >= ? AND
-     DATE(orders.date_created) <= ? AND drug_order.drug_inventory_id =? AND orders.voided = 0", start_date, end_date,drug_id])
+      DATE(orders.date_created) <= ? AND drug_order.drug_inventory_id =? AND orders.voided = 0", start_date, end_date,drug_id])
       drug_orders.each do |drug_order|
         if (drug_order.order rescue nil) #Avoid a drug_order without an order. Consider data cleaning
           order_date = drug_order.order.date_created.to_date

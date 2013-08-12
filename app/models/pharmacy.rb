@@ -228,9 +228,10 @@ EOF
   def self.verify_stock_count(drug_id,start_date,end_date)                      
     encounter_type_id = PharmacyEncounterType.find_by_name('Tins currently in stock').id
     start_date = Pharmacy.active.find(:first,                                   
-      :conditions =>["pharmacy_encounter_type = ? AND encounter_date = ?",      
-      encounter_type_id,end_date],                                              
-      :order =>'encounter_date DESC,date_created DESC').value_numeric rescue 0  
+      :conditions =>["pharmacy_encounter_type = ? AND encounter_date = ? AND drug_id = ?",
+      encounter_type_id,end_date, drug_id],
+      :order =>'encounter_date DESC,date_created DESC').value_numeric rescue 0
+   # raise start_date.to_yaml
   end
 
   def self.verified_stock(drug_id,date,pills)
