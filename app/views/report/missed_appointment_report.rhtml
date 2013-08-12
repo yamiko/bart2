@@ -249,9 +249,9 @@
     <th>Last Visit Date</th>
     <th>Appointment date</th><th>Overdue Days</th>
     <th>Expected Remaining Tabs.</th><th>Dosses Missed</th>
-    <% unless @report == "defaulted" %>
+    <%# unless @report == "defaulted" %>
         <th>Came Late</th>
-    <% end %>
+    <%# end %>
     </thead>
     <tbody>
 
@@ -271,9 +271,9 @@
              <td><%= datum['booked_date'] %></td><td><%= datum['overdue']  %></td>
              <td><%= datum['exp_tab_remaining']%></td>
              <td><%= datum['dosses_missed']%></td>
-             <% unless @report == "defaulted" %>
+             <%# unless @report == "defaulted" %>
                 <td><%= datum['came_late']%></td>
-             <% end %>
+             <%# end %>
            </tr>
         <% end %>
 

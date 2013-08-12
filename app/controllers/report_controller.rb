@@ -168,7 +168,9 @@ class ReportController < GenericReportController
       unless last_obs.blank?
         result = adherence(last_app.person_id, last_app.value_datetime)
         next_visit = Observation.find(:first, :conditions =>  ["person_id = ? AND obs_datetime > ?",
-                                                               last_app.person_id, last_app.value_datetime]).nil? ? " " : "Yes"
+                                                               last_app.person_id, last_app.value_datetime])
+
+        next_visit = next_visit.nil? ? "No" : next_visit.obs_datetime.to_date
         details ={
             'patient_id' => last_app.person_id,
             'name' => patient.name,
@@ -210,7 +212,10 @@ class ReportController < GenericReportController
        first_obs = Observation.find_by_sql("SELECT person_id, obs_datetime FROM obs
                                             WHERE person_id = #{person_id}
                                             AND voided = 0 order by obs_datetime ASC LIMIT 1").first
-      
+       next_visit = Observation.find(:first, :conditions =>  ["person_id = ? AND obs_datetime > ?",
+                                                               person_id, last_appointment.value_datetime])
+
+       next_visit = next_visit.nil? ? "No" : next_visit.obs_datetime.to_date
         unless last_appointment.blank?
               result = adherence(last_appointment.person_id, last_appointment.value_datetime) rescue []
         
@@ -223,6 +228,7 @@ class ReportController < GenericReportController
             'booked_date' => last_appointment.obs_datetime.to_date.strftime('%d/%b/%Y') ,
             'phone_number' => get_phone(person_id),
             'overdue' => (@end_date.to_date - last_appointment.value_datetime.to_date).to_i,
+            'came_late' => next_visit,
             'date_registered' => first_obs.obs_datetime.to_date,
             'last_visit_date' => last_appointment.obs_datetime.to_date
         }  
