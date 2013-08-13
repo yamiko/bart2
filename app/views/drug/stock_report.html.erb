@@ -1,4 +1,5 @@
 <%= javascript_include_tag "prototype" %>
+<%= stylesheet_link_tag "cohort" %>
 
 <style>
   .negative_numbers a {
@@ -10,9 +11,15 @@
     color: navy;
     text-decoration: none;
   }
+  
   .logo {
     float:left
   }
+
+  div.scrollTableContainer {
+		border-style:solid;
+		height: 500px;
+	  }
 </style>
 
 <%= stylesheet_link_tag "stock_report" %>
@@ -39,7 +46,8 @@
   <b style="position:relative; top:0px;margin-left:75px">To : <%=@end_date.strftime("%A, %Y %b %d")%></b><br />
 <%#= render :partial => "header" %>
   <br /><br />
-  <table class="main-table">
+  <div class="scrollTableContainer">
+  <table >
   <tr class="header">
     <td>
       <table>
@@ -107,6 +115,7 @@
       </table>
     </td>
   </tr>
+
   <%color = "blue"
     count = 1
     original_form_count = 0
@@ -204,7 +213,7 @@
        # end
        
 
-        difference = ((verified.to_f/expected.to_f)*100).round rescue 0
+        difference = ((verified.to_f/expected.to_f)*100).round  rescue 0
       %> 
       <table class="inner-data">
         <tr>
@@ -226,9 +235,10 @@
       original_form_count+=1
     }%>
 </table>
+ </div>
 </div>
 
 <script>
-  dataT();
+  //dataT();
 </script>
 

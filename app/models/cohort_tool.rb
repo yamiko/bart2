@@ -67,50 +67,41 @@ class CohortTool < ActiveRecord::Base
     state = ProgramWorkflowState.find( :first, :conditions => ["concept_id IN (?)",
         concept_name.map{|c|c.concept_id}]).program_workflow_state_id
     PatientProgram.find_by_sql(
-      "SELECT p.patient_id, earliest_start_date FROM patient_program p
-          INNER JOIN earliest_start_date e ON e.patient_id = p.patient_id
+      "SELECT p.patient_id, p.date_enrolled FROM patient_program p
           INNER JOIN person pe ON pe.person_id = p.patient_id
           INNER JOIN patient pa ON pe.person_id = pa.patient_id
-					WHERE DATE(earliest_start_date) <= '#{end_date}'
+					WHERE DATE(p.date_enrolled) <= '#{end_date}'
+          AND DATE(p.date_completed) IS NULL
           AND pa.patient_id IN (#{regimen_ids})
           AND p.program_id = 1
           AND pa.voided = 0").each do | patient |
-      earliest_start_date[patient.patient_id] = patient.earliest_start_date
+      earliest_start_date[patient.patient_id] = patient.date_enrolled
       patients << patient.patient_id
     end
-
 		return patients.uniq, earliest_start_date
 
   end
 
   def self.patient_ids_with_regimens(end_date = @end_date, program_id=nil)
     patient_ids = []
-    med_concepts = MedicationService.arv_drugs.collect {|concept|
-      concept.concept_id
-    }
-    with = []
-    without = []
-    Observation.find_by_sql("SELECT person_id, order_id FROM obs
-                             WHERE  DATE(obs_datetime) <= '#{end_date}'
-                             AND order_id IS NOT NULL
-                             ORDER BY person_id ASC, obs_datetime ASC").each do |patient|
-      id = DrugOrder.find(patient.order_id).drug.concept_id rescue nil
-      if  med_concepts.include?(id)
-        with << patient.person_id #if patient_ids.include?(patient.person_id)
-      else
-        without << patient.person_id
-      end
-    end
-    with = with.uniq
-    without = without.uniq
-    patient_ids = without - with
+
+    PatientProgram.find_by_sql("
+                  SELECT DISTINCT(patient_id), patient_program_id FROM patient_program
+                  WHERE program_id = #{program_id}
+                  AND DATE(date_enrolled) <= '#{end_date}'
+                  AND patient_id NOT IN (SELECT patient_id FROM earliest_start_date WHERE earliest_start_date <= '#{end_date}')
+                  AND voided = 0
+                  ORDER BY date_enrolled desc, patient_program_id DESC").each { |patient|
+                    patient_ids << patient.patient_id
+                  }
+
     return patient_ids.uniq
   end
 
   def self.confirmed_on_pre_art(end_date = Date.today, start_date=nil, regimen_ids=[])
     patients = []
     if start_date
-      conditions = "AND earliest_start_date >= '#{start_date}'"
+      conditions = "AND DATE(date_enrolled) >= '#{start_date}'"
     end
     concept_id = ConceptName.find_all_by_name("Pre-art (continue)").first.concept_id
     state = ProgramWorkflowState.find( :first,
@@ -118,8 +109,8 @@ class CohortTool < ActiveRecord::Base
 
     PatientProgram.find_by_sql(
       "SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{end_date}') AS state
-					FROM earliest_start_date e
-					WHERE earliest_start_date <= '#{end_date}' #{conditions}
+					FROM patient_program e
+					WHERE DATE(date_enrolled) <= '#{end_date}' #{conditions}
           AND e.patient_id IN (#{regimen_ids})
 					HAVING state = #{state}").each do | patient |
       patients << patient.patient_id
@@ -134,8 +125,8 @@ class CohortTool < ActiveRecord::Base
        conditions = "AND e.patient_id IN (#{regimen_ids})"
     end
 		PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{end_date}') AS def
-											FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
-											WHERE e.earliest_start_date <=  '#{end_date}' AND p.dead=0
+											FROM patient_program e LEFT JOIN person p ON p.person_id = e.patient_id
+											WHERE DATE(date_enrolled) <=  '#{end_date}' AND p.dead=0
 											HAVING def = 1 #{conditions}").each do | patient |
       patients << patient.patient_id
     end
@@ -174,18 +165,17 @@ class CohortTool < ActiveRecord::Base
   def self.exposed_on_pre_art(end_date = Date.today, start_date=nil)
     patients = []
     if start_date
-      conditions = "AND earliest_start_date >= '#{start_date}'"
+      conditions = "AND DATE(e.date_enrolled) >= '#{start_date}'"
     end
     concept_name = ConceptName.find_all_by_name("Exposed Child (Continue)")
     state = ProgramWorkflowState.find( :first, :conditions => ["concept_id IN (?)", concept_name.map{|c|c.concept_id}]).program_workflow_state_id
 
     PatientProgram.find_by_sql(
-      "SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{end_date}') AS state, death_date,
-					IF(ISNULL(MIN(sdo.value_datetime)), earliest_start_date, MIN(sdo.value_datetime)) AS initiation_date
-					FROM earliest_start_date e
+      "SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{end_date}') AS state
+					FROM patient_program e
 					LEFT JOIN start_date_observation sdo ON e.patient_id = sdo.person_id
           LEFT JOIN patient p ON e.patient_id = p.patient_id
-					WHERE earliest_start_date <= '#{end_date}' #{conditions}
+					WHERE DATE(e.date_enrolled) <= '#{end_date}' #{conditions}
           AND p.voided = 0
 					GROUP BY e.patient_id
 					HAVING state = #{state}").each do | patient |
@@ -203,12 +193,11 @@ class CohortTool < ActiveRecord::Base
         concept_name.map{|c|c.concept_id}]).program_workflow_state_id
 
     PatientProgram.find_by_sql(
-      "SELECT p.patient_id, earliest_start_date FROM patient_program p
-          INNER JOIN earliest_start_date e ON e.patient_id = p.patient_id
+      "SELECT p.patient_id FROM patient_program p
           INNER JOIN person pe ON pe.person_id = p.patient_id
           INNER JOIN patient pa ON pe.person_id = pa.patient_id
-					WHERE DATE(earliest_start_date) <= '#{end_date}'
-          AND DATE(earliest_start_date) >= '#{start_date}'
+					WHERE DATE(p.date_enrolled) <= '#{end_date}'
+          AND DATE(p.date_enrolled) >= '#{start_date}'
           AND pa.patient_id IN (#{regimen_id})
           AND p.program_id = 1
           AND pa.voided = 0").each do | patient |
@@ -319,16 +308,16 @@ class CohortTool < ActiveRecord::Base
   def self.pregnant_women(patient_ids, end_date = Date.today, start_date = nil)
     return [] if patient_ids.blank?
     if start_date
-      conditions = "AND earliest_start_date >= '#{start_date}'"
+      conditions = "AND DATE(p.date_enrolled) >= '#{start_date}'"
     end
     patients = []
-    PatientProgram.find_by_sql("SELECT patient_id, earliest_start_date, o.obs_datetime
-				FROM earliest_start_date p
+    PatientProgram.find_by_sql("SELECT patient_id, o.obs_datetime
+				FROM patient_program p
 			  INNER JOIN patient_pregnant_obs o ON p.patient_id = o.person_id
-				WHERE earliest_start_date <= '#{end_date}' #{conditions}
+				WHERE DATE(p.date_enrolled) <= '#{end_date}' #{conditions}
         AND p.patient_id IN (#{patient_ids})
-				AND DATEDIFF(o.obs_datetime, earliest_start_date) <= 30
-				AND DATEDIFF(o.obs_datetime, earliest_start_date) > -1
+				AND DATEDIFF(o.obs_datetime, p.date_enrolled) <= 30
+				AND DATEDIFF(o.obs_datetime, p.date_enrolled) > -1
         GROUP BY patient_id").each do | patient |
 			patients << patient.patient_id
 		end

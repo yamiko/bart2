@@ -160,8 +160,13 @@ class CohortToolController < GenericCohortToolController
 
     #Cumulative section
      session[:pre_art]["male_total"] = CohortTool.male_total(session[:pre_art]["total_reg"])
-     session[:pre_art]["non_pregnant_female_total"] = CohortTool.female_non_pregnant(session[:pre_art]["total_reg"])
      session[:pre_art]["pregnant_female_total"] = CohortTool.pregnant_women(regimen_ids, end_date)
+
+     session[:pre_art]["pregnant_female"] = CohortTool.pregnant_women(regimen_ids, end_date, start_date) rescue []
+
+    session[:pre_art]["non_pregnant_female"] = CohortTool.female_non_pregnant((session[:pre_art]["registered"] - session[:pre_art]["pregnant_female"]))
+     session[:pre_art]["non_pregnant_female_total"] = CohortTool.female_non_pregnant((session[:pre_art]["total_reg"] - session[:pre_art]["pregnant_female_total"]))
+     
      session[:pre_art]["less_2_months_infants"] = CohortTool.infants_less_than_2_months(session[:pre_art]["total_reg"])
      session[:pre_art]["infants_between_2_and_24_months"] = CohortTool.infants_between_2_and_24_months(session[:pre_art]["total_reg"])
      session[:pre_art]["infants_between_24months_and_14_years"] = CohortTool.infants_between_24months_and_14_years(session[:pre_art]["total_reg"])
@@ -172,8 +177,8 @@ class CohortToolController < GenericCohortToolController
 
      #Current quater section
       session[:pre_art]["male"] = CohortTool.male_total(session[:pre_art]["registered"])
-      session[:pre_art]["non_pregnant_female"] = CohortTool.female_non_pregnant(session[:pre_art]["registered"])
-      session[:pre_art]["pregnant_female"] = CohortTool.pregnant_women(regimen_ids, end_date, start_date) rescue []
+      
+     
       session[:pre_art]["less_2_months_infants_quater"] = CohortTool.infants_less_than_2_months(session[:pre_art]["registered"])
       session[:pre_art]["infants_between_2_and_24_months_quater"] = CohortTool.infants_between_2_and_24_months(session[:pre_art]["registered"])
       session[:pre_art]["infants_between_24months_and_14_years_quater"] = CohortTool.infants_between_24months_and_14_years(session[:pre_art]["registered"])
