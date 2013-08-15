@@ -69,7 +69,7 @@ class PatientProgram < ActiveRecord::Base
           state.save!
         end    
         # Create the new state      
-        state = self.patient_states.new({
+        self.patient_states.new({
           :state => selected_state.program_workflow_state_id,
           :start_date => params[:start_date] || Date.today,
           :end_date => params[:end_date]

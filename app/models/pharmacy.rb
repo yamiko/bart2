@@ -120,7 +120,7 @@ class Pharmacy < ActiveRecord::Base
      
     expiring_drugs_hash = {}
     (expiring_drugs || []).each do | expiring |
-      current_stock = self.current_stock_as_from(expiring.drug_id , self.first_delivery_date(expiring.drug_id),end_date)
+      current_stock = self.current_stock_as_from(expiring.drug_id , self.first_delivery_date(expiring.drug_id),expiring.encounter_date)
       next if current_stock <= 0
       expiring_drugs_hash["#{expiring.pharmacy_module_id}:#{Drug.find(expiring.drug_id).name}"] = {
         'delivered_stock' => expiring.value_numeric , 
@@ -225,9 +225,18 @@ EOF
     return (receipts - (dispensed_drugs + relocated))                           
   end                                                                           
                                                                                 
-  def self.verify_stock_count(drug_id,start_date,end_date)                      
+  def self.verify_closing_stock_count(drug_id,start_date,end_date)
+      encounter_type_id = PharmacyEncounterType.find_by_name('Tins currently in stock').id
+      start_date = Pharmacy.active.find(:first,
+        :conditions =>["pharmacy_encounter_type = ? AND  encounter_date = ? AND drug_id = ?",
+        encounter_type_id, end_date, drug_id],
+        :order =>'encounter_date DESC,date_created DESC').value_numeric rescue 0
+     #raise start_date.to_yaml
+  end
+
+    def self.verify_stock_count(drug_id,start_date,end_date)
     encounter_type_id = PharmacyEncounterType.find_by_name('Tins currently in stock').id
-    start_date = Pharmacy.active.find(:first,                                   
+    start_date = Pharmacy.active.find(:first,
       :conditions =>["pharmacy_encounter_type = ? AND encounter_date >= ?  AND encounter_date <= ? AND drug_id = ?",
       encounter_type_id, start_date, end_date, drug_id],
       :order =>'encounter_date DESC,date_created DESC').value_numeric rescue 0
