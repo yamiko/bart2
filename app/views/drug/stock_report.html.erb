@@ -111,7 +111,8 @@
           <td>&nbsp;</td>
         </tr>
         <tr>
-          <td colspan="2" style="text-align:center;">Stock <br> Difference</td>
+          <td colspan="2" style="text-align:center;">Verified <br> minus
+            <br>Expected</td>
         </tr>
       </table>
     </td>
@@ -121,7 +122,7 @@
           <td>&nbsp;</td>
         </tr>
         <tr>
-          <td colspan="2" style="text-align:center;">Interpretation</td>
+          <td colspan="2" style="text-align:center;">Description</td>
         </tr>
       </table>
     </td>
@@ -229,11 +230,11 @@
       <table class="inner-data">
         <tr>
           <%if difference < 0 %>
-            <td style="text-align:center;color:red;"><%= difference %></td>
+            <td style="text-align:center;color:red;"><%= difference.abs %></td>
           <%elsif difference == 0 %>
-            <td style="text-align:center;color:green;"><%= difference %></td>
+            <td style="text-align:center;color:green;"><%= difference.abs %></td>
           <%else%>
-            <td style="text-align:center;color:green;">+<%= difference %></td>
+            <td style="text-align:center;color:green;"><%= difference.abs %></td>
           <%end%>
         </tr>
       </table>

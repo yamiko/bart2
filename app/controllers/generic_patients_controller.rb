@@ -2083,33 +2083,19 @@ end
 
 
 	def tb_status(patient, visit_date = Date.today)
-		  state = Concept.find(Observation.find(:first, :order => "obs_datetime DESC, date_created DESC", :conditions => ["person_id = ? AND concept_id = ? AND DATE(obs_datetime) <= ? AND value_coded IS NOT NULL", patient.id, ConceptName.find_by_name("TB STATUS").concept_id, visit_date.to_date ]).value_coded).fullname rescue "Unknown"
+	  state = Concept.find(Observation.find(:first, :order => "obs_datetime DESC, date_created DESC", :conditions => ["person_id = ? AND concept_id = ? AND DATE(obs_datetime) <= ? AND value_coded IS NOT NULL", patient.id, ConceptName.find_by_name("TB STATUS").concept_id, visit_date.to_date ]).value_coded).fullname rescue "Unknown"
 
-		#state = Concept.find(Observation.find(:first,
-        #:order => "obs_datetime DESC,date_created DESC",
-        #:conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL AND obs_datetime <= ?",
-          #patient.id, ConceptName.find_by_name("TB STATUS").concept_id, visit_date]).value_coded).fullname rescue "UNKNOWN"
-		programs = patient.patient_programs.all rescue []
+    program_id = Program.find_by_name('TB PROGRAM').id
+     patient_state = PatientState.find(:first,
+       :joins => "INNER JOIN patient_program p
+       ON p.patient_program_id = patient_state.patient_program_id",
+       :conditions =>["patient_state.voided = 0 AND p.voided = 0
+       AND p.program_id = ? AND DATE(start_date) <= DATE('#{visit_date}') AND p.patient_id =?",
+       program_id,patient.id],
+       :order => "start_date DESC")
 
-		programs.each do |prog|
-				tb_program = Program.find_by_name('TB PROGRAM').id
-				if prog.program.name.upcase == "TB PROGRAM"
-					state = ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname rescue state
-				end
-				#patient_program_id = PatientProgram.find_by_sql("SELECT  patient_program_id FROM patient_program
-				#								WHERE patient_id = #{patient.id}
-				#								AND program_id = #{tb_program}
-				#								AND voided = 0 LIMIT 1").first.patient_program_id  rescue state
-			
-				#state = PatientState.find_by_sql("SELECT state  FROM patient_state
-				#								WHERE patient_program_id = #{patient_program_id}
-				#								AND voided = 0
-				#								AND start_date <= '#{visit_date}'
-				#								ORDER BY start_date DESC").last.state  rescue state
-				#state = ProgramWorkflowState.find_state(state).concept.fullname rescue state
-		end
-
-		state
+    return state if patient_state.blank?
+    return ConceptName.find_by_concept_id(patient_state.program_workflow_state.concept_id).name
 
   end
 
