@@ -2010,7 +2010,8 @@ end
 				#next if tb_medical == true
 				next if  obs.to_s.split(':')[1].to_i.blank?
 				patient_visits[visit_date].adherence = [] if patient_visits[visit_date].adherence.blank?
-				patient_visits[visit_date].adherence << [Drug.find(obs.order.drug_order.drug_inventory_id).name,(obs.to_s.split(':')[1] + '%')]
+        #raise obs.order.drug_order.to_yaml
+				patient_visits[visit_date].adherence << [(Drug.find(obs.order.drug_order.drug_inventory_id).name rescue ''),((obs.to_s.split(':')[1] + '%') rescue '')]
 			elsif concept_name == 'CLINICAL NOTES CONSTRUCT' || concept_name == 'Clinical notes construct'
 				patient_visits[visit_date].notes+= '<br/>' + obs.value_text unless patient_visits[visit_date].notes.blank?
 				patient_visits[visit_date].notes = obs.value_text if patient_visits[visit_date].notes.blank?
