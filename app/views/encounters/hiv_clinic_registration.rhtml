@@ -48,6 +48,10 @@
 
 	.tt_controls_confirmatory_hiv_test_month .keyboard { display:none; }
 
+        #tt_page_month_of_cd4_count .inputFrameClass {  height: 86%; }
+
+        #tt_page_month_of_cd4_count #viewport {  height: 85%; }
+
 	#tt_page_confirmatory_hiv_test_month .options {  height: 90%; }
 
 	#tt_page_confirmatory_hiv_test_month .inputFrameClass {  height: 86%; }
@@ -817,7 +821,7 @@ function checkConfirmDate(){
 
 
     <%= text_field_tag "year_of_cd4", nil,
-      { :helpText => 'Year of cd4 count',
+      { :helpText => 'Year of CD4 count',
         :field_type => 'number',
         :absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year,
         :tt_pageStyleClass => "Numeric NumbersOnly",
@@ -826,14 +830,14 @@ function checkConfirmDate(){
 
     <%= select_tag "month_of_cd4", month_name_options,
       { :tt_onLoad => "__$('keyboard').style.display = 'none'",
-		:helpText => 'Month of cd4',
+		:helpText => 'Month of CD4 count',
         :condition => '$("year_of_cd4").value.toLowerCase() != "unknown" && $("new_cd4_count_available").value == "YES" && showConditions()',
         :id => "month_of_cd4" ,
         :validationMessage => 'Please enter a valid date'}%>
 
     <%= text_field_tag "day_art_last_taken",  nil,
         :field_type => 'number',
-		:helpText => 'Day of cd4',
+		:helpText => 'Day of CD4 count',
         :condition => '($("year_of_cd4").value !="Unknown") && ($("month_of_cd4").value != "Unknown") && ($("new_cd4_count_available").value == "YES") && showConditions()',
         :tt_onLoad => "getDayOfMonthPicker($('year_of_cd4').value, $('month_of_cd4').value);$('nextButton').style.display = 'block';",
         :tt_onUnLoad => 'checkCd4Date();',
