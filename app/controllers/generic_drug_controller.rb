@@ -1,12 +1,40 @@
 class GenericDrugController < ApplicationController
 
   def name
-    @names = Drug.find(:all,:conditions =>["name LIKE ?","%" + params[:search_string] + "%"]).collect{|drug| drug.name}
+    @names =  Regimen.find_by_sql(
+    "select * from regimen r
+          inner join concept_name c on c.concept_id = r.concept_id
+          inner join drug d on d.concept_id = r.concept_id
+          where c.voided = 0
+          and  d.name like '%#{params[:search_string]}%'
+          and d.retired = 0
+          and r.retired = 0
+    ").collect{|drug| drug.name}.compact.sort.uniq rescue []
+   # regimens = regimens.map{|d|
+    # concept_name = (d.concept.concept_names.typed("SHORT").first ||	d.concept.concept_names.typed("FULLY_SPECIFIED").first).name
+     # if d.regimen_index.blank?
+			#	["#{concept_name}", d.concept_id, d.regimen_index.to_i]
+		#	else
+		#		["#{d.regimen_index} - #{concept_name}", d.concept_id, d.regimen_index.to_i]
+		#	end
+		#}.sort_by{| r | r[2]}.uniq
+
+    #@names = Drug.find(:all,:conditions =>["name LIKE ?","%" + params[:search_string] + "%"]).collect{|drug| drug.name}
     render :text => "<li>" + @names.map{|n| n } .join("</li><li>") + "</li>"
   end
 
   def delivery
-    @drugs = Drug.find(:all).map{|d|d.name}.compact.sort rescue []
+   @drugs =  Regimen.find_by_sql(
+    "select * from regimen r
+          inner join concept_name c on c.concept_id = r.concept_id
+          inner join drug d on d.concept_id = r.concept_id
+          where c.voided = 0
+          and d.retired = 0
+          and r.retired = 0
+    ").collect{|drug| drug.name}.compact.sort.uniq rescue []
+
+    #raise drugs.to_yaml
+    #@drugs = Drug.find(:all).map{|d|d.name}.compact.sort rescue []
   end
 
   def create_stock
@@ -55,20 +83,32 @@ class GenericDrugController < ApplicationController
     redirect_to "/clinic"   # /management"
   end
 
+  def stoke_movement
+    obs = params[:observations]
+    params[:start_date] =  obs[0]['value_datetime']
+    params[:end_date] =  obs[1]['value_datetime']
+    params[:drug_id] = Drug.find_by_name(params[:drug_name]).id
+
+    @drug = Drug.find(params[:drug_id]).name
+    render :layout => false
+  end
+
   def stock_report
     #raise params.to_yaml
     @logo = CoreService.get_global_property_value('logo') rescue ''
     @current_location_name = Location.current_health_center.name rescue ''
     @start_date = params[:start_date].to_date
     @end_date = params[:end_date].to_date
-    
+
+    @month_on_stock = (@end_date.year * 12 + @end_date.month) - (@start_date.year * 12 + @start_date.month)
     #TODO
 #need to redo the SQL query
     encounter_type = PharmacyEncounterType.find_by_name("New deliveries").id
     new_deliveries = Pharmacy.active.find(:all,
       :conditions =>["pharmacy_encounter_type=?",encounter_type],
       :order => "encounter_date DESC,date_created DESC")
-    
+
+   
     current_stock = {}
     new_deliveries.each{|delivery|
       current_stock[delivery.drug_id] = delivery if current_stock[delivery.drug_id].blank?
@@ -94,7 +134,7 @@ class GenericDrugController < ApplicationController
         "relocated" => 0, "receipts" => 0,"expected" => 0 ,"drug_id" => drug.id }
       @stock[drug_name]["dispensed"] = Pharmacy.dispensed_drugs_since(drug.id,start_date,end_date)
       @stock[drug_name]["confirmed_opening"] = Pharmacy.verify_stock_count(drug.id,start_date,start_date)
-      @stock[drug_name]["confirmed_closing"] = Pharmacy.verify_stock_count(drug.id,start_date,end_date)
+      @stock[drug_name]["confirmed_closing"] = Pharmacy.verify_closing_stock_count(drug.id,start_date,end_date)
       @stock[drug_name]["current_stock"] = Pharmacy.current_stock_as_from(drug.id,start_date,end_date)
       @stock[drug_name]["relocated"] = Pharmacy.relocated(drug.id,start_date,end_date)
       @stock[drug_name]["receipts"] = Pharmacy.receipts(drug.id,start_date,end_date)
@@ -103,9 +143,85 @@ class GenericDrugController < ApplicationController
 
   end
 
+  def current_stock
+    drug = Drug.find_by_name(params[:drug])
+    start_date = Date.today
+    end_date =  start_date + 30.days
+    expected = Pharmacy.expected(drug.id, start_date,end_date)
+    render :text => (expected.to_json)
+  end
+
+  def stock_chart
+    encounter_type = PharmacyEncounterType.find_by_name("Tins currently in stock").id
+    #new_deliveries = Pharmacy.active.find(:first,
+     # :conditions =>["pharmacy_encounter_type=? AND drug_id =? AND encounter_date >= ? AND encounter_date <= ?",encounter_type, params[:drug_id], params[:start_date], params[:end_date] ],
+    #  :order => "encounter_date DESC,date_created DESC")
+    
+    @stocks = []
+    current_stock = {}
+    month_difference = (params[:end_date].to_date.year * 12 + params[:end_date].to_date.month) - (params[:start_date].to_date.year * 12 + params[:start_date].to_date.month)
+    n = params[:end_date].to_date
+    if month_difference < 1
+       while n >= params[:start_date].to_date
+          new_deliveries = Pharmacy.active.find(:first,
+          :conditions =>["pharmacy_encounter_type=? AND drug_id =? AND encounter_date >= ? AND encounter_date <= ?",encounter_type, params[:drug_id], params[:start_date], n ],
+          :order => "encounter_date DESC,date_created DESC")
+          current_stock[n] = (new_deliveries.value_numeric / 60).round rescue 0
+          n = n - 1.days
+       end
+    elsif month_difference >= 1 and month_difference <= 12
+       while n >= params[:start_date].to_date
+          new_deliveries = Pharmacy.active.find(:first,
+          :conditions =>["pharmacy_encounter_type=? AND drug_id =? AND encounter_date >= ? AND encounter_date <= ?",encounter_type, params[:drug_id], params[:start_date], n ],
+          :order => "encounter_date DESC,date_created DESC")
+          current_stock[n] = (new_deliveries.value_numeric / 60).round rescue 0
+          n = n - 1.weeks
+
+       end
+    elsif month_difference > 12 and month_difference <= 36
+       while n >= params[:start_date].to_date
+          new_deliveries = Pharmacy.active.find(:first,
+          :conditions =>["pharmacy_encounter_type=? AND drug_id =? AND encounter_date >= ? AND encounter_date <= ?",encounter_type, params[:drug_id], params[:start_date], n ],
+          :order => "encounter_date DESC,date_created DESC")
+          current_stock[n] = (new_deliveries.value_numeric / 60).round rescue 0
+          n = n - 1.months
+       end
+    else
+      while n >= params[:start_date].to_date
+          new_deliveries = Pharmacy.active.find(:first,
+          :conditions =>["pharmacy_encounter_type=? AND drug_id =? AND encounter_date >= ? AND encounter_date <= ?",encounter_type, params[:drug_id], params[:start_date], n ],
+          :order => "encounter_date DESC,date_created DESC")
+          current_stock[n] = (new_deliveries.value_numeric / 60).round rescue 0
+          n = n - 1.years
+       end
+    end
+    
+    #new_deliveries.each{|delivery|
+    #  current_stock[delivery.encounter_date] = (delivery.value_numeric / 60 ).round #if current_stock[delivery.drug_id].blank?
+   # }
+
+    (current_stock || {}).sort{|a,b|a[0].to_date <=> b[0].to_date}.each do |date,weight|
+      @stocks << [date.to_date.strftime('%d.%b.%y') , weight]
+    end
+    @stocks = @stocks.to_json
+    render :partial => "stoke_chart" and return
+  end
+
   def date_select
     @goto = params[:goto]
     @goto = 'stock_report' if @goto.blank?
+    @drugs =  Regimen.find_by_sql(
+    "select * from regimen r
+          inner join concept_name c on c.concept_id = r.concept_id
+          inner join drug d on d.concept_id = r.concept_id
+          where c.voided = 0
+          and d.retired = 0
+          and r.retired = 0
+    ").collect{|drug| drug.name}.compact.sort.uniq rescue []
+  end
+
+  def stock_movement_menu
+    
   end
 
   def print_barcode
@@ -147,6 +263,7 @@ class GenericDrugController < ApplicationController
   end
 
   def expiring
+    @logo = CoreService.get_global_property_value('logo') rescue ''
     @start_date = params[:start_date].to_date
     @end_date = params[:end_date].to_date
     @expiring_drugs = Pharmacy.expiring_drugs(@start_date,@end_date)

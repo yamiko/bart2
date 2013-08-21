@@ -567,8 +567,9 @@ class GenericRegimensController < ApplicationController
 
 			#raise regimen_id.to_yaml
 
-			orders = RegimenDrugOrder.all(:conditions => {:regimen_id => regimen_id})
-			
+			orders = RegimenDrugOrder.all(:conditions => {:regimen_id => regimen_id, :drug_inventory_id => drug.id})
+
+#=begin
 					#raise auto_cpt_ipt_expire_date.to_yaml
 					orders.each do |order|
 						regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept_names.typed("FULLY_SPECIFIED").first).name
@@ -585,6 +586,7 @@ class GenericRegimensController < ApplicationController
 						"#{drug.name}: #{order.instructions} (#{regimen_name})",
 						order.equivalent_daily_dose)
 					end
+#=end
 		end
 		
 		obs = Observation.create(

@@ -413,10 +413,20 @@
   <%if @obs_ans.match(/Prescribe drugs: Yes/i) %>
     <%= touch_hidden_tag "Prescribe drugs", @patient, "YES", :id => "prescribe_drugs" %>
   <%else%>
+    <%  session_date = session[:datetime].to_date rescue nil
+
+%>
+  <%  if session_date %>
     <%= touch_yes_no_unknown_tag "Prescribe drugs", @patient, nil,
       {:id => "prescribe_drugs",
        :condition => "$('refer_to_clinician').value == 'NO'" ,
        :helpText => "Prescribe drugs during this visit" } %>
+  <% else %>
+    <%= touch_yes_no_tag "Prescribe drugs", @patient, nil,
+      {:id => "prescribe_drugs",
+       :condition => "$('refer_to_clinician').value == 'NO'" ,
+       :helpText => "Prescribe drugs during this visit" } %>
+  <% end %>
   <%end unless art_adherence_to_be_done %>
 
   <%if @allergic_to_sulphur.match(/Allergic to sulphur:/i).blank? %>

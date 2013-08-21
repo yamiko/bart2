@@ -44,13 +44,13 @@
 
             <div id="patient_card">
               <% if !@art_start_date.blank?  %>
-                <span value="<%= "#{PatientService.period_on_treatment(@art_start_date)} month(s)" %>"> Period on ART </span>
+                <span value="<%= "#{PatientService.period_on_treatment(@art_start_date).to_i} month(s)" %>"> Period on ART </span>
               <% end %>
               <% unless @second_line_treatment_start_date.blank? %>
-                <span value="<%= "#{PatientService.period_on_treatment(@second_line_treatment_start_date)} month(s)" %>"> Period on 2<sup>nd</sup>Line</span>
+                <span value="<%= "#{PatientService.period_on_treatment(@second_line_treatment_start_date).to_i} month(s)" %>"> Period on 2<sup>nd</sup>Line</span>
               <% end %>
               <% if !@tb_registration_date.blank? and @show_period == true %>
-                <span value="<%= "#{PatientService.period_on_treatment(@tb_registration_date.to_date)} month(s)" %>"> Period on TB </span>
+                <span value="<%= "#{PatientService.period_on_treatment(@tb_registration_date.to_date).to_i} month(s)" %>"> Period on TB </span>
               <% end %>
               <% if (@reason_for_art_eligibility rescue nil) != nil && (@reason_for_art_eligibility) != "" %>
                 <span value="<%= @reason_for_art_eligibility rescue "" %>">Reason for Starting</span>
@@ -68,7 +68,7 @@
                 <span value="<%= @patient_bean.filing_number rescue "" %>">Filing Number</span>
               <% end %>
               <% if @art_start_date.blank? and @pre_art_start_date != "" and @pre_art_start_date != nil %>
-                <span value="<%= "#{PatientService.period_on_treatment(@pre_art_start_date.to_date)} month(s)" %>">Period on Pre-ART</span>
+                <span value="<%= "#{PatientService.period_on_treatment(@pre_art_start_date.to_date).to_i} month(s)" %>">Period on Pre-ART</span>
               <% end %>
               <% if (@patient_bean.pre_art_number rescue nil) != nil && (@patient_bean.pre_art_number) != " " %>
                 <span value="<%= @patient_bean.pre_art_number rescue "" %>">Pre-ART Number</span>

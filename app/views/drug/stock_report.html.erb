@@ -44,6 +44,7 @@
   <b style="position:relative; top:0px;margin-left:75px">Drug stock report</b><br />
   <b style="position:relative; top:0px;margin-left:75px">From : <%= @start_date.strftime("%A, %Y %b %d")%></b><br />
   <b style="position:relative; top:0px;margin-left:75px">To : <%=@end_date.strftime("%A, %Y %b %d")%></b><br />
+  <b style="position:relative; top:0px;margin-left:75px">Months on Stock : <%= @month_on_stock %></b><br />
 <%#= render :partial => "header" %>
   <br /><br />
   <div class="scrollTableContainer">
@@ -94,8 +95,8 @@
     </td>
     <td>
       <table>
-        <tr>
-          <td colspan="3" style="text-align:center;">Closing stoke</td>
+        <tr valign="top">
+          <td colspan="3" style="text-align:center;">Closing stock</td>
         </tr>
         <tr>
           <td style="width:65px;">Date</td>
@@ -110,7 +111,18 @@
           <td>&nbsp;</td>
         </tr>
         <tr>
-          <td colspan="2" style="text-align:center;">Difference</td>
+          <td colspan="2" style="text-align:center;">Verified <br> minus
+            <br>Expected</td>
+        </tr>
+      </table>
+    </td>
+    <td>
+      <table>
+        <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td colspan="2" style="text-align:center;">Description</td>
         </tr>
       </table>
     </td>
@@ -211,23 +223,36 @@
        # if verified > 0
            # current = expected.to_f - verified.to_f
        # end
-       
+       difference = ((expected.to_f - verified.to_f)).round  rescue 0
 
-        difference = ((verified.to_f/expected.to_f)*100).round  rescue 0
+       # difference = ((verified.to_f/expected.to_f)*100).round  rescue 0
       %> 
       <table class="inner-data">
         <tr>
           <%if difference < 0 %>
-            <td style="text-align:center;color:red;"><%= difference %>&#37;</td>
+            <td style="text-align:center;color:red;"><%= difference.abs %></td>
           <%elsif difference == 0 %>
-            <td style="text-align:center;color:green;"><%= difference %>&#37;</td>
+            <td style="text-align:center;color:green;"><%= difference.abs %></td>
           <%else%>
-            <td style="text-align:center;color:green;">+<%= difference %>&#37;</td>
+            <td style="text-align:center;color:green;"><%= difference.abs %></td>
           <%end%>
         </tr>
       </table>
     </td>
+        <td class="color_<%=color%> caldata" id="dispensed_<%=count%>">
 
+      <table class="inner-data">
+        <tr>
+          <%if difference < 0 %>
+            <td style="text-align:center;color:red;">Stock < consumption</td>
+          <%elsif difference == 0 %>
+            <td style="text-align:center;color:green;">Normal consuption</td>
+          <%else%>
+            <td style="text-align:center;color:green;">Stock > consumption</td>
+          <%end%>
+        </tr>
+      </table>
+    </td>
 
 
    </tr>

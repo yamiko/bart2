@@ -34,8 +34,8 @@ var tt_cancel_destination = "/clinic";  // /management"
 
 <%= touch_date_tag "encounter_date", 'encounter_date', nil,
     {:id => "delivery_date",
-     :absoluteMax => Date.today,	
-     :helpText => "Edit date"} %>
+     :absoluteMax => Date.today,
+     :tt_onload    => "$('helpText'+tstCurrentPage).innerHTML = ($('edit_reason').value + '  Date')"} %>
 
 <%= text_field_tag "number_of_tins", nil, {:helpText => 'Number of tins', 
     :field_type => 'number', :absoluteMin => "1", 
