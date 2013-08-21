@@ -1,13 +1,11 @@
 class GenericClinicController < ApplicationController
   def index
     (session || {}).each do |name , values|
-      next if name == 'location_name'
-      next if name == 'location_id'
-      next if name == 'user_id'
-      next if name == 'datetime'
+      next unless name == 'patient_id'
       session[name] = nil
     end
 
+    session[:cohort] = nil
     @facility = Location.current_health_center.name rescue ''
 
     @location = Location.find(session[:location_id]).name rescue ""
