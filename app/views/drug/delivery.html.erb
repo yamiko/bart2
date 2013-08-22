@@ -18,7 +18,40 @@
   var response;
   var setFocusTimeout = 1000;
   var checkForBarcodeTimeout = 1500;
-                                                                                
+  var xPosition
+  function selectedDrugs(x){
+    drugs = document.getElementById("select_drugs")
+    drugs = getSelectedOptions(drugs)
+    drugLength = drugs.length
+    var drugArray = [];
+    for (i = 0; i < drugLength; i ++) {
+      drugArray.push(drugs[i].value)
+    }
+    if (x == -1){
+       x = drugLength -1
+    }
+
+    var aUrl = "/drug/add_controllers?drug=" + drugArray + "&index=" + x;
+    var httpRequest = new XMLHttpRequest();
+    httpRequest.onreadystatechange = function() {
+      set_number(httpRequest);
+    };
+
+    httpRequest.open('GET', aUrl, false);
+    httpRequest.send(null);
+    return response;
+  }
+
+  function getSelectedOptions(select) {
+    var result = [];
+    var options = select.getElementsByTagName('option');
+    for (var i = 0; i < options.length; i++) {
+        if (options[i].selected)
+            result.push(options[i]);
+    };
+    return result;
+  }
+
   function loadBarcodePage() {
     focusForBarcodeInput();
     moveNext();
@@ -61,8 +94,13 @@
       response = JSON.parse(req.responseText);
     }
   }
-
+  <% options = "<option>" "" "</option>"
+    @drugs.each{|drug|
+      options += "<option value = '" + drug + "'>" + drug + "</option>"
+    }
+%>
 </script>
+
 <%unless params[:id] == 'verification' %> 
 
   <form method='post' action="create_stock">
@@ -74,19 +112,32 @@
     <%end%>
 
     <%unless params[:id] == 'verification' %>
-
+    
       <%= text_field_tag :identifier, '', {:id => 'barcode',
         :class => 'touchscreenTextInput',
         :helpText => 'Scan delivery barcode',
         :tt_pageonload =>"loadBarcodePage" ,
         :style => 'position:absolute' } %>
 
-    <%end%>
-
-    <%= text_field_tag "drug_name", nil, {:id => 'drug_name', :field_type => 'alpha',
+      <%= select_tag "drug_name", options,
+		{
+                :id => "select_drugs",
+                :field_type => 'alpha',
+		:multiple => true,
+		:optional => true,
+		:tt_onUnLoad => 'selectedDrugs()',
+		:helpText => "Select Drugs",
+		:tt_pageStyleClass => "NoKeyboard NoInput small" } %>
+    <% else %>
+       <%= text_field_tag "drug_name", nil, {:id => 'drug_name', :field_type => 'alpha',
       :helpText => 'Drug name',
       :ajaxURL =>  '/drug/name?search_string=',
-      :condition => '', :tt_onLoad  => '' } %>
+      :condition => '',
+      :tt_onLoad  => ''} %>
+    <%end%>
+
+
+   
 
     <%unless params[:id] == 'verification' %>
 

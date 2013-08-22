@@ -419,7 +419,7 @@ class GenericRegimensController < ApplicationController
 		auto_expire_date = session[:datetime] + params[:duration].to_i.days + arvs_buffer.days rescue Time.now + params[:duration].to_i.days + arvs_buffer.days
 		auto_tb_expire_date = session[:datetime] + params[:tb_duration].to_i.days rescue Time.now + params[:tb_duration].to_i.days
 		auto_tb_continuation_expire_date = session[:datetime] + params[:tb_continuation_duration].to_i.days rescue Time.now + params[:tb_continuation_duration].to_i.days
-		auto_cpt_ipt_expire_date = session[:datetime] + params[:duration].to_i.days rescue Time.now + params[:duration].to_i.days
+		auto_cpt_ipt_expire_date = session[:datetime] + params[:duration].to_i.days + arvs_buffer.days rescue Time.now + params[:duration].to_i.days + arvs_buffer.days
 
 
 		orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:tb_regimen]})
@@ -546,7 +546,7 @@ class GenericRegimensController < ApplicationController
 
       if ! params[:cpt_duration].blank?
         #params[:cpt_duration] =  params[:duration]
-        auto_cpt_ipt_expire_date = session[:datetime] + params[:cpt_duration].to_i.days rescue Time.now + params[:cpt_duration].to_i.days
+        auto_cpt_ipt_expire_date = session[:datetime] + params[:cpt_duration].to_i.days + arvs_buffer.days rescue Time.now + params[:cpt_duration].to_i.days + arvs_buffer.days
       end
 			if concept_name == 'CPT STARTED'
 				if params[:cpt_mgs] == "960"
@@ -565,7 +565,6 @@ class GenericRegimensController < ApplicationController
 			weight = @current_weight = PatientService.get_patient_attribute_value(@patient, "current_weight")
 			regimen_id = Regimen.all(:conditions =>  ['min_weight <= ? AND max_weight >= ? AND concept_id = ?', weight, weight, drug.concept_id]).first.regimen_id
 
-			#raise regimen_id.to_yaml
 
 			orders = RegimenDrugOrder.all(:conditions => {:regimen_id => regimen_id, :drug_inventory_id => drug.id})
 

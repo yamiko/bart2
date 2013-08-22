@@ -22,6 +22,15 @@ class GenericDrugController < ApplicationController
     #@names = Drug.find(:all,:conditions =>["name LIKE ?","%" + params[:search_string] + "%"]).collect{|drug| drug.name}
     render :text => "<li>" + @names.map{|n| n } .join("</li><li>") + "</li>"
   end
+  
+  def add_controllers
+    drugs = params[:drug].split(",")
+    drugs.each {|drug|
+      if drug != ""
+        
+      end
+    }
+  end
 
   def delivery
    @drugs =  Regimen.find_by_sql(
@@ -33,7 +42,7 @@ class GenericDrugController < ApplicationController
           and r.retired = 0
     ").collect{|drug| drug.name}.compact.sort.uniq rescue []
 
-    #raise drugs.to_yaml
+    #raise @drugs.to_yaml
     #@drugs = Drug.find(:all).map{|d|d.name}.compact.sort rescue []
   end
 

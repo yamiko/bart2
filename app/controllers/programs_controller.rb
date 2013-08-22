@@ -41,7 +41,7 @@ class ProgramsController < GenericProgramsController
         observation['value_numeric'] = params[:transfer_out_location_id]
         Observation.create(observation)
       end
-      rebuild_program_states(given_params[:patient_program_id], given_params[:encounter][:patient_id])
+      #rebuild_program_states(given_params[:patient_program_id], given_params[:encounter][:patient_id])
     end
   end
 
@@ -229,15 +229,22 @@ class ProgramsController < GenericProgramsController
     #raise current_active_state.to_s.to_yaml
     # set current location via params if given
     Location.current_location = Location.find(params[:location]) if params[:location]
-    state_concept = ConceptName.find_by_name(params[:current_state]).concept
+    #state_concept = ConceptName.find_by_name(params[:current_state]).concept
+    state_concept = ConceptName.find_all_by_name(params[:current_state])
+    state = ProgramWorkflowState.find(:first, :conditions => ["concept_id IN (?)",state_concept.map{|c|c.concept_id}] ).program_workflow_state_id
+=begin
     program_workflow_state = ProgramWorkflowState.find(:first, 
       :joins => "INNER JOIN program_workflow USING (program_workflow_id) INNER JOIN program USING (program_id)",
-      :conditions => ["program_workflow.program_id = ? AND program_workflow_state.concept_id = ?", patient_program.program_id, state_concept.id])
+      :conditions => ["program_workflow.program_id = ? AND program_workflow_state.concept_id = ?",
+                       patient_program.program_id, state_concept.id])
     
     patient_state = patient_program.patient_states.build(
       :state => program_workflow_state.id,
       :start_date => params[:current_date])
-   
+=end
+    patient_state = patient_program.patient_states.build(
+      :state => state,
+      :start_date => params[:current_date])
     if patient_state.save
      
       # Close and save current_active_state if a new state has been created
@@ -297,7 +304,7 @@ end
               Location.current_location = Location.find(params[:location]) if params[:location]
 
               patient_state = program.patient_states.build(
-                :state => program_workflow_state.id,
+                :state => state,
                 :start_date => params[:current_date])
               if patient_state.save
                 current_active_state.save
