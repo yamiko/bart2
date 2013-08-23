@@ -1882,8 +1882,10 @@ end
     visits
   end
 
-  def visits(patient_obj, encounter_date = nil)    
-    patient_visits = {}
+  def visits(patient_obj, encounter_date = nil)
+    transfer_in_date = patient_obj.person.observations.recent(1).question("ART start date").all.collect{|o|
+			o.value_datetime }.last.to_date rescue []
+    patient_visits = {}  
     yes = ConceptName.find_by_name("YES")
     concept_names = ["APPOINTMENT DATE", "HEIGHT (CM)", 'WEIGHT (KG)',
 			"BODY MASS INDEX, MEASURED", "RESPONSIBLE PERSON PRESENT",
@@ -1929,6 +1931,11 @@ end
 			next if encounter_name.match(/HIV STAGING/i)
       
 			visit_date = obs.obs_datetime.to_date
+
+      unless transfer_in_date.blank?
+        next patient_visits if transfer_in_date == visit_date
+      end
+
 			patient_visits[visit_date] = Mastercard.new() if patient_visits[visit_date].blank?
 
 				 

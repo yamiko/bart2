@@ -16,6 +16,20 @@
     float:left
   }
 
+  .create_button a{
+    background-color: #7784AE;
+    border-bottom: 1px outset black;
+    border-radius: 7px 7px 7px 7px;
+    border-style: outset;
+    border-top: 1px outset black;
+    color: #E8EAF1;
+    display: block;
+    padding: 10px 16px 10px 10px;
+    text-align: center;
+    text-decoration: none !important;
+    font-size:13px;
+    }
+
   div.scrollTableContainer {
 		border-style:solid;
 		height: 500px;
@@ -152,7 +166,7 @@
       <table class="inner-data">
         <tr>
           <td style="width:60px;text-align:left;"><%=values['start_date']%></td>
-          <td style="width:60px;" class='positive_numbers'>
+          <td style="width:60px;" class='positive_numbers create_button'>
             <a href="/drug/stock_report_edit?date=<%=values['start_date']%>&drug_id=<%=values['drug_id']%>&edit_reason=opening_stock&start_date=<%=@start_date%>&end_date=<%=@end_date%>">
               <%=(values['confirmed_opening'] / 60).round %>
             </a>
@@ -208,7 +222,7 @@
         <tr>
           <td style="text-align:left;width:40px;"><%=values['end_date'] %></td>
           <td style="text-align:left;width:75px;padding-left:12px;"><%= expected %></td>
-          <td style="text-align:right;width:75px;" class='positive_numbers'>
+          <td style="text-align:right;width:75px;" class='positive_numbers create_button'>
             <a href="/drug/stock_report_edit?date=<%=values['end_date']%>&drug_id=<%=values['drug_id']%>&edit_reason=closing_stock&start_date=<%=@start_date%>&end_date=<%=@end_date%>">
               <%=(values['confirmed_closing'] / 60).round %>
             </a>

@@ -47,15 +47,24 @@ class GenericDrugController < ApplicationController
   end
 
   def create_stock
-    obs = params[:observations]
-    delivery_date = obs[0]['value_datetime']
-    expiry_date = obs[1]['value_datetime']
-    drug_id = Drug.find_by_name(params[:drug_name]).id
-    number_of_tins = params[:number_of_tins].to_f
-    number_of_pills_per_tin = params[:number_of_pills_per_tin].to_f
+    
+   # raise params.to_yaml
+   params[:drug].each{ |delivered|
+    delivery_date = params['delivery date']
+    expiry_date = delivered.first[1]['expiry_date']
+    drug_id = Drug.find_by_name(delivered[:name]).id
+    number_of_tins = delivered.first[1]['tins'].to_f
+    number_of_pills_per_tin = delivered.first[1]['pills'].to_f
     number_of_pills = (number_of_tins * number_of_pills_per_tin)
     barcode = params[:identifier]
     Pharmacy.new_delivery(drug_id,number_of_pills,delivery_date,nil,expiry_date,barcode)
+
+
+
+
+   }
+
+    
     #add a notice
     #flash[:notice] = "#{params[:drug_name]} successfully entered"
     redirect_to "/clinic"   # /management"
@@ -70,7 +79,7 @@ class GenericDrugController < ApplicationController
       pills = (params[:number_of_pills_per_tin].to_i * params[:number_of_tins].to_i)
       date = encounter_datetime || Date.today 
 
-      if edit_reason == 'Receipts'
+      if edit_reason == 'Receipts from other clinics'
         expiry_date = obs[2]['value_datetime'].to_date
         Pharmacy.new_delivery(drug_id,pills,date,nil,expiry_date,edit_reason)
       else
@@ -79,6 +88,10 @@ class GenericDrugController < ApplicationController
       #flash[:notice] = "#{params[:drug_name]} successfully edited"
       redirect_to "/clinic"   # /management"
     end
+  end
+
+  def set_quantity
+    
   end
 
   def verification
@@ -184,16 +197,8 @@ class GenericDrugController < ApplicationController
           :conditions =>["pharmacy_encounter_type=? AND drug_id =? AND encounter_date >= ? AND encounter_date <= ?",encounter_type, params[:drug_id], params[:start_date], n ],
           :order => "encounter_date DESC,date_created DESC")
           current_stock[n] = (new_deliveries.value_numeric / 60).round rescue 0
-          n = n - 1.weeks
-
-       end
-    elsif month_difference > 12 and month_difference <= 36
-       while n >= params[:start_date].to_date
-          new_deliveries = Pharmacy.active.find(:first,
-          :conditions =>["pharmacy_encounter_type=? AND drug_id =? AND encounter_date >= ? AND encounter_date <= ?",encounter_type, params[:drug_id], params[:start_date], n ],
-          :order => "encounter_date DESC,date_created DESC")
-          current_stock[n] = (new_deliveries.value_numeric / 60).round rescue 0
           n = n - 1.months
+
        end
     else
       while n >= params[:start_date].to_date

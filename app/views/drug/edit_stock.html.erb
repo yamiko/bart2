@@ -12,19 +12,19 @@ var tt_cancel_destination = "/clinic";  // /management"
 <form method='post' action="edit_stock">
 
 <%optionsString = []
-  optionsString << "Damaged"
-  optionsString << "Expired"
+  #optionsString << "Damaged"
+  optionsString << "Expired/Damaged"
   optionsString << "Given to other clinics"
-  optionsString << "Receipts"
+  optionsString << "Receipts from other clinics"
   optionsString << "Went missing"
-  optionsString << "Other"
+  #optionsString << "Other"
 %>
 
 <%= touch_select_tag "REASON", '', options_for_select(optionsString),
         {:id => "edit_reason",
          :multiple => false,
          :optional => false,
-         :helpText => "Edit reason",
+         :helpText => "Relocation/disposal reason",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
 
 <%= text_field_tag "drug_name", nil, {:id => 'drug_name', :field_type => 'alpha', 
