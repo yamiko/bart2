@@ -38,6 +38,8 @@ class Cohort
 
     #raise self.total_number_of_dead_patients.to_yaml
     @patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
+
+    #raise  self.total_number_of_died_within_range(0, 30.4375).to_yaml
 		threads = []
 
 		threads << Thread.new do
@@ -411,9 +413,9 @@ class Cohort
 		cohort_report['Unknown outcomes'] = cohort_report['Total registered'] -
 			(cohort_report['Total alive and on ART'] +
 				cohort_report['Defaulted'] +
-				(cohort_report['Died total'] ) +
-				(cohort_report['Stopped taking ARVs'] ) +
-				(cohort_report['Transferred out']))
+				(cohort_report['Died total'] || [] ) +
+				(cohort_report['Stopped taking ARVs'] || []) +
+				(cohort_report['Transferred out'] || []))
 		
 		#patients_with_0_6_doses_missed = []; patients_with_7_doses_missed = []
 
@@ -683,15 +685,27 @@ class Cohort
 	end
 
 	def total_number_of_died_within_range(min_days = 0, max_days = 0)								
-   concept_name = ConceptName.find_all_by_name("PATIENT DIED")
-    state = ProgramWorkflowState.find(
-      :first,
-      :conditions => ["concept_id IN (?)",
-			concept_name.map{|c|c.concept_id}]
-			).program_workflow_state_id
+   concept_name = "PATIENT DIED"
+   # state = ProgramWorkflowState.find(
+   #   :first,
+   #   :conditions => ["concept_id IN (?)",
+		#	concept_name.map{|c|c.concept_id}]
+		#	).program_workflow_state_id
 
 			patients = []
 
+    PatientProgram.find_by_sql("
+      SELECT p.patient_id, current_state_for_program(p.patient_id, 1, '#{@end_date}') AS state, death_date, c.name as status FROM patient p
+      INNER JOIN  program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(p.patient_id, 1, '#{@end_date}')
+      INNER join earliest_start_date e ON e.patient_id = p.patient_id
+      INNER JOIN concept_name c ON c.concept_id = pw.concept_id
+      WHERE earliest_start_date <= '#{@end_date}'
+      AND  name = '#{concept_name}'
+      AND DATEDIFF(death_date, earliest_start_date) BETWEEN #{min_days} AND #{max_days}").each do | patient |
+							patients << patient.patient_id
+					end
+
+=begin
 			PatientProgram.find_by_sql(
 						"SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state, death_date,
 					IF(ISNULL(MIN(sdo.value_datetime)), earliest_start_date, MIN(sdo.value_datetime)) AS initiation_date
@@ -703,6 +717,7 @@ class Cohort
 					DATEDIFF(death_date, initiation_date) BETWEEN #{min_days} AND #{max_days}").each do | patient |
 							patients << patient.patient_id
 					end
+=end
 		return patients
 	end
 
