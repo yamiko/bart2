@@ -216,7 +216,7 @@
 	<div class='scrollTableContainer'>
 
 	  <table  cellspacing='0'>
-		<% @children_survival_analysis.each do | key , values | %>
+		<% (@children_survival_analysis || {}).each do | key , values | %>
 		  <tr>
 			<th style = "text-align:left;"><%=key%></th>
 			<th>&nbsp;</th>
