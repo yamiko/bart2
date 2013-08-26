@@ -46,10 +46,15 @@ class GenericDrugController < ApplicationController
     #@drugs = Drug.find(:all).map{|d|d.name}.compact.sort rescue []
   end
 
+  def calculate_dispensed
+     drug_id = Drug.find_by_name(params[:name]).id
+     drugs = Pharmacy.dispensed_drugs_since(drug_id,params[:start_date],params[:end_date])
+     render :text => drugs
+  end
+
   def create_stock
-    
-   # raise params.to_yaml
    params[:drug].each{ |delivered|
+
     delivery_date = params['delivery date']
     expiry_date = delivered.first[1]['expiry_date']
     drug_id = Drug.find_by_name(delivered[:name]).id
@@ -58,8 +63,6 @@ class GenericDrugController < ApplicationController
     number_of_pills = (number_of_tins * number_of_pills_per_tin)
     barcode = params[:identifier]
     Pharmacy.new_delivery(drug_id,number_of_pills,delivery_date,nil,expiry_date,barcode)
-
-
 
 
    }
