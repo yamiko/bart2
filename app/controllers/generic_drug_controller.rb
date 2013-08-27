@@ -9,6 +9,7 @@ class GenericDrugController < ApplicationController
           and  d.name like '%#{params[:search_string]}%'
           and d.retired = 0
           and r.retired = 0
+          and (r.program_id = 1 or r.program_id = 0)
     ").collect{|drug| drug.name}.compact.sort.uniq rescue []
    # regimens = regimens.map{|d|
     # concept_name = (d.concept.concept_names.typed("SHORT").first ||	d.concept.concept_names.typed("FULLY_SPECIFIED").first).name
@@ -40,6 +41,7 @@ class GenericDrugController < ApplicationController
           where c.voided = 0
           and d.retired = 0
           and r.retired = 0
+          and (r.program_id = 1 or r.program_id = 0)
     ").collect{|drug| drug.name}.compact.sort.uniq rescue []
 
     #raise @drugs.to_yaml
@@ -65,9 +67,7 @@ class GenericDrugController < ApplicationController
     Pharmacy.new_delivery(drug_id,number_of_pills,delivery_date,nil,expiry_date,barcode)
 
 
-   }
-
-    
+   }  
     #add a notice
     #flash[:notice] = "#{params[:drug_name]} successfully entered"
     redirect_to "/clinic"   # /management"
