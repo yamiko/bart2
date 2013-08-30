@@ -1493,6 +1493,31 @@ class EncountersController < GenericEncountersController
 		render :text => result.to_json
   end
 
+   def art_summary
+
+    result = {}
+    @patient = PatientIdentifier.find_by_identifier(params[:national_id]).patient rescue nil
+
+    result["start_date"] = PatientProgram.find_by_sql("SELECT * FROM earliest_start_date
+	    WHERE patient_id = #{@patient.id}").first.earliest_start_date.to_date rescue ""
+
+    result["arv_number"] = PatientService.get_patient_identifier(@patient, 'ARV Number') rescue ""
+
+    result["last_date_seen"] =  @patient.encounters.find(:first, :order => ["encounter_datetime DESC"]).encounter_datetime.strftime("%B") rescue ""
+
+    hiv_test = {}
+
+    @patient.encounters.find(:first, :order => ["encounter_datetime DESC"],
+      :conditions => ["encounter_type = ?", EncounterType.find_by_name("UPDATE HIV STATUS")]).observations.collect{|obs|
+      hiv_test[ConceptName.find_by_concept_id(obs.concept_id).name.strip.upcase] = obs.answer_string.strip
+    } rescue {}
+
+    result["latest_hiv_test"] = hiv_test
+
+    render :text => result.to_json
+
+  end
+
 
 	def lab_results_print
 		label_commands = lab_results_label(params[:id])
