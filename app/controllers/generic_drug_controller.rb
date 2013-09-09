@@ -2,15 +2,14 @@ class GenericDrugController < ApplicationController
 
   def name
     @names =  Regimen.find_by_sql(
-    "select * from regimen r
-          inner join concept_name c on c.concept_id = r.concept_id
-          inner join drug d on d.concept_id = r.concept_id
-          where c.voided = 0
-          and  d.name like '%#{params[:search_string]}%'
-          and d.retired = 0
-          and r.retired = 0
-          and (r.program_id = 1 or r.program_id = 0)
+    "select distinct(d.name) from regimen r
+    inner join regimen_drug_order rd on rd.regimen_id = r.regimen_id
+    inner join drug d on d.drug_id = rd.drug_inventory_id
+    where r.regimen_index is not null
+    and r.regimen_index != 0
     ").collect{|drug| drug.name}.compact.sort.uniq rescue []
+    other = ["Cotrimoxazole (960mg)", "Cotrimoxazole (480mg tablet)", "INH or H (Isoniazid 300mg tablet)", "NH or H (Isoniazid 100mg tablet)"]
+    @names += other
    # regimens = regimens.map{|d|
     # concept_name = (d.concept.concept_names.typed("SHORT").first ||	d.concept.concept_names.typed("FULLY_SPECIFIED").first).name
      # if d.regimen_index.blank?
@@ -46,15 +45,14 @@ class GenericDrugController < ApplicationController
   def delivery
 
    @drugs =  Regimen.find_by_sql(
-    "select * from regimen r
-          inner join concept_name c on c.concept_id = r.concept_id
-          inner join drug d on d.concept_id = r.concept_id
-          where c.voided = 0
-          and d.retired = 0
-          and r.retired = 0
-          and (r.program_id = 1 or r.program_id = 0)
+    "select distinct(d.name) from regimen r
+    inner join regimen_drug_order rd on rd.regimen_id = r.regimen_id
+    inner join drug d on d.drug_id = rd.drug_inventory_id
+    where r.regimen_index is not null
+    and r.regimen_index != 0
     ").collect{|drug| drug.name}.compact.sort.uniq rescue []
-
+    other = ["Cotrimoxazole (960mg)", "Cotrimoxazole (480mg tablet)", "INH or H (Isoniazid 300mg tablet)", "NH or H (Isoniazid 100mg tablet)"]
+    @drugs += other
   end
 
   def calculate_dispensed
@@ -240,13 +238,14 @@ class GenericDrugController < ApplicationController
     @goto = params[:goto]
     @goto = 'stock_report' if @goto.blank?
     @drugs =  Regimen.find_by_sql(
-    "select * from regimen r
-          inner join concept_name c on c.concept_id = r.concept_id
-          inner join drug d on d.concept_id = r.concept_id
-          where c.voided = 0
-          and d.retired = 0
-          and r.retired = 0
+    "select distinct(d.name) from regimen r
+    inner join regimen_drug_order rd on rd.regimen_id = r.regimen_id
+    inner join drug d on d.drug_id = rd.drug_inventory_id
+    where r.regimen_index is not null
+    and r.regimen_index != 0
     ").collect{|drug| drug.name}.compact.sort.uniq rescue []
+    other = ["Cotrimoxazole (960mg)", "Cotrimoxazole (480mg tablet)", "INH or H (Isoniazid 300mg tablet)", "NH or H (Isoniazid 100mg tablet)"]
+    @drugs += other
   end
 
   def stock_movement_menu
