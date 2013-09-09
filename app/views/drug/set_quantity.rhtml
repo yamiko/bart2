@@ -1,6 +1,8 @@
 <script>
-  function currentExpected(td, dateOne, dateTwo) {
-    var aUrl = "/drug/calculate_dispensed?drug=" + td + "&start_date=" + dateOne + "&end_date=" + dateTwo;
+  var response
+  expiring_drugs = {}
+  function currentExpected(drug, dateOne, dateTwo) {
+    var aUrl = "/drug/calculate_dispensed?drug=" +  drug + "&start_date=" + dateOne + "&end_date=" + dateTwo;
     var httpRequest = new XMLHttpRequest();
     httpRequest.onreadystatechange = function() {
       set_number(httpRequest);
@@ -8,7 +10,11 @@
 
     httpRequest.open('GET', aUrl, false);
     httpRequest.send(null);
-    return response;
+    expiring = []
+    expiring["name"]= drug
+    expiring["drug"] = response;
+
+    expiring_drugs << expiring
   }
 
   function set_number(req) {
@@ -39,7 +45,10 @@
     <%= text_field_tag "number_of_pills_per_tin", nil, {:helpText => 'Number of pills per tin for ' + drug,
       :name => "drug[][" + drug + "][pills]",
       :field_type => 'number', :absoluteMin => "1",
-      :min => "1", :tt_pageStyleClass => "Numeric NumbersOnly"}  %>
+      :min => "1", :tt_pageStyleClass => "Numeric NumbersOnly",
+      :tt_onUnload => 'currentExpected("' + drug.to_s + '", $("delivery_date").value, $("delivery_date").value)'
+      }
+      %>
 
     <%= touch_date_tag "drug[][" + drug + "]['expiry_date']", 'expiry_date', nil,
     {:id => "expiry_date",
