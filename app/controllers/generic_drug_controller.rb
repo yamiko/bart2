@@ -64,16 +64,14 @@ class GenericDrugController < ApplicationController
   def create_stock
    params[:drug].each{ |delivered|
 
-    delivery_date = params['delivery date']
-    expiry_date = delivered.first[1]['expiry_date']
+    delivery_date = params['delivery date'].to_date
+    expiry_date = delivered["#{delivered[:name]}"]['expiry_date'].to_date
     drug_id = Drug.find_by_name(delivered[:name]).id
-    number_of_tins = delivered.first[1]['tins'].to_f
-    number_of_pills_per_tin = delivered.first[1]['pills'].to_f
+    number_of_tins = delivered["#{delivered[:name]}"]['tins'].to_f
+    number_of_pills_per_tin = delivered["#{delivered[:name]}"]['pills'].to_f
     number_of_pills = (number_of_tins * number_of_pills_per_tin)
     barcode = params[:identifier]
     Pharmacy.new_delivery(drug_id,number_of_pills,delivery_date,nil,expiry_date,barcode)
-
-
    }  
     #add a notice
     #flash[:notice] = "#{params[:drug_name]} successfully entered"
@@ -97,6 +95,16 @@ class GenericDrugController < ApplicationController
       end
       #flash[:notice] = "#{params[:drug_name]} successfully edited"
       redirect_to "/clinic"   # /management"
+    else 
+          @drugs =  Regimen.find_by_sql(
+                      "select distinct(d.name) from regimen r
+                      inner join regimen_drug_order rd on rd.regimen_id = r.regimen_id
+                      inner join drug d on d.drug_id = rd.drug_inventory_id
+                      where r.regimen_index is not null
+                      and r.regimen_index != 0
+                      ").collect{|drug| drug.name}.compact.sort.uniq rescue []
+                      other = ["Cotrimoxazole (960mg)", "Cotrimoxazole (480mg tablet)", "INH or H (Isoniazid 300mg tablet)", "NH or H (Isoniazid 100mg tablet)"]
+                      @drugs += other
     end
   end
 
