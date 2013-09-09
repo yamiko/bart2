@@ -144,28 +144,28 @@ class EncountersController < GenericEncountersController
     
     if @use_extended_family_planning && is_child_bearing_female(@patient)
       @select_options['why_no_family_planning_method'] = [
-          ['Not sexually active', 'NOT SEXUALLY ACTIVE'],
-          ['Patient wants to get pregnant','PATIENT WANTS TO GET PREGNANT'],
-          ['Not needed for medical reasons', 'NOT NEEDED FOR MEDICAL REASONS'],
-          ['At risk of unplanned pregnancy', 'AT RISK OF UNPLANNED PREGNANCY']
+        ['Not sexually active', 'NOT SEXUALLY ACTIVE'],
+        ['Patient wants to get pregnant','PATIENT WANTS TO GET PREGNANT'],
+        ['Not needed for medical reasons', 'NOT NEEDED FOR MEDICAL REASONS'],
+        ['At risk of unplanned pregnancy', 'AT RISK OF UNPLANNED PREGNANCY']
       ]
 
       @select_options['why_no_family_planning_method_specific'] = [
-          ['Following wishes of spouse', 'FOLLOWING WISHES OF SPOUSE'],
-          ['Religious reasons', 'RELIGIOUS REASONS'],
-          ['Afraid of side effects','AFRAID OF SIDE EFFECTS'],
-          ['Never thought about it','NEVER THOUGHT ABOUT IT'],
-          ['Indifferent (Does not mind getting pregnant )', 'INDIFFERENT']
+        ['Following wishes of spouse', 'FOLLOWING WISHES OF SPOUSE'],
+        ['Religious reasons', 'RELIGIOUS REASONS'],
+        ['Afraid of side effects','AFRAID OF SIDE EFFECTS'],
+        ['Never thought about it','NEVER THOUGHT ABOUT IT'],
+        ['Indifferent (Does not mind getting pregnant )', 'INDIFFERENT']
       ]
 
       @select_options['family_planning_methods_int'] = [
-          ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
-          ['Depo-Provera', 'DEPO-PROVERA'],
-          ['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
-          ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
-          ['Female condoms', 'FEMALE CONDOMS'],
-	        ['Male condoms', 'MALE CONDOMS'],
-          ['Tubal ligation', 'TUBAL LIGATION']
+        ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
+        ['Depo-Provera', 'DEPO-PROVERA'],
+        ['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
+        ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT'],
+        ['Female condoms', 'FEMALE CONDOMS'],
+        ['Male condoms', 'MALE CONDOMS'],
+        ['Tubal ligation', 'TUBAL LIGATION']
       ]
 
 			if @retrospective
@@ -175,10 +175,10 @@ class EncountersController < GenericEncountersController
 			end						
 					
       @select_options['dual_options'] = [
-          ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
-          ['Depo-Provera', 'DEPO-PROVERA'],
-          ['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
-          ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT']]
+        ['Oral contraceptive pills', 'ORAL CONTRACEPTIVE PILLS'],
+        ['Depo-Provera', 'DEPO-PROVERA'],
+        ['IUD-Intrauterine device/loop', 'INTRAUTERINE CONTRACEPTION'],
+        ['Contraceptive implant', 'CONTRACEPTIVE IMPLANT']]
     end
 
 
@@ -461,7 +461,7 @@ class EncountersController < GenericEncountersController
 		
 		#if (params[:encounter_type].upcase rescue '') == 'VITALS'
       
-     # render :action => params[:encounter_type], :layout => "weight_chart"
+    # render :action => params[:encounter_type], :layout => "weight_chart"
 
     if (params[:encounter_type].upcase rescue '') == 'HIV_STAGING' and  (CoreService.get_global_property_value('use.extended.staging.questions').to_s == "true" rescue false)
 			render :template => 'encounters/extended_hiv_staging', :layout => "weight_chart"
@@ -784,12 +784,12 @@ class EncountersController < GenericEncountersController
           
     number_of_bookings = {}
 
-      (bookings || []).sort.reverse.each do |date|
+    (bookings || []).sort.reverse.each do |date|
       next if not clinic_days.collect{|c|c.upcase}.include?(date.strftime('%A').upcase)
       limit = number_of_booked_patients(date.to_date).to_i rescue 0
       if clinic_appointment_limit == 0
-          recommended_date = date
-          break
+        recommended_date = date
+        break
       end
       if limit < clinic_appointment_limit
         recommended_date = date
@@ -797,12 +797,12 @@ class EncountersController < GenericEncountersController
       else
         number_of_bookings[date] = limit
       end
-     end
+    end
                                                                  
     
     (number_of_bookings || {}).sort_by { |dates,num| num }.each do |dates , num|   
       next if not clinic_days.collect{|c|c.upcase}.include?(dates.strftime('%A').upcase)
-        recommended_date = dates
+      recommended_date = dates
       break 
     end if recommended_date.blank?                                                                        
 
@@ -1494,7 +1494,7 @@ class EncountersController < GenericEncountersController
 		render :text => result.to_json
   end
 
-   def art_summary
+  def art_summary
 
     result = {}
     @patient = PatientIdentifier.find_by_identifier(params[:national_id]).patient rescue nil
@@ -1504,17 +1504,22 @@ class EncountersController < GenericEncountersController
 
     result["arv_number"] = PatientService.get_patient_identifier(@patient, 'ARV Number') rescue ""
 
-    result["last_date_seen"] =  @patient.encounters.find(:first, :order => ["encounter_datetime DESC"]).encounter_datetime.strftime("%B") rescue ""
+    result["last_date_seen"] =  @patient.encounters.find(:first, :order => ["encounter_datetime DESC"]).encounter_datetime.strftime("%d/%b/%Y") rescue ""
 
     hiv_test = {}
 
     @patient.encounters.find(:first, :order => ["encounter_datetime DESC"],
       :conditions => ["encounter_type = ?", EncounterType.find_by_name("UPDATE HIV STATUS")]).observations.collect{|obs|
-      hiv_test[ConceptName.find_by_concept_id(obs.concept_id).name.strip.upcase] = obs.answer_string.strip
+      
+      c_name = ConceptName.find_by_concept_id(obs.concept_id).name.strip.upcase
+      next if c_name.match(/location/i)
+      hiv_test[c_name] = obs.answer_string.strip
     } rescue {}
 
-    result["latest_hiv_test"] = hiv_test
-
+    result["latest_hiv_test"] = hiv_test    
+   
+    result.delete_if{|key, value| value.blank?}
+    
     render :text => result.to_json
 
   end
