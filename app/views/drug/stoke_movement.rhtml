@@ -3,8 +3,8 @@
   #num , #Unknown { display:none; }
 
   .dateselector {
-     position: fixed;
-     top: 195px;
+    position: fixed;
+    top: 195px;
   }
 
   #clearButton {
@@ -17,67 +17,80 @@
     hieght: 152% ! important;
   }
 </style>
-   <script type="text/javascript" language="javascript"
-    src="/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js" defer  ></script>
-    <meta http-equiv='content-type' content='text/html;charset=UTF-8' />
-    <%#= javascript_include_tag "jquery" %>
-    <%= javascript_include_tag "Highcharts/js/jquery.min.js" %>
-    <%= javascript_include_tag "jquery.flot" %>
-    <%= javascript_include_tag "prototype" %>
+<script type="text/javascript" language="javascript"
+src="/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js" defer  ></script>
+<meta http-equiv='content-type' content='text/html;charset=UTF-8' />
+<%#= javascript_include_tag "jquery" %>
+<%= javascript_include_tag "Highcharts/js/jquery.min.js" %>
+<%= javascript_include_tag "jquery.flot" %>
+<%= javascript_include_tag "prototype" %>
 
-    <style>
-      #buttonlinks {
-        display: none;
-      }
-    </style>
-     <% if Location.current_location.name.match(/HIV|ART/i) %>
-      <style>
-        #tab2 {
-          background-color: white;
-          border: 0 none;
-          color: black;
-          font-weight: bold;
-        }
-      </style>
-    <% else %>
-      <style>
-        #tab1 {
-          background-color: white;
-          border: 0 none;
-          color: black;
-          font-weight: bold;
-        }
+<style>
+  #buttonlinks {
+    display: none;
+  }
+  #tabPageContainer {
+    height: 134% ! important;
+  }
+</style>
+<% if Location.current_location.name.match(/HIV|ART/i) %>
+  <style>
+    #tab2 {
+      background-color: white;
+      border: 0 none;
+      color: black;
+      font-weight: bold;
+    }
+  </style>
+<% else %>
+  <style>
+    #tab1 {
+      /*background-color: white;
+      border: 0 none;
+      color: black;  */
+      font-weight: bold;
+      font-size: 20px;
 
-      </style>
-    <% end %>
+      background-color: #7784AE;
+      border-bottom: 1px outset black;
+      border-radius: 7px 7px 7px 7px;
+      border-style: outset;
+      border-top: 1px outset black;
+      color: #E8EAF1;
+      display: block;
+      padding: 10px 16px 10px 10px;
+    }
+
+  </style>
+<% end %>
 
 <script type="text/javascript">
- jQuery(document).ready(function() {
-        summary();
-      });
+  jQuery(document).ready(function() {
+    summary();
+  });
 
- var tt_cancel_destination = "/clinic";  // /management"
+  var tt_cancel_destination = "/clinic";  // /management"
 
- setTimeout("changeCancelButton()", 500);
+  setTimeout("changeCancelButton()", 500);
 
- function summary(){
+  function summary(){
     try{
-    <%
-      dateToday = session[:datetime].to_date rescue Date.today
-      %>
+<%
+dateToday = session[:datetime].to_date rescue Date.today
+%>
       
       document.getElementById('tabPageContainer').innerHTML = "<div id='summary' style='background: width:100%;'></div>" ;
       //if (age <= 60){
-       // jQuery('#chart').empty();
-       // jQuery('#chart').load('/patients/baby_chart/100?patient_id=100&tab=true');
+      // jQuery('#chart').empty();
+      // jQuery('#chart').load('/patients/baby_chart/100?patient_id=100&tab=true');
       //}else{
-        jQuery('#summary').empty();
-        jQuery('#summary').load('/drug/stock_chart?start_date=<%= params[:start_date] %>&end_date=<%= params[:end_date] %>&drug_id=<%= params[:drug_id] %>');
+      jQuery('#summary').empty();
+      jQuery('#summary').load('/drug/stock_chart?start_date=<%= params[:start_date] %>&end_date=<%= params[:end_date] %>&drug_id=<%= params[:drug_id] %>');
       //}
     }catch(exp){
       setTimeout("summary()", 100);
     }
- }
+  }
   function changeCancelButton() {
     cancelButton = document.getElementById('cancelButton');
     cancelButton.setAttribute('onmousedown','javascript:history.back();');
@@ -91,11 +104,12 @@
 </script>
 
 <form id = 'dashboard' method='post' action="/clinic">
-       <select id="tabs">
-        
-        <option >
-					<%= @drug %> Movement Chart : From <%= params[:start_date] %> To <%= params[:end_date] %>
-        </option>
-      </select>
+  <select id="tabs">
+
+    <option >
+    <h1><%= @drug %></h1> Movement Chart : From <%= params[:start_date].to_date.strftime(" %d-%m-%Y") %> To <%= params[:end_date].to_date.strftime(" %d-%m-%Y") %>
+    </option>
+  </select>
+  <input type='submit' value='Finish' />
 </form >
 

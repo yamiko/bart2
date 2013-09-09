@@ -1295,21 +1295,29 @@ EOF
 			dormant_filing_number_identifier_type = PatientIdentifierType.find_by_name('Archived filing number')
 
 			if (next_filing_number[5..-1].to_i >= global_property_value.to_i)
-				encounter_type_name = ['REGISTRATION','VITALS','ART_INITIAL','ART VISIT',
-				  'TREATMENT','HIV RECEPTION','HIV STAGING','DISPENSING','APPOINTMENT']
+				encounter_type_name = ['HIV CLINIC REGISTRATION','VITALS','HIV CLINIC CONSULTATION',
+          'TREATMENT','HIV RECEPTION','HIV STAGING','DISPENSING','APPOINTMENT']
 				encounter_type_ids = EncounterType.find(:all,:conditions => ["name IN (?)",encounter_type_name]).map{|n|n.id}
 
 				all_filing_numbers = PatientIdentifier.find(:all, :conditions =>["identifier_type = ?",
             PatientIdentifierType.find_by_name("Filing Number").id],:group=>"patient_id")
 				patient_ids = all_filing_numbers.collect{|i|i.patient_id}
-				patient_to_be_archived = Encounter.find_by_sql(["
-					SELECT patient_id, MAX(encounter_datetime) AS last_encounter_id
-					FROM encounter
-					WHERE patient_id IN (?)
-					AND encounter_type IN (?)
-					GROUP BY patient_id
-					ORDER BY last_encounter_id
-					LIMIT 1",patient_ids,encounter_type_ids]).first.patient rescue nil
+
+        patient_to_be_archived = Person.find_by_sql(["
+          SELECT * FROM person WHERE person_id IN(?) AND dead = 1 LIMIT 1
+        ", patient_ids]).first.patient rescue nil
+
+        unless patient_to_be_archived.blank?
+          patient_to_be_archived = Encounter.find_by_sql(["
+            SELECT patient_id, MAX(encounter_datetime) AS last_encounter_id
+            FROM encounter
+            WHERE patient_id IN (?)
+            AND encounter_type IN (?)
+            GROUP BY patient_id
+            ORDER BY last_encounter_id
+            LIMIT 1",patient_ids,encounter_type_ids]).first.patient rescue nil
+        end
+
 				if patient_to_be_archived.blank?
 					patient_to_be_archived = PatientIdentifier.find(:last,:conditions =>["identifier_type = ?",
               PatientIdentifierType.find_by_name("Filing Number").id],

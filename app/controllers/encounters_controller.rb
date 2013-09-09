@@ -13,6 +13,7 @@ class EncountersController < GenericEncountersController
       render :action => params[:encounter_type] and return
 		end
 
+    session[:return_uri] = params[:return_ip] if ! params[:return_ip].blank?
     
     @hiv_status = tb_art_patient(@patient,"hiv program") rescue ""
     @tb_status = tb_art_patient(@patient,"TB program") rescue ""
