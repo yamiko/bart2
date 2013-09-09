@@ -205,21 +205,21 @@
 
    
 
-    <%#unless params[:id] == 'verification' %>
+    <%unless params[:id] == 'verification' %>
 
       <%= touch_date_tag "delivery_date", 'delivery_date', nil,
         {:id => "delivery_date",
         :helpText => "Delivery date",
         :absoluteMax => Date.today} %>
 
-    <%#else%>
+    <%else%>
 
-      <%#= touch_date_tag "delivery_date", 'delivery_date', nil,
+      <%= touch_date_tag "delivery_date", 'delivery_date', nil,
         {:id => "delivery_date",
         :helpText => "Verification date",
         :maxDate => (Date.today + 30.year)} %>
 
-    <%#end%>
+    <%end%>
     <%unless params[:id] == 'verification' %>
     <%= text_field_tag "number_of_tins", nil, {:helpText => 'Number of tins',
       :field_type => 'number', :absoluteMin => "1",

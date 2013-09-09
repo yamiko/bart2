@@ -128,7 +128,6 @@ class GenericDrugController < ApplicationController
   end
 
   def stock_report
-    #raise params.to_yaml
     @logo = CoreService.get_global_property_value('logo') rescue ''
     @current_location_name = Location.current_health_center.name rescue ''
     @start_date = params[:start_date].to_date rescue params[:delivery_date].to_date
@@ -136,7 +135,7 @@ class GenericDrugController < ApplicationController
 
     @month_on_stock = (@end_date.year * 12 + @end_date.month) - (@start_date.year * 12 + @start_date.month)
     #TODO
-#need to redo the SQL query
+
     encounter_type = PharmacyEncounterType.find_by_name("New deliveries").id
     new_deliveries = Pharmacy.active.find(:all,
       :conditions =>["pharmacy_encounter_type=?",encounter_type],
@@ -195,30 +194,33 @@ class GenericDrugController < ApplicationController
     current_stock = {}
     month_difference = (params[:end_date].to_date.year * 12 + params[:end_date].to_date.month) - (params[:start_date].to_date.year * 12 + params[:start_date].to_date.month)
     n = params[:end_date].to_date
-    #raise month_difference.to_yaml
+   # raise Pharmacy.expected(params[:drug_id], params[:start_date], params[:end_date]).to_yaml
     if month_difference <= 1
        while n >= params[:start_date].to_date
-          new_deliveries = Pharmacy.active.find(:first,
-          :conditions =>["pharmacy_encounter_type=? AND drug_id =? AND encounter_date >= ? AND encounter_date <= ?",encounter_type, params[:drug_id], params[:start_date], n ],
-          :order => "encounter_date DESC,date_created DESC")
-          current_stock[n] = (new_deliveries.value_numeric / 60).round rescue 0
+          new_deliveries = Pharmacy.expected(params[:drug_id], params[:start_date], n)
+         # new_deliveries = Pharmacy.active.find(:first,
+         # :conditions =>["pharmacy_encounter_type=? AND drug_id =? AND encounter_date >= ? AND encounter_date <= ?",encounter_type, params[:drug_id], params[:start_date], n ],
+         # :order => "encounter_date DESC,date_created DESC")
+          current_stock[n] = (new_deliveries / 60).round rescue 0
           n = n - 1.days
        end
     elsif month_difference > 1 and month_difference <= 12
        while n >= params[:start_date].to_date
-          new_deliveries = Pharmacy.active.find(:first,
-          :conditions =>["pharmacy_encounter_type=? AND drug_id =? AND encounter_date >= ? AND encounter_date <= ?",encounter_type, params[:drug_id], params[:start_date], n ],
-          :order => "encounter_date DESC,date_created DESC")
-          current_stock[n] = (new_deliveries.value_numeric / 60).round rescue 0
+         new_deliveries = Pharmacy.expected(params[:drug_id], params[:start_date], n)
+         # new_deliveries = Pharmacy.active.find(:first,
+         # :conditions =>["pharmacy_encounter_type=? AND drug_id =? AND encounter_date >= ? AND encounter_date <= ?",encounter_type, params[:drug_id], params[:start_date], n ],
+         # :order => "encounter_date DESC,date_created DESC")
+          current_stock[n] = (new_deliveries / 60).round rescue 0
           n = n - 1.months
 
        end
     else
       while n >= params[:start_date].to_date
-          new_deliveries = Pharmacy.active.find(:first,
-          :conditions =>["pharmacy_encounter_type=? AND drug_id =? AND encounter_date >= ? AND encounter_date <= ?",encounter_type, params[:drug_id], params[:start_date], n ],
-          :order => "encounter_date DESC,date_created DESC")
-          current_stock[n] = (new_deliveries.value_numeric / 60).round rescue 0
+          new_deliveries = Pharmacy.expected(params[:drug_id], params[:start_date], n)
+          #new_deliveries = Pharmacy.active.find(:first,
+          #:conditions =>["pharmacy_encounter_type=? AND drug_id =? AND encounter_date >= ? AND encounter_date <= ?",encounter_type, params[:drug_id], params[:start_date], n ],
+          #:order => "encounter_date DESC,date_created DESC")
+          current_stock[n] = (new_deliveries / 60).round rescue 0
           n = n - 1.years
        end
     end
