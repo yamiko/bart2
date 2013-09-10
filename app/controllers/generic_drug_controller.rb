@@ -67,10 +67,12 @@ class GenericDrugController < ApplicationController
         expiry += stock[1]["delivered_stock"]
 
       }
-      if current_stock < expiry
-          expiry = expiry
-      elsif current_stock >= expiry
+      if current_stock > 0 and current_stock <= expiry
           expiry = current_stock
+      elsif current_stock > expiry
+          expiry = expiry
+      else
+         expiry = 0
       end
       # raise expiry.to_yaml
     render :text => expiry
