@@ -159,8 +159,10 @@
     }
   }
   <% options = "<option>" "" "</option>"
+    #raise @drugs.to_yaml
     @drugs.each{|drug|
-      options += "<option value = '" + drug + "'>" + drug + "</option>"
+      #raise drug[0].to_yaml
+      options += "<option value = '#{drug}'>#{drug}</option>"
     }
 %>
 </script>
@@ -186,14 +188,18 @@
 
   <%else%>
 
-    <form id="create_stoke" method='post' action="verification">
+    <form id="create_stoke" method='post' action="verified_stock">
 
 
-       <%= text_field_tag "drug_name", nil, {:id => 'drug_name', :field_type => 'alpha',
-      :helpText => 'Drug name',
-      :ajaxURL =>  '/drug/name?search_string=',
-      :condition => '',
-      :tt_onLoad  => ''} %>
+      <%= select_tag "drug_name", options,
+		{
+                :id => "select_drugs",
+                :field_type => 'alpha',
+		:multiple => true,
+		:optional => true,
+		:tt_onUnLoad => 'selectedDrugs()',
+		:helpText => "Select Drugs",
+		:tt_pageStyleClass => "NoKeyboard NoInput small" } %>
 
 
 
@@ -214,7 +220,7 @@
         :maxDate => (Date.today + 30.year)} %>
 
     <%end%>
-
+    <%unless params[:id] == 'verification' %>
     <%= text_field_tag "number_of_tins", nil, {:helpText => 'Number of tins',
       :field_type => 'number', :absoluteMin => "1",
       :min => "1", :tt_pageStyleClass => "Numeric NumbersOnly"}  %>
@@ -223,7 +229,7 @@
       :field_type => 'number', :absoluteMin => "1",
       :min => "1", :tt_pageStyleClass => "Numeric NumbersOnly"}  %>
 
-    <%unless params[:id] == 'verification' %>
+    
 
       <%= touch_date_tag "expiry_date", 'expiry_date', nil,
         {:id => "expiry_date",

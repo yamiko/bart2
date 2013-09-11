@@ -132,6 +132,29 @@ class Pharmacy < ActiveRecord::Base
     expiring_drugs_hash 
   end
 
+  def self.currently_expiring_drugs(start_date, drug_id)
+    pharmacy_encounter_type = PharmacyEncounterType.find_by_name('New deliveries')
+
+   end_date = start_date + 3.months
+    expiring_drugs = self.active.find(:all,
+                     :conditions => ["pharmacy_encounter_type = ?
+                     AND expiry_date >= ? AND expiry_date <= ? AND drug_id = ?",
+                     pharmacy_encounter_type.id , start_date , end_date, drug_id])
+
+    expiring_drugs_hash = {}
+    (expiring_drugs || []).each do | expiring |
+      current_stock = self.current_stock_as_from(expiring.drug_id , self.first_delivery_date(expiring.drug_id),expiring.encounter_date)
+      next if current_stock <= 0
+      expiring_drugs_hash["#{expiring.pharmacy_module_id}:#{Drug.find(expiring.drug_id).name}"] = {
+        'delivered_stock' => expiring.value_numeric ,
+        'date_delivered' => expiring.encounter_date ,
+        'expiry_date' => expiring.expiry_date ,
+        'current_stock' => current_stock
+      }
+    end
+    expiring_drugs_hash
+  end
+
   def self.removed_from_shelves(start_date , end_date)
     pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins removed')
 

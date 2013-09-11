@@ -18,19 +18,33 @@ var tt_cancel_destination = "/clinic";  // /management"
   optionsString << "Receipts from other clinics"
   optionsString << "Went missing"
   #optionsString << "Other"
+ options = "<option>" "" "</option>"
+    #raise @drugs.to_yaml
+    @drugs.each{|drug|
+      #raise drug[0].to_yaml
+      options += "<option value = '#{drug}'>#{drug}</option>"
+    }
+  available_options = "<option>" "" "</option>"
+    #raise @drugs.to_yaml
+    @names.each{|drug|
+      #raise drug[0].to_yaml
+      available_options += "<option value = '#{drug}'>#{drug}</option>"
+    }
 %>
-
 <%= touch_select_tag "REASON", '', options_for_select(optionsString),
         {:id => "edit_reason",
          :multiple => false,
          :optional => false,
          :helpText => "Relocation/disposal reason",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
+<%#= raise @names.to_yaml %>
+<%= select_tag "drug_names", available_options, {:id => 'drug_names', :field_type => 'alpha',
+  :helpText => 'Drug name',
+  :condition => "$('edit_reason').value != 'Receipts from other clinics'", :tt_onLoad  => '' } %>
 
-<%= text_field_tag "drug_name", nil, {:id => 'drug_name', :field_type => 'alpha', 
-  :helpText => 'Drug name', 
-  :ajaxURL =>  '/drug/available_name?search_string=', 
-  :condition => '', :tt_onLoad  => '' } %>
+<%= select_tag "drug_name", options, {:id => 'drug_name', :field_type => 'alpha',
+  :helpText => 'Drug name',
+  :condition => "$('edit_reason').value == 'Receipts from other clinics'", :tt_onLoad  => '' } %>
 
 <%= touch_date_tag "encounter_date", 'encounter_date', nil,
     {:id => "delivery_date",
@@ -48,7 +62,7 @@ var tt_cancel_destination = "/clinic";  // /management"
 <%= touch_date_tag "expiry_date", 'encounter_date', nil,
     {:id => "delivery_date",
      :maxDate => (Date.today + 20.year).to_date,	
-     :condition => "selectedValue('edit_reason') == 'Receipts'" ,
+     :condition => "selectedValue('edit_reason') == 'Receipts from other clinics'" ,
      :helpText => "Expiry date"} %>
 
 </form>
