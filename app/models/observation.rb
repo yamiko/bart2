@@ -121,7 +121,8 @@ class Observation < ActiveRecord::Base
 	end
 
 	if answer.nil?
-		answer = Concept.find_with_voided(self.value_coded).fullname + ' - retired'
+		answer = Concept.find_with_voided(self.value_coded).fullname rescue ""
+    answer = answer + ' - retired'
 	end
 	
 	return answer

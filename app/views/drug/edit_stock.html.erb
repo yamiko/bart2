@@ -24,6 +24,12 @@ var tt_cancel_destination = "/clinic";  // /management"
       #raise drug[0].to_yaml
       options += "<option value = '#{drug}'>#{drug}</option>"
     }
+  available_options = "<option>" "" "</option>"
+    #raise @drugs.to_yaml
+    @names.each{|drug|
+      #raise drug[0].to_yaml
+      available_options += "<option value = '#{drug}'>#{drug}</option>"
+    }
 %>
 <%= touch_select_tag "REASON", '', options_for_select(optionsString),
         {:id => "edit_reason",
@@ -31,10 +37,9 @@ var tt_cancel_destination = "/clinic";  // /management"
          :optional => false,
          :helpText => "Relocation/disposal reason",
          :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
-
-<%= text_field_tag "drug_name", nil, {:id => 'drug_name', :field_type => 'alpha', 
-  :helpText => 'Drug name', 
-  :ajaxURL =>  '/drug/available_name?search_string=', 
+<%#= raise @names.to_yaml %>
+<%= select_tag "drug_names", available_options, {:id => 'drug_names', :field_type => 'alpha',
+  :helpText => 'Drug name',
   :condition => "$('edit_reason').value != 'Receipts from other clinics'", :tt_onLoad  => '' } %>
 
 <%= select_tag "drug_name", options, {:id => 'drug_name', :field_type => 'alpha',

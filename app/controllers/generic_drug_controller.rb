@@ -104,7 +104,12 @@ class GenericDrugController < ApplicationController
       obs = params[:observations]
       edit_reason = obs[0]['value_coded_or_text']
       encounter_datetime = obs[1]['value_datetime']
-      drug_id = Drug.find_by_name(params[:drug_name]).id
+      if ! params[:drug_names].blank?
+         name = params[:drug_names]
+      else
+         name = params[:drug_name]
+      end
+      drug_id = Drug.find_by_name(name).id
       pills = (params[:number_of_pills_per_tin].to_i * params[:number_of_tins].to_i)
       date = encounter_datetime || Date.today 
 
@@ -126,6 +131,9 @@ class GenericDrugController < ApplicationController
         ").collect{|drug| drug.name}.compact.sort.uniq rescue []
       other = ["Cotrimoxazole (960mg)", "Cotrimoxazole (480mg tablet)", "INH or H (Isoniazid 300mg tablet)", "NH or H (Isoniazid 100mg tablet)"]
       @drugs += other
+      ids = Pharmacy.active.find(:all).collect{|p|p.drug_id} rescue []
+      @names = Drug.find(:all,:conditions =>["drug_id IN (?)", ids]).collect{|drug| drug.name}
+
     end
   end
 
