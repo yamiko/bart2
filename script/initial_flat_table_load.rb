@@ -1,6 +1,6 @@
 
-LowerLimit = 18496
-UpperLimit	= 18505
+#LowerLimit = 43
+#UpperLimit	= 46
 	
 		
 def load_data
@@ -11,7 +11,7 @@ def load_data
   return if patients.blank?
 	
 	patients.each do |patient|
-		puts "#{count} patients to go"
+		puts "working on patient_id: #{patient.patient_id}......#{count} patients to go "
 		orders = []
 		drug_orders = []	
     Patient.find_by_sql("UPDATE patient SET voided = 0 WHERE patient_id = #{patient.id}") rescue nil
@@ -61,10 +61,11 @@ def load_orders(orders)
     order_ids << order.id
 	end		
 	
-  ActiveRecord::Base.connection.execute <<EOF                                 
-    UPDATE orders SET voided = 0 WHERE order_id IN(#{order_ids.join(',')});
+	if !order_ids.blank?
+    ActiveRecord::Base.connection.execute <<EOF
+      UPDATE orders SET voided = 0 WHERE order_id IN(#{order_ids.join(',')});
 EOF
-                                                                                
+   end
 		
 end
 
@@ -76,28 +77,29 @@ def	load_drug_orders(drug_orders)
     drug_order_ids << drug_order.id
 	end		
   	
-  ActiveRecord::Base.connection.execute <<EOF                                 
-    UPDATE drug_order SET complex = 0 WHERE order_id IN(#{drug_order_ids.join(',')});
+  if !drug_order_ids.blank?
+    ActiveRecord::Base.connection.execute <<EOF
+      UPDATE drug_order SET complex = 0 WHERE order_id IN(#{drug_order_ids.join(',')});
 EOF
-                                                                                
+  end
 end
 
 def load_patient_identifiers(patient_id)
 
-  ActiveRecord::Base.connection.execute <<EOF                                 
+  ActiveRecord::Base.connection.execute <<EOF
     UPDATE patient_identifier SET voided = 0 WHERE patient_id = #{patient_id};                      
 EOF
-                                                                                
+
 end
 
 def load_observations(person_id)
 
 	observations = Observation.find(:all, :conditions => ["person_id = #{person_id}"])
-  obs_ids = observations.map(&:obs_id).join(',') rescue nil                   
-  next if obs_ids.blank?                                                      
+  obs_ids = observations.map(&:obs_id).join(',') rescue nil
+  next if obs_ids.blank?
                                                                                 
   ActiveRecord::Base.connection.execute <<EOF                                 
-    UPDATE obs SET voided = 0 WHERE obs_id IN(#{obs_ids});                      
+    UPDATE obs SET voided = 0 WHERE obs_id IN (#{obs_ids});
 EOF
                                                                                 
                                                                                 
@@ -111,8 +113,7 @@ def get_art_patients
                                                                                 
   Patient.find(:all,:joins =>"INNER JOIN encounter e                            
     ON e.patient_id = patient.patient_id AND e.voided = 0",                     
-    :conditions =>["encounter_type IN(?) 
-    AND patient.patient_id BETWEEN ? AND ?",encounter_type,LowerLimit,UpperLimit],                      
+    :conditions =>["encounter_type IN (?)",encounter_type], 
     :group => "patient.patient_id")                                             
 end
 
