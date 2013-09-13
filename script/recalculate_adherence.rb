@@ -16,13 +16,12 @@ def start
   adherence_encounter_id = EncounterType.find_by_name("ART ADHERENCE").id
   dispense_concept_id = ConceptName.find_by_name("Amount dispensed").concept_id
 
-
   records = DrugOrder.find_by_sql("SELECT t3.person_id person_id,
     t1.drug_inventory_id drug_id,DATE(t3.obs_datetime) visit_date, t1.order_id
     FROM drug_order t1 INNER JOIN orders t2 ON t2.order_id = t1.order_id 
     INNER JOIN obs t3 ON t3.order_id = t2.order_id 
     WHERE t3.concept_id = #{amount_brought_concept_id} 
-    AND t3.obs_datetime <= '#{start_date}' GROUP BY t3.person_id,
+    AND t3.obs_datetime <= '#{start_date}' AND t2.concept_id <> 916 GROUP BY t3.person_id,
     obs_datetime,t3.obs_id").collect do |record|
       [record.person_id,record.drug_id,record.visit_date, record.order_id]
     end
