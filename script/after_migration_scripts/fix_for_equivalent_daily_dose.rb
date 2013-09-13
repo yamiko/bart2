@@ -2,8 +2,8 @@
 
 Creator :     Precious Ulemu Bondwe
 Date    :     2013-08-28 
-Purpose :     To update all ARV drug_orders whose equivalent_daily_dose is NULL.
-              This helps in the calculation of adherence.
+Purpose :     To update all ARV drug_orders whose equivalent_daily_dose is NULL
+              the appropriate equivalent_daily_dose. This helps in the calculation of adherence.
 =end
 
 def start
