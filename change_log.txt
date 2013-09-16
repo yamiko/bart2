@@ -6,4 +6,7 @@ Version (v 1.0.0)
 		-added change log file
 
 	Version (v 1.1.0)
+		-fixed pulling of patients without states
+		-fixing misspelled Isoniazid drug
+		-added change log file
 */
