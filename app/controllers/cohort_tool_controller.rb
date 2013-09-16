@@ -1174,11 +1174,23 @@ class CohortToolController < GenericCohortToolController
 		@report_type = params[:report_type]
   end
   
+  def select_cohort_date
+  end
+
   def cohort
+    if params[:quarter] == 'Select date range'
+      redirect_to :action => 'select_cohort_date' and return
+    end
     session[:pre_art] = []
 		@logo = CoreService.get_global_property_value('logo').to_s
-    @quarter = params[:quarter]
-    start_date,end_date = Report.generate_cohort_date_range(@quarter)
+    if not params[:date]['start'].blank? and not params[:date]['end'].blank?
+      @quarter = params[:date]['start'] + " to " + params[:date]['end']
+      start_date = params[:date]['start'].to_date
+      end_date = params[:date]['end'].to_date
+    else
+      @quarter = params[:quarter]
+      start_date,end_date = Report.generate_cohort_date_range(@quarter)
+    end
     cohort = Cohort.new(start_date, end_date)
    	logger.info("cohort")
     #raise request.env["HTTP_CONNECTION"].to_yaml
@@ -1207,7 +1219,13 @@ class CohortToolController < GenericCohortToolController
 		session[:cohort]["outcomes"] = {} if session[:cohort]["outcomes"].blank?
     @quarter = params[:quarter]
 		@logo = params[:logo]
-		start_date,end_date = Report.generate_cohort_date_range(@quarter)
+    if @quarter.match(/to/i)
+      start_date,end_date = @quarter.split('to')
+      start_date = start_date.to_date
+      end_date = end_date.to_date
+    else
+		  start_date,end_date = Report.generate_cohort_date_range(@quarter)
+    end
     cohort = Cohort.new(start_date, end_date)
 
 		@survival_analysis, session[:views] = SurvivalAnalysis.report(cohort, session[:cohort])
@@ -1219,7 +1237,13 @@ class CohortToolController < GenericCohortToolController
 		session[:field] = nil
     @quarter = params[:quarter]
 		@logo = params[:logo]
-		start_date,end_date = Report.generate_cohort_date_range(@quarter)
+    if @quarter.match(/to/i)
+      start_date,end_date = @quarter.split('to')
+      start_date = start_date.to_date
+      end_date = end_date.to_date
+    else
+		  start_date,end_date = Report.generate_cohort_date_range(@quarter)
+    end
     cohort = Cohort.new(start_date, end_date)
 		@children_survival_analysis, session[:children] = SurvivalAnalysis.childern_survival_analysis(cohort, session[:cohort])
 		render :layout => 'cohort'
@@ -1229,7 +1253,13 @@ class CohortToolController < GenericCohortToolController
 		session[:field] = nil
     @quarter = params[:quarter]
 		@logo = params[:logo]
-		start_date,end_date = Report.generate_cohort_date_range(@quarter)
+    if @quarter.match(/to/i)
+      start_date,end_date = @quarter.split('to')
+      start_date = start_date.to_date
+      end_date = end_date.to_date
+    else
+		  start_date,end_date = Report.generate_cohort_date_range(@quarter)
+    end
     cohort = Cohort.new(start_date, end_date)
    	logger.info("cohort")
    	@women_survival_analysis, session[:women] = SurvivalAnalysis.pregnant_and_breast_feeding(cohort, session[:cohort])

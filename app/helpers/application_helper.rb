@@ -126,7 +126,7 @@ module ApplicationHelper
   end
   
   def welcome_message
-    "Muli bwanji, enter your user information or scan your id card. <span style='font-size:0.6em;float:right'>(#{version})</span>"  
+    "Muli bwanji, enter your user information or scan your id card. <span style='font-size:0.6em;float:righti;margin-right: 20px;'>(#{version})</span>"  
   end
   
   def show_identifiers(location_id, patient)
