@@ -8,7 +8,7 @@ class GenericDrugController < ApplicationController
     where r.regimen_index is not null
     and r.regimen_index != 0
       ").collect{|drug| drug.name}.compact.sort.uniq rescue []
-    other = ["Cotrimoxazole (960mg)", "Cotrimoxazole (480mg tablet)", "INH or H (Isoniazid 300mg tablet)", "NH or H (Isoniazid 100mg tablet)"]
+    other = ["Cotrimoxazole (960mg)", "Cotrimoxazole (480mg tablet)", "INH or H (Isoniazid 300mg tablet)", "INH or H (Isoniazid 100mg tablet)"]
     @names += other
     # regimens = regimens.map{|d|
     # concept_name = (d.concept.concept_names.typed("SHORT").first ||	d.concept.concept_names.typed("FULLY_SPECIFIED").first).name
@@ -51,7 +51,7 @@ class GenericDrugController < ApplicationController
     where r.regimen_index is not null
     and r.regimen_index != 0
       ").collect{|drug| drug.name}.compact.sort.uniq rescue []
-    other = ["Cotrimoxazole (960mg)", "Cotrimoxazole (480mg tablet)", "INH or H (Isoniazid 300mg tablet)", "NH or H (Isoniazid 100mg tablet)"]
+    other = ["Cotrimoxazole (960mg)", "Cotrimoxazole (480mg tablet)", "INH or H (Isoniazid 300mg tablet)", "INH or H (Isoniazid 100mg tablet)"]
     @drugs += other
   end
 
@@ -129,7 +129,7 @@ class GenericDrugController < ApplicationController
                       where r.regimen_index is not null
                       and r.regimen_index != 0
         ").collect{|drug| drug.name}.compact.sort.uniq rescue []
-      other = ["Cotrimoxazole (960mg)", "Cotrimoxazole (480mg tablet)", "INH or H (Isoniazid 300mg tablet)", "NH or H (Isoniazid 100mg tablet)"]
+      other = ["Cotrimoxazole (960mg)", "Cotrimoxazole (480mg tablet)", "INH or H (Isoniazid 300mg tablet)", "INH or H (Isoniazid 100mg tablet)"]
       @drugs += other
       ids = Pharmacy.active.find(:all).collect{|p|p.drug_id} rescue []
       @names = Drug.find(:all,:conditions =>["drug_id IN (?)", ids]).collect{|drug| drug.name}
@@ -281,7 +281,7 @@ class GenericDrugController < ApplicationController
     where r.regimen_index is not null
     and r.regimen_index != 0
       ").collect{|drug| drug.name}.compact.sort.uniq rescue []
-    other = ["Cotrimoxazole (960mg)", "Cotrimoxazole (480mg tablet)", "INH or H (Isoniazid 300mg tablet)", "NH or H (Isoniazid 100mg tablet)"]
+    other = ["Cotrimoxazole (960mg)", "Cotrimoxazole (480mg tablet)", "INH or H (Isoniazid 300mg tablet)", "INH or H (Isoniazid 100mg tablet)"]
     @drugs += other
   end
 
