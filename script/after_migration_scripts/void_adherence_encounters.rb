@@ -1,16 +1,25 @@
 =begin
 
-Creator :     Precious Ulemu Bondwe
-Date    :     2013-08-28 
-Purpose :     To void all adherence encounters with their corresponding observations. 
-              This allows recalculation of adherence in case adherence was not calculated properly. 
+Creator 	:     	Precious Ulemu Bondwe
+Date    	:     	2013-08-28 
+Purpose 	:     	To void all adherence encounters with their corresponding observations. 
+	              	This allows recalculation of adherence in case adherence was not calculated properly. 
+pre-requisite	:	MAKE SURE THE location_id IS SET TO THE LOCATION ID OF THE HEALTH CENTER THE MIGRATION IS FOR:
+amendments	:	********** INCLUDE AMENDMENTS HERE  ***************
 =end
 
 def start
 
 adherence_encounters = Encounter.find(:all, :conditions => ["encounter_type = ? AND voided = 0", 68])
 counter = 0
+location_id = 10
 puts ">>>>>>>Starting<<<<<<<"
+
+	#set Location first
+	location = Location.find(location_id)
+	Location.current_location = location
+	#end of setting location
+
 	adherence_encounters.each do |adh_enc|
 		#puts "#{adh_enc.to_yaml}"
 		counter = counter + 1
