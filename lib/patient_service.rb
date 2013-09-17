@@ -1534,15 +1534,18 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
     unless identifier.match(/#{Location.current_health_center.neighborhood_cell}-ARV/i) || identifier.match(/-TB/i)
       identifier = identifier.gsub("-","").strip
     end
-
-		#if identifier.match(/#{CoreService.get_global_property_value("site_prefix")}-TB/i)
-		#	people = PatientIdentifier.find_by_sql("SELECT * FROM patient_identifier WHERE identifier = #{identifier} AND ")
-		#else
+    
+		if identifier.match(/-TB/i)
+			people = PatientIdentifier.find_by_sql("SELECT * FROM patient_identifier 
+                WHERE REPLACE(identifier, ' ', '') = REPLACE('#{identifier}', ' ', '') AND voided =0 ").map{|id|
+                id.patient.person
+              }
+		else
 			people = PatientIdentifier.find_all_by_identifier(identifier).map{|id|
-      id.patient.person
-    } unless identifier.blank? rescue nil
-		#end
-   
+               id.patient.person
+              } unless identifier.blank? rescue nil
+		end
+    
     return people unless people.blank?
     create_from_dde_server = CoreService.get_global_property_value('create.from.dde.server').to_s == "true" rescue false
     if create_from_dde_server
