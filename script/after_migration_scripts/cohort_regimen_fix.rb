@@ -17,7 +17,7 @@ def start
 
   give_drugs_encounters.each do |patient| 
      ActiveRecord::Base.connection.execute <<EOF
-UPDATE area_25_test_bart2_database.obs
+UPDATE obs
 SET value_numeric = #{patient.dispensed_quantity1}
 WHERE value_drug = #{patient.new_drug_id}
 AND person_id = #{patient.patient_id}
@@ -38,7 +38,7 @@ order_id = Patient.find_by_sql(query2).first.order_id
 #raise order_id.to_yaml
 
      ActiveRecord::Base.connection.execute <<EOF
-UPDATE area_25_test_bart2_database.drug_order
+UPDATE drug_order
   SET quantity = #{patient.dispensed_quantity1}
   WHERE order_id = #{order_id}
   AND quantity <> #{patient.dispensed_quantity1}
