@@ -2,15 +2,13 @@
 -This is a sample on how to write to this file
 Version (v 1.0.0)
 	subversion (v 1.0.1 Tag name)
-		-Added multi-threading in cohort
-		-added change log file
-
-	Version (v 1.1.0)
-		-fixed pulling of patients without states
-		-fixing misspelled Isoniazid drug
-		-added change log file
-	version (v 1.1.1)
-		-changed source from http to https
-		-added gems in vender for local bundle installation
-		-added change log file
+		
 */
+
+Version (1.0.0)
+	Added multi-threading in cohort
+	fixed pulling of patients without states
+	fixing misspelled Isoniazid drug
+	changed source from http to https
+	added gems in vender for local bundle installation
+	Added Current_Location to void_adherence script to prevent openmrs model from crushing 
