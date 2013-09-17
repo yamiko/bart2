@@ -2128,20 +2128,26 @@ end
 	def definitive_state_date(patient, program) #written to avoid causing conflicts in other methods
 		state_date = ""
 		programs = patient.patient_programs.all rescue []
+   
 		programs.each do |prog|
 			if prog.program.name.upcase == program and program == "HIV PROGRAM"
-				if ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname.downcase.match(/pre-art/i)
-						
-						state_date = prog.date_enrolled
-				end
+        program_state = ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname.downcase rescue nil
+				if ! program_state.blank?
+            if  program_state.match(/pre-art/i)
+                state_date = prog.date_enrolled
+            end
+        end
 			end
 			if prog.program.name.upcase == program and program != "HIV PROGRAM" and program != "ON ARV"
 				state_date = prog.date_enrolled
 			end
 			if prog.program.name.upcase == "HIV PROGRAM" and program == "ON ARV"
-				if ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname.downcase.match(/on antiretrovirals/i)
-						state_date = prog.date_enrolled
-				end
+        program_state = ProgramWorkflowState.find_state(prog.patient_states.last.state).concept.fullname.downcase rescue nil
+				if ! program_state.blank?
+            if program_state.match(/on antiretrovirals/i)
+                state_date = prog.date_enrolled
+            end
+        end
 			end
 		end
 		state_date

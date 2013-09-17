@@ -224,8 +224,8 @@ class ProgramsController < GenericProgramsController
     patient_program = PatientProgram.find(params[:patient_program_id])
     #we don't want to have more than one open states - so we have to close the current active on before opening/creating a new one
 
-    current_active_state = patient_program.patient_states.last
-    current_active_state.end_date = params[:current_date].to_date
+    current_active_state = patient_program.patient_states.last rescue []
+    current_active_state.end_date = params[:current_date].to_date rescue session[:datetime] rescue Date.today
     #raise current_active_state.to_s.to_yaml
     # set current location via params if given
     Location.current_location = Location.find(params[:location]) if params[:location]
@@ -248,7 +248,7 @@ class ProgramsController < GenericProgramsController
     if patient_state.save
      
       # Close and save current_active_state if a new state has been created
-      current_active_state.save
+      current_active_state.save!
       
 =begin
 if patient_state.program_workflow_state.concept.fullname.upcase == 'PATIENT TRANSFERRED OUT'

@@ -6,4 +6,11 @@ Version (v 1.0.0)
 		-added change log file
 
 	Version (v 1.1.0)
+		-fixed pulling of patients without states
+		-fixing misspelled Isoniazid drug
+		-added change log file
+	version (v 1.1.1)
+		-changed source from http to https
+		-added gems in vender for local bundle installation
+		-added change log file
 */
