@@ -166,7 +166,7 @@ class GenericPeopleController < ApplicationController
     found_person = nil
     if params[:identifier]
       local_results = PatientService.search_by_identifier(params[:identifier])
-
+      
 			if local_results.blank? and (params[:identifier].match(/#{Location.current_health_center.neighborhood_cell}-ARV/i) || params[:identifier].match(/-TB/i))
 				flash[:notice] = "No matching person found with number #{params[:identifier]}"
 				redirect_to :action => 'find_by_tb_number' if params[:identifier].match(/-TB/i)
@@ -183,8 +183,8 @@ class GenericPeopleController < ApplicationController
           dde_server_password = GlobalProperty.find_by_property("dde_server_password").property_value rescue ""
           uri = "http://#{dde_server_username}:#{dde_server_password}@#{dde_server}/people/find.json"
           uri += "?value=#{params[:identifier].to_s.strip}"
-          output = RestClient.get(uri)
-          p = JSON.parse(output)
+          output = RestClient.get(uri) rescue []
+          p = JSON.parse(output) rescue []
           if p.count > 1
             redirect_to :action => 'duplicates' ,:search_params => params
             return
