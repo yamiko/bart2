@@ -35,7 +35,12 @@
 }
 
 </style>
-
-<form method = 'post' action = 'find_by_tb_number'>
+<%  unless @number.blank? %>
+  <form method = 'post' action = 'edit_tb_number'>
+    <input type='hidden' name='current' value='<%= @number %>' />
+    <input type='hidden' name='id' value='<%= @patient_id %>' />
+<% else %>
+  <form method = 'post' action = 'find_by_tb_number'>
+<% end %>
    <%= text_field_tag :tb_number, nil , :field_type => 'number' , :helpText => 'Enter TB Number',:tt_onLoad =>'arvCode()'%>
 </form>

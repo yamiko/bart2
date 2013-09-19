@@ -67,7 +67,7 @@ div.main{height:230px;overflow:scroll; margin: 10px;webkit-user-select: none;-we
 						<div style = "margin-left:15px">
 					<table width =100%>
 
-						<tr><td width= 30%><b>District TB No</b><td>:<td> <%= @variables["patientId"] %></td></tr>
+						<tr><td width= 30%><b>District TB No</b><td>:<td> <%= link_to  @variables["patientId"], "edit_tb_number?id=#{params[:patient_id]}&number=#{@variables["patientId"]}" %></td></tr>
 						<tr><td><b>Health Unit</b><td>:<td><%= Location.current_health_center.name %></td></tr>
 						<tr><td><b>Registr. Date</b><td>:<td><%= @variables["tbStart"] %></td></tr>
 					</table>
