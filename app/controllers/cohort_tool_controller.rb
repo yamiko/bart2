@@ -1183,14 +1183,18 @@ class CohortToolController < GenericCohortToolController
     end
     session[:pre_art] = []
 		@logo = CoreService.get_global_property_value('logo').to_s
+
     if not params[:date]['start'].blank? and not params[:date]['end'].blank?
       @quarter = params[:date]['start'] + " to " + params[:date]['end']
       start_date = params[:date]['start'].to_date
       end_date = params[:date]['end'].to_date
-    else
+    end if not params[:date].blank?
+
+    if start_date.blank? and end_date.blank?
       @quarter = params[:quarter]
       start_date,end_date = Report.generate_cohort_date_range(@quarter)
     end
+
     cohort = Cohort.new(start_date, end_date)
    	logger.info("cohort")
     #raise request.env["HTTP_CONNECTION"].to_yaml
