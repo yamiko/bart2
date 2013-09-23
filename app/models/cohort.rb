@@ -81,8 +81,9 @@ class Cohort
 							elsif reason.match(/WHO stage I ped/i)
 								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
 
-
 							elsif reason.match(/CD4 COUNT LESS/i)
+								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+						 elsif reason.upcase.match(/CD4 COUNT <=/i)
 								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
 							elsif reason.match(/Presumed/i)
 								cohort_report['Total Presumed severe HIV disease in infants'] << collection_reason.patient_id
@@ -234,6 +235,10 @@ class Cohort
 								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
 							elsif reason.match(/WHO STAGE I peds/i)
 								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+							elsif reason.upcase.match(/CD4 COUNT <=/i)
+								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id							
+							elsif reason.match(/CD4 COUNT LESS/i)
+								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id							
 							elsif reason.match(/CD4 count less/i)
 								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
 						  #elsif reason.match(/lymphocyte/i)
