@@ -10,10 +10,10 @@
 
  <% if @report_type == "incomplete_visit" %>
  <form method='POST' action="incomplete_visits" >
-     <input type="text" field_type="date" id="start_date" name="start_date" value="" helpText="Select start date" />
+     <input type="text" field_type="date" id="start_date" name="start_date" value="" helpText="Select date" />
 
-   <input type="text" field_type="date" id="end_date" name="end_date" value=""
-          helpText="Select end date" maxDate="<%= (Date.today + 30.years) %>" />
+   <!--input type="text" field_type="date" id="end_date" name="end_date" value=""
+          helpText="Select end date" maxDate="<%= (Date.today + 30.years) %>" /-->
  <% else %>
 <form method='POST' action="reports" >
 <%if 'out_of_range_arv_number' == @report_type  then%>

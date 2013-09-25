@@ -1251,7 +1251,7 @@ class CohortToolController < GenericCohortToolController
   def incomplete_visits
     @logo = CoreService.get_global_property_value('logo').to_s
     @start_date = params[:start_date].to_date
-    @end_date = params[:end_date].to_date
+    @end_date = params[:start_date].to_date
     @incomplete = {}
     session[:specific] = {}
     session[:incomplete] = {}
@@ -1267,7 +1267,7 @@ class CohortToolController < GenericCohortToolController
 
                             encounter_date =  params[:start_date].to_date
      # Need to improve the code for performance
-     while encounter_date <= params[:end_date].to_date
+     #while encounter_date <= params[:start_date].to_date
                            session[:specific][encounter_date] = {}
                            @incomplete[encounter_date] = []
                            session[:specific][encounter_date]["reception"] = []
@@ -1337,17 +1337,15 @@ class CohortToolController < GenericCohortToolController
                                   
                               end
 
-                             #else
-                              #  @incomplete[encounter_date] << patient.patient_id
                              end
                            }
                            
                            session[:incomplete][encounter_date] = @incomplete[encounter_date].uniq
-                           encounter_date += 1.days
+                           #encounter_date += 1.days
       
-     end
-   
-    render :layout => 'patient_list'
+     #end
+    redirect_to "/cohort_tool/list_incomplete_details?date=#{encounter_date}"
+    #render :layout => 'patient_list'
   end
   
 	def children_survival
