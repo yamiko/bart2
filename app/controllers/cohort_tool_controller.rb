@@ -1352,7 +1352,7 @@ class CohortToolController < GenericCohortToolController
   
 	def children_survival
 		session[:field] = nil
-    @quarter = params[:quarter]app/controllers/cohort_tool_controller.rb
+    @quarter = params[:quarter]
 
 		@logo = params[:logo]
     if @quarter.match(/to/i)
