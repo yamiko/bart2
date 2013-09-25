@@ -49,7 +49,8 @@ class ClinicController < GenericClinicController
                  ['Missing Dispensations' , '/cohort_tool/select?report_type=prescriptions_without_dispensations'],
                  ['Multiple Start Reasons' , '/cohort_tool/select?report_type=patients_with_multiple_start_reasons'],
                  ['Out of range ARV number' , '/cohort_tool/select?report_type=out_of_range_arv_number'],
-                 ['Data Consistency Check' , '/cohort_tool/select?report_type=data_consistency_check']
+                 ['Data Consistency Check' , '/cohort_tool/select?report_type=data_consistency_check'],
+                 ['Incomplete Visits' , '/cohort_tool/select?report_type=incomplete_visit']
                ] 
     render :layout => false
   end
