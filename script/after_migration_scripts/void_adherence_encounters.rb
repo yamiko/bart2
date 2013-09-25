@@ -31,9 +31,14 @@ puts ">>>>>>>Starting<<<<<<<"
 			end
 		end
 
-		if adh_enc.voided != true
-			adh_enc.void
-		end
+     ActiveRecord::Base.connection.execute <<EOF
+UPDATE encounter
+SET voided = 1
+WHERE encounter_id = #{adh_enc.encounter_id}
+EOF
+		#if adh_enc.voided != true
+		#	adh_enc.void
+		#end
 		#adh_enc.save
 		puts ">>>>> #{adherence_encounters.length - counter}....of....#{adherence_encounters.length}.....remaining!"
 	end
