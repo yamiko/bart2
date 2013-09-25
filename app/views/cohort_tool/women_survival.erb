@@ -250,6 +250,25 @@
     <td style = "text-align:left;">Number Unknown</td>
     <td style = "text-align:right;"  class="create_button"><%= link_to "#{(values['Unknown'] rescue 0)}", "/cohort_tool/list_debbuger_details?field=women&value=#{key}&attribute=unknown&quarter=#{@quarter}" -%></td>
   </tr>
+    <%
+                total = (values['Unknown'] + values['Number Transferred out'] +
+                        values['Number Stopped Treatment'] + values['Number Defaulted'] +
+                        values['Number Dead'] + values['Number Alive and on ART'])
+
+                    if values['New patients registered for ART'] != total
+
+                      %>
+
+
+                   <tr>
+                     <td style = "text-align:left;font-size:19px;color:red;" colspan="2">Consistency check
+                        <% if  values['New patients registered for ART'] > total%>
+			<%= (values['New patients registered for ART'] - total) %> Missing From Report
+                        <% else %>
+                          <%= (total - values['New patients registered for ART'] ) %> Missing From Report </td>
+                        <%end%>
+		  </tr>
+                  <% end %>
 <% end %>
 </table>
 </div>
