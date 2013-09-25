@@ -19,6 +19,16 @@
 		next.setAttribute("onclick", "window.location='/patients/tb_treatment_card_page/" + "<%= @patient_bean.person_id%>'")	
 	}
 	setTimeout("nextPage();",300)
+        function correct(){
+		var butid = document.getElementById("buttons")
+		var button = document.createElement("button")
+		button.innerHTML="<span>Correct TB Number</span>"
+		button.setAttribute("id", "tb_number")
+		button.setAttribute("class","green")
+		butid.appendChild(button)
+                button.setAttribute("onclick", "window.location='/people/correct_tb_numbers?" + "<%= @patient_bean.person_id%>'")
+	}
+	setTimeout("correct();", 300)
 </script>
 
 
@@ -117,6 +127,6 @@ div.main{height:230px;overflow:scroll; margin: 10px;webkit-user-select: none;-we
 						</table>
 			</div>
 		</div>
-
+                
 
 
