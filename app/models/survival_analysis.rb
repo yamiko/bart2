@@ -38,16 +38,21 @@ class SurvivalAnalysis
         'Number Stopped Treatment' => 0, 'Number Transferred out' => 0,
         "Section date range" => "#{range[:start_date].strftime('%B %Y')} to #{range[:end_date].strftime('%B %Y')}",
         'Unknown' => 0,'New patients registered for ART' => states.length}
-				
-      states.each do | patient_id |
+      patient_state['Transferred out'] = [] if patient_state['Transferred out'].blank?
+      patient_state['Stopped taking ARVs'] = [] if patient_state['Stopped taking ARVs'].blank?
+      patient_state['Unknown outcomes'] = [] if  patient_state['Unknown outcomes'].blank?
+      patient_state['Died total'] = [] if  patient_state['Died total'].blank?
+      patient_state['Total alive and on ART'] = [] if patient_state['Total alive and on ART'].blank?
+      patient_state['Defaulted'] = [] if patient_state['Defaulted'].blank?
+				#raise patient_state['Transferred out'].length.to_yaml
+        states.each do | patient_id |
 				total << patient_id.to_i
 				patient_id = patient_id.to_i
 						#raise patient_id.to_yaml if patient_state['Defaulted'].include?(patient_id.patient_id)
          if patient_state['Defaulted'].include?(patient_id)
 						defaulted << patient_id
-
             survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{(range[:end_date] + (i + 1).year).strftime('%B %Y')}"]['Number Defaulted']+=1
-         elsif patient_state['Transferred out'].include?(patient_id)
+         elsif patient_state['Transferred out'].include?(patient_id) and !patient_state['Transferred out'].blank?
 						transferred << patient_id
             survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{(range[:end_date] + (i + 1).year).strftime('%B %Y')}"]['Number Transferred out']+=1
          elsif patient_state['Died total'].include?(patient_id)
