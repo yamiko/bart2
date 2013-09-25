@@ -1,0 +1,12 @@
+<% reasons = ["Assign New", "Reassigning", "Void And Regenerate","Voiding Permanently"] %>
+
+<form method="post" action="correct_tb_numbers">
+<%= touch_select_tag "REASON", '', options_for_select(reasons),
+        {:id => "edit_reason",
+         :multiple => false,
+         :optional => false,
+         :helpText => "Type Of Corretion",
+         :tt_pageStyleClass => "NoKeyboard NoInput small"  } %>
+<%#= raise @names.to_yaml %>
+
+</form>
