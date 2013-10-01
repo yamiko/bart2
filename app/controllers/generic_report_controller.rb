@@ -322,10 +322,9 @@ class GenericReportController < ApplicationController
     patient_with_dispensations.each do |patient_data_row|
 
         person = Person.find(patient_data_row[:patient_id].to_i)
-        #raise person.patient.to_yaml
         next if !PatientService.reason_for_art_eligibility(Patient.find(patient_data_row[:patient_id].to_i)).blank?
 
-        outcome = outcome(person.id, patient_data_row[:encounter_datetime])
+        outcome = outcome(person.id, patient_data_row[:encounter_datetime]) rescue ""
         art_date = art_start_date(person.id)
 				name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
         @report << {'patient_id'=> patient_data_row[:patient_id], 'arv_number'=> PatientService.get_patient_identifier(person, 'ARV Number'), 'name'=>  name,
@@ -336,6 +335,16 @@ class GenericReportController < ApplicationController
     end
 
      @report
+  end
+
+    def outcome(patient_id, date)
+
+    state = PatientProgram.find_by_sql("SELECT current_state_for_program(p.patient_id, 1, '#{date}') AS state, c.name as status FROM patient p
+                                INNER JOIN  program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(p.patient_id, 1, '#{date}')
+
+                                INNER JOIN concept_name c ON c.concept_id = pw.concept_id
+                                WHERE p.patient_id = #{patient_id}").first.status rescue ""
+		return state
   end
 
   def data_cleaning_tab

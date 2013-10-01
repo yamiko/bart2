@@ -691,6 +691,16 @@ class GenericPeopleController < ApplicationController
 
   def correct_tb_numbers
 
+   if request.post?
+        
+   else
+    @identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_types = PatientIdentifierType.find(:all,
+      :conditions=>["name IN (?)",@identifier_types]
+    ).collect{| type |type.id }
+
+   @patient = Patient.find(params[:id])
+   end
   end
   
   # List traditional authority containing the string given in params[:value]
