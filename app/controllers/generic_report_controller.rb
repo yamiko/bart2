@@ -225,9 +225,20 @@ class GenericReportController < ApplicationController
     @logo = CoreService.get_global_property_value('logo').to_s
     @current_location = Location.current_health_center.name
     @report = []
-    if (!params[:date].blank?) # retrieve appointment dates for a given day
+
+    @heading = "Appointments schedule Report"
+    @sub_heading = "Appointment Date"
+
+    if ( ! params[:process].blank? && params[:process] == "visits_by_day")
+        @heading = "Visits By Day"
+        @sub_heading = "Visit Day"
+        @date       = params[:date].to_date
+        @patients   = get_visits_on(@date)
+    elsif (!params[:date].blank?) # retrieve appointment dates for a given day
       @date       = params[:date].to_date
       @patients   = all_appointment_dates(@date)
+       
+      #raise @patients.to_yaml
     elsif (!params[:start_date].blank? && !params[:end_date].blank?) # retrieve appointment dates for a given date range
       @start_date = params[:start_date].to_date
       @end_date   = params[:end_date].to_date
@@ -238,8 +249,11 @@ class GenericReportController < ApplicationController
       @end_date    = date_range.last.to_date
       @patients   = all_appointment_dates(@start_date, @end_date)
     end
-
+   
     @patients.each do |patient|
+      if ! patient.patient.blank?
+        patient = patient.patient
+      end
     	patient_bean = PatientService.get_patient(patient.person)
 
         last_appointment_date = last_appointment_date(patient.id, @date)
@@ -271,7 +285,6 @@ class GenericReportController < ApplicationController
                    'visit_by'=> visit_by, 'phone_number'=>phone_number, 'outcome'=>outcome, 'patient_id'=>patient.id}
 
     end
-
     render :layout => 'report'
   end
 
