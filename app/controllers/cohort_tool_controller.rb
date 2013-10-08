@@ -1015,7 +1015,7 @@ class CohortToolController < GenericCohortToolController
 	end
 	
   def list_patients_details
-    #raise session[:pre_art].to_yaml
+    #raise session[:cohort].to_yaml
 		@logo = CoreService.get_global_property_value('logo').to_s
     @report = []
     @quarter = params[:quarter]
@@ -1034,8 +1034,8 @@ class CohortToolController < GenericCohortToolController
     if key.blank?
        key = session[:pre_art].keys.sort.select { |k|
           k.humanize.upcase == params[:field].humanize.upcase
-        }.first.to_s
-        data = session[:pre_art][key]
+        }.first.to_s rescue ""
+        data = session[:pre_art][key] rescue []
       (data || []).each do |patient_id|
         patient = Patient.find(patient_id) rescue Patient.find(patient_id.person_id)  rescue Patient.find(patient_id.patient_id)
         @report << PatientService.get_debugger_details(patient.person)
