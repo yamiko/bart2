@@ -141,8 +141,6 @@ class GenericPropertiesController < ApplicationController
       global_property.save
       redirect_to '/clinic'
     end
-
-    @enter_lab_results = GlobalProperty.find_by_property('enter.lab.results').property_value == 'true' rescue false
   end
 
 end

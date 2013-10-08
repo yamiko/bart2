@@ -1255,94 +1255,85 @@ class CohortToolController < GenericCohortToolController
     @incomplete = {}
     session[:specific] = {}
     session[:incomplete] = {}
-=begin
-    Encounter.find_by_sql("SELECT DISTINCT encounter_datetime FROM encounter_type et
-                           INNER JOIN encounter e ON et.encounter_type_id = e.encounter_type
-                           WHERE encounter_datetime >= '#{@start_date}'
-                           AND encounter_datetime <= '#{@end_date}'
-                           AND et.name IN ('UPDATE HIV STATUS','HIV CLINIC REGISTRATION','HIV STAGING',
-                      'HIV CLINIC CONSULTATION','ART ADHERENCE','DISPENSING')
-                           ").each { |encounter|
-=end
 
-                            encounter_date =  params[:start_date].to_date
-     # Need to improve the code for performance
-     #while encounter_date <= params[:start_date].to_date
-                           session[:specific][encounter_date] = {}
-                           @incomplete[encounter_date] = []
-                           session[:specific][encounter_date]["reception"] = []
-                           session[:specific][encounter_date]["vitals"] = []
-                           session[:specific][encounter_date]["registration"] = []
-                           session[:specific][encounter_date]["consultation"] = []
-                           session[:specific][encounter_date]["staging"] = []
-                           session[:specific][encounter_date]["adherence"] = []
-                           session[:specific][encounter_date]["treatment"] = []
-                           session[:specific][encounter_date]["dispensing"] = []
-                           session[:specific][encounter_date]["appointment"] = []
+    encounter_date =  params[:start_date].to_date
+    # Need to improve the code for performance
+    #while encounter_date <= params[:start_date].to_date
+    session[:specific][encounter_date] = {}
+    @incomplete[encounter_date] = []
+    session[:specific][encounter_date]["reception"] = []
+    session[:specific][encounter_date]["vitals"] = []
+    session[:specific][encounter_date]["registration"] = []
+    session[:specific][encounter_date]["consultation"] = []
+    session[:specific][encounter_date]["staging"] = []
+    session[:specific][encounter_date]["adherence"] = []
+    session[:specific][encounter_date]["treatment"] = []
+    session[:specific][encounter_date]["dispensing"] = []
+    session[:specific][encounter_date]["appointment"] = []
 
-                          Encounter.find_by_sql("SELECT DISTINCT patient_id FROM encounter_type et
-                            INNER JOIN encounter e ON et.encounter_type_id = e.encounter_type
-                            WHERE DATE(encounter_datetime) = '#{encounter_date}'
-                            AND et.name IN ('UPDATE HIV STATUS','HIV CLINIC REGISTRATION','HIV STAGING',
-                            'HIV CLINIC CONSULTATION','ART ADHERENCE','DISPENSING')
-                            ").each{|patient|
+    Encounter.find_by_sql("SELECT DISTINCT patient_id FROM encounter_type et
+      INNER JOIN encounter e ON et.encounter_type_id = e.encounter_type
+      WHERE encounter_datetime BETWEEN '#{encounter_date.to_date.strftime('%Y-%m-%d 00:00:00')}'
+      AND '#{encounter_date.to_date.strftime('%Y-%m-%d 23:59:59')}' 
+      AND et.name IN ('UPDATE HIV STATUS','HIV CLINIC REGISTRATION','HIV STAGING',
+      'HIV CLINIC CONSULTATION','ART ADHERENCE','DISPENSING')").each{|patient|
 
-                            registration = check_encounter(patient.patient_id, encounter_date, "HIV CLINIC REGISTRATION")# rescue []
-                            reception = check_encounter(patient.patient_id, encounter_date, "HIV RECEPTION")#  rescue []
-                            vitals = "Non Applicable"
-                            unless reception.blank?
-                              vitals = check_encounter(patient.patient_id, encounter_date, "VITALS") if reception.to_s.match(/Patient present for consultation:  Yes/i)
-                            else
-                               @incomplete[encounter_date] << patient.patient_id
-                               vitals = check_encounter(patient.patient_id, encounter_date, "VITALS")# rescue []
-                               session[:specific][encounter_date]["reception"] << patient.patient_id
-                            end
-                            if registration.to_s.match(/Not Done/i)
-                               #raise registration.to_yaml if registration.length < 2
-                               @incomplete[encounter_date] << patient.patient_id #if registration.to_s.match(/Not Done/i)
-                               session[:specific][encounter_date]["registration"]  << patient.patient_id #if registration.to_s.match(/Not Done/i)
-                               staging = check_encounter(patient.patient_id, encounter_date, "HIV STAGING")# rescue []
-                               @incomplete[encounter_date] << patient.patient_id if  staging.blank?
-                               session[:specific][encounter_date]["staging"] << patient.patient_id if staging.blank?
-                           elsif registration.blank?
-                               adherence = check_encounter(patient.patient_id, encounter_date, "ART ADHERENCE") #rescue []
-                               @incomplete[encounter_date] << patient.patient_id if  adherence.blank?
-                               session[:specific][encounter_date]["adherence"] << patient.patient_id if adherence.blank?
-                            else
-                               staging = check_encounter(patient.patient_id, encounter_date, "HIV STAGING")# rescue []
-                               @incomplete[encounter_date] << patient.patient_id if  staging.blank?
-                               session[:specific][encounter_date]["staging"] << patient.patient_id if staging.blank?
-                            end
-                             session[:specific][encounter_date]["vitals"] << patient.patient_id if vitals.blank?
+      registration = check_encounter(patient.patient_id, encounter_date, "HIV CLINIC REGISTRATION")# rescue []
+      reception = check_encounter(patient.patient_id, encounter_date, "HIV RECEPTION")#  rescue []
+      vitals = "Non Applicable"
+      unless reception.blank?
+        vitals = check_encounter(patient.patient_id, encounter_date, "VITALS") if reception.to_s.match(/Patient present for consultation:  Yes/i)
+      else
+         @incomplete[encounter_date] << patient.patient_id
+         vitals = check_encounter(patient.patient_id, encounter_date, "VITALS")# rescue []
+         session[:specific][encounter_date]["reception"] << patient.patient_id
+      end
+      if registration.to_s.match(/Not Done/i)
+         #raise registration.to_yaml if registration.length < 2
+         @incomplete[encounter_date] << patient.patient_id #if registration.to_s.match(/Not Done/i)
+         session[:specific][encounter_date]["registration"]  << patient.patient_id #if registration.to_s.match(/Not Done/i)
+         staging = check_encounter(patient.patient_id, encounter_date, "HIV STAGING")# rescue []
+         @incomplete[encounter_date] << patient.patient_id if  staging.blank?
+         session[:specific][encounter_date]["staging"] << patient.patient_id if staging.blank?
+     elsif registration.blank?
+         adherence = check_encounter(patient.patient_id, encounter_date, "ART ADHERENCE") #rescue []
+         @incomplete[encounter_date] << patient.patient_id if  adherence.blank?
+         session[:specific][encounter_date]["adherence"] << patient.patient_id if adherence.blank?
+      else
+         staging = check_encounter(patient.patient_id, encounter_date, "HIV STAGING")# rescue []
+         @incomplete[encounter_date] << patient.patient_id if  staging.blank?
+         session[:specific][encounter_date]["staging"] << patient.patient_id if staging.blank?
+      end
+       session[:specific][encounter_date]["vitals"] << patient.patient_id if vitals.blank?
 
-                             @incomplete[encounter_date] << patient.patient_id if vitals.blank?
+       @incomplete[encounter_date] << patient.patient_id if vitals.blank?
 
-                             consultation = check_encounter(patient.patient_id, encounter_date, "HIV CLINIC CONSULTATION") #rescue []
-                             @incomplete[encounter_date] << patient.patient_id if  consultation.blank?
-                             session[:specific][encounter_date]["consultation"] << patient.patient_id if consultation.blank?
-                             unless consultation.blank?
-                               
-                               if consultation.to_s.match(/Prescribe drugs:  Yes/i)
-                                
-                                 treatment = check_encounter(patient.patient_id, encounter_date, "TREATMENT") #rescue []
-                                 dispensing = check_encounter(patient.patient_id, encounter_date, "DISPENSING") #rescue []
-                                 appointment = check_encounter(patient.patient_id, encounter_date, "APPOINTMENT") #rescue []
+       consultation = check_encounter(patient.patient_id, encounter_date, "HIV CLINIC CONSULTATION") #rescue []
+       @incomplete[encounter_date] << patient.patient_id if  consultation.blank?
+       session[:specific][encounter_date]["consultation"] << patient.patient_id if consultation.blank?
+       unless consultation.blank?
+         
+         if consultation.to_s.match(/Prescribe drugs:  Yes/i)
+          
+           treatment = check_encounter(patient.patient_id, encounter_date, "TREATMENT") #rescue []
+           dispensing = check_encounter(patient.patient_id, encounter_date, "DISPENSING") #rescue []
+           appointment = check_encounter(patient.patient_id, encounter_date, "APPOINTMENT") #rescue []
 
-                                 @incomplete[encounter_date] << patient.patient_id if treatment.blank?
-                                 @incomplete[encounter_date] << patient.patient_id if dispensing.blank?
-                                 @incomplete[encounter_date] << patient.patient_id if appointment.blank?
-                                 session[:specific][encounter_date]["appointment"] << patient.patient_id if appointment.blank?
-                                 session[:specific][encounter_date]["dispensing"] << patient.patient_id if dispensing.blank?
-                                 session[:specific][encounter_date]["treatment"] << patient.patient_id if treatment.blank?
-                                  
-                              end
+           @incomplete[encounter_date] << patient.patient_id if treatment.blank?
+           @incomplete[encounter_date] << patient.patient_id if dispensing.blank?
+           @incomplete[encounter_date] << patient.patient_id if appointment.blank?
+           session[:specific][encounter_date]["appointment"] << patient.patient_id if appointment.blank?
+           session[:specific][encounter_date]["dispensing"] << patient.patient_id if dispensing.blank?
+           session[:specific][encounter_date]["treatment"] << patient.patient_id if treatment.blank?
+            
+        end
 
-                             end
-                           }
-                           
-                           session[:incomplete][encounter_date] = @incomplete[encounter_date].uniq
-                           #encounter_date += 1.days
-      
+       end
+     }
+     
+     session[:incomplete][encounter_date] = @incomplete[encounter_date].uniq
+     #encounter_date += 1.days
+
      #end
     redirect_to "/cohort_tool/list_incomplete_details?date=#{encounter_date}"
     #render :layout => 'patient_list'
@@ -2510,30 +2501,29 @@ class CohortToolController < GenericCohortToolController
   end
 
   def check_encounter(patient_id, encounter_date, encounter)
-   e = EncounterType.find_by_name("#{encounter}").id
-	obs = Observation.find_by_sql("SELECT * FROM encounter e
-                  INNER JOIN obs o ON e.encounter_id = o.encounter_id
-                  WHERE o.voided = 0
-                  And e.encounter_type = '#{e}'
-                  AND o.person_id = '#{patient_id}'
-                  And DATE(o.obs_datetime) = '#{encounter_date}'
-                  ")
+    start_date = encounter_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = encounter_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    e = EncounterType.find_by_name(encounter).id
+	  obs = Observation.find_by_sql("SELECT * FROM encounter e
+      INNER JOIN obs o ON e.encounter_id = o.encounter_id WHERE o.voided = 0
+      And e.encounter_type = #{e} AND o.person_id = #{patient_id}
+      AND o.obs_datetime >= '#{start_date}' AND o.obs_datetime <= '#{end_date}'")
      
     if encounter == "HIV CLINIC REGISTRATION" and obs.blank?
-        
-      	obs = Observation.find_by_sql("SELECT * FROM encounter e
-                  INNER JOIN obs o ON e.encounter_id = o.encounter_id
-                  WHERE o.voided = 0
-                  And e.encounter_type = '#{e}'
-                  AND o.person_id = '#{patient_id}'
-                  And DATE(o.obs_datetime) < '#{encounter_date}'
-                  LIMIT 1")
-                if ! obs.blank?
-                  obs = []
-                else
-                  obs = "Not Done"
-                end
+      obs = Observation.find_by_sql("SELECT * FROM encounter e
+      INNER JOIN obs o ON e.encounter_id = o.encounter_id
+      WHERE o.voided = 0 AND e.encounter_type = #{e} AND o.person_id = #{patient_id}
+      AND o.obs_datetime < '#{encounter_date.to_date.strftime('%Y-%m-%d 00:00:00')}' LIMIT 1")
+
+      if !obs.blank?
+        obs = []
+      else
+        obs = "Not Done"
+      end
+
     end
+
     return obs
   end
 
