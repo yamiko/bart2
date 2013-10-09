@@ -691,16 +691,44 @@ class GenericPeopleController < ApplicationController
 
   def correct_tb_numbers
 
-   if request.post?
-        
-   else
-    @identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
-    identifier_types = PatientIdentifierType.find(:all,
-      :conditions=>["name IN (?)",@identifier_types]
-    ).collect{| type |type.id }
+    if request.post?
+      current_date = Date.today.to_s
+      current_date = session[:datetime] if !session[:datetime].blank?
 
-   @patient = Patient.find(params[:id])
-   end
+      if PatientIdentifier.site_prefix == "MPC"
+        prefix = "LL"
+      else
+        prefix = PatientIdentifier.site_prefix
+      end
+      session_date = "#{prefix} #{session[:datetime].to_date.year.to_s}%" if !session[:datetime].blank?
+      patient_exists = PatientIdentifier.find(:all,
+        :conditions => ['identifier_type = ?
+                                         AND patient_id = ?', params[:identifiers][0][:identifier_type].to_i , params[:patient_id]]).first
+
+      if params[:name].upcase == "ASSIGN NEW"
+        if ! patient_exists.blank?
+          patient_exists.voided = 1
+          patient_exists.save
+        end
+        type = PatientIdentifier.find_by_sql("SELECT * FROM patient_identifier
+																						WHERE identifier_type = #{params[:identifiers][0][:identifier_type].to_i} and identifier LIKE '%#{session_date}%'
+																						ORDER BY patient_identifier_id DESC")
+        type = type.first.identifier.split(" ") rescue ""
+        if type.include?(current_date.to_date.year.to_s)
+          surfix = (type.last.to_i + 1)
+        else
+          surfix = 1
+        end
+      end
+      raise params[:name].upcase.to_yaml
+    else
+      @identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+      identifier_types = PatientIdentifierType.find(:all,
+        :conditions=>["name IN (?)",@identifier_types]
+      ).collect{| type |type.id }
+
+      @patient = Patient.find(params[:id])
+    end
   end
   
   # List traditional authority containing the string given in params[:value]
