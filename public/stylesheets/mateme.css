@@ -17,9 +17,9 @@
 #content {
   background:#FFFFFF;
   position:absolute;
-  right:3%;
+  left:50%;
   top:50%;
-  width:94%;
+  width:1000px;
   height:750px;
   margin-left:-500px;
   margin-top:-380px;
