@@ -26,7 +26,7 @@
 		button.setAttribute("id", "tb_number")
 		button.setAttribute("class","green")
 		butid.appendChild(button)
-                button.setAttribute("onclick", "window.location='/people/correct_tb_numbers?" + "<%= @patient_bean.person_id%>'")
+                button.setAttribute("onclick", "window.location='/people/correct_tb_numbers/" + "<%= @patient_bean.person_id%>'")
 	}
 	setTimeout("correct();", 300)
 </script>

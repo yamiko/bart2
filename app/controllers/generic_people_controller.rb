@@ -690,7 +690,79 @@ class GenericPeopleController < ApplicationController
   end
 
   def correct_tb_numbers
+    @identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+      identifier_types = PatientIdentifierType.find(:all,
+        :conditions=>["name IN (?)",@identifier_types]
+      ).collect{| type |type.id }
 
+      @patient = Patient.find(params[:patient_id] || params[:id])
+    if request.post?
+      current_date = Date.today
+      current_date = session[:datetime].to_date if !session[:datetime].blank?
+
+      if PatientIdentifier.site_prefix == "MPC"
+        prefix = "LL"
+      else
+        prefix = PatientIdentifier.site_prefix
+      end
+      session_date = "#{prefix}-TB #{current_date.year.to_s}"
+      patient_exists = PatientIdentifier.find(:all,
+        :conditions => ['identifier_type = ?
+                                         AND patient_id = ? AND voided = 0', params[:identifiers][0][:identifier_type].to_i , params[:patient_id]]).first
+       
+        if ! patient_exists.blank?
+          patient_exists.voided = 1
+          patient_exists.save
+        end
+        if params[:name].upcase == "VOIDING PERMANENTLY"
+          redirect_to "/patients/tb_treatment_card?patient_id=#{params[:patient_id]}" and return
+        end
+        if !params[:number].blank?
+           numbers_array = params[:number].gsub(/\s+/, "").chars.each_slice(4).map(&:join)
+           x = numbers_array.length - 1
+           year = numbers_array[0].to_i
+           surfix = ""
+           (1..x).each { |i| surfix = "#{surfix}#{numbers_array[i].squish}" }
+            if year > Date.today.year || surfix.to_i < 1
+                return
+            end
+          patient_number = "#{prefix}-TB #{year} #{surfix.to_i}"
+          patient_exists = PatientIdentifier.find_by_sql("SELECT * FROM patient_identifier
+                WHERE REPLACE(identifier, ' ', '') = REPLACE('#{patient_number}', ' ', '') AND voided =0 ").first
+
+          if ! patient_exists.blank?
+              patient_exists.identifier = patient_number
+              patient_exists.save!
+          else
+              pat = PatientIdentifier.new()
+              pat.patient_id = params[:patient_id]
+              pat.identifier = patient_number
+              pat.identifier_type = params[:identifiers][0][:identifier_type].to_i
+              pat.location_id = params[:identifiers][0][:location_id].to_i
+              pat.creator = 1
+              pat.save!
+          end
+          redirect_to "/patients/tb_treatment_card?patient_id=#{params[:patient_id]}" and return
+        end
+        type = PatientIdentifier.find_by_sql("SELECT * FROM patient_identifier
+																						WHERE identifier_type = #{params[:identifiers][0][:identifier_type].to_i} and identifier LIKE '%#{session_date}%'
+																						AND voided = 0 ORDER BY patient_identifier_id DESC")
+        type = type.first.identifier.split(" ") rescue ""
+        if type.include?(current_date.year.to_s)
+          surfix = (type.last.to_i + 1)
+        else
+          surfix = 1
+        end
+        pat = PatientIdentifier.new()
+        pat.patient_id = params[:patient_id]
+        pat.identifier = "#{session_date} #{surfix}"
+        pat.identifier_type = params[:identifiers][0][:identifier_type].to_i
+        pat.location_id = params[:identifiers][0][:location_id].to_i
+        pat.creator = 1
+        pat.save!
+
+      redirect_to "/patients/tb_treatment_card?patient_id=#{params[:patient_id]}" and return
+    end
   end
   
   # List traditional authority containing the string given in params[:value]

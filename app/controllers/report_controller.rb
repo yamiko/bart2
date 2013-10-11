@@ -32,6 +32,26 @@ class ReportController < GenericReportController
 		return demographics
 	end
 
+  def get_visits_on(date)
+    required_encounters = ["ART ADHERENCE", "ART_FOLLOWUP",   "HIV CLINIC REGISTRATION",
+			"HIV CLINIC CONSULTATION",     "HIV RECEPTION",  "HIV STAGING",   "VITALS"]
+
+    required_encounters_ids = required_encounters.inject([]) do |encounters_ids, encounter_type|
+      encounters_ids << EncounterType.find_by_name(encounter_type).id rescue nil
+      encounters_ids
+    end
+    #raise date.to_yaml
+
+    required_encounters_ids.sort!
+
+    Encounter.find(:all,
+      :joins      => ["INNER JOIN obs     ON obs.encounter_id    = encounter.encounter_id",
+				"INNER JOIN patient ON patient.patient_id  = encounter.patient_id"],
+      :conditions => ["obs.voided = 0 AND encounter_type IN (?) AND DATE(encounter_datetime) = ?",required_encounters_ids,date],
+      :group      => "encounter.patient_id,DATE(encounter_datetime)",
+      :order      => "encounter.encounter_datetime ASC")
+  end
+
   def drug_menu
     render :layout => "menu"
   end

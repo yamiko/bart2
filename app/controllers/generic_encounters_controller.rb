@@ -1471,7 +1471,7 @@ class GenericEncountersController < ApplicationController
 		#if patient_exists.blank?
 			type = PatientIdentifier.find_by_sql("SELECT * FROM patient_identifier
 																						WHERE identifier_type = #{type_id} and identifier LIKE '%#{session_date}%'
-																						ORDER BY patient_identifier_id DESC")
+																						AND voided = 0 ORDER BY patient_identifier_id DESC")
 			#type = PatientIdentifier.find(:all, :conditions => ['identifier_type = ? AND identifier like ?', type_id, session_date],:order => 'patient_identifier_id DESC')
 		#end
 		 type = type.first.identifier.split(" ") rescue ""
