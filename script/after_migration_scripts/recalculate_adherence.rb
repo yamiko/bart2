@@ -82,7 +82,7 @@ EOF
         obs.person_id = adherence_encounter.patient_id
         obs.location_id = Location.current_location.id
         obs.obs_datetime = adherence_encounter.encounter_datetime
-        obs.value_numeric = adherence
+        obs.value_text = adherence
         obs.order_id = record[3]
         obs.save
 				#last_dispense = Observation.find(:last,:conditions => ["concept_id =? AND person_id = ? AND obs_datetime < ? AND value_drug = ?",
