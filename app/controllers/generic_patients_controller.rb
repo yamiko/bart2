@@ -5,6 +5,7 @@ class GenericPatientsController < ApplicationController
     
 		return_uri = session[:return_uri]
 		if !return_uri.blank? || @patient.blank?
+      session[:return_uri] = []
 			redirect_to return_uri.to_s
 			return
 		end
@@ -873,7 +874,7 @@ class GenericPatientsController < ApplicationController
   end
 
   def tb_treatment_card # to look at later - To test that is
-
+  @patient = Patient.find(params[:patient_id])
 	@variables = Hash.new()
 	@patient_bean = PatientService.get_patient(@patient.person)
 	@variables["hiv"] =  PatientService.patient_hiv_status(@patient.person) rescue nil

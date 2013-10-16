@@ -12,7 +12,7 @@
     <% if PatientIdentifier.site_prefix == "MPC" %>
         prefix.innerHTML = "LL-TB"
     <% else %>
-        prefix.innerHTML = "<%= site_prefix + '-TB' %>"
+        prefix.innerHTML = "<%=  PatientIdentifier.site_prefix + '-TB' %>"
     <% end %>
     inputElement.parentNode.insertBefore(prefix, inputElement)
     style.value+= 'left:30px;'

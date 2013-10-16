@@ -54,11 +54,14 @@
       }
       #tabbed-content{
         border: 0px;
+        top:74px;
+        height:73%;
+        /*overflow:auto; */
       }
     </style>
   </head>
   <body>
-  <%= image_tag(@logo, :class => "logo")%>
+  <%#= image_tag(@logo, :class => "logo")%>
     <br /><b style="margin-left:75px"><%= @location_name %></b><br />
     <b style="position:relative; top:0px;margin-left:75px">Visits By Day at Registration</b><br />
     <b style="position:relative; top:0px;margin-left:75px"><%=  params[:quarter] %></b><br /><br />

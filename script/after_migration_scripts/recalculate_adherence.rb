@@ -1,12 +1,17 @@
+def init_variables
+  #set Location first
+  site_id = GlobalProperty.find_by_property('current_health_center_id').property_value
 
+	location = Location.find(site_id)
+	Location.current_location = location
+end
 
 def start
+  init_variables
   @location = Encounter.find(:first, :conditions => ["location_id IS NOT NULL"], :limit => 1).location_id
 
   Location.current_location = Location.find(@location)
 
-  #Location.current_location = Location.find(641)
-  #raise Location.current_location.to_yaml
   User.current = User.find(1)
 
   start_date = Date.today.strftime('%Y-%m-%d 23:59:59')
@@ -68,14 +73,16 @@ EOF
       adherence_encounter = Encounter.new
       adherence_encounter.encounter_type = adherence_encounter_id
       adherence_encounter.patient_id = record[0]
+      adherence_encounter.location_id = Location.current_location.id
       adherence_encounter.encounter_datetime = record[2].to_date.strftime('%Y-%m-%d 00:00:02')
       if adherence_encounter.save
         obs = Observation.new()
         obs.concept_id = adherence_concept_id
         obs.encounter_id = adherence_encounter.id
         obs.person_id = adherence_encounter.patient_id
+        obs.location_id = Location.current_location.id
         obs.obs_datetime = adherence_encounter.encounter_datetime
-        obs.value_numeric = adherence
+        obs.value_text = adherence
         obs.order_id = record[3]
         obs.save
 				#last_dispense = Observation.find(:last,:conditions => ["concept_id =? AND person_id = ? AND obs_datetime < ? AND value_drug = ?",

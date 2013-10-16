@@ -60,7 +60,10 @@ class Cohort
 				( self.start_reason(@@first_registration_date, @end_date) || [] ).each do | collection_reason |
 					unless check_existing.include?(collection_reason.patient_id)
 							check_existing << collection_reason.patient_id
-							reason = PatientService.reason_for_art_eligibility(collection_reason.patient) || ''
+              
+							patient_object = Patient.find(collection_reason.patient_id)
+							reason = PatientService.reason_for_art_eligibility(patient_object)
+
 							if reason.match(/WHO stage III/i)
 								cohort_report['Total WHO stage 3'] << collection_reason.patient_id
 							elsif reason.match(/WHO stage IV/i)
@@ -81,8 +84,9 @@ class Cohort
 							elsif reason.match(/WHO stage I ped/i)
 								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
 
-
 							elsif reason.match(/CD4 COUNT LESS/i)
+								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+						 elsif reason.upcase.match(/CD4 COUNT <=/i)
 								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
 							elsif reason.match(/Presumed/i)
 								cohort_report['Total Presumed severe HIV disease in infants'] << collection_reason.patient_id
@@ -212,7 +216,8 @@ class Cohort
  				( self.start_reason(@start_date, @end_date) || [] ).each do | collection_reason |
           unless check_existing.include?(collection_reason.patient_id)
 							check_existing << collection_reason.patient_id
-							reason = PatientService.reason_for_art_eligibility(collection_reason.patient) || ''
+              patient_object = Patient.find(collection_reason.patient_id)
+							reason = PatientService.reason_for_art_eligibility(patient_object)
 
 							if reason.match(/Presumed/i)
 								cohort_report['Presumed severe HIV disease in infants'] << collection_reason.patient_id
@@ -234,6 +239,10 @@ class Cohort
 								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
 							elsif reason.match(/WHO STAGE I peds/i)
 								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+							elsif reason.upcase.match(/CD4 COUNT <=/i)
+								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id							
+							elsif reason.match(/CD4 COUNT LESS/i)
+								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id							
 							elsif reason.match(/CD4 count less/i)
 								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
 						  #elsif reason.match(/lymphocyte/i)
