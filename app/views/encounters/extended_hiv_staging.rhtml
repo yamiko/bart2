@@ -344,8 +344,94 @@
 
     return whoStage
   }
-  
+
+  function oldReasonForEligibility(){
+    	var reasonForArtEligibility = "NONE";
+	// Lymphocyte thresholds for ages 0-15
+	var lymphocyteThresholds = [4000, 4000, 4000, 3000, 3000, 2500, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000];
+
+	var lymphocyteCountAvailable = false;
+
+	if ($('new_lymphocyte_count_available')) {
+	  lymphocyteCountAvailable = $('new_lymphocyte_count_available').value == 'YES';
+	}
+
+	var lymphocyteCount = lymphocyteCountAvailable ? $('lymphocyte_count').value : null;
+	var lymphocyteCountNumeric = null;
+
+	try { lymphocyteCountNumeric = parseInt(lymphocyteCount); } catch(e) { }
+
+	if (age > 14) {
+	  if (whoStage >= 3) {
+		reasonForArtEligibility = whoStageConcept(whoStage, "ADULT");
+	  } else if ($('cd4_count_less_than_250').value == "YES") {
+	      reasonForArtEligibility = "CD4 count less than or equal to 250"
+	  } else {
+		if ($('pregnant') && $('pregnant').value == "YES" && $('cd4_count_less_than_250').value == "YES") {
+		  reasonForArtEligibility = "CD4 count less than or equal to 250";
+		} else if (whoStage == 1 && lymphocyteCount < 1200 && lymphocyteCount != null) {
+		  reasonForArtEligibility = "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 1";
+		} else if (whoStage == 2 && lymphocyteCount < 1200 && lymphocyteCount != null) {
+		  reasonForArtEligibility = "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2";
+		} //else if ($('pregnant') && $('pregnant').value == "YES") {
+		  //reasonForArtEligibility = "PATIENT PREGNANT";
+		//} else if ($('breast_feeding') && $('breast_feeding').value == "YES") {
+		  //reasonForArtEligibility = "BREASTFEEDING";
+		//}
+	  }
+	} else {
+	  var presumedSevereHivConditions = "";
+	  if ($('presumed_severe_hiv_conditions')) presumedSevereHivConditions = selectedValues($('presumed_severe_hiv_conditions'));
+	  var presumedSevereHiv = false;
+
+	  if (firstPositiveHivTestType == "HIV rapid test") {
+		if (
+		presumedSevereHivConditions.indexOf("Pneumocystis pneumonia") > -1 ||
+		  presumedSevereHivConditions.indexOf("Candidiasis of oseophagus, trachea and bronchi or lungs") > -1 ||
+		  presumedSevereHivConditions.indexOf("Cryptococcal meningitis") > -1 ||
+		  presumedSevereHivConditions.indexOf("Severe unexplained wasting or malnutrition not responding to treatment (weight-for-height/ -age <70% or MUAC <11cm or oedema)") > -1 ||
+		  presumedSevereHivConditions.indexOf("Toxoplasmosis of the brain (from age 1 month)") > -1) {
+		  presumedSevereHiv = true;
+		} else if (
+		((presumedSevereHivConditions.indexOf("Oral candidiasis") > -1) && (presumedSevereHivConditions.indexOf("Severe sepsis") > -1)) ||
+		  ((presumedSevereHivConditions.indexOf("Oral candidiasis") > -1) && (presumedSevereHivConditions.indexOf("Severe pneumonia") > -1)) ||
+		  ((presumedSevereHivConditions.indexOf("Severe pneumonia") > -1) && (presumedSevereHivConditions.indexOf("Severe sepsis") > -1))) {
+		  presumedSevereHiv = true;
+		}
+	  }
+
+	  try {
+		if (ageInMonths < 12 && firstPositiveHivTestType == "HIV rapid test" && presumedSevereHiv) {
+		  reasonForArtEligibility = "PRESUMED SEVERE HIV";
+		} else if (whoStage >= 3) {
+		  reasonForArtEligibility = whoStageConcept(whoStage, "PEDS");
+		} else if (ageInMonths < 12 && firstPositiveHivTestType == "HIV DNA POLYMERASE CHAIN REACTION") {
+		  reasonForArtEligibility = "HIV DNA POLYMERASE CHAIN REACTION";
+		} else if (ageInMonths < 24) {
+		  reasonForArtEligibility = "HIV infected";
+		} else if (cd4_count_numeric <= 750 && (ageInMonths >= 24 && ageInMonths < 56) && (whoStage) <= 2) {
+		  reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 750";
+		} else if ($('cd4_count_less_than_250') && $('cd4_count_less_than_250').value == "YES" && (whoStage) <= 2) {
+		  reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 250";
+		} else if (lymphocyteCount && (lymphocyteCount < lymphocyteThresholds[age]) && lymphocyteCount != null) {
+		  reasonForArtEligibility = "LYMPHOCYTE COUNT BELOW THRESHOLD WITH WHO STAGE 2";
+		}// else if ($('pregnant') && $('pregnant').value == "YES") {
+		//  reasonForArtEligibility = "PATIENT PREGNANT";
+		//} else if ($('breast_feeding') && $('breast_feeding').value == "YES") {
+		//  reasonForArtEligibility = "BREASTFEEDING";
+		//}
+	  } catch (e) {}
+	}
+
+	$('reason_for_art_eligibility').value = reasonForArtEligibility;
+  }
+
   function updateReasonForArtEligibility() {
+    if (tstCurrentDate < '2011-07-01') {
+        oldReasonForEligibility();
+        return
+     }
+     
     var reasonForArtEligibility = "NONE";    
     // Lymphocyte thresholds for ages 0-15
     var lymphocyteThresholds = [4000, 4000, 4000, 3000, 3000, 2500, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000];
