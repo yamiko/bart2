@@ -480,6 +480,7 @@ class GenericRegimensController < ApplicationController
 			end if prescribe_tb_continuation_drugs
 		end
 
+    params[:regimen] = params[:regimen_all] if ! params[:regimen_all].blank?
 		reduced = false
 		orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:regimen]})
 		ActiveRecord::Base.transaction do
@@ -621,6 +622,17 @@ class GenericRegimensController < ApplicationController
 		render :layout => false
 	end
 
+  def suggest_all
+		session_date = session[:datetime].to_date rescue Date.today
+		patient_program = PatientProgram.find(params[:id])
+		@options = []
+		render :layout => false and return unless patient_program
+		#current_weight = PatientService.get_patient_attribute_value(patient_program.patient, "current_weight", session_date)
+		#regimen_concepts = patient_program.regimens(current_weight).uniq
+		@options = MedicationService.all_regimen_options(patient_program.program)
+		render :layout => false
+	end
+
 	def dosing
 		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
 		@criteria = Regimen.criteria(PatientService.get_patient_attribute_value(@patient, "current_weight")).all(:conditions => {:concept_id => params[:id]}, :include => :regimen_drug_orders)
@@ -628,6 +640,18 @@ class GenericRegimensController < ApplicationController
 			[r.regimen_id, r.regimen_drug_orders.map(&:to_s).join('; ')]
 		end
 		render :layout => false    
+	end
+
+  def dosing_all
+		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
+    @criteria = Regimen.find(:all,:order => 'regimen_index',:conditions => ['program_id = ? AND concept_id =?', 1, params[:id]],:include => :regimen_drug_orders)
+
+	#	@criteria = Regimen.criteria(PatientService.get_patient_attribute_value(@patient, "current_weight")).all(:conditions => {:concept_id => params[:id]}, :include => :regimen_drug_orders)
+    
+		@options = @criteria.map do |r|
+			[r.regimen_id, r.regimen_drug_orders.map(&:to_s).join('; ')]
+		end
+		render :layout => false
 	end
 
 	def formulations
