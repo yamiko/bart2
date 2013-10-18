@@ -8,8 +8,8 @@ def start
   encounters_to_void = []
   count = 0
 
-  to_void = File.open('./to_staging_void.txt', "w")
-  to_import = File.open('./to_staging_import.txt', "w")
+  to_void = File.open('./hiv_staging_to_void.txt', "w")
+  to_import = File.open('./hiv_staging_to_import.txt', "w")
 
   all_patients = Patient.find_by_sql("SELECT
 											e.patient_id,
