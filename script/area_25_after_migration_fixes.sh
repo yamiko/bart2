@@ -8,7 +8,7 @@ usage(){
 
 ENV=$1
 
-if [ -z "$ENV" ]  ; then
+if [ -z "$ENV" ]; then
   usage
   exit
 fi
