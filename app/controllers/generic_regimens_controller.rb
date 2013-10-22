@@ -656,7 +656,8 @@ class GenericRegimensController < ApplicationController
 
 	def formulations
     @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
-    @criteria = Regimen.criteria(PatientService.get_patient_attribute_value(@patient, "current_weight")).all(:conditions => {:concept_id => params[:id]}, :include => :regimen_drug_orders)
+    @criteria = Regimen.find(:all,:order => 'regimen_index',:conditions => ['concept_id =?',params[:id]],:include => :regimen_drug_orders)
+    #@criteria = Regimen.criteria(PatientService.get_patient_attribute_value(@patient, "current_weight")).all(:conditions => {:concept_id => params[:id]}, :include => :regimen_drug_orders)
     @options = @criteria.map do | r |
       r.regimen_drug_orders.map do | order |
         [order.drug.name , order.dose, order.frequency , order.units , r.id ]
@@ -760,7 +761,8 @@ class GenericRegimensController < ApplicationController
 
 
 	def formulation(patient,regimen_id)
-		criteria = Regimen.criteria(PatientService.get_patient_attribute_value(patient, "current_weight")).all(:conditions => {:concept_id => regimen_id}, :include => :regimen_drug_orders)
+    criteria =  Regimen.find(:all,:order => 'regimen_index',:conditions => ['concept_id =?',regimen_id],:include => :regimen_drug_orders)
+		#criteria = Regimen.criteria(PatientService.get_patient_attribute_value(patient, "current_weight")).all(:conditions => {:concept_id => regimen_id}, :include => :regimen_drug_orders)
 		options = []
     criteria.map do | r | 
 			r.regimen_drug_orders.map do | order |
