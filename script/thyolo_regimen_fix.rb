@@ -14,8 +14,18 @@ $yes_concept_id = ConceptName.find_by_name("Yes")
 $location = Location.find(670)
 $creator = User.find(1)
 
+def init_variables
+  #set Location first
+  site_id = GlobalProperty.find_by_property('current_health_center_id').property_value
+
+  location = Location.find(site_id)
+  Location.current_location = location
+end
+
+
 def start
 
+  init_variables
   patient_ids = Patient.all.collect{|x| x.id }
   fuchia_patients = $mysql_conn.query("SELECT FdxReference FROM tbpatient WHERE FdxReference IN (#{patient_ids.join(",")})")
 
