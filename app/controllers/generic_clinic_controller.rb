@@ -1,5 +1,13 @@
 class GenericClinicController < ApplicationController
   def index
+
+    return_uri = session[:return_uri]
+    if !return_uri.blank?
+      session[:return_uri] = []
+      redirect_to return_uri.to_s
+      return
+    end
+
     (session || {}).each do |name , values|
       next unless name == 'patient_id'
       session[name] = nil

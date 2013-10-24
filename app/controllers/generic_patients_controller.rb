@@ -2,14 +2,7 @@ class GenericPatientsController < ApplicationController
 	before_filter :find_patient, :except => [:void]
   
 	def show
-    
-		return_uri = session[:return_uri]
-		if !return_uri.blank? || @patient.blank?
-      session[:return_uri] = []
-			redirect_to return_uri.to_s
-			return
-		end
-		
+
 		current_state = tb_status(@patient).downcase
 		@show_period = false
 		@show_period = true if current_state.match(/currently in treatment/i)
