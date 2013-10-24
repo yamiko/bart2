@@ -1771,7 +1771,7 @@ end
       encounter = Encounter.find(:first,
 				:joins => "INNER JOIN obs ON encounter.encounter_id = obs.encounter_id",
 				:conditions =>["encounter_type=? AND encounter.patient_id = ? AND concept_id = ?
-                                 AND encounter.voided = 0",encounter_type , patient_obj.id , amount_dispensed_concept_id ],
+                                 AND encounter.voided = 0 AND value_drug != ?",encounter_type , patient_obj.id , amount_dispensed_concept_id, 297 ],
 				:order =>"encounter_datetime")
       first_treatment_encounters << encounter unless encounter.blank?
     end
