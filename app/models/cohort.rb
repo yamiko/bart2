@@ -30,7 +30,7 @@ class Cohort
     # calculate defaulters before starting different threads
     # We need total alive and on art to use for filter patients under secondary
     # outcomes (e.g. regimens, tb status, side effects)
-
+    #self.regimens_all(@@first_registration_date)
     logger.info("defaulted " + Time.now.to_s)  
     @art_defaulters ||= self.art_defaulted_patients
     #raise self.art_stopped_patients.to_yaml
@@ -336,12 +336,12 @@ class Cohort
 
 		#raise self.corrected_regimens(@@first_registration_date).to_yaml
 		threads << Thread.new do
-			begin
-				logger.info("regimens " + Time.now.to_s)
-				cohort_report['Regimens'] = self.regimens(@@first_registration_date)
-		  rescue Exception => e
-		    Thread.current[:exception] = e
-		  end
+			#begin
+				#logger.info("regimens " + Time.now.to_s)
+				cohort_report['Regimens'] = self.regimens_all(@@first_registration_date)
+		  #rescue Exception => e
+		   # Thread.current[:exception] = e
+		  #end
 		end
 
 		(threads || []).each do |thread|
@@ -695,11 +695,7 @@ class Cohort
 
 	def total_number_of_died_within_range(min_days = 0, max_days = 0)								
    concept_name = "PATIENT DIED"
-   # state = ProgramWorkflowState.find(
-   #   :first,
-   #   :conditions => ["concept_id IN (?)",
-		#	concept_name.map{|c|c.concept_id}]
-		#	).program_workflow_state_id
+   # state = ProgramWorkflowState.find(   :first,    :conditions => ["concept_id IN (?)", 	concept_name.map{|c|c.concept_id}] 	).program_workflow_state_id
 
 			patients = []
 
@@ -984,7 +980,7 @@ class Cohort
       regimen_category = "UNKNOWN ANTIRETROVIRAL DRUG"
     end
 
-    self.regimens.each do |reg_name, patient_ids|
+    self.regimens_all.each do |reg_name, patient_ids|
 
       if reg_name == regimen_category
         patient_ids.each do |patient_id|
@@ -995,7 +991,8 @@ class Cohort
     regimens
   end
 
-  def regimens(start_date = @start_date, end_date = @end_date)
+  def regimens_all(start_date = @start_date, end_date = @end_date)
+    #raise end_date.to_yaml
     regimen_hash = {}
     @art_defaulters ||= self.art_defaulted_patients
     @patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
