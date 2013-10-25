@@ -70,9 +70,9 @@ def get_first_dispensation(patient_id)
   arv_drugs = Drug.find(:all, :conditions => ["concept_id in (?)", arv_drug_concepts]).collect{|x| x.drug_id}
 
   dispense_conc = Concept.find_by_name("Amount Dispensed").concept_id
-
   dispense_obs = Observation.find_by_sql("SELECT min(obs_datetime) as obs_datetime from obs where person_id = #{patient_id}
                                         AND concept_id = #{dispense_conc} and value_drug in (#{arv_drugs.join(',')})")
+
 
   return dispense_obs.first.obs_datetime rescue nil
 

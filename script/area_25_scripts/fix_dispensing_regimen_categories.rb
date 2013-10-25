@@ -68,6 +68,7 @@ def start
           new_reg_category.order_id = treat_reg_cat.order_id
           new_reg_category.obs_datetime = treat_reg_cat.obs_datetime
           new_reg_category.encounter_id = encounter.encounter_id
+          new_reg_category.creator = treat_reg_cat.creator
           new_reg_category.save
 
         end
