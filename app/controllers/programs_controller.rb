@@ -3,7 +3,7 @@ class ProgramsController < GenericProgramsController
   def create_exit_from_care_encounter(given_params)
     states_to_create_encounter_for = []
     concept_set("EXIT FROM CARE").each{|concept| states_to_create_encounter_for << concept.uniq.to_s}
-
+   
     current_state = given_params[:current_state]
 
     if states_to_create_encounter_for.include? current_state
@@ -22,6 +22,14 @@ class ProgramsController < GenericProgramsController
       reason_obs[:obs_datetime] = encounter.encounter_datetime || Time.now()
       reason_obs[:person_id] ||= encounter.patient_id
       reason_obs['value_coded_or_text'] = current_state
+      Observation.create(reason_obs)
+
+      reason_obs = {}
+      reason_obs[:concept_name] = 'PATIENT TRACKING STATE'
+      reason_obs[:encounter_id] = encounter.id
+      reason_obs[:obs_datetime] = encounter.encounter_datetime || Time.now()
+      reason_obs[:person_id] ||= encounter.patient_id
+      reason_obs['value_numeric'] = given_params[:patient_state_id]
       Observation.create(reason_obs)
 
       date_obs = {}
@@ -330,7 +338,7 @@ end
         PatientProgram.update_all "date_completed = NULL",
           "patient_program_id = #{patient_program.patient_program_id}"
       end
-
+      params[:patient_state_id] = patient_state.patient_state_id unless patient_state.patient_state_id.blank?
       create_exit_from_care_encounter(params)
       #print the transfer out label if patient was transfered out
       if patient_state.program_workflow_state.concept.fullname.upcase == 'PATIENT TRANSFERRED OUT'
