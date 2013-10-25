@@ -32,8 +32,12 @@
 
   div.scrollTableContainer {
 		border-style:solid;
-		height: 500px;
+		height: 530px;
 	  }
+  #header{
+            width: 100%;
+            height:9%;
+          }
 </style>
 
 <%= stylesheet_link_tag "stock_report" %>
@@ -53,14 +57,25 @@
 </script>
 
 <div id="general_dashboard">
-  <%= image_tag(@logo, :class => "logo")%><br />
-  <br /><b style="margin-left:75px"><%= @current_location_name %></b><br />
-  <b style="position:relative; top:0px;margin-left:75px">Drug stock report</b><br />
-  <b style="position:relative; top:0px;margin-left:75px">From : <%= @start_date.strftime(" %d-%b-%Y")%></b><br />
-  <b style="position:relative; top:0px;margin-left:75px">To : <%=@end_date.strftime(" %d-%b-%Y") %></b><br />
-  <b style="position:relative; top:0px;margin-left:75px">Months on Stock : <%= @month_on_stock %></b><br />
-<%#= render :partial => "header" %>
-  <br /><br />
+  <div id="header">
+  <table>
+    <tr>
+      <td><b style="margin-left:75px">Location : <%= @current_location_name %></b></td></tr>
+    <tr>
+      <td><b style="margin-left:75px">Title: Drug stock report</b></td>
+    </tr>
+    <tr>
+      <td> <b style="margin-left:75px">From : <%= @start_date.strftime(" %d-%b-%Y")%></b></td>
+    </tr><tr><td> <b style="margin-left:75px">To : <%=@end_date.strftime(" %d-%b-%Y") %></b> </td>
+    </tr>
+    <tr>
+      <td>
+        <b style="top:0px;margin-left:75px;">Months on Stock : <%= @month_on_stock %></b>
+      </td>
+    </tr>
+  </table>
+  </div>
+
   <div class="scrollTableContainer">
   <table >
   <tr class="header">
@@ -78,42 +93,29 @@
     <td>
       <table>
         <tr>
-          <td colspan="2" style="text-align:center;">Opening stock</td>
+          <td style="text-align:center;">Opening Stock<br>Verified </td>
         </tr>
-        <tr>
-          <td>Date</td>
-          <td style="text-align:right;">Verified</td>
-        </tr>
+       
       </table>
     </td>
     <td>
       <table>
         <tr>
-          <td colspan="2" style="text-align:center;">Total adjustments in interval</td>
+          <td colspan="3" style="text-align:center;">Total adjustments in interval</td>
         </tr>
         <tr>
           <td style="vertical-align: bottom;">Received</td>
           <td style="text-align:right;">Relocated <br />out/disposed</td>
-        </tr>
-      </table>
-    </td>
-    <td>
-      <table>
-        <tr>
-          <td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td colspan="2" style="text-align:center;">Dispensed</td>
+          <td style="text-align:center;">Dispensed</td>
         </tr>
       </table>
     </td>
     <td>
       <table>
         <tr valign="top">
-          <td colspan="3" style="text-align:center;">Closing stock</td>
+          <td colspan="2" style="text-align:center;">Closing stock</td>
         </tr>
         <tr>
-          <td style="width:65px;">Date</td>
           <td>Expected</td>
           <td style="text-align:right;">Verified</td>
         </tr>
@@ -165,7 +167,7 @@
     <td class="color_<%=color%> caldata" id="current_stock_<%=count%>">
       <table class="inner-data">
         <tr>
-          <td style="width:60px;text-align:left;"><%=values['start_date'].to_date.strftime(" %d-%b-%Y")%></td>
+          <!--td style="width:60px;text-align:left;"><%=values['start_date'].to_date.strftime(" %d-%b-%Y")%></td-->
           <td style="width:60px;" class='positive_numbers create_button'>
             <a href="/drug/stock_report_edit?date=<%=values['start_date']%>&drug_id=<%=values['drug_id']%>&edit_reason=opening_stock&start_date=<%=@start_date%>&end_date=<%=@end_date%>">
               <%=(values['confirmed_opening'] / 60).round %>
@@ -189,12 +191,7 @@
               <a href="/drug/stock_report_edit?drug_id=<%=values['drug_id']%>&edit_reason=relocated&max_date=<%=values['end_date']%>&start_date=<%=@start_date%>&end_date=<%=@end_date%>">- <%=relocated %></a>
             </td>
           <%end%>
-        </tr>
-      </table>
-    </td>
-    <td class="color_<%=color%> caldata" id="dispensed_<%=count%>">
-      <table class="inner-data">
-        <tr>
+        
         <% dispensed = (values['dispensed'] / 60).round
            if dispensed < 0
         %>
@@ -220,7 +217,7 @@
     <td class="color_<%=color%> caldata" id="dispensed_<%=count%>">
       <table class="inner-data">
         <tr>
-          <td style="text-align:left;width:40px;"><%=values['end_date'].to_date.strftime(" %d-%b-%Y") %></td>
+          <!--td style="text-align:left;width:40px;"><%=values['end_date'].to_date.strftime(" %d-%b-%Y") %></td -->
           <td style="text-align:left;width:75px;padding-left:12px;"><%= expected %></td>
           <td style="text-align:right;width:75px;" class='positive_numbers create_button'>
             <a href="/drug/stock_report_edit?date=<%=values['end_date']%>&drug_id=<%=values['drug_id']%>&edit_reason=closing_stock&start_date=<%=@start_date%>&end_date=<%=@end_date%>">

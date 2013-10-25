@@ -34,11 +34,15 @@ class GenericDrugController < ApplicationController
 
   def verified_stock
     @delivery_date = params[:observations].first["value_datetime"]
-    @drugs = []
-    params[:drug_name].each{|drug|
-      name = Drug.find_by_name(drug)
-      @drugs << [name.name, name.drug_id]
-    }
+     @drugs =  Regimen.find_by_sql(
+      "select distinct(d.name) from regimen r
+    inner join regimen_drug_order rd on rd.regimen_id = r.regimen_id
+    inner join drug d on d.drug_id = rd.drug_inventory_id
+    where r.regimen_index is not null
+    and r.regimen_index != 0
+      ").collect{|drug| drug.name}.compact.sort.uniq rescue []
+    other = ["Cotrimoxazole (960mg)", "Cotrimoxazole (480mg tablet)", "INH or H (Isoniazid 300mg tablet)", "INH or H (Isoniazid 100mg tablet)"]
+    @drugs += other
     #raise @drugs.to_yaml
   end
   
@@ -70,7 +74,7 @@ class GenericDrugController < ApplicationController
       if current_stock > 0 and current_stock <= expiry
           expiry = current_stock
       elsif current_stock > expiry
-          expiry = expiry
+          expiry = expiry 
       else
          expiry = 0
       end

@@ -719,6 +719,52 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	html += "</tr></table></div>"
 	current_page.innerHTML += html
 
+	new Ajax.Request("/regimens/formulations_all?patient_id=<%=@patient.id %>&id=" + reg_id ,{method:'get',onSuccess: function(transport){
+		formulations = JSON.parse(transport.responseText) || "";
+		if(formulations.length > 0 && formulations != "[[[]]]" && formulations != "[]"){
+		  formulations = formulations[0]
+		  prescription_container = $(prescriptionContainer);
+		  html = "<table>"
+		  html += "<tr><th>Drug name</th><th>Dose</th><th>Units</th><th>Daily dose</th></tr>"
+		  for (i = 0 ; i < formulations.length ; i++) {
+			data = formulations[i]
+			regimen_id = data[4]
+			html += "<tr><td>" + data[0] + "</td>"
+			html += "<td>" + data[1] + "</td>"
+			html += "<td>" + data[3] + "</td>"
+			html += "<td>" + data[2] + "</td></tr>"
+			$('touchscreenInput'+tstCurrentPage).value += data[0] + ':';
+			$('touchscreenInput'+tstCurrentPage).value += " " + data[1] ;
+			$('touchscreenInput'+tstCurrentPage).value += " " + data[3] ;
+			$('touchscreenInput'+tstCurrentPage).value += " " + data[2] ;
+		  }
+		  html += "</table>"
+		  prescription_container.innerHTML = html
+		}
+	  }});
+
+  }
+
+  function buildPrescriptionPage(continueExistingRegimen, patientProgram, regimenConceptId, prescriptionContainer) {
+	$('touchscreenInput'+tstCurrentPage).setAttribute('type','hidden');
+	$('clearButton').style.display = 'none';
+	$('keyboard').style.display = 'none';
+	$('viewport').style.display = 'none';
+	$('helpText'+tstCurrentPage).innerHTML = "Select doses. Current patient weight:&nbsp;<%=@current_weight%>";
+
+	if(continueExistingRegimen == 'YES') {
+	  var reg_id = current_regimens_for_programs[patientProgram];
+	} else {
+	  var reg_id = encodeURIComponent(regimenConceptId);
+	}
+
+	current_page = $('page'+tstCurrentPage);
+
+	html = "&nbsp;<div id = '" + prescriptionContainer + "' class='prescription_container' ><table><tr>"
+	html += "<th>Drug name</th><th>Dose</th><th>Units</th><th>Daily dose</th>"
+	html += "</tr></table></div>"
+	current_page.innerHTML += html
+
 	new Ajax.Request("/regimens/formulations?patient_id=<%=@patient.id %>&id=" + reg_id ,{method:'get',onSuccess: function(transport){
 		formulations = JSON.parse(transport.responseText) || "";
 		if(formulations.length > 0 && formulations != "[[[]]]" && formulations != "[]"){
@@ -1137,7 +1183,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	:ajaxUrl => "",
 	:tt_onUnLoad => "setRegimenId('ART');" ,
 	:allowFreeText => true ,
-	:tt_onLoad => "set_regimen_concept_id_for_regimen($('patient_program').value, $('regimen_concept_id_all').value);buildPrescriptionPage($('continue_existing_regimen').value,$('patient_program').value,$('regimen_concept_id_all').value,'prescription_container');",
+	:tt_onLoad => "set_regimen_concept_id_for_regimen($('patient_program').value, $('regimen_concept_id_all').value);buildPrescriptionPage_all($('continue_existing_regimen').value,$('patient_program').value,$('regimen_concept_id_all').value,'prescription_container');",
 	:condition => 'other_regimen == "yes" && hasReasonForART() == true && $("prescribe_arvs").value == "YES" && $("continue_existing_regimen").value !="YES"',
 	:helpText => "Select formulations and doses"}%>
 
