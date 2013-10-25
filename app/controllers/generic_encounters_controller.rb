@@ -663,6 +663,7 @@ class GenericEncountersController < ApplicationController
 		@observations = []
 		encounter.observations.map do |obs|
 			next if !obs.obs_group_id.blank?
+      next if ConceptName.find_by_concept_id(obs.concept_id).name.match(/patient tracking state/i)
 			if ConceptName.find_by_concept_id(obs.concept_id).name.match(/location/)
 				obs.value_numeric = ""
 				@observations << obs
@@ -680,7 +681,14 @@ class GenericEncountersController < ApplicationController
 
 	def void
 		@encounter = Encounter.find(params[:id])
-
+      state = Encounter.find_by_sql("
+        SELECT * FROM obs WHERE concept_id = (SELECT concept_id FROM concept_name WHERE name = 'PATIENT TRACKING STATE')
+        AND encounter_id = #{params[:id]}").first rescue []
+        if not state.blank?
+          voided_state  = PatientState.find_by_sql(
+                            "SELECT * FROM patient_state WHERE patient_state_id = #{state.value_numeric}").first
+          voided_state.void
+        end
     if @encounter.name.upcase == 'ART ADHERENCE'
       art_adherence = EncounterType.find_by_name('HIV CLINIC CONSULTATION').id
       hiv_clinic_consultation = Encounter.find(:first,
@@ -707,6 +715,7 @@ class GenericEncountersController < ApplicationController
     end
 
 		@encounter.void
+  
 		head :ok
 	end
 

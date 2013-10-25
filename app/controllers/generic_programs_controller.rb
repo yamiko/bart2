@@ -65,6 +65,13 @@ class GenericProgramsController < ApplicationController
       state = params[:state]
       @patient_state = PatientState.find(state)
       @patient_state.void
+      encounter = Encounter.find_by_sql("
+        SELECT encounter_id FROM obs WHERE concept_id = (SELECT concept_id FROM concept_name WHERE name = 'PATIENT TRACKING STATE')
+        AND value_numeric = #{state}").first rescue []
+        if not encounter.blank?
+          voided_encounter  = Encounter.find(encounter)
+          voided_encounter.void
+        end
     end
     head :ok
   end  
