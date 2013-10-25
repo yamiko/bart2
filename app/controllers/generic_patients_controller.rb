@@ -2,14 +2,7 @@ class GenericPatientsController < ApplicationController
 	before_filter :find_patient, :except => [:void]
   
 	def show
-    
-		return_uri = session[:return_uri]
-		if !return_uri.blank? || @patient.blank?
-      session[:return_uri] = []
-			redirect_to return_uri.to_s
-			return
-		end
-		
+
 		current_state = tb_status(@patient).downcase
 		@show_period = false
 		@show_period = true if current_state.match(/currently in treatment/i)
@@ -1771,7 +1764,7 @@ end
       encounter = Encounter.find(:first,
 				:joins => "INNER JOIN obs ON encounter.encounter_id = obs.encounter_id",
 				:conditions =>["encounter_type=? AND encounter.patient_id = ? AND concept_id = ?
-                                 AND encounter.voided = 0",encounter_type , patient_obj.id , amount_dispensed_concept_id ],
+                                 AND encounter.voided = 0 AND value_drug != ?",encounter_type , patient_obj.id , amount_dispensed_concept_id, 297 ],
 				:order =>"encounter_datetime")
       first_treatment_encounters << encounter unless encounter.blank?
     end
