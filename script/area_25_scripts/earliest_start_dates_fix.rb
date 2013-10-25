@@ -40,7 +40,7 @@ EOF
 UPDATE patient_state
 SET start_date = '#{correct_start_date.to_date.strftime('%Y-%m-%d 00:00:00')}',
 date_created = '#{correct_start_date.to_date.strftime('%Y-%m-%d 00:00:00')}'
-WHERE patient_state = #{last_state}
+WHERE patient_state_id = #{last_state}
 EOF
 
 
