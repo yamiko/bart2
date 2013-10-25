@@ -25,11 +25,13 @@ def start
         puts "change dates"
         correct_start_date = first_dispense.strftime('%Y-%m-%d 00:00:00')
 
+				latest_program =	PatientProgram.find(:first, :conditions => ["patient_id = ? and program_id = ? and voided = ?", patient.patient_id, 1, 0]).id
+				last_state = PatientState.find(:first, :conditions => ["patient_program_id = ? and state = ?", latest_program, 7]).patient_state_id
+
         ActiveRecord::Base.connection.execute <<EOF
 UPDATE patient_program
 SET date_enrolled = '#{first_dispense.strftime('%Y-%m-%d 00:00:00')}'
-WHERE patient_id = #{patient.patient_id}
-AND program_id = 1
+WHERE patient_program_id = #{latest_program}
 EOF
 
 
@@ -38,8 +40,7 @@ EOF
 UPDATE patient_state
 SET start_date = '#{correct_start_date.to_date.strftime('%Y-%m-%d 00:00:00')}',
 date_created = '#{correct_start_date.to_date.strftime('%Y-%m-%d 00:00:00')}'
-WHERE patient_program_id = #{patient.patient_program_id}
-AND state = 7
+WHERE patient_state = #{last_state}
 EOF
 
 
