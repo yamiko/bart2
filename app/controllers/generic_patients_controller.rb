@@ -1916,7 +1916,7 @@ end
                             AND program_id IN (#{hiv_program}, #{tb_program})
                             AND voided = 0")
 
-        return if patient_in_programs.blank?
+        #return if patient_in_programs.blank?
 
 
 		gave_hash = Hash.new(0)

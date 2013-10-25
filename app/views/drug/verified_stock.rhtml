@@ -15,14 +15,14 @@
       var search
 
       function showDrugs(){
-        html = "<table width='98%' align= 'center'><th colspan=2 >Supervision Verified Stocks</th>";
-        html += '<tr class="header"><td width="50%"><b>Drug</b></td><td width="50%"><b>Amount In Tins (Verified)</b></td></tr></table>'
+        html = "<table width='98%' align= 'center'><th colspan=3 >Supervision Verified Stocks</th>";
+        html += '<tr class="header"><td width="20%"><b>Drug</b></td><td width="40%"><b>Amount In Tins (Verified)</b></td><td>Earliest <br>Expiry Date</td></tr></table>'
         html += "<form id='stock' name='stock' action='stock_report_edit' method='post'><table width='98%' align= 'center'>"
         html +="<input type='hidden' name='delivery_date' value='<%= @delivery_date %>'>";
   <%  @drugs.each {|drug| %>
-        html += '<tr><td width="50%">' + '<%= drug[0] %>' + '</td><td class="newIunputs">'
+        html += '<tr><td width="20%">' + '<%= drug[0] %>' + '</td><td class="newIunputs">'
         html += "<input name='obs[" + '<%= drug[1] %>' + "]' type='text' onclick='showMe(this)' class='inputs'/>"
-        html += '</td></tr>';
+        html += "</td><td><input name='obs[" + '<%=  drug[0] %>' + "][name]' type='text' onclick='showMe(this)' class='inputs'></td></tr>";
   <%  } %>
       html += '</table></form>';
       document.getElementById('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + html + '</div>';
@@ -94,10 +94,14 @@
       keyboard.innerHTML = getButtons1("123")
       keyboard.innerHTML+= getButtons1("456")
       keyboard.innerHTML+= getButtons1("7890")
+      keyboard.innerHTML+= getButtonStrings('/','<span>/</span>')
+      keyboard.innerHTML+= getButtonStrings(':','<span>:</span>')
+      keyboard.innerHTML+= getButtonStrings('-','<span>-</span>')
       // keyboard.innerHTML+= getButtonString('space','<span>Space</span>')
       keyboard.innerHTML+= getButtonStrings('clear','<span>Clear</span>')
       keyboard.innerHTML+= getButtonStrings('backspace','<span>Bksp</span>')
       keyboard.innerHTML+= getButtonStrings('enter','<span>Enter</span>')
+      
       // keyboard.innerHTML+= getButtonStrings('dash','<span>-</span>')
       // keyboard.innerHTML+= getButtonString('slash','<span>/</span>')
     }
@@ -145,7 +149,7 @@
         position: absolute;
         background-color: black;
         width: 253px;
-        height: 45%;
+        height: 47%;
         left: 20%;
         top: 12%;
         z-index: 500;

@@ -403,7 +403,9 @@ class GenericEncountersController < ApplicationController
     date_enrolled = params[:programs][0]['date_enrolled'].to_time rescue nil
     date_enrolled = session[:datetime] || Time.now() if date_enrolled.blank?
     (params[:programs] || []).each do |program|
-      next if not @patient.patient_programs.in_programs("HIV PROGRAM").blank?
+      if params['encounter']['encounter_type_name'] == 'HIV CLINIC REGISTRATION'
+         next if not @patient.patient_programs.in_programs("HIV PROGRAM").blank?
+      end
       # Look up the program if the program id is set      
       @patient_program = PatientProgram.find(program[:patient_program_id]) unless program[:patient_program_id].blank?
 

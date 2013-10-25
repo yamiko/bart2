@@ -70,7 +70,7 @@ class GenericDrugController < ApplicationController
       if current_stock > 0 and current_stock <= expiry
           expiry = current_stock
       elsif current_stock > expiry
-          expiry = expiry
+          expiry = expiry 
       else
          expiry = 0
       end
