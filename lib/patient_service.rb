@@ -686,6 +686,44 @@ module PatientService
   	services = Observation.find(:all, :conditions => ["DATE(date_created) = ? AND concept_id = ?", Date.today.to_date, ConceptName.find_by_name("SERVICES").concept_id], :order => "obs_datetime desc")
   end
 
+	def self.guardian_present?(patient_id, date=Date.today)
+      encounter_type_id = EncounterType.find_by_name("HIV Reception").id
+      concept_id  = ConceptName.find_by_name("Guardian present").concept_id
+      encounter = Encounter.find_by_sql("SELECT *
+                                        FROM encounter
+                                        WHERE patient_id = #{patient_id} AND DATE(date_created) = DATE('#{date.strftime("%Y-%m-%d")}') AND encounter_type = #{encounter_type_id}
+                                        ORDER BY date_created DESC").last rescue nil
+
+      guardian_present=encounter.observations.find_last_by_concept_id(concept_id).to_s unless encounter.nil?
+
+      return false if guardian_present.blank?
+      return false if guardian_present.match(/No/)
+      return true
+  end
+
+	def self.patient_and_guardian_present?(patient_id, date=Date.today)
+      patient_present = self.patient_present?(patient_id, date)
+      guardian_present = self.guardian_present?(patient_id, date)
+
+      return false if !patient_present || !guardian_present
+      return true
+  end
+
+  def self.patient_present?(patient_id, date=Date.today)
+      encounter_type_id = EncounterType.find_by_name("HIV Reception").id
+      concept_id  = ConceptName.find_by_name("Patient present").concept_id
+      encounter = Encounter.find_by_sql("SELECT *
+                                        FROM encounter
+                                        WHERE patient_id = #{patient_id} AND DATE(date_created) = DATE('#{date.strftime("%Y-%m-%d")}') AND encounter_type = #{encounter_type_id}
+                                        ORDER BY date_created DESC").last rescue nil
+
+      patient_present = encounter.observations.find_last_by_concept_id(concept_id).to_s unless encounter.nil?
+
+      return false if patient_present.blank?
+      return false if patient_present.match(/No/)
+      return true
+  end
+
   def self.patient_national_id_label(patient)
 	  patient_bean = get_patient(patient.person)
     return unless patient_bean.national_id
