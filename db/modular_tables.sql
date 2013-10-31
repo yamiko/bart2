@@ -78,3 +78,5 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2013-09-26  8:14:41
+
+ALTER TABLE pharmacy_obs ADD expiring_units VARCHAR(60);
