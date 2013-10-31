@@ -240,7 +240,7 @@ class Cohort
 							elsif reason.match(/WHO STAGE I peds/i)
 								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
 							elsif reason.upcase.match(/CD4 COUNT <=/i)
-								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id							
+								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id							
 							elsif reason.match(/CD4 COUNT LESS/i)
 								cohort_report['WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id							
 							elsif reason.match(/CD4 count less/i)
