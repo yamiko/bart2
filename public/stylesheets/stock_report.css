@@ -17,7 +17,7 @@ tr.header{
 
 table{
   width: 100%;
-  border-bottom:2px solid black;
+ /* border-bottom:2px solid black; */
 }
 
 .valueCol {
