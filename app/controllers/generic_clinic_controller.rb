@@ -255,7 +255,7 @@ class GenericClinicController < ApplicationController
       #["Expiring<br />drugs","date_select"],
       ["Enter drug relocation<br />(in or out) / disposal","edit_stock"],
       ["Stock<br />report","date_select"],
-      ["Stock<br />Movement","stock_movement_menu?goto=stoke_movement"]
+      ["Stock <br />Charts","stock_movement_menu?goto=stoke_movement"]
     ]
     render :layout => false
   end

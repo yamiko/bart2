@@ -13,16 +13,39 @@
     <script>
       var keyboard
       var search
-
+      var date = '<%= Date.today.strftime("%m/%Y") %>'
+      
       function showDrugs(){
-        html = "<table width='98%' align= 'center'><th colspan=3 >Supervision Verified Stocks</th>";
-        html += '<tr class="header"><td width="20%"><b>Drug</b></td><td width="40%"><b>Amount In Tins (Verified)</b></td><td>Earliest <br>Expiry Date</td></tr></table>'
-        html += "<form id='stock' name='stock' action='stock_report_edit' method='post'><table width='98%' align= 'center'>"
+        html = "<form id='stock' name='stock' action='stock_report_edit' method='post'><table width='98%' align= 'center'><th colspan=4 >Supervision Verified Stocks</th>";
+        html += '<tr class="header"><td width="54%" colspan=2><b>Drug</b></td><td width="40%"><b>Total Usable Tins</b></td ><td colspan=2 >Earliest Expiry<br> <span style="float:left">Date MM/YY</span><span style="float:right">Units expiring that date</span></td></tr>'
         html +="<input type='hidden' name='delivery_date' value='<%= @delivery_date %>'>";
-  <%  @drugs.each {|drug| %>
-        html += '<tr><td width="20%">' + '<%= drug[0] %>' + '</td><td class="newIunputs">'
-        html += "<input name='obs[" + '<%= drug[1] %>' + "]' type='text' onclick='showMe(this)' class='inputs'/>"
-        html += "</td><td><input name='obs[" + '<%=  drug[0] %>' + "][name]' type='text' onclick='showMe(this)' class='inputs'></td></tr>";
+        html +="<input type='hidden' name='type' value='<%= params["verification type"] %>'>";
+  <%  @formatted.each {|drug|
+  name = @drug_short_names[drug]
+   name = name.gsub("(", "")
+     name = name.gsub(")", "")
+     splitted = name.split(" ")
+      i = 1
+      letters = " "
+       while (i < splitted.length) do
+        if splitted[i].upcase == "ISONIAZID"
+          i += 1
+          next
+        end
+        if splitted[i].upcase == "OR" or splitted[i].upcase == "H"
+           splitted[0] = "#{splitted[0]} #{splitted[i]}"
+         else
+         letters = "#{letters} #{splitted[i]}"
+         end
+         i += 1
+       end
+
+  %>
+        html += '<tr><td width="20%%">' + '<%= splitted[0] %></td>' + '<td align="right"  width="32%"><%= letters %></td><td class="newIunputs">'
+        html += "<input name='obs[" + '<%= drug %>' + "][amount]' type='text' onclick='showMe(this)' class='inputs' value=0 />"
+        html += "</td><td><input name='obs[" + '<%=  drug %>' + "][date]' type='text' onclick='showMe(this)' class='inputs' value='" + date + "'></td>";
+        html += "</td><td align='right'><input name='obs[" + '<%=  drug %>' + "][expire_amount]' type='text' onclick='showMe(this)' class='inputs' value= '0'></td></tr>";
+        html += "<tr><td colspan =4 ><hr></td></tr>"
   <%  } %>
       html += '</table></form>';
       document.getElementById('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + html + '</div>';
@@ -35,7 +58,7 @@
       value = 0;
       for (i = 0; i < input.length; i++){
         if (input[i].value == ""){
-          return
+          input[i].value = 0
         }
       }
       drug_form.submit()
@@ -159,15 +182,16 @@
       }
       .inputs {
         height: 37px;
-        font-size:33px;
+        font-size:18px;
       }
       .scrollTable {
-        height: 400px ! important;
+        height: 700px ! important;
         overflow:scroll ! important;
       }
+
       #stock {
-        height: 554px ! important;
-        overflow:scroll ! important;
+        height: 596px ! important;
+        overflow:auto ! important;
       }
       #summary {
         padding: 0px;
@@ -232,6 +256,7 @@
     </style>
   <div id="container">
     <form>
+
       <%= text_field_tag :showSummary, nil,
         {
         :tt_onLoad => "showDrugs();$('clearButton').style.display = 'none';  ",

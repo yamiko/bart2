@@ -251,8 +251,9 @@ EOF
   def self.verify_closing_stock_count(drug_id,start_date,end_date)
       encounter_type_id = PharmacyEncounterType.find_by_name('Tins currently in stock').id
       start_date = Pharmacy.active.find(:first,
-        :conditions =>["pharmacy_encounter_type = ? AND  encounter_date = ? AND drug_id = ?",
-        encounter_type_id, end_date, drug_id],
+        :conditions =>["pharmacy_encounter_type = ? AND  encounter_date > ? AND encounter_date <= ?
+                        AND drug_id = ? AND value_text = 'Supervision'",
+        encounter_type_id, start_date, end_date, drug_id],
         :order =>'encounter_date DESC,date_created DESC').value_numeric rescue 0
      #raise start_date.to_yaml
   end
@@ -260,19 +261,28 @@ EOF
     def self.verify_stock_count(drug_id,start_date,end_date)
     encounter_type_id = PharmacyEncounterType.find_by_name('Tins currently in stock').id
     start_date = Pharmacy.active.find(:first,
-      :conditions =>["pharmacy_encounter_type = ? AND encounter_date >= ?  AND encounter_date <= ? AND drug_id = ?",
-      encounter_type_id, start_date, end_date, drug_id],
+      :conditions =>["pharmacy_encounter_type = ? AND encounter_date <= ? AND drug_id = ? AND value_text = 'Supervision'",
+      encounter_type_id, start_date,drug_id],
       :order =>'encounter_date DESC,date_created DESC').value_numeric rescue 0
    #raise start_date.to_yaml
   end
 
-  def self.verified_stock(drug_id,date,pills)
+  def self.verified_stock(drug_id,date,pills, earliest_expiry=nil, units=nil, type=nil)
     encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock').id
     encounter =  self.new()
     encounter.pharmacy_encounter_type = encounter_type
     encounter.drug_id = drug_id
     encounter.encounter_date = date
     encounter.value_numeric = pills.to_f
+    if ! earliest_expiry.blank?
+      encounter.expiry_date = earliest_expiry
+    end
+    if ! units.blank?
+      encounter.expiring_units = units
+    end
+    if ! type.blank?
+      encounter.value_text = type
+    end
     encounter.save
   end
 

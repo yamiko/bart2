@@ -48,12 +48,20 @@
 
   <form method='post' action="stoke_movement">
 
-
+   <select id='report_type'
+        name='report_type'
+        helpText='Chart Type'
+        pos='2' >
+          <option></option>
+          <option value='Stock Movement'>Stock Movement</option>
+           <option value='Months of Stock'>Months of Stock</option>
+           </select>
 
   <%= text_field_tag "drug_name", nil, {:id => 'drug_name', :field_type => 'alpha',
       :helpText => 'Drug name',
+      :condition => '$("report_type").value == "Stock Movement"',
       :ajaxURL =>  '/drug/name?search_string=',
-      :condition => '', :tt_onLoad  => '' } %>
+      :tt_onLoad  => '' } %>
 
 
   <%= touch_date_tag "start_date", 'start_date', nil,

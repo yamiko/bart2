@@ -190,7 +190,7 @@
 
     <form id="create_stoke" method='post' action="verified_stock">
 
-
+    <%unless params[:id] == 'verification' %>
       <%= select_tag "drug_name", options,
 		{
                 :id => "select_drugs",
@@ -200,7 +200,7 @@
 		:tt_onUnLoad => 'selectedDrugs()',
 		:helpText => "Select Drugs",
 		:tt_pageStyleClass => "NoKeyboard NoInput small" } %>
-
+    <% end %>
 
 
    
@@ -218,6 +218,15 @@
         {:id => "delivery_date",
         :helpText => "Verification date",
         :maxDate => (Date.today + 30.year)} %>
+
+       <select id='verification_type'
+        name='verification type'
+        helpText='Verification Type'
+        pos='2' >
+          <option></option>
+          <option value='Clinic'>Clinic</option>
+           <option value='Supervision'>Supervision</option>
+           </select>
 
     <%end%>
     <%unless params[:id] == 'verification' %>
