@@ -70,7 +70,7 @@
 
 </style>
 
-<%= javascript_include_tag "dateformat" %>
+<%#= javascript_include_tag "dateformat" %>
 
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
@@ -113,6 +113,10 @@
       return true
     }
      
+  }
+
+  function checkCd4Date(){
+    $('cd4_count_date').value = createDates($('year_of_cd4').value, $('month_of_cd4').value , $('day_of_cd4').value);
   }
 
   //checks if the patient needs to be referred to HTC basesd on the test date
@@ -810,9 +814,37 @@ function checkConfirmDate(){
 			{	:id => "cd4_count_location",                                           
 				:condition => '$("new_cd4_count_available").value == "YES" && showConditions()',
 				:helpText => "CD4 Count Location"} %>                                  
-				                                                            
-		<%= touch_date_tag "CD4 COUNT DATETIME", @patient, nil,                   
-			{	:id => "cd4_count_date",                                               
+
+
+    <%= text_field_tag "year_of_cd4", nil,
+      { :helpText => 'Year of cd4 count',
+        :field_type => 'number',
+        :absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year,
+        :tt_pageStyleClass => "Numeric NumbersOnly",
+        :condition => '$("new_cd4_count_available").value == "YES" && showConditions()',
+        :id => "year_of_cd4" }  %>
+
+    <%= select_tag "month_of_cd4", month_name_options,
+      { :tt_onLoad => "__$('keyboard').style.display = 'none'",
+		:helpText => 'Month of cd4',
+        :condition => '$("year_of_cd4").value.toLowerCase() != "unknown" && $("new_cd4_count_available").value == "YES" && showConditions()',
+        :id => "month_of_cd4" ,
+        :validationMessage => 'Please enter a valid date'}%>
+
+    <%= text_field_tag "day_art_last_taken",  nil,
+        :field_type => 'number',
+		:helpText => 'Day of cd4',
+        :condition => '($("year_of_cd4").value !="Unknown") && ($("month_of_cd4").value != "Unknown") && ($("new_cd4_count_available").value == "YES") && showConditions()',
+        :tt_onLoad => "getDayOfMonthPicker($('year_of_cd4').value, $('month_of_cd4').value);$('nextButton').style.display = 'block';",
+        :tt_onUnLoad => 'checkCd4Date();',
+        :id => "day_of_cd4" %>
+
+   <%= touch_hidden_tag "CD4 COUNT DATETIME", @patient, nil, {:id => "cd4_count_date", :value_datetime => true}%>
+
+
+		<%#= touch_date_tag "CD4 COUNT DATETIME", @patient, nil,
+			{	:id => "cd4_count_date",
+                                :field_type => 'date',
 				:condition => '$("new_cd4_count_available").value == "YES" && showConditions()',
 				:helpText => "CD4 Count Date",                                         
 				:max => "#{session[:datetime].to_date rescue Date.today}"} %>          
