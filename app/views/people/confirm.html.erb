@@ -269,7 +269,9 @@
         popup = document.getElementById('popup')
         popup.parentNode.removeChild(popup)
         cover = document.getElementById('cover')
-        cover.parentNode.removeChild(cover)
+        if (cover){
+          cover.parentNode.removeChild(cover)
+        }
         <%if !@patient_bean.archived_filing_number.blank? %>
               javascript:confirmAction(0);
         <% elsif @transferred_out  %>
