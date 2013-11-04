@@ -314,7 +314,15 @@
   }
 
   function vl_already_done(){
-    
+    jQuery.ajax({
+      type: "POST",
+      url: "/patients/viral_load_already_done",
+      data: "patient_id="+<%=@person.patient.id %>,
+      success: function(){
+        window.location="<%= next_task(@person.patient)%>"
+      }
+
+    });
   }
 </script>
   <style>
@@ -561,7 +569,7 @@
 
         <hr class="popup_hr_without_lab"></hr>
         <a id='viral_load_requested_today' onclick = "viral_load_requested_today();" ><span>VL Requested <br />Today</span></a>
-        <a id='viral_load_already_done' onclick="viral_load_not_requested_today();"><span>VL Not Requested Today<br />(VL already done within last six months)</span></a>
+        <a id='viral_load_already_done' onclick="vl_already_done();"><span>VL Not Requested Today<br />(VL already done within last six months)</span></a>
         <a id='viral_load_adherence_issues' onclick="removePopup();"><span>Not Requested Today<br />(Due to poor adherence to ART)</span></a>
       </div>
 
