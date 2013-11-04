@@ -422,6 +422,15 @@
 
     }
 
+    .popup_hr_without_lab{
+      position: absolute;
+      background-color: #669999;
+      height: 5px;
+      width: 99%;
+      bottom: 68px;
+
+    }
+
     #viral_header{
       font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
       font-weight: bold;
@@ -550,10 +559,13 @@
           </table>
         </div>
 
-        <hr class="popup_hr"></hr>
+        <hr class="popup_hr_without_lab"></hr>
         <a id='viral_load_requested_today' onclick = "viral_load_requested_today();" ><span>VL Requested <br />Today</span></a>
-        <a id='viral_load_already_done' onclick="viral_load_not_requested_today()(); removePopup();"><span>VL Not Requested Today<br />(VL already done within last six months)</span></a>
+        <a id='viral_load_already_done' onclick="viral_load_not_requested_today();"><span>VL Not Requested Today<br />(VL already done within last six months)</span></a>
         <a id='viral_load_adherence_issues' onclick="removePopup();"><span>Not Requested Today<br />(Due to poor adherence to ART)</span></a>
+      </div>
+
+      <div id="cover">
       </div>
   <% end %>
 </body>
