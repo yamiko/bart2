@@ -658,5 +658,29 @@ module ApplicationHelper
     end
       return false if milestone_exceeded
 	end
+
+  def vl_without_results_activated(art_start_date, patient, period_on_art)
+     possible_ranges = [
+                         [6,23],[24,47],[48,71],[72,95],[96,119],[120,143],
+                         [144,167],[168,191],[192,215],[216,239],[240,259],
+                         [260,283]
+                      ]
+    possible_ranges.each do |key,value|
+      if (period_on_art >= key && period_on_art <= value)
+        first_date = art_start_date + key.months
+        second_date = art_start_date + value.months
+        vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?
+            AND DATE(obs_datetime) >= ? AND DATE(obs_datetime) <= ?",
+            patient.patient_id, Concept.find_by_name("Viral load").concept_id, first_date, second_date])
+        answer_string = vl_request.answer_string.squish rescue nil
+        return false if answer_string.blank?
+        if (answer_string.match(/NOT DONE DUE TO ADHERENCE/i))
+          return true
+        else
+          return false
+        end
+      end
+    end
+  end
   
 end
