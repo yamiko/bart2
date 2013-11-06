@@ -641,6 +641,10 @@ module ApplicationHelper
           mile_stone_date = arv_start_date + key.months
           mile_stone_grace_period = mile_stone_date + grace_period.months
 
+          if (vl_without_results_activated(arv_start_date, patient, period_on_art_in_months))
+            milestone_exceeded = false
+            return true
+          end
 
           if (period_on_art_in_months >= key && period_on_art_in_months <= value.last)
            milestone_exceeded = false

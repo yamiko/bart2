@@ -3408,7 +3408,32 @@ end
 
     render :text => "true" and return
   end
-  
+
+  def vl_not_done_due_to_adherence
+    patient_id = params[:patient_id]
+		enc = Encounter.new()
+
+		enc.encounter_type = EncounterType.find_by_name("REQUEST").id
+		enc.patient_id = 		patient_id
+		enc.creator = current_user.id
+		enc.location_id = Location.current_location
+
+		enc.save()
+
+		obs = Observation.new()
+		obs.person_id = patient_id
+		obs.creator = current_user.id
+		obs.location_id = Location.current_location
+    obs.value_text = "Not done due to adherence"
+		obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
+		obs.encounter_id = enc.id
+		obs.obs_datetime = Time.now
+
+		obs.save()
+
+    render :text => "true" and return
+  end
+
   def confirm_merge
     master = params[:master_id]
     slaves = params[:slaves_ids]
