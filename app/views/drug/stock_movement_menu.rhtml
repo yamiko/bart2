@@ -44,6 +44,13 @@
     }
     window.addEventListener("load", loadBarcodePage, false);
 
+  <% options = "<option>" "" "</option>"
+    #raise @drugs.to_yaml
+    @formatted.each{|drug|
+      #raise drug[0].to_yaml
+      options += "<option value = '#{drug}'>#{@names[drug]}</option>"
+    }
+%>
 </script>
 
   <form method='post' action="stoke_movement">
@@ -57,11 +64,12 @@
            <option value='Months of Stock'>Months of Stock</option>
            </select>
 
-  <%= text_field_tag "drug_name", nil, {:id => 'drug_name', :field_type => 'alpha',
+  <%= select_tag "drug_name", options,
+       {:id => 'drug_name',
       :helpText => 'Drug name',
       :condition => '$("report_type").value == "Stock Movement"',
-      :ajaxURL =>  '/drug/name?search_string=',
-      :tt_onLoad  => '' } %>
+      :tt_onLoad  => '',
+      :tt_pageStyleClass => "NoKeyboard NoInput small"} %>
 
 
   <%= touch_date_tag "start_date", 'start_date', nil,

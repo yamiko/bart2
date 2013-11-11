@@ -16,7 +16,7 @@
       var date = '<%= Date.today.strftime("%m/%Y") %>'
       
       function showDrugs(){
-        html = "<form id='stock' name='stock' action='stock_report_edit' method='post'><table width='98%' align= 'center'><th colspan=4 >Supervision Verified Stocks</th>";
+        html = "<form id='stock' name='stock' action='stock_report_edit' method='post'><table width='98%' align= 'center'><th colspan=5 >Supervision Verified Stocks</th>";
         html += '<tr class="header"><td width="54%" colspan=2><b>Drug</b></td><td width="40%"><b>Total Usable Tins</b></td ><td colspan=2 >Earliest Expiry<br> <span style="float:left">Date MM/YY</span><span style="float:right">Units expiring that date</span></td></tr>'
         html +="<input type='hidden' name='delivery_date' value='<%= @delivery_date %>'>";
         html +="<input type='hidden' name='type' value='<%= params["verification type"] %>'>";
@@ -42,10 +42,10 @@
 
   %>
         html += '<tr><td width="20%%">' + '<%= splitted[0] %></td>' + '<td align="right"  width="32%"><%= letters %></td><td class="newIunputs">'
-        html += "<input name='obs[" + '<%= drug %>' + "][amount]' type='text' onclick='showMe(this)' class='inputs' value=0 />"
-        html += "</td><td><input name='obs[" + '<%=  drug %>' + "][date]' type='text' onclick='showMe(this)' class='inputs' value='" + date + "'></td>";
-        html += "</td><td align='right'><input name='obs[" + '<%=  drug %>' + "][expire_amount]' type='text' onclick='showMe(this)' class='inputs' value= '0'></td></tr>";
-        html += "<tr><td colspan =4 ><hr></td></tr>"
+        html += "<input name='obs[" + '<%= drug %>' + "][amount]' type='text' onclick='showMe(this)' class='inputs' />"
+        html += "</td><td><input name='obs[" + '<%=  drug %>' + "][date]' type='text' onclick='showMe(this)' class='inputs'></td>";
+        html += "</td><td align='right'><input name='obs[" + '<%=  drug %>' + "][expire_amount]' type='text' onclick='showMe(this)' class='inputs'></td></tr>";
+        html += "<tr><td colspan =5 ><hr></td></tr>"
   <%  } %>
       html += '</table></form>';
       document.getElementById('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + html + '</div>';
@@ -117,9 +117,9 @@
       keyboard.innerHTML = getButtons1("123")
       keyboard.innerHTML+= getButtons1("456")
       keyboard.innerHTML+= getButtons1("7890")
-      keyboard.innerHTML+= getButtonStrings('/','<span>/</span>')
-      keyboard.innerHTML+= getButtonStrings(':','<span>:</span>')
-      keyboard.innerHTML+= getButtonStrings('-','<span>-</span>')
+     // keyboard.innerHTML+= getButtonStrings('/','<span>/</span>')
+     // keyboard.innerHTML+= getButtonStrings(':','<span>:</span>')
+     // keyboard.innerHTML+= getButtonStrings('-','<span>-</span>')
       // keyboard.innerHTML+= getButtonString('space','<span>Space</span>')
       keyboard.innerHTML+= getButtonStrings('clear','<span>Clear</span>')
       keyboard.innerHTML+= getButtonStrings('backspace','<span>Bksp</span>')
@@ -129,7 +129,31 @@
       // keyboard.innerHTML+= getButtonString('slash','<span>/</span>')
     }
 
-    function pressed(pressedChar){
+   function pressed(pressedChar){
+      if (search.name.match(/date/i)){
+        
+        if (search.value.length == 5 && pressedChar != 'enter' &&   pressedChar != 'splash' && pressedChar != 'backspace' && pressedChar != 'space' && pressedChar != 'clear'){
+          var names = "obs[" + search.name.split(']')[0].split('[')[1] + "][expire_amount]"
+          document.getElementsByName(names)[0].next().focus()
+          return
+        }
+        if (search.value.length == 2){
+          if (search.value <= 12 && pressedChar != 'enter' &&  pressedChar != 'splash' && pressedChar != 'backspace' && pressedChar != 'space' && pressedChar != 'clear') {
+            search.value += "/"
+            search.value+= pressedChar
+             return
+          }
+          else if (search.value <= 12 && pressedChar != 'enter' &&  pressedChar == 'splash' && pressedChar != 'backspace' && pressedChar != 'space' && pressedChar != 'clear'){
+            search.value+= pressedChar
+             return
+          }
+          else if (pressedChar != 'enter' && pressedChar != 'splash' && pressedChar != 'backspace' && pressedChar != 'space' && pressedChar != 'clear'){
+            search.value = search.value.substring(0,search.value.length-1);
+            return
+          }
+
+        }
+      }
       switch (pressedChar) {
         case 'backspace':
           search.value = search.value.substring(0,search.value.length-1);
@@ -147,6 +171,9 @@
           showNumericKeypad();
           return
         case 'slash':
+          if (search.name.match(/date/i)){
+            return
+          }
           search.value+= "/"
           //search_box.fnFilter(search.value)
           return
@@ -164,7 +191,6 @@
       search.value+= pressedChar
       //search_box.fnFilter(search.value)
     }
-  
     //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     </script>
     <style>
@@ -256,7 +282,7 @@
     </style>
   <div id="container">
     <form>
-
+      <img src="images/add.png">
       <%= text_field_tag :showSummary, nil,
         {
         :tt_onLoad => "showDrugs();$('clearButton').style.display = 'none';  ",

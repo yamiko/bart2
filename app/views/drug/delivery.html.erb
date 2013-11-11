@@ -70,8 +70,25 @@
   }
 
 </style>
-
-
+<%= javascript_include_tag 'jquery' %>
+ <script>
+      jQuery(document).ready(function($) {
+       
+       $("#barcode").keydown(function(event) {
+         // alert("here")
+        if ( $.inArray(event.keyCode,[46,8,9,27,13,190]) !== -1 ||
+            (event.keyCode == 65 && event.ctrlKey === true) ||
+            (event.keyCode >= 35 && event.keyCode <= 39)) {
+                 return;
+        }
+        else {
+            if (event.shiftKey || (event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105 )) {
+                event.preventDefault();
+            }
+        }
+    });
+   });
+ </script>
 <script language="javascript">
   var tt_cancel_destination = '/clinic';  // /management';
 
@@ -160,18 +177,33 @@
   }
   <% options = "<option>" "" "</option>"
     #raise @drugs.to_yaml
-    @drugs.each{|drug|
+    @formatted.each{|drug|
       #raise drug[0].to_yaml
-      options += "<option value = '#{drug}'>#{drug}</option>"
+      options += "<option value = '#{drug}'>#{@drugs[drug]}</option>"
     }
 %>
 </script>
+<%  if params[:id] == 'relocation' %>
+      <form id="create_stoke" name="create_stoke" action="edit_stock">
+              <%= select_tag "drug_name", options,
+		{
+                :id => "select_drugs",
+                :field_type => 'alpha',
+		:multiple => true,
+		:optional => true,
+		:tt_onUnLoad => 'selectedDrugs()',
+		:helpText => "Select Received/Relocated Drugs",
+		:tt_pageStyleClass => "NoKeyboard NoInput small" } %>
+      </form>
+<%  else %>
 
 <%unless params[:id] == 'verification' %>
-  <form id="create_stoke" name="create_stoke" method='post' action="set_quantity">
-            <%= text_field_tag :identifier, '', {:id => 'barcode',
+  <form id="create_stoke" name="create_stoke" action="set_receipts">
+            <%= text_field_tag :identifier, '', {
+        :tt_onLoad => "$('keyboard').style.display = 'none'; ",
+        :id => 'barcode',
         :class => 'touchscreenTextInput',
-        :helpText => 'Scan delivery barcode',
+        :helpText => 'Scan barcode on  delivery note',
         :tt_pageonload =>"loadBarcodePage" ,
         :style => 'position:absolute' } %>
 
@@ -182,8 +214,14 @@
 		:multiple => true,
 		:optional => true,
 		:tt_onUnLoad => 'selectedDrugs()',
-		:helpText => "Select Drugs",
+		:helpText => "Select Drugs Received",
 		:tt_pageStyleClass => "NoKeyboard NoInput small" } %>
+
+     <%= touch_date_tag "delivery_date", 'delivery_date', nil,
+       {
+        :id => "delivery_date",
+        :helpText => "Delivery Date",
+        :maxDate => (Date.today + 30.year)} %>
 
 
   <%else%>
@@ -249,3 +287,4 @@
     <%end%>
     <%  end %>
   </form>
+<% end %>
