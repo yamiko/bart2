@@ -38,7 +38,7 @@ class Cohort
 
     #raise self.total_number_of_dead_patients.to_yaml
     @patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
-
+    #raise self.total_number_of_died_within_range(60.875, 91.3125).to_yaml
     #raise  self.total_number_of_died_within_range(0, 30.4375).to_yaml
 		threads = []
 
@@ -275,37 +275,37 @@ class Cohort
 		  end
 		end
 		
-		threads << Thread.new do
-			begin
+		#threads << Thread.new do
+		#	begin
 				cohort_report['Died within the 1st month after ART initiation'] = self.total_number_of_died_within_range(0, 30.4375)
-		  rescue Exception => e
-		    Thread.current[:exception] = e
-		  end
-		end
+		 # rescue Exception => e
+		  #  Thread.current[:exception] = e
+		 # end
+		#end
 		#raise self.total_number_of_died_within_range(30.4375, 60.875).to_yaml
-		threads << Thread.new do
-			begin
+		#threads << Thread.new do
+		#	begin
 				cohort_report['Died within the 2nd month after ART initiation'] = self.total_number_of_died_within_range(30.4375, 60.875)
-		  rescue Exception => e
-		    Thread.current[:exception] = e
-		  end
-		end
+		 # rescue Exception => e
+		  #  Thread.current[:exception] = e
+		  #end
+		#end
 
-		threads << Thread.new do
-			begin
+		#threads << Thread.new do
+		#	begin
 				cohort_report['Died within the 3rd month after ART initiation'] = self.total_number_of_died_within_range(60.875, 91.3125)
-		  rescue Exception => e
-		    Thread.current[:exception] = e
-		  end
-		end
+		 # rescue Exception => e
+		  #  Thread.current[:exception] = e
+		  #end
+		#end
 
-		threads << Thread.new do
-			begin
+		#threads << Thread.new do
+		#	begin
 				cohort_report['Died after the end of the 3rd month after ART initiation'] = self.total_number_of_died_within_range(91.3125, 1000000)
-		  rescue Exception => e
-		    Thread.current[:exception] = e
-		  end
-		end
+		 # rescue Exception => e
+		  #  Thread.current[:exception] = e
+		  #end
+		#end
 
 		threads << Thread.new do
 			begin
@@ -1001,26 +1001,25 @@ class Cohort
 
     dispensing_encounter_id = EncounterType.find_by_name("DISPENSING").id
     regimen_category = ConceptName.find_by_name("REGIMEN CATEGORY").concept_id
-		
-    earliest_start_dates = PatientProgram.find_by_sql(
-      "SELECT e.patient_id,
-              last_text_for_obs(e.patient_id, #{dispensing_encounter_id}, #{regimen_category}, '#{end_date}') AS regimen_category 
-      FROM earliest_start_date e
-      WHERE patient_id IN(#{patient_ids.join(',')}) AND
-            earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
-      ")
-    
-    (earliest_start_dates || []).each do | value |
-			
-			if value.regimen_category.blank?
-				regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] ||= []
-				regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] << value.patient_id.to_i
-			else
-				regimen_hash[value.regimen_category] ||= []
-				regimen_hash[value.regimen_category] << value.patient_id.to_i
-			end
-		end
 
+        earliest_start_dates = PatientProgram.find_by_sql(
+                          "SELECT e.patient_id,
+                          last_text_for_obs(e.patient_id, #{dispensing_encounter_id}, #{regimen_category}, '#{end_date}') AS regimen_category
+                          FROM earliest_start_date e
+                          WHERE patient_id IN(#{patient_ids.join(',')}) AND
+                          earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
+                          ")
+
+                      (earliest_start_dates || []).each do | value |
+
+                        if value.regimen_category.blank?
+                                regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] ||= []
+                                regimen_hash['UNKNOWN ANTIRETROVIRAL DRUG'] << value.patient_id.to_i
+                        else
+                                regimen_hash[value.regimen_category] ||= []
+                                regimen_hash[value.regimen_category] << value.patient_id.to_i
+                        end
+                end
     regimen_hash
   end
 
