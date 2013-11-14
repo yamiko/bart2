@@ -1024,7 +1024,9 @@ end
 			:conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
                AND obs_datetime <= ?",ConceptName.find_by_name('Appointment date').concept_id,
 				type.id,patient.id,session_date.strftime("%Y-%m-%d 23:59:59")
-			]).value_datetime.strftime("%a %d %B %Y") rescue nil
+			]).value_datetime.strftime("%a %d %B %Y") #rescue nil
+
+    #raise next_appt.to_yaml
     alerts << ('Next appointment: ' + next_appt) unless next_appt.blank?
 
     encounter_dates = Encounter.find_by_sql("SELECT * FROM encounter WHERE patient_id = #{patient.id} AND encounter_type IN (" +
@@ -1074,6 +1076,7 @@ end
     patient_hiv_program = PatientProgram.find(:all,:conditions =>["voided = 0 AND patient_id = ? AND program_id = ? AND location_id = ?", patient.id , program_id, location_id])
 		on_art = ''
     hiv_status = PatientService.patient_hiv_status(patient)
+    
     alerts << "HIV Status : #{hiv_status} more than 3 months" if ("#{hiv_status.strip}" == 'Negative' && PatientService.months_since_last_hiv_test(patient.id) > 3)
     #alerts << "Patient not on ART" if (("#{hiv_status.strip}" == 'Positive') && !patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) ||
 			#((patient.patient_programs.current.local.map(&:program).map(&:name).include?('HIV PROGRAM')) && (ProgramWorkflowState.find_state(patient_hiv_program.last.patient_states.last.state).concept.fullname == "Pre-ART (Continue)"))
@@ -1090,7 +1093,7 @@ end
 			state = Concept.find(Observation.find(:first, 
 					:order => "obs_datetime DESC,date_created DESC",
 					:conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL",
-						patient.id, ConceptName.find_by_name("on art").concept_id]).value_coded).fullname
+						patient.id, ConceptName.find_by_name("on art").concept_id]).value_coded).fullname rescue ""
 				if state.upcase == "YES"
 					alerts << "Patient on ART Not in Local Program"
 				else
