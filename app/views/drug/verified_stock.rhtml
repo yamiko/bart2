@@ -20,7 +20,8 @@
         html += '<tr class="header"><td width="54%" colspan=2><b>Drug</b></td><td width="40%"><b>Total Usable Tins</b></td ><td colspan=2 >Earliest Expiry<br> <span style="float:left">Date MM/YY</span><span style="float:right">Units expiring that date</span></td></tr>'
         html +="<input type='hidden' name='delivery_date' value='<%= @delivery_date %>'>";
         html +="<input type='hidden' name='type' value='<%= params["verification type"] %>'>";
-  <%  @formatted.each {|drug|
+  <% h = 0
+  @formatted.each {|drug|
   name = @drug_short_names[drug]
    name = name.gsub("(", "")
      name = name.gsub(")", "")
@@ -39,13 +40,29 @@
          end
          i += 1
        end
-
+  drud_string = Drug.find_by_name("#{drug}").id
+  if splitted[0] == 'INH or H' || splitted[0] == 'Cotrimoxazole'
+       if h < 1
   %>
-        html += '<tr><td width="20%%">' + '<%= splitted[0] %></td>' + '<td align="right"  width="32%"><%= letters %></td><td class="newIunputs">'
-        html += "<input name='obs[" + '<%= drug %>' + "][amount]' type='text' onclick='showMe(this)' class='inputs' />"
-        html += "</td><td><input name='obs[" + '<%=  drug %>' + "][date]' type='text' onclick='showMe(this)' class='inputs'></td>";
-        html += "</td><td align='right'><input name='obs[" + '<%=  drug %>' + "][expire_amount]' type='text' onclick='showMe(this)' class='inputs'></td></tr>";
+                 html += '<tr><td width="20%" colspan=2>&nbsp;</td><td align="center"  width="32%">Pack Size</td><td align="center"> Expiry Date</td><td colspan=3 align="center"> Total Units</td></tr>'
+    <% end %>
+        html += '<tr><td width="20%">' + '<%= splitted[0] %></td>' + '<td align="right"  width="32%"><%= letters %></td><td class="newIunputs">'
+        html += "<select name='obs[" + '<%=  drug %>' + "][expire_amount]'  class='selects'>"
+        html += "<option></option><option value='30'>30 tabs</option><option value='60'>60 tabs</option><option value='90'>90 tabs</option><option value='100'>100 tabs</option><<option value='1000'>1000 tabs</option>/select>"
+
+        html += "</td><td><input name='obs[" + '<%=  drug %>' + "][date]' type='text' onclick='showMe(this)' class='inputs' ></td>";
+        html += "</td><td align='right'><input name='obs[" + '<%= drug %>' + "][amount]' type='text' onclick='showMe(this)' class='inputs' /></td></tr>";
         html += "<tr><td colspan =5 ><hr></td></tr>"
+
+    <% h += 1
+  else %>
+        html += '<tr><td width="20%">' + '<%= splitted[0] %></td>' + '<td align="right"  width="32%"><%= letters %></td><td class="newIunputs">'
+        html += "<input name='obs[" + '<%=  drug %>' + "][expire_amount]' type='text' onclick='showMe(this)' class='inputs'>"
+
+        html += "</td><td><input name='obs[" + '<%=  drug %>' + "][date]' type='text' onclick='showMe(this)' class='dates' ></td>";
+        html += "</td><td align='right'><input name='obs[" + '<%= drug %>' + "][amount]' type='text' onclick='showMe(this)' class='inputs' /></td></tr>";
+        html += "<tr><td colspan =6 ><hr></td></tr>"
+  <% end %>
   <%  } %>
       html += '</table></form>';
       document.getElementById('inputFrame'+tstCurrentPage).innerHTML = '<div id="summary">' + html + '</div>';
@@ -206,9 +223,25 @@
         align: center;
         display:none;
       }
-      .inputs {
+            .inputs {
         height: 37px;
-        font-size:18px;
+        font-size: 18px;
+        text-align: right;
+      }
+      .dates {
+        height: 37px;
+        font-size: 18px;
+        text-align: center;
+      }
+      .scrollTable {
+        height: 700px ! important;
+        overflow:scroll ! important;
+      }
+
+      .selects{
+        height: 45px;
+        font-size: 20px;
+        width: 40%;
       }
       .scrollTable {
         height: 700px ! important;
