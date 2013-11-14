@@ -444,10 +444,11 @@ class GenericDrugController < ApplicationController
     @end_month = params[:end_date].to_date.month
     @end_day = params[:end_date].to_date.day
     month_difference = (params[:end_date].to_date.year * 12 + params[:end_date].to_date.month) - (params[:start_date].to_date.year * 12 + params[:start_date].to_date.month)
+    days_difference = (params[:end_date].to_date.year * 12 + params[:end_date].to_date.month) - (params[:start_date].to_date.year * 12 + params[:start_date].to_date.day)
 
     start_date = params[:start_date].to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = params[:end_date].to_date.strftime('%Y-%m-%d 23:59:59')
-
+    
     Pharmacy.find_by_sql("
                     SELECT obs_datetime, value_numeric FROM obs o
                     INNER JOIN concept_name c ON c.concept_id = o.concept_id
@@ -456,23 +457,22 @@ class GenericDrugController < ApplicationController
                     WHERE et.name = 'dispensing'
                     AND c.name = 'amount dispensed' AND o.value_drug = #{params[:drug_id]}
                     AND obs_datetime >= '#{start_date}' AND obs_datetime <= '#{end_date}'
-                    AND o.voided = 0").each{|dispensed|
+                    AND o.voided = 0 ORDER BY obs_datetime ASC").each{|dispensed|
                       #raise  Pharmacy.expected(params[:drug_id], params[:start_date], dispensed.obs_datetime).to_yaml
                       @stocks << [dispensed.obs_datetime.to_date.strftime('%Y-%m-%d') ,  ((Pharmacy.expected(params[:drug_id], params[:start_date], dispensed.obs_datetime) / 60).round)]
                     }
    encounter_type = PharmacyEncounterType.find_by_name('New deliveries').id    
-    #Pharmacy.find_by_sql("
-    #                SELECT * FROM pharmacy_obs p
-    #                INNER JOIN pharmacy_encounter_type t ON t.pharmacy_encounter_type_id = p.pharmacy_encounter_type
-    #                AND pharmacy_encounter_type_id = #{encounter_type}
-    #                WHERE p.voided=0 AND drug_id=#{params[:drug_id]}
-     #               AND p.encounter_date >='#{start_date} 00:00:00'
-     #               AND p.encounter_date <='#{end_date}'").each{|received|
-     #                # raise "here"
-     #                 @stocks << [received.encounter_date.to_date.strftime('%Y-%m-%d') ,  ((Pharmacy.expected(params[:drug_id], params[:start_date], received.encounter_date) / 60).round)]
-     #               }
-    
-    @stocks = @stocks.to_json
+    Pharmacy.find_by_sql("
+                    SELECT * FROM pharmacy_obs p
+                    INNER JOIN pharmacy_encounter_type t ON t.pharmacy_encounter_type_id = p.pharmacy_encounter_type
+                    AND pharmacy_encounter_type_id = #{encounter_type}
+                    WHERE p.voided=0 AND drug_id=#{params[:drug_id]}
+                    AND p.encounter_date >='#{start_date} 00:00:00'
+                    AND p.encounter_date <='#{end_date}' ORDER BY encounter_date ASC").each{|received|
+                     # raise "here"
+                      @stocks << [received.encounter_date.to_date.strftime('%Y-%m-%d') ,  ((Pharmacy.expected(params[:drug_id], params[:start_date], received.encounter_date) / 60).round)]
+                    }
+     @stocks = @stocks.sort_by{|atr| atr[0]}.to_json
     render :partial => "stoke_chart" and return
   end
   def preformat_regimen
