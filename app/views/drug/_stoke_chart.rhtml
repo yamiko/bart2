@@ -30,16 +30,20 @@ $(function () {
                 type: 'line'
             },
             title: {
-                text: ''
+                text: '',
+                enabled: false
             },
             subtitle: {
                 text: ''
             },
             xAxis: {
-                categories: getDates(),
+                //categories: [12, 13],
                 tickmarkPlacement: 'on',
                 title: {
                     enabled: false
+                },
+                labels: {
+                  enabled: false
                 }
             },
             yAxis: {
@@ -57,16 +61,11 @@ $(function () {
                 valueSuffix: ' Tins'
             },
             plotOptions: {
-                area: {
-                    stacking: 'normal',
-                    lineColor: '#666666',
-                    lineWidth: 1,
-                    marker: {
-                        lineWidth: 1,
-                        lineColor: '#666666'
+               line: {
+                    dataLabels: {
+                        enabled: true
                     }
-                }
-            },
+            }},
             series: dataG()
         });
     });
