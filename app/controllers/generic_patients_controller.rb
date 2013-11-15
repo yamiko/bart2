@@ -2,7 +2,7 @@ class GenericPatientsController < ApplicationController
 	before_filter :find_patient, :except => [:void]
   
 	def show
-
+    
 		current_state = tb_status(@patient).downcase
 		@show_period = false
 		@show_period = true if current_state.match(/currently in treatment/i)
@@ -1024,7 +1024,7 @@ end
 			:conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
                AND obs_datetime <= ?",ConceptName.find_by_name('Appointment date').concept_id,
 				type.id,patient.id,session_date.strftime("%Y-%m-%d 23:59:59")
-			]).value_datetime.strftime("%a %d %B %Y") #rescue nil
+			]).value_datetime.strftime("%a %d %B %Y") rescue nil
 
     #raise next_appt.to_yaml
     alerts << ('Next appointment: ' + next_appt) unless next_appt.blank?
@@ -1452,7 +1452,16 @@ end
     patient = Patient.find(patient_id)
     patient_bean = PatientService.get_patient(patient.person)
     demographics = mastercard_demographics(patient)
-    
+
+    type = EncounterType.find_by_name("APPOINTMENT")
+    next_appt = Observation.find(:first,:order => "encounter_datetime DESC,encounter.date_created DESC",
+			:joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
+			:conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
+               AND obs_datetime <= ?",ConceptName.find_by_name('Appointment date').concept_id,
+				type.id, patient.id, date.strftime("%Y-%m-%d 23:59:59")
+			]).value_datetime.strftime("%a %d %B %Y") rescue nil
+
+    raise next_appt.to_yaml
     who_stage = demographics.reason_for_art_eligibility 
     initial_staging_conditions = demographics.who_clinical_conditions.split(';')
     destination = demographics.transferred_out_to
