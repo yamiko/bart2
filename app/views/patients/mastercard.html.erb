@@ -139,7 +139,7 @@
 
   </head>
   <body onload="hideLoadMsg();">
-    
+   
     <div id="content">
       <iframe id="main" style="border: 0px solid #fff;"
               src="/patients/<%= (!@type.nil? ? "general_mastercard" : "mastercard_printable")
@@ -152,7 +152,7 @@
 		    		<% report_url = session[:report_url] if !session[:report_url].blank? %>
 		    <% end %>
 	
-        <button onclick="window.location ='<%="#{report_url}"%>';" class="button navButton green"
+        <button onclick="window.location ='<%="#{next_task(@patient)}"%>';" class="button navButton green"
           id="nextButton" style="float: right; margin-right: 10px;" ><span>Finish</span>
         </button>
 
