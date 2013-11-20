@@ -799,6 +799,11 @@ class ApplicationController < GenericApplicationController
     #9. Manage prescriptions - TREATMENT
     #10. Manage appointments - APPOINTMENT
     #11. Manage ART adherence - ART ADHERENCE
+    hiv_program_status = Patient.find_by_sql("
+											SELECT patient_id, current_state_for_program(patient_id, 1, '#{session_date}') AS state, c.name as status
+											FROM patient p INNER JOIN program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(patient_id, 1, '#{session_date}')
+											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{patient.id}'").first.status rescue "Unknown"
+
 
     encounters_sequentially = CoreService.get_global_property_value('list.of.clinical.encounters.sequentially')
 
@@ -902,6 +907,7 @@ class ApplicationController < GenericApplicationController
             end 
           end if clinician_or_doctor
         when 'HIV STAGING'
+          #raise "here"
           arv_drugs_given = false
           PatientService.drug_given_before(patient,session_date).each do |order|
             next unless MedicationService.arv(order.drug_order.drug)
@@ -914,7 +920,7 @@ class ApplicationController < GenericApplicationController
           elsif encounter_available.blank? and not user_selected_activities.match(/Manage HIV staging visits/i)
             task.url = "/patients/show/#{patient.id}"
             return task
-          end if reason_for_art.nil? or reason_for_art.blank?
+          end if reason_for_art.nil? or reason_for_art.blank? or hiv_program_status == "Pre-ART (Continue)"
         when 'HIV RECEPTION'
           encounter_hiv_clinic_registration = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?",
                                          patient.id,EncounterType.find_by_name('HIV CLINIC REGISTRATION').id],
@@ -1016,17 +1022,6 @@ class ApplicationController < GenericApplicationController
     task.encounter_type = 'NONE'
     task.url = "/patients/show/#{patient.id}"
     return task
-  end
-
-  def next_task(patient)
-    session_date = session[:datetime].to_date rescue Date.today
-    task = main_next_task(Location.current_location, patient,session_date)
-    begin
-      return task.url if task.present? && task.url.present?
-      return "/patients/show/#{patient.id}" 
-    rescue
-      return "/patients/show/#{patient.id}" 
-    end
   end
 
   # Try to find the next task for the patient at the given location
