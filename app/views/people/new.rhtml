@@ -294,6 +294,13 @@
       :tt_onLoad => "seen(tstCurrentPage);__$('keyboard').style.display = 'none'",
       :ttMatchFromBeginning => "true")%>
 
+  <% if params[:relation].blank? %>
+  <%= select_tag("guardian_present", options_for_select([['Yes','YES'],['No','NO']]),
+      :id => "guardian_present",
+      :helpText => "Guardian Present",
+      :allowFreeText => false,
+      :ttMatchFromBeginning => "true")%>
+<% end %>
   <!-- Make sure patient is created -->
 
   <%= hidden_field_tag "person[patient]", "" %>
