@@ -42,6 +42,7 @@
         loadChart();
       });
 
+      var patientDash = "/patients/show/<%= params[:found_person_id] %>"
       tt_cancel_destination = "/clinic";
 
 <%if !@patient_bean.archived_filing_number.blank? && !@pp.match(/patient\sdied/i) %>
@@ -79,10 +80,33 @@
       document.getElementById('cover').style.display='inline'
     }
   }
-			
+
+  function confirmOperations(message, responseAction, okOnly) {
+
+    if(!__$("tstMessageBar")){
+        var tstMessageBar = document.createElement("div");
+        tstMessageBar.id = "tstMessageBar";
+        tstMessageBar.className = "messageBar";
+
+        __$("content").appendChild(tstMessageBar);
+
+    }
+
+    __$("tstMessageBar").innerHTML = (message ? message : "Some important tasks are yet to be done. " +
+        "Are you sure you still want to continue?") + "<br/>" +
+    (okOnly ? "" : "<button onmousedown='hideMessage(); cancelOperation(\"" + responseAction + "\");'><span>Yes</span></button>") +
+    "<button onmousedown='hideMessage(); cancelOperation(\"" + patientDash + "\");'><span>" + (okOnly ? "OK" : "No") + "</span></button>";
+    __$("tstMessageBar").style.display = "block";
+
+}
+
+function cancelOperation(action){
+    window.location = action;
+}
+
   function confirmAction(status){
     if(status == 0) {
-      confirmOperation("Patient files in archive cabinets.Move to active cabinets?",
+      confirmOperations("Patient files in archive cabinets.Move to active cabinets?",
       "/patients/set_new_filing_number/<%=@person.patient.id %>");
     } else if(status == 1) {
       confirmOperation("Patient was transferred out. Do you wish to continue?",
@@ -91,7 +115,7 @@
       confirmOperation("Patient is a defaulter. Do you wish to continue?",
       "<%=@task.url%>");
     }
-
+    
     return;
   }
 
