@@ -250,7 +250,9 @@ on the rest of the stations %>
 
 <%# Hide Find by ARV Number button on non-HIV workstations %>
 
-              <option value="javascript:selectProgram()" ttSize="265px">Find By?</option>
+              <% if @location =~ /HIV/ or @location =~ /TB/ %>
+                <option value="javascript:selectProgram()" ttSize="265px">Find By?</option>
+              <% end %>
 
               <% if development_environment? %>
                 <option value='/location?from=clinic' ttSize="100px">Swap Desk</option>
