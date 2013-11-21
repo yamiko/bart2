@@ -60,6 +60,8 @@ mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/migrate/
 #mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/bart2_views_schema_additions.sql
 mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/regimens.sql
 
+mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/modular_tables.sql
+
 #rake openmrs:bootstrap:load:defaults RAILS_ENV=$ENV
 #rake openmrs:bootstrap:load:site SITE=$SITE RAILS_ENV=production#
 
