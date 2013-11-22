@@ -89,15 +89,14 @@ Save and close the database.yml file.
 
 Using your editor open the application.yml file and make sure it looks something like the following:
 
-production:                                                                     
-    create_from_remote: no                                                         
-    use.user.selected.activities: yes                                              
-    filing.number.prefix: FN101,FN102                                              
-    auto_set_appointment: true                                                     
-    records_per_page: 15                                                           
-    debugger_sorting_attribute: arv_number                                         
-    logo: mw.gif
-
+       healthdata:
+                       create_from_remote: no
+                       use.user.selected.activities: yes
+                       filing.number.prefix: FN101,FN102
+                       auto_set_appointment: true
+                       records_per_page: 15
+                       debugger_sorting_attribute: arv_number
+                       logo: mw.gif
 
 
 
