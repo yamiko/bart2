@@ -695,7 +695,7 @@
   .tt_controls_cd4_percent #lessthan, .tt_controls_cd4_percent #greaterthan { display:block; float:right }
 </style>
 <body onload="removeValues()">
-<% if !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.squish != '' %>
+<% if !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.squish != '' && @current_hiv_program_status != "Pre-ART (Continue)" %>
 	<div class="inputPage NoKeyboard" id="page" style="display: block;">
 		<div id="trigger"></div>
 		<div id="infoBar" class="infoBarClass"></div>
