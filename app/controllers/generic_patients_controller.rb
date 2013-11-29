@@ -874,7 +874,7 @@ class GenericPatientsController < ApplicationController
 	tbStart = Encounter.find(:last, :conditions => ["encounter_type = ? AND patient_id =?", EncounterType.find_by_name("tb registration").id, @patient.person]) rescue nil
 if (tbStart != nil)	
 	duration = Time.now.to_date - tbStart.encounter_datetime.to_date
-	@variables["patientId"] = PatientIdentifier.find(:first, :conditions => ["patient_id = ? and identifier_type = ?",@patient_bean.patient_id, PatientIdentifierType.find_by_name("district tb number").id]).identifier rescue " "
+	@variables["patientId"] = PatientIdentifier.find(:last, :conditions => ["patient_id = ? and identifier_type = ?",@patient_bean.patient_id, PatientIdentifierType.find_by_name("district tb number").id]).identifier rescue " "
   	@variables["tbStart"] = tbStart.encounter_datetime.to_time.strftime('%A, %d %B %Y') rescue nil
 	@variables["arvStart"] = PatientService.patient_art_start_date(@patient.person).to_date.strftime(' %d- %b- %Y') rescue nil
 	@variables["regimen"] = Concept.find(:first, :conditions => ["concept_id = ?" ,PatientProgram.find(:all, :conditions => ["patient_id =? AND program_id = ?", @patient.person, Program.find_by_name("tb program").id]).last.current_regimen]).shortname rescue nil
