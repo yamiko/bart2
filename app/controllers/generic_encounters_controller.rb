@@ -681,13 +681,12 @@ class GenericEncountersController < ApplicationController
 
 	def void
 		@encounter = Encounter.find(params[:id])
-    tb_reg = EncounterType.find_by_name("TB registration").id
+    tb_reg = EncounterType.find_by_name("TB registration").id.to_i
     tb_prog = Program.find_by_name("TB PROGRAM").id
     if tb_reg == @encounter.encounter_type.to_i
-          void_prog = PatientState.find_by_sql(
-                            "SELECT * FROM patient_program WHERE patient_id = #{@encounter.patient_id}
-                             AND DATE(date_enrolled) = '#{@encounter.encounter_datetime.to_date}'
-                             AND voided = 0 AND program_id = #{tb_prog}").first rescue []
+          void_prog = PatientProgram.find(:last, :conditions => ['DATE(date_enrolled) = ? AND patient_id = ? AND program_id = ?',
+                                          @encounter.encounter_datetime.to_date, @encounter.patient_id, tb_prog])
+          
           if ! void_prog.blank?
              void_prog.void
           end
