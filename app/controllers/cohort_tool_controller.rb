@@ -234,7 +234,7 @@ class CohortToolController < GenericCohortToolController
                    
                   end
 
-    render :layout => "cohort"
+    render :layout => 'report'
   end
 
 	def case_findings2
