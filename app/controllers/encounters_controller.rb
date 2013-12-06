@@ -288,7 +288,7 @@ class EncountersController < GenericEncountersController
           @tb_classification = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name
 				end
 				if obs.concept_id == Concept.find_by_name('TB type').concept_id
-					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name
+					@tb_type = Concept.find(obs.value_coded).concept_names.typed("SHORT").first.name rescue obs.value_text
 				end
 			end
 

@@ -611,7 +611,7 @@ class GenericPeopleController < ApplicationController
       unless (params[:relation].blank?)
         redirect_to search_complete_url(person.id, params[:relation]) and return
       else
-      if  params[:guardian_present] == "YES"
+      if  ! params[:guardian_present].blank?
         new_encounter = {"encounter_datetime"=> (session[:datetime] rescue Date.today),
         "encounter_type_name"=>"HIV RECEPTION",
         "patient_id"=> person.id,
@@ -626,7 +626,7 @@ class GenericPeopleController < ApplicationController
       reason_obs[:encounter_id] = encounter.id
       reason_obs[:obs_datetime] = encounter.encounter_datetime || Time.now()
       reason_obs[:person_id] ||= encounter.patient_id
-      reason_obs['value_coded_or_text'] = "YES"
+      reason_obs['value_coded_or_text'] = params[:guardian_present]
       Observation.create(reason_obs)
 
       reason_obs = {}
@@ -636,7 +636,8 @@ class GenericPeopleController < ApplicationController
       reason_obs[:person_id] ||= encounter.patient_id
       reason_obs['value_coded_or_text'] = "YES"
       Observation.create(reason_obs)
-      
+      end
+      if  params[:guardian_present] == "YES"
       redirect_to "/relationships/search?patient_id=#{person.id}&return_to=/people/redirections?person_id=#{person.id}" and return
       else
       redirect_to "/people/redirections?person_id=#{person.id}" and return
