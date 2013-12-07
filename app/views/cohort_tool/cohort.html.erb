@@ -204,12 +204,13 @@
 	  .dataTable{
 		width:6%
 	  }
+          <% if ! params[:print].blank? %>
           #content {
           right:1% ! important;
           width:94% ! important;
           left:32% ! important;
           }
-
+          <% end %>
 	</style>
 
 	<title>Cohort<%= Location.current_health_center.name + "  " + @quarter %></title>

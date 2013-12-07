@@ -17,7 +17,11 @@
   </head>
   <body id="mateme">  
     <div id="container">
-      <div id="content">
+        <% if params[:print].blank? %>
+            <div id="content"  style = "position : relative; width : 98%; margin-left : -49%;">
+        <% else %>
+            <div id="content">
+        <% end %>
         <div id="description" style="color:#777;position:absolute;margin-top:-70px;">
           <% if show_intro_text %>
             This demonstration site contains the work of <a href="http://pih.org" style="color:white">Partners In Health</a>
@@ -43,6 +47,11 @@
             <button id="switch_view" class="button navButton blue" onclick="showReport();"><span>Survival Analysis</span></button>
 			<button id="switch_view_children" class="button navButton blue" onclick="showReportChildren();"><span>Children Survival Analysis</span></button>
 			<button id="switch_view_women" class="button navButton blue" onclick="showReportWomen();"><span>Women Survival Analysis</span></button>
+                        <% if ! params[:print].blank? %>
+                              <button id="version" class="blue left" onclick="window.location = '/cohort_tool/cohort?quarter=<%=  @quarter%>'"><span>J2 Version</span></button>
+                        <% else %>
+                              <button id="version" class="blue left" onclick="window.location = '/cohort_tool/cohort?print=true&quarter=<%=  @quarter%>'"><span>Print Version</span></button>
+                        <% end %>
             <div id="tt_extraButtons"/>
           </div>
           
