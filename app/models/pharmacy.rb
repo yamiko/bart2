@@ -15,13 +15,14 @@ class Pharmacy < ActiveRecord::Base
                       :group => "drug_id").total_removed.to_f rescue 0
   end
 
-  def self.drug_dispensed_stock_adjustment(drug_id,quantity,encounter_date,reason = nil)
+  def self.drug_dispensed_stock_adjustment(drug_id,quantity,encounter_date,reason = nil, expiring_units = nil)
     encounter_type = PharmacyEncounterType.find_by_name("Tins removed").id if encounter_type.blank?
     encounter =  self.new()
     encounter.pharmacy_encounter_type = encounter_type
     encounter.drug_id = drug_id
     encounter.encounter_date = encounter_date
     encounter.value_numeric = quantity.to_f
+    encounter.expiring_units = expiring_units unless expiring_units.blank?
     encounter.value_text = reason unless reason.blank?
     encounter.save
   end
@@ -75,7 +76,7 @@ class Pharmacy < ActiveRecord::Base
   end
 
 
-  def self.new_delivery(drug_id,pills,date = Date.today,encounter_type = nil,expiry_date = nil, barcode = nil)
+  def self.new_delivery(drug_id,pills,date = Date.today,encounter_type = nil,expiry_date = nil, barcode = nil, expiring_units = nil)
     encounter_type = PharmacyEncounterType.find_by_name("New deliveries").id if encounter_type.blank?
     delivery =  self.new()
     delivery.pharmacy_encounter_type = encounter_type
@@ -84,7 +85,9 @@ class Pharmacy < ActiveRecord::Base
     delivery.value_text = barcode
     delivery.expiry_date = expiry_date unless expiry_date.blank?
     delivery.value_numeric = pills.to_f
-
+    if expiring_units
+      delivery.expiring_units = expiring_units
+    end
     if expiry_date
       if expiry_date.to_date < Date.today
         delivery.voided = 1
