@@ -46,8 +46,13 @@ class GenericDrugController < ApplicationController
     regimen = Regimen.find(:all,:order => 'regimen_index',
       :conditions => ['program_id = ?', 1],
       :include => :regimen_drug_orders)#.to_yaml
+    #raise regimen.to_yaml
     regimen = regimen.map do |r|
+      if ! r.regimen_drug_orders.blank?
 			[r.regimen_drug_orders.map(&:to_s)[0].split(':')[0]]
+      else
+        []
+      end
 		end
     
     @names = {}
@@ -148,19 +153,21 @@ class GenericDrugController < ApplicationController
     params[:obs].each{ |delivered|
      drug_id = Drug.find_by_name(delivered[0]).id rescue []
       delivery_date = params[:delivery_date].to_date
+      barcode = params[:identifier]
+      number_of_tins = delivered[1]["amount"].to_i.to_f
+      number_of_pills_per_tin = delivered[1]["expire_amount"].to_i.to_f
+      begin
       date_value = delivered[1]['date'].split("/")
       current_century = Date.today.year.to_s.chars.each_slice(2).map(&:join)[0].to_i
-      
       year = date_value[1]
       month = date_value[0]
       expiry_date = "#{current_century}#{year}-#{month}-#{01}".to_date
       expiry_date += 1.months
       expiry_date -= 1.days
-      
-      number_of_tins = delivered[1]["amount"].to_i.to_f
-      number_of_pills_per_tin = delivered[1]["expire_amount"].to_i.to_f
       number_of_pills = (number_of_tins * number_of_pills_per_tin)
-      barcode = params[:identifier]
+      rescue
+        expiry_date = Date.today
+      end
       Pharmacy.new_delivery(drug_id,number_of_pills,delivery_date,nil,expiry_date,barcode)
     }
     #add a notice
@@ -170,12 +177,13 @@ class GenericDrugController < ApplicationController
 
   def edit_stock
     if request.method == :post
+     # raise params.to_yaml
       edit_reason = params[:reason] rescue ""
-      encounter_datetime = params[:delivery_time].to_dte rescue Date.today
+      encounter_datetime = params[:delivery_time].to_date #rescue Date.today
       params[:obs].each{ |delivered|
               next if delivered[1]["amount"].to_i == 0
               drug_id = Drug.find_by_name(delivered[0]).id rescue []
-              encounter_datetime = params[:delivery_time].to_dte rescue Date.today
+              encounter_datetime = params[:delivery_time].to_date #rescue Date.today
               date_value = delivered[1]['date'].split("/")
               current_century = Date.today.year.to_s.chars.each_slice(2).map(&:join)[0].to_i
 
@@ -186,12 +194,13 @@ class GenericDrugController < ApplicationController
               expiry_date -= 1.days
 
               number_of_tins = delivered[1]["amount"].to_i.to_f
-              number_of_pills_per_tin = delivered[1]["expire_amount"].to_i.to_f
-              number_of_pills = (number_of_tins * number_of_pills_per_tin)
+              expiring_units = delivered[1]["expire_amount"].to_i.to_f
+              number_of_pills = (number_of_tins * 60)
               if edit_reason == 'Receipts from other clinics'
-                Pharmacy.new_delivery(drug_id,number_of_pills,encounter_datetime,nil,expiry_date,edit_reason)
+                Pharmacy.new_delivery(drug_id,number_of_pills,encounter_datetime,nil,expiry_date,edit_reason,expiring_units)
               else
-                Pharmacy.drug_dispensed_stock_adjustment(drug_id,number_of_pills,encounter_datetime,edit_reason)
+               # raise number_of_pills.to_yaml
+                Pharmacy.drug_dispensed_stock_adjustment(drug_id,number_of_pills,encounter_datetime,edit_reason, expiring_units)
               end
       }
       #flash[:notice] = "#{params[:drug_name]} successfully edited"
@@ -449,30 +458,27 @@ class GenericDrugController < ApplicationController
     start_date = params[:start_date].to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = params[:end_date].to_date.strftime('%Y-%m-%d 23:59:59')
     
-    Pharmacy.find_by_sql("
-                    SELECT obs_datetime, value_numeric FROM obs o
-                    INNER JOIN concept_name c ON c.concept_id = o.concept_id
-                    INNER JOIN encounter e ON e.encounter_id = o.encounter_id
-                    INNER JOIN encounter_type et ON et.encounter_type_id = e.encounter_type
-                    WHERE et.name = 'dispensing'
-                    AND c.name = 'amount dispensed' AND o.value_drug = #{params[:drug_id]}
-                    AND obs_datetime >= '#{start_date}' AND obs_datetime <= '#{end_date}'
-                    AND o.voided = 0 ORDER BY obs_datetime ASC").each{|dispensed|
-                      #raise  Pharmacy.expected(params[:drug_id], params[:start_date], dispensed.obs_datetime).to_yaml
-                      @stocks << [dispensed.obs_datetime.to_date.strftime('%Y-%m-%d') ,  ((Pharmacy.expected(params[:drug_id], params[:start_date], dispensed.obs_datetime) / 60).round)]
-                    }
-   encounter_type = PharmacyEncounterType.find_by_name('New deliveries').id    
-    Pharmacy.find_by_sql("
-                    SELECT * FROM pharmacy_obs p
-                    INNER JOIN pharmacy_encounter_type t ON t.pharmacy_encounter_type_id = p.pharmacy_encounter_type
-                    AND pharmacy_encounter_type_id = #{encounter_type}
-                    WHERE p.voided=0 AND drug_id=#{params[:drug_id]}
-                    AND p.encounter_date >='#{start_date} 00:00:00'
-                    AND p.encounter_date <='#{end_date}' ORDER BY encounter_date ASC").each{|received|
-                     # raise "here"
-                      @stocks << [received.encounter_date.to_date.strftime('%Y-%m-%d') ,  ((Pharmacy.expected(params[:drug_id], params[:start_date], received.encounter_date) / 60).round)]
-                    }
-     @stocks = @stocks.sort_by{|atr| atr[0]}.to_json
+    n = params[:end_date].to_date
+    # raise Pharmacy.expected(params[:drug_id], params[:start_date], params[:end_date]).to_yaml
+
+      while n >= params[:start_date].to_date
+        new_deliveries = Pharmacy.expected(params[:drug_id], params[:start_date], n)
+        #raise new_deliveries.to_yaml
+        # new_deliveries = Pharmacy.active.find(:first,
+        # :conditions =>["pharmacy_encounter_type=? AND drug_id =? AND encounter_date >= ? AND encounter_date <= ?",encounter_type, params[:drug_id], params[:start_date], n ],
+        # :order => "encounter_date DESC,date_created DESC")
+        current_stock[n] = (new_deliveries / 60).round #rescue 0
+        n = n - 1.days
+      end
+
+    #new_deliveries.each{|delivery|
+    #  current_stock[delivery.encounter_date] = (delivery.value_numeric / 60 ).round #if current_stock[delivery.drug_id].blank?
+    # }
+
+    (current_stock || {}).sort{|a,b|a[0].to_date <=> b[0].to_date}.each do |date,weight|
+      @stocks << [date.to_date.strftime('%d.%b.%y') , weight]
+    end
+    @stocks = @stocks.to_json
     render :partial => "stoke_chart" and return
   end
   def preformat_regimen
