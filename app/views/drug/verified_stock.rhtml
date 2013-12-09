@@ -23,9 +23,9 @@
   <% h = 0
   @formatted.each {|drug|
   name = @drug_short_names[drug]
-   name = name.gsub("(", "")
-     name = name.gsub(")", "")
-     splitted = name.split(" ")
+   name = name.gsub("(", "") rescue ""
+     name = name.gsub(")", "") rescue ""
+     splitted = name.split(" ") rescue ""
       i = 1
       letters = " "
        while (i < splitted.length) do
@@ -40,7 +40,7 @@
          end
          i += 1
        end
-  drud_string = Drug.find_by_name("#{drug}").id
+  drud_string = Drug.find_by_name("#{drug}").id rescue ""
   if splitted[0] == 'INH or H' || splitted[0] == 'Cotrimoxazole'
        if h < 1
   %>

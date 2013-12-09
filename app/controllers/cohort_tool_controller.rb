@@ -1222,7 +1222,7 @@ class CohortToolController < GenericCohortToolController
 		session[:field] = nil
 		session[:cohort]["outcomes"] = {} if session[:cohort]["outcomes"].blank?
     @quarter = params[:quarter]
-		@logo = params[:logo]
+		@logo = CoreService.get_global_property_value('logo').to_s
     if @quarter.match(/to/i)
       start_date,end_date = @quarter.split('to')
       start_date = start_date.to_date
@@ -1343,7 +1343,7 @@ class CohortToolController < GenericCohortToolController
 		session[:field] = nil
     @quarter = params[:quarter]
 
-		@logo = params[:logo]
+		@logo = CoreService.get_global_property_value('logo').to_s
     if @quarter.match(/to/i)
       start_date,end_date = @quarter.split('to')
       start_date = start_date.to_date
@@ -1359,7 +1359,7 @@ class CohortToolController < GenericCohortToolController
 	def women_survival
 		session[:field] = nil
     @quarter = params[:quarter]
-		@logo = params[:logo]
+		@logo = CoreService.get_global_property_value('logo').to_s
     if @quarter.match(/to/i)
       start_date,end_date = @quarter.split('to')
       start_date = start_date.to_date
