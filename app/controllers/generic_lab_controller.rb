@@ -7,6 +7,7 @@ class GenericLabController < ApplicationController
     (Lab.results(@patient, patient_ids) || []).map do | short_name , test_name , range , value , test_date |
       @results << [short_name.gsub('_',' '),"/lab/view?test=#{short_name}&patient_id=#{@patient.id}"]
     end
+    
     @enter_lab_results = GlobalProperty.find_by_property('enter.lab.results').property_value == 'true' rescue false
     render :layout => 'menu'
   end
@@ -82,12 +83,15 @@ class GenericLabController < ApplicationController
   def graph
     @results = []
     params[:results].split(';').map do | result |
+
       date = result.split(',')[0].to_date rescue '1900-01-01'
+      modifier = result.split(',')[1].split(" ")[0].sub('more_than','>').sub('less_than','<')
       value = result.split(',')[1].sub('more_than','').sub('less_than','').sub('=','') rescue nil
       next if value.blank?
       value = value.to_f
-      @results << [ date , value ]
-    end 
+
+      @results << [ date , value, modifier ]
+    end
 
     @patient = Patient.find(params[:patient_id])
     @patient_bean = PatientService.get_patient(@patient.person)
