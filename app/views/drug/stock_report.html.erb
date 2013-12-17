@@ -16,6 +16,9 @@
     float:left
   }
 
+  a{
+    text-decoration: none ! important;
+  }
   .create_button a{
     background-color: #7784AE;
     border-bottom: 1px outset black;
@@ -122,7 +125,7 @@
           <td>&nbsp;</td>
         </tr>
         <tr>
-          <td colspan="2" style="text-align:center;">Dispensed</td>
+          <td colspan="2" style="text-align:center;">Dispensed<font style="color:blue">(d)</font><br></td>
         </tr>
       </table>
     </td>
@@ -245,12 +248,12 @@
           <% relocated = (values['relocated'] / 60).round 
             if relocated < 0
           %>
-          <td style="width:100px;color:red;"  class='negative_numbers' align="center">
-              <a href="/drug/stock_report_edit?drug_id=<%=values['drug_id']%>&edit_reason=relocated&max_date=<%=values['end_date']%>&start_date=<%=@start_date%>&end_date=<%=@end_date%>"><%=relocated %></a>
+          <td style="width:100px;"  class='' align="center">
+              <a style="color:black;" href="/drug/stock_report_edit?drug_id=<%=values['drug_id']%>&edit_reason=relocated&max_date=<%=values['end_date']%>&start_date=<%=@start_date%>&end_date=<%=@end_date%>"><%=relocated %></a>
             </td>
           <%else%>
-            <td style="width:100px;color:red;" class='negative_numbers' align="center">
-              <a href="/drug/stock_report_edit?drug_id=<%=values['drug_id']%>&edit_reason=relocated&max_date=<%=values['end_date']%>&start_date=<%=@start_date%>&end_date=<%=@end_date%>">- <%=relocated %></a>
+            <td style="width:100px;color:black;" class='' align="center">
+              <a   style="color:black;" href="/drug/stock_report_edit?drug_id=<%=values['drug_id']%>&edit_reason=relocated&max_date=<%=values['end_date']%>&start_date=<%=@start_date%>&end_date=<%=@end_date%>"> <%=relocated %></a>
             </td>
           <%end%>
         </tr>
@@ -262,9 +265,9 @@
         <% dispensed = (values['dispensed'] / 60).round
            if dispensed < 0
         %>
-          <td style="text-align:center;color:red;"><%=dispensed %></td>
+          <td style="text-align:center;"><%=dispensed %></td>
         <%else%>
-          <td style="text-align:center;color:red;">- <%=dispensed %></td>
+          <td style="text-align:center;"> <%=dispensed %></td>
         <%end%>
         </tr>
       </table>
