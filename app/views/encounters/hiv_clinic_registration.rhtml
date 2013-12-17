@@ -48,7 +48,7 @@
 
 	.tt_controls_confirmatory_hiv_test_month .keyboard { display:none; }
 
-        #tt_page_month_of_cd4_count .inputFrameClass {  height: 86%; }
+       #tt_page_month_of_cd4_count .inputFrameClass {  height: 86%; }
 
         #tt_page_month_of_cd4_count #viewport {  height: 85%; }
 
@@ -283,7 +283,9 @@ function checkConfirmDate(){
   function checkBirthDate(){
     var dateCheck = "";
     var confirmatoryHIVtestDate = new Date ($('confirmatory_hiv_test_date').value);
-    var patientBirthDate = new Date("<%= @patient.person.birthdate.year %>","<%= @patient.person.birthdate.month - 1 %>","<%= @patient.person.birthdate.day %>");
+    //var patientBirthDate = new Date("<%#= @patient.person.birthdate.year %>","<%#= @patient.person.birthdate.month - 1 %>","<%#= @patient.person.birthdate.day %>");
+    var patientBirthDate = new Date("<%= @patient_bean.birthdate %>")
+  
 
     if (patientBirthDate <= confirmatoryHIVtestDate){
       dateCheck = 'true'

@@ -1200,7 +1200,11 @@ EOF
 		patient.first_name = person.names.first.given_name rescue nil
 		patient.last_name = person.names.first.family_name rescue nil
     patient.sex = sex(person)
-    patient.age = age(person, current_date)
+    if age(person, current_date).blank?
+      patient.age = 0 
+    else
+      patient.age = age(person, current_date) 
+    end
     patient.age_in_months = age_in_months(person, current_date)
     patient.dead = person.dead
     patient.birth_date = birthdate_formatted(person)
@@ -1642,14 +1646,22 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
         person.birthdate.strftime("??/???/%Y")
       end
     else
-      person.birthdate.strftime("%d/%b/%Y")
+      if !person.birthdate.blank?
+        person.birthdate.strftime("%d/%b/%Y")
+      else
+        return '00/00/0000'
+      end
     end
   end
 
   def self.age_in_months(person, today = Date.today)
-    years = (today.year - person.birthdate.year)
-    months = (today.month - person.birthdate.month)
-    (years * 12) + months
+    if !person.birthdate.blank?
+      years = (today.year - person.birthdate.year)
+      months = (today.month - person.birthdate.month)
+      (years * 12) + months
+    else
+      return 0
+    end
   end
 
   def self.period_on_treatment(start_date, today = Date.today)

@@ -46,8 +46,9 @@ WHERE patient_state_id = #{last_state}
 EOF
 
 				end
-				
-        puts">>>>>>>#{patient.patient_id}....From: #{enrolled_date.to_date}......To: #{correct_start_date.to_date}........."
+				enrolled_date = enrolled_date.to_date if !enrolled_date.blank?
+				correct_start_date = correct_start_date.to_date if !correct_start_date.blank?
+        puts">>>>>>>#{patient.patient_id}....From: #{enrolled_date}......To: #{correct_start_date.to_date}........."
       end
 
 
