@@ -75,7 +75,7 @@ class DrugController < GenericDrugController
     drug_summary["dispensations"] =  dispensations
     drug_summary["prescriptions"] = prescriptions
 
-    return drug_summary.to_json
+    render :text => drug_summary.to_json and return
     
   end
 end
