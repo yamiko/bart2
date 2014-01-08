@@ -24,7 +24,7 @@ class DrugController < GenericDrugController
         o.order_type_id = #{drug_order_type_id} AND e.encounter_datetime >= \"#{dispensation_date} 00:00:00\"
         AND e.encounter_datetime <= \"#{dispensation_date} 23:59:59\"
         AND obs.concept_id = #{amount_dispensed_concept}
-        AND e.voided=0 GROUP BY d.name ORDER BY e.encounter_datetime DESC LIMIT 100")
+        AND e.voided=0 GROUP BY d.name")
 
 =begin
     prescription_data = connection.select_all("SELECT SUM(do.quantity)/60 as Bottles, d.name as DrugName FROM encounter e INNER JOIN encounter_type et
@@ -45,7 +45,7 @@ class DrugController < GenericDrugController
         WHERE e.encounter_type = #{treatment_encounter_type_id} AND
         o.order_type_id = #{drug_order_type_id} AND e.encounter_datetime >= \"#{dispensation_date} 00:00:00\"
         AND e.encounter_datetime <= \"#{dispensation_date} 23:59:59\"
-        AND e.voided=0  ORDER BY e.encounter_datetime DESC LIMIT 100")
+        AND e.voided=0")
 
     dispensations = {}
     dispensation_data.each do |data|
