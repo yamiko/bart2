@@ -15,7 +15,7 @@ class DrugController < GenericDrugController
     treatment_encounter_type_id = treatment_encounter_type["encounter_type_id"]
     amount_dispensed_concept = Concept.find_by_name('Amount dispensed').id
 
-    dispensation_data = connection.select_all("SELECT SUM(obs.value_numeric)/60 as Bottles, d.name as DrugName FROM encounter e INNER JOIN encounter_type et
+    dispensation_data = connection.select_all("SELECT SUM(obs.value_numeric) as Bottles, d.name as DrugName FROM encounter e INNER JOIN encounter_type et
         ON e.encounter_type = et.encounter_type_id INNER JOIN obs ON e.encounter_id=obs.encounter_id
         INNER JOIN orders o
         ON obs.order_id = o.order_id INNER JOIN drug_order do ON o.order_id = do.order_id
@@ -37,7 +37,7 @@ class DrugController < GenericDrugController
         AND e.voided=0 GROUP BY d.name ORDER BY e.encounter_datetime DESC LIMIT 100")
 =end
 
-    prescription_data = connection.select_all("SELECT (ABS(DATEDIFF(o.auto_expire_date, o.start_date)) * do.equivalent_daily_dose)/60 as Bottles,
+    prescription_data = connection.select_all("SELECT (ABS(DATEDIFF(o.auto_expire_date, o.start_date)) * do.equivalent_daily_dose) as Bottles,
         d.name as DrugName FROM encounter e INNER JOIN encounter_type et
         ON e.encounter_type = et.encounter_type_id INNER JOIN orders o
         ON e.encounter_id = o.encounter_id INNER JOIN drug_order do ON o.order_id = do.order_id
