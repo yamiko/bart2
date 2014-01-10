@@ -1461,7 +1461,6 @@ end
 				type.id, patient.id, date.strftime("%Y-%m-%d 23:59:59")
 			]).value_datetime.strftime("%a %d %B %Y") rescue nil
 
-    raise next_appt.to_yaml
     who_stage = demographics.reason_for_art_eligibility 
     initial_staging_conditions = demographics.who_clinical_conditions.split(';')
     destination = demographics.transferred_out_to
@@ -1923,6 +1922,8 @@ end
   end
 
   def visits(patient_obj, encounter_date = nil)
+    session_date = session[:datetime].blank? ? Date.today : session[:datetime].to_date
+    
     transfer_in_date = patient_obj.person.observations.recent(1).question("ART start date").all.collect{|o|
 			o.value_datetime }.last.to_date rescue []
     patient_visits = {}  
@@ -2080,18 +2081,34 @@ end
 					program_id,encounter_date.to_date,patient_obj.patient_id],:order => "patient_state_id ASC")
     end  
 
+    all_patient_states = []
+    patient_states.each do |state|
+      state_name = state.program_workflow_state.concept.fullname rescue 'Unknown state'
+      all_patient_states << [state_name, state.start_date]
+    end
+
+    defaulted_dates = PatientService.patient_defaulted_dates(patient_obj, session_date) rescue nil
+
+    if defaulted_dates
+      defaulted_dates.each do |pat_def_date|  
+        state_name = 'Defaulter'
+        all_patient_states << [state_name, pat_def_date]
+      end
+    end
+
 #=begin
-    patient_states.each do |state| 
-      visit_date = state.start_date.to_date rescue nil
+    all_patient_states.each do |outcome, outcome_date| 
+      visit_date = outcome_date.to_date rescue nil
       next if visit_date.blank?
       patient_visits[visit_date] = Mastercard.new() if patient_visits[visit_date].blank?
-      patient_visits[visit_date].outcome = state.program_workflow_state.concept.fullname rescue 'Unknown state'
+      patient_visits[visit_date].outcome = outcome
       if patient_visits[visit_date].outcome.match(/transferred in/i)
          patient_visits[visit_date].outcome = "ON ARV" 
       end
-      patient_visits[visit_date].date_of_outcome = state.start_date
+      patient_visits[visit_date].date_of_outcome = outcome_date
 
     end
+
 #=end
 
     patient_visits.sort.each do |visit_date,data|
