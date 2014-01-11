@@ -720,4 +720,82 @@ DELIMITER ;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+
+DROP FUNCTION IF EXISTS `current_defaulter_date`;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_defaulter_date`(my_patient_id INT, my_end_date DATETIME) RETURNS varchar(10) CHARSET latin1
+    DETERMINISTIC
+BEGIN
+	DECLARE done INT DEFAULT FALSE;
+	DECLARE my_start_date, my_expiry_date, my_obs_datetime, default_date DATETIME;
+	DECLARE my_daily_dose, my_quantity, my_pill_count, my_total_text, my_total_numeric DECIMAL;
+	DECLARE my_drug_id, flag INT;
+
+	DECLARE cur1 CURSOR FOR SELECT d.drug_inventory_id, o.start_date, d.equivalent_daily_dose daily_dose, d.quantity, o.start_date FROM drug_order d
+		INNER JOIN arv_drug ad ON d.drug_inventory_id = ad.drug_id		
+		INNER JOIN orders o ON d.order_id = o.order_id
+			AND d.quantity > 0
+			AND o.voided = 0
+			AND o.start_date <= my_end_date
+			AND o.patient_id = my_patient_id;
+
+	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+	SELECT MAX(o.start_date) INTO @obs_datetime FROM drug_order d
+		INNER JOIN arv_drug ad ON d.drug_inventory_id = ad.drug_id		
+		INNER JOIN orders o ON d.order_id = o.order_id
+			AND d.quantity > 0
+			AND o.voided = 0
+			AND o.start_date <= my_end_date
+			AND o.patient_id = my_patient_id
+		GROUP BY o.patient_id;
+
+	OPEN cur1;
+
+	SET flag = 0;
+
+	read_loop: LOOP
+		FETCH cur1 INTO my_drug_id, my_start_date, my_daily_dose, my_quantity, my_obs_datetime;
+
+		IF done THEN
+			CLOSE cur1;
+			LEAVE read_loop;
+		END IF;
+
+		IF DATE(my_obs_datetime) = DATE(@obs_datetime) THEN
+
+            SET my_pill_count = drug_pill_count(my_patient_id, my_drug_id, my_obs_datetime);
+
+            SET @expiry_date = ADDDATE(my_start_date, ((my_quantity + my_pill_count)/my_daily_dose));
+
+			IF my_expiry_date IS NULL THEN
+				SET my_expiry_date = @expiry_date;
+			END IF;
+
+			IF @expiry_date < my_expiry_date THEN
+				SET my_expiry_date = @expiry_date;
+            END IF;
+        END IF;
+    END LOOP;
+
+    IF DATEDIFF(my_end_date, my_expiry_date) > 56 THEN
+      SET default_date = ADDDATE(my_expiry_date, 56);
+    END IF;
+
+	RETURN default_date;
+END */;;
+DELIMITER ;
+
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
 -- Dump completed on 2012-05-03 21:13:17

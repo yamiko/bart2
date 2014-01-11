@@ -1441,7 +1441,64 @@ EOF
 
 		return person
 	end
+  
+  def self.patient_defaulted_dates(patient_obj, session_date)
+    #raise session_date.to_yaml
+    #getting all patient's dispensations encounters
+    all_dispensations = Observation.find_by_sql("SELECT obs.person_id, obs.obs_datetime AS obs_datetime, d.order_id
+                            FROM drug_order d 
+                              LEFT JOIN orders o ON d.order_id = o.order_id
+                              LEFT JOIN obs ON d.order_id = obs.order_id
+                            WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug
+                                                          WHERE concept_id IN (SELECT concept_id 
+                                                                               FROM concept_set
+                                                                               WHERE concept_set = 1085))
+                                                          AND quantity > 0
+                                                          AND obs.voided = 0
+                                                          AND o.voided = 0
+                                                          and obs.person_id = #{patient_obj.patient_id}
+                                                          GROUP BY DATE(obs_datetime) order by obs_datetime")
+    
+    outcome_dates = []
+    dates = 0
+    total_dispensations = all_dispensations.length
+    defaulted_dates = all_dispensations.map(&:obs_datetime)
+    
+    all_dispensations.each do |disp_date|
+      d = ((dates - total_dispensations) + 1)
 
+      prev_dispenation_date = all_dispensations[d].obs_datetime.to_date
+
+      if d == 0
+        previous_date = session_date
+        defaulted_state = ActiveRecord::Base.connection.select_value "                  
+        SELECT current_defaulter(#{disp_date.person_id},'#{previous_date}')"
+
+        if defaulted_state.to_i == 1
+          defaulted_date = ActiveRecord::Base.connection.select_value "                   
+            SELECT current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
+
+          outcome_dates << defaulted_date.to_date if !defaulted_dates.include?(defaulted_date.to_date)
+        end
+      else
+        previous_date = prev_dispenation_date.to_date
+        
+        defaulted_state = ActiveRecord::Base.connection.select_value "                   
+        SELECT current_defaulter(#{disp_date.person_id},'#{previous_date}')"
+
+        if defaulted_state.to_i == 1
+          defaulted_date = ActiveRecord::Base.connection.select_value "
+            SELECT current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
+
+          outcome_dates << defaulted_date.to_date if !defaulted_dates.include?(defaulted_date.to_date)
+        end
+      end
+      
+      dates += 1
+    end
+    #raise outcome_dates.to_yaml
+    return outcome_dates
+  end
 
   # Get the any BMI-related alert for this patient
   def self.current_bmi_alert(patient_weight, patient_height)
