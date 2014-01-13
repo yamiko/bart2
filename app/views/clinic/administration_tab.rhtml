@@ -42,7 +42,8 @@
 <script>
   function setInnerHtmlData(id,path,result, target) {
     td = document.getElementById(id);
-    if ((result == "Transfer Patient in")|| (result == "Merge Patients" )) {
+    if ((result == "Transfer Patient in")|| (result == "Merge Patients" )
+     || (result == "Merge Patients (New Interface)" )) {
       target = "_parent"
       td.innerHTML = "<a href ='" + path + "' target='" + target + "'>" +  result + "</a>"
       return td.innerHTML
