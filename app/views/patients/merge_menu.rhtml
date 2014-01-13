@@ -40,7 +40,7 @@
 
 table{
     font-size:20px;
-    padding-left:10px;
+    /*padding-left:10px;*/
   }
 
 #left_div {
@@ -134,16 +134,16 @@ input{
     bottom: 0px;
     font-weight: bold;
     font-size: 14pt;
-    margin-left: 7%;
+    margin-left: 4%;
     }
 div{
     -moz-user-select: none;
     }
 #primary_button{
-    margin-left: 7%;
+    margin-left: 4%;
     }
 #secondary_button{
-    margin-left: 7%;
+    margin-left: 4%;
     }
 </style>
 </head>
@@ -151,13 +151,13 @@ div{
 <br/>
 
 <div id='primary_patient_div'>
-  Find primary patient <%=  "&nbsp;" * 4 %> <input id="primary_patient" name="primary_patient" type="text" />
+  Find primary patient <%=  "&nbsp;" * 2 %> <input id="primary_patient" name="primary_patient" type="text" />
   <a id = "primary_button" onmousedown="showKeyPad('primary_patient')" class ='find_buttons'>Find patients</a>
   <span style="display:none" id = "disabled_button_left">Find patients</span>
 </div>
 
 <div id='second_patient_div'>
-  Find second patient <%=  "&nbsp;" * 4 %> <input id="secondary_patient" name="secondary_patient" type="text" />
+  Find secondary patient <%=  "&nbsp;" * 2 %> <input id="secondary_patient" name="secondary_patient" type="text" />
   <a id = "secondary_button" onmousedown="showKeyPad('secondary_patient')" class ='find_buttons'>Find patients</a>
   <span style="display:none" id = "disabled_button_right">Find patients</span>
 </div>
@@ -354,6 +354,7 @@ function showNumericKeypad(){
     name = row[0].innerHTML ; arv_number = row[3].innerHTML
     age = row[1].innerHTML ; national_id = row[4].innerHTML
     guardian = row[2].innerHTML ; ta = row[5].innerHTML;
+    total_encounters = row[6].innerHTML; latest_visit = row[7].innerHTML;
 
     table_name = "data_table_" + patient_id
 
@@ -367,7 +368,9 @@ function showNumericKeypad(){
                 "<tr><td>" + guardian + "</td>" +
                 "<td>" + arv_number + "</td></tr>" +
                 "<tr><td>" + national_id + "</td>" +
-                "<td>" + ta + "</td>" +
+                "<td>" + ta + "</td></tr>" +
+                "<tr><td>" + total_encounters + "</td>" +
+                "<td>" + latest_visit + "</td>" +
                 "</tr></table>"
 
     if (side == 'right') {
