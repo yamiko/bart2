@@ -118,7 +118,7 @@ input{
     color:#00f;
     padding: 10px;
     border: 2px solid #DDDDDD;
-    width: 255px;
+    width: 200px;
     }
 
 #disabled_button_left, #disabled_button_right{
@@ -272,12 +272,12 @@ function showNumericKeypad(){
      primary_button.style.display = ''
    } else {
      if (side == 'primary_patient') {
-       document.getElementById('keypad').style.left='53%'
+       document.getElementById('keypad').style.left='47%'
        secondary_button.style.display = 'none'
        disabled_button_right.style.display = ''
        primary_button.innerHTML = "Hide keypad"
      } else {
-       document.getElementById('keypad').style.left='0%'
+       document.getElementById('keypad').style.left='1%'
        primary_button.style.display = 'none'
        disabled_button_left.style.display = ''
        secondary_button.innerHTML = "Hide keypad"
@@ -401,6 +401,7 @@ function showNumericKeypad(){
       showMessage("Merging not done. Check for the errors and try again")
     }
   }
+
 </script>
 <style>
       #backspace{
