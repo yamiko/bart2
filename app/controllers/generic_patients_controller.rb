@@ -21,6 +21,10 @@ class GenericPatientsController < ApplicationController
 			@prescriptions = restriction.filter_orders(@prescriptions)
 			@programs = restriction.filter_programs(@programs)
 		end
+    @died = 0
+    @programs.each do |program|
+      @died = 1 if program.patient_states.last.to_s.match(/Patient died/i)
+    end
 		#@tb_status = PatientService.patient_tb_status(@patient)
 		#raise @tb_status.downcase.to_yaml
     @art_start_date = PatientService.patient_art_start_date(@patient)
@@ -612,7 +616,7 @@ class GenericPatientsController < ApplicationController
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
-    #raise @programs.patient_states.to_yaml
+  #raise @programs.first.patient_states.last.to_s
     @alerts = alerts(@patient, session_date) rescue nil
     # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
@@ -622,7 +626,7 @@ class GenericPatientsController < ApplicationController
       @prescriptions = restriction.filter_orders(@prescriptions)
       @programs = restriction.filter_programs(@programs)
     end
-    
+   # raise @programs.first.patient_states.to_yaml
 =begin
    @program_state =  []
    @programs.each do | prog |
@@ -1461,7 +1465,6 @@ end
 				type.id, patient.id, date.strftime("%Y-%m-%d 23:59:59")
 			]).value_datetime.strftime("%a %d %B %Y") rescue nil
 
-    raise next_appt.to_yaml
     who_stage = demographics.reason_for_art_eligibility 
     initial_staging_conditions = demographics.who_clinical_conditions.split(';')
     destination = demographics.transferred_out_to
