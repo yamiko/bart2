@@ -1193,7 +1193,7 @@ EOF
     patient.person_id = person.id
     patient.patient_id = person.patient.id
     patient.arv_number = get_patient_identifier(person.patient, 'ARV Number')
-    patient.address = person.addresses.first.city_village
+    patient.address = person.addresses.first.city_village rescue nil
     patient.national_id = get_patient_identifier(person.patient, 'National id')
 	  patient.national_id_with_dashes = get_national_id_with_dashes(person.patient)
     patient.name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
@@ -1209,12 +1209,12 @@ EOF
     patient.dead = person.dead
     patient.birth_date = birthdate_formatted(person)
     patient.birthdate_estimated = person.birthdate_estimated
-    patient.current_district = person.addresses.first.state_province
-    patient.home_district = person.addresses.first.address2
-    patient.traditional_authority = person.addresses.first.county_district
-    patient.current_residence = person.addresses.first.city_village
-    patient.landmark = person.addresses.first.address1
-    patient.home_village = person.addresses.first.neighborhood_cell
+    patient.current_district = person.addresses.first.state_province rescue nil
+    patient.home_district = person.addresses.first.address2 rescue nil
+    patient.traditional_authority = person.addresses.first.county_district rescue nil
+    patient.current_residence = person.addresses.first.city_village rescue nil
+    patient.landmark = person.addresses.first.address1 rescue nil
+    patient.home_village = person.addresses.first.neighborhood_cell rescue nil
     patient.mothers_surname = person.names.first.family_name2
     patient.eid_number = get_patient_identifier(person.patient, 'EID Number') rescue nil
     patient.pre_art_number = get_patient_identifier(person.patient, 'Pre ART Number (Old format)') rescue nil
@@ -1441,7 +1441,64 @@ EOF
 
 		return person
 	end
+  
+  def self.patient_defaulted_dates(patient_obj, session_date)
+    #raise session_date.to_yaml
+    #getting all patient's dispensations encounters
+    all_dispensations = Observation.find_by_sql("SELECT obs.person_id, obs.obs_datetime AS obs_datetime, d.order_id
+                            FROM drug_order d 
+                              LEFT JOIN orders o ON d.order_id = o.order_id
+                              LEFT JOIN obs ON d.order_id = obs.order_id
+                            WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug
+                                                          WHERE concept_id IN (SELECT concept_id 
+                                                                               FROM concept_set
+                                                                               WHERE concept_set = 1085))
+                                                          AND quantity > 0
+                                                          AND obs.voided = 0
+                                                          AND o.voided = 0
+                                                          and obs.person_id = #{patient_obj.patient_id}
+                                                          GROUP BY DATE(obs_datetime) order by obs_datetime")
+    
+    outcome_dates = []
+    dates = 0
+    total_dispensations = all_dispensations.length
+    defaulted_dates = all_dispensations.map(&:obs_datetime)
+    
+    all_dispensations.each do |disp_date|
+      d = ((dates - total_dispensations) + 1)
 
+      prev_dispenation_date = all_dispensations[d].obs_datetime.to_date
+
+      if d == 0
+        previous_date = session_date
+        defaulted_state = ActiveRecord::Base.connection.select_value "                  
+        SELECT current_defaulter(#{disp_date.person_id},'#{previous_date}')"
+
+        if defaulted_state.to_i == 1
+          defaulted_date = ActiveRecord::Base.connection.select_value "                   
+            SELECT current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
+
+          outcome_dates << defaulted_date.to_date if !defaulted_dates.include?(defaulted_date.to_date)
+        end
+      else
+        previous_date = prev_dispenation_date.to_date
+        
+        defaulted_state = ActiveRecord::Base.connection.select_value "                   
+        SELECT current_defaulter(#{disp_date.person_id},'#{previous_date}')"
+
+        if defaulted_state.to_i == 1
+          defaulted_date = ActiveRecord::Base.connection.select_value "
+            SELECT current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
+
+          outcome_dates << defaulted_date.to_date if !defaulted_dates.include?(defaulted_date.to_date)
+        end
+      end
+      
+      dates += 1
+    end
+    #raise outcome_dates.to_yaml
+    return outcome_dates
+  end
 
   # Get the any BMI-related alert for this patient
   def self.current_bmi_alert(patient_weight, patient_height)
@@ -1499,11 +1556,12 @@ EOF
       people_like = Person.find(:all, :limit => 15, :include => [{:names => [:person_name_code]}, :patient], :conditions => [
         "gender = ? AND \
      person_name_code.given_name_code LIKE ? AND \
-     person_name_code.family_name_code LIKE ? AND person.person_id NOT IN (?)",
+     person_name_code.family_name_code LIKE ? AND person.person_id NOT IN (?)
+     OR (person_name.given_name LIKE ? AND person_name.family_name LIKE ?)",
         gender,
         (given_name || '').soundex,
         (family_name || '').soundex,
-        matching_people
+        matching_people,"#{given_name}%","#{family_name}%"
       ], :order => "person_name.given_name ASC, person_name_code.family_name_code ASC")
       people = people + people_like
     end
