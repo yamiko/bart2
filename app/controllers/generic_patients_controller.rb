@@ -1814,14 +1814,48 @@ end
 
     ans = ["Extrapulmonary tuberculosis (EPTB)","Pulmonary tuberculosis within the last 2 years","Pulmonary tuberculosis (current)","Kaposis sarcoma","Pulmonary tuberculosis"]
     staging_ans = patient_obj.person.observations.recent(1).question("WHO STAGES CRITERIA PRESENT").all
+
+    hiv_staging_obs = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
+        EncounterType.find_by_name("HIV Staging").id,patient_obj.id]).observations.map(&:concept_id)
+
     if staging_ans.blank?
       staging_ans = patient_obj.person.observations.recent(1).question("WHO STG CRIT").all
     end
-    visits.ks = 'Yes' if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[3])
-    visits.tb_within_last_two_yrs = 'Yes' if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[1])
-    visits.eptb = 'Yes' if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[0])
-    visits.pulmonary_tb = 'Yes' if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[2])
-		visits.pulmonary_tb = 'Yes' if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[4])
+
+    if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[3])
+      visits.ks = 'Yes'
+    else
+      ks_concept_id = ConceptName.find_by_name('Kaposis sarcoma').concept_id
+      visits.ks = 'Yes' if hiv_staging_obs.include?(ks_concept_id)
+    end
+
+    if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[1])
+      visits.tb_within_last_two_yrs = 'Yes'
+    else
+      tb_within_2yrs_concept_id = ConceptName.find_by_name('Pulmonary tuberculosis within the last 2 years').concept_id
+      visits.tb_within_last_two_yrs = 'Yes' if hiv_staging_obs.include?(tb_within_2yrs_concept_id) 
+    end
+
+    if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[0])
+      visits.eptb = 'Yes'
+    else
+      eptb_concept_id = ConceptName.find_by_name('Extrapulmonary tuberculosis (EPTB)').concept_id
+      visits.eptb = 'Yes' if hiv_staging_obs.include?(eptb_concept_id)
+    end
+
+    if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[2])
+      visits.pulmonary_tb = 'Yes'
+		else
+      pulm_tuber_cur_concept_id = ConceptName.find_by_name('Pulmonary tuberculosis (current)').concept_id
+      visits.pulmonary_tb = 'Yes' if hiv_staging_obs.include?(pulm_tuber_cur_concept_id)
+		end
+
+		if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[4])
+      visits.pulmonary_tb = 'Yes'
+    else
+      pulm_tuber_concept_id = ConceptName.find_by_name('Pulmonary tuberculosis').concept_id
+      visits.pulmonary_tb = 'Yes' if hiv_staging_obs.include?(pulm_tuber_concept_id)
+    end
 
     hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("HIV Staging").id,patient_obj.id])
@@ -1892,6 +1926,8 @@ end
   end
 
   def visits(patient_obj, encounter_date = nil)
+    session_date = session[:datetime].blank? ? Date.today : session[:datetime].to_date
+    
     transfer_in_date = patient_obj.person.observations.recent(1).question("ART start date").all.collect{|o|
 			o.value_datetime }.last.to_date rescue []
     patient_visits = {}  
@@ -2049,18 +2085,34 @@ end
 					program_id,encounter_date.to_date,patient_obj.patient_id],:order => "patient_state_id ASC")
     end  
 
+    all_patient_states = []
+    patient_states.each do |state|
+      state_name = state.program_workflow_state.concept.fullname rescue 'Unknown state'
+      all_patient_states << [state_name, state.start_date]
+    end
+
+    defaulted_dates = PatientService.patient_defaulted_dates(patient_obj, session_date) rescue nil
+
+    if defaulted_dates
+      defaulted_dates.each do |pat_def_date|  
+        state_name = 'Defaulter'
+        all_patient_states << [state_name, pat_def_date]
+      end
+    end
+
 #=begin
-    patient_states.each do |state| 
-      visit_date = state.start_date.to_date rescue nil
+    all_patient_states.each do |outcome, outcome_date| 
+      visit_date = outcome_date.to_date rescue nil
       next if visit_date.blank?
       patient_visits[visit_date] = Mastercard.new() if patient_visits[visit_date].blank?
-      patient_visits[visit_date].outcome = state.program_workflow_state.concept.fullname rescue 'Unknown state'
+      patient_visits[visit_date].outcome = outcome
       if patient_visits[visit_date].outcome.match(/transferred in/i)
          patient_visits[visit_date].outcome = "ON ARV" 
       end
-      patient_visits[visit_date].date_of_outcome = state.start_date
+      patient_visits[visit_date].date_of_outcome = outcome_date
 
     end
+
 #=end
 
     patient_visits.sort.each do |visit_date,data|
@@ -3488,4 +3540,94 @@ end
     render :json => patients
   end
 
+  def merge_menu
+    render :layout => "report"
+  end
+
+  def search_all
+    search_str = params[:search_str]
+    side = params[:side]
+    search_by_identifier = search_str.match(/[0-9]+/).blank? rescue false
+
+    unless search_by_identifier
+      patients = PatientIdentifier.find(:all, :conditions => ["voided = 0 AND (identifier LIKE ?)",
+      "%#{search_str}%"],:limit => 10).map{| p |p.patient}
+    else
+      given_name = search_str.split(' ')[0] rescue ''
+      family_name = search_str.split(' ')[1] rescue ''
+      patients = PersonName.find(:all ,:joins => [:person => [:patient]], :conditions => ["person.voided = 0 AND family_name LIKE ? AND given_name LIKE ?",
+      "#{family_name}%","%#{given_name}%"],:limit => 10).collect{|pn|pn.person.patient}
+    end
+    @html = <<EOF
+<html>
+<head>
+<style>
+  .color_blue{
+    border-style:solid;
+  }
+  .color_white{
+    border-style:solid;
+  }
+
+  th{
+    border-style:solid;
+  }
+</style>
+</head>
+<body>
+<br/>
+<table class="data_table" width="100%">
+EOF
+
+      color = 'blue'
+      patients.each do |patient|
+        next if patient.person.blank?
+        next if patient.person.addresses.blank?
+        if color == 'blue'
+          color = 'white'
+        else
+          color='blue'
+        end
+        bean = PatientService.get_patient(patient.person)
+        total_encounters = patient.encounters.count rescue nil
+        latest_visit = patient.encounters.last.encounter_datetime.strftime("%a, %d-%b-%y") rescue nil
+        @html+= <<EOF
+<tr>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">Name:&nbsp;#{bean.name || '&nbsp;'}</td>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">Age:&nbsp;#{bean.age || '&nbsp;'}</td>
+</tr>
+<tr>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">Guardian:&nbsp;#{bean.guardian rescue '&nbsp;'}</td>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">ARV number:&nbsp;#{bean.arv_number rescue '&nbsp;'}</td>
+</tr>
+<tr>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">National ID:&nbsp;#{bean.national_id rescue '&nbsp;'}</td>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">TA:&nbsp;#{bean.home_district rescue '&nbsp;'}</td>
+</tr>
+<tr>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">Total Encounters:&nbsp;#{total_encounters rescue '&nbsp;'}</td>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">Latest Visit:&nbsp;#{latest_visit rescue '&nbsp;'}</td>
+</tr>
+EOF
+      end
+
+      @html+="</table></body></html>"
+      render :text => @html ; return  
+  end
+
+  def merge_similar_patients
+    if request.method == :post
+      params[:patient_ids].split(":").each do | ids |
+        master = ids.split(',')[0].to_i
+        slaves = ids.split(',')[1..-1]
+        ( slaves || [] ).each do | patient_id  |
+          next if master == patient_id.to_i
+          Patient.merge(master,patient_id.to_i)
+        end
+      end
+      #render :text => "showMessage('Successfully merged patients')" and return
+    end
+    redirect_to :action => "merge_menu" and return
+  end
+  
 end
