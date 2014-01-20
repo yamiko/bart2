@@ -19,18 +19,39 @@
 
 <%
       qtrs = ['']
-
-    @dates.each{|date|
+    if current_user.admin?
+      qtrs = ['' , 'Select date range']
+    end
+    @supervision_dates.each{|date|
         qtrs << date
     }
-    
+    types = [['Clinic' , 'Clinic'],['Supervision' , 'Supervision']]
+
+    clinic_qtrs = []
+    if current_user.admin?
+      clinic_qtrs = ['' , 'Select date range']
+    end
+    @clinic_dates.each{|date|
+        clinic_qtrs << date
+    }
     #raise @goto.to_yaml
   %>
 
 <form id="dates" action="<%=@goto%>" method="post">
   <% if @goto == "stock_report" %>
+     <%= select_tag 'type', options_for_select( types ), {
+    :helpText => "Select Report Type",
+    :id => 'type',
+    :tt_onLoad => "__$('keyboard').style.display = 'none'"} %>
+
     <%= select_tag 'quarter', options_for_select( qtrs ), {
     :helpText => "Select Period",
+    :condition => "$('type').value == 'Supervision'",
+    :tt_onLoad => "__$('keyboard').style.display = 'none'"} %>
+
+    <%= select_tag 'quarter', options_for_select( clinic_qtrs ), {
+    :helpText => "Select Period",
+    :condition => "$('type').value == 'Clinic'",
     :tt_onLoad => "__$('keyboard').style.display = 'none'"} %>
 
    <input type="text"

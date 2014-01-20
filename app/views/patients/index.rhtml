@@ -88,7 +88,7 @@
                 NEXT TASK: <%= task_name.gsub('_',' ') %>
               </option>
             </select>
-            <% if @patient.person.dead == 1%>
+            <% if @died == 1%>
               <select id="links">
                 <optgroup value='/patients/programs_dashboard/<%= @patient.id -%>' label="Outcomes"></optgroup>
               </select>

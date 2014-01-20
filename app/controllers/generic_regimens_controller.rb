@@ -552,6 +552,10 @@ class GenericRegimensController < ApplicationController
 			if concept_name == 'CPT STARTED'
 				if params[:cpt_mgs] == "960"
 					drug = Drug.find_by_name('Cotrimoxazole (960mg)')
+        elsif params[:cpt_mgs] == "120"
+          drug = Drug.find_by_name('TMP/SMX (Cotrimoxazole 240mg tablet)')
+        elsif params[:cpt_mgs] == "240"
+          drug = Drug.find_by_name('TMP/SMX (Cotrimoxazole 120mg tablet)')
 				else
 					drug = Drug.find_by_name('Cotrimoxazole (480mg tablet)')
 				end
@@ -562,13 +566,13 @@ class GenericRegimensController < ApplicationController
 						drug = Drug.find_by_name('INH or H (Isoniazid 100mg tablet)')
 				end	
 			end
-			
+		
 			weight = @current_weight = PatientService.get_patient_attribute_value(@patient, "current_weight")
 			regimen_id = Regimen.all(:conditions =>  ['min_weight <= ? AND max_weight >= ? AND concept_id = ?', weight, weight, drug.concept_id]).first.regimen_id
 
 
 			orders = RegimenDrugOrder.all(:conditions => {:regimen_id => regimen_id, :drug_inventory_id => drug.id})
-
+     
 #=begin
 					#raise auto_cpt_ipt_expire_date.to_yaml
 					orders.each do |order|
