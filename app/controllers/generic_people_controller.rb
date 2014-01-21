@@ -681,6 +681,7 @@ class GenericPeopleController < ApplicationController
 					params[:set_day].to_i,0,0,1)
         session[:datetime] = date_of_encounter #if date_of_encounter.to_date != Date.today
       end
+      session[:stage_patient] = ""
       unless params[:id].blank?
         redirect_to next_task(Patient.find(params[:id])) 
       else
@@ -692,6 +693,7 @@ class GenericPeopleController < ApplicationController
 
   def reset_datetime
     session[:datetime] = nil
+    session[:stage_patient] = ""
     if params[:id].blank?
       redirect_to :action => "index" and return
     else

@@ -1816,7 +1816,7 @@ end
     staging_ans = patient_obj.person.observations.recent(1).question("WHO STAGES CRITERIA PRESENT").all
 
     hiv_staging_obs = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
-        EncounterType.find_by_name("HIV Staging").id,patient_obj.id]).observations.map(&:concept_id)
+        EncounterType.find_by_name("HIV Staging").id,patient_obj.id]).observations.map(&:concept_id) rescue []
 
     if staging_ans.blank?
       staging_ans = patient_obj.person.observations.recent(1).question("WHO STG CRIT").all

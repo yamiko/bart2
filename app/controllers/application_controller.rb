@@ -443,6 +443,7 @@ class ApplicationController < GenericApplicationController
             return task
           end
         when 'HIV STAGING'
+          next if session[:stage_patient] == "No"
           next unless continue_tb_treatment(patient,session_date)
           #checks if vitals have been taken already 
           vitals = PatientService.checks_if_vitals_are_need(patient,session_date,task,user_selected_activities)
@@ -908,6 +909,7 @@ class ApplicationController < GenericApplicationController
           end if clinician_or_doctor
         when 'HIV STAGING'
           #raise "here"
+          next if session[:stage_patient] == "No"
           arv_drugs_given = false
           PatientService.drug_given_before(patient,session_date).each do |order|
             next unless MedicationService.arv(order.drug_order.drug)

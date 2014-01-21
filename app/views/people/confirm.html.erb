@@ -187,6 +187,10 @@ function cancelOperation(action){
             <span value="<%= @patient_bean.filing_number rescue "" %>">Filing Number</span>
           <% end %>
 
+          <% if (@patient_bean.archived_filing_number rescue nil) != nil && (@patient_bean.archived_filing_number) != " " %>
+            <span value="<%= @patient_bean.archived_filing_number rescue "" %>">Archived Filing Number</span>
+          <% end %>
+
           <% if (@patient_bean.eid_number rescue nil) != nil && (@patient_bean.eid_number) != " " %>
             <span value="<%= @patient_bean.eid_number rescue "" %>">EID Number</span>
           <% end %>
