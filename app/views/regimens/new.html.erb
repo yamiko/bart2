@@ -1216,7 +1216,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	  :condition => 'prescribeAntiretroviralDrugs() == true',
 	  :helpText => "Prescribe CPT" } %>
 
-	<%= select_tag :cpt_mgs, options_for_select(["480","960"]), {
+	<%= select_tag :cpt_mgs, options_for_select(["120","240","480","960"]), {
 	  :allowFreeText => 'false',
 	  :condition => "$('cpt_given').value == 'YES'",
 	  :helpText => "Prescribed cotramoxazole milligrams" } %>
