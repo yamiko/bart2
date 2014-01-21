@@ -1925,6 +1925,21 @@ end
     visits
   end
 
+  def calculate_bmi(patient_weight, patient_height)
+    weight = patient_weight
+    height = patient_height
+    unless weight == 0 || height == 0
+      current_bmi = (weight/(height*height)*10000).round(1);
+    end
+    current_bmi
+  end
+  
+  def get_current_obs(date, patient, obs)
+    concept_id = ConceptName.find_by_name("#{obs}").concept_id
+    obs = Observation.find(:last, :conditions => ['person_id = ? and DATE(obs_datetime) <= ? AND concept_id = ?',
+                            patient.patient_id, date, concept_id])
+  end
+
   def visits(patient_obj, encounter_date = nil)
     session_date = session[:datetime].blank? ? Date.today : session[:datetime].to_date
     
@@ -1982,18 +1997,21 @@ end
       end
 
 			patient_visits[visit_date] = Mastercard.new() if patient_visits[visit_date].blank?
-
+      if patient_visits[visit_date].bmi.blank?
+      weight = get_current_obs(visit_date.to_date, patient_obj, "WEIGHT (KG)").to_s.split(':')[1].squish.to_f
+      height = get_current_obs(visit_date.to_date, patient_obj, "HEIGHT (CM)").to_s.split(':')[1].squish.to_f
+      patient_visits[visit_date].bmi = calculate_bmi(weight, height)
+      end
 				 
 			concept_name = obs.concept.fullname
-         
 			if concept_name.upcase == 'APPOINTMENT DATE'
 				patient_visits[visit_date].appointment_date = obs.value_datetime
 			elsif concept_name.upcase == 'HEIGHT (CM)'
 				patient_visits[visit_date].height = obs.answer_string
 			elsif concept_name.upcase == 'WEIGHT (KG)'
 				patient_visits[visit_date].weight = obs.answer_string
-			elsif concept_name.upcase == 'BODY MASS INDEX, MEASURED'
-				patient_visits[visit_date].bmi = obs.answer_string
+			#elsif concept_name.upcase == 'BODY MASS INDEX, MEASURED'
+			#	patient_visits[visit_date].bmi = obs.answer_string
 			elsif concept_name == 'RESPONSIBLE PERSON PRESENT' or concept_name == 'PATIENT PRESENT FOR CONSULTATION'
 				patient_visits[visit_date].visit_by = '' if patient_visits[visit_date].visit_by.blank?
 				patient_visits[visit_date].visit_by+= "P" if obs.to_s.squish.match(/Patient present for consultation: Yes/i)
@@ -2090,7 +2108,7 @@ end
       state_name = state.program_workflow_state.concept.fullname rescue 'Unknown state'
       all_patient_states << [state_name, state.start_date]
     end
-
+ 
     defaulted_dates = PatientService.patient_defaulted_dates(patient_obj, session_date) rescue nil
 
     if defaulted_dates
