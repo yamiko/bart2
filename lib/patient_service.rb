@@ -1548,7 +1548,7 @@ EOF
         family_name
       ]) if people.blank?
 
-    if people.length < 15
+    if people.length > 0 and people.length < 15
       matching_people = people.collect{| person |
                               person.person_id
                           }
@@ -1557,11 +1557,11 @@ EOF
         "gender = ? AND \
      person_name_code.given_name_code LIKE ? AND \
      person_name_code.family_name_code LIKE ? AND person.person_id NOT IN (?)
-     OR (person_name.given_name LIKE ? AND person_name.family_name LIKE ?)",
+     OR (person_name.given_name LIKE ? AND person_name.family_name LIKE ?) AND person.person_id != ?",
         gender,
         (given_name || '').soundex,
         (family_name || '').soundex,
-        matching_people,"#{given_name}%","#{family_name}%"
+        matching_people,"#{given_name}%","#{family_name}%", (people.first.person_id || '')
       ], :order => "person_name.given_name ASC, person_name_code.family_name_code ASC")
       people = people + people_like
     end
