@@ -586,6 +586,18 @@
 				  }
 			  <%  end %>
 	}
+  function allowStaging(){
+    answer = document.getElementById('stage').value
+    if (answer == "No"){
+    <% session[:stage_patient] = "No"
+    %>
+     window.location = "<%= next_task(@patient) -%>";
+    }
+    else{
+      <% session[:stage_patient] = "Yes"
+    %>
+    }
+  }
 </script>  
 <style type="text/css">
   .small .options li { font-size:1.1em; }
@@ -617,6 +629,13 @@
 	<%= hidden_field_tag "encounter[patient_id]", @patient.id %>
 	<%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
 	<%= hidden_field_tag "encounter[provider_id]", current_user.user_id %>
+
+    <% if  @ask_staging == true %>
+        <%= select_tag 'stage', options_for_select(['No','Yes']),
+			  {	:id => "stage" ,
+                          :tt_onUnLoad => 'allowStaging();',
+			  :helpText => "Do You Wish To Stage The Patient?" } %>
+    <% end %>
 
 	<% if @patient_bean.age_in_months < 12 and @confirmatory_hiv_test_type == 'HIV rapid test' %>
 	  <%= touch_select_tag "PRESUMED SEVERE HIV CRITERIA PRESENT", @patient, concept_set_options('PRESUMED SEVERE HIV CRITERIA IN INFANTS'),

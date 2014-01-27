@@ -41,7 +41,7 @@
             <% end %>
 
             <span id='patient_gender'><%= @patient_bean.sex rescue "" %></span>
-
+          
             <div id="patient_card">
               <% if !@art_start_date.blank?  %>
                 <span value="<%= "#{PatientService.period_on_treatment(@art_start_date).to_i} month(s)" %>"> Period on ART </span>
@@ -67,6 +67,10 @@
               <% if (@patient_bean.filing_number rescue nil) != nil && (@patient_bean.filing_number) != " " %>
                 <span value="<%= @patient_bean.filing_number rescue "" %>">Filing Number</span>
               <% end %>
+              <% if (@patient_bean.archived_filing_number rescue nil) != nil && (@patient_bean.archived_filing_number) != " " %>
+                <span value="<%= @patient_bean.archived_filing_number rescue "" %>">Archived Filing Number</span>
+              <% end %>
+
               <% if @art_start_date.blank? and @pre_art_start_date != "" and @pre_art_start_date != nil %>
                 <span value="<%= "#{PatientService.period_on_treatment(@pre_art_start_date.to_date).to_i} month(s)" %>">Period on Pre-ART</span>
               <% end %>
@@ -88,7 +92,7 @@
                 NEXT TASK: <%= task_name.gsub('_',' ') %>
               </option>
             </select>
-            <% if @patient.person.dead == 1%>
+            <% if @died == 1%>
               <select id="links">
                 <optgroup value='/patients/programs_dashboard/<%= @patient.id -%>' label="Outcomes"></optgroup>
               </select>

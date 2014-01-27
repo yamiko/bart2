@@ -21,6 +21,10 @@ class GenericPatientsController < ApplicationController
 			@prescriptions = restriction.filter_orders(@prescriptions)
 			@programs = restriction.filter_programs(@programs)
 		end
+    @died = 0
+    @programs.each do |program|
+      @died = 1 if program.patient_states.last.to_s.match(/Patient died/i)
+    end
 		#@tb_status = PatientService.patient_tb_status(@patient)
 		#raise @tb_status.downcase.to_yaml
     @art_start_date = PatientService.patient_art_start_date(@patient)
@@ -612,7 +616,7 @@ class GenericPatientsController < ApplicationController
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
-    #raise @programs.patient_states.to_yaml
+  #raise @programs.first.patient_states.last.to_s
     @alerts = alerts(@patient, session_date) rescue nil
     # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
@@ -622,7 +626,7 @@ class GenericPatientsController < ApplicationController
       @prescriptions = restriction.filter_orders(@prescriptions)
       @programs = restriction.filter_programs(@programs)
     end
-    
+   # raise @programs.first.patient_states.to_yaml
 =begin
    @program_state =  []
    @programs.each do | prog |
@@ -1450,16 +1454,7 @@ end
   def patient_transfer_out_label(patient_id)
     date = session[:datetime].to_date rescue Date.today
     patient = Patient.find(patient_id)
-    patient_bean = PatientService.get_patient(patient.person)
     demographics = mastercard_demographics(patient)
-
-    type = EncounterType.find_by_name("APPOINTMENT")
-    next_appt = Observation.find(:first,:order => "encounter_datetime DESC,encounter.date_created DESC",
-			:joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
-			:conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
-               AND obs_datetime <= ?",ConceptName.find_by_name('Appointment date').concept_id,
-				type.id, patient.id, date.strftime("%Y-%m-%d 23:59:59")
-			]).value_datetime.strftime("%a %d %B %Y") rescue nil
 
     who_stage = demographics.reason_for_art_eligibility 
     initial_staging_conditions = demographics.who_clinical_conditions.split(';')
@@ -1812,7 +1807,7 @@ end
     staging_ans = patient_obj.person.observations.recent(1).question("WHO STAGES CRITERIA PRESENT").all
 
     hiv_staging_obs = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
-        EncounterType.find_by_name("HIV Staging").id,patient_obj.id]).observations.map(&:concept_id)
+        EncounterType.find_by_name("HIV Staging").id,patient_obj.id]).observations.map(&:concept_id) rescue []
 
     if staging_ans.blank?
       staging_ans = patient_obj.person.observations.recent(1).question("WHO STG CRIT").all
@@ -1921,6 +1916,21 @@ end
     visits
   end
 
+  def calculate_bmi(patient_weight, patient_height)
+    weight = patient_weight
+    height = patient_height
+    unless weight == 0 || height == 0
+      current_bmi = (weight/(height*height)*10000).round(1);
+    end
+    current_bmi
+  end
+  
+  def get_current_obs(date, patient, obs)
+    concept_id = ConceptName.find_by_name("#{obs}").concept_id
+    obs = Observation.find(:last, :conditions => ['person_id = ? and DATE(obs_datetime) <= ? AND concept_id = ?',
+                            patient.patient_id, date, concept_id])
+  end
+
   def visits(patient_obj, encounter_date = nil)
     session_date = session[:datetime].blank? ? Date.today : session[:datetime].to_date
     
@@ -1978,18 +1988,21 @@ end
       end
 
 			patient_visits[visit_date] = Mastercard.new() if patient_visits[visit_date].blank?
-
+      if patient_visits[visit_date].bmi.blank?
+      weight = get_current_obs(visit_date.to_date, patient_obj, "WEIGHT (KG)").to_s.split(':')[1].squish.to_f
+      height = get_current_obs(visit_date.to_date, patient_obj, "HEIGHT (CM)").to_s.split(':')[1].squish.to_f
+      patient_visits[visit_date].bmi = calculate_bmi(weight, height)
+      end
 				 
 			concept_name = obs.concept.fullname
-         
 			if concept_name.upcase == 'APPOINTMENT DATE'
 				patient_visits[visit_date].appointment_date = obs.value_datetime
 			elsif concept_name.upcase == 'HEIGHT (CM)'
 				patient_visits[visit_date].height = obs.answer_string
 			elsif concept_name.upcase == 'WEIGHT (KG)'
 				patient_visits[visit_date].weight = obs.answer_string
-			elsif concept_name.upcase == 'BODY MASS INDEX, MEASURED'
-				patient_visits[visit_date].bmi = obs.answer_string
+			#elsif concept_name.upcase == 'BODY MASS INDEX, MEASURED'
+			#	patient_visits[visit_date].bmi = obs.answer_string
 			elsif concept_name == 'RESPONSIBLE PERSON PRESENT' or concept_name == 'PATIENT PRESENT FOR CONSULTATION'
 				patient_visits[visit_date].visit_by = '' if patient_visits[visit_date].visit_by.blank?
 				patient_visits[visit_date].visit_by+= "P" if obs.to_s.squish.match(/Patient present for consultation: Yes/i)
@@ -2086,7 +2099,7 @@ end
       state_name = state.program_workflow_state.concept.fullname rescue 'Unknown state'
       all_patient_states << [state_name, state.start_date]
     end
-
+ 
     defaulted_dates = PatientService.patient_defaulted_dates(patient_obj, session_date) rescue nil
 
     if defaulted_dates
@@ -3536,4 +3549,94 @@ end
     render :json => patients
   end
 
+  def merge_menu
+    render :layout => "report"
+  end
+
+  def search_all
+    search_str = params[:search_str]
+    side = params[:side]
+    search_by_identifier = search_str.match(/[0-9]+/).blank? rescue false
+
+    unless search_by_identifier
+      patients = PatientIdentifier.find(:all, :conditions => ["voided = 0 AND (identifier LIKE ?)",
+      "%#{search_str}%"],:limit => 10).map{| p |p.patient}
+    else
+      given_name = search_str.split(' ')[0] rescue ''
+      family_name = search_str.split(' ')[1] rescue ''
+      patients = PersonName.find(:all ,:joins => [:person => [:patient]], :conditions => ["person.voided = 0 AND family_name LIKE ? AND given_name LIKE ?",
+      "#{family_name}%","%#{given_name}%"],:limit => 10).collect{|pn|pn.person.patient}
+    end
+    @html = <<EOF
+<html>
+<head>
+<style>
+  .color_blue{
+    border-style:solid;
+  }
+  .color_white{
+    border-style:solid;
+  }
+
+  th{
+    border-style:solid;
+  }
+</style>
+</head>
+<body>
+<br/>
+<table class="data_table" width="100%">
+EOF
+
+      color = 'blue'
+      patients.each do |patient|
+        next if patient.person.blank?
+        next if patient.person.addresses.blank?
+        if color == 'blue'
+          color = 'white'
+        else
+          color='blue'
+        end
+        bean = PatientService.get_patient(patient.person)
+        total_encounters = patient.encounters.count rescue nil
+        latest_visit = patient.encounters.last.encounter_datetime.strftime("%a, %d-%b-%y") rescue nil
+        @html+= <<EOF
+<tr>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">Name:&nbsp;#{bean.name || '&nbsp;'}</td>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">Age:&nbsp;#{bean.age || '&nbsp;'}</td>
+</tr>
+<tr>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">Guardian:&nbsp;#{bean.guardian rescue '&nbsp;'}</td>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">ARV number:&nbsp;#{bean.arv_number rescue '&nbsp;'}</td>
+</tr>
+<tr>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">National ID:&nbsp;#{bean.national_id rescue '&nbsp;'}</td>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">TA:&nbsp;#{bean.home_district rescue '&nbsp;'}</td>
+</tr>
+<tr>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">Total Encounters:&nbsp;#{total_encounters rescue '&nbsp;'}</td>
+  <td class='color_#{color} patient_#{patient.id}' style="text-align:left;" onclick="setPatient('#{patient.id}','#{color}','#{side}')">Latest Visit:&nbsp;#{latest_visit rescue '&nbsp;'}</td>
+</tr>
+EOF
+      end
+
+      @html+="</table></body></html>"
+      render :text => @html ; return  
+  end
+
+  def merge_similar_patients
+    if request.method == :post
+      params[:patient_ids].split(":").each do | ids |
+        master = ids.split(',')[0].to_i
+        slaves = ids.split(',')[1..-1]
+        ( slaves || [] ).each do | patient_id  |
+          next if master == patient_id.to_i
+          Patient.merge(master,patient_id.to_i)
+        end
+      end
+      #render :text => "showMessage('Successfully merged patients')" and return
+    end
+    redirect_to :action => "merge_menu" and return
+  end
+  
 end

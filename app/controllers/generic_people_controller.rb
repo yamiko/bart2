@@ -476,7 +476,7 @@ class GenericPeopleController < ApplicationController
           birthdate = Date.new(Date.today.year - params[:person]["age_estimate"].to_i, 7, 1)
         else
           year = params[:person]["birth_year"].to_i
-          month = params[:person]["birth_month"].to_i
+          month = params[:person]["birth_month"]
           day = params[:person]["birth_day"].to_i
 
           month_i = (month || 0).to_i
@@ -681,6 +681,7 @@ class GenericPeopleController < ApplicationController
 					params[:set_day].to_i,0,0,1)
         session[:datetime] = date_of_encounter #if date_of_encounter.to_date != Date.today
       end
+      session[:stage_patient] = ""
       unless params[:id].blank?
         redirect_to next_task(Patient.find(params[:id])) 
       else
@@ -692,6 +693,7 @@ class GenericPeopleController < ApplicationController
 
   def reset_datetime
     session[:datetime] = nil
+    session[:stage_patient] = ""
     if params[:id].blank?
       redirect_to :action => "index" and return
     else

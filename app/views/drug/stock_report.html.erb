@@ -233,10 +233,10 @@
       <table class="inner-data">
         <tr>
           
-          <td style="width:60px;" class='positive_numbers create_button'>
-            <a href="/drug/stock_report_edit?date=<%=values['start_date']%>&drug_id=<%=values['start_pharmacy_id']%>&edit_reason=opening_stock&start_date=<%=@start_date%>&end_date=<%=@end_date%>">
+          <td style="width:60px;" class='positive_numbers' align="center">
+            
               <%=(values['confirmed_opening'] / 60).round %>
-            </a>
+            
           </td>
         </tr>
       </table>
@@ -244,7 +244,7 @@
     <td class="color_<%=color%> caldata" id="current_stock_<%=count%>">
       <table class="inner-data">
         <tr>
-          <td  style="width:30px;text-align:left;" >+<%= (values['receipts'] / 60).round %></td>
+          <td  style="width:30px;text-align:center;" >+<%= (values['receipts'] / 60).round %></td>
           <% relocated = (values['relocated'] / 60).round 
             if relocated < 0
           %>
@@ -253,7 +253,7 @@
             </td>
           <%else%>
             <td style="width:100px;color:black;" class='' align="center">
-              <a   style="color:black;" href="/drug/stock_report_edit?drug_id=<%=values['drug_id']%>&edit_reason=relocated&max_date=<%=values['end_date']%>&start_date=<%=@start_date%>&end_date=<%=@end_date%>"> <%=relocated %></a>
+               <%=relocated %>
             </td>
           <%end%>
         </tr>
@@ -290,9 +290,9 @@
           <!--td style="text-align:left;width:40px;"><%=values['end_date'].to_date.strftime(" %d-%b-%Y") %></td -->
           <td style="text-align:left;width:75px;padding-left:12px;"><%= expected %></td>
           <td style="text-align:right;width:75px;" class='positive_numbers create_button'>
-            <a href="/drug/stock_report_edit?date=<%=values['end_date']%>&drug_id=<%=values['end_pharmacy_id']%>&edit_reason=closing_stock&start_date=<%=@start_date%>&end_date=<%=@end_date%>">
+            
               <%=(values['confirmed_closing'] / 60).round %>
-            </a>
+            
           </td>
         </tr>
       </table>

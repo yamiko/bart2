@@ -23,7 +23,7 @@ class GenericClinicController < ApplicationController
     @user = current_user.name rescue ""
 
     @roles = current_user.user_roles.collect{|r| r.role} rescue []
-
+     session[:stage_patient] = ""
     render :template => 'clinic/index', :layout => false
   end
 
@@ -201,7 +201,8 @@ class GenericClinicController < ApplicationController
                   ['/clinic/users_tab','User Accounts/Settings'],
                   ['/clinic/location_management_tab','Location Management'],
                   ['/people/tranfer_patient_in','Transfer Patient in'],
-                  ['/patients/patient_merge','Merge Patients'],
+                  #['/patients/patient_merge','Merge Patients'],
+                  ['/patients/merge_menu','Merge Patients'],
                   ['/patients/duplicate_menu','Possible patient duplicates']
 
                 ]
