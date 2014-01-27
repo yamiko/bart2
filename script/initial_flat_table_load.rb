@@ -37,20 +37,15 @@ end
 def load_states(patient_id)
 	
 	programs = PatientProgram.find_by_patient_id(patient_id)
-	
-
-	
-		states = programs.patient_states rescue return
 		
+		states = programs.patient_states rescue return
+
 		states.each do |patient_state|
 		
 			patient_state.voided = patient_state.voided 
 			patient_state.save!
 			
 		end
-		
-
-	
 end
 
 def load_orders(orders)
@@ -62,10 +57,12 @@ def load_orders(orders)
 	end		
 	
 	if !order_ids.blank?
+	 order_ids.each do |order|
     ActiveRecord::Base.connection.execute <<EOF
-      UPDATE orders SET voided = 0 WHERE order_id IN(#{order_ids.join(',')});
+      UPDATE orders SET voided = 0 WHERE order_id = #{order};
 EOF
    end
+  end
 		
 end
 
@@ -78,9 +75,11 @@ def	load_drug_orders(drug_orders)
 	end		
   	
   if !drug_order_ids.blank?
-    ActiveRecord::Base.connection.execute <<EOF
-      UPDATE drug_order SET complex = 0 WHERE order_id IN(#{drug_order_ids.join(',')});
+    drug_order_ids.each do |drug_order|
+      ActiveRecord::Base.connection.execute <<EOF
+        UPDATE drug_order SET complex = 0 WHERE order_id = #{drug_order};
 EOF
+    end
   end
 end
 
@@ -95,13 +94,14 @@ end
 def load_observations(person_id)
 
 	observations = Observation.find(:all, :conditions => ["person_id = #{person_id}"])
-  obs_ids = observations.map(&:obs_id).join(',') rescue nil
+  obs_ids = observations rescue nil
   next if obs_ids.blank?
-                                                                                
-  ActiveRecord::Base.connection.execute <<EOF                                 
-    UPDATE obs SET voided = 0 WHERE obs_id IN (#{obs_ids});
+
+  obs_ids.each do |obs|
+    ActiveRecord::Base.connection.execute <<EOF
+      UPDATE obs SET voided = 0 WHERE obs_id = #{obs.obs_id};
 EOF
-                                                                                
+end
                                                                                 
 end
 
