@@ -49,7 +49,43 @@ class GenericPatientsController < ApplicationController
 				@reason_for_art_eligibility = nil				
 			end
 			@arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
-			render :template => 'patients/index', :layout => false
+#######################
+      regimen_category = Concept.find_by_name("Regimen Category")
+      @current_regimen = Observation.find_by_sql("SELECT * FROM obs o INNER JOIN encounter enc ON
+      o.encounter_id= enc.encounter_id AND
+      enc.encounter_type= (SELECT encounter_type_id FROM encounter_type WHERE
+      name='DISPENSING') AND o.concept_id=#{regimen_category.id} AND enc.patient_id=#{@patient.id}
+      AND enc.voided = 0
+      order by enc.date_created DESC LIMIT 1").first.answer_string.squish rescue nil
+
+      identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+      identifiers = PatientIdentifierType.find(:all, :conditions=>["name IN (?)",
+        identifier_types]).collect{| type |type.id }
+
+      patient_identifiers = PatientIdentifier.find(:all, :conditions=>["patient_id=? AND
+       identifier_type IN (?)", @patient.id, identifiers]).collect{| i | i.identifier }
+    
+      if show_lab_results
+
+        cd4_results = Lab.latest_result_by_test_type(@patient, 'CD4', patient_identifiers) rescue nil
+        @cd4_results = cd4_results
+        @cd4_latest_date = cd4_results[0].split('::')[0].to_date rescue nil
+        @cd4_latest_result = cd4_results[1]["TestValue"] rescue nil
+        @cd4_modifier = cd4_results[1]["Range"] rescue nil
+        
+        vl_results = Lab.latest_result_by_test_type(@patient, 'HIV_viral_load', patient_identifiers) rescue nil
+        @vl_results = vl_results
+        @vl_latest_date = vl_results[0].split('::')[0].to_date rescue nil
+        @vl_latest_result = vl_results[1]["TestValue"] rescue nil
+        @vl_modifier = vl_results[1]["Range"] rescue nil
+      end
+
+        @current_hiv_program_status = Patient.find_by_sql("
+											SELECT patient_id, current_state_for_program(patient_id, 1, '#{session_date}') AS state, c.name as status
+											FROM patient p INNER JOIN program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(patient_id, 1, '#{session_date}')
+											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{@patient.patient_id}'").first.status rescue "Unknown"
+       ####################
+      render :template => 'patients/index', :layout => false
 		end
 	end
 
