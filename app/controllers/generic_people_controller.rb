@@ -76,13 +76,13 @@ class GenericPeopleController < ApplicationController
   end
 
 	def create_remote
-
-		#raise person_params.to_yaml
+ 	  
 		if current_user.blank?
 		  user = User.authenticate('admin', 'test')
-		  sign_in(:user, user) if !user.blank?
-      set_current_user		  
+		  sign_in(:user, user) if !user.blank?	  
 		end rescue []
+
+      set_current_user
 
 		if Location.current_location.blank?
 			Location.current_location = Location.find(CoreService.get_global_property_value('current_health_center_id'))
