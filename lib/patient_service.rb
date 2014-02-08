@@ -353,14 +353,14 @@ module PatientService
         birth_month = person_obj.birthdate.month
       end
     else
-      birth_month = person_obj.birthdate.month
-      birth_day = person_obj.birthdate.day
+      birth_month = person_obj.birthdate.month rescue nil
+      birth_day = person_obj.birthdate.day rescue nil
     end
 
     demographics = {"person" => {
         "date_changed" => person_obj.date_changed.to_s,
         "gender" => person_obj.gender,
-        "birth_year" => person_obj.birthdate.year,
+        "birth_year" => person_obj.birthdate.year || nil,
         "birth_month" => birth_month,
         "birth_day" => birth_day,
         "names" => {
