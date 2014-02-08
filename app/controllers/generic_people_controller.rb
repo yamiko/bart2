@@ -1065,6 +1065,7 @@ class GenericPeopleController < ApplicationController
   end
 
   def demographics
+    raise params.inspect
     @person = Person.find(params[:id])
 		@patient_bean = PatientService.get_patient(@person)
 		render :layout => 'menu'
@@ -1145,7 +1146,8 @@ class GenericPeopleController < ApplicationController
   end
 
   def demographics_remote
-    identifier = params[:person][:patient][:identifiers]["national_id"] 
+    identifier = params[:person][:patient][:identifiers]["national_id"] rescue nil
+    identifier = params["person"]["patient"]["identifiers"]["National id"] if identifier.nil?
     people = PatientService.search_by_identifier(identifier)
     render :text => "" and return if people.blank?
     render :text => PatientService.remote_demographics(people.first).to_json rescue nil
