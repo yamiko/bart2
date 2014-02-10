@@ -183,6 +183,10 @@ function cancelOperation(action){
             <span value="<%= @arv_number rescue '' %>">ARV Number</span>
           <% end %>
 
+          <% if (@tb_number rescue nil) != nil && (@tb_number) != " " %>
+            <span value="<%= @tb_number rescue '' %>">TB Number</span>
+          <% end %>
+
           <% if (@patient_bean.filing_number rescue nil) != nil && (@patient_bean.filing_number) != " " %>
             <span value="<%= @patient_bean.filing_number rescue "" %>">Filing Number</span>
           <% end %>
