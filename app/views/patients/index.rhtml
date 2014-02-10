@@ -76,6 +76,10 @@
               <% if (@arv_number rescue nil) != nil && (@arv_number) != " " %>
                 <span value="<%= @arv_number rescue "" %>">ARV Number</span>
               <% end %>
+              <% if (@tb_number rescue nil) != nil && (@tb_number) != " " %>
+                <span value="<%= @tb_number rescue '' %>">TB Number</span>
+              <% end %>
+
               <% if (@patient_bean.eid_number rescue nil) != nil && (@patient_bean.eid_number) != " " %>
                 <span value="<%= @patient_bean.eid_number rescue "" %>">EID Number</span>
               <% end %>
