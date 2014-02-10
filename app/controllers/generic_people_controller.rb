@@ -335,6 +335,7 @@ class GenericPeopleController < ApplicationController
 		@defaulted = "#{defaulter}" == "0" ? nil : true if ! @pp.match(/patient\sdied/i)
 		@task = main_next_task(Location.current_location, @person.patient, session_date)		
 		@arv_number = PatientService.get_patient_identifier(@person, 'ARV Number')
+    @tb_number = PatientService.get_patient_identifier(@person, 'District TB Number')
 		@patient_bean = PatientService.get_patient(@person)  
 		
 		
