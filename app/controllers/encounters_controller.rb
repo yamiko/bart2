@@ -36,7 +36,7 @@ class EncountersController < GenericEncountersController
 											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{@patient.patient_id}'").first.status rescue "Unknown"
     @ask_staging = false
     @check_preart = false
-    
+    @normal_procedure = false
       if @current_hiv_program_status == "Pre-ART (Continue)"
         if params[:repeat].blank?
        current_date = session[:datetime].to_date rescue Date.today
@@ -49,6 +49,7 @@ class EncountersController < GenericEncountersController
         if ! last_staging_date.blank? 
           month_gone = (current_date.year * 12 + current_date.month) - (last_staging_date.year * 12 + last_staging_date.month)
           @ask_staging = true if month_gone <= 3
+          @normal_procedure =  true if month_gone > 3
         end
         else
           if params[:repeat] == "no"
