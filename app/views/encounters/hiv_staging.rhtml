@@ -600,10 +600,10 @@
 </style>
 
 
-<% if !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.squish != '' && @check_preart != true %>
+<% if !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.squish != '' && @check_preart != true && @normal_procedure == false  %>
   
   <% if session[:stage_patient] == "No" %>
-     window.location = "<%= next_task(@patient) -%>";
+     window.location = "<%= next_task(@patient) -%>&repeat='cancel'";
   <% end %>
   <div class="inputPage NoKeyboard" id="page" style="display: block;">
 	<div id="trigger"></div>
