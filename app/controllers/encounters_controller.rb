@@ -35,18 +35,31 @@ class EncountersController < GenericEncountersController
 											FROM patient p INNER JOIN program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(patient_id, 1, '#{session_date}')
 											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{@patient.patient_id}'").first.status rescue "Unknown"
     @ask_staging = false
-    if @current_hiv_program_status == "Pre-ART (Continue)"
-     current_date = session[:datetime].to_date rescue Date.today
-     
-     last_staging_date = Encounter.find_by_sql("
-       SELECT * FROM encounter 
-        WHERE patient_id = #{@patient.id} AND encounter_type = #{EncounterType.find_by_name('HIV Staging').id}
-        AND encounter_datetime < '#{current_date}' ORDER BY encounter_datetime DESC LIMIT 1").first.encounter_datetime.to_date rescue ""
-      if ! last_staging_date.blank?
-        month_gone = (current_date.year * 12 + current_date.month) - (last_staging_date.year * 12 + last_staging_date.month) # Months difference formula
-        @ask_staging = true if month_gone <= 3
-      end
-   end
+    @check_preart = false
+    
+      if @current_hiv_program_status == "Pre-ART (Continue)"
+        if params[:repeat].blank?
+       current_date = session[:datetime].to_date rescue Date.today
+
+       last_staging_date = Encounter.find_by_sql("
+         SELECT * FROM encounter
+          WHERE patient_id = #{@patient.id} AND encounter_type = #{EncounterType.find_by_name('HIV Staging').id}
+          AND encounter_datetime < '#{current_date}' ORDER BY encounter_datetime DESC LIMIT 1").first.encounter_datetime.to_date rescue ""
+        
+        if ! last_staging_date.blank? 
+          month_gone = (current_date.year * 12 + current_date.month) - (last_staging_date.year * 12 + last_staging_date.month)
+          @ask_staging = true if month_gone <= 3
+        end
+        else
+          if params[:repeat] == "no"
+           session[:stage_patient] = "Yes"
+          else
+           session[:stage_patient] = "No"
+          end
+          @check_preart = true
+        end
+     end
+    
 		if (params[:from_anc] == 'true')
       bart_activities = ['Manage Vitals','Manage HIV clinic consultations',
         'Manage ART adherence','Manage HIV staging visits','Manage HIV first visits',
