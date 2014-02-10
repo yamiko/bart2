@@ -586,17 +586,11 @@
 				  }
 			  <%  end %>
 	}
+  function denyStaging(){
+     window.location = "<%= next_task(@patient) -%>&repeat='cancel'";
+  }
   function allowStaging(){
-    answer = document.getElementById('stage').value
-    if (answer == "No"){
-    <% session[:stage_patient] = "No"
-    %>
-     window.location = "<%= next_task(@patient) -%>";
-    }
-    else{
-      <% session[:stage_patient] = "Yes"
-    %>
-    }
+    window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat='no'"
   }
 </script>  
 <style type="text/css">
@@ -606,22 +600,39 @@
 </style>
 
 
-<% if !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.squish != '' && @current_hiv_program_status != "Pre-ART (Continue)" %>
+<% if !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.squish != '' && @check_preart != true %>
+  
+  <% if session[:stage_patient] == "No" %>
+     window.location = "<%= next_task(@patient) -%>";
+  <% end %>
   <div class="inputPage NoKeyboard" id="page" style="display: block;">
 	<div id="trigger"></div>
 	<div id="infoBar" class="infoBarClass"></div>
 	<label id="helpText" class="helpTextClass" for="">
+          <% if  @ask_staging == true %>
+              This patient has already been staged whithin the past three months.<br/>
+	     <%='&nbsp;'*3%>Do you want to stage patient again
+          <%  else %>
 			This patient has already been staged.<br/>
 	  <%='&nbsp;'*3%>Reason for ART:&nbsp;<%= @reason_for_art_eligibility %>
+          <% end %>
 	</label>
   </div>
   <div id="buttons" class="buttonsDiv" style="top:456;">
 	<div id="tt_extraButtons"></div>
-	<button onmousedown="window.location=tt_cancel_destination;" id="cancelButton" class="button navButton red"><span>Cancel</span></button>
+        <% if  @ask_staging == true %>
+	<button onmousedown="denyStaging();" id="cancelButton" class="button navButton red"><span>Cancel</span></button>
+        <button onmousedown="allowStaging();" id="stageButton" class="button navButton green"><span>Stage</span></button>
+        <% else %>
+        <button onmousedown="window.location=tt_cancel_destination;" id="cancelButton" class="button navButton red"><span>Cancel</span></button>
+        <% end %>
+        
   </div>
+  <% if  @ask_staging != true %>
   <script>
 	setTimeout("window.location=tt_cancel_destination;", 5000);
   </script>
+   <% end %>
 <% else %>
 
   <form id='appointment' action="/encounters/create" method='post'>
@@ -630,12 +641,6 @@
 	<%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
 	<%= hidden_field_tag "encounter[provider_id]", current_user.user_id %>
 
-    <% if  @ask_staging == true %>
-        <%= select_tag 'stage', options_for_select(['No','Yes']),
-			  {	:id => "stage" ,
-                          :tt_onUnLoad => 'allowStaging();',
-			  :helpText => "Do You Wish To Stage The Patient?" } %>
-    <% end %>
 
 	<% if @patient_bean.age_in_months < 12 and @confirmatory_hiv_test_type == 'HIV rapid test' %>
 	  <%= touch_select_tag "PRESUMED SEVERE HIV CRITERIA PRESENT", @patient, concept_set_options('PRESUMED SEVERE HIV CRITERIA IN INFANTS'),
