@@ -335,6 +335,7 @@ class GenericPeopleController < ApplicationController
 		@defaulted = "#{defaulter}" == "0" ? nil : true if ! @pp.match(/patient\sdied/i)
 		@task = main_next_task(Location.current_location, @person.patient, session_date)		
 		@arv_number = PatientService.get_patient_identifier(@person, 'ARV Number')
+    @tb_number = PatientService.get_patient_identifier(@person, 'District TB Number')
 		@patient_bean = PatientService.get_patient(@person)  
 		
 		
@@ -719,12 +720,7 @@ class GenericPeopleController < ApplicationController
         render :template => "people/find_by_tb_number" and return
       end
 
-      if PatientIdentifier.site_prefix == "MPC"
-        prefix = "LL"
-      else
-        prefix = PatientIdentifier.site_prefix
-      end
-      tb_number = "#{prefix}-TB #{year} #{surfix.to_i}"
+      tb_number = "#{params[:tb_prefix].upcase}-TB #{year} #{surfix.to_i}"
       redirect_to :action => 'search' ,
         :identifier => tb_number and return
     end
@@ -741,11 +737,7 @@ class GenericPeopleController < ApplicationController
       current_date = Date.today
       current_date = session[:datetime].to_date if !session[:datetime].blank?
 
-      if PatientIdentifier.site_prefix == "MPC"
-        prefix = "LL"
-      else
-        prefix = PatientIdentifier.site_prefix
-      end
+      prefix = params[:tb_prefix].upcase
       session_date = "#{prefix}-TB #{current_date.year.to_s}"
       patient_exists = PatientIdentifier.find(:all,
         :conditions => ['identifier_type = ?

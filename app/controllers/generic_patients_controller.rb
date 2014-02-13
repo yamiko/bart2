@@ -49,6 +49,8 @@ class GenericPatientsController < ApplicationController
 				@reason_for_art_eligibility = nil				
 			end
 			@arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
+      @tb_number = PatientService.get_patient_identifier(@patient, 'District TB Number')
+
 #######################
       regimen_category = Concept.find_by_name("Regimen Category")
       @current_regimen = Observation.find_by_sql("SELECT * FROM obs o INNER JOIN encounter enc ON

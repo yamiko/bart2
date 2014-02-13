@@ -1555,13 +1555,13 @@ EOF
                           # raise matching_people.to_yaml
       people_like = Person.find(:all, :limit => 15, :include => [{:names => [:person_name_code]}, :patient], :conditions => [
         "gender = ? AND \
-     person_name_code.given_name_code LIKE ? AND \
-     person_name_code.family_name_code LIKE ? AND person.person_id NOT IN (?)
-     OR (person_name.given_name LIKE ? AND person_name.family_name LIKE ?) AND person.person_id != ?",
+     ((person_name_code.given_name_code LIKE ? AND \
+     person_name_code.family_name_code LIKE ?)
+     OR (person_name.given_name LIKE ? AND person_name.family_name LIKE ?))  AND person.person_id NOT IN (?)",
         gender,
         (given_name || '').soundex,
         (family_name || '').soundex,
-        matching_people,"#{given_name}%","#{family_name}%", (people.first.person_id || '')
+        "#{given_name}%","#{family_name}%", matching_people
       ], :order => "person_name.given_name ASC, person_name_code.family_name_code ASC")
       people = people + people_like
     end
