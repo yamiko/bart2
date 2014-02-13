@@ -1065,7 +1065,6 @@ class GenericPeopleController < ApplicationController
   end
 
   def demographics
-    raise params.inspect
     @person = Person.find(params[:id])
 		@patient_bean = PatientService.get_patient(@person)
 		render :layout => 'menu'
