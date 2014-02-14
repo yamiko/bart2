@@ -2027,9 +2027,9 @@ end
 
 			patient_visits[visit_date] = Mastercard.new() if patient_visits[visit_date].blank?
       if patient_visits[visit_date].bmi.blank?
-      weight = get_current_obs(visit_date.to_date, patient_obj, "WEIGHT (KG)").to_s.split(':')[1].squish.to_f
-      height = get_current_obs(visit_date.to_date, patient_obj, "HEIGHT (CM)").to_s.split(':')[1].squish.to_f
-      patient_visits[visit_date].bmi = calculate_bmi(weight, height)
+      weight = get_current_obs(visit_date.to_date, patient_obj, "WEIGHT (KG)").to_s.split(':')[1].squish.to_f rescue []
+      height = get_current_obs(visit_date.to_date, patient_obj, "HEIGHT (CM)").to_s.split(':')[1].squish.to_f rescue []
+      patient_visits[visit_date].bmi = calculate_bmi(weight, height) rescue []
       end
 				 
 			concept_name = obs.concept.fullname
