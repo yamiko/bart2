@@ -79,10 +79,9 @@ class GenericPeopleController < ApplicationController
  	  
 		if current_user.blank?
 		  user = User.authenticate('admin', 'test')
-		  sign_in(:user, user) if !user.blank?	  
+		  sign_in(:user, user) if !user.blank?
+      set_current_user	  
 		end rescue []
-
-      set_current_user
 
 		if Location.current_location.blank?
 			Location.current_location = Location.find(CoreService.get_global_property_value('current_health_center_id'))
@@ -123,6 +122,7 @@ class GenericPeopleController < ApplicationController
              
       person = PatientService.create_patient_from_dde(passed_params) 
     else
+      
       person_params = {"occupation"=> params[:occupation],
         "age_estimate"=> params['patient_age']['age_estimate'],
         "cell_phone_number"=> params['cell_phone']['identifier'],
