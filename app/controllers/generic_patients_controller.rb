@@ -21,6 +21,10 @@ class GenericPatientsController < ApplicationController
 			@prescriptions = restriction.filter_orders(@prescriptions)
 			@programs = restriction.filter_programs(@programs)
 		end
+    @died = 0
+    @programs.each do |program|
+      @died = 1 if program.patient_states.last.to_s.match(/Patient died/i)
+    end
 		#@tb_status = PatientService.patient_tb_status(@patient)
 		#raise @tb_status.downcase.to_yaml
     @art_start_date = PatientService.patient_art_start_date(@patient)
@@ -45,7 +49,45 @@ class GenericPatientsController < ApplicationController
 				@reason_for_art_eligibility = nil				
 			end
 			@arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
-			render :template => 'patients/index', :layout => false
+      @tb_number = PatientService.get_patient_identifier(@patient, 'District TB Number')
+
+#######################
+      regimen_category = Concept.find_by_name("Regimen Category")
+      @current_regimen = Observation.find_by_sql("SELECT * FROM obs o INNER JOIN encounter enc ON
+      o.encounter_id= enc.encounter_id AND
+      enc.encounter_type= (SELECT encounter_type_id FROM encounter_type WHERE
+      name='DISPENSING') AND o.concept_id=#{regimen_category.id} AND enc.patient_id=#{@patient.id}
+      AND enc.voided = 0
+      order by enc.date_created DESC LIMIT 1").first.answer_string.squish rescue nil
+
+      identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+      identifiers = PatientIdentifierType.find(:all, :conditions=>["name IN (?)",
+        identifier_types]).collect{| type |type.id }
+
+      patient_identifiers = PatientIdentifier.find(:all, :conditions=>["patient_id=? AND
+       identifier_type IN (?)", @patient.id, identifiers]).collect{| i | i.identifier }
+    
+      if show_lab_results
+
+        cd4_results = Lab.latest_result_by_test_type(@patient, 'CD4', patient_identifiers) rescue nil
+        @cd4_results = cd4_results
+        @cd4_latest_date = cd4_results[0].split('::')[0].to_date rescue nil
+        @cd4_latest_result = cd4_results[1]["TestValue"] rescue nil
+        @cd4_modifier = cd4_results[1]["Range"] rescue nil
+        
+        vl_results = Lab.latest_result_by_test_type(@patient, 'HIV_viral_load', patient_identifiers) rescue nil
+        @vl_results = vl_results
+        @vl_latest_date = vl_results[0].split('::')[0].to_date rescue nil
+        @vl_latest_result = vl_results[1]["TestValue"] rescue nil
+        @vl_modifier = vl_results[1]["Range"] rescue nil
+      end
+
+        @current_hiv_program_status = Patient.find_by_sql("
+											SELECT patient_id, current_state_for_program(patient_id, 1, '#{session_date}') AS state, c.name as status
+											FROM patient p INNER JOIN program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(patient_id, 1, '#{session_date}')
+											INNER JOIN concept_name c ON c.concept_id = pw.concept_id where p.patient_id = '#{@patient.patient_id}'").first.status rescue "Unknown"
+       ####################
+      render :template => 'patients/index', :layout => false
 		end
 	end
 
@@ -612,7 +654,7 @@ class GenericPatientsController < ApplicationController
     @encounters = @patient.encounters.find_by_date(session_date)
     @prescriptions = @patient.orders.unfinished.prescriptions.all
     @programs = @patient.patient_programs.all
-    #raise @programs.patient_states.to_yaml
+  #raise @programs.first.patient_states.last.to_s
     @alerts = alerts(@patient, session_date) rescue nil
     # This code is pretty hacky at the moment
     @restricted = ProgramLocationRestriction.all(:conditions => {:location_id => Location.current_health_center.id })
@@ -622,7 +664,7 @@ class GenericPatientsController < ApplicationController
       @prescriptions = restriction.filter_orders(@prescriptions)
       @programs = restriction.filter_programs(@programs)
     end
-    
+   # raise @programs.first.patient_states.to_yaml
 =begin
    @program_state =  []
    @programs.each do | prog |
@@ -1450,16 +1492,7 @@ end
   def patient_transfer_out_label(patient_id)
     date = session[:datetime].to_date rescue Date.today
     patient = Patient.find(patient_id)
-    patient_bean = PatientService.get_patient(patient.person)
     demographics = mastercard_demographics(patient)
-
-    type = EncounterType.find_by_name("APPOINTMENT")
-    next_appt = Observation.find(:first,:order => "encounter_datetime DESC,encounter.date_created DESC",
-			:joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
-			:conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
-               AND obs_datetime <= ?",ConceptName.find_by_name('Appointment date').concept_id,
-				type.id, patient.id, date.strftime("%Y-%m-%d 23:59:59")
-			]).value_datetime.strftime("%a %d %B %Y") rescue nil
 
     who_stage = demographics.reason_for_art_eligibility 
     initial_staging_conditions = demographics.who_clinical_conditions.split(';')
@@ -1812,46 +1845,46 @@ end
     staging_ans = patient_obj.person.observations.recent(1).question("WHO STAGES CRITERIA PRESENT").all
 
     hiv_staging_obs = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
-        EncounterType.find_by_name("HIV Staging").id,patient_obj.id]).observations.map(&:concept_id)
+        EncounterType.find_by_name("HIV Staging").id,patient_obj.id]).observations.map(&:value_coded) rescue []
 
-    if staging_ans.blank?
-      staging_ans = patient_obj.person.observations.recent(1).question("WHO STG CRIT").all
-    end
+    #if staging_ans.blank?
+    #  staging_ans = patient_obj.person.observations.recent(1).question("WHO STG CRIT").all
+   # end
 
-    if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[3])
-      visits.ks = 'Yes'
-    else
+    #if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[3])
+    #  visits.ks = 'Yes'
+    #else
       ks_concept_id = ConceptName.find_by_name('Kaposis sarcoma').concept_id
       visits.ks = 'Yes' if hiv_staging_obs.include?(ks_concept_id)
-    end
+    #end
 
-    if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[1])
-      visits.tb_within_last_two_yrs = 'Yes'
-    else
+   # if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[1])
+   #   visits.tb_within_last_two_yrs = 'Yes'
+   # else
       tb_within_2yrs_concept_id = ConceptName.find_by_name('Pulmonary tuberculosis within the last 2 years').concept_id
       visits.tb_within_last_two_yrs = 'Yes' if hiv_staging_obs.include?(tb_within_2yrs_concept_id) 
-    end
+   # end
 
-    if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[0])
-      visits.eptb = 'Yes'
-    else
+   # if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[0])
+    #  visits.eptb = 'Yes'
+    #else
       eptb_concept_id = ConceptName.find_by_name('Extrapulmonary tuberculosis (EPTB)').concept_id
       visits.eptb = 'Yes' if hiv_staging_obs.include?(eptb_concept_id)
-    end
+   # end
 
-    if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[2])
-      visits.pulmonary_tb = 'Yes'
-		else
+    #if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[2])
+    #  visits.pulmonary_tb = 'Yes'
+		#else
       pulm_tuber_cur_concept_id = ConceptName.find_by_name('Pulmonary tuberculosis (current)').concept_id
       visits.pulmonary_tb = 'Yes' if hiv_staging_obs.include?(pulm_tuber_cur_concept_id)
-		end
+		#end
 
-		if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[4])
-      visits.pulmonary_tb = 'Yes'
-    else
+		#if staging_ans.map{|obs|ConceptName.find(obs.value_coded_name_id).name}.include?(ans[4])
+    #  visits.pulmonary_tb = 'Yes'
+    #else
       pulm_tuber_concept_id = ConceptName.find_by_name('Pulmonary tuberculosis').concept_id
       visits.pulmonary_tb = 'Yes' if hiv_staging_obs.include?(pulm_tuber_concept_id)
-    end
+    #end
 
     hiv_staging = Encounter.find(:last,:conditions =>["encounter_type = ? and patient_id = ?",
         EncounterType.find_by_name("HIV Staging").id,patient_obj.id])
@@ -1921,6 +1954,21 @@ end
     visits
   end
 
+  def calculate_bmi(patient_weight, patient_height)
+    weight = patient_weight
+    height = patient_height
+    unless weight == 0 || height == 0
+      current_bmi = (weight/(height*height)*10000).round(1);
+    end
+    current_bmi
+  end
+  
+  def get_current_obs(date, patient, obs)
+    concept_id = ConceptName.find_by_name("#{obs}").concept_id
+    obs = Observation.find(:last, :conditions => ['person_id = ? and DATE(obs_datetime) <= ? AND concept_id = ?',
+                            patient.patient_id, date, concept_id])
+  end
+
   def visits(patient_obj, encounter_date = nil)
     session_date = session[:datetime].blank? ? Date.today : session[:datetime].to_date
     
@@ -1978,18 +2026,21 @@ end
       end
 
 			patient_visits[visit_date] = Mastercard.new() if patient_visits[visit_date].blank?
-
+      if patient_visits[visit_date].bmi.blank?
+      weight = get_current_obs(visit_date.to_date, patient_obj, "WEIGHT (KG)").to_s.split(':')[1].squish.to_f rescue []
+      height = get_current_obs(visit_date.to_date, patient_obj, "HEIGHT (CM)").to_s.split(':')[1].squish.to_f rescue []
+      patient_visits[visit_date].bmi = calculate_bmi(weight, height) rescue []
+      end
 				 
 			concept_name = obs.concept.fullname
-         
 			if concept_name.upcase == 'APPOINTMENT DATE'
 				patient_visits[visit_date].appointment_date = obs.value_datetime
 			elsif concept_name.upcase == 'HEIGHT (CM)'
 				patient_visits[visit_date].height = obs.answer_string
 			elsif concept_name.upcase == 'WEIGHT (KG)'
 				patient_visits[visit_date].weight = obs.answer_string
-			elsif concept_name.upcase == 'BODY MASS INDEX, MEASURED'
-				patient_visits[visit_date].bmi = obs.answer_string
+			#elsif concept_name.upcase == 'BODY MASS INDEX, MEASURED'
+			#	patient_visits[visit_date].bmi = obs.answer_string
 			elsif concept_name == 'RESPONSIBLE PERSON PRESENT' or concept_name == 'PATIENT PRESENT FOR CONSULTATION'
 				patient_visits[visit_date].visit_by = '' if patient_visits[visit_date].visit_by.blank?
 				patient_visits[visit_date].visit_by+= "P" if obs.to_s.squish.match(/Patient present for consultation: Yes/i)
@@ -2086,7 +2137,7 @@ end
       state_name = state.program_workflow_state.concept.fullname rescue 'Unknown state'
       all_patient_states << [state_name, state.start_date]
     end
-
+ 
     defaulted_dates = PatientService.patient_defaulted_dates(patient_obj, session_date) rescue nil
 
     if defaulted_dates

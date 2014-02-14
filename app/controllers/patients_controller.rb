@@ -6,6 +6,7 @@ class PatientsController < GenericPatientsController
     @reason_for_art_eligibility = PatientService.reason_for_art_eligibility(@patient)
     @arv_number = PatientService.get_patient_identifier(@patient, 'ARV Number')
     @exit_states = concept_set("EXIT FROM CARE").flatten.uniq!
+    @exit_states.delete("Treatment never started") if CoreService.get_global_property_value('mpc.lighthouse.states') == false
     render :template => 'dashboards/exitcare_dashboard.rhtml', :layout => false
   end
 
@@ -76,17 +77,7 @@ class PatientsController < GenericPatientsController
   def patient_transfer_out_label(patient_id)
     date = session[:datetime].to_date rescue Date.today
     patient = Patient.find(patient_id)
-    patient_bean = PatientService.get_patient(patient.person)
     demographics = mastercard_demographics(patient)
-
-    type = EncounterType.find_by_name("APPOINTMENT")
-    next_appt = Observation.find(:first,:order => "encounter_datetime DESC,encounter.date_created DESC",
-			:joins => "INNER JOIN encounter ON obs.encounter_id = encounter.encounter_id",
-			:conditions => ["concept_id = ? AND encounter_type = ? AND patient_id = ?
-               AND obs_datetime <= ?",ConceptName.find_by_name('Appointment date').concept_id,
-				type.id, patient.id, date.strftime("%Y-%m-%d 23:59:59")
-			]).value_datetime.strftime("%a %d %B %Y") rescue nil
-
    
     who_stage = demographics.reason_for_art_eligibility 
     initial_staging_conditions = demographics.who_clinical_conditions.split(';')
@@ -182,8 +173,6 @@ class PatientsController < GenericPatientsController
     label.draw_multi_text("#{demographics.reg}", {:font_reverse => false})
     label.draw_multi_text("Transfer out date:", {:font_reverse => true})
     label.draw_multi_text("#{date.strftime("%d-%b-%Y")}", {:font_reverse => false})
-    label.draw_multi_text("Next appointment date:", {:font_reverse => true})
-    label.draw_multi_text("#{next_appt}", {:font_reverse => false})
 
     label.print(1)
   end

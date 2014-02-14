@@ -1550,8 +1550,10 @@ class CohortToolController < GenericCohortToolController
     missed_dispensations_data.each do |prescription|
 			patient      = Patient.find(prescription[:patient_id])
 			drug_id      = DrugOrder.find(prescription[:order_id]).drug_inventory_id
-			drug_name    = Drug.find(drug_id).name
+			drug_name    = Drug.find(drug_id).name rescue []
 
+      next if drug_name.blank?
+      
 			prescriptions_without_dispensations << {'person_id' => patient.id,
 				'arv_number' => PatientService.get_patient_identifier(patient, 'ARV Number'),
 				'national_id' => PatientService.get_national_id(patient),

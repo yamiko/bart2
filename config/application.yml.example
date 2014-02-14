@@ -6,6 +6,7 @@ production:
  records_per_page: 15
  debugger_sorting_attribute: arv_number
  use_drug_barcodes_only: false
+ mpc.lighthouse.states: false
  logo: mw.gif
  sort: true
  select_program: true
@@ -19,6 +20,7 @@ development:
  records_per_page: 13
  debugger_sorting_attribute: arv_number
  use_drug_barcodes_only: false
+ mpc.lighthouse.states: false
  logo: mw.gif
  sort: false
  select_program: true

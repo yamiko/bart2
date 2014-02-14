@@ -682,6 +682,7 @@ class GenericEncountersController < ApplicationController
 	def void
 		@encounter = Encounter.find(params[:id])
     tb_reg = EncounterType.find_by_name("TB registration").id.to_i
+    patient_identifier_type_id = PatientIdentifierType.find_by_name("District TB Number").patient_identifier_type_id
     tb_prog = Program.find_by_name("TB PROGRAM").id
     if tb_reg == @encounter.encounter_type.to_i
           void_prog = PatientProgram.find(:last, :conditions => ['DATE(date_enrolled) = ? AND patient_id = ? AND program_id = ?',
@@ -690,7 +691,11 @@ class GenericEncountersController < ApplicationController
           if ! void_prog.blank?
              void_prog.void
           end
-
+          current_identifier = PatientIdentifier.find(:first, :conditions => ['patient_id = ? AND identifier_type = ?',
+                                           @encounter.patient_id, patient_identifier_type_id], :order => "date_created DESC")
+          if ! current_identifier.blank?
+            current_identifier.void
+          end
 
     end
       state = Encounter.find_by_sql("

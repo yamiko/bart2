@@ -19,6 +19,7 @@
     dates = [];
     for(var i = 0; i < stocks.length; i++) {
       dates.push(stocks[i][0]);
+
     }
     return dates;
   }
@@ -36,10 +37,11 @@ $(function () {
                 text: ''
             },
             xAxis: {
-                categories:  getDates(),
-                tickmarkPlacement: 'on',
-                title: {
-                    enabled: false
+                /* categories:  getDates(), */
+                type: 'datetime',
+                dateTimeLabelFormats: {
+                day: '%e %b',
+                week: '%e %b'
                 }
             },
             yAxis: {
@@ -77,7 +79,9 @@ $(function () {
       for(var i = 0; i < stocks.length; i++) {
         correctedWeights.push(stocks[i][1]);
       }
-      return [{name: 'Time', data: correctedWeights}];
+      start_point = stocks[0][0].split('/')
+      //alert(start_point.split('/')[1])
+      return [{name: 'Time', data: correctedWeights, pointStart: Date.UTC(start_point[0], (start_point[1] - 1), start_point[2]), pointInterval: 24 * 3600 * 1000}];
     }
     </script>
   </head>

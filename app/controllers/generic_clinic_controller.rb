@@ -23,7 +23,7 @@ class GenericClinicController < ApplicationController
     @user = current_user.name rescue ""
 
     @roles = current_user.user_roles.collect{|r| r.role} rescue []
-
+     session[:stage_patient] = ""
     render :template => 'clinic/index', :layout => false
   end
 

@@ -45,6 +45,6 @@ class PersonNameCode < ActiveRecord::Base
          COUNT(#{field_name}) DESC,  \
          #{field_name} ASC \
        LIMIT 10",
-       "#{soundex}%", "#{search_string}%", search_string, search_string, soundex, soundex, soundex])
+       "#{soundex}%", "#{search_string}%",search_string, search_string, soundex, soundex, soundex])
   end
 end

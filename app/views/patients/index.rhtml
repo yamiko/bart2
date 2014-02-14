@@ -41,7 +41,7 @@
             <% end %>
 
             <span id='patient_gender'><%= @patient_bean.sex rescue "" %></span>
-
+          
             <div id="patient_card">
               <% if !@art_start_date.blank?  %>
                 <span value="<%= "#{PatientService.period_on_treatment(@art_start_date).to_i} month(s)" %>"> Period on ART </span>
@@ -52,6 +52,21 @@
               <% if !@tb_registration_date.blank? and @show_period == true %>
                 <span value="<%= "#{PatientService.period_on_treatment(@tb_registration_date.to_date).to_i} month(s)" %>"> Period on TB </span>
               <% end %>
+                
+              <% unless @current_regimen.blank?  %>
+                <span value="<%= "#{@current_regimen}" %>"> Current Regimen </span>
+              <% end %>
+
+              <% unless @vl_results.blank?  %>
+                <span value="<%= "#{@vl_modifier.to_s + @vl_latest_result.to_s + '(' + @vl_latest_date.strftime("%a, %d-%b-%Y") +')'}" %>"> Last VL result </span>
+              <% end %>
+
+              <% if @current_hiv_program_status == "Pre-ART (Continue)" %>
+                <% unless @cd4_results.blank? %>
+                  <span value="<%= "#{@cd4_modifier.to_s + @cd4_latest_result.to_s + '(' + @cd4_latest_date.strftime("%a, %d-%b-%Y") +')'}" %>"> Last CD4 </span>
+                <% end %>
+              <% end %>
+                
               <% if (@reason_for_art_eligibility rescue nil) != nil && (@reason_for_art_eligibility) != "" %>
                 <span value="<%= @reason_for_art_eligibility rescue "" %>">Reason for Starting</span>
               <% end %>
@@ -61,12 +76,20 @@
               <% if (@arv_number rescue nil) != nil && (@arv_number) != " " %>
                 <span value="<%= @arv_number rescue "" %>">ARV Number</span>
               <% end %>
+              <% if (@tb_number rescue nil) != nil && (@tb_number) != " " %>
+                <span value="<%= @tb_number rescue '' %>">TB Number</span>
+              <% end %>
+
               <% if (@patient_bean.eid_number rescue nil) != nil && (@patient_bean.eid_number) != " " %>
                 <span value="<%= @patient_bean.eid_number rescue "" %>">EID Number</span>
               <% end %>
               <% if (@patient_bean.filing_number rescue nil) != nil && (@patient_bean.filing_number) != " " %>
                 <span value="<%= @patient_bean.filing_number rescue "" %>">Filing Number</span>
               <% end %>
+              <% if (@patient_bean.archived_filing_number rescue nil) != nil && (@patient_bean.archived_filing_number) != " " %>
+                <span value="<%= @patient_bean.archived_filing_number rescue "" %>">Archived Filing Number</span>
+              <% end %>
+
               <% if @art_start_date.blank? and @pre_art_start_date != "" and @pre_art_start_date != nil %>
                 <span value="<%= "#{PatientService.period_on_treatment(@pre_art_start_date.to_date).to_i} month(s)" %>">Period on Pre-ART</span>
               <% end %>
@@ -88,7 +111,7 @@
                 NEXT TASK: <%= task_name.gsub('_',' ') %>
               </option>
             </select>
-            <% if @patient.person.dead == 1%>
+            <% if @died == 1%>
               <select id="links">
                 <optgroup value='/patients/programs_dashboard/<%= @patient.id -%>' label="Outcomes"></optgroup>
               </select>

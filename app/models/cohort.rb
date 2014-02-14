@@ -106,8 +106,8 @@ class Cohort
 			end
 		end
 
-		threads << Thread.new do
-			begin
+		#threads << Thread.new do
+		#	begin
 				cohort_report['Total registered'] = self.total_registered(@@first_registration_date)
 				cohort_report['Newly total registered'] = self.total_registered
 
@@ -117,13 +117,13 @@ class Cohort
 					
 				cohort_report['Patients initiated on ART'] = self.patients_initiated_on_art_first_time - cohort_report['Patients reinitiated on ART']
 				cohort_report['Total Patients initiated on ART'] = self.patients_initiated_on_art_first_time(@@first_registration_date) - cohort_report['Total Patients reinitiated on ART']
-			rescue Exception => e
-				Thread.current[:exception] = e
-			end
-		end
+		#	rescue Exception => e
+			#	Thread.current[:exception] = e
+		#	end
+		#end
 
-		threads << Thread.new do
-			begin
+		#threads << Thread.new do
+		#	begin
 				logger.info("male " + Time.now.to_s)
 				cohort_report['Newly registered male'] = self.total_registered_by_gender_age(@start_date, @end_date,'M')
 				cohort_report['Total registered male'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date,'M')
@@ -131,53 +131,53 @@ class Cohort
 				logger.info("non-pregnant " + Time.now.to_s)
 				cohort_report['Newly registered women (non-pregnant)'] = self.non_pregnant_women(@start_date, @end_date)
 				cohort_report['Total registered women (non-pregnant)'] = self.non_pregnant_women(@@first_registration_date, @end_date)
-			rescue Exception => e
-				Thread.current[:exception] = e
-			end
-		end
+		#	rescue Exception => e
+		#		Thread.current[:exception] = e
+		#	end
+		#end
 
-		threads << Thread.new do
-			begin
+		#threads << Thread.new do
+		#	begin
 				logger.info("pregnant " + Time.now.to_s)
 				cohort_report['Newly registered women (pregnant)'] = self.pregnant_women(@start_date, @end_date)
 				cohort_report['Total registered women (pregnant)'] = self.pregnant_women(@@first_registration_date, @end_date)
 
-			rescue Exception => e
-				Thread.current[:exception] = e
-			end
-		end
+		#	rescue Exception => e
+		#		Thread.current[:exception] = e
+		#	end
+		#end
 
-		threads << Thread.new do
-			begin
+		#threads << Thread.new do
+		#	begin
 				logger.info("adults " + Time.now.to_s)
 				cohort_report['Newly registered adults'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 5479, 109500)
 				cohort_report['Total registered adults'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 5479, 109500)
-			rescue Exception => e
-				Thread.current[:exception] = e
-			end
-		end
+		#	rescue Exception => e
+		#		Thread.current[:exception] = e
+		#	end
+		#end
 
-		threads << Thread.new do
-			begin
+		#threads << Thread.new do
+		#	begin
 				logger.info("children " + Time.now.to_s)
 				# Child min age = 2 yrs = (365.25 * 2) = 730.5 == 731 days to nearest day
 				cohort_report['Newly registered children'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 731, 5479)
 				cohort_report['Total registered children'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 731, 5479)
-			rescue Exception => e
-				Thread.current[:exception] = e
-			end
-		end
+		#	rescue Exception => e
+		#		Thread.current[:exception] = e
+		#	end
+	#	end
 
-		threads << Thread.new do
-			begin
+	#	threads << Thread.new do
+		#	begin
 				logger.info("infants " + Time.now.to_s)
 				cohort_report['Newly registered infants'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 0, 731)
 				cohort_report['Total registered infants'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 0, 731)
 
-			rescue Exception => e
-				Thread.current[:exception] = e
-			end
-		end
+			#rescue Exception => e
+			#	Thread.current[:exception] = e
+			#end
+		#end
 =begin
 		threads << Thread.new do
 			begin
