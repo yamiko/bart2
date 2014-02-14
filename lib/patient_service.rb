@@ -135,7 +135,9 @@ module PatientService
           },
           "attributes"=>
             {"occupation"=> params["person"]["occupation"],
-            "cell_phone_number" => params["person"]["cell_phone_number"] },
+            "cell_phone_number" => params["person"]["cell_phone_number"] 
+            "home_phone_number" => params["person"]["home_phone_number"] || nil,
+						"office_phone_number" => params["person"]["office_phone_number"] || nil},
           "patient"=>
             {"identifiers"=>
               {"old_identification_number"=> params["person"]["patient"]["identifiers"]["old_identification_number"]}},
@@ -274,7 +276,9 @@ module PatientService
           },
           "attributes"=>
             {"occupation"=> params["person"]["occupation"],
-            "cell_phone_number" => params["person"]["cell_phone_number"] },
+            "cell_phone_number" => params["person"]["cell_phone_number"],
+            "office_phone_number" => params["person"]["office_phone_number"] || nil,
+            "home_phone_number" => params["person"]["home_phone_number"] || nil },
           "patient"=>
             {"identifiers"=> {"old_identification_number"=> old_identifier}},
           "gender"=> person_params["gender"],
