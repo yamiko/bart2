@@ -980,6 +980,12 @@ element.setAttribute("onmousedown", "gotoNextPage()")
     }
   }
 </script>
+<% if @patient_bean.age < 14
+   options = ["120","240","480","960"]
+  else
+    options = ["480","960"]
+  end
+%>
 <body>
    <div id="cover" align="center">
   </div>
@@ -1223,7 +1229,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	  :helpText => "Prescribe CPT",
           :tt_onLoad => "showCategory('Regimen');"} %>
 
-	<%= select_tag :cpt_mgs, options_for_select(["120","240","480","960"]), {
+	<%= select_tag :cpt_mgs, options_for_select(options), {
 	  :allowFreeText => 'false',
 	  :condition => "$('cpt_given').value == 'YES'",
 	  :helpText => "Prescribed cotramoxazole milligrams",
