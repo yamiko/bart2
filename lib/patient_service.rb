@@ -366,9 +366,9 @@ module PatientService
         "birth_month" => birth_month,
         "birth_day" => birth_day,
         "names" => {
-          "given_name" => person_obj.names[0].given_name,
-          "family_name" => person_obj.names[0].family_name,
-          "family_name2" => person_obj.names[0].family_name2
+          "given_name" => person_obj.names.first.given_name,
+          "family_name" => person_obj.names.first.family_name,
+          "family_name2" => person_obj.names.first.family_name2
         },
          "addresses"=>{"address1"=>person_obj.addresses.first.address1,
             "address2"=>person_obj.addresses.first.address2,
@@ -378,7 +378,9 @@ module PatientService
             "county_district"=>person_obj.addresses.first.county_district},
         
         "attributes" => {"occupation" => self.get_attribute(person_obj, 'Occupation'),
-          "cell_phone_number" => self.get_attribute(person_obj, 'Cell Phone Number')}}}
+          "cell_phone_number" => self.get_attribute(person_obj, 'Cell Phone Number'),
+					"home_phone_number" => self.get_attribute(person_obj, 'Home Phone Number'),
+					"office_phone_number" => self.get_attribute(person_obj, 'Office Phone Number')}}}
    
     if not person_obj.patient.patient_identifiers.blank?
       demographics["person"]["patient"] = {"identifiers" => {}}
