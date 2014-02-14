@@ -317,7 +317,7 @@ module PatientService
       "person" =>
         {"attributes" => {
           "occupation" => demo['person']['attributes']['occupation'],
-          "cell_phone_number" => demo['person']['cell_phone_number']
+          "cell_phone_number" => demo['person']['attributes']['cell_phone_number']
         } ,
         
          "addresses"=>{"address1"=>demo['person']['addresses']['address1'],
