@@ -87,18 +87,22 @@ class GenericPeopleController < ApplicationController
 		if Location.current_location.blank?
 			Location.current_location = Location.find(CoreService.get_global_property_value('current_health_center_id'))
 		end rescue []
-
+    
+    
     if create_from_dde_server                                                
-      
+       
       passed_params = {"region" => "" ,
 				"person"=>{"occupation"=> params["occupation"] ,
 					"age_estimate"=> params["patient_age"]["age_estimate"] ,
 					"cell_phone_number"=> params["cell_phone"]["identifier"] ,
 					"birth_month"=> params["patient_month"],
-					"addresses"=>{"address1"=> "",
-						"address2"=>  "",
-						"city_village"=>  params["patientaddress"]["city_village"] ,
-						"county_district"=> params["patient"]["birthplace"] },
+				 "addresses"=>
+            {"state_province"=> params["addresses"]["state_province"],
+            "address2"=> params["addresses"]["address2"],
+            "address1"=> params["addresses"]["address1"],
+            "neighborhood_cell"=> params["addresses"]["neighborhood_cell"],
+            "city_village"=> params["addresses"]["city_village"],
+            "county_district"=> params["addresses"]["county_district"]},   
 					"gender"=>  params["patient"]["gender"],
 					"patient"=>"",
 					"birth_day"=>  params["patient_day"] ,
@@ -123,10 +127,13 @@ class GenericPeopleController < ApplicationController
         "age_estimate"=> params['patient_age']['age_estimate'],
         "cell_phone_number"=> params['cell_phone']['identifier'],
         "birth_month"=> params[:patient_month],
-        "addresses"=>{ "address2" => params['p_address']['identifier'],
-					"address1" => params['p_address']['identifier'],
-					"city_village"=> params['patientaddress']['city_village'],
-					"county_district"=> params[:birthplace] },
+       "addresses"=>
+            {"state_province"=> params["addresses"]["state_province"],
+            "address2"=> params["addresses"]["address2"],
+            "address1"=> params["addresses"]["address1"],
+            "neighborhood_cell"=> params["addresses"]["neighborhood_cell"],
+            "city_village"=> params["addresses"]["city_village"],
+            "county_district"=> params["addresses"]["county_district"]},   
         "gender" => params['patient']['gender'],
         "birth_day" => params[:patient_day],
         "names"=> {"family_name2"=>"Unknown",
