@@ -312,19 +312,21 @@ module PatientService
 
   def self.remote_demographics(person_obj)
     demo = demographics(person_obj)
-
+   
     demographics = {
       "person" =>
         {"attributes" => {
-          "occupation" => demo['person']['occupation'],
+          "occupation" => demo['person']['attributes']['occupation'],
           "cell_phone_number" => demo['person']['cell_phone_number']
         } ,
-        "addresses" =>
-          { "address2"=> demo['person']['addresses']['location'],
-          "city_village" => demo['person']['addresses']['city_village'],
-          "address1"  => demo['person']['addresses']['address1'],
-          "county_district" => ""
-        },
+        
+         "addresses"=>{"address1"=>demo['person']['addresses']['address1'],
+            "address2"=>demo['person']['addresses']['address2'],
+            "city_village"=>demo['person']['addresses']['city_village'],
+            "state_province"=>demo['person']['addresses']['state_province'],
+            "neighborhood_cell"=>demo['person']['addresses']['neighborhood_cell'],
+            "county_district"=>demo['person']['addresses']['county_district']},
+
         "age_estimate" => person_obj.birthdate_estimated ,
         "birth_month"=> person_obj.birthdate.month ,
         "patient" =>{"identifiers"=>
@@ -368,15 +370,16 @@ module PatientService
           "family_name" => person_obj.names[0].family_name,
           "family_name2" => person_obj.names[0].family_name2
         },
-        "addresses" => {
-          "county_district" => person_obj.addresses[0].county_district,
-          "city_village" => person_obj.addresses[0].city_village,
-          "address1" => person_obj.addresses[0].address1,
-          "address2" => person_obj.addresses[0].address2
-        },
+         "addresses"=>{"address1"=>person_obj.addresses.first.address1,
+            "address2"=>person_obj.addresses.first.address2,
+            "city_village"=>person_obj.addresses.first.city_village,
+            "state_province"=>person_obj.addresses.first.state_province,
+            "neighborhood_cell"=>person_obj.addresses.first.neighborhood_cell,
+            "county_district"=>person_obj.addresses.first.county_district},
+        
         "attributes" => {"occupation" => self.get_attribute(person_obj, 'Occupation'),
           "cell_phone_number" => self.get_attribute(person_obj, 'Cell Phone Number')}}}
-
+   
     if not person_obj.patient.patient_identifiers.blank?
       demographics["person"]["patient"] = {"identifiers" => {}}
       person_obj.patient.patient_identifiers.each{|identifier|
@@ -565,6 +568,7 @@ module PatientService
     national_id = person_demographics["person"]["patient"]["identifiers"]["National id"] rescue nil
     national_id = person_demographics["person"]["value"] if national_id.blank? rescue nil
     results = search_by_identifier(national_id) unless national_id.nil?
+   
     return results unless results.blank?
 
     gender = person_demographics["person"]["gender"] rescue nil
