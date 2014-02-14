@@ -317,7 +317,9 @@ module PatientService
       "person" =>
         {"attributes" => {
           "occupation" => demo['person']['attributes']['occupation'],
-          "cell_phone_number" => demo['person']['attributes']['cell_phone_number']
+          "cell_phone_number" => demo['person']['attributes']['cell_phone_number'] || nil,
+          "home_phone_number" => demo['person']['attributes']['home_phone_number'] || nil,
+          "office_phone_number" => demo['person']['attributes']['office_phone_number'] || nil
         } ,
         
          "addresses"=>{"address1"=>demo['person']['addresses']['address1'],
@@ -1403,7 +1405,7 @@ EOF
     unless person_params['birthdate_estimated'].blank?
        person.birthdate_estimated = person_params['birthdate_estimated'].to_i
     end
-
+   
 		person.save
 
 		person.names.create(names_params)
