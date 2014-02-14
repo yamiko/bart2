@@ -93,7 +93,9 @@ class GenericPeopleController < ApplicationController
       passed_params = {"region" => "" ,
 				"person"=>{"occupation"=> params["occupation"] ,
 					"age_estimate"=> params["patient_age"]["age_estimate"] ,
-					"cell_phone_number"=> params["cell_phone"]["identifier"] ,
+					"cell_phone_number"=> params["cell_phone"]["identifier"] || nil,
+          "home_phone_number"=> params['home_phone']['identifier'] || nil,
+          "office_phone_number"=> params['office_phone']['identifier'] || nil,
 					"birth_month"=> params["patient_month"],
 				 "addresses"=>
             {"state_province"=> params["addresses"]["state_province"],
@@ -122,10 +124,12 @@ class GenericPeopleController < ApplicationController
              
       person = PatientService.create_patient_from_dde(passed_params) 
     else
-      
+    
       person_params = {"occupation"=> params[:occupation],
         "age_estimate"=> params['patient_age']['age_estimate'],
-        "cell_phone_number"=> params['cell_phone']['identifier'],
+        "cell_phone_number"=> params['cell_phone']['identifier'] || nil,
+        "home_phone_number"=> params['home_phone']['identifier'] || nil,
+        "office_phone_number"=> params['office_phone']['identifier'] || nil,
         "birth_month"=> params[:patient_month],
        "addresses"=>
             {"state_province"=> params["addresses"]["state_province"],
