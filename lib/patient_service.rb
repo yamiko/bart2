@@ -135,7 +135,7 @@ module PatientService
           },
           "attributes"=>
             {"occupation"=> params["person"]["occupation"],
-            "cell_phone_number" => params["person"]["cell_phone_number"] 
+            "cell_phone_number" => params["person"]["cell_phone_number"], 
             "home_phone_number" => params["person"]["home_phone_number"] || nil,
 						"office_phone_number" => params["person"]["office_phone_number"] || nil},
           "patient"=>
