@@ -208,6 +208,8 @@ module PatientService
         birthdate.strftime("??/%b/%Y")
       elsif birthdate.day == 1 and birthdate.month == 1
         birthdate.strftime("??/???/%Y")
+      else 
+	      birthdate.strftime("%d/%b/%Y") unless birthdate.blank?
       end
     else
       birthdate.strftime("%d/%b/%Y")
