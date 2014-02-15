@@ -1760,7 +1760,7 @@ class GenericPatientsController < ApplicationController
     visits.sex = patient_bean.sex
     visits.age = patient_bean.age
     visits.occupation = PatientService.get_attribute(patient_obj.person, 'Occupation')
-    visits.landmark = patient_obj.person.addresses.first.address1
+    visits.landmark = patient_obj.person.addresses.first.address1 rescue nil
     visits.init_wt = PatientService.get_patient_attribute_value(patient_obj, "initial_weight")
     visits.init_ht = PatientService.get_patient_attribute_value(patient_obj, "initial_height")
     visits.bmi = PatientService.get_patient_attribute_value(patient_obj, "initial_bmi")
