@@ -1394,7 +1394,7 @@ class GenericPatientsController < ApplicationController
     label.draw_text("Name:   #{demographics.name} (#{demographics.sex})",25,60,0,3,1,1,false)
     label.draw_text("DOB:    #{PatientService.birthdate_formatted(patient.person)}",25,90,0,3,1,1,false)
     label.draw_text("Phone: #{phone_number}",25,120,0,3,1,1,false)
-    if demographics.address.length > 48
+    if (demographics.address.blank? ? 0 : demographics.address.length) > 48
       label.draw_text("Addr:  #{demographics.address[0..47]}",25,150,0,3,1,1,false)
       label.draw_text("    :  #{demographics.address[48..-1]}",25,180,0,3,1,1,false)
       last_line = 180
