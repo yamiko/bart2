@@ -1704,6 +1704,8 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
         person.birthdate.strftime("??/%b/%Y")
       elsif person.birthdate.day == 1 and person.birthdate.month == 1
         person.birthdate.strftime("??/???/%Y")
+      else
+        birthdate.strftime("%d/%b/%Y") unless birthdate.blank?
       end
     else
       if !person.birthdate.blank?
