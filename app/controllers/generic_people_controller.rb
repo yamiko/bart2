@@ -114,7 +114,7 @@ class GenericPeopleController < ApplicationController
 					"birth_year"=> params["patient_year"] },
 				"filter_district"=> params["patient"]["birthplace"] ,
 				"filter"=>{"region"=> "" ,
-					"t_a"=> params["current_ta"]["identifier"] ,
+					"t_a"=> params["current_ta"]["identifier"] || nil,
 					"t_a_a"=>""},
 				"relation"=>"",
 				"p"=>{"'address2_a'"=>"",
