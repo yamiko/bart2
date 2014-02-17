@@ -52,6 +52,21 @@
               <% if !@tb_registration_date.blank? and @show_period == true %>
                 <span value="<%= "#{PatientService.period_on_treatment(@tb_registration_date.to_date).to_i} month(s)" %>"> Period on TB </span>
               <% end %>
+                
+              <% unless @current_regimen.blank?  %>
+                <span value="<%= "#{@current_regimen}" %>"> Current Regimen </span>
+              <% end %>
+
+              <% unless @vl_results.blank?  %>
+                <span value="<%= "#{@vl_modifier.to_s + @vl_latest_result.to_s + '(' + @vl_latest_date.strftime("%a, %d-%b-%Y") +')'}" %>"> Last VL result </span>
+              <% end %>
+
+              <% if @current_hiv_program_status == "Pre-ART (Continue)" %>
+                <% unless @cd4_results.blank? %>
+                  <span value="<%= "#{@cd4_modifier.to_s + @cd4_latest_result.to_s + '(' + @cd4_latest_date.strftime("%a, %d-%b-%Y") +')'}" %>"> Last CD4 </span>
+                <% end %>
+              <% end %>
+                
               <% if (@reason_for_art_eligibility rescue nil) != nil && (@reason_for_art_eligibility) != "" %>
                 <span value="<%= @reason_for_art_eligibility rescue "" %>">Reason for Starting</span>
               <% end %>
@@ -61,6 +76,10 @@
               <% if (@arv_number rescue nil) != nil && (@arv_number) != " " %>
                 <span value="<%= @arv_number rescue "" %>">ARV Number</span>
               <% end %>
+              <% if (@tb_number rescue nil) != nil && (@tb_number) != " " %>
+                <span value="<%= @tb_number rescue '' %>">TB Number</span>
+              <% end %>
+
               <% if (@patient_bean.eid_number rescue nil) != nil && (@patient_bean.eid_number) != " " %>
                 <span value="<%= @patient_bean.eid_number rescue "" %>">EID Number</span>
               <% end %>

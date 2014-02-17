@@ -563,8 +563,10 @@ module ApplicationHelper
 
             if (viral_load_popup_activated(arv_start_date, patient, period_on_art_in_months))
               if !(latest_viral_results_date >= valid_min_date && latest_viral_results_date <= today)
-                milestone_exceeded = false
-                return true
+                if (period_on_art_in_months >= key && period_on_art_in_months <= value.last)
+                  milestone_exceeded = false
+                  return true
+                end
               end
             end
           end
