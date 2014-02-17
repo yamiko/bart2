@@ -599,9 +599,11 @@
   .tt_controls_cd4_percent #lessthan, .tt_controls_cd4_percent #greaterthan { display:block; float:right }
 </style>
 
-<% if !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.squish != '' || (@normal_procedure == false && @check_preart == false) %>
+<% if ((!@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.squish != '') || @ask_staging == true) && @normal_procedure == false && @check_preart == false %>
   
-  <% if session[:stage_patient] == "No" %>
+  <%
+   current_date = session[:datetime].to_date rescue Date.today
+  if session["#{@patient.id}"]["#{current_date}"][:stage_patient] == "No" %>
      window.location = "<%= next_task(@patient) -%>&repeat='cancel'";
   <% end %>
   <div class="inputPage NoKeyboard" id="page" style="display: block;">
