@@ -298,6 +298,16 @@ class EncountersController < GenericEncountersController
 			end
 		end
 
+    if (params[:encounter_type].upcase rescue '') == 'TB_CLINIC_VISIT'
+      @remote_results = false
+      if @patient.person.observations.to_s.match(/Tuberculosis smear result:  Yes/i)
+          if @patient.person.observations.to_s.match(/Moderately positive/i) or @patient.person.observations.to_s.match(/Strongly positive/i) or  @patient.person.observations.to_s.match(/Weakly positive/i)
+            @suspected = true
+          end
+        
+      end
+    end
+
 		if (params[:encounter_type].upcase rescue '') == 'TB_REGISTRATION'
 
 			tb_clinic_visit_obs = Encounter.find(:first,:order => "encounter_datetime DESC",
