@@ -301,7 +301,7 @@ class EncountersController < GenericEncountersController
 				@patients << patient
 			end
 		end
-
+    #raise @patient.person.observations.to_s.to_yaml
     if (params[:encounter_type].upcase rescue '') == 'TB_CLINIC_VISIT'
       @remote_results = false
       if @patient.person.observations.to_s.match(/Tuberculosis smear result:  Yes/i)
