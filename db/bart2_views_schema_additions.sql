@@ -509,6 +509,62 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 
+DROP FUNCTION IF EXISTS `current_state_for_patient_in_flat_tables`;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_state_for_patient_in_flat_tables`(my_patient_id INT, my_end_date DATETIME) RETURNS varchar(255)
+BEGIN
+  SET @state_id = NULL;
+	SELECT current_hiv_program_state INTO @state_id FROM flat_table2
+    WHERE current_hiv_program_state IS NOT NULL and current_hiv_program_start_date IS NOT NULL
+      AND patient_id = my_patient_id
+      AND current_hiv_program_start_date <= my_end_date
+    ORDER BY patient_id, current_hiv_program_start_date DESC
+    LIMIT 1;
+
+	RETURN @state_id;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+
+DROP FUNCTION IF EXISTS `current_hiv_program_start_date_max`;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_hiv_program_start_date_max`(my_patient_id INT, my_end_date DATETIME) RETURNS varchar(10) CHARSET latin1
+    DETERMINISTIC
+BEGIN
+  SET @patient_id = NULL;
+	SELECT max(ft3.current_hiv_program_start_date) INTO @patient_id FROM flat_table2 ft3
+    WHERE ft3.patient_id = my_patient_id
+	    AND ft3.current_hiv_program_start_date <= my_end_date
+	    AND ft3.current_hiv_program_state = 'On antiretrovirals'
+	    AND ft3.current_hiv_program_start_date IS NOT NULL;
+
+	RETURN @patient_id;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+
 DROP FUNCTION IF EXISTS `last_text_for_obs`;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `last_text_for_obs`(my_patient_id INT, my_encounter_type_id INT, my_concept_id INT, my_end_date DATETIME) RETURNS VARCHAR(255)
