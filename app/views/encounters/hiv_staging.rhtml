@@ -587,7 +587,8 @@
 			  <%  end %>
 	}
   function denyStaging(){
-     window.location = "<%= next_task(@patient) -%>&repeat='cancel'";
+       window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat='cancel'"
+
   }
   function allowStaging(){
     window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat='no'"
@@ -598,14 +599,17 @@
   .tt_controls_cd4_count #lessthan, .tt_controls_cd4_count #greaterthan { display:block; float:right }
   .tt_controls_cd4_percent #lessthan, .tt_controls_cd4_percent #greaterthan { display:block; float:right }
 </style>
-
+<%
+  current_date = session[:datetime].to_date rescue Date.today
+  staging = session["#{@patient.id}"]["#{current_date}"][:stage_patient] rescue []
+  if ! staging.blank?
+  if staging == "No" %>
+     window.location = "<%= next_task(@patient) -%>";
+  <% end
+ end %>
 <% if ((!@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.squish != '') || @ask_staging == true) && @normal_procedure == false && @check_preart == false %>
   
-  <%
-   current_date = session[:datetime].to_date rescue Date.today
-  if session["#{@patient.id}"]["#{current_date}"][:stage_patient] == "No" %>
-     window.location = "<%= next_task(@patient) -%>&repeat='cancel'";
-  <% end %>
+ 
   <div class="inputPage NoKeyboard" id="page" style="display: block;">
 	<div id="trigger"></div>
 	<div id="infoBar" class="infoBarClass"></div>
@@ -622,8 +626,8 @@
   <div id="buttons" class="buttonsDiv" style="top:456;">
 	<div id="tt_extraButtons"></div>
         <% if  @ask_staging == true %>
-	<button onmousedown="denyStaging();" id="cancelButton" class="button navButton red"><span>Cancel</span></button>
-        <button onmousedown="allowStaging();" id="stageButton" class="button navButton green"><span>Stage</span></button>
+	<button onmousedown="denyStaging();" id="cancelButton" class="button navButton red"><span>No</span></button>
+        <button onmousedown="allowStaging();" id="stageButton" class="button navButton green"><span>Yes</span></button>
         <% else %>
         <button onmousedown="window.location=tt_cancel_destination;" id="cancelButton" class="button navButton red"><span>Cancel</span></button>
         <% end %>
