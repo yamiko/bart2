@@ -150,7 +150,7 @@
         html = "<form id='stock' name='stock' action='edit_stock' method='post'><table width='98%' align= 'center' class='stocks'><th colspan=6 >Relocation/Disposing</th>";
         html += '<tr><td>Relocation/Disposal Reason</td><td colspan=2><select name="reason" class="selects"><option value="Expired/Damaged">Expired/Damaged</option>'
         html += '<option value="Given to other clinics">Given to other clinics</option><option value="Receipt from other clinics">Receipt from other clinics</option>'
-        html += '<option value="Given to other clinics">Given to other clinics</option></select></td>'
+        html += '</select></td>'
         html += "<td>Date</td><td colspan=2><input name='delivery_time' type='text' onclick='showMe(this)' class='inputs'></td></tr>"
         html += '<tr class="header"><td width="54%" colspan=2><b>Drug</b></td><td width="40%"><b>Total Usable Tins</b></td ><td colspan=3 >Earliest Expiry<br> <span style="float:left">Date MM/YY</span><span style="float:right">Units expiring that date</span></td></tr>'
         html +="<input type='hidden' name='delivery_date' value='<%= @delivery_date %>'>";

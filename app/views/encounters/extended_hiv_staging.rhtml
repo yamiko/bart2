@@ -689,8 +689,8 @@ end %>
   }
 
   function denyStaging(){
-     window.location = "<%= next_task(@patient) -%>&repeat='cancel'";
-  }
+       window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat='cancel'"
+ }
   function allowStaging(){
     window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat='no'"
   }
@@ -701,17 +701,23 @@ end %>
   .tt_controls_cd4_percent #lessthan, .tt_controls_cd4_percent #greaterthan { display:block; float:right }
 </style>
 <body onload="removeValues()">
-<% if !@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.squish != '' && @check_preart != true && @normal_procedure == false %>
-  <% if session[:stage_patient] == "No" %>
+  <%
+  current_date = session[:datetime].to_date rescue Date.today
+  staging = session["#{@patient.id}"]["#{current_date}"][:stage_patient] rescue []
+  if ! staging.blank?
+  if staging == "No" %>
      window.location = "<%= next_task(@patient) -%>";
-  <% end %>
+  <% end
+ end %>
+<% if ((!@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.squish != '') || @ask_staging == true) && @normal_procedure == false && @check_preart == false %>
+  
   <div class="inputPage NoKeyboard" id="page" style="display: block;">
 	<div id="trigger"></div>
 	<div id="infoBar" class="infoBarClass"></div>
 	<label id="helpText" class="helpTextClass" for="">
           <% if  @ask_staging == true %>
               This patient has already been staged whithin the past three months.<br/>
-	     <%='&nbsp;'*3%>Do you want to stage patient again
+	     <%='&nbsp;'*3%>Do you want to stage patient again?
           <%  else %>
 			This patient has already been staged.<br/>
 	  <%='&nbsp;'*3%>Reason for ART:&nbsp;<%= @reason_for_art_eligibility %>
@@ -741,12 +747,6 @@ end %>
       <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
       <%= hidden_field_tag "encounter[provider_id]", current_user.user_id %>
       <%  @severe_wasted_infant = "" %>
-      <% if  @ask_staging == true %>
-        <%= select_tag 'stage', options_for_select(['No','Yes']),
-          {	:id => "stage" ,
-          :tt_onUnLoad => 'allowStaging();',
-          :helpText => "Do You Wish To Stage The Patient?" } %>
-      <% end %>
       <% if @patient_bean.age_in_months < 12 and @confirmatory_hiv_test_type == 'HIV rapid test' %>
 
         <%= touch_select_tag "PRESUMED SEVERE HIV CRITERIA PRESENT", @patient, concept_set_options('PRESUMED SEVERE HIV CRITERIA IN INFANTS'),
