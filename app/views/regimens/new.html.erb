@@ -985,6 +985,13 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   else
     options = ["480","960"]
   end
+
+ ipt_options = ["100"] if @current_weight < 10
+ ipt_options = ["100","150"] if @current_weight >= 10 and @current_weight < 14
+ ipt_options = ["100","150","200"] if @current_weight >= 14 and @current_weight < 20
+ ipt_options = ["100","150","200","250"] if @current_weight >= 20 and @current_weight < 25
+ ipt_options = ["100","150","200","250","300"] if @current_weight >= 25
+
 %>
 <body>
    <div id="cover" align="center">
@@ -1244,7 +1251,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	  :helpText => "Prescribe IPT",
           :tt_onLoad => "showCategory('Regimen');"} %>
 
-    <%= select_tag :ipt_mgs, options_for_select(["300","100"]), {
+    <%= select_tag :ipt_mgs, options_for_select(ipt_options), {
 	  :allowFreeText => 'false',
 	  :condition => "prescribeAntiretroviralDrugs() && $('ipt_given').value == 'YES'",
 	  :helpText => "IPT milligrams",
