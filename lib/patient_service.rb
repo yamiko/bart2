@@ -973,7 +973,7 @@ module PatientService
                            :conditions => ['identifier_type = ? AND patient_id = ?',PatientIdentifierType.
                            find_by_name("Archived filing number").patient_identifier_type_id,
                             archived_patient.person.id]).identifier rescue nil
-    old_archive_filing_number = patient_printing_filing_number_label(inactive_identifier)
+    old_archive_filing_number = patient_printing_filing_number_label(old_filing_number(new_patient, "Archived filing number"))
 
     unless archived_patient.blank?
       old_active_filing_number = patient_printing_filing_number_label(old_filing_number(archived_patient))
