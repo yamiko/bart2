@@ -599,7 +599,7 @@
   .tt_controls_cd4_count #lessthan, .tt_controls_cd4_count #greaterthan { display:block; float:right }
   .tt_controls_cd4_percent #lessthan, .tt_controls_cd4_percent #greaterthan { display:block; float:right }
 </style>
-<%
+<% 
   current_date = session[:datetime].to_date rescue Date.today
   staging = session["#{@patient.id}"]["#{current_date}"][:stage_patient] rescue []
   if ! staging.blank?
