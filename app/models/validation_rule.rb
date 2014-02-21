@@ -144,7 +144,6 @@ class ValidationRule < ActiveRecord::Base
   
   end
 
-  end 
   
   def self.encounters_without_obs_or_orders(end_date = Date.today)
 		
