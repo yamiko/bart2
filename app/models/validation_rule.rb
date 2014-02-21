@@ -194,4 +194,72 @@ class ValidationRule < ActiveRecord::Base
 			
 	end	
 
+  def self.male_patients_with_pregnant_observation(end_date = Date.today)
+    @end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    pregnant_ids = [ConceptName.find_by_name('PATIENT PREGNANT').concept_id,
+                    ConceptName.find_by_name("IS PATIENT PREGNANT?").concept_id]
+
+    male_pats_with_preg_obs = PatientProgram.find_by_sql("
+                                SELECT esd.patient_id, p.gender,
+                                       esd.earliest_start_date, o.concept_id,
+                                       o.value_coded, o.obs_datetime
+                                FROM earliest_start_date esd
+	                                INNER JOIN person p ON p.person_id = esd.patient_id
+	                                  AND p.voided = 0
+                                  INNER JOIN obs o ON o.person_id = p.person_id
+                                    AND o.voided = 0
+                                WHERE p.gender = 'M'
+                                AND (o.concept_id IN (#{pregnant_ids.join(',')})
+                                  OR o.value_coded IN (#{pregnant_ids.join(',')}))
+                                AND o.obs_datetime <= '#{@end_date}'
+                                GROUP BY esd.patient_id").collect{|p| p.patient_id}
+    return male_pats_with_preg_obs
+  end
+
+  def self.male_patients_with_breastfeeding_obs(end_date = Date.today)
+    @end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    breastfeeding_ids = [ConceptName.find_by_name("BREASTFEEDING").concept_id,
+                         ConceptName.find_by_name("Currently breastfeeding child").concept_id]
+
+    male_pats_with_breastfeed_obs = PatientProgram.find_by_sql("
+                                      SELECT esd.patient_id, p.gender,
+                                             esd.earliest_start_date, o.concept_id,
+                                             o.value_coded, o.obs_datetime
+                                      FROM earliest_start_date esd
+	                                      INNER JOIN person p ON p.person_id = esd.patient_id
+	                                        AND p.voided = 0
+                                        INNER JOIN obs o ON o.person_id = p.person_id
+                                         AND o.voided = 0
+                                      WHERE p.gender = 'M'
+                                      AND (o.concept_id IN (#{breastfeeding_ids.join(',')})
+                                        OR o.value_coded IN (#{breastfeeding_ids.join(',')}))
+                                      AND o.obs_datetime <= '#{@end_date}'
+                                      GROUP BY esd.patient_id").collect{|p| p.patient_id}
+    return male_pats_with_breastfeed_obs
+  end
+
+  def self.male_patients_with_family_planning_methods_obs(end_date = Date.today)
+    @end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    family_planing_ids = [ConceptName.find_by_name("FAMILY PLANNING METHOD").concept_id,
+                         ConceptName.find_by_name("CURRENTLY USING FAMILY PLANNING METHOD").concept_id]
+
+    male_pats_with_breastfeed_obs = PatientProgram.find_by_sql("
+                                      SELECT esd.patient_id, p.gender,
+                                             esd.earliest_start_date, o.concept_id,
+                                             o.value_coded, o.obs_datetime
+                                      FROM earliest_start_date esd
+	                                      INNER JOIN person p ON p.person_id = esd.patient_id
+	                                        AND p.voided = 0
+                                        INNER JOIN obs o ON o.person_id = p.person_id
+                                         AND o.voided = 0
+                                      WHERE p.gender = 'M'
+                                      AND (o.concept_id IN (#{family_planing_ids.join(',')})
+                                        OR o.value_coded IN (#{family_planing_ids.join(',')}))
+                                      AND o.obs_datetime <= '#{@end_date}'
+                                      GROUP BY esd.patient_id").collect{|p| p.patient_id}
+    return male_pats_with_breastfeed_obs
+  end
 end
