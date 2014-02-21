@@ -161,7 +161,8 @@
         //alert(yrs)
         for (var i=0; i < select_obs.length; i++){
           var yr = dt.getFullYear();
-          for (var x=0; x <=40;x++){
+          select_obs[i].options[0] = new Option("", "")
+          for (var x=1; x <=40;x++){
             select_obs[i].options[x] = new Option(yr, yr)
             yr++
           }
@@ -169,7 +170,8 @@
         }
         select_obs = document.getElementsByClassName('months')
         for (var i = 0; i < select_obs.length; i++){
-          for (var x=0; x < mts.length; x++ ){
+          select_obs[i].options[0] = new Option("", "")
+          for (var x=1; x < mts.length; x++ ){
             select_obs[i].options[x] = new Option(mts[x], mts[x])
           }
         }
