@@ -38,8 +38,8 @@ class EncountersController < GenericEncountersController
     @check_preart = false
     @normal_procedure = false
       if @current_hiv_program_status == "Pre-ART (Continue)"
-        if params[:repeat].blank?
-       current_date = session[:datetime].to_date rescue Date.today
+        current_date = session[:datetime].to_date rescue Date.today
+        if params[:repeat].blank?       
 
        last_staging_date = Encounter.find_by_sql("
          SELECT * FROM encounter
@@ -52,11 +52,15 @@ class EncountersController < GenericEncountersController
           @normal_procedure =  true if month_gone > 3
         end
         else
+          session["#{@patient.id}"] = {}
+          session["#{@patient.id}"]["#{current_date}"] = {}
+          
           if params[:repeat] == "no"
-           session[:stage_patient] = "Yes"
+           session["#{@patient.id}"]["#{current_date}"][:stage_patient] = "Yes"
           else
-           session[:stage_patient] = "No"
+           session["#{@patient.id}"]["#{current_date}"][:stage_patient] = "No"
           end
+           
           @check_preart = true
         end
      end
@@ -297,7 +301,7 @@ class EncountersController < GenericEncountersController
 				@patients << patient
 			end
 		end
-
+    #raise @patient.person.observations.to_s.to_yaml
     if (params[:encounter_type].upcase rescue '') == 'TB_CLINIC_VISIT'
       @remote_results = false
       if @patient.person.observations.to_s.match(/Tuberculosis smear result:  Yes/i)

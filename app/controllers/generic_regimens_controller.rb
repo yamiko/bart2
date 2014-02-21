@@ -562,7 +562,13 @@ class GenericRegimensController < ApplicationController
       else
 				if params[:ipt_mgs] == "300"
 						drug = Drug.find_by_name('INH or H (Isoniazid 300mg tablet)')	
-				else
+        elsif params[:ipt_mgs] == "250"
+						drug = Drug.find_by_name('INH or H (Isoniazid 250mg tablet)')
+        elsif params[:ipt_mgs] == "200"
+						drug = Drug.find_by_name('INH or H (Isoniazid 200mg tablet)')
+        elsif params[:ipt_mgs] == "150"
+						drug = Drug.find_by_name('INH or H (Isoniazid 150mg tablet)')
+        else
 						drug = Drug.find_by_name('INH or H (Isoniazid 100mg tablet)')
 				end	
 			end

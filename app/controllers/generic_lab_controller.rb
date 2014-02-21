@@ -112,12 +112,13 @@ class GenericLabController < ApplicationController
         patient.id,identifier_types]).each{| i | identifiers << i.identifier }
 
     patient_obj = PatientService.get_patient(patient.person)
+=begin I commented out this because we don't want to pull ids merged with other patients
 
     ActiveRecord::Base.connection.select_all("SELECT * FROM patient_identifier 
       WHERE identifier_type IN(#{identifier_types.join(',')}) 
       AND voided = 1 AND patient_id = #{patient.id} 
       AND void_reason LIKE '%Given new national ID: #{patient_obj.national_id}%'").collect{|r| identifiers << r['identifier']}
-
+=end
     return identifiers
   end
   

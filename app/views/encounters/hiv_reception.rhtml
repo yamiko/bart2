@@ -50,7 +50,8 @@
 
 %>
   <% if session[:guardian_added] == nil  %>
-    <% if Person.find(@patient.patient_id).relationships.first.blank? %>
+    <% 
+    if Person.find(@patient.patient_id).relationships.first.blank? %>
        <label for='guardian_present'>Guardian Present</label>
        <%  if session_date %>
           <%= select_tag "observations[][value_text]", relationship_options(@patient),
@@ -72,18 +73,19 @@
         <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
     <% else %>
       <label for='guardian_present'>Guardian Present (<%=@patient_bean.guardian rescue ''%>)</label>
+        <%#= raise session_date.to_yaml %>
         <%  if session_date %>
           <%= select_tag "observations[][value_text]", relationship_options(@patient),
           {:id => "guardian_present",
            :multiple => false,
            :optional => false,
-           :tt_onUnLoad => "forcePatientPresentYes(),setTimeout(cleanup_guardian_options() , 500)" } %>
+           :tt_onUnLoad => "forcePatientPresentYes()" } %>
         <% else %>
           <%= select_tag "observations[][value_text]", options_for_select([['Yes','YES'],['No','NO']]),
           {:id => "guardian_present",
            :multiple => false,
            :optional => false,
-           :tt_onUnLoad => "forcePatientPresentYes(),setTimeout(cleanup_guardian_options() , 500)" } %>
+           :tt_onUnLoad => "forcePatientPresentYes()" } %>
        <% end %>
         <%= hidden_field_tag("observations[][value_coded_or_text]", nil) %>
         <%= hidden_field_tag("observations[][concept_name]", "GUARDIAN PRESENT") %>
@@ -97,7 +99,7 @@
   <label for='patient_present'>Patient Present (<%=@patient_bean.name%>)</label>
     <%= select_tag "observations[][value_coded_or_text]", options_for_select([['Yes','YES'],['No','NO']]), 
       {:id => 'patient_present',
-       :condition => "$('guardian_present').value == 'YES'",
+       :condition => "$('guardian_present').value.toUpperCase() == 'YES'",
        :tt_onLoad => 'hide_new_relationship_button()'} %>
     <%= hidden_field_tag("observations[][value_text]", nil) %>
     <%= hidden_field_tag("observations[][concept_name]", "PATIENT PRESENT") %>
