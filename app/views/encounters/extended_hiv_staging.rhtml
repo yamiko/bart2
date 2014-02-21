@@ -701,12 +701,16 @@ end %>
   .tt_controls_cd4_percent #lessthan, .tt_controls_cd4_percent #greaterthan { display:block; float:right }
 </style>
 <body onload="removeValues()">
-  <%
-  current_date = session[:datetime].to_date rescue Date.today
+  <%  current_date = session[:datetime].to_date rescue Date.today
+ 
+ 
   staging = session["#{@patient.id}"]["#{current_date}"][:stage_patient] rescue []
   if ! staging.blank?
-  if staging == "No" %>
+  if staging == "No"
+    %>
+    <script>
      window.location = "<%= next_task(@patient) -%>";
+    </script>
   <% end
  end %>
 <% if ((!@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.squish != '') || @ask_staging == true) && @normal_procedure == false && @check_preart == false %>
@@ -727,8 +731,8 @@ end %>
   <div id="buttons" class="buttonsDiv" style="top:456;">
 	<div id="tt_extraButtons"></div>
         <% if  @ask_staging == true %>
-	<button onmousedown="denyStaging();" id="cancelButton" class="button navButton red"><span>Cancel</span></button>
-        <button onmousedown="allowStaging();" id="stageButton" class="button navButton green"><span>Stage</span></button>
+	<button onmousedown="denyStaging();" id="cancelButton" class="button navButton red"><span>No</span></button>
+        <button onmousedown="allowStaging();" id="stageButton" class="button navButton green"><span>Yes</span></button>
         <% else %>
         <button onmousedown="window.location=tt_cancel_destination;" id="cancelButton" class="button navButton red"><span>Cancel</span></button>
         <% end %>
