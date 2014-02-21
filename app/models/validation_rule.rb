@@ -73,7 +73,7 @@ class ValidationRule < ActiveRecord::Base
   end
 
   def self.death_date_less_than_last_encounter_date_and_less_than_date_of_birth(end_date = Date.today)
-    patient_ids =  PatientProgram.find_by_sql("SELECT DISTICT(esd.patient_id)
+    patient_ids =  ValidationRule.find_by_sql("SELECT DISTICT(esd.patient_id)
 																FROM earliest_start_date esd
 																INNER JOIN person p 
 																ON p.person_id = esd.patient_id
@@ -97,7 +97,7 @@ class ValidationRule < ActiveRecord::Base
     total_reinitiated = []
     total_transferred_in = []
  
-	  total_registered = PatientProgram.find_by_sql("SELECT * FROM earliest_start_date 
+	  total_registered =  ValidationRule.find_by_sql("SELECT * FROM earliest_start_date 
 	    WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'").map(&:patient_id)
     
     yes_concept = ConceptName.find_by_name('YES').concept_id
@@ -106,7 +106,7 @@ class ValidationRule < ActiveRecord::Base
 
     taken_arvs_concept = ConceptName.find_by_name('HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS').concept_id 
     
-    total_reinitiated = PatientProgram.find_by_sql("SELECT esd.*
+    total_reinitiated =  ValidationRule.find_by_sql("SELECT esd.*
 																										FROM earliest_start_date esd
 																										LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
 																										INNER JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
@@ -122,7 +122,7 @@ class ValidationRule < ActiveRecord::Base
 																										GROUP BY esd.patient_id").map(&:patient_id)
 				
    
-    total_initiated = PatientProgram.find_by_sql("SELECT esd.*
+    total_initiated =  ValidationRule.find_by_sql("SELECT esd.*
 																									FROM earliest_start_date esd
 																									LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
 																									LEFT JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
@@ -143,5 +143,55 @@ class ValidationRule < ActiveRecord::Base
     end
   
   end
+
+  end 
+  
+  def self.encounters_without_obs_or_orders(end_date = Date.today)
+		
+		start_date = Encounter.find_by_sql("SELECT MIN(encounter_datetime) start_date FROM encounter")
+		start_date = start_date.blank? ? "1900-01-01 00:00:00" : start_date.first.start_date
+				
+		# Query for encounters without obs or orders ~ Kenneth
+		ValidationRule.find_by_sql(["
+			SELECT DISTINCT (enc.patient_id) FROM encounter enc
+    			LEFT JOIN obs o ON o.encounter_id = enc.encounter_id
+    			LEFT JOIN orders od ON od.encounter_id = enc.encounter_id
+			WHERE enc.voided = 0 AND o.encounter_id IS NULL AND od.encounter_id IS NULL
+			AND enc.encounter_datetime BETWEEN ? AND ?", start_date, end_date  
+			]).map(&:patient_id)		
+		
+	end
+	
+	def self.start_date_before_birth(end_date = Date.today)
+		
+		start_date = Encounter.find_by_sql("SELECT MIN(encounter_datetime) start_date FROM encounter")
+		start_date = start_date.blank? ? "1900-01-01 00:00:00" : start_date.first.start_date
+		
+		# Query for patients whose earliest start date is less that date of birth ~ Kenneth
+		ValidationRule.find_by_sql(["
+			SELECT DISTINCT (esd.patient_id) FROM earliest_start_date esd 
+   				INNER JOIN person p ON p.person_id = esd.patient_id AND voided = 0
+   				INNER JOIN encounter enc ON enc.patient_id = esd.patient_id
+			WHERE DATEDIFF(esd.earliest_start_date, p.birthdate) <= 0
+			AND enc.encounter_datetime BETWEEN ? AND ?", start_date, end_date  
+			]).map(&:patient_id)		
+		
+	end
+	
+	def self.visit_after_death(end_date = Date.today)
+	
+		start_date = Encounter.find_by_sql("SELECT MIN(encounter_datetime) start_date FROM encounter")
+		start_date = start_date.blank? ? "1900-01-01 00:00:00" : start_date.first.start_date
+		
+		#  Query for patients with followup visit after death ~ Kenneth
+		ValidationRule.find_by_sql(["
+		SELECT DISTINCT(p.person_id) FROM person p 
+    		INNER JOIN encounter enc ON enc.patient_id = p.person_id 
+				AND enc.voided = 0 AND enc.encounter_datetime > p.death_date
+    	WHERE p.dead = 1
+			AND enc.encounter_datetime BETWEEN ? AND ?", start_date, end_date  
+			]).map(&:person_id)		
+			
+	end	
 
 end
