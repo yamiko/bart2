@@ -200,6 +200,7 @@ class ValidationRule < ActiveRecord::Base
     pregnant_ids = [ConceptName.find_by_name('PATIENT PREGNANT').concept_id,
                     ConceptName.find_by_name("IS PATIENT PREGNANT?").concept_id]
 
+    #Query pulling all male patients with pregnant observations
     male_pats_with_preg_obs = PatientProgram.find_by_sql("
                                 SELECT esd.patient_id, p.gender,
                                        esd.earliest_start_date, o.concept_id,
@@ -223,6 +224,7 @@ class ValidationRule < ActiveRecord::Base
     breastfeeding_ids = [ConceptName.find_by_name("BREASTFEEDING").concept_id,
                          ConceptName.find_by_name("Currently breastfeeding child").concept_id]
 
+    #Query pulling all male patients with breastfeeding observations
     male_pats_with_breastfeed_obs = PatientProgram.find_by_sql("
                                       SELECT esd.patient_id, p.gender,
                                              esd.earliest_start_date, o.concept_id,
@@ -246,20 +248,21 @@ class ValidationRule < ActiveRecord::Base
     family_planing_ids = [ConceptName.find_by_name("FAMILY PLANNING METHOD").concept_id,
                          ConceptName.find_by_name("CURRENTLY USING FAMILY PLANNING METHOD").concept_id]
 
-    male_pats_with_breastfeed_obs = PatientProgram.find_by_sql("
-                                      SELECT esd.patient_id, p.gender,
-                                             esd.earliest_start_date, o.concept_id,
-                                             o.value_coded, o.obs_datetime
-                                      FROM earliest_start_date esd
-	                                      INNER JOIN person p ON p.person_id = esd.patient_id
-	                                        AND p.voided = 0
-                                        INNER JOIN obs o ON o.person_id = p.person_id
-                                         AND o.voided = 0
-                                      WHERE p.gender = 'M'
-                                      AND (o.concept_id IN (#{family_planing_ids.join(',')})
-                                        OR o.value_coded IN (#{family_planing_ids.join(',')}))
-                                      AND o.obs_datetime <= '#{@end_date}'
-                                      GROUP BY esd.patient_id").collect{|p| p.patient_id}
-    return male_pats_with_breastfeed_obs
+    #Query pulling all male patients with family planning methods observations
+    male_pats_with_family_planning_obs = PatientProgram.find_by_sql("
+                                          SELECT esd.patient_id, p.gender,
+                                                 esd.earliest_start_date, o.concept_id,
+                                                 o.value_coded, o.obs_datetime
+                                          FROM earliest_start_date esd
+	                                          INNER JOIN person p ON p.person_id = esd.patient_id
+	                                            AND p.voided = 0
+                                            INNER JOIN obs o ON o.person_id = p.person_id
+                                             AND o.voided = 0
+                                          WHERE p.gender = 'M'
+                                          AND (o.concept_id IN (#{family_planing_ids.join(',')})
+                                            OR o.value_coded IN (#{family_planing_ids.join(',')}))
+                                          AND o.obs_datetime <= '#{@end_date}'
+                                          GROUP BY esd.patient_id").collect{|p| p.patient_id}
+    return male_pats_with_family_planning_obs
   end
 end
