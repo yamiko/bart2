@@ -73,7 +73,7 @@ class ValidationRule < ActiveRecord::Base
   end
 
   def self.death_date_less_than_last_encounter_date_and_less_than_date_of_birth(end_date = Date.today)
-    PatientProgram.find_by_sql("SELECT DISTICT(esd.patient_id)
+    patient_ids =  PatientProgram.find_by_sql("SELECT DISTICT(esd.patient_id)
 																FROM earliest_start_date esd
 																INNER JOIN person p 
 																ON p.person_id = esd.patient_id
@@ -86,8 +86,62 @@ class ValidationRule < ActiveRecord::Base
                                 AND (SELECT MAX(encounter_datetime)
                        							 FROM encounter e 
                        							 WHERE e.patient_id = esd.patient_id 
-																		 AND e.voided = 0) < p.birthdate;").length
+																		 AND e.voided = 0) < p.birthdate;").map(&:patient_id)
+    return patient_ids
     
-  end 
+  end
+
+  def self.validate_newly_registered_is_sum_of_initiated_reinited_and_transferred_in(start_date = @start_date, end_date = @end_date)
+    total_registered = []
+    total_initiated = []
+    total_reinitiated = []
+    total_transferred_in = []
+ 
+	  total_registered = PatientProgram.find_by_sql("SELECT * FROM earliest_start_date 
+	    WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'").map(&:patient_id)
+    
+    yes_concept = ConceptName.find_by_name('YES').concept_id
+		no_concept = ConceptName.find_by_name('NO').concept_id
+    date_art_last_taken_concept = ConceptName.find_by_name('DATE ART LAST TAKEN').concept_id
+
+    taken_arvs_concept = ConceptName.find_by_name('HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS').concept_id 
+    
+    total_reinitiated = PatientProgram.find_by_sql("SELECT esd.*
+																										FROM earliest_start_date esd
+																										LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
+																										INNER JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
+																										LEFT JOIN obs o ON o.encounter_id = e.encounter_id AND
+																																			 o.concept_id IN (#{date_art_last_taken_concept},#{taken_arvs_concept})
+																										WHERE  ((o.concept_id = #{date_art_last_taken_concept} AND
+																														 (DATEDIFF(o.obs_datetime,o.value_datetime)) > 60) OR
+																													 (o.concept_id = #{taken_arvs_concept} AND
+																														(o.value_coded = #{no_concept})
+																														))
+																													AND
+																													esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
+																										GROUP BY esd.patient_id").map(&:patient_id)
+				
+   
+    total_initiated = PatientProgram.find_by_sql("SELECT esd.*
+																									FROM earliest_start_date esd
+																									LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
+																									LEFT JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
+																									WHERE esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' AND
+																													(ero.obs_id IS NULL)
+																									GROUP BY esd.patient_id").map(&:patient_id)
+
+    total_initiated -= total_reinitiated
+    
+    total_transferred_in = total_registered - reinitiated - initiated
+    
+    total_sum = total_transferred_in + reinitiated + initiated
+
+    unless total_registered == total_sum
+    		return false
+    else
+    		return true
+    end
+  
+  end
 
 end
