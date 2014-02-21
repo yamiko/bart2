@@ -76,29 +76,34 @@ class GenericPeopleController < ApplicationController
   end
 
 	def create_remote
-
-		#raise person_params.to_yaml
+ 	  
 		if current_user.blank?
 		  user = User.authenticate('admin', 'test')
 		  sign_in(:user, user) if !user.blank?
-      set_current_user		  
+      set_current_user	  
 		end rescue []
 
 		if Location.current_location.blank?
 			Location.current_location = Location.find(CoreService.get_global_property_value('current_health_center_id'))
 		end rescue []
-
+    
+    
     if create_from_dde_server                                                
-      
+       
       passed_params = {"region" => "" ,
 				"person"=>{"occupation"=> params["occupation"] ,
 					"age_estimate"=> params["patient_age"]["age_estimate"] ,
-					"cell_phone_number"=> params["cell_phone"]["identifier"] ,
+					"cell_phone_number"=> params["cell_phone"]["identifier"] || nil,
+          "home_phone_number"=> params['home_phone']['identifier'] || nil,
+          "office_phone_number"=> params['office_phone']['identifier'] || nil,
 					"birth_month"=> params["patient_month"],
-					"addresses"=>{"address1"=> "",
-						"address2"=>  "",
-						"city_village"=>  params["patientaddress"]["city_village"] ,
-						"county_district"=> params["patient"]["birthplace"] },
+				 "addresses"=>
+            {"state_province"=> params["addresses"]["state_province"],
+            "address2"=> params["addresses"]["address2"],
+            "address1"=> params["addresses"]["address1"],
+            "neighborhood_cell"=> params["addresses"]["neighborhood_cell"],
+            "city_village"=> params["addresses"]["city_village"],
+            "county_district"=> params["addresses"]["county_district"]},   
 					"gender"=>  params["patient"]["gender"],
 					"patient"=>"",
 					"birth_day"=>  params["patient_day"] ,
@@ -109,7 +114,7 @@ class GenericPeopleController < ApplicationController
 					"birth_year"=> params["patient_year"] },
 				"filter_district"=> params["patient"]["birthplace"] ,
 				"filter"=>{"region"=> "" ,
-					"t_a"=> params["current_ta"]["identifier"] ,
+					"t_a"=> "",
 					"t_a_a"=>""},
 				"relation"=>"",
 				"p"=>{"'address2_a'"=>"",
@@ -119,14 +124,20 @@ class GenericPeopleController < ApplicationController
              
       person = PatientService.create_patient_from_dde(passed_params) 
     else
+    
       person_params = {"occupation"=> params[:occupation],
         "age_estimate"=> params['patient_age']['age_estimate'],
-        "cell_phone_number"=> params['cell_phone']['identifier'],
+        "cell_phone_number"=> params['cell_phone']['identifier'] || nil,
+        "home_phone_number"=> params['home_phone']['identifier'] || nil,
+        "office_phone_number"=> params['office_phone']['identifier'] || nil,
         "birth_month"=> params[:patient_month],
-        "addresses"=>{ "address2" => params['p_address']['identifier'],
-					"address1" => params['p_address']['identifier'],
-					"city_village"=> params['patientaddress']['city_village'],
-					"county_district"=> params[:birthplace] },
+       "addresses"=>
+            {"state_province"=> params["addresses"]["state_province"],
+            "address2"=> params["addresses"]["address2"],
+            "address1"=> params["addresses"]["address1"],
+            "neighborhood_cell"=> params["addresses"]["neighborhood_cell"],
+            "city_village"=> params["addresses"]["city_village"],
+            "county_district"=> params["addresses"]["county_district"]},   
         "gender" => params['patient']['gender'],
         "birth_day" => params[:patient_day],
         "names"=> {"family_name2"=>"Unknown",
@@ -1139,7 +1150,8 @@ class GenericPeopleController < ApplicationController
   end
 
   def demographics_remote
-    identifier = params[:person][:patient][:identifiers]["national_id"] 
+    identifier = params[:person][:patient][:identifiers]["national_id"] rescue nil
+    identifier = params["person"]["patient"]["identifiers"]["National id"] if identifier.nil?
     people = PatientService.search_by_identifier(identifier)
     render :text => "" and return if people.blank?
     render :text => PatientService.remote_demographics(people.first).to_json rescue nil
