@@ -21,5 +21,22 @@ class ValidationRule < ActiveRecord::Base
     end
 
   end
+  def self.validate_presence_of_vitals_without_weight(end_date)
+    # Developer   : Precious Bondwe
+    # Date        : 21/02/2014
+    # Purpose     : Return Patient IDs for patients having Vitals encounters without weight 
+    # Amendments  :
+
+    weight_concept = ConceptName.find_by_name('weight').concept_id
+    encounter_type = EncounterType.find_by_name('vitals').id
+    
+    patient_ids = ValidationRule.find_by_sql("SELECT DISTINCT e.patient_id 
+                          FROM encounter e 
+                              LEFT JOIN obs o ON e.encounter_id = o.encounter_id AND o.concept_id = #{weight_concept} AND o.voided = 0
+                               WHERE o.concept_id IS NULL AND e.voided = 0 AND e.encounter_type = #{encounter_type} 
+                               AND e.encounter_datetime <= '#{end_date}'").map(&:patient_id) 
+    
+    return patient_ids
+  end
 
 end
