@@ -132,9 +132,9 @@ class ValidationRule < ActiveRecord::Base
 
     total_initiated -= total_reinitiated
     
-    total_transferred_in = total_registered - reinitiated - initiated
+    total_transferred_in = total_registered - total_reinitiated - total_initiated
     
-    total_sum = total_transferred_in + reinitiated + initiated
+    total_sum = total_transferred_in + total_reinitiated + total_initiated
 
     unless total_registered == total_sum
     		return false
