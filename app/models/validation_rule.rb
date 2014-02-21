@@ -56,5 +56,24 @@ class ValidationRule < ActiveRecord::Base
                                     AND o.person_id = person_id
                                     AND o.voided = 0)").length
     return no_appointment
+  end
+
+  def self.death_date_less_than_last_encounter_date_and_less_than_date_of_birth(end_date = Date.today)
+    PatientProgram.find_by_sql("SELECT DISTICT(esd.patient_id)
+																FROM earliest_start_date esd
+																INNER JOIN person p 
+																ON p.person_id = esd.patient_id
+																WHERE p.birthdate IS NOT NULL 
+																AND esd.death_date IS NOT NULL 
+																AND esd.death_date < (SELECT MAX(encounter_datetime)
+                       																 FROM encounter e 
+                       																 WHERE e.patient_id = esd.patient_id 
+																											 AND e.voided = 0) 
+                                AND (SELECT MAX(encounter_datetime)
+                       							 FROM encounter e 
+                       							 WHERE e.patient_id = esd.patient_id 
+																		 AND e.voided = 0) < p.birthdate;").length
+    
   end 
+
 end
