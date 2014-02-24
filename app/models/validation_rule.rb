@@ -19,7 +19,8 @@ class ValidationRule < ActiveRecord::Base
     return patient_ids
   end
 
-  def self.pills_remaining_over_dispensed
+  def self.pills_remaining_over_dispensed(visit_date)
+    visit_date = visit_date.to_date rescue Date.today
     connection = ActiveRecord::Base.connection
     data = {}
     patient_ids = []
@@ -29,7 +30,7 @@ class ValidationRule < ActiveRecord::Base
     amount_brought_to_clinic_concept = Concept.find_by_name('AMOUNT OF DRUG BROUGHT TO CLINIC').id
     adhere_dispensing_encs = connection.select_all("
         SELECT * FROM encounter e WHERE encounter_type IN (#{art_adherence_enc}, #{dispensing_enc})
-        AND e.voided=0 ORDER BY DATE(e.encounter_datetime) DESC LIMIT 4000
+        AND e.voided=0 AND DATE(e.encounter_datetime) <= \'#{visit_date}\'
 
       ")
     adhere_dispensing_encs.each do |enc|
