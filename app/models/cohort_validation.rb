@@ -1,6 +1,6 @@
 class cohort_validation
     
-attr_accessor :cohort
+	attr_accessor :cohort
 
 	def initialize(cohort)
 
