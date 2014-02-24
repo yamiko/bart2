@@ -25,9 +25,15 @@ class CohortValidation
 		return differences
 	end
 	
-	def validate_karposis_sarcoma_greator_than_total
-		return true
+	def validate_kaposis_sarcoma_greator_than_total
+		
+		return	(self.cohort_object['Kaposis Sarcoma'].length > self.cohort_object['Newly total registered'].length)	
 	end
-			   
+				
+	def validate_cumulative_kaposis_sarcoma_greator_than_total
+
+		return (self.cohort_object['Total Kaposis Sarcoma'].length > self.cohort_object['Total registered'].length)	
+	end 
+	  
 end
 
