@@ -61,7 +61,18 @@ class ValidationRule < ActiveRecord::Base
         data[enc_date][patient_id][:amount_brought_to_clinic] = amount_brought_to_clinic
       end
     end
-    return data
+    
+    data.each do |key, values|
+      values.each do |patient_id, elements|
+        amount_dispensed = elements[:amount_dispensed].to_i
+        amount_brought_to_clinic = elements[:amount_brought_to_clinic].to_i
+        if (amount_brought_to_clinic > amount_dispensed)
+          patient_ids << patient_id
+        end
+      end
+    end
+
+    return patient_ids
   end
   
 end
