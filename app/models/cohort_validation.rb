@@ -1,10 +1,10 @@
-class cohort_validation
+class CohortValidation
     
-	attr_accessor :cohort
+	attr_accessor :cohort_object
 
-	def initialize(cohort)
+	def initialize(cohort_obj)
 
-		self.cohort = cohort
+		self.cohort_object = cohort_obj
 	
 	end
 
