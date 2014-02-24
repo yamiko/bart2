@@ -29,7 +29,8 @@ class ValidationRule < ActiveRecord::Base
                                   SELECT DISTINCT(person_id)  FROM obs
                                   WHERE (order_id <=> NULL)
                                   AND concept_id = #{@dispensed_id}
-                                  AND voided = 0;").length
+                                  AND DATE(obs_datetime) <= '#{end_date}'
+                                  AND voided = 0").length
     return unprescribed
   end
 
@@ -38,6 +39,7 @@ class ValidationRule < ActiveRecord::Base
                                     SELECT DISTINCT(patient_id) FROM orders
                                     WHERE NOT EXISTS (SELECT order_id FROM obs WHERE order_id = orders.order_id
                                     AND concept_id = #{@dispensed_id} and  voided = 0)
+                                    AND DATE(start_date)  <= '#{end_date}'
                                     AND orders.voided = 0")
     return undispensed.length
   end
@@ -47,6 +49,7 @@ class ValidationRule < ActiveRecord::Base
                                     SELECT DISTINCT(person_id) FROM obs
                                     WHERE concept_id = #{@dispensed_id}
                                     AND voided = 0
+                                    AND DATE(obs_datetime) <= '#{end_date}'
                                     AND person_id NOT IN
                                     (SELECT person_id FROM obs o
                                     INNER JOIN encounter e ON o.person_id = e.patient_id
