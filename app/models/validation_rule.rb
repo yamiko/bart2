@@ -341,4 +341,18 @@ class ValidationRule < ActiveRecord::Base
     return male_pats_with_family_planning_obs
   end
 
+  def self.check_every_ART_patient_has_HIV_Clinical_Registration(date)
+			#Task 32
+			#SQL to check for every ART patient should have a HIV Clinical Registration
+
+			encounter_type_id = EncounterType.find_by_name("HIV CLINIC REGISTRATION").encounter_type_id
+
+			Patient.find_by_sql("
+				SELECT p.patient_id
+				FROM earliest_start_date p LEFT JOIN (SELECT * FROM encounter WHERE encounter_type = #{encounter_type_id}) e
+						ON p.patient_id = e.patient_id
+				WHERE e.encounter_type IS NULL AND p.earliest_start_date <= DATE('#{date}');
+			").map(&:patient_id)
+	end
+
 end
