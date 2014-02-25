@@ -40,14 +40,13 @@ class CohortValidation
 		
 		validation_rule = ValidationRule.find_by_type_id(1)
 		return nil if validation_rule.blank?
-		expression = validation_rule.expr
-		
+				
 		values = [self.cohort_object['Kaposis Sarcoma'],
 				 				self.cohort_object['Newly total registered'], 
 			 					self.cohort_object['Newly total registered'],
 			 					self.cohort_object['Newly total registered']]
 			 					
-		return self.feed_values(expression, values)		
+		return self.feed_values(validation_rule.expr, values)		
 	end
 		  
 end
