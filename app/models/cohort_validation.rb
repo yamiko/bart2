@@ -94,6 +94,49 @@ class CohortValidation
 
     return self.feed_values(validation_rule.expr, values)
   end
+  
+  	def validate_kaposis_sarcoma_less_than_total
+		#This method checks that cases of kaposis sarcoma are less than total registered in quarter	
+		#By Kenneth Kapundi
+		
+		validation_rule = ValidationRule.find_by_desc('Patients with kaposis sarcoma')
+		return nil if validation_rule.blank?
+				
+		values = [self.cohort_object['Kaposis Sarcoma'],
+				 			self.cohort_object['Newly total registered']]			 					
+		return self.feed_values(validation_rule.expr, values)		
+	end
+	
+	def validate_cumulative_kaposis_sarcoma_less_than_total
+		#This method checks that all cases of kaposis sarcoma are less than cumulative total registered	
+		#By Kenneth Kapundi
+		
+		validation_rule = ValidationRule.find_by_desc('Patients with kaposis sarcoma')
+		return nil if validation_rule.blank?
+				
+		values = [self.cohort_object['Total Kaposis Sarcoma'],
+				 			self.cohort_object['Total registered']]			 					
+		return self.feed_values(validation_rule.expr, values)		
+	end
+	
+	def validate_cumulative_outcomes_less_than_or_equal_to_total_registered
+		#This method checks that outcome totals dont exceed total registered	
+		#By Kenneth Kapundi
+		
+		validation_rule = ValidationRule.find_by_desc("Died total, Total alive and on ART, Defaulted (more than 2 months overdue after expected to have run out of ARVs), Stopped taking ARVs (clinician or patient own decision last known alive), Transfered out, and Unknown outcome should add up to Total registe")
+		
+		return nil if validation_rule.blank?
+				
+		values = [self.cohort_object['Total registered'],
+				 			self.cohort_object['Died total'],
+				 			self.cohort_object['Total alive and on ART'],
+				 			self.cohort_object['Defaulted'],
+				 			self.cohort_object['Stopped taking ARVs'],
+				 			self.cohort_object['Transferred out'],
+				 			self.cohort_object['Unknown outcomes']
+				 			]			 					
+		return self.feed_values(validation_rule.expr, values)		
+	end	
 		  
 end
 
