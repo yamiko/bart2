@@ -153,7 +153,8 @@ class ValidationRule < ActiveRecord::Base
                                   SELECT DISTINCT(person_id)  FROM obs
                                   WHERE (order_id <=> NULL)
                                   AND concept_id = #{@dispensed_id}
-                                  AND voided = 0;").length
+                                  AND DATE(obs_datetime) <= '#{end_date}'
+                                  AND voided = 0").length
     return unprescribed
   end
 
@@ -162,6 +163,7 @@ class ValidationRule < ActiveRecord::Base
                                     SELECT DISTINCT(patient_id) FROM orders
                                     WHERE NOT EXISTS (SELECT order_id FROM obs WHERE order_id = orders.order_id
                                     AND concept_id = #{@dispensed_id} and  voided = 0)
+                                    AND DATE(start_date)  <= '#{end_date}'
                                     AND orders.voided = 0")
     return undispensed.length
   end
@@ -171,6 +173,7 @@ class ValidationRule < ActiveRecord::Base
                                     SELECT DISTINCT(person_id) FROM obs
                                     WHERE concept_id = #{@dispensed_id}
                                     AND voided = 0
+                                    AND DATE(obs_datetime) <= '#{end_date}'
                                     AND person_id NOT IN
                                     (SELECT person_id FROM obs o
                                     INNER JOIN encounter e ON o.person_id = e.patient_id
@@ -404,6 +407,32 @@ class ValidationRule < ActiveRecord::Base
 						ON p.patient_id = e.patient_id
 				WHERE e.encounter_type IS NULL AND p.earliest_start_date <= DATE('#{date}');
 			").map(&:patient_id)
+	end
+
+	def self.every_visit_of_patients_who_are_under_18_should_have_height_and_weight(date)
+		#Task 31
+		#SQL for every visit of patients who are under 18 should have height and weight
+
+		encounter_type_id = EncounterType.find_by_name("VITALS").encounter_type_id
+		height_id = ConceptName.find_by_name("HT").concept_id
+		weight_id = ConceptName.find_by_name("WT").concept_id
+
+		Patient.find_by_sql("
+			SELECT Weight_and_Height, patient_id, encounter_datetime, concept_id
+			FROM(
+					SELECT COUNT(*) AS Weight_and_Height, visit.* , e.encounter_type, o.concept_id, value_numeric
+						  FROM (
+						      SELECT e.patient_id, DATE(e.encounter_datetime) AS encounter_datetime, birthdate,
+						          FLOOR(DATEDIFF(DATE(e.encounter_datetime), birthdate)/365) AS age
+						      FROM encounter e LEFT JOIN person p ON e.patient_id = p.person_id
+						      WHERE e.voided = 0
+						      GROUP BY e.patient_id, DATE(e.encounter_datetime)) visit
+						  LEFT JOIN encounter e ON visit.patient_id = e.patient_id
+						      AND visit.encounter_datetime = DATE(e.encounter_datetime)
+						  LEFT JOIN obs o ON e.encounter_id=o.encounter_id
+					WHERE age < 18 AND e.encounter_type = #{encounter_type_id} AND concept_id IN (#{height_id}, #{weight_id})
+					GROUP BY visit.patient_id, visit.encounter_datetime) weight_and_height_check
+			WHERE Weight_and_Height < 2  AND encounter_datetime = DATE('#{date}')").map(&:patient_id)
 	end
 
 end
