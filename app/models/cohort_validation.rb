@@ -65,10 +65,10 @@ class CohortValidation
         
     values = [self.cohort_object['Newly total registered'],
               self.cohort_object['Newly registered male'],
-              self.cohort_object['Newly registered women (non pregnant)'], 
+              self.cohort_object['Newly registered women (non-pregnant)'], 
               self.cohort_object['Newly registered women (pregnant)']
                 ]
-                
+         
     return self.feed_values(validation_rule.expr, values)
 	end
 	
@@ -86,12 +86,12 @@ class CohortValidation
     validation_rule = ValidationRule.find_by_type_id(1)
     return nil if validation_rule.blank?
         
-    vvalues = [self.cohort_object['Total registered'],
+    values = [self.cohort_object['Total registered'],
                 self.cohort_object['Total registered male'],
-                self.cohort_object['Total registered women (non pregnant)'], 
+                self.cohort_object['Total registered women (non-pregnant)'], 
                 self.cohort_object['Total registered women (pregnant)']
                 ]
-                
+
     return self.feed_values(validation_rule.expr, values)
   end
 		  
