@@ -1207,6 +1207,62 @@ class CohortToolController < GenericCohortToolController
 		session[:views]=nil; session[:chidren]; session[:nil]
     render :layout => 'cohort'
   end
+  
+  def print_rules
+      current_printer = CoreService.get_global_property_value("facility.printer").split(":")[1] rescue []
+      t1 = Thread.new{
+        Kernel.system "wkhtmltopdf --orientation landscape --copies 2 --margin-top 0 --margin-bottom 0 -s A4 http://" +
+          request.env["HTTP_HOST"] + "\"/cohort_tool/rule_variables/" +
+          "\" /tmp/output-test.pdf \n"
+
+      }
+
+
+      file = "/tmp/output-test.pdf"
+
+      #t2 = Thread.new{
+      #  sleep(3)
+       # print(file, current_printer)
+       send_email
+     # }
+    # raise t2.to_yaml
+     redirect_to :action => 'rule_variables' and return
+    
+  end
+
+  def send_email
+    file_names = ['items_to_expire_next_six_months.pdf','daily_dispensation.pdf',
+      'received_items.pdf']
+    #file_names.each do |file_name|
+      #if File.exist?("/tmp/#{file_name}")
+       # EpicsContact.where(:voided => false).each do |contact|
+          subject = "Epics Report"
+          contact = "fuvu.chirwa@gmail.com"
+          file_name = "Test"
+          body = "Dear  <br /><br /> Please find attached a report for today"
+          Notications.notify(contact,subject,body,file_name).deliver
+      #  end
+      #else
+       # subject = "Epics Email Error"
+      #  Notifications.email_error(subject).deliver
+     #end
+   # end
+  end
+
+  def print(file_name, current_printer)
+    sleep(3)
+    if (File.exists?(file_name))
+      Kernel.system "lp -o sides=two-sided-long-edge -o fitplot #{(!current_printer.blank? ? '-d ' + current_printer.to_s : "")} #{file_name}"
+    else
+      print(file_name)
+    end
+  end
+
+  def rule_variables
+    @logo = CoreService.get_global_property_value('logo').to_s
+    @rules = ValidationRule.deliver_validation_results
+    render :layout => false
+  end
 
   def missed_appointment
     @logo = CoreService.get_global_property_value('logo').to_s
