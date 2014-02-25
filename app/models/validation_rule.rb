@@ -358,4 +358,17 @@ class ValidationRule < ActiveRecord::Base
 			").map(&:patient_id)
 	end
 
+
+  def self.deliver_validation_results(rules_date = Date.today)
+     sent_to_mail = {}
+    ValidationResult.find_by_sql("
+      SELECT * FROM validation_results vs
+      INNER JOIN validation_rules vr ON vr.id = vs.rule_id
+      ").each {|validated|
+        sent_to_mail["#{validated.desc}"] = {}
+        sent_to_mail["#{validated.desc}"]["failed"] = validated.failures
+        sent_to_mail["#{validated.desc}"]["validated_on"] = validated.date_checked
+      }
+    return sent_to_mail
+  end
 end
