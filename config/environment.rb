@@ -10,7 +10,21 @@ Rails::Initializer.run do |config|
 	config.log_level = :debug
 	config.action_controller.session_store = :active_record_store
 	config.active_record.schema_format = :sql
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.delivery_method = :active_record
 	# config.time_zone = 'UTC'
+
+  config.action_mailer.smtp_settings = {
+  :address => 'smtp.sendgrid.net',
+  :port => 25,
+  :domain => 'baobabhealth.org',
+  :authentication => :plain,
+  :user_name => "dde_admin",
+  :password => "admin_admin"
+   }
+
+
 	config.gem 'warden'
 	config.gem 'devise'
 	config.gem 'will_paginate', :version => '~> 2.3.16'  
