@@ -344,9 +344,10 @@ class ValidationRule < ActiveRecord::Base
     return male_pats_with_family_planning_obs
   end
 
-  def self.check_every_ART_patient_has_HIV_Clinical_Registration(date)
+  def self.check_every_ART_patient_has_HIV_Clinical_Registration(date = Date.today)
 			#Task 32
 			#SQL to check for every ART patient should have a HIV Clinical Registration
+			date = date.to_date.strftime('%Y-%m-%d 23:59:59')
 
 			encounter_type_id = EncounterType.find_by_name("HIV CLINIC REGISTRATION").encounter_type_id
 
@@ -358,9 +359,11 @@ class ValidationRule < ActiveRecord::Base
 			").map(&:patient_id)
 	end
 
-	def self.every_visit_of_patients_who_are_under_18_should_have_height_and_weight(date)
+	def self.every_visit_of_patients_who_are_under_18_should_have_height_and_weight(date = Date.today)
 		#Task 31
 		#SQL for every visit of patients who are under 18 should have height and weight
+
+		date = date.to_date.strftime('%Y-%m-%d 23:59:59')
 
 		encounter_type_id = EncounterType.find_by_name("VITALS").encounter_type_id
 		height_id = ConceptName.find_by_name("HT").concept_id
@@ -383,5 +386,19 @@ class ValidationRule < ActiveRecord::Base
 					GROUP BY visit.patient_id, visit.encounter_datetime) weight_and_height_check
 			WHERE Weight_and_Height < 2  AND encounter_datetime = DATE('#{date}')").map(&:patient_id)
 	end
-  
+
+	def every_outcome_needs_a_date(date = Date.today)
+
+		#Task 40
+		#Every outcome needs a date
+
+		date = date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+		PatientState..find_by_sql("
+			SELECT pp.patient_id,p.patient_program_id, state, p.date_created
+			FROM patient_state p LEFT JOIN patient_program pp
+					ON p.patient_program_id = pp.patient_program_id
+			WHERE start_date IS NULL AND p.date_created <= DATE('#{date}')").map(&:patient_id)
+	end
+
 end
