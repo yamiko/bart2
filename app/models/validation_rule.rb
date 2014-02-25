@@ -449,7 +449,7 @@ class ValidationRule < ActiveRecord::Base
 
 		date = date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-		PatientState..find_by_sql("
+		PatientState.find_by_sql("
 			SELECT pp.patient_id,p.patient_program_id, state, p.date_created
 			FROM patient_state p LEFT JOIN patient_program pp
 					ON p.patient_program_id = pp.patient_program_id
