@@ -48,6 +48,28 @@ class CohortValidation
 			 					
 		return self.feed_values(validation_rule.expr, values)		
 	end
+	
+	def validate_total_male_plus_total_pregnant_plus_total_nonpregnant_equals_total_registered
+	  
+	  # Developer   : Precious Bondwe
+    # Date        : 25/02/2014
+    # Purpose     : Validate (newly registered males + 
+    #                         newly registered females (pregnant) + 
+    #                         newly registered females (non -pregnant)) =
+    #                         newly total registered  
+    # Amendments  :
+
+   
+	  validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Newly registered male'],
+                self.cohort_object['Newly registered women (pregnant)'], 
+                self.cohort_object['Newly registered women (non pregnant)'],
+                self.cohort_object['Newly total registered']]
+                
+    return self.feed_values(validation_rule.expr, values)
+	end
 		  
 end
 
