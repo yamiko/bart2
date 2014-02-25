@@ -354,5 +354,25 @@ class CohortValidation
 		return self.feed_values(validation_rule.expr, values)
 	end	
 
+  def validate_adherence_sum_zero_to_six_and_seven_plus_needs_to_equal_total_alive_and_on_art
+    validation_rule = ValidationRule.find_by_desc("Patients with 0-6 doses missed at their last visit(before end of quarter evaluated), and Patients with 7+ doses missed at their last visit(before end of quarter evaluated) should add up to Total alive and on ART")
+    return nil if validation_rule.blank?
+    values = [self.cohort_object['Total alive and on ART'],
+				 			self.cohort_object['Patients with 0 - 6 doses missed at their last visit'],
+				 			self.cohort_object['Patients with 7+ doses missed at their last visit']
+				 			]
+		return self.feed_values(validation_rule.expr, values)
+  end
+
+  def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
+     validation_rule = ValidationRule.find_by_desc("[CUMULATIVE] No TB, TB within the last 2 years, Current episode of TB, and Kaposis Sarcoma should add up to Total registered")
+     values = [self.cohort_object['Total registered'],
+				 			self.cohort_object['Total No TB'],
+				 			self.cohort_object['Total TB within the last 2 years'],
+				 			self.cohort_object['Total Current episode of TB'],
+				 			self.cohort_object['Total Kaposis Sarcoma']
+				 			]
+		return self.feed_values(validation_rule.expr, values)		
+  end
 end
 
