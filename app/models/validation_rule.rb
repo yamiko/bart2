@@ -74,6 +74,57 @@ class ValidationRule < ActiveRecord::Base
 
     return patient_ids
   end
+
+  def adherence_sum(visit_date)
+    visit_date = visit_date.to_date rescue Date.today
+    connection = ActiveRecord::Base.connection
+
+    defaulted_patients= PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{visit_date}') AS def \
+											FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id \
+											WHERE e.earliest_start_date <=  '#{visit_date}' AND p.dead=0 \
+											HAVING def = 1 AND current_state_for_program(patient_id, 1, '#{visit_date}') NOT IN (6, 2, 3)").collect{|patient|patient.patient_id}
+	
+
+		total_alive_and_on_art_ids = PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{visit_date}') AS state
+		 									FROM earliest_start_date e
+											WHERE earliest_start_date <=  '#{visit_date}'
+											HAVING state = 7").reject{|t| defaulted_patients.include?(t.patient_id) }.collect{|patient|patient.patient_id}.join(', ')
+
+    total_registered_ids = PatientProgram.find_by_sql("SELECT * FROM earliest_start_date
+	    WHERE earliest_start_date <='#{visit_date}'").collect{|patient|patient.patient_id}.uniq
+    
+    art_adh_concept = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
+    art_adh_encounter = EncounterType.find_by_name("ART ADHERENCE").id
+
+    latest_adh_obs = connection.select_all("
+      SELECT MAX(obs_id) obs_id, person_id FROM obs INNER JOIN encounter e ON
+        obs.encounter_id = e.encounter_id WHERE person_id IN (#{total_alive_and_on_art_ids}) AND concept_id = #{art_adh_concept}
+        AND encounter_type = #{art_adh_encounter} AND value_text REGEXP \'^-?[0-9]+$'\
+        AND DATE(e.encounter_datetime) <= \'#{visit_date}\' AND e.voided=0 GROUP BY person_id
+      ").collect{|adh|adh["obs_id"]}.uniq.join(', ')
+    
+    patients_with_more_dosses_missed = connection.select_all("
+      SELECT person_id FROM obs INNER JOIN encounter e ON
+        obs.encounter_id = e.encounter_id WHERE person_id IN (#{total_alive_and_on_art_ids}) AND obs_id IN (#{latest_adh_obs}) AND concept_id = #{art_adh_concept}
+        AND encounter_type = #{art_adh_encounter} AND value_text REGEXP \'^-?[0-9]+$'\
+        AND value_text < 95 AND DATE(e.encounter_datetime) <= \'#{visit_date}\'
+        AND e.voided=0").collect{|p|p["person_id"]}.uniq
+
+    patients_with_few_dosses_missed = connection.select_all("
+      SELECT person_id FROM obs INNER JOIN encounter e ON
+        obs.encounter_id = e.encounter_id WHERE person_id IN (#{total_alive_and_on_art_ids}) AND obs_id IN (#{latest_adh_obs}) AND concept_id = #{art_adh_concept}
+        AND encounter_type = #{art_adh_encounter} AND value_text REGEXP \'^-?[0-9]+$'\
+        AND value_text >= 95 AND DATE(e.encounter_datetime) <= \'#{visit_date}\'
+        AND e.voided=0").collect{|p|p["person_id"]}.uniq
+
+    patients_without_adh =  Person.find_by_sql("SELECT DISTINCT(person_id) FROM person 
+      LEFT JOIN encounter e ON e.patient_id=person.person_id  AND e.encounter_type = #{art_adh_encounter}
+      WHERE e.patient_id IS NULL AND person_id IN (#{total_alive_and_on_art_ids}) AND e.voided=0 AND
+      DATE(e.encounter_datetime) <= \'#{visit_date}\' ").collect{|person|person.person_id}
+
+
+    
+  end
   
   @dispensed_id = ConceptName.find_by_name('PILLS DISPENSED').concept_id
 
