@@ -95,7 +95,7 @@ class CohortValidation
     return self.feed_values(validation_rule.expr, values)
   end
   
-  	def validate_kaposis_sarcoma_less_than_total
+  def validate_kaposis_sarcoma_less_than_total
 		#This method checks that cases of kaposis sarcoma are less than total registered in quarter	
 		#By Kenneth Kapundi
 		
