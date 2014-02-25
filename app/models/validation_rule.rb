@@ -74,6 +74,61 @@ class ValidationRule < ActiveRecord::Base
 
     return patient_ids
   end
+
+  def adherence_sum(visit_date)
+    visit_date = visit_date.to_date rescue Date.today
+    connection = ActiveRecord::Base.connection
+
+    defaulted_patients= PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{visit_date}') AS def \
+											FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id \
+											WHERE e.earliest_start_date <=  '#{visit_date}' AND p.dead=0 \
+											HAVING def = 1 AND current_state_for_program(patient_id, 1, '#{visit_date}') NOT IN (6, 2, 3)").collect{|patient|patient.patient_id}
+	
+
+		total_alive_and_on_art_ids = PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{visit_date}') AS state
+		 									FROM earliest_start_date e
+											WHERE earliest_start_date <=  '#{visit_date}'
+											HAVING state = 7").reject{|t| defaulted_patients.include?(t.patient_id) }.collect{|patient|patient.patient_id}.join(', ')
+    
+    art_adh_concept = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
+    art_adh_encounter = EncounterType.find_by_name("ART ADHERENCE").id
+
+    latest_adh_obs = connection.select_all("
+      SELECT MAX(obs_id) obs_id, person_id FROM obs INNER JOIN encounter e ON
+        obs.encounter_id = e.encounter_id WHERE person_id IN (#{total_alive_and_on_art_ids}) AND concept_id = #{art_adh_concept}
+        AND encounter_type = #{art_adh_encounter} AND value_text REGEXP \'^-?[0-9]+$'\
+        AND DATE(e.encounter_datetime) <= \'#{visit_date}\' AND e.voided=0 GROUP BY person_id
+      ").collect{|adh|adh["obs_id"]}.uniq.join(', ')
+    
+    patients_with_more_dosses_missed = connection.select_all("
+      SELECT person_id FROM obs INNER JOIN encounter e ON
+        obs.encounter_id = e.encounter_id WHERE person_id IN (#{total_alive_and_on_art_ids}) AND obs_id IN (#{latest_adh_obs}) AND concept_id = #{art_adh_concept}
+        AND encounter_type = #{art_adh_encounter} AND value_text REGEXP \'^-?[0-9]+$'\
+        AND value_text < 95 AND DATE(e.encounter_datetime) <= \'#{visit_date}\'
+        AND e.voided=0").collect{|p|p["person_id"]}.uniq
+
+    patients_with_few_dosses_missed = connection.select_all("
+      SELECT person_id FROM obs INNER JOIN encounter e ON
+        obs.encounter_id = e.encounter_id WHERE person_id IN (#{total_alive_and_on_art_ids}) AND obs_id IN (#{latest_adh_obs}) AND concept_id = #{art_adh_concept}
+        AND encounter_type = #{art_adh_encounter} AND value_text REGEXP \'^-?[0-9]+$'\
+        AND value_text >= 95 AND DATE(e.encounter_datetime) <= \'#{visit_date}\'
+        AND e.voided=0").collect{|p|p["person_id"]}.uniq
+
+    patients_without_adh =  Person.find_by_sql("SELECT DISTINCT(person_id) FROM person 
+      LEFT JOIN encounter e ON e.patient_id=person.person_id  AND e.encounter_type = #{art_adh_encounter}
+      WHERE e.patient_id IS NULL AND person_id IN (#{total_alive_and_on_art_ids}) AND e.voided=0 AND
+      DATE(e.encounter_datetime) <= \'#{visit_date}\' ").collect{|person|person.person_id}
+
+    patients_sum_with_adherence = patients_with_more_dosses_missed.length + patients_with_few_dosses_missed.length + patients_without_adh.length
+
+    total_alive_and_on_art_ids = total_alive_and_on_art_ids.split(', ')
+    if (total_alive_and_on_art_ids.length < patients_sum_with_adherence)
+      return patients_with_more_dosses_missed + patients_with_few_dosses_missed - total_alive_and_on_art_ids
+    else
+      return []
+    end
+    
+  end
   
   @dispensed_id = ConceptName.find_by_name('PILLS DISPENSED').concept_id
 
@@ -359,6 +414,7 @@ class ValidationRule < ActiveRecord::Base
 	end
 
 
+
   def self.deliver_validation_results(rules_date = Date.today)
      sent_to_mail = {}
     ValidationResult.find_by_sql("
@@ -371,4 +427,31 @@ class ValidationRule < ActiveRecord::Base
       }
     return sent_to_mail
   end
+
+	def self.every_visit_of_patients_who_are_under_18_should_have_height_and_weight(date)
+		#Task 31
+		#SQL for every visit of patients who are under 18 should have height and weight
+
+		encounter_type_id = EncounterType.find_by_name("VITALS").encounter_type_id
+		height_id = ConceptName.find_by_name("HT").concept_id
+		weight_id = ConceptName.find_by_name("WT").concept_id
+
+		Patient.find_by_sql("
+			SELECT Weight_and_Height, patient_id, encounter_datetime, concept_id
+			FROM(
+					SELECT COUNT(*) AS Weight_and_Height, visit.* , e.encounter_type, o.concept_id, value_numeric
+						  FROM (
+						      SELECT e.patient_id, DATE(e.encounter_datetime) AS encounter_datetime, birthdate,
+						          FLOOR(DATEDIFF(DATE(e.encounter_datetime), birthdate)/365) AS age
+						      FROM encounter e LEFT JOIN person p ON e.patient_id = p.person_id
+						      WHERE e.voided = 0
+						      GROUP BY e.patient_id, DATE(e.encounter_datetime)) visit
+						  LEFT JOIN encounter e ON visit.patient_id = e.patient_id
+						      AND visit.encounter_datetime = DATE(e.encounter_datetime)
+						  LEFT JOIN obs o ON e.encounter_id=o.encounter_id
+					WHERE age < 18 AND e.encounter_type = #{encounter_type_id} AND concept_id IN (#{height_id}, #{weight_id})
+					GROUP BY visit.patient_id, visit.encounter_datetime) weight_and_height_check
+			WHERE Weight_and_Height < 2  AND encounter_datetime = DATE('#{date}')").map(&:patient_id)
+	end
+
 end
