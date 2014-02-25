@@ -334,6 +334,24 @@ class CohortValidation
 				 			self.cohort_object['Unknown outcomes']
 				 			]			 					
 		return self.feed_values(validation_rule.expr, values)		
+	end
+
+	def validate_sum_of_tb_equal_total_alive_and_on_ART
+		#Task 59
+		#Sum of tb = total alive and on ART
+
+		validation_rule = ValidationRule.find_by_desc("TB not suspected, TB suspected, TB confirmed not yet/currently not on TB treatment, TB confirmed on TB treatment, and Unknown TB status should add up to Total alive and on ART")
+
+		return nil if validation_rule.blank?
+
+		values = [self.cohort_object['Total alive and on ART'],
+				 			self.cohort_object['TB not suspected'],
+				 			self.cohort_object['TB suspected'],
+				 			self.cohort_object['TB confirmed not treatment'],
+				 			self.cohort_object['TB confirmed on treatment'],
+				 			self.cohort_object['TB Unknown']
+				 			]
+		return self.feed_values(validation_rule.expr, values)
 	end	
 
 end
