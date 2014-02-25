@@ -89,9 +89,6 @@ class ValidationRule < ActiveRecord::Base
 		 									FROM earliest_start_date e
 											WHERE earliest_start_date <=  '#{visit_date}'
 											HAVING state = 7").reject{|t| defaulted_patients.include?(t.patient_id) }.collect{|patient|patient.patient_id}.join(', ')
-
-    total_registered_ids = PatientProgram.find_by_sql("SELECT * FROM earliest_start_date
-	    WHERE earliest_start_date <='#{visit_date}'").collect{|patient|patient.patient_id}.uniq
     
     art_adh_concept = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
     art_adh_encounter = EncounterType.find_by_name("ART ADHERENCE").id
@@ -122,7 +119,14 @@ class ValidationRule < ActiveRecord::Base
       WHERE e.patient_id IS NULL AND person_id IN (#{total_alive_and_on_art_ids}) AND e.voided=0 AND
       DATE(e.encounter_datetime) <= \'#{visit_date}\' ").collect{|person|person.person_id}
 
+    patients_sum_with_adherence = patients_with_more_dosses_missed.length + patients_with_few_dosses_missed.length + patients_without_adh.length
 
+    total_alive_and_on_art_ids = total_alive_and_on_art_ids.split(', ')
+    if (total_alive_and_on_art_ids.length < patients_sum_with_adherence)
+      return patients_with_more_dosses_missed + patients_with_few_dosses_missed - total_alive_and_on_art_ids
+    else
+      return []
+    end
     
   end
   
