@@ -374,5 +374,63 @@ class CohortValidation
 				 			]
 		return self.feed_values(validation_rule.expr, values)		
   end
+
+  def validate_sum_of_all_regimens_should_equal_to_total_alive_and_on_art
+    #validating all regimens should add up to total_alive_and_on_art
+
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+
+    values = [self.cohort_object['Total alive and on ART'] ||= [],
+              self.cohort_object['Regimens']['1A'] ||= [],
+              self.cohort_object['Regimens']['1P'] ||= [],
+              self.cohort_object['Regimens']['2A'] ||= [],
+              self.cohort_object['Regimens']['2P'] ||= [],
+              self.cohort_object['Regimens']['3A'] ||= [],
+              self.cohort_object['Regimens']['3P'] ||= [],
+              self.cohort_object['Regimens']['4A'] ||= [],
+              self.cohort_object['Regimens']['4P'] ||= [],
+              self.cohort_object['Regimens']['5A'] ||= [],
+              self.cohort_object['Regimens']['6A'] ||= [],
+              self.cohort_object['Regimens']['7A'] ||= [],
+              self.cohort_object['Regimens']['8A'] ||= [],
+              self.cohort_object['Regimens']['9P'] ||= [],
+              self.cohort_object['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] ||= []]
+
+   return self.feed_values(validation_rule.expr, values)
+  end
+
+  def validate_quartely_sum_of_all_ages_should_equal_to_quartely_total_registered
+    #validating quartery sum of infants+children+adults+unknow_age
+    #should equal to quartly total registered
+
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+
+    values = [self.cohort_object['Newly total registered'] ||= [],
+              self.cohort_object['Newly registered infants'] ||= [],
+              self.cohort_object['Newly registered children'] ||= [],
+              self.cohort_object['Newly registered adults'] ||= [],
+              self.cohort_object['New Unknown age'] ||= []]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+
+  def validate_cumulative_sum_all_ages_should_equal_to_cumulative_total_registered
+    #validating cumulative sum of infants+children+adults+unknow_age
+    #should equal to cumulative total registered
+
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+
+    values = [self.cohort_object['Total registered'] ||= [],
+              self.cohort_object['Total registered infants'] ||= [],
+              self.cohort_object['Total registered children'] ||= [],
+              self.cohort_object['Total registered adults'] ||= [],
+              self.cohort_object['Total Unknown age'] ||= []]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+
 end
 
