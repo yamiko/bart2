@@ -334,7 +334,125 @@ class CohortValidation
 				 			self.cohort_object['Unknown outcomes']
 				 			]			 					
 		return self.feed_values(validation_rule.expr, values)		
+	end
+
+	def validate_sum_of_tb_equal_total_alive_and_on_ART
+		#Task 59
+		#Sum of tb = total alive and on ART
+
+		validation_rule = ValidationRule.find_by_desc("TB not suspected, TB suspected, TB confirmed not yet/currently not on TB treatment, TB confirmed on TB treatment, and Unknown TB status should add up to Total alive and on ART")
+
+		return nil if validation_rule.blank?
+
+		values = [self.cohort_object['Total alive and on ART'],
+				 			self.cohort_object['TB not suspected'],
+				 			self.cohort_object['TB suspected'],
+				 			self.cohort_object['TB confirmed not treatment'],
+				 			self.cohort_object['TB confirmed on treatment'],
+				 			self.cohort_object['TB Unknown']
+				 			]
+		return self.feed_values(validation_rule.expr, values)
 	end	
+
+  def validate_adherence_sum_zero_to_six_and_seven_plus_needs_to_equal_total_alive_and_on_art
+    validation_rule = ValidationRule.find_by_desc("Patients with 0-6 doses missed at their last visit(before end of quarter evaluated), and Patients with 7+ doses missed at their last visit(before end of quarter evaluated) should add up to Total alive and on ART")
+    return nil if validation_rule.blank?
+    values = [self.cohort_object['Total alive and on ART'],
+				 			self.cohort_object['Patients with 0 - 6 doses missed at their last visit'],
+				 			self.cohort_object['Patients with 7+ doses missed at their last visit']
+				 			]
+		return self.feed_values(validation_rule.expr, values)
+  end
+
+  def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
+     validation_rule = ValidationRule.find_by_desc("[CUMULATIVE] No TB, TB within the last 2 years, Current episode of TB, and Kaposis Sarcoma should add up to Total registered")
+     values = [self.cohort_object['Total registered'],
+				 			self.cohort_object['Total No TB'],
+				 			self.cohort_object['Total TB within the last 2 years'],
+				 			self.cohort_object['Total Current episode of TB'],
+				 			self.cohort_object['Total Kaposis Sarcoma']
+				 			]
+		return self.feed_values(validation_rule.expr, values)		
+  end
+
+  def validate_sum_of_all_regimens_should_equal_to_total_alive_and_on_art
+    #validating all regimens should add up to total_alive_and_on_art
+
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+
+    values = [self.cohort_object['Total alive and on ART'] ||= [],
+              self.cohort_object['Regimens']['1A'] ||= [],
+              self.cohort_object['Regimens']['1P'] ||= [],
+              self.cohort_object['Regimens']['2A'] ||= [],
+              self.cohort_object['Regimens']['2P'] ||= [],
+              self.cohort_object['Regimens']['3A'] ||= [],
+              self.cohort_object['Regimens']['3P'] ||= [],
+              self.cohort_object['Regimens']['4A'] ||= [],
+              self.cohort_object['Regimens']['4P'] ||= [],
+              self.cohort_object['Regimens']['5A'] ||= [],
+              self.cohort_object['Regimens']['6A'] ||= [],
+              self.cohort_object['Regimens']['7A'] ||= [],
+              self.cohort_object['Regimens']['8A'] ||= [],
+              self.cohort_object['Regimens']['9P'] ||= [],
+              self.cohort_object['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] ||= []]
+
+   return self.feed_values(validation_rule.expr, values)
+  end
+
+  def validate_quartely_sum_of_all_ages_should_equal_to_quartely_total_registered
+    #validating quartery sum of infants+children+adults+unknow_age
+    #should equal to quartly total registered
+
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+
+    values = [self.cohort_object['Newly total registered'] ||= [],
+              self.cohort_object['Newly registered infants'] ||= [],
+              self.cohort_object['Newly registered children'] ||= [],
+              self.cohort_object['Newly registered adults'] ||= [],
+              self.cohort_object['New Unknown age'] ||= []]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+
+  def validate_cumulative_sum_all_ages_should_equal_to_cumulative_total_registered
+    #validating cumulative sum of infants+children+adults+unknow_age
+    #should equal to cumulative total registered
+
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+
+    values = [self.cohort_object['Total registered'] ||= [],
+              self.cohort_object['Total registered infants'] ||= [],
+              self.cohort_object['Total registered children'] ||= [],
+              self.cohort_object['Total registered adults'] ||= [],
+              self.cohort_object['Total Unknown age'] ||= []]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+
+	def validate_sum_of_reason_starting_ART_equal_total_registered
+		#Task 51
+		#sum of reason starting ART equal to total registered
+
+		validation_rule = ValidationRule.find_by_desc("[CUMULATIVE] Presumed severe HIV disease in infants, Confirmed HIV infection in infants (PCR), WHO stage 1 or 2, CD4 below threshold, , Children 12-23 mths, Breastfeeding mothers, Pregnant women, WHO stage 3, WHO stage 4, and Unknown/other reason outside ")
+		return nil if validation_rule.blank?
+
+		values = [self.cohort_object['Total registered'],
+							self.cohort_object['Total Presumed severe HIV disease in infants'],
+							self.cohort_object['Total Confirmed HIV infection in infants (PCR)'],
+							self.cohort_object['WHO stage 1 or 2, CD4 below threshold'],
+							self.cohort_object['Total WHO stage 2, total lymphocytes'],
+							self.cohort_object['Total registered children'],
+							self.cohort_object['Total Patient breastfeeding'],
+							self.cohort_object['Total Patient pregnant'],
+							self.cohort_object['Total WHO stage 3'],
+							self.cohort_object['Total WHO stage 4'],
+							self.cohort_object['Total Unknown reason']
+				 		 ]
+		return self.feed_values(validation_rule.expr, values)
+	end
 
 end
 
