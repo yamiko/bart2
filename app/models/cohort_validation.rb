@@ -293,7 +293,7 @@ class CohortValidation
     return self.feed_values(validation_rule.expr, values)
   end 
 
-  def validate_kaposis_sarcoma_less_than_total
+  def validate_kaposis_sarcoma_less_than_total_registered_in_quarter
 		#This method checks that cases of kaposis sarcoma are less than total registered in quarter	
 		#By Kenneth Kapundi
 		
@@ -305,7 +305,7 @@ class CohortValidation
 		return self.feed_values(validation_rule.expr, values)		
 	end
 	
-	def validate_cumulative_kaposis_sarcoma_less_than_total
+	def validate_cumulative_kaposis_sarcoma_less_than_total_ever_registered
 		#This method checks that all cases of kaposis sarcoma are less than cumulative total registered	
 		#By Kenneth Kapundi
 		
@@ -317,7 +317,7 @@ class CohortValidation
 		return self.feed_values(validation_rule.expr, values)		
 	end
 	
-	def validate_cumulative_outcomes_less_than_or_equal_to_total_registered
+	def validate_all_outcomes_equal_to_cumulative_total_registered
 		#This method checks that outcome totals dont exceed total registered	
 		#By Kenneth Kapundi
 		
