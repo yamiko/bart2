@@ -293,7 +293,7 @@ class CohortValidation
     return self.feed_values(validation_rule.expr, values)
   end 
 
-  def validate_kaposis_sarcoma_less_than_total
+  def validate_kaposis_sarcoma_less_than_total_registered_in_quarter
 		#This method checks that cases of kaposis sarcoma are less than total registered in quarter	
 		#By Kenneth Kapundi
 		
@@ -305,7 +305,7 @@ class CohortValidation
 		return self.feed_values(validation_rule.expr, values)		
 	end
 	
-	def validate_cumulative_kaposis_sarcoma_less_than_total
+	def validate_cumulative_kaposis_sarcoma_less_than_total_ever_registered
 		#This method checks that all cases of kaposis sarcoma are less than cumulative total registered	
 		#By Kenneth Kapundi
 		
@@ -317,7 +317,7 @@ class CohortValidation
 		return self.feed_values(validation_rule.expr, values)		
 	end
 	
-	def validate_cumulative_outcomes_less_than_or_equal_to_total_registered
+	def validate_all_outcomes_equal_to_cumulative_total_registered
 		#This method checks that outcome totals dont exceed total registered	
 		#By Kenneth Kapundi
 		
@@ -681,6 +681,28 @@ class CohortValidation
 
     return self.feed_values(validation_rule.expr, values)
   end
+
+	def validate_sum_of_reason_starting_ART_equal_total_registered
+		#Task 51
+		#sum of reason starting ART equal to total registered
+
+		validation_rule = ValidationRule.find_by_desc("[CUMULATIVE] Presumed severe HIV disease in infants, Confirmed HIV infection in infants (PCR), WHO stage 1 or 2, CD4 below threshold, , Children 12-23 mths, Breastfeeding mothers, Pregnant women, WHO stage 3, WHO stage 4, and Unknown/other reason outside ")
+		return nil if validation_rule.blank?
+
+		values = [self.cohort_object['Total registered'],
+							self.cohort_object['Total Presumed severe HIV disease in infants'],
+							self.cohort_object['Total Confirmed HIV infection in infants (PCR)'],
+							self.cohort_object['WHO stage 1 or 2, CD4 below threshold'],
+							self.cohort_object['Total WHO stage 2, total lymphocytes'],
+							self.cohort_object['Total registered children'],
+							self.cohort_object['Total Patient breastfeeding'],
+							self.cohort_object['Total Patient pregnant'],
+							self.cohort_object['Total WHO stage 3'],
+							self.cohort_object['Total WHO stage 4'],
+							self.cohort_object['Total Unknown reason']
+				 		 ]
+		return self.feed_values(validation_rule.expr, values)
+	end
 
 end
 
