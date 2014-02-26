@@ -403,4 +403,59 @@ class ValidationRule < ActiveRecord::Base
 			WHERE start_date IS NULL AND p.date_created <= DATE('#{date}')").map(&:patient_id)
 	end
 
+ def total_with_side_effects_less_total_alive_and_on_art(start_date = @start_date, end_date = @end_date)
+
+   #Task 57
+   side_effect_concept_ids =[ConceptName.find_by_name('PERIPHERAL NEUROPATHY').concept_id,
+			ConceptName.find_by_name('LEG PAIN / NUMBNESS').concept_id,
+			ConceptName.find_by_name('HEPATITIS').concept_id,
+			ConceptName.find_by_name('SKIN RASH').concept_id,
+			ConceptName.find_by_name('JAUNDICE').concept_id]
+
+    hiv_clinic_consultation_encounter_id = EncounterType.find_by_name("HIV CLINIC CONSULTATION").id
+
+    drug_induced_side_effect_id = ConceptName.find_by_name('DRUG INDUCED').concept_id
+
+    
+    defaulted_patients = PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{@end_date}') AS def
+											FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
+											WHERE e.earliest_start_date <=  '#{@end_date}' AND p.dead=0
+											HAVING def = 1 AND current_state_for_program(patient_id, 1, '#{@end_date}') NOT IN (6, 2, 3)").map(&:patient_id)
+
+    patient_ids = []
+    
+    PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state
+		 									FROM earliest_start_date e
+											WHERE earliest_start_date <=  '#{@end_date}'
+											HAVING state = 7").reject{|t| defaulted_patients.include?(t.patient_id) }.each do | patient | 
+				patients_ids << patient.patient_id    
+    end
+    
+    side_effects_patients = Encounter.find_by_sql("SELECT e.patient_id FROM encounter e
+                                                    INNER JOIN obs o ON o.encounter_id = e.encounter_id
+                                                    WHERE e.encounter_type = #{hiv_clinic_consultation_encounter_id}
+                                                    AND e.patient_id IN (#{patient_ids.join(',')})
+                                                    AND o.value_coded IN (#{side_effect_concept_ids.join(',')})
+                                                    AND o.concept_id = #{drug_induced_side_effect_id}
+                                                    AND o.voided = 0
+                                                    AND e.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
+                                                                                  WHERE e1.patient_id = e.patient_id
+                                                                                  AND e1.encounter_type = e.encounter_type  
+                                                                                  AND e1.encounter_datetime BETWEEN '#{start_date}' AND '#{end_date}'
+                                                                                  AND e1.voided = 0)
+                                                    GROUP BY e.patient_id"
+		).map(&:patient_id)
+
+    total_new_patients = []
+	  total_new_patients = PatientProgram.find_by_sql("SELECT * FROM earliest_start_date 
+	    WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'").map(&:patient_id)
+	
+   unless side_effects_patients <= total_new_patients
+    		return false
+    else
+    		return true
+   end
+
+ end
+
 end
