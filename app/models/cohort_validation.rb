@@ -335,6 +335,257 @@ class CohortValidation
 				 			]			 					
 		return self.feed_values(validation_rule.expr, values)		
 	end	
+	
+	def validate_cumulative_and_new_presumed_severe_hiv_in_infants
+    
+    # Developer   : Precious Bondwe
+    # Date        : 26/02/2014
+    # Purpose     : Validate Reason for Starting of presumed severe HIV in infants (Cumulative >= New)
+    # Amendments  :
 
+   
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Total Presumed severe HIV disease in infants'],
+              self.cohort_object['Presumed severe HIV disease in infants']
+                ]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+
+  def validate_cumulative_and_new_confirmed_hiv_infection_in_infants
+    
+    # Developer   : Precious Bondwe
+    # Date        : 26/02/2014
+    # Purpose     : Validate Reason for Starting of presumed severe confirmed HIV infection in infants (Cumulative >= New)
+    # Amendments  :
+
+   
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Total Confirmed HIV infection in infants (PCR)'],
+              self.cohort_object['Confirmed HIV infection in infants (PCR)']
+                ]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+  
+  def validate_cumulative_and_new_pregnant_women
+    
+    # Developer   : Precious Bondwe
+    # Date        : 26/02/2014
+    # Purpose     : Validate Reason for Starting of pregnant women (Cumulative >= New)
+    # Amendments  :
+
+   
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Total Patient pregnant'],
+              self.cohort_object['Patient pregnant']
+                ]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+  
+  def validate_cumulative_and_new_breastfeeding_mothers
+    
+    # Developer   : Precious Bondwe
+    # Date        : 26/02/2014
+    # Purpose     : Validate Reason for Starting of breastfeeding mothers (Cumulative >= New)
+    # Amendments  :
+
+   
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Total Patient breastfeeding'],
+              self.cohort_object['Patient breastfeeding']
+                ]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+  
+  def validate_cumulative_and_new_WHO_stage_1_or_2_cd4_count_below_threshhold
+    
+    # Developer   : Precious Bondwe
+    # Date        : 26/02/2014
+    # Purpose     : Validate Reason for Starting of WHO stage 1 or 2 with cd4 count below threshhold (Cumulative >= New)
+    # Amendments  :
+
+   
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Total WHO stage 1 or 2, CD4 below threshold'],
+              self.cohort_object['WHO stage 1 or 2, CD4 below threshold']
+                ]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+  
+  def validate_cumulative_and_new_WHO_stage_2_total_lymphocytes
+    
+    # Developer   : Precious Bondwe
+    # Date        : 26/02/2014
+    # Purpose     : Validate Reason for Starting of WHO stage 2 total lymphocytes (Cumulative >= New)
+    # Amendments  :
+
+   
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Total WHO stage 2, total lymphocytes'],
+              self.cohort_object['WHO stage 2, total lymphocytes']
+                ]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+  
+  def validate_cumulative_and_new_WHO_stage_3
+    
+    # Developer   : Precious Bondwe
+    # Date        : 26/02/2014
+    # Purpose     : Validate Reason for Starting of WHO stage 3 (Cumulative >= New)
+    # Amendments  :
+
+   
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Total WHO stage 3'],
+              self.cohort_object['WHO stage 3']
+                ]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+  
+  def validate_cumulative_and_new_WHO_stage_4
+    
+    # Developer   : Precious Bondwe
+    # Date        : 26/02/2014
+    # Purpose     : Validate Reason for Starting of WHO stage 4 (Cumulative >= New)
+    # Amendments  :
+
+   
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Total WHO stage 4'],
+              self.cohort_object['WHO stage 4']
+                ]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+
+   def validate_cumulative_and_new_unknown_reason
+    
+    # Developer   : Precious Bondwe
+    # Date        : 26/02/2014
+    # Purpose     : Validate Reason for Starting of Unknown reason (Cumulative >= New)
+    # Amendments  :
+
+   
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Total Unknown reason'],
+              self.cohort_object['Unknown reason']
+                ]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+  
+  def validate_cumulative_and_new_TB_within_last_2_years
+    
+    # Developer   : Precious Bondwe
+    # Date        : 26/02/2014
+    # Purpose     : Validate Stage Defining Conditions of TB within last 2 years (Cumulative >= New)
+    # Amendments  :
+
+   
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Total TB within the last 2 years'],
+              self.cohort_object['TB within the last 2 years']
+                ]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+
+  def validate_cumulative_and_new_current_episode_of_TB
+    
+    # Developer   : Precious Bondwe
+    # Date        : 26/02/2014
+    # Purpose     : Validate Current Episode of TB (Cumulative >= New)
+    # Amendments  :
+
+   
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Total Current episode of TB'],
+              self.cohort_object['Current episode of TB']
+                ]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+  
+  def validate_cumulative_and_new_kaposis_sarcoma
+    
+    # Developer   : Precious Bondwe
+    # Date        : 26/02/2014
+    # Purpose     : Validate Stage Defining Conditions of Kaposis Sarcoma (Cumulative >= New)
+    # Amendments  :
+
+   
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Total Kaposis Sarcoma'],
+              self.cohort_object['Kaposis Sarcoma']
+                ]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+  
+  def validate_cumulative_and_new_no_TB
+    
+    # Developer   : Precious Bondwe
+    # Date        : 26/02/2014
+    # Purpose     : Validate Stage Defining Conditions of no TB (Cumulative >= New)
+    # Amendments  :
+
+   
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Total No TB'],
+              self.cohort_object['No TB']
+                ]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
+  
+  def validate_cumulative_and_new_Children_12_to_23_months
+    
+    # Developer   : Precious Bondwe
+    # Date        : 26/02/2014
+    # Purpose     : Validate Reason for Starting of Children 12 - 23 months (Cumulative >= New)
+    # Amendments  :
+
+   
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Total HIV infected'],
+              self.cohort_object['HIV infected']
+                ]
+
+    return self.feed_values(validation_rule.expr, values)
+  end
 end
 
