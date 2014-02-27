@@ -721,7 +721,7 @@ class CohortValidation
 		return self.feed_values(validation_rule.expr, values)		
 	end
 
- def validate_total_registered_is_sum_of_intitiated_reinitiated_and_transfer_out
+ def validate_total_registered_is_sum_of_intitiated_reinitiated_and_transfer_in
     #Task 48
    
     validation_rule = ValidationRule.find_by_type_id(1)
@@ -736,7 +736,7 @@ class CohortValidation
     return self.feed_values(validation_rule.expr, values)
   end
 
-  def validate_cumulative_total_registered_is_sum_of_intitiated_reinitiated_and_transfer_out
+  def validate_cumulative_total_registered_is_sum_of_intitiated_reinitiated_and_transfer_in
     #Task 48
    
     validation_rule = ValidationRule.find_by_type_id(1)
@@ -749,7 +749,20 @@ class CohortValidation
                 ]
 
     return self.feed_values(validation_rule.expr, values)
-  end  
+  end
+
+  def validate_total_alive_and_side_effects
+    #Task 57
+   
+    validation_rule = ValidationRule.find_by_type_id(1)
+    return nil if validation_rule.blank?
+        
+    values = [self.cohort_object['Total alive and on ART'],
+              self.cohort_object['Total patients with side effects']
+                ]
+
+    return self.feed_values(validation_rule.expr, values)
+  end    
 
 end
 
