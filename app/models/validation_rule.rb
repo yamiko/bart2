@@ -6,7 +6,7 @@ class ValidationRule < ActiveRecord::Base
     data_consistency_checks = {}
     #All methods for now should be here:
     data_consistency_checks['Patients without outcomes'] = "self.patients_without_outcomes(date)"
-    #data_consistency_checks['Patients with pills remaining greater than dispensed'] = "self.pills_remaining_over_dispensed(date)"
+    data_consistency_checks['Patients with pills remaining greater than dispensed'] = "self.pills_remaining_over_dispensed(date)"
     data_consistency_checks['Patients without reason for starting'] = "self.validate_presence_of_start_reason"
     data_consistency_checks['Patients with missing dispensations'] = "self.prescrition_without_dispensation(date)"
 		data_consistency_checks['Patients with missing prescriptions'] = "self.dispensation_without_prescription(date)"
