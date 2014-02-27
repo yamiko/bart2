@@ -195,60 +195,7 @@ class ValidationRule < ActiveRecord::Base
     
   end
 
-  def self.validate_newly_registered_is_sum_of_initiated_reinited_and_transferred_in(start_date = @start_date, end_date = @end_date)
-    #Task 48
-    total_registered = []
-    total_initiated = []
-    total_reinitiated = []
-    total_transferred_in = []
- 
-	  total_registered =  ValidationRule.find_by_sql("SELECT * FROM earliest_start_date 
-	    WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'").map(&:patient_id)
-    
-    yes_concept = ConceptName.find_by_name('YES').concept_id
-		no_concept = ConceptName.find_by_name('NO').concept_id
-    date_art_last_taken_concept = ConceptName.find_by_name('DATE ART LAST TAKEN').concept_id
-
-    taken_arvs_concept = ConceptName.find_by_name('HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS').concept_id 
-    
-    total_reinitiated =  ValidationRule.find_by_sql("SELECT esd.*
-																										FROM earliest_start_date esd
-																										LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
-																										INNER JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
-																										LEFT JOIN obs o ON o.encounter_id = e.encounter_id AND
-																																			 o.concept_id IN (#{date_art_last_taken_concept},#{taken_arvs_concept})
-																										WHERE  ((o.concept_id = #{date_art_last_taken_concept} AND
-																														 (DATEDIFF(o.obs_datetime,o.value_datetime)) > 60) OR
-																													 (o.concept_id = #{taken_arvs_concept} AND
-																														(o.value_coded = #{no_concept})
-																														))
-																													AND
-																													esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
-																										GROUP BY esd.patient_id").map(&:patient_id)
-				
-   
-    total_initiated =  ValidationRule.find_by_sql("SELECT esd.*
-																									FROM earliest_start_date esd
-																									LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
-																									LEFT JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
-																									WHERE esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' AND
-																													(ero.obs_id IS NULL)
-																									GROUP BY esd.patient_id").map(&:patient_id)
-
-    total_initiated -= total_reinitiated
-    
-    total_transferred_in = total_registered - total_reinitiated - total_initiated
-    
-    total_sum = total_transferred_in + total_reinitiated + total_initiated
-
-    unless total_registered == total_sum
-    		return false
-    else
-    		return true
-    end
   
-  end
-
   
   def self.encounters_without_obs_or_orders(end_date = Date.today)
 		
@@ -426,60 +373,5 @@ class ValidationRule < ActiveRecord::Base
 					ON p.patient_program_id = pp.patient_program_id
 			WHERE start_date IS NULL AND p.date_created <= DATE('#{date}')").map(&:patient_id)
 	end
-
- def total_with_side_effects_less_total_alive_and_on_art(start_date = @start_date, end_date = @end_date)
-
-   #Task 57
-   side_effect_concept_ids =[ConceptName.find_by_name('PERIPHERAL NEUROPATHY').concept_id,
-			ConceptName.find_by_name('LEG PAIN / NUMBNESS').concept_id,
-			ConceptName.find_by_name('HEPATITIS').concept_id,
-			ConceptName.find_by_name('SKIN RASH').concept_id,
-			ConceptName.find_by_name('JAUNDICE').concept_id]
-
-    hiv_clinic_consultation_encounter_id = EncounterType.find_by_name("HIV CLINIC CONSULTATION").id
-
-    drug_induced_side_effect_id = ConceptName.find_by_name('DRUG INDUCED').concept_id
-
-    
-    defaulted_patients = PatientProgram.find_by_sql("SELECT e.patient_id, current_defaulter(e.patient_id, '#{@end_date}') AS def
-											FROM earliest_start_date e LEFT JOIN person p ON p.person_id = e.patient_id
-											WHERE e.earliest_start_date <=  '#{@end_date}' AND p.dead=0
-											HAVING def = 1 AND current_state_for_program(patient_id, 1, '#{@end_date}') NOT IN (6, 2, 3)").map(&:patient_id)
-
-    patient_ids = []
-    
-    PatientProgram.find_by_sql("SELECT e.patient_id, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state
-		 									FROM earliest_start_date e
-											WHERE earliest_start_date <=  '#{@end_date}'
-											HAVING state = 7").reject{|t| defaulted_patients.include?(t.patient_id) }.each do | patient | 
-				patients_ids << patient.patient_id    
-    end
-    
-    side_effects_patients = Encounter.find_by_sql("SELECT e.patient_id FROM encounter e
-                                                    INNER JOIN obs o ON o.encounter_id = e.encounter_id
-                                                    WHERE e.encounter_type = #{hiv_clinic_consultation_encounter_id}
-                                                    AND e.patient_id IN (#{patient_ids.join(',')})
-                                                    AND o.value_coded IN (#{side_effect_concept_ids.join(',')})
-                                                    AND o.concept_id = #{drug_induced_side_effect_id}
-                                                    AND o.voided = 0
-                                                    AND e.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
-                                                                                  WHERE e1.patient_id = e.patient_id
-                                                                                  AND e1.encounter_type = e.encounter_type  
-                                                                                  AND e1.encounter_datetime BETWEEN '#{start_date}' AND '#{end_date}'
-                                                                                  AND e1.voided = 0)
-                                                    GROUP BY e.patient_id"
-		).map(&:patient_id)
-
-    total_new_patients = []
-	  total_new_patients = PatientProgram.find_by_sql("SELECT * FROM earliest_start_date 
-	    WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'").map(&:patient_id)
-	
-   unless side_effects_patients <= total_new_patients
-    		return false
-    else
-    		return true
-   end
-
- end
 
 end
