@@ -703,6 +703,23 @@ class CohortValidation
 				 		 ]
 		return self.feed_values(validation_rule.expr, values)
 	end
+	
+	def validate_cumulative_died_intervals_sum_up_to_died_total
+		#This method checks that the sum of figures in died intervals should equal died total	
+		#By Kenneth Kapundi
+		
+		validation_rule = ValidationRule.find_by_desc("Died within the 1st month after ART initiation, Died within the 2nd month after ART initiation, Died within the 3rd month after ART initiation, and Died after the end of the 3rd month after ART initiation should add up to Died total")
+		
+		return nil if validation_rule.blank?
+				
+		values = [self.cohort_object['Died total'],
+				 			self.cohort_object['Died within the 1st month after ART initiation'],
+				 			self.cohort_object['Died within the 2nd month after ART initiation'],
+				 			self.cohort_object['Died within the 3rd month after ART initiation'],
+				 			self.cohort_object['Died after the end of the 3rd month after ART initiation']
+				 			]			 					
+		return self.feed_values(validation_rule.expr, values)		
+	end
 
  def validate_total_registered_is_sum_of_intitiated_reinitiated_and_transfer_out
     #Task 48
