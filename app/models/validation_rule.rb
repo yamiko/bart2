@@ -177,7 +177,7 @@ class ValidationRule < ActiveRecord::Base
 
   def self.death_date_less_than_last_encounter_date_and_less_than_date_of_birth(end_date = Date.today)
     #Task 41
-    patient_ids =  ValidationRule.find_by_sql("SELECT DISTICT(esd.patient_id)
+    patient_ids =  ValidationRule.find_by_sql("SELECT DISTINCT(esd.patient_id)
 																FROM earliest_start_date esd
 																INNER JOIN person p 
 																ON p.person_id = esd.patient_id
