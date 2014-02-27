@@ -1,4 +1,37 @@
 class ValidationRule < ActiveRecord::Base
+  
+  @dispensed_id = ConceptName.find_by_name('PILLS DISPENSED').concept_id
+
+  def self.data_consistency_checks(date = Date.today)
+    data_consistency_checks = {}
+    #All methods for now should be here:
+    data_consistency_checks['Patients without outcomes'] = self.patients_without_outcomes(visit_date)
+
+
+
+
+    set_rules = self.find(:all,:conditions =>['type_id = 2'])                   
+    (set_rules || []).each do |rule|                                            
+      unless data_consistency_checks[rule.desc].blank?                          
+        create_update_validation_result(rule, date, data_consistency_checks[rule.desc])
+      end                                                                       
+    end                                                                         
+                                                                                
+    return data_consistency_checks
+  end
+
+  def self.create_update_validation_result(rule, date, result)
+    date_checked = date.to_date                                                 
+    v = ValidationResult.find(:first,                                           
+      :conditions =>["date_checked = ? AND rule_id = ?", date_checked,rule.id]) 
+
+    return ValidationResult.create(:rule_id => rule.id, :failures => patient_ids.length,
+      :date_checked => date_checked) if v.blank?                                
+                                                                                
+    v.failures = patient_ids.length                                             
+    v.save
+  end
+
   def self.patients_without_outcomes(visit_date)
     visit_date = visit_date.to_date rescue Date.today
     connection = ActiveRecord::Base.connection
@@ -75,16 +108,6 @@ class ValidationRule < ActiveRecord::Base
     return patient_ids
   end
   
-  @dispensed_id = ConceptName.find_by_name('PILLS DISPENSED').concept_id
-
-  def self.data_consistency_checks(date = Date.today)
-
-  end
-
-  def self.create_update_validation_result(rule, date, result)
-
-  end
-
   def self.validate_presence_of_start_reason
     #This function checks for patients who do not have a reason for starting ART
 
