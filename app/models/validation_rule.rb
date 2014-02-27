@@ -5,12 +5,34 @@ class ValidationRule < ActiveRecord::Base
   def self.data_consistency_checks(date = Date.today)
     data_consistency_checks = {}
     #All methods for now should be here:
-    data_consistency_checks['Patients without outcomes'] = self.patients_without_outcomes(visit_date)
-    data_consistency_checks['Pills remaining over dispension'] = self.pills_remaining_over_dispensed(visit_date)
-
-
-
-
+    data_consistency_checks['Patients without outcomes'] = "self.patients_without_outcomes(date)"
+    data_consistency_checks['Patients with pills remaining greater than dispensed'] = "self.pills_remaining_over_dispensed(date)"
+    data_consistency_checks['Patients without reason for starting'] = "self.validate_presence_of_start_reason"
+    data_consistency_checks['Patients with missing dispensations'] = "self.prescrition_without_dispensation(date)"
+		data_consistency_checks['Patients with missing prescriptions'] = "self.dispensation_without_prescription(date)"
+		data_consistency_checks['Patients with dispensation without appointment'] = "self.dispensation_without_appointment(date)"
+		data_consistency_checks['Patient with vitals without weight'] = "self.validate_presence_of_vitals_without_weight(date)"
+		data_consistency_checks['Patients with encounters before birth or after death'] = "self.death_date_less_than_last_encounter_date_and_less_than_date_of_birth(date)"
+		data_consistency_checks['Patients with encounters without obs or orders'] = "self.encounters_without_obs_or_orders(date)"
+		data_consistency_checks['Patients with ART start date before birth'] = "self.start_date_before_birth(date)"
+		data_consistency_checks['Dead patients with follow up visits'] = "self.visit_after_death(date)"
+		data_consistency_checks['Male patients with pregnant observations'] = "self.male_patients_with_pregnant_observation(date)"
+		data_consistency_checks['Male patients with breastfeeding observations'] = "self.male_patients_with_breastfeeding_obs(date)"
+		data_consistency_checks['Male patients with family planning methods obs'] = "self.male_patients_with_family_planning_methods_obs(date)"
+		data_consistency_checks['ART patients without HIV clinic registration encounter'] = "self.check_every_ART_patient_has_HIV_Clinical_Registration(date)"
+		data_consistency_checks['Under 18 patients without height and weight in visit'] = "self.every_visit_of_patients_who_are_under_18_should_have_height_and_weight(date)"
+		data_consistency_checks['Patients with outcomes without date'] = "self.every_outcome_needs_a_date(date)"
+		
+		data_consistency_checks = data_consistency_checks.keys.inject({}){|hash, key| 
+		time = Time.now
+		puts "Running query for #{key}"
+		hash[key] = eval(data_consistency_checks[key])
+		period = (Time.now - time).to_i
+		puts "Time taken  :  #{(period/60).to_i} min  and #{(period % 60)} sec  --> #{hash[key].length} patient(s) found"	
+		puts ""	
+		hash}
+		
+		
     set_rules = self.find(:all,:conditions =>['type_id = 2'])                   
     (set_rules || []).each do |rule|                                            
       unless data_consistency_checks[rule.desc].blank?                          
@@ -21,7 +43,7 @@ class ValidationRule < ActiveRecord::Base
     return data_consistency_checks
   end
 
-  def self.create_update_validation_result(rule, date, result)
+  def self.create_update_validation_result(rule, date, patient_ids)
     date_checked = date.to_date                                                 
     v = ValidationResult.find(:first,                                           
       :conditions =>["date_checked = ? AND rule_id = ?", date_checked,rule.id]) 
@@ -55,54 +77,28 @@ class ValidationRule < ActiveRecord::Base
 
   def self.pills_remaining_over_dispensed(visit_date)
     visit_date = visit_date.to_date rescue Date.today
-    connection = ActiveRecord::Base.connection
     data = {}
     patient_ids = []
     art_adherence_enc = EncounterType.find_by_name('ART ADHERENCE').id
     dispensing_enc = EncounterType.find_by_name('DISPENSING').id
     amount_dispensed_concept = Concept.find_by_name('AMOUNT DISPENSED').id
     amount_brought_to_clinic_concept = Concept.find_by_name('AMOUNT OF DRUG BROUGHT TO CLINIC').id
-    adhere_dispensing_encs = connection.select_all("
-        SELECT * FROM encounter e WHERE encounter_type IN (#{art_adherence_enc}, #{dispensing_enc})
-        AND e.voided=0 AND DATE(e.encounter_datetime) <= \'#{visit_date}\'
-
-      ")
-    adhere_dispensing_encs.each do |enc|
-
-      enc_date = enc["encounter_datetime"].to_date
-      enc_name = EncounterType.find(enc["encounter_type"]).name.upcase
-      encounter = Encounter.find(enc["encounter_id"])
-      patient_id = enc["patient_id"]
-      if (data[enc_date].blank?)
-        data[enc_date] = {}
-      end
-      if (data[enc_date][patient_id].blank?)
-        data[enc_date][patient_id] = {:amount_dispensed => nil, :amount_brought_to_clinic => nil}
-      end
-      if (enc_name == 'DISPENSING')
-        amount_dispensed = encounter.observations.find(:last, :conditions => ["concept_id =?", amount_dispensed_concept]).value_numeric rescue nil
-      end
-      
-      if (enc_name == 'ART ADHERENCE')
-        amount_brought_to_clinic = encounter.observations.find(:last, :conditions => ["concept_id =?", amount_brought_to_clinic_concept]).value_numeric rescue nil
-      end
-      
-      unless (amount_dispensed.blank?)
-        data[enc_date][patient_id][:amount_dispensed] = amount_dispensed
-      end
-      
-      unless amount_brought_to_clinic.blank?
-        data[enc_date][patient_id][:amount_brought_to_clinic] = amount_brought_to_clinic
-      end
-    end
-    
-    data.each do |key, values|
-      values.each do |patient_id, elements|
-        amount_dispensed = elements[:amount_dispensed].to_i
-        amount_brought_to_clinic = elements[:amount_brought_to_clinic].to_i
-        if (amount_brought_to_clinic > amount_dispensed)
-          patient_ids << patient_id
-        end
+    art_adherence_enc = Encounter.find(:all, :conditions => ["encounter_type =? AND
+        DATE(encounter_datetime) <= ?", art_adherence_enc, visit_date])
+    art_adherence_enc.each do |enc|
+      enc_date  = enc.encounter_datetime
+      patient_id = enc.patient_id
+      data[enc_date] = {} if (data[enc_date].blank?)
+      data[enc_date][patient_id] = {:amount_dispensed => nil, :amount_brought_to_clinic => nil} if (data[enc_date][patient_id].blank?)
+      dispensation = Encounter.find(:last, :conditions => ["encounter_type =? AND patient_id =?", dispensing_enc, patient_id])
+      amount_dispensed = dispensation.observations.find(:last, :conditions => ["concept_id =?", amount_dispensed_concept]).value_numeric rescue nil
+      amount_brought_to_clinic = enc.observations.find(:last, :conditions => ["concept_id =?", amount_brought_to_clinic_concept]).value_numeric rescue nil
+      data[enc_date][patient_id][:amount_dispensed] = amount_dispensed
+      data[enc_date][patient_id][:amount_brought_to_clinic] = amount_brought_to_clinic
+      drugs_brought = data[enc_date][patient_id][:amount_brought_to_clinic]
+      drugs_dispensed = data[enc_date][patient_id][:amount_dispensed]
+      if (drugs_brought.to_i > drugs_dispensed.to_i)
+        patient_ids << patient_id
       end
     end
 
@@ -115,7 +111,7 @@ class ValidationRule < ActiveRecord::Base
     start_reason_concept = Concept.find_by_name("Reason for art eligibility").id
 
     patient_ids = PatientProgram.find_by_sql("SELECT patient_id FROM earliest_start_date where patient_id NOT IN
-                (SELECT distinct person_id from obs where concept_id = #{start_reason_concept} and voided = 0)")
+                (SELECT distinct person_id from obs where concept_id = #{start_reason_concept} and voided = 0)").map(&:patient_id)
 
     return patient_ids
 
@@ -127,7 +123,7 @@ class ValidationRule < ActiveRecord::Base
                                   WHERE (order_id <=> NULL)
                                   AND concept_id = #{@dispensed_id}
                                   AND DATE(obs_datetime) <= '#{end_date}'
-                                  AND voided = 0").length
+                                  AND voided = 0").map(&:patient_id)
     return unprescribed
   end
 
@@ -137,8 +133,8 @@ class ValidationRule < ActiveRecord::Base
                                     WHERE NOT EXISTS (SELECT order_id FROM obs WHERE order_id = orders.order_id
                                     AND concept_id = #{@dispensed_id} and  voided = 0)
                                     AND DATE(start_date)  <= '#{end_date}'
-                                    AND orders.voided = 0")
-    return undispensed.length
+                                    AND orders.voided = 0").map(&:patient_id)
+    return undispensed
   end
 
   def self.dispensation_without_appointment(end_date = Date.today)
@@ -154,7 +150,7 @@ class ValidationRule < ActiveRecord::Base
                                     WHERE et.name = 'Appointment'
                                     AND o.obs_datetime = obs_datetime
                                     AND o.person_id = person_id
-                                    AND o.voided = 0)").length
+                                    AND o.voided = 0)").map(&:person_id)
     return no_appointment
   end
   def self.validate_presence_of_vitals_without_weight(end_date)
@@ -177,7 +173,7 @@ class ValidationRule < ActiveRecord::Base
 
   def self.death_date_less_than_last_encounter_date_and_less_than_date_of_birth(end_date = Date.today)
     #Task 41
-    patient_ids =  ValidationRule.find_by_sql("SELECT DISTICT(esd.patient_id)
+    patient_ids =  ValidationRule.find_by_sql("SELECT DISTINCT(esd.patient_id)
 																FROM earliest_start_date esd
 																INNER JOIN person p 
 																ON p.person_id = esd.patient_id
@@ -236,12 +232,12 @@ class ValidationRule < ActiveRecord::Base
 		
 		#  Query for patients with followup visit after death ~ Kenneth
 		ValidationRule.find_by_sql(["
-		SELECT DISTINCT(p.person_id) FROM person p 
+		SELECT DISTINCT(enc.patient_id) FROM person p 
     		INNER JOIN encounter enc ON enc.patient_id = p.person_id 
 				AND enc.voided = 0 AND enc.encounter_datetime > p.death_date
     	WHERE p.dead = 1
 			AND enc.encounter_datetime BETWEEN ? AND ?", start_date, end_date  
-			]).map(&:person_id)		
+			]).map(&:patient_id)		
 			
 	end	
 
@@ -360,7 +356,7 @@ class ValidationRule < ActiveRecord::Base
 			WHERE Weight_and_Height < 2  AND encounter_datetime = DATE('#{date}')").map(&:patient_id)
 	end
 
-	def every_outcome_needs_a_date(date = Date.today)
+	def self.every_outcome_needs_a_date(date = Date.today)
 
 		#Task 40
 		#Every outcome needs a date
@@ -371,7 +367,7 @@ class ValidationRule < ActiveRecord::Base
 			SELECT pp.patient_id,p.patient_program_id, state, p.date_created
 			FROM patient_state p LEFT JOIN patient_program pp
 					ON p.patient_program_id = pp.patient_program_id
-			WHERE start_date IS NULL AND p.date_created <= DATE('#{date}')").map(&:patient_id)
+			WHERE start_date IS NULL AND p.date_created <= '#{date}'").map(&:patient_id)
 	end
 
 end
