@@ -724,7 +724,7 @@ class CohortValidation
  def validate_total_registered_is_sum_of_intitiated_reinitiated_and_transfer_in
     #Task 48
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule.find_by_desc('[QUARTER] FT: Patients initiated on ART first time, Re: Patients re-initiated on ART, and TI: Patients transfered in on ART should add up to Total registered')
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Newly total registered'],
@@ -739,7 +739,7 @@ class CohortValidation
   def validate_cumulative_total_registered_is_sum_of_intitiated_reinitiated_and_transfer_in
     #Task 48
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule.find_by_desc('[CUMULATIVE] FT: Patients initiated on ART first time, Re: Patients re-initiated on ART, and TI: Patients transfered in on ART should add up to Total registered')
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total registered'],
@@ -754,7 +754,7 @@ class CohortValidation
   def validate_total_alive_and_side_effects
     #Task 57
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule.find_by_desc('Total patients with side effects should not exceed Total alive and on ART')
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total alive and on ART'],
