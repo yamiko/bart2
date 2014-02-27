@@ -5,23 +5,31 @@ class ValidationRule < ActiveRecord::Base
   def self.data_consistency_checks(date = Date.today)
     data_consistency_checks = {}
     #All methods for now should be here:
-    data_consistency_checks['Patients without outcomes'] = self.patients_without_outcomes(date)
-    data_consistency_checks['Patients with pills remaining greater than dispensed'] = self.pills_remaining_over_dispensed(date)
-    data_consistency_checks['Patients without reason for starting'] = self.validate_presence_of_start_reason
-    data_consistency_checks['Patients with missing dispensations'] = self.prescrition_without_dispensation(date)
-		data_consistency_checks['Patients with missing prescriptions'] = self.dispensation_without_prescription(date)
-		data_consistency_checks['Patients with dispensation without appointment'] = self.dispensation_without_appointment(date)
-		data_consistency_checks['Patient with vitals without weight'] = self.validate_presence_of_vitals_without_weight(date)
-		data_consistency_checks['Patients with encounters before birth or after death'] = self.death_date_less_than_last_encounter_date_and_less_than_date_of_birth(date)
-		data_consistency_checks['Patients with encounters without obs or orders'] = self.encounters_without_obs_or_orders(date)
-		data_consistency_checks['Patients with ART start date before birth'] = self.start_date_before_birth(date)
-		data_consistency_checks['Dead patients with follow up visits'] = self.visit_after_death(date)
-		data_consistency_checks['Male patients with pregnant observations'] = self.male_patients_with_pregnant_observation(date)
-		data_consistency_checks['Male patients with breastfeeding observations'] = self.male_patients_with_breastfeeding_obs(date)
-		data_consistency_checks['Male patients with family planning methods obs'] = self.male_patients_with_family_planning_methods_obs(date)
-		data_consistency_checks['ART patients without HIV clinic registration encounter'] = self.check_every_ART_patient_has_HIV_Clinical_Registration(date)
-		data_consistency_checks['Under 18 patients without height and weight in visit'] = self.every_visit_of_patients_who_are_under_18_should_have_height_and_weight(date)
-		data_consistency_checks['Patients with outcomes without date'] = self.every_outcome_needs_a_date(date)
+    data_consistency_checks['Patients without outcomes'] = "self.patients_without_outcomes(date)"
+    data_consistency_checks['Patients with pills remaining greater than dispensed'] = "self.pills_remaining_over_dispensed(date)"
+    data_consistency_checks['Patients without reason for starting'] = "self.validate_presence_of_start_reason"
+    data_consistency_checks['Patients with missing dispensations'] = "self.prescrition_without_dispensation(date)"
+		data_consistency_checks['Patients with missing prescriptions'] = "self.dispensation_without_prescription(date)"
+		data_consistency_checks['Patients with dispensation without appointment'] = "self.dispensation_without_appointment(date)"
+		data_consistency_checks['Patient with vitals without weight'] = "self.validate_presence_of_vitals_without_weight(date)"
+		data_consistency_checks['Patients with encounters before birth or after death'] = "self.death_date_less_than_last_encounter_date_and_less_than_date_of_birth(date)"
+		data_consistency_checks['Patients with encounters without obs or orders'] = "self.encounters_without_obs_or_orders(date)"
+		data_consistency_checks['Patients with ART start date before birth'] = "self.start_date_before_birth(date)"
+		data_consistency_checks['Dead patients with follow up visits'] = "self.visit_after_death(date)"
+		data_consistency_checks['Male patients with pregnant observations'] = "self.male_patients_with_pregnant_observation(date)"
+		data_consistency_checks['Male patients with breastfeeding observations'] = "self.male_patients_with_breastfeeding_obs(date)"
+		data_consistency_checks['Male patients with family planning methods obs'] = "self.male_patients_with_family_planning_methods_obs(date)"
+		data_consistency_checks['ART patients without HIV clinic registration encounter'] = "self.check_every_ART_patient_has_HIV_Clinical_Registration(date)"
+		data_consistency_checks['Under 18 patients without height and weight in visit'] = "self.every_visit_of_patients_who_are_under_18_should_have_height_and_weight(date)"
+		data_consistency_checks['Patients with outcomes without date'] = "self.every_outcome_needs_a_date(date)"
+		
+		data_consistency_checks = data_consistency_checks.keys.inject({}){|hash, key| 
+		time = Time.now
+		puts "Running query for #{key}"
+		hash[key] = eval(data_consistency_checks[key])
+		period = (Time.now - time).to_i
+		puts "Time taken  :  #{(period/60).to_i} min  and #{(period % 60)} sec  --> #{hash[key].length} patient(s) found"		
+		hash}
 		
 		
     set_rules = self.find(:all,:conditions =>['type_id = 2'])                   
