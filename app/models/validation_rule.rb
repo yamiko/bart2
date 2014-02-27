@@ -6,7 +6,7 @@ class ValidationRule < ActiveRecord::Base
     data_consistency_checks = {}
     #All methods for now should be here:
     data_consistency_checks['Patients without outcomes'] = "self.patients_without_outcomes(date)"
-    data_consistency_checks['Patients with pills remaining greater than dispensed'] = "self.pills_remaining_over_dispensed(date)"
+    #data_consistency_checks['Patients with pills remaining greater than dispensed'] = "self.pills_remaining_over_dispensed(date)"
     data_consistency_checks['Patients without reason for starting'] = "self.validate_presence_of_start_reason"
     data_consistency_checks['Patients with missing dispensations'] = "self.prescrition_without_dispensation(date)"
 		data_consistency_checks['Patients with missing prescriptions'] = "self.dispensation_without_prescription(date)"
@@ -42,7 +42,7 @@ class ValidationRule < ActiveRecord::Base
     return data_consistency_checks
   end
 
-  def self.create_update_validation_result(rule, date, result)
+  def self.create_update_validation_result(rule, date, patient_ids)
     date_checked = date.to_date                                                 
     v = ValidationResult.find(:first,                                           
       :conditions =>["date_checked = ? AND rule_id = ?", date_checked,rule.id]) 
@@ -136,7 +136,7 @@ class ValidationRule < ActiveRecord::Base
     start_reason_concept = Concept.find_by_name("Reason for art eligibility").id
 
     patient_ids = PatientProgram.find_by_sql("SELECT patient_id FROM earliest_start_date where patient_id NOT IN
-                (SELECT distinct person_id from obs where concept_id = #{start_reason_concept} and voided = 0)")
+                (SELECT distinct person_id from obs where concept_id = #{start_reason_concept} and voided = 0)").map(&:patient_id)
 
     return patient_ids
 
@@ -148,7 +148,7 @@ class ValidationRule < ActiveRecord::Base
                                   WHERE (order_id <=> NULL)
                                   AND concept_id = #{@dispensed_id}
                                   AND DATE(obs_datetime) <= '#{end_date}'
-                                  AND voided = 0")
+                                  AND voided = 0").map(&:patient_id)
     return unprescribed
   end
 
@@ -158,7 +158,7 @@ class ValidationRule < ActiveRecord::Base
                                     WHERE NOT EXISTS (SELECT order_id FROM obs WHERE order_id = orders.order_id
                                     AND concept_id = #{@dispensed_id} and  voided = 0)
                                     AND DATE(start_date)  <= '#{end_date}'
-                                    AND orders.voided = 0")
+                                    AND orders.voided = 0").map(&:patient_id)
     return undispensed
   end
 
@@ -175,7 +175,7 @@ class ValidationRule < ActiveRecord::Base
                                     WHERE et.name = 'Appointment'
                                     AND o.obs_datetime = obs_datetime
                                     AND o.person_id = person_id
-                                    AND o.voided = 0)")
+                                    AND o.voided = 0)").map(&:person_id)
     return no_appointment
   end
   def self.validate_presence_of_vitals_without_weight(end_date)
@@ -257,12 +257,12 @@ class ValidationRule < ActiveRecord::Base
 		
 		#  Query for patients with followup visit after death ~ Kenneth
 		ValidationRule.find_by_sql(["
-		SELECT DISTINCT(p.person_id) FROM person p 
+		SELECT DISTINCT(enc.patient_id) FROM person p 
     		INNER JOIN encounter enc ON enc.patient_id = p.person_id 
 				AND enc.voided = 0 AND enc.encounter_datetime > p.death_date
     	WHERE p.dead = 1
 			AND enc.encounter_datetime BETWEEN ? AND ?", start_date, end_date  
-			]).map(&:person_id)		
+			]).map(&:patient_id)		
 			
 	end	
 
