@@ -76,54 +76,28 @@ class ValidationRule < ActiveRecord::Base
 
   def self.pills_remaining_over_dispensed(visit_date)
     visit_date = visit_date.to_date rescue Date.today
-    connection = ActiveRecord::Base.connection
     data = {}
     patient_ids = []
     art_adherence_enc = EncounterType.find_by_name('ART ADHERENCE').id
     dispensing_enc = EncounterType.find_by_name('DISPENSING').id
     amount_dispensed_concept = Concept.find_by_name('AMOUNT DISPENSED').id
     amount_brought_to_clinic_concept = Concept.find_by_name('AMOUNT OF DRUG BROUGHT TO CLINIC').id
-    adhere_dispensing_encs = connection.select_all("
-        SELECT * FROM encounter e WHERE encounter_type IN (#{art_adherence_enc}, #{dispensing_enc})
-        AND e.voided=0 AND DATE(e.encounter_datetime) <= \'#{visit_date}\'
-
-      ")
-    adhere_dispensing_encs.each do |enc|
-
-      enc_date = enc["encounter_datetime"].to_date
-      enc_name = EncounterType.find(enc["encounter_type"]).name.upcase
-      encounter = Encounter.find(enc["encounter_id"])
-      patient_id = enc["patient_id"]
-      if (data[enc_date].blank?)
-        data[enc_date] = {}
-      end
-      if (data[enc_date][patient_id].blank?)
-        data[enc_date][patient_id] = {:amount_dispensed => nil, :amount_brought_to_clinic => nil}
-      end
-      if (enc_name == 'DISPENSING')
-        amount_dispensed = encounter.observations.find(:last, :conditions => ["concept_id =?", amount_dispensed_concept]).value_numeric rescue nil
-      end
-      
-      if (enc_name == 'ART ADHERENCE')
-        amount_brought_to_clinic = encounter.observations.find(:last, :conditions => ["concept_id =?", amount_brought_to_clinic_concept]).value_numeric rescue nil
-      end
-      
-      unless (amount_dispensed.blank?)
-        data[enc_date][patient_id][:amount_dispensed] = amount_dispensed
-      end
-      
-      unless amount_brought_to_clinic.blank?
-        data[enc_date][patient_id][:amount_brought_to_clinic] = amount_brought_to_clinic
-      end
-    end
-    
-    data.each do |key, values|
-      values.each do |patient_id, elements|
-        amount_dispensed = elements[:amount_dispensed].to_i
-        amount_brought_to_clinic = elements[:amount_brought_to_clinic].to_i
-        if (amount_brought_to_clinic > amount_dispensed)
-          patient_ids << patient_id
-        end
+    art_adherence_enc = Encounter.find(:all, :conditions => ["encounter_type =? AND
+        DATE(encounter_datetime) <= ?", art_adherence_enc, visit_date])
+    art_adherence_enc.each do |enc|
+      enc_date  = enc.encounter_datetime
+      patient_id = enc.patient_id
+      data[enc_date] = {} if (data[enc_date].blank?)
+      data[enc_date][patient_id] = {:amount_dispensed => nil, :amount_brought_to_clinic => nil} if (data[enc_date][patient_id].blank?)
+      dispensation = Encounter.find(:last, :conditions => ["encounter_type =? AND patient_id =?", dispensing_enc, patient_id])
+      amount_dispensed = dispensation.observations.find(:last, :conditions => ["concept_id =?", amount_dispensed_concept]).value_numeric rescue nil
+      amount_brought_to_clinic = enc.observations.find(:last, :conditions => ["concept_id =?", amount_brought_to_clinic_concept]).value_numeric rescue nil
+      data[enc_date][patient_id][:amount_dispensed] = amount_dispensed
+      data[enc_date][patient_id][:amount_brought_to_clinic] = amount_brought_to_clinic
+      drugs_brought = data[enc_date][patient_id][:amount_brought_to_clinic]
+      drugs_dispensed = data[enc_date][patient_id][:amount_dispensed]
+      if (drugs_brought.to_i > drugs_dispensed.to_i)
+        patient_ids << patient_id
       end
     end
 
