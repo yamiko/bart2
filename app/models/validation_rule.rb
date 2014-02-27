@@ -77,30 +77,27 @@ class ValidationRule < ActiveRecord::Base
 
   def self.pills_remaining_over_dispensed(visit_date)
     visit_date = visit_date.to_date rescue Date.today
-    data = {}
     patient_ids = []
     art_adherence_enc = EncounterType.find_by_name('ART ADHERENCE').id
     dispensing_enc = EncounterType.find_by_name('DISPENSING').id
     amount_dispensed_concept = Concept.find_by_name('AMOUNT DISPENSED').id
     amount_brought_to_clinic_concept = Concept.find_by_name('AMOUNT OF DRUG BROUGHT TO CLINIC').id
-    art_adherence_enc = Encounter.find(:all, :conditions => ["encounter_type =? AND
-        DATE(encounter_datetime) <= ?", art_adherence_enc, visit_date])
-    art_adherence_enc.each do |enc|
-      enc_date  = enc.encounter_datetime
-      patient_id = enc.patient_id
-      data[enc_date] = {} if (data[enc_date].blank?)
-      data[enc_date][patient_id] = {:amount_dispensed => nil, :amount_brought_to_clinic => nil} if (data[enc_date][patient_id].blank?)
-      dispensation = Encounter.find(:last, :conditions => ["encounter_type =? AND patient_id =?", dispensing_enc, patient_id])
-      amount_dispensed = dispensation.observations.find(:last, :conditions => ["concept_id =?", amount_dispensed_concept]).value_numeric rescue nil
-      amount_brought_to_clinic = enc.observations.find(:last, :conditions => ["concept_id =?", amount_brought_to_clinic_concept]).value_numeric rescue nil
-      data[enc_date][patient_id][:amount_dispensed] = amount_dispensed
-      data[enc_date][patient_id][:amount_brought_to_clinic] = amount_brought_to_clinic
-      drugs_brought = data[enc_date][patient_id][:amount_brought_to_clinic]
-      drugs_dispensed = data[enc_date][patient_id][:amount_dispensed]
-      if (drugs_brought.to_i > drugs_dispensed.to_i)
-        patient_ids << patient_id
-      end
-    end
+    
+    patients = Patient.find_by_sql("
+      SELECT e.patient_id as patient_ID, o.value_numeric as amought_brought_to_clinic,
+      e.encounter_datetime as visit FROM encounter e INNER JOIN
+      obs o ON o.encounter_id = e.encounter_id AND encounter_type = #{art_adherence_enc} AND
+      o.concept_id= #{amount_brought_to_clinic_concept} AND e.voided=0
+      WHERE DATE(e.encounter_datetime) <= \'#{visit_date}\'
+      HAVING
+      amought_brought_to_clinic > (SELECT obs.value_numeric FROM obs INNER JOIN
+      encounter ON obs.encounter_id=encounter.encounter_id AND encounter.encounter_type = #{dispensing_enc}
+      AND obs.concept_id = #{amount_dispensed_concept} AND encounter.patient_id = patient_ID AND encounter.voided=0
+      WHERE encounter.encounter_datetime < visit AND DATEDIFF(visit, encounter.encounter_datetime)
+      BETWEEN 30 AND 65 ORDER BY encounter.encounter_datetime DESC LIMIT 1)
+
+      ")
+    patient_ids = patients.collect{|patient|patient["patient_ID"]}
 
     return patient_ids
   end
