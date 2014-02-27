@@ -60,7 +60,7 @@ class CohortValidation
     # Amendments  :
 
    
-	  validation_rule = ValidationRule.find_by_type_id(1)
+	  validation_rule = ValidationRule.find_by_expr('{new_total_reg} == {new_males} + {new_non_preg} + {new_preg_all_age}')
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Newly total registered'],
@@ -83,15 +83,14 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule.find_by_expr('{cum_total_reg} == {cum_males} + {cum_non_preg} + {cum_preg_all_age}')
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total registered'],
                 self.cohort_object['Total registered male'],
                 self.cohort_object['Total registered women (non-pregnant)'], 
                 self.cohort_object['Total registered women (pregnant)']
-                ]
-
+            ]
     return self.feed_values(validation_rule.expr, values)
   end
   
@@ -103,7 +102,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule.find_by_expr(1000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total registered'],
@@ -111,6 +110,7 @@ class CohortValidation
                 ]
 
     return self.feed_values(validation_rule.expr, values)
+    
   end
   
   def validate_cumulative_and_new_patients_initiated_first_time
@@ -121,7 +121,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total Patients initiated on ART'],
@@ -139,7 +139,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total Patients reinitiated on ART'],
@@ -157,7 +157,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total transferred in patients'],
@@ -175,7 +175,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total registered male'],
@@ -193,7 +193,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total registered women (non-pregnant)'],
@@ -211,7 +211,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total registered women (pregnant)'],
@@ -229,7 +229,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total registered infants'],
@@ -247,7 +247,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total registered children'],
@@ -265,7 +265,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total registered adults'],
@@ -283,7 +283,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total Unknown age'],
@@ -362,7 +362,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total Presumed severe HIV disease in infants'],
@@ -380,7 +380,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total Confirmed HIV infection in infants (PCR)'],
@@ -397,7 +397,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total Patient pregnant'],
@@ -415,7 +415,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total Patient breastfeeding'],
@@ -433,7 +433,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total WHO stage 1 or 2, CD4 below threshold'],
@@ -451,7 +451,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total WHO stage 2, total lymphocytes'],
@@ -469,7 +469,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total WHO stage 3'],
@@ -487,7 +487,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total WHO stage 4'],
@@ -505,7 +505,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total Unknown reason'],
@@ -523,7 +523,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total TB within the last 2 years'],
@@ -602,7 +602,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total Current episode of TB'],
@@ -620,7 +620,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total Kaposis Sarcoma'],
@@ -638,7 +638,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total No TB'],
@@ -656,7 +656,7 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule..find_by_expr(10000)
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total HIV infected'],

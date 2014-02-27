@@ -6,6 +6,7 @@ class ValidationRule < ActiveRecord::Base
     data_consistency_checks = {}
     #All methods for now should be here:
     data_consistency_checks['Patients without outcomes'] = self.patients_without_outcomes(visit_date)
+    data_consistency_checks['Pills remaining over dispension'] = self.pills_remaining_over_dispensed(visit_date)
 
 
 
