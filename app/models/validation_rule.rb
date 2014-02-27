@@ -28,7 +28,8 @@ class ValidationRule < ActiveRecord::Base
 		puts "Running query for #{key}"
 		hash[key] = eval(data_consistency_checks[key])
 		period = (Time.now - time).to_i
-		puts "Time taken  :  #{(period/60).to_i} min  and #{(period % 60)} sec  --> #{hash[key].length} patient(s) found"		
+		puts "Time taken  :  #{(period/60).to_i} min  and #{(period % 60)} sec  --> #{hash[key].length} patient(s) found"	
+		puts ""	
 		hash}
 		
 		
