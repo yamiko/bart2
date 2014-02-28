@@ -6,7 +6,7 @@ class ValidationRule < ActiveRecord::Base
   end
 
   def self.create_update_validation_result(rule, date, result)
-
+    results = V
   end
 
   def self.validate_presence_of_start_reason
