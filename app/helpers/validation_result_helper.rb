@@ -1,0 +1,2 @@
+module ValidationResultHelper
+end
