@@ -7,7 +7,7 @@ class ValidationRule < ActiveRecord::Base
     #All methods for now should be here:
     data_consistency_checks['Patients without outcomes'] = "self.patients_without_outcomes(date)"
     data_consistency_checks['Patients with pills remaining greater than dispensed'] = "self.pills_remaining_over_dispensed(date)"
-    data_consistency_checks['Patients without reason for starting'] = "self.validate_presence_of_start_reason"
+    data_consistency_checks['Patients without reason for starting'] = "self.validate_presence_of_start_reason(date)"
     data_consistency_checks['Patients with missing dispensations'] = "self.prescrition_without_dispensation(date)"
 		data_consistency_checks['Patients with missing prescriptions'] = "self.dispensation_without_prescription(date)"
 		data_consistency_checks['Patients with dispensation without appointment'] = "self.dispensation_without_appointment(date)"
@@ -103,12 +103,13 @@ class ValidationRule < ActiveRecord::Base
     return patient_ids
   end
   
-  def self.validate_presence_of_start_reason
+  def self.validate_presence_of_start_reason(end_date = Date.today)
     #This function checks for patients who do not have a reason for starting ART
 
     start_reason_concept = Concept.find_by_name("Reason for art eligibility").id
 
-    patient_ids = PatientProgram.find_by_sql("SELECT patient_id FROM earliest_start_date where patient_id NOT IN
+    patient_ids = PatientProgram.find_by_sql("SELECT patient_id FROM earliest_start_date
+                where earliest_start_date <= '#{end_date}' and patient_id NOT IN
                 (SELECT distinct person_id from obs where concept_id = #{start_reason_concept} and voided = 0)").map(&:patient_id)
 
     return patient_ids
