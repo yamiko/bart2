@@ -21,21 +21,21 @@
 2		"Patients moved from 2nd line to 1st line regimen"
 2		"Patients moved from 2nd line to 1st line regimen"
 2		"Patients with ARV dispensations before their ART start dates"
-2		"Patients with incomplete visits "
+2		"Patients with incomplete visits"
 2		"Patients with missing dispensations"
 2		"Patients with missing prescriptions"
 2		"Patients with multiple start reasons"
 2		"Patients with out-of-range ARV numbers"
 2		"Patients without reason for starting"
-2		“Patients without outcomes”
-2		“Patient with pills remaining greater than dispensed”
-2		“Patients with dispensation without appointment”
-2		“Patient with vitals without weight”
-2		“Patients with encounters before birth or after death”
-2		“Patients with encounters without obs or orders”
-2		“Patients with ART start date before birth”
+2		"Patients without outcomes"
+2		"Patient with pills remaining greater than dispensed"
+2		"Patients with dispensation without appointment"
+2		"Patient with vitals without weight"
+2		"Patients with encounters before birth or after death"
+2		"Patients with encounters without obs or orders"
+2		"Patients with ART start date before birth"
 2		"Male patients with breastfeeding observations"
-2		“Male patients with family planning methods obs”
-2		“ART patients without HIV clinic registration encounter”
-2		“Under 18 patients without height and weight in visit”
-2		“Patients with outcomes without date”
+2		"Male patients with family planning methods obs"
+2		"ART patients without HIV clinic registration encounter"
+2		"Under 18 patients without height and weight in visit"
+2		"Patients with outcomes without date"
