@@ -11,7 +11,7 @@ class ValidationRule < ActiveRecord::Base
     data_consistency_checks['Patients with missing dispensations'] = "self.prescrition_without_dispensation(date)"
 		data_consistency_checks['Patients with missing prescriptions'] = "self.dispensation_without_prescription(date)"
 		data_consistency_checks['Patients with dispensation without appointment'] = "self.dispensation_without_appointment(date)"
-		data_consistency_checks['Patient with vitals without weight'] = "self.validate_presence_of_vitals_without_weight(date)"
+		data_consistency_checks['Patients with vitals without weight'] = "self.validate_presence_of_vitals_without_weight(date)"
 		data_consistency_checks['Patients with encounters before birth or after death'] = "self.death_date_less_than_last_encounter_date_and_less_than_date_of_birth(date)"
 		data_consistency_checks['Patients with encounters without obs or orders'] = "self.encounters_without_obs_or_orders(date)"
 		data_consistency_checks['Patients with ART start date before birth'] = "self.start_date_before_birth(date)"
