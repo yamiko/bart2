@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class ValidationResultTest < ActiveSupport::TestCase
+class ValidationResultControllerTest < ActionController::TestCase
   # Replace this with your real tests.
   test "the truth" do
     assert true
