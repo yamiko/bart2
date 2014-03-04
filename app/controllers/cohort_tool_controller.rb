@@ -1204,6 +1204,10 @@ class CohortToolController < GenericCohortToolController
 		else
 			@cohort = session[:cohort]
 		end
+		#validate Cohort report
+		validation = CohortValidation.new(@cohort)
+		@cohort_validation = validation.get_all_differences
+		
 		session[:views]=nil; session[:chidren]; session[:nil]
     render :layout => 'cohort'
   end
