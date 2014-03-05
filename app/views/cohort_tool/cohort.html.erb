@@ -211,6 +211,21 @@
           left:32% ! important;
           }
           <% end %>
+          
+			.tb {
+				position:relative;
+				margin: 0 auto;
+			}
+			.rule {
+				background-color:red;
+				text-align:left;
+				padding-left:20px;
+			}
+
+			.num {
+				width:100px;
+				background-color:red;
+          }
 	</style>
 
 	<title>Cohort<%= Location.current_health_center.name + "  " + @quarter %></title>
@@ -221,6 +236,36 @@
 
 	<h1><%= Location.current_health_center.name + " : " + @quarter %></h1>
 	<br />
+	
+	<div style="width:100%; height:auto; background-color: #7784AE; max-height:200px; border: 1px solid red; overflow: auto;">
+	
+	<table class="tb">
+		
+		<% success=0 %>
+
+		<% @cohort_validation.each do |v| %>
+			<% if v[1][1].to_s == "false" then %>
+				<% success+=1%>
+				<tr>
+					<td class="num"><%= success %></td>
+					<td class="rule"><%= v[1][0] %></td>
+				</tr>
+				
+			<% end %>
+		<% end %>
+
+
+		<% if success==0 %>
+			<tr>
+				<td style="background-color: #32CD32;">This cohort report is internally consistent</td>
+			</tr>
+		<% end %>
+		
+		
+		
+	</table>
+	
+	</div>
 
 	<div class='scrollTableContainer'>
 	  <table cellspacing='0'>
