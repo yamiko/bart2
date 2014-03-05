@@ -283,8 +283,8 @@ class CohortValidation
 		validation_rule = ValidationRule.find_by_expr("{newly_reg} >= {ks}")
 		return nil if validation_rule.blank?
 				
-		values = [self.cohort_object['Kaposis Sarcoma'],
-				 			self.cohort_object['Newly total registered']]			 					
+		values = [self.cohort_object['Newly total registered'],
+              self.cohort_object['Kaposis Sarcoma']    ]
 		return self.feed_values(validation_rule, values)		
 	end
 	
@@ -295,8 +295,8 @@ class CohortValidation
 		validation_rule = ValidationRule.find_by_expr("{cum_total_reg} >= {total_ks}")
 		return nil if validation_rule.blank?
 				
-		values = [self.cohort_object['Total Kaposis Sarcoma'],
-				 			self.cohort_object['Total registered']]			 					
+		values = [self.cohort_object['Total registered'],
+      self.cohort_object['Total Kaposis Sarcoma']]
 		return self.feed_values(validation_rule, values)		
 	end
 	
