@@ -529,8 +529,7 @@ class CohortValidation
      values = [self.cohort_object['Total registered'],
 				 			self.cohort_object['Total No TB'],
 				 			self.cohort_object['Total TB within the last 2 years'],
-				 			self.cohort_object['Total Current episode of TB'],
-				 			self.cohort_object['Total Kaposis Sarcoma']
+				 			self.cohort_object['Total Current episode of TB']
 				 			]
 		return self.feed_values(validation_rule, values)		
   end
