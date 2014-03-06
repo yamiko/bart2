@@ -96,7 +96,7 @@ class GenericApplicationController < ActionController::Base
                          FROM location_tag_map
                           WHERE location_tag_id = (SELECT location_tag_id
                                  FROM location_tag
-                                 WHERE name = 'Workstation Location'))
+                                 WHERE name = 'Workstation Location' LIMIT 1))
              ORDER BY name ASC").collect{|name| name.send(field_name)} rescue []
   end
 

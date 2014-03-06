@@ -524,14 +524,15 @@ class CohortValidation
 		return self.feed_values(validation_rule, values)
   end
 
-  def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
+def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
      validation_rule = ValidationRule.find_by_desc("[CUMULATIVE] No TB, TB within the last 2 years, Current episode of TB, and Kaposis Sarcoma should add up to Total registered")
      values = [self.cohort_object['Total registered'],
 				 			self.cohort_object['Total No TB'],
 				 			self.cohort_object['Total TB within the last 2 years'],
 				 			self.cohort_object['Total Current episode of TB']
 				 			]
-		return self.feed_values(validation_rule, values)		
+		return self.feed_values(validation_rule, values)
+
   end
 
   def validate_sum_of_all_regimens_should_equal_to_total_alive_and_on_art

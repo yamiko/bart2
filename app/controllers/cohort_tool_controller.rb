@@ -1185,13 +1185,15 @@ class CohortToolController < GenericCohortToolController
 		@logo = CoreService.get_global_property_value('logo').to_s
 
     if params[:date] and not params[:date]['start'].blank? and not params[:date]['end'].blank?
-      @quarter = params[:date]['start'] + " to " + params[:date]['end']
+      @quarter = params[:date]['start']. + " to " + params[:date]['end']
       start_date = params[:date]['start'].to_date
       end_date = params[:date]['end'].to_date
     end if not params[:date].blank?
 
     if start_date.blank? and end_date.blank?
       @quarter = params[:quarter]
+      @quarter = @quarter.split("to")[0].to_date.strftime("%d %b, %Y") + " to " +
+        @quarter.split("to")[1].to_date.strftime("%d %b, %Y") if @quarter.match("to")
       start_date,end_date = Report.generate_cohort_date_range(@quarter)
     end
 

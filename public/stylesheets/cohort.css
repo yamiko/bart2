@@ -45,6 +45,7 @@
   top: expression(offsetParent.scrollTop); /*IE5+ only*/
   /* fixes the header being over too far in IE, doesn’t seem to affect FF */
   left: 0px;
+  right: 0px;
   }
 
 
