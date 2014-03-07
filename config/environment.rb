@@ -10,21 +10,12 @@ Rails::Initializer.run do |config|
 	config.log_level = :debug
 	config.action_controller.session_store = :active_record_store
 	config.active_record.schema_format = :sql
+
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
-  config.action_mailer.delivery_method = :active_record
-	# config.time_zone = 'UTC'
-
-  config.action_mailer.smtp_settings = {
-  :address => 'smtp.sendgrid.net',
-  :port => 25,
-  :domain => 'baobabhealth.org',
-  :authentication => :plain,
-  :user_name => "dde_admin",
-  :password => "admin_admin"
-   }
-
-
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.default_url_options = { :host => 'localhost:3000' }
+  
 	config.gem 'warden'
 	config.gem 'devise'
 	config.gem 'will_paginate', :version => '~> 2.3.16'  
@@ -43,12 +34,18 @@ require 'has_many_through_association_extension'
 require 'bantu_soundex'
 require 'json'
 require 'colorfy_strings'
+require 'action_mailer'
+require 'sendgrid'
 
 ActiveSupport::Inflector.inflections do |inflect|
   inflect.irregular 'person_address', 'person_address'
   inflect.irregular 'obs', 'obs'
   inflect.irregular 'concept_class', 'concept_class'
-end  
+end
+
+email_settings = YAML::load(File.open("#{Rails.root.to_s}/config/email.yml"))
+
+ActionMailer::Base.smtp_settings = email_settings[Rails.env].symbolize_keys! unless email_settings[Rails.env].nil?
 
 healthdata = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))['healthdata']
 bart_one_data = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))['migration']
