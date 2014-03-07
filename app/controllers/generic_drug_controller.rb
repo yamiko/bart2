@@ -155,14 +155,16 @@ class GenericDrugController < ApplicationController
      drug_id = Drug.find_by_name(delivered[0]).id rescue []
       delivery_date = params[:delivery_date].to_date
       barcode = params[:identifier]
+      #raise delivered.to_yaml
       number_of_tins = delivered[1]["amount"].to_i.to_f
       number_of_pills_per_tin = delivered[1]["expire_amount"].to_i.to_f
       begin
-      date_value = delivered[1]['date'].split("/")
-      current_century = Date.today.year.to_s.chars.each_slice(2).map(&:join)[0].to_i
-      year = date_value[1]
-      month = date_value[0]
-      expiry_date = "#{params[:year]}-#{params[:month]}-#{01}".to_date
+      #raise "1"
+      #date_value = delivered[1]['date']
+      #current_century = Date.today.year.to_s.chars.each_slice(2).map(&:join)[0].to_i
+      #year = date_value[1]
+      #month = date_value[0]
+      expiry_date = "#{delivered[1]["year"]}-#{delivered[1]["month"]}-#{01}".to_date
       expiry_date += 1.months
       expiry_date -= 1.days
       number_of_pills = (number_of_tins * number_of_pills_per_tin)
@@ -182,6 +184,7 @@ class GenericDrugController < ApplicationController
       edit_reason = params[:reason] rescue ""
       encounter_datetime = params[:delivery_time].to_date #rescue Date.today
       params[:obs].each{ |delivered|
+              raise delivered.to_yaml
               next if delivered[1]["amount"].to_i == 0
               drug_id = Drug.find_by_name(delivered[0]).id rescue []
               encounter_datetime = params[:delivery_time].to_date #rescue Date.today
@@ -342,7 +345,7 @@ class GenericDrugController < ApplicationController
     @current_location_name = Location.current_health_center.name rescue ''
     if @start_date.blank?
         @start_date = params[:start_date].to_date if not params[:start_date].blank?
-        @end_date = params[:end_date].to_date rescue params[:delivery_date].to_date
+        @end_date = params[:end_date].to_date rescue params[:delivery_date].to_date rescue ""
     end
    
     #TODO
