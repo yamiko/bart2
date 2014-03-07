@@ -1,0 +1,23 @@
+development:
+  address: smtp.sendgrid.net   
+  port: 25
+  domain: baobabhealth.org
+  authentication: :plain
+  user_name: dde_admin
+  password: admin_admin
+  
+production:
+  :address: stmp_server
+  :port: port_number
+  :domain: your_domain
+  :authentication: :your_anthentication_method
+  :user_name: your_username
+  :password: your_password
+
+integration:
+  :address: stmp_server
+  :port: port_number
+  :domain: your_domain
+  :authentication: :your_anthentication_method
+  :user_name: your_username
+  :password: your_password
