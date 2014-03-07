@@ -1231,22 +1231,11 @@ class CohortToolController < GenericCohortToolController
   end
 
   def send_email
-    file_names = ['items_to_expire_next_six_months.pdf','daily_dispensation.pdf',
-      'received_items.pdf']
-    #file_names.each do |file_name|
-      #if File.exist?("/tmp/#{file_name}")
-       # EpicsContact.where(:voided => false).each do |contact|
-          subject = "Epics Report"
+          subject = "Bart Cohort Validation"
           contact = "fuvu.chirwa@gmail.com"
-          file_name = "Test"
+          file_name = "/tmp/output-test.pdf"
           body = "Dear  <br /><br /> Please find attached a report for today"
-          Notications.notify(contact,subject,body,file_name).deliver
-      #  end
-      #else
-       # subject = "Epics Email Error"
-      #  Notifications.email_error(subject).deliver
-     #end
-   # end
+          Notications.deliver_notify(contact,subject,body,file_name) #rescue ""
   end
 
   def print(file_name, current_printer)
