@@ -70,11 +70,23 @@ class DrugController < GenericDrugController
       prescriptions[drug_name] = {}
       prescriptions[drug_name]["bottles"] = bottles
     end
+    stocks = {}
+
+    Regimen.find_by_sql(
+      "select distinct(d.name), d.drug_id from regimen r
+        inner join regimen_drug_order rd on rd.regimen_id = r.regimen_id
+        inner join drug d on d.drug_id = rd.drug_inventory_id
+        where r.regimen_index is not null
+        and r.regimen_index != 0
+      ").each do |drug| 
+      stocks[drug.name] = Pharmacy.current_stock(drug.drug_id)
+      
+    end
 
     drug_summary = {}
     drug_summary["dispensations"] =  dispensations
     drug_summary["prescriptions"] = prescriptions
-
+    drug_summary["stock_level"] = stocks
     render :text => drug_summary.to_json and return
     
   end
