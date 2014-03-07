@@ -1355,11 +1355,11 @@ class ApplicationController < GenericApplicationController
 			on_art_before = has_patient_been_on_art_before(patient)
 
 			if current_outcome.match(/Transferred out/i)
-				if on_art_before
+				#if on_art_before
 					require_registration = false
-				else
-					require_registration = true
-				end
+				#else
+				#	require_registration = true
+				#end
 			end
 		end
 		return require_registration
