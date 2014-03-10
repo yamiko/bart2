@@ -79,24 +79,19 @@ class ValidationRule < ActiveRecord::Base
   def self.pills_remaining_over_dispensed(visit_date)
     visit_date = visit_date.to_date rescue Date.today
     patient_ids = []
-    art_adherence_enc = EncounterType.find_by_name('ART ADHERENCE').id
+    #art_adherence_enc = EncounterType.find_by_name('ART ADHERENCE').id
     dispensing_enc = EncounterType.find_by_name('DISPENSING').id
-    amount_dispensed_concept = Concept.find_by_name('AMOUNT DISPENSED').id
+    #amount_dispensed_concept = Concept.find_by_name('AMOUNT DISPENSED').id
     amount_brought_to_clinic_concept = Concept.find_by_name('AMOUNT OF DRUG BROUGHT TO CLINIC').id
     
     patients = Patient.find_by_sql("
-      SELECT e.patient_id as patient_ID, o.value_numeric as amought_brought_to_clinic,
-      e.encounter_datetime as visit FROM encounter e INNER JOIN
-      obs o ON o.encounter_id = e.encounter_id AND encounter_type = #{art_adherence_enc} AND
-      o.concept_id= #{amount_brought_to_clinic_concept} AND e.voided=0
-      WHERE DATE(e.encounter_datetime) <= \'#{visit_date}\'
-      HAVING
-      amought_brought_to_clinic > (SELECT obs.value_numeric FROM obs INNER JOIN
-      encounter ON obs.encounter_id=encounter.encounter_id AND encounter.encounter_type = #{dispensing_enc}
-      AND obs.concept_id = #{amount_dispensed_concept} AND encounter.patient_id = patient_ID AND encounter.voided=0
-      WHERE encounter.encounter_datetime < visit AND DATEDIFF(visit, encounter.encounter_datetime)
-      BETWEEN 30 AND 65 ORDER BY encounter.encounter_datetime DESC LIMIT 1)
-
+      SELECT ord.order_id as orderID, enc.patient_id as patient_ID,
+      do.quantity as amought_dispensed from encounter enc INNER JOIN obs ON
+      enc.encounter_id=obs.encounter_id INNER JOIN orders ord ON ord.order_id=obs.order_id
+      AND enc.encounter_type = #{dispensing_enc} INNER JOIN drug_order do ON ord.order_id = do.order_id
+      AND enc.voided=0 WHERE do.quantity > 0 AND DATE(enc.encounter_datetime) <= \'#{visit_date}\'
+      HAVING  amought_dispensed < (SELECT o.value_numeric  FROM obs o
+      WHERE order_id = orderID AND o.concept_id=#{amount_brought_to_clinic_concept} LIMIT 1)
       ")
     patient_ids = patients.collect{|patient|patient["patient_ID"]}
 
