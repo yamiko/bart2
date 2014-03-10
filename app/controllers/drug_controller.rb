@@ -74,6 +74,8 @@ class DrugController < GenericDrugController
 
     arv_concepts = MedicationService.arv_drugs.map(&:concept_id)
     arv_drugs = Drug.find(:all, :conditions => ["concept_id IN (?)", arv_concepts])
+    cotrim_drugs = ["Cotrimoxazole (480mg tablet)", "Cotrimoxazole (960mg)"]
+    arv_drugs += Drug.find(:all, :conditions => ["name IN (?)", cotrim_drugs])
     arv_drugs.each do |drug|
       stocks[drug.name] = Pharmacy.current_stock(drug.drug_id)
     end
