@@ -587,11 +587,11 @@
 			  <%  end %>
 	}
   function denyStaging(){
-       window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat='cancel'"
+       window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat=cancel"
 
   }
   function allowStaging(){
-    window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat='no'"
+    window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat=no"
   }
 </script>  
 <style type="text/css">
@@ -603,8 +603,10 @@
   current_date = session[:datetime].to_date rescue Date.today
   staging = session["#{@patient.id}"]["#{current_date}"][:stage_patient] rescue []
   if ! staging.blank?
-  if staging == "No" %>
+  if staging != "No" %>
+     <script>
      window.location = "<%= next_task(@patient) -%>";
+     </script>
   <% end
  end %>
 <% if ((!@reason_for_art_eligibility.nil? && @reason_for_art_eligibility.squish != '') || @ask_staging == true) && @normal_procedure == false && @check_preart == false %>
