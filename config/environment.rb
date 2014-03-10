@@ -14,7 +14,8 @@ Rails::Initializer.run do |config|
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.delivery_method = :smtp
-  config.action_mailer.default_url_options = { :host => 'localhost:3000' }
+  #config.action_mailer.default_url_options = { :host => 'localhost:3000' }
+  config.action_mailer.template_root = "../app/views/notifications/"
   
 	config.gem 'warden'
 	config.gem 'devise'
@@ -64,6 +65,15 @@ BartOneDrugOrder.establish_connection(bart_one_data) # added for migration
 
 class Mime::Type
   delegate :split, :to => :to_s
+end
+
+class ActionMailer::Base
+  class_inheritable_hash :default
+  def from_with_default(input=nil)
+    return from_without_default(input) || default[:from] if input.nil?
+    from_without_default(input)
+  end
+  alias_method_chain :from, :default
 end
 
 # Foreign key checks use a lot of resources but are useful during development
