@@ -1238,10 +1238,9 @@ class CohortToolController < GenericCohortToolController
 
   def send_email
           subject = "Bart Cohort Validation"
-          contact = "fuvu.chirwa@gmail.com"
-          file_name = "/tmp/output-test.pdf"
+          file_name = "output-test.pdf"
           body = "Dear  <br /><br /> Please find attached a report for today"
-          Notications.deliver_notify(contact,subject,body,file_name) #rescue ""
+          Notifications.deliver_notify(subject,body,file_name) #rescue ""
   end
 
   def print(file_name, current_printer)

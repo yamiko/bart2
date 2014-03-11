@@ -689,10 +689,10 @@ end %>
   }
 
   function denyStaging(){
-       window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat='cancel'"
+       window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat=cancel"
  }
   function allowStaging(){
-    window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat='no'"
+    window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat=no"
   }
 </script>
 <style type="text/css">
@@ -705,7 +705,8 @@ end %>
  
  
   staging = session["#{@patient.id}"]["#{current_date}"][:stage_patient] rescue []
-  if ! staging.blank?
+ # raise staging.upcase.to_yaml
+  if @check_preart == true 
   if staging == "No"
     %>
     <script>

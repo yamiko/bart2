@@ -110,7 +110,8 @@
         }
 
         var newTd1 = document.createElement('td');
-        
+        newTd1.setAttribute('colspan', '2');
+        newTd1.setAttribute( 'align','center')
         
         var newField = document.createElement('select');
         newField.setAttribute('type', 'text');
@@ -129,6 +130,7 @@
         newTr.appendChild(newTd1);
 
         var newTd1 = document.createElement('td');
+          newTd1.setAttribute( 'align','right')
         var newField = document.createElement('input');
         newField.setAttribute('type', 'text');
         newField.setAttribute('name', 'obs[' + fullname + '][amount]');
@@ -140,13 +142,13 @@
 
 
         var newTd1 = document.createElement('td');
-        newTd1.innerHTML = "<a href='#'><img src='/images/add.png' onclick='addRow(" + td +")'></a>"
+        //newTd1.innerHTML = "<a href='#'><img src='/images/add.png' onclick='addRow(" + td +")'></a>"
         newTr.appendChild(newTd1);
         
         var newTr1 = document.createElement('tr');
         var newTd1 = document.createElement('td');
         var newHr = document.createElement('hr');
-        newTd1.setAttribute('colspan', 6)
+        newTd1.setAttribute('colspan', 7)
         newTd1.appendChild(newHr)
         newTr1.appendChild(newTd1)
 

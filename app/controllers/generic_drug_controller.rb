@@ -155,7 +155,7 @@ class GenericDrugController < ApplicationController
      drug_id = Drug.find_by_name(delivered[0]).id rescue []
       delivery_date = params[:delivery_date].to_date
       barcode = params[:identifier]
-      #raise delivered.to_yaml
+      
       number_of_tins = delivered[1]["amount"].to_i.to_f
       number_of_pills_per_tin = delivered[1]["expire_amount"].to_i.to_f
       begin
@@ -171,6 +171,7 @@ class GenericDrugController < ApplicationController
       rescue
         expiry_date = Date.today
       end
+      #raise number_of_pills.to_yaml
       Pharmacy.new_delivery(drug_id,number_of_pills,delivery_date,nil,expiry_date,barcode)
     }
     #add a notice
@@ -184,10 +185,10 @@ class GenericDrugController < ApplicationController
       edit_reason = params[:reason] rescue ""
       encounter_datetime = params[:delivery_time].to_date #rescue Date.today
       params[:obs].each{ |delivered|
-              raise delivered.to_yaml
+             # raise delivered.to_yaml
               next if delivered[1]["amount"].to_i == 0
               drug_id = Drug.find_by_name(delivered[0]).id rescue []
-              encounter_datetime = params[:delivery_time].to_date #rescue Date.today
+              encounter_datetime = params[:delivery_time].to_date rescue Date.today
               date_value = delivered[1]['date'].split("/")
               current_century = Date.today.year.to_s.chars.each_slice(2).map(&:join)[0].to_i
 
@@ -203,7 +204,7 @@ class GenericDrugController < ApplicationController
               if edit_reason == 'Receipts from other clinics'
                 Pharmacy.new_delivery(drug_id,number_of_pills,encounter_datetime,nil,expiry_date,edit_reason,expiring_units)
               else
-               # raise number_of_pills.to_yaml
+                #raise number_of_pills.to_yaml
                 Pharmacy.drug_dispensed_stock_adjustment(drug_id,number_of_pills,encounter_datetime,edit_reason, expiring_units)
               end
       }
@@ -327,7 +328,10 @@ class GenericDrugController < ApplicationController
   end
 
   def stock_report
-    
+     #raise params.to_yaml
+     if params[:type] == 'Supervision' and ! params[:type].blank?
+      params[:quarter] = params[:quarter1]
+    end
     if params[:quarter] != "Select date range" and !params[:quarter].blank?
      @end_date = params[:quarter].split('To')[1].squish.split('/')
      @start_date = params[:quarter].split('To')[0].squish.split('/')
@@ -360,13 +364,14 @@ class GenericDrugController < ApplicationController
 
     new_deliveries = Pharmacy.find_by_sql("
                      SELECT distinct(drug_id) FROM pharmacy_obs")
+   
     type = params[:type]
     if @start_date.blank?
       
         encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock').id
         @start_date = Pharmacy.find_by_sql("SELECT * FROM pharmacy_obs
                                      WHERE pharmacy_encounter_type = #{encounter_type}
-                                     AND DATE(encounter_date) < '#{@end_date}' AND vaue_text = '#{type}'
+                                     AND DATE(encounter_date) <= '#{@end_date}' AND vaue_text = '#{type}'
                                     ").first.encounter_date rescue []
         if @start_date.blank?
            @start_date = @end_date - 3.months

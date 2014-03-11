@@ -51,6 +51,8 @@ class EncountersController < GenericEncountersController
           @ask_staging = true if month_gone <= 3
           @normal_procedure =  true if month_gone > 3
         end
+        #raise session["#{@patient.id}"]["#{current_date}"][:stage_patient].to_yaml
+        #session["#{@patient.id}"]["#{current_date}"][:stage_patient] = []
         else
           session["#{@patient.id}"] = {}
           session["#{@patient.id}"]["#{current_date}"] = {}
@@ -60,7 +62,7 @@ class EncountersController < GenericEncountersController
           else
            session["#{@patient.id}"]["#{current_date}"][:stage_patient] = "No"
           end
-           
+         
           @check_preart = true
         end
      end
