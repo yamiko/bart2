@@ -70,10 +70,30 @@ class DrugController < GenericDrugController
       prescriptions[drug_name] = {}
       prescriptions[drug_name]["bottles"] = bottles
     end
+    stocks = {}
 
+    arv_concepts = MedicationService.arv_drugs.map(&:concept_id)
+    arv_drugs = Drug.find(:all, :conditions => ["concept_id IN (?)", arv_concepts])
+    cotrim_drugs = ["Cotrimoxazole (480mg tablet)", "Cotrimoxazole (960mg)"]
+    arv_drugs += Drug.find(:all, :conditions => ["name IN (?)", cotrim_drugs])
+    arv_drugs.each do |drug|
+      stocks[drug.name] = Pharmacy.current_stock(drug.drug_id)
+    end
+=begin
+    Regimen.find_by_sql(
+      "select distinct(d.name), d.drug_id from regimen r
+        inner join regimen_drug_order rd on rd.regimen_id = r.regimen_id
+        inner join drug d on d.drug_id = rd.drug_inventory_id
+        where r.regimen_index is not null
+        and r.regimen_index != 0
+      ").each do |drug| 
+      stocks[drug.name] = Pharmacy.current_stock(drug.drug_id)  
+    end
+=end
     drug_summary = {}
     drug_summary["dispensations"] =  dispensations
     drug_summary["prescriptions"] = prescriptions
+    drug_summary["stock_level"] = stocks
 
     render :text => drug_summary.to_json and return
     

@@ -19,34 +19,17 @@ class CohortValidation
 			validation = method.sub(/^validate\_/, "").humanize
 			differences[validation] = self.send(method) unless validation.blank?
 		end
-
-		return differences
+		
+		return differences.delete_if{|key, val| val.blank?}
 	end
 	
-	def feed_values(expr, val_arr)
+	def feed_values(rule, val_arr)
 		#This method takes an expression and replaces the curly 
 		#brackets with values from the val_arr array based on position.
 		#By Kenneth Kapundi
-		
+		expr = rule.expr
 		return nil if expr.scan(/\{\w+\}/).length != val_arr.length
-		return eval(val_arr.inject(expr){|out_str, val| out_str = out_str.sub(/\{\w+\}/, "#{val.length}"); out_str})				
-	end
-	
-		
-	#***************SAMPLE USAGE****************************
-	#To be removed later on.
-	#By Kenneth Kapundi
-	def validate_sample_rule		
-		
-		validation_rule = ValidationRule.find_by_type_id(1)
-		return nil if validation_rule.blank?
-				
-		values = [self.cohort_object['Kaposis Sarcoma'],
-				 				self.cohort_object['Newly total registered'], 
-			 					self.cohort_object['Newly total registered'],
-			 					self.cohort_object['Newly total registered']]
-			 					
-		return self.feed_values(validation_rule.expr, values)		
+		return [rule.desc, eval(val_arr.inject(expr){|out_str, val| out_str = out_str.sub(/\{\w+\}/, "#{val.length}"); out_str})]			
 	end
 	
 	def validate_new_total_male_plus_total_pregnant_plus_total_nonpregnant_equals_total_registered
@@ -69,7 +52,7 @@ class CohortValidation
               self.cohort_object['Newly registered women (pregnant)']
                 ]
          
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
 	end
 	
 	def validate_cumulative_total_male_plus_total_pregnant_plus_total_nonpregnant_equals_total_registered
@@ -91,7 +74,7 @@ class CohortValidation
                 self.cohort_object['Total registered women (non-pregnant)'], 
                 self.cohort_object['Total registered women (pregnant)']
             ]
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_cumulative_and_new_total_registered
@@ -109,7 +92,7 @@ class CohortValidation
               self.cohort_object['Newly total registered']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
     
   end
   
@@ -121,14 +104,14 @@ class CohortValidation
     # Amendments  :
 
    
-    validation_rule = find_by_expr('{cum_ft}>={new_ft}')
+    validation_rule = ValidationRule.find_by_expr('{cum_ft}>={new_ft}')
     return nil if validation_rule.blank?
         
     values = [self.cohort_object['Total Patients initiated on ART'],
               self.cohort_object['Patients initiated on ART']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
 	
 	def validate_cumulative_and_new_patients_reinitiated
@@ -146,7 +129,7 @@ class CohortValidation
               self.cohort_object['Patients reinitiated on ART']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end  
   
   def validate_cumulative_and_new_transferedin_on_art
@@ -164,7 +147,7 @@ class CohortValidation
               self.cohort_object['Newly transferred in patients']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_cumulative_and_new_registered_males
@@ -182,7 +165,7 @@ class CohortValidation
               self.cohort_object['Newly registered male']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_cumulative_and_new_non_pregnant_females
@@ -200,7 +183,7 @@ class CohortValidation
               self.cohort_object['Newly registered women (non-pregnant)']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_cumulative_and_new_pregnant_females
@@ -218,7 +201,7 @@ class CohortValidation
               self.cohort_object['Newly registered women (pregnant)']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_cumulative_and_new_children_below_24_months
@@ -236,7 +219,7 @@ class CohortValidation
               self.cohort_object['Newly registered infants']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end 
   
   def validate_cumulative_and_new_children_between_24_months_and_14_years
@@ -254,7 +237,7 @@ class CohortValidation
               self.cohort_object['Newly registered children']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end 
   
   def validate_cumulative_and_new_adults
@@ -272,7 +255,7 @@ class CohortValidation
               self.cohort_object['Newly registered adults']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end 
   
   def validate_cumulative_and_new_unknown_age
@@ -290,39 +273,38 @@ class CohortValidation
               self.cohort_object['Newly Unknown age']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end 
 
   def validate_kaposis_sarcoma_less_than_total_registered_in_quarter
 		#This method checks that cases of kaposis sarcoma are less than total registered in quarter	
 		#By Kenneth Kapundi
 		
-		validation_rule = ValidationRule.find_by_desc('Patients with kaposis sarcoma')
+		validation_rule = ValidationRule.find_by_expr("{newly_reg} >= {ks}")
 		return nil if validation_rule.blank?
 				
-		values = [self.cohort_object['Kaposis Sarcoma'],
-				 			self.cohort_object['Newly total registered']]			 					
-		return self.feed_values(validation_rule.expr, values)		
+		values = [self.cohort_object['Newly total registered'],
+              self.cohort_object['Kaposis Sarcoma']    ]
+		return self.feed_values(validation_rule, values)		
 	end
 	
 	def validate_cumulative_kaposis_sarcoma_less_than_total_ever_registered
 		#This method checks that all cases of kaposis sarcoma are less than cumulative total registered	
 		#By Kenneth Kapundi
 		
-		validation_rule = ValidationRule.find_by_desc('Patients with kaposis sarcoma')
+		validation_rule = ValidationRule.find_by_expr("{cum_total_reg} >= {total_ks}")
 		return nil if validation_rule.blank?
 				
-		values = [self.cohort_object['Total Kaposis Sarcoma'],
-				 			self.cohort_object['Total registered']]			 					
-		return self.feed_values(validation_rule.expr, values)		
+		values = [self.cohort_object['Total registered'],
+      self.cohort_object['Total Kaposis Sarcoma']]
+		return self.feed_values(validation_rule, values)		
 	end
 	
 	def validate_all_outcomes_equal_to_cumulative_total_registered
 		#This method checks that outcome totals dont exceed total registered	
 		#By Kenneth Kapundi
 		
-		validation_rule = ValidationRule.find_by_desc("Died total, Total alive and on ART, Defaulted (more than 2 months overdue after expected to have run out of ARVs), Stopped taking ARVs (clinician or patient own decision last known alive), Transfered out, and Unknown outcome should add up to Total registe")
-		
+		validation_rule = ValidationRule.find_by_expr("{cum_total_reg} == {died_total} + {total_on_art} + {defaulted} + {stopped} + {transfered} + {unknown_outcome}")
 		return nil if validation_rule.blank?
 				
 		values = [self.cohort_object['Total registered'],
@@ -333,7 +315,7 @@ class CohortValidation
 				 			self.cohort_object['Transferred out'],
 				 			self.cohort_object['Unknown outcomes']
 				 			]			 					
-		return self.feed_values(validation_rule.expr, values)		
+		return self.feed_values(validation_rule, values)		
 	end
 
 	def validate_sum_of_tb_equal_total_alive_and_on_ART
@@ -351,7 +333,7 @@ class CohortValidation
 				 			self.cohort_object['TB confirmed on treatment'],
 				 			self.cohort_object['TB Unknown']
 				 			]
-		return self.feed_values(validation_rule.expr, values)
+		return self.feed_values(validation_rule, values)
 	end	
 	
 	def validate_cumulative_and_new_presumed_severe_hiv_in_infants
@@ -369,7 +351,7 @@ class CohortValidation
               self.cohort_object['Presumed severe HIV disease in infants']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
 
   def validate_cumulative_and_new_confirmed_hiv_infection_in_infants
@@ -386,7 +368,7 @@ class CohortValidation
     values = [self.cohort_object['Total Confirmed HIV infection in infants (PCR)'],
               self.cohort_object['Confirmed HIV infection in infants (PCR)']
                 ]
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_cumulative_and_new_pregnant_women
@@ -404,7 +386,7 @@ class CohortValidation
               self.cohort_object['Patient pregnant']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_cumulative_and_new_breastfeeding_mothers
@@ -422,7 +404,7 @@ class CohortValidation
               self.cohort_object['Patient breastfeeding']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_cumulative_and_new_WHO_stage_1_or_2_cd4_count_below_threshhold
@@ -440,7 +422,7 @@ class CohortValidation
               self.cohort_object['WHO stage 1 or 2, CD4 below threshold']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_cumulative_and_new_WHO_stage_2_total_lymphocytes
@@ -458,7 +440,7 @@ class CohortValidation
               self.cohort_object['WHO stage 2, total lymphocytes']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_cumulative_and_new_WHO_stage_3
@@ -476,7 +458,7 @@ class CohortValidation
               self.cohort_object['WHO stage 3']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_cumulative_and_new_WHO_stage_4
@@ -494,7 +476,7 @@ class CohortValidation
               self.cohort_object['WHO stage 4']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
 
    def validate_cumulative_and_new_unknown_reason
@@ -512,7 +494,7 @@ class CohortValidation
               self.cohort_object['Unknown reason']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_cumulative_and_new_TB_within_last_2_years
@@ -529,7 +511,7 @@ class CohortValidation
     values = [self.cohort_object['Total TB within the last 2 years'],
               self.cohort_object['TB within the last 2 years']
                 ]
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_adherence_sum_zero_to_six_and_seven_plus_needs_to_equal_total_alive_and_on_art
@@ -539,18 +521,18 @@ class CohortValidation
 				 			self.cohort_object['Patients with 0 - 6 doses missed at their last visit'],
 				 			self.cohort_object['Patients with 7+ doses missed at their last visit']
 				 			]
-		return self.feed_values(validation_rule.expr, values)
+		return self.feed_values(validation_rule, values)
   end
 
-  def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
+def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
      validation_rule = ValidationRule.find_by_desc("[CUMULATIVE] No TB, TB within the last 2 years, Current episode of TB, and Kaposis Sarcoma should add up to Total registered")
      values = [self.cohort_object['Total registered'],
 				 			self.cohort_object['Total No TB'],
 				 			self.cohort_object['Total TB within the last 2 years'],
-				 			self.cohort_object['Total Current episode of TB'],
-				 			self.cohort_object['Total Kaposis Sarcoma']
+				 			self.cohort_object['Total Current episode of TB']
 				 			]
-		return self.feed_values(validation_rule.expr, values)		
+		return self.feed_values(validation_rule, values)
+
   end
 
   def validate_sum_of_all_regimens_should_equal_to_total_alive_and_on_art
@@ -575,7 +557,7 @@ class CohortValidation
               self.cohort_object['Regimens']['9P'] ||= [],
               self.cohort_object['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] ||= []]
 
-   return self.feed_values(validation_rule.expr, values)
+   return self.feed_values(validation_rule, values)
   end
 
   def validate_quartely_sum_of_all_ages_should_equal_to_quartely_total_registered
@@ -591,7 +573,7 @@ class CohortValidation
               self.cohort_object['Newly registered adults'] ||= [],
               self.cohort_object['New Unknown age'] ||= []]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
 
   def validate_cumulative_and_new_current_episode_of_TB
@@ -609,7 +591,7 @@ class CohortValidation
               self.cohort_object['Current episode of TB']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_cumulative_and_new_kaposis_sarcoma
@@ -627,7 +609,7 @@ class CohortValidation
               self.cohort_object['Kaposis Sarcoma']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_cumulative_and_new_no_TB
@@ -645,7 +627,7 @@ class CohortValidation
               self.cohort_object['No TB']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
   
   def validate_cumulative_and_new_Children_12_to_23_months
@@ -663,7 +645,7 @@ class CohortValidation
               self.cohort_object['HIV infected']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
 
   def validate_cumulative_sum_all_ages_should_equal_to_cumulative_total_registered
@@ -679,7 +661,7 @@ class CohortValidation
               self.cohort_object['Total registered adults'] ||= [],
               self.cohort_object['Total Unknown age'] ||= []]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
 
 	def validate_sum_of_reason_starting_ART_equal_total_registered
@@ -701,7 +683,7 @@ class CohortValidation
 							self.cohort_object['Total WHO stage 4'],
 							self.cohort_object['Total Unknown reason']
 				 		 ]
-		return self.feed_values(validation_rule.expr, values)
+		return self.feed_values(validation_rule, values)
 	end
 	
 	def validate_cumulative_died_intervals_sum_up_to_died_total
@@ -718,7 +700,7 @@ class CohortValidation
 				 			self.cohort_object['Died within the 3rd month after ART initiation'],
 				 			self.cohort_object['Died after the end of the 3rd month after ART initiation']
 				 			]			 					
-		return self.feed_values(validation_rule.expr, values)		
+		return self.feed_values(validation_rule, values)		
 	end
 
  def validate_total_registered_is_sum_of_intitiated_reinitiated_and_transfer_in
@@ -733,7 +715,7 @@ class CohortValidation
 							self.cohort_object['Newly transferred in patients']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
 
   def validate_cumulative_total_registered_is_sum_of_intitiated_reinitiated_and_transfer_in
@@ -748,7 +730,7 @@ class CohortValidation
 							self.cohort_object['Total transferred in patients']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end
 
   def validate_total_alive_and_side_effects
@@ -761,7 +743,7 @@ class CohortValidation
               self.cohort_object['Total patients with side effects']
                 ]
 
-    return self.feed_values(validation_rule.expr, values)
+    return self.feed_values(validation_rule, values)
   end    
 
 end
