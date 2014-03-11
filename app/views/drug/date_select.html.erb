@@ -44,7 +44,7 @@
     :id => 'type',
     :tt_onLoad => "__$('keyboard').style.display = 'none'"} %>
 
-    <%= select_tag 'quarter', options_for_select( qtrs ), {
+    <%= select_tag 'quarter1', options_for_select( qtrs ), {
     :helpText => "Select Period",
     :condition => "$('type').value == 'Supervision'",
     :tt_onLoad => "__$('keyboard').style.display = 'none'"} %>
