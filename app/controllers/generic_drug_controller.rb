@@ -181,11 +181,15 @@ class GenericDrugController < ApplicationController
 
   def edit_stock
     if request.method == :post
-     # raise params.to_yaml
+    
       edit_reason = params[:reason] rescue ""
-      encounter_datetime = params[:delivery_time].to_date #rescue Date.today
+      encounter_datetime = params[:delivery_time].to_date rescue []
+      if encounter_datetime.blank?
+        encounter_datetime = "#{params[:year]}-#{params[:month]}-#{params[:day]}".to_date rescue Date.today
+      end
+     
       params[:obs].each{ |delivered|
-             # raise delivered.to_yaml
+              
               next if delivered[1]["amount"].to_i == 0
               drug_id = Drug.find_by_name(delivered[0]).id rescue []
               encounter_datetime = params[:delivery_time].to_date rescue Date.today
