@@ -1429,10 +1429,8 @@ EOF
       FROM encounter
       WHERE patient_id IN (?)
       AND encounter_type IN (?)
-      AND patient_id NOT IN(?)
       GROUP BY patient_id
-      ORDER BY last_encounter_id
-      LIMIT 1",patient_ids,encounter_type_ids,
+      HAVING patient_id NOT IN(?)",patient_ids,encounter_type_ids,
       patient_not_to_be_archived]).first.patient rescue nil
 
   end
