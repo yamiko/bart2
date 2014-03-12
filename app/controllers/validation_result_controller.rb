@@ -1,7 +1,7 @@
 #class ValidationResultController < ApplicationController
 #end
 
-class ValidationResultsController < ActionController::Base
+class ValidationResultController < ActionController::Base
 
   def initialize
 
