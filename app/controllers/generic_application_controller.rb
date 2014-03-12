@@ -27,13 +27,13 @@ class GenericApplicationController < ActionController::Base
 	before_filter :authenticate_user!, :except => ['login', 'logout','remote_demographics',
 		                                      'create_remote', 'mastercard_printable', 'get_token',
 		                                      'cohort','demographics_remote', 'export_on_art_patients', 'art_summary',
-                                          'art_summary_dispensation'
+                                          'art_summary_dispensation', 'print_rules', 'rule_variables', 'print'
                                           ]
 
     before_filter :set_current_user, :except => ['login', 'logout','remote_demographics',
 		                                      'create_remote', 'mastercard_printable', 'get_token',
                                           'cohort','demographics_remote', 'export_on_art_patients', 'art_summary',
-                                          'art_summary_dispensation'
+                                          'art_summary_dispensation', 'print_rules', 'rule_variables', 'print'
                                           ]
 
 	before_filter :location_required, :except => ['login', 'logout', 'location',
@@ -41,7 +41,7 @@ class GenericApplicationController < ActionController::Base
 		                                         'mastercard_printable',
 		                                        'remote_demographics', 'get_token',
                                             'cohort','demographics_remote', 'export_on_art_patients', 'art_summary',
-                                            'art_summary_dispensation'
+                                            'art_summary_dispensation', 'print_rules', 'rule_variables', 'print'
                                             ]
 
 	before_filter :set_return_uri

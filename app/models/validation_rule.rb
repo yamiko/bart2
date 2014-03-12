@@ -322,6 +322,20 @@ class ValidationRule < ActiveRecord::Base
 			").map(&:patient_id)
 	end
 
+
+  def self.deliver_validation_results(rules_date = Date.today)
+     sent_to_mail = {}
+    ValidationResult.find_by_sql("
+      SELECT * FROM validation_results vs
+      INNER JOIN validation_rules vr ON vr.id = vs.rule_id
+      ").each {|validated|
+        sent_to_mail["#{validated.desc}"] = {}
+        sent_to_mail["#{validated.desc}"]["failed"] = validated.failures
+        sent_to_mail["#{validated.desc}"]["validated_on"] = validated.date_checked
+      }
+    return sent_to_mail
+  end
+
 	def self.every_visit_of_patients_who_are_under_18_should_have_height_and_weight(date = Date.today)
 		#Task 31
 		#SQL for every visit of patients who are under 18 should have height and weight

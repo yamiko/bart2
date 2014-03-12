@@ -1213,6 +1213,50 @@ class CohortToolController < GenericCohortToolController
 		session[:views]=nil; session[:chidren]; session[:nil]
     render :layout => 'cohort'
   end
+  
+  def print_rules
+      current_printer = CoreService.get_global_property_value("facility.printer").split(":")[1] rescue []
+      t1 = Thread.new{
+        Kernel.system "wkhtmltopdf --orientation landscape --copies 2 --margin-top 0 --margin-bottom 0 -s A4 http://" +
+          request.env["HTTP_HOST"] + "\"/cohort_tool/rule_variables/" +
+          "\" /tmp/output-test.pdf \n"
+
+      }
+
+
+      file = "/tmp/output-test.pdf"
+
+      #t2 = Thread.new{
+      #  sleep(3)
+       # print(file, current_printer)
+       send_email
+     # }
+    # raise t2.to_yaml
+     redirect_to :action => 'rule_variables' and return
+    
+  end
+
+  def send_email
+          subject = "Bart Cohort Validation"
+          file_name = "output-test.pdf"
+          body = "Dear  <br /><br /> Please find attached a report for today"
+          Notifications.deliver_notify(subject,body,file_name) #rescue ""
+  end
+
+  def print(file_name, current_printer)
+    sleep(3)
+    if (File.exists?(file_name))
+      Kernel.system "lp -o sides=two-sided-long-edge -o fitplot #{(!current_printer.blank? ? '-d ' + current_printer.to_s : "")} #{file_name}"
+    else
+      print(file_name)
+    end
+  end
+
+  def rule_variables
+    @logo = CoreService.get_global_property_value('logo').to_s
+    @rules = ValidationRule.deliver_validation_results
+    render :layout => false
+  end
 
   def missed_appointment
     @logo = CoreService.get_global_property_value('logo').to_s

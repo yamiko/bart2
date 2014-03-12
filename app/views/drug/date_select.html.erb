@@ -44,7 +44,7 @@
     :id => 'type',
     :tt_onLoad => "__$('keyboard').style.display = 'none'"} %>
 
-    <%= select_tag 'quarter', options_for_select( qtrs ), {
+    <%= select_tag 'quarter1', options_for_select( qtrs ), {
     :helpText => "Select Period",
     :condition => "$('type').value == 'Supervision'",
     :tt_onLoad => "__$('keyboard').style.display = 'none'"} %>
@@ -59,11 +59,11 @@
           id="start_date"
           name="start_date"
           value=""
-          condition ="$('quarter').value == 'Select date range'"
+          condition ="$('quarter').value == 'Select date range' || $('quarter1').value == 'Select date range'"
           helpText="Select start date" >
 
    <input type="text" field_type="date" id="end_date" name="end_date" value=""
-          helpText="Select end date" maxDate="<%= (Date.today + 30.years) %>" condition ="$('quarter').value == 'Select date range'" />
+          helpText="Select end date" maxDate="<%= (Date.today + 30.years) %>" condition ="$('quarter').value == 'Select date range' || $('quarter1').value == 'Select date range'" />
  <% else %>
    <input type="text" field_type="date" id="start_date" name="start_date" value="" helpText="Select start date" >
 

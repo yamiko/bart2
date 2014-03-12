@@ -10,7 +10,13 @@ Rails::Initializer.run do |config|
 	config.log_level = :debug
 	config.action_controller.session_store = :active_record_store
 	config.active_record.schema_format = :sql
-	# config.time_zone = 'UTC'
+
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.delivery_method = :smtp
+  #config.action_mailer.default_url_options = { :host => 'localhost:3000' }
+  config.action_mailer.template_root = "../app/views/notifications/"
+  
 	config.gem 'warden'
 	config.gem 'devise'
 	config.gem 'will_paginate', :version => '~> 2.3.16'  
@@ -29,12 +35,18 @@ require 'has_many_through_association_extension'
 require 'bantu_soundex'
 require 'json'
 require 'colorfy_strings'
+require 'action_mailer'
+require 'sendgrid'
 
 ActiveSupport::Inflector.inflections do |inflect|
   inflect.irregular 'person_address', 'person_address'
   inflect.irregular 'obs', 'obs'
   inflect.irregular 'concept_class', 'concept_class'
-end  
+end
+
+email_settings = YAML::load(File.open("#{Rails.root.to_s}/config/email.yml"))
+
+ActionMailer::Base.smtp_settings = email_settings[Rails.env].symbolize_keys! unless email_settings[Rails.env].nil?
 
 healthdata = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))['healthdata']
 bart_one_data = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))['migration']
@@ -53,6 +65,15 @@ BartOneDrugOrder.establish_connection(bart_one_data) # added for migration
 
 class Mime::Type
   delegate :split, :to => :to_s
+end
+
+class ActionMailer::Base
+  class_inheritable_hash :default
+  def from_with_default(input=nil)
+    return from_without_default(input) || default[:from] if input.nil?
+    from_without_default(input)
+  end
+  alias_method_chain :from, :default
 end
 
 # Foreign key checks use a lot of resources but are useful during development
