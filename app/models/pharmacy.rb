@@ -194,7 +194,7 @@ class Pharmacy < ActiveRecord::Base
     return 0 if drug_orders.blank?
     prescribed_drugs = 0
     (drug_orders).each do | drug_order |
-      prescribed_drugs += (drug_order.duration * drug_order.equivalent_daily_dose)
+      prescribed_drugs += (drug_order.duration * drug_order.equivalent_daily_dose) rescue prescribed_drugs
     end
     prescribed_drugs
   end

@@ -82,7 +82,8 @@ class DrugController < GenericDrugController
       
       p_start_date = Pharmacy.first_delivery_date(drug.drug_id)
       start_date = p_start_date.blank? ? 50.years.ago : p_start_date
-      
+
+      total_prescribed = Pharmacy.prescribed_drugs_since(drug.drug_id, start_date, end_date)
       total_delivered = Pharmacy.total_delivered(drug.drug_id, start_date, end_date)
       total_dispensed = Pharmacy.dispensed_drugs_since(drug.drug_id, start_date, end_date)
       total_removed = Pharmacy.total_removed(drug.drug_id, start_date, end_date)
@@ -90,6 +91,7 @@ class DrugController < GenericDrugController
       supervision_verified = Pharmacy.verify_closing_stock_count(drug.drug_id,start_date,end_date, type="supervision", true)
 
       stocks[drug.name] = {}
+      stocks[drug.name]["Total prescribed"] = total_prescribed
       stocks[drug.name]["Total delivered"] = total_delivered
       stocks[drug.name]["Total dispensed"] = total_dispensed
       stocks[drug.name]["Total removed"] = total_removed
