@@ -199,6 +199,24 @@ class Pharmacy < ActiveRecord::Base
     prescribed_drugs
   end
 
+  def self.total_drug_prescription(drug_id,start_date,end_date = Date.today)
+    drug_order = OrderType.find_by_name("Drug Order")
+    drug_order_type_id = drug_order.id
+    treatment_encounter_type = EncounterType.find_by_name("TREATMENT")
+    treatment_encounter_type_id = treatment_encounter_type.id
+
+    total_prescribed = ActiveRecord::Base.connection.select_all("SELECT SUM((ABS(DATEDIFF(o.auto_expire_date, o.start_date)) * do.equivalent_daily_dose)) as total,
+        d.name as DrugName FROM encounter e INNER JOIN encounter_type et
+        ON e.encounter_type = et.encounter_type_id INNER JOIN orders o
+        ON e.encounter_id = o.encounter_id INNER JOIN drug_order do ON o.order_id = do.order_id
+        INNER JOIN drug d ON do.drug_inventory_id = d.drug_id
+        WHERE e.encounter_type = #{treatment_encounter_type_id} AND do.drug_inventory_id = #{drug_id}
+        AND o.order_type_id = #{drug_order_type_id} AND e.encounter_datetime >= \"#{start_date} 00:00:00\"
+        AND e.encounter_datetime <= \"#{end_date} 23:59:59\"
+        AND e.voided=0 GROUP BY do.drug_inventory_id").first["total"] rescue 0
+    return total_prescribed
+  end
+
   #new code from Bart 10.2 
 
   def self.alter(drug, quantity, date = nil , reason = nil)                     
