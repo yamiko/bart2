@@ -76,26 +76,32 @@ class DrugController < GenericDrugController
     arv_drugs = Drug.find(:all, :conditions => ["concept_id IN (?)", arv_concepts])
     cotrim_drugs = ["Cotrimoxazole (480mg tablet)", "Cotrimoxazole (960mg)"]
     arv_drugs += Drug.find(:all, :conditions => ["name IN (?)", cotrim_drugs])
+    end_date = params[:date]
+    
     arv_drugs.each do |drug|
-      stocks[drug.name] = Pharmacy.current_stock(drug.drug_id)
+      
+      p_start_date = Pharmacy.first_delivery_date(drug.drug_id)
+      start_date = p_start_date.blank? ? 50.years.ago : p_start_date
+      
+      total_delivered = Pharmacy.total_delivered(drug.drug_id, start_date, end_date)
+      total_dispensed = Pharmacy.dispensed_drugs_since(drug.drug_id, start_date, end_date)
+      total_removed = Pharmacy.total_removed(drug.drug_id, start_date, end_date)
+      clinic_verified = Pharmacy.verify_closing_stock_count(drug.drug_id,start_date,end_date, type="clinic", true)
+      supervision_verified = Pharmacy.verify_closing_stock_count(drug.drug_id,start_date,end_date, type="supervision", true)
+
+      stocks[drug.name] = {}
+      stocks[drug.name]["Total delivered"] = total_delivered
+      stocks[drug.name]["Total dispensed"] = total_dispensed
+      stocks[drug.name]["Total removed"] = total_removed
+      stocks[drug.name]["Clinic verification"] = clinic_verified
+      stocks[drug.name]["Supervision verification"] = supervision_verified
     end
-=begin
-    Regimen.find_by_sql(
-      "select distinct(d.name), d.drug_id from regimen r
-        inner join regimen_drug_order rd on rd.regimen_id = r.regimen_id
-        inner join drug d on d.drug_id = rd.drug_inventory_id
-        where r.regimen_index is not null
-        and r.regimen_index != 0
-      ").each do |drug| 
-      stocks[drug.name] = Pharmacy.current_stock(drug.drug_id)  
-    end
-=end
+
     drug_summary = {}
     drug_summary["dispensations"] =  dispensations
     drug_summary["prescriptions"] = prescriptions
     drug_summary["stock_level"] = stocks
 
-    render :text => drug_summary.to_json and return
-    
+    render :text => drug_summary.to_json and return    
   end
 end
