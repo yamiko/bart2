@@ -1,5 +1,5 @@
 class ValidationRule < ActiveRecord::Base
-  
+  has_many :validation_results
   @dispensed_id = ConceptName.find_by_name('PILLS DISPENSED').concept_id
 
   def self.data_consistency_checks(date = Date.today)
