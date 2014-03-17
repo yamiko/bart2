@@ -11,11 +11,8 @@ Rails::Initializer.run do |config|
 	config.action_controller.session_store = :active_record_store
 	config.active_record.schema_format = :sql
 
-  config.action_mailer.perform_deliveries = true
-  config.action_mailer.raise_delivery_errors = true
-  config.action_mailer.delivery_method = :smtp
-  #config.action_mailer.default_url_options = { :host => 'localhost:3000' }
-  config.action_mailer.template_root = "../app/views/notifications/"
+  #config.action_mailer.perform_deliveries = true
+  #config.action_mailer.raise_delivery_errors = true
   
 	config.gem 'warden'
 	config.gem 'devise'
@@ -43,8 +40,6 @@ ActiveSupport::Inflector.inflections do |inflect|
   inflect.irregular 'obs', 'obs'
   inflect.irregular 'concept_class', 'concept_class'
 end
-
-email_settings = YAML::load(File.open("#{Rails.root.to_s}/config/email.yml"))
 
 ActionMailer::Base.smtp_settings = email_settings[Rails.env].symbolize_keys! unless email_settings[Rails.env].nil?
 
