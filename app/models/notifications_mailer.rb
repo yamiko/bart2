@@ -1,6 +1,6 @@
 class NotificationsMailer < ActionMailer::Base
   def send_email
-		recipients 'developers@baobabhealth.org'
+		recipients 'bartbaobab@gmail.com'
 		from 'bartbaobab@gmail.com' 
 		subject "Bart2 Test Email" 
 		sent_on Time.now 
