@@ -41,8 +41,6 @@ ActiveSupport::Inflector.inflections do |inflect|
   inflect.irregular 'concept_class', 'concept_class'
 end
 
-ActionMailer::Base.smtp_settings = email_settings[Rails.env].symbolize_keys! unless email_settings[Rails.env].nil?
-
 healthdata = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))['healthdata']
 bart_one_data = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))['migration']
 Lab.establish_connection(healthdata)
