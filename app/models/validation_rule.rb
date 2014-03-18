@@ -3,6 +3,8 @@ class ValidationRule < ActiveRecord::Base
   @dispensed_id = ConceptName.find_by_name('PILLS DISPENSED').concept_id
 
   def self.data_consistency_checks(date = Date.today)
+    date = date.to_date
+    require 'colorize'
     data_consistency_checks = {}
     #All methods for now should be here:
     data_consistency_checks['Patients without outcomes'] = "self.patients_without_outcomes(date)"
@@ -28,7 +30,8 @@ class ValidationRule < ActiveRecord::Base
 		puts "Running query for #{key}"
 		hash[key] = eval(data_consistency_checks[key])
 		period = (Time.now - time).to_i
-		puts "Time taken  :  #{(period/60).to_i} min  and #{(period % 60)} sec  --> #{hash[key].length} patient(s) found"	
+    color = hash[key].length > 0 ? "red" : "green"
+		eval("puts 'Time taken  :  #{(period/60).to_i} min  and #{(period % 60)} sec  --> #{hash[key].length} patient(s) found'.#{color}")
 		puts ""	
 		hash}
 		

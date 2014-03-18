@@ -16,3 +16,4 @@ nbproject
 Gemfile.lock
 log/*
 .idea/*
+.ruby-version
