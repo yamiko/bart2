@@ -15,7 +15,7 @@ class DrugController < GenericDrugController
     treatment_encounter_type_id = treatment_encounter_type["encounter_type_id"]
     amount_dispensed_concept = Concept.find_by_name('Amount dispensed').id
 
-    dispensation_data = connection.select_all("SELECT SUM(obs.value_numeric) as Bottles, d.name as DrugName FROM encounter e INNER JOIN encounter_type et
+    dispensation_data = connection.select_all("SELECT SUM(obs.value_numeric) as Bottles, COUNT(e.patient_id) as total_patients, d.name as DrugName FROM encounter e INNER JOIN encounter_type et
         ON e.encounter_type = et.encounter_type_id INNER JOIN obs ON e.encounter_id=obs.encounter_id
         INNER JOIN orders o
         ON obs.order_id = o.order_id INNER JOIN drug_order do ON o.order_id = do.order_id
@@ -38,14 +38,14 @@ class DrugController < GenericDrugController
 =end
 
     prescription_data = connection.select_all("SELECT (ABS(DATEDIFF(o.auto_expire_date, o.start_date)) * do.equivalent_daily_dose) as Bottles,
-        d.name as DrugName FROM encounter e INNER JOIN encounter_type et
+        d.name as DrugName, e.patient_id as patient_id FROM encounter e INNER JOIN encounter_type et
         ON e.encounter_type = et.encounter_type_id INNER JOIN orders o
         ON e.encounter_id = o.encounter_id INNER JOIN drug_order do ON o.order_id = do.order_id
         INNER JOIN drug d ON do.drug_inventory_id = d.drug_id
         WHERE e.encounter_type = #{treatment_encounter_type_id} AND
         o.order_type_id = #{drug_order_type_id} AND e.encounter_datetime >= \"#{dispensation_date} 00:00:00\"
         AND e.encounter_datetime <= \"#{dispensation_date} 23:59:59\"
-        AND e.voided=0")
+        AND e.voided=0" )
 
     dispensations = {}
     dispensation_data.each do |data|
@@ -53,22 +53,34 @@ class DrugController < GenericDrugController
       bottles = data["Bottles"]
       dispensations[drug_name] = {}
       dispensations[drug_name]["bottles"] = bottles
+      dispensations[drug_name]["total_patients"] = data["total_patients"]
     end
 
     prescribed_drugs = {}
     prescription_data.each do |prescription|
       prescribed_drug = prescription["DrugName"]
       bottles = prescription["Bottles"].to_i
-      prescribed_drugs[prescribed_drug] = 0 if prescribed_drugs[prescribed_drug].blank?
-      prescribed_drugs[prescribed_drug]+=bottles
+      patient_id = prescription["patient_id"]
+      #prescribed_drugs[prescribed_drug] = 0 if prescribed_drugs[prescribed_drug].blank?
+      #prescribed_drugs[prescribed_drug]+=bottles
+      #******************************************
+      prescribed_drugs[prescribed_drug] = {} if prescribed_drugs[prescribed_drug].blank?
+      prescribed_drugs[prescribed_drug]["bottles"] = 0 if prescribed_drugs[prescribed_drug]["bottles"].blank?
+      prescribed_drugs[prescribed_drug]["bottles"] += bottles
+      prescribed_drugs[prescribed_drug]["patient_ids"] = [] if prescribed_drugs[prescribed_drug]["patient_ids"].blank?
+      prescribed_drugs[prescribed_drug]["patient_ids"] << patient_id
+      #******************************************
+
     end
     
     prescriptions = {}
     prescribed_drugs.each do |data|
       drug_name = data[0]
-      bottles = data[1]
+      bottles = data[1]["bottles"]
+      patient_ids = data[1]["patient_ids"]
       prescriptions[drug_name] = {}
       prescriptions[drug_name]["bottles"] = bottles
+      prescriptions[drug_name]["total_patients"] = patient_ids.count
     end
     stocks = {}
 
