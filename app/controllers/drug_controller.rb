@@ -89,7 +89,7 @@ class DrugController < GenericDrugController
     cotrim_drugs = ["Cotrimoxazole (480mg tablet)", "Cotrimoxazole (960mg)"]
     arv_drugs += Drug.find(:all, :conditions => ["name IN (?)", cotrim_drugs])
     end_date = params[:date]
-    
+    relocations = {}
     arv_drugs.each do |drug|
       
       p_start_date = Pharmacy.first_delivery_date(drug.drug_id)
@@ -101,20 +101,25 @@ class DrugController < GenericDrugController
       total_removed = Pharmacy.total_removed(drug.drug_id, start_date, end_date)
       clinic_verified = Pharmacy.verify_closing_stock_count(drug.drug_id,start_date,end_date, type="clinic", true)
       supervision_verified = Pharmacy.verify_closing_stock_count(drug.drug_id,start_date,end_date, type="supervision", true)
+      drug_relocation = Pharmacy.relocated(drug.drug_id,start_date,end_date)
 
       stocks[drug.name] = {}
+      relocations[drug.name] = {}
       stocks[drug.name]["Total prescribed"] = total_prescribed
       stocks[drug.name]["Total delivered"] = total_delivered
       stocks[drug.name]["Total dispensed"] = total_dispensed
       stocks[drug.name]["Total removed"] = total_removed
       stocks[drug.name]["Clinic verification"] = clinic_verified
       stocks[drug.name]["Supervision verification"] = supervision_verified
+      relocations[drug.name]["relocated"] = drug_relocation
+
     end
 
     drug_summary = {}
     drug_summary["dispensations"] =  dispensations
     drug_summary["prescriptions"] = prescriptions
     drug_summary["stock_level"] = stocks
+    drug_summary["relocations"] = relocations
 
     render :text => drug_summary.to_json and return    
   end
