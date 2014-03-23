@@ -29,7 +29,7 @@ class CohortValidation
 		#By Kenneth Kapundi
 		expr = rule.expr
 		return nil if expr.scan(/\{\w+\}/).length != val_arr.length
-		return [rule.desc, eval(val_arr.inject(expr){|out_str, val| out_str = out_str.sub(/\{\w+\}/, "#{val.length}"); out_str})]			
+		return [rule.desc, eval(val_arr.inject(expr){|out_str, val| val = val.blank? ? [] : val; out_str = out_str.sub(/\{\w+\}/, "#{val.length}"); out_str})]
 	end
 	
 	def validate_new_total_male_plus_total_pregnant_plus_total_nonpregnant_equals_total_registered
@@ -538,8 +538,8 @@ def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
   def validate_sum_of_all_regimens_should_equal_to_total_alive_and_on_art
     #validating all regimens should add up to total_alive_and_on_art
 
-    validation_rule = ValidationRule.find_by_type_id(1)
-    return nil if validation_rule.blank?
+    validation_rule = ValidationRule.find_by_expr("{total_on_art} == {n1a} + {n1p} + {n2a} + {n2p} + {n3a} + {n3p} + {n4a} + {n4p} + {n5a} + {n6a} + {n7a} + {n8a} + {n9p} + {non_std}")
+    return nil if validation_rule.blank? ||  self.cohort_object['Regimens'].blank?
 
     values = [self.cohort_object['Total alive and on ART'] ||= [],
               self.cohort_object['Regimens']['1A'] ||= [],
@@ -564,7 +564,7 @@ def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
     #validating quartery sum of infants+children+adults+unknow_age
     #should equal to quartly total registered
 
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule.find_by_expr("{new_total_reg} == {new_a} + {new_b} + {new_c} + {new_unk_age}")
     return nil if validation_rule.blank?
 
     values = [self.cohort_object['Newly total registered'] ||= [],
@@ -652,7 +652,7 @@ def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
     #validating cumulative sum of infants+children+adults+unknow_age
     #should equal to cumulative total registered
 
-    validation_rule = ValidationRule.find_by_type_id(1)
+    validation_rule = ValidationRule.find_by_expr("{cum_total_reg} == {cum_a} + {cum_b} + {cum_c} + {cum_unk_age}")
     return nil if validation_rule.blank?
 
     values = [self.cohort_object['Total registered'] ||= [],
