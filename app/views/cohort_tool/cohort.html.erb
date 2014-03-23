@@ -288,7 +288,7 @@
         <% success=0 %>
 
         <% @cohort_validation.each do |v| %>
-          <% if v[1][1].to_s == "true" then %>
+          <% if v[1][1].to_s == "false" then %>
             <% success+=1%>
             <tr class="alert">
               <td class="num"><%= success %></td>
