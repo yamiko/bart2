@@ -1209,7 +1209,7 @@ class CohortToolController < GenericCohortToolController
 		#validate Cohort report
 		validation = CohortValidation.new(@cohort)
 		@cohort_validation = validation.get_all_differences
-		
+		print_rules
 		session[:views]=nil; session[:chidren]; session[:nil]
     render :layout => 'cohort'
   end
@@ -1217,6 +1217,7 @@ class CohortToolController < GenericCohortToolController
   def print_rules
       current_printer = CoreService.get_global_property_value("facility.printer").split(":")[1] rescue []
       t1 = Thread.new{
+        #sleep(5)
         Kernel.system "wkhtmltopdf --orientation landscape --copies 2 --margin-top 0 --margin-bottom 0 -s A4 http://" +
           request.env["HTTP_HOST"] + "\"/cohort_tool/rule_variables/" +
           "\" /tmp/output-test.pdf \n"
@@ -1230,17 +1231,23 @@ class CohortToolController < GenericCohortToolController
       #  sleep(3)
        # print(file, current_printer)
        send_email
+       File.delete("#{file}")
      # }
     # raise t2.to_yaml
-     redirect_to :action => 'rule_variables' and return
+    #+ redirect_to :action => 'rule_variables' and return
     
   end
 
   def send_email
+          members = GlobalProperty.find_by_property("mailing.members").property_value.split(";") rescue []
           subject = "Bart Cohort Validation"
           file_name = "output-test.pdf"
-          body = "Dear  <br /><br /> Please find attached a report for today"
-          Notifications.deliver_notify(subject,body,file_name) #rescue ""
+          (members || []).each { |member|
+            fields = member.split(":")
+            body = "Dear  #{fields[0]} #{fields[1]}<br /><br /> Please find attached a report for today"
+            NotificationsMailer.deliver_send_email(subject,body,file_name, fields[2]) #rescue ""
+          }
+          
   end
 
   def print(file_name, current_printer)
