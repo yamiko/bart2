@@ -1,9 +1,13 @@
 class NotificationsMailer < ActionMailer::Base
-  def send_email
-		recipients 'bartbaobab@gmail.com'
+  def send_email(subject, body, filename, recipient)
+		recipients recipient
 		from 'bartbaobab@gmail.com' 
-		subject "Bart2 Test Email" 
+		subject subject
 		sent_on Time.now 
-		body 'Bart2 is the coolest ever!!!'
+		body body
+
+    attachment :content_type => 'application/pdf',
+               :body => File.read("/tmp/#{filename}"),
+               :filename => "validation Rules"
   end  
 end
