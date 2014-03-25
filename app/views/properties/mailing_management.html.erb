@@ -1,0 +1,144 @@
+<style type="text/css">
+  div {
+    -moz-user-select:none;
+  }
+
+  ul{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding-left: 0px;
+  }
+  li{
+    color: black;
+    list-style: none;
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    font-family:"Nimbus Sans L","Arial Narrow",sans-serif;
+    font-size:1.2em;
+  }
+
+</style>
+<script>
+   function confirmDeletion(message, link) {
+    if (!tstMessageBar) {
+
+      var tstMessageBar = document.createElement("div");
+      tstMessageBar.id = "messageBar";
+      tstMessageBar.className = "messageBar";
+
+      tstMessageBar.innerHTML = message + "<br/>" +
+        "<button onmousedown=\"document.getElementById('content').removeChild(document.getElementById('messageBar')); " +
+        "window.location='" + link + "';\"><span>Yes</span>" +
+        "</button><button onmousedown=\"document.getElementById('content').removeChild(document.getElementById('messageBar'));\">" +
+        "<span>No</span></button>";
+
+      tstMessageBar.style.display = "block";
+      document.getElementById("content").appendChild(tstMessageBar);
+    }
+
+    return false;
+
+  }
+</script>
+<table width="100%" style="margin: 0px;" border="0" cellspacing="0">
+  <tr>
+    <td style="font-size: 2.3em; background-color: #6281A7; color: #eee; padding: 15px; text-align: center;">
+      Mailing List Management
+    </td>
+  </tr>
+  <tr>
+    <td style="background-color: #ccc; padding: 5px;">
+      <div style="height: 36.2em; background-color: #fff; overflow: auto; padding: 5px;">
+
+        <div style="display: table; width: 100%; border-spacing: 2px;">
+          <div style="display: table-row; background-color: #999; color: #eee;">
+            <div style="display: table-cell; border: 1px solid #ccc; padding: 5px;
+                 text-align: center; font-weight: bold; width: 40px;">
+              &nbsp;
+            </div>
+            <div style="display: table-cell; border: 1px solid #ccc; padding: 5px;
+                 text-align: center; font-weight: bold; width: 300px;">
+              Name
+            </div>
+            <div style="display: table-cell; border: 1px solid #ccc; padding: 5px;
+                 text-align: center; font-weight: bold;">
+              Address
+            </div>
+          </div>
+
+        </div>
+
+        <div style="height: 34em; border: 1px solid #eee; width: 100%; overflow: auto;">
+
+          <div style="display: table; width: 100%; border-spacing: 0px;">
+
+            <% i = 0 %>
+            <% (@members || []).each do |member|
+             mail = member.split(':')%>
+
+              <% i = i + 1 %>
+
+              <div style="display: table-row;">
+                <div style="display: table-cell; border-bottom: 1px solid #ccc;
+                     border-right: 1px solid #ccc; padding: 5px;
+                     text-align: center; font-weight: bold; width: 40px; vertical-align: top;">
+                     <%= i %>
+                </div>
+                <div style="display: table-cell; border-bottom: 1px solid #ccc;
+                     border-right: 1px solid #ccc; padding: 5px; padding: 5px;
+                     width: 300px; vertical-align: top; font-weight: bold;">
+                     <%= mail[0] %> <%= mail[1] %>
+                </div>
+                <div style="display: table-cell; border-bottom: 1px solid #ccc; padding: 5px; vertical-align: top; ">
+                   <%= mail[2] %>
+                </div>
+
+                <div style="display: table-cell; border-bottom: 1px solid #ccc; padding: 5px; vertical-align: top; ">
+                  <a href="#">
+                  <img src="/touchscreentoolkit/lib/images/cancel_flat_small_red.png" alt="edit"
+                                     style="margin: 5px; border: 1px dotted #efe; padding: 10px;"
+                                     onclick="confirmDeletion('You are about to remove <br/> <%= mail[2] %><br/> Continue?','/properties/edit_members?id=<%= member %>')"/>
+                  </a>
+                </div>
+              </div>
+
+            <% end %>
+            <% if @members.blank? %>
+              <div style="display: table-row;">
+                <div style="display: table-cell; border-bottom: 1px solid #ccc;
+                     border-right: 1px solid #ccc; padding: 5px;
+                     text-align: center; font-weight: bold; width: 40px; vertical-align: top;font-size:25px;">
+                     No Mailing Members.....<br/>
+                     Press <span style="color:blue;">'New Entry'</span> To Add.....
+                </div>
+              </div>
+            <% end %>
+          </div>
+
+        </div>
+
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td style="background-color: #333;">
+      <div style="height: 4.8em;">
+        <button class="green" style="float: right; margin: 8px; width: 150px; margin-right: 20px;"
+                onclick="window.location='/clinic?user_id=<%= params[:user_id] %>'">
+          <span>
+            Finish
+          </span>
+        </button>
+        <button class="blue" style="float: right; margin: 8px; width: 150px; margin-right: 20px;"
+                onclick="window.location='/properties/new_mail?user_id=<%= params[:user_id] %>'">
+          <span>
+            New Entry
+          </span>
+        </button>
+        
+      </div>
+    </td>
+  </tr>
+</table>
