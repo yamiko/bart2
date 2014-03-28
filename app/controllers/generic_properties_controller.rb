@@ -70,6 +70,39 @@ class GenericPropertiesController < ApplicationController
     return wkdays
   end
 
+  def mailing_management
+    @members = GlobalProperty.find_by_property("mailing.members").property_value.split(";") rescue []
+  end
+
+  def edit_members
+    member = params[:id]
+    all_members = GlobalProperty.find_by_property("mailing.members") rescue []
+   
+    if ! all_members.blank?
+        all_members.property_value = all_members.property_value.gsub("#{member};", "")
+        all_members.save
+    end
+    redirect_to "/properties/mailing_management" and return
+  end
+
+  def new_mail
+    if request.post?
+      members = GlobalProperty.find_by_property("mailing.members") rescue nil
+      #raise members.property_value.to_yaml
+      if members.blank?
+         list = GlobalProperty.new()
+         list.property = "mailing.members"
+         list.property_value = "#{params[:first_name]}:#{params[:last_name]}:#{params[:email]};"
+         list.save
+      else
+        members.property_value = "#{members.property_value}#{params[:first_name]}:#{params[:last_name]}:#{params[:email]};"
+        members.save
+      end
+       redirect_to "/properties/mailing_management" and return
+      #raise members.to_yaml
+    end
+  end
+
   def site_code  
     location = Location.find(Location.current_health_center.id)
     @neighborhood_cell = location.neighborhood_cell

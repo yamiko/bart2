@@ -11,8 +11,8 @@ Rails::Initializer.run do |config|
 	config.action_controller.session_store = :active_record_store
 	config.active_record.schema_format = :sql
 
-  #config.action_mailer.perform_deliveries = true
-  #config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
   
 	config.gem 'warden'
 	config.gem 'devise'
@@ -59,15 +59,23 @@ class Mime::Type
   delegate :split, :to => :to_s
 end
 
-class ActionMailer::Base
-  class_inheritable_hash :default
-  def from_with_default(input=nil)
-    return from_without_default(input) || default[:from] if input.nil?
-    from_without_default(input)
-  end
-  alias_method_chain :from, :default
-end
-
 # Foreign key checks use a lot of resources but are useful during development
 ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=0") if ENV['RAILS_ENV'] != 'development'
 require 'will_paginate'
+
+ActionMailer::Base.delivery_method = :smtp
+
+ActionMailer::Base.default_content_type = "text/html"
+
+ActionMailer::Base.smtp_settings = {
+  :address        => "smtp.gmail.com",
+  :enable_starttls_auto => true,
+  :port           => 587,
+  :domain         => "baobabhealth.org",
+  :user_name      => "bartbaobab@gmail.com",
+  :password       => "bartemr@2",
+  :authentication => :plain
+}
+
+
+

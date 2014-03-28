@@ -184,15 +184,16 @@ class GenericDrugController < ApplicationController
     
       edit_reason = params[:reason] rescue ""
       encounter_datetime = params[:delivery_time].to_date rescue []
+    
       if encounter_datetime.blank?
         encounter_datetime = "#{params[:year]}-#{params[:month]}-#{params[:day]}".to_date rescue Date.today
       end
-     
+      
       params[:obs].each{ |delivered|
               
               next if delivered[1]["amount"].to_i == 0
               drug_id = Drug.find_by_name(delivered[0]).id rescue []
-              encounter_datetime = params[:delivery_time].to_date rescue Date.today
+              #encounter_datetime = params[:delivery_time].to_date rescue Date.today
               date_value = delivered[1]['date'].split("/")
               current_century = Date.today.year.to_s.chars.each_slice(2).map(&:join)[0].to_i
 
@@ -467,34 +468,30 @@ class GenericDrugController < ApplicationController
     @end_year = params[:end_date].to_date.year
     @end_month = params[:end_date].to_date.month
     @end_day = params[:end_date].to_date.day
-    month_difference = (params[:end_date].to_date.year * 12 + params[:end_date].to_date.month) - (params[:start_date].to_date.year * 12 + params[:start_date].to_date.month)
-    days_difference = (params[:end_date].to_date.year * 12 + params[:end_date].to_date.month) - (params[:start_date].to_date.year * 12 + params[:start_date].to_date.day)
 
     start_date = params[:start_date].to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = params[:end_date].to_date.strftime('%Y-%m-%d 23:59:59')
 
-    n = params[:end_date].to_date
-    # raise Pharmacy.expected(params[:drug_id], params[:start_date], params[:end_date]).to_yaml
-
-      while n >= params[:start_date].to_date
-        new_deliveries = Pharmacy.expected(params[:drug_id], params[:start_date], n)
-        #raise new_deliveries.to_yaml
-        # new_deliveries = Pharmacy.active.find(:first,
-        # :conditions =>["pharmacy_encounter_type=? AND drug_id =? AND encounter_date >= ? AND encounter_date <= ?",encounter_type, params[:drug_id], params[:start_date], n ],
-        # :order => "encounter_date DESC,date_created DESC")
-        current_stock[n] = (new_deliveries / 60).round #rescue 0
-        n = n - 1.days
-      end
-
-    #new_deliveries.each{|delivery|
-    #  current_stock[delivery.encounter_date] = (delivery.value_numeric / 60 ).round #if current_stock[delivery.drug_id].blank?
-    # }
-
+    dates = DrugOrder.find_by_sql("
+                      SELECT DISTINCT(DATE(start_date)) AS startdate FROM drug_order
+                      INNER JOIN orders o USING(order_id)
+                      WHERE drug_inventory_id = #{params[:drug_id]}
+                      AND DATE(start_date) >= '#{start_date}'
+                      AND DATE(start_date) <= '#{end_date}'")
+ 
+    dates.each {|date|
+          new_deliveries = Pharmacy.expected(params[:drug_id], params[:start_date], date.startdate)
+          current_stock[date.startdate] = (new_deliveries / 60).round 
+    }
+     @name = regimen_name_map[Drug.find(params[:drug_id]).name]
+    
     (current_stock || {}).sort{|a,b|a[0].to_date <=> b[0].to_date}.each do |date,weight|
       @stocks << [date.to_date , weight]
     end
 
-     @stocks = @stocks.sort_by{|atr| atr[0]}.to_json
+    redirect_to "/drug/stock_movement_menu" and return if @stocks.blank?
+    @stocks = @stocks.sort_by{|atr| atr[0]}.to_json
+    
     render :partial => "stoke_chart" and return
   end
   

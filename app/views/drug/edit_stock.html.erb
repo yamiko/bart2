@@ -237,7 +237,7 @@
         select_obs = document.getElementsByClassName('years')
         //alert(yrs)
         for (var i=0; i < select_obs.length; i++){
-          var yr = dt.getFullYear();
+          var yr = dt.getFullYear() - 10;
           for (var x=0; x <=40;x++){
             select_obs[i].options[x] = new Option(yr, yr)
             yr++

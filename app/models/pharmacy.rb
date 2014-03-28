@@ -42,7 +42,7 @@ class Pharmacy < ActiveRecord::Base
     dispensed_encounter = EncounterType.find_by_name('DISPENSING')
     amount_dispensed_concept_id = ConceptName.find_by_name('AMOUNT DISPENSED').concept_id
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
-    #end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     Encounter.find(:first,:joins => "INNER JOIN obs USING(encounter_id)",
                    :select => "SUM(value_numeric) total_dispensed" ,

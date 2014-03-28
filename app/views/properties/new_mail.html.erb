@@ -1,0 +1,207 @@
+<style>
+  .tt_controls_scan_delivery_barcode .keyboard {
+    display: none;
+  }
+
+  #tt_page_scan_delivery_barcode .touchscreenTextInput{
+    position:absolute;
+    top:80px;
+  }
+
+  #Unknown { display: none; }
+   #cover {
+	position: absolute;
+	background-color: black;
+	width: 100%;
+	height: 100%;
+	left: 0%;
+	top: 0%;
+	z-index: 500;
+	opacity: 0.5;
+	align: center;
+	display:none;
+  }
+
+  #newText{
+	top: 40%;
+    	left: 40%;
+	margin-top: -200px;
+    	margin-left: -250px;
+	position: absolute;
+	margin-right:auto;
+	width: 800px;
+	height: 38px;
+	padding-bottom: 10px;
+	font-size: 2em;
+	text-align: left;
+	background-color: white;
+	padding: 10px;
+	z-index: 999;
+	border: 5px outset tomato;
+	border-radius: 15px;
+	z-index: 900;
+	display:none;
+  }
+
+  #alertPage{
+	top: 50%;
+    	left: 40%;
+	margin-top: -200px;
+ 	margin-left: -250px;
+	position: absolute;
+	margin-right:auto;
+	width: 800px;
+	height: 400px;
+	padding-bottom: 10px;
+	font-size: 1em;
+	text-align: center;
+	background-color: white;
+	padding: 10px;
+	z-index: 999;
+	border: 5px outset tomato;
+	border-radius: 15px;
+	z-index: 900;
+  }
+
+  #summary {
+    	top: 60px;
+	overflow:auto;
+	height:450px ! important;
+  }
+
+</style>
+<%= javascript_include_tag 'jquery' %>
+ <script>
+      jQuery(document).ready(function($) {
+
+       $("#barcode").keydown(function(event) {
+         // alert("here")
+        if ( $.inArray(event.keyCode,[46,8,9,27,13,190]) !== -1 ||
+            (event.keyCode == 65 && event.ctrlKey === true) ||
+            (event.keyCode >= 35 && event.keyCode <= 39)) {
+                 return;
+        }
+        else {
+            if (event.shiftKey || (event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105 )) {
+                event.preventDefault();
+            }
+        }
+    });
+   });
+ </script>
+<script language="javascript">
+  var tt_cancel_destination = '/clinic';  // /management';
+
+  var response;
+  var setFocusTimeout = 1000;
+  var checkForBarcodeTimeout = 1500;
+  var xPosition = 0;
+  var drugLength = 1
+  function selectedDrugs(){
+    return
+    drugs = document.getElementById("select_drugs")
+    drugs = getSelectedOptions(drugs)
+    drugLength = drugs.length
+    //var drugArray = [];
+    var myForm = document.getElementById("create_stoke");
+    for (i = 0; i < drugLength; i ++) {
+      //drugArray.push(drugs[i].value)
+      var newOption = document.createElement("input");
+
+      newOption.type = "hidden"
+      newOption.name = 'observations[][concept_name]';
+      newOption.value = drugs[i].value;
+      myForm.appendChild(newOption);
+
+      var newOption = document.createElement("input");
+      newOption.type = "hidden"
+      newOption.id = "observations__obs_value_numeric"
+      newOption.name = "observations[][value_numeric]";
+      newOption.value = drugs[i].value;
+      myForm.appendChild(newOption);
+  }
+
+  }
+
+  function getSelectedOptions(select) {
+    var result = [];
+    var options = select.getElementsByTagName('option');
+    for (var i = 0; i < options.length; i++) {
+        if (options[i].selected)
+            result.push(options[i]);
+    };
+    return result;
+  }
+
+  function loadBarcodePage() {
+    focusForBarcodeInput();
+    moveNext();
+  }
+
+  function focusForBarcodeInput(){
+    var barcode = document.getElementById("touchscreenInput0");
+    if (barcode) {
+      barcode.focus();
+      //window.setTimeout("focusForBarcodeInput()", setFocusTimeout);
+    }
+    window.setTimeout("focusForBarcodeInput()", setFocusTimeout);
+  }
+
+
+  function moveNext(){
+    usertext = document.getElementById("touchscreenInput0");
+    if (usertext && usertext.value.match(/.+\$$/i) != null){
+      usertext.value=usertext.value.substring(0,usertext.value.length -1);
+      gotoNextPage();
+    }
+    window.setTimeout("moveNext()", checkForBarcodeTimeout);
+  }
+  window.addEventListener("load", loadBarcodePage, false);
+
+  function currentExpected(td) {
+    var aUrl = "/drug/current_stock?drug=" + td;
+    var httpRequest = new XMLHttpRequest();
+    httpRequest.onreadystatechange = function() {
+      set_number(httpRequest);
+    };
+
+    httpRequest.open('GET', aUrl, false);
+    httpRequest.send(null);
+    return response;
+  }
+
+  function set_number(req) {
+    if (req.readyState == 4 && req.status == 200) {
+      response = JSON.parse(req.responseText);
+    }
+  }
+  <% options = "<option>" "" "</option>"
+    #raise @drugs.to_yaml
+   
+      #raise drug[0].to_yaml
+      options += "<option value = ''>Name</option>"
+   
+%>
+</script>
+
+<form id="create_stoke" name="create_stoke" action="new_mail" method="post">
+
+         <input type='text' 
+                name='first_name'
+                id="first_name"
+                helptext="First Name"
+                />
+
+         <input type='text'
+              name='last_name'
+              id="last_name"
+              helptext="Last Name"
+              />
+
+         <input type='text'
+              name='email'
+              id="email"
+              helptext="Email Address"
+              />
+
+  </form>
