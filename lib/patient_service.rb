@@ -378,13 +378,13 @@ module PatientService
           "family_name" => person_obj.names.first.family_name,
           "family_name2" => person_obj.names.first.family_name2
         },
-         "addresses"=>{"address1"=>person_obj.addresses.first.address1,
-            "address2"=>person_obj.addresses.first.address2,
-            "city_village"=>person_obj.addresses.first.city_village,
-            "state_province"=>person_obj.addresses.first.state_province,
-            "neighborhood_cell"=>person_obj.addresses.first.neighborhood_cell,
-            "county_district"=>person_obj.addresses.first.county_district},
-        
+         "addresses"=>{"address1"=>(person_obj.addresses.first.address1 rescue ''),
+            "address2"=>(person_obj.addresses.first.address2 rescue ''),
+            "city_village"=>(person_obj.addresses.first.city_village rescue ''),
+            "state_province"=>(person_obj.addresses.first.state_province rescue ''),
+            "neighborhood_cell"=>(person_obj.addresses.first.neighborhood_cell rescue ''),
+            "county_district"=>(person_obj.addresses.first.county_district rescue '')},
+       
         "attributes" => {"occupation" => self.get_attribute(person_obj, 'Occupation'),
           "cell_phone_number" => self.get_attribute(person_obj, 'Cell Phone Number'),
 					"home_phone_number" => self.get_attribute(person_obj, 'Home Phone Number'),
