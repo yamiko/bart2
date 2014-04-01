@@ -549,7 +549,7 @@ module ApplicationHelper
 
     milestones.each do |key, value|
           grace_period = value.last - value.first
-          mile_stone_date = arv_start_date + key.months
+          mile_stone_date = (arv_start_date + key.months).beginning_of_month
           mile_stone_grace_period = mile_stone_date + grace_period.months
           
           if (viral_load_popup_activated(arv_start_date, patient, period_on_art_in_months) && latest_viral_results_date.blank?)
@@ -640,7 +640,7 @@ module ApplicationHelper
 
     milestones.each do |key, value|
           grace_period = value.last - value.first
-          mile_stone_date = arv_start_date + key.months
+          mile_stone_date = (arv_start_date + key.months).beginning_of_month
           mile_stone_grace_period = mile_stone_date + grace_period.months
 
           if (vl_without_results_activated(arv_start_date, patient, period_on_art_in_months))
@@ -702,7 +702,7 @@ module ApplicationHelper
 
     milestones.each do |key, value|
           grace_period = value.last - value.first
-          mile_stone_date = arv_start_date + key.months
+          mile_stone_date = (arv_start_date + key.months).beginning_of_month
           mile_stone_grace_period = mile_stone_date + grace_period.months
 
           if (vl_without_results_activated(arv_start_date, patient, period_on_art_in_months) && latest_viral_results_date.blank?)
@@ -727,6 +727,7 @@ module ApplicationHelper
           if (period_on_art_in_months >= key && period_on_art_in_months <= value.last)
             
            milestone_exceeded = false
+
             if (today >= mile_stone_date && today <=  mile_stone_grace_period)
               return true if latest_viral_results_date.blank?
                if (latest_viral_results_date >= valid_min_date && latest_viral_results_date <= today)
