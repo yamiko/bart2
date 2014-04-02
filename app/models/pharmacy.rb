@@ -248,7 +248,8 @@ SELECT sum(value_numeric) FROM pharmacy_obs p
 INNER JOIN pharmacy_encounter_type t ON t.pharmacy_encounter_type_id = p.pharmacy_encounter_type
 AND pharmacy_encounter_type_id = #{encounter_type}                              
 WHERE p.voided=0 AND drug_id=#{drug_id}                                         
-AND p.encounter_date >='#{start_date} 00:00:00' AND p.encounter_date <='#{end_date}'
+AND p.encounter_date >='#{start_date.to_date.strftime('%Y-%m-%d 00:00:00')}' 
+AND p.encounter_date <='#{end_date.to_date.strftime('%Y-%m-%d 23:59:59')}'
 GROUP BY drug_id ORDER BY encounter_date                                        
 EOF
                                                                              
@@ -262,7 +263,8 @@ SELECT sum(value_numeric) FROM pharmacy_obs p
 INNER JOIN pharmacy_encounter_type t ON t.pharmacy_encounter_type_id = p.pharmacy_encounter_type
 AND pharmacy_encounter_type_id = #{encounter_type}                              
 WHERE p.voided=0 AND drug_id=#{drug_id}                                         
-AND p.encounter_date >='#{start_date} 00:00:00' AND p.encounter_date <='#{end_date}'
+AND p.encounter_date >='#{start_date.to_date.strftime('%Y-%m-%d 00:00:00')}' 
+AND p.encounter_date <='#{end_date.to_date.strftime('%Y-%m-%d 23:59:59')}'
 GROUP BY drug_id ORDER BY encounter_date                                        
 EOF
                                                                           

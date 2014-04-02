@@ -1231,7 +1231,9 @@ class CohortToolController < GenericCohortToolController
       #  sleep(3)
        # print(file, current_printer)
        send_email
-       File.delete("#{file}")
+       if (File.exists?(file))
+         File.delete("#{file}")
+       end
      # }
     # raise t2.to_yaml
     #+ redirect_to :action => 'rule_variables' and return

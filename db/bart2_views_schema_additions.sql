@@ -143,9 +143,11 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
          `obs`.`value_complex` AS `value_complex`,
          `obs`.`uuid` AS `uuid` 
   FROM `obs`
+  INNER JOIN `person` ON ((`person`.`person_id` = `obs`.`person_id`))
   WHERE ((`obs`.`concept_id` IN (6131,1755)) AND
          (`obs`.`value_coded` = 1065) AND
-         (`obs`.`voided` = 0));
+         (`obs`.`voided` = 0) AND
+         (`person`.`gender` = 'F'));
 
 CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
   VIEW `patient_state_on_arvs` AS
@@ -481,17 +483,37 @@ DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_state_for_program`(my_patient_id INT, my_program_id INT, my_end_date DATETIME) RETURNS int(11)
 BEGIN
   SET @state_id = NULL;
-	SELECT  patient_program_id INTO @patient_program_id FROM patient_program 
-			WHERE patient_id = my_patient_id 
-				AND program_id = my_program_id 
-				AND voided = 0 
+  SET @new_state_id = NULL;
+	SELECT  patient_program_id INTO @patient_program_id FROM patient_program
+			WHERE patient_id = my_patient_id
+				AND program_id = my_program_id
+				AND voided = 0
 				ORDER BY patient_program_id DESC LIMIT 1;
 
-	SELECT state INTO @state_id FROM patient_state 
+  	SELECT start_date INTO @start_date FROM patient_state
 		WHERE patient_program_id = @patient_program_id
 			AND voided = 0
 			AND start_date <= my_end_date
 		ORDER BY start_date DESC, date_created DESC, patient_state_id DESC LIMIT 1;
+
+	SELECT state INTO @state_id FROM patient_state
+		WHERE patient_program_id = @patient_program_id
+			AND voided = 0
+			AND start_date <= my_end_date
+		ORDER BY start_date DESC, date_created DESC, patient_state_id DESC LIMIT 1;
+
+   IF ( @state_id != 3 ) THEN
+      SELECT state INTO @new_state_id FROM patient_state
+		   WHERE patient_program_id = @patient_program_id
+			AND voided = 0
+			AND start_date = @start_date
+         AND state = 3
+		ORDER BY start_date DESC, date_created DESC, patient_state_id DESC LIMIT 1;
+   END IF;
+
+    IF ( @new_state_id IS NOT NULL ) THEN
+        RETURN @new_state_id;
+    END IF;
 
 	RETURN @state_id;
 END */;;
