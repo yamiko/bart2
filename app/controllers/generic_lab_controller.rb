@@ -181,8 +181,25 @@ class GenericLabController < ApplicationController
     lab_parameter.TimeStamp = Time.now()                                        
     lab_parameter.Range = test_modifier                                         
     lab_parameter.save
-
-
+#This is for viral load feature
+#Needs to be reworked
+=begin
+    unless params[:result_given].blank?
+      patient = Patient.find(params[:patient_id])
+      type = EncounterType.find_by_name("REQUEST")
+      encounter = patient.encounters.current.find_by_encounter_type(type.id)
+      encounter ||= patient.encounters.create(:encounter_type => type.id)
+      observation = {}
+          observation[:concept_name] = "DATE OF RETURNED RESULT"
+          observation[:encounter_id] = encounter.id
+          observation[:accession_number] = lab_parameter.Sample_ID
+          observation[:obs_datetime] = encounter.encounter_datetime || Time.now()
+          observation[:person_id] ||= encounter.patient_id
+          observation[:value_datetime] = params[:date_result_given]
+          observation[:value_text] 
+          Observation.create(observation)
+    end
+=end
     redirect_to :action => "results" , :id => patient_bean.patient_id
   end
 
