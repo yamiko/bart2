@@ -328,7 +328,12 @@ class Cohort
 				cohort_report['TB not suspected'] = tb_status_outcomes['TB STATUS']['Not Suspected']
 				cohort_report['TB confirmed not treatment'] = tb_status_outcomes['TB STATUS']['Not on treatment']
 				cohort_report['TB confirmed on treatment'] = tb_status_outcomes['TB STATUS']['On Treatment']
-				cohort_report['TB Unknown'] = tb_status_outcomes['TB STATUS']['Unknown']
+				#cohort_report['TB Unknown'] = tb_status_outcomes['TB STATUS']['Unknown']
+				cohort_report['TB Unknown'] = cohort_report['Total alive and on ART'] -
+				                              ((cohort_report['TB suspected']  || []) +
+				                               (cohort_report['TB not suspected'] || []) +
+				                               (cohort_report['TB confirmed not treatment'] || []) +
+				                               (cohort_report['TB confirmed on treatment'] || []))
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
