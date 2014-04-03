@@ -807,23 +807,39 @@ BEGIN
 	DECLARE my_daily_dose, my_quantity, my_pill_count, my_total_text, my_total_numeric DECIMAL;
 	DECLARE my_drug_id, flag INT;
 
-	DECLARE cur1 CURSOR FOR SELECT d.drug_inventory_id, o.start_date, d.equivalent_daily_dose daily_dose, d.quantity, o.start_date FROM drug_order d
-		INNER JOIN arv_drug ad ON d.drug_inventory_id = ad.drug_id		
-		INNER JOIN orders o ON d.order_id = o.order_id
-			AND d.quantity > 0
-			AND o.voided = 0
-			AND o.start_date <= my_end_date
-			AND o.patient_id = my_patient_id;
+	DECLARE cur1 CURSOR FOR SELECT d.drug_inventory_id, o.start_date, d.equivalent_daily_dose daily_dose, obs.value_numeric, o.start_date FROM obs
+                            INNER join encounter USING (encounter_id)
+                            INNER JOIN drug_order d ON obs.order_id = d.order_id
+                            INNER JOIN orders o ON o.order_id = d.order_id
+                            WHERE encounter_type = (SELECT encounter_type_id FROM encounter_type WHERE name = 'DISPENSING')
+                            AND d.drug_inventory_id IN (SELECT drug_id FROM drug
+                            WHERE concept_id IN (SELECT concept_id
+                            FROM concept_set
+                            WHERE concept_set = 1085))
+                            AND obs.concept_id = 2834
+                            AND d.quantity > 0
+                            AND o.voided = 0
+                            AND obs.voided = 0
+                            AND DATE(o.start_date) <= my_end_date
+                            AND encounter.patient_id = my_patient_id;
 
 	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-	SELECT MAX(o.start_date) INTO @obs_datetime FROM drug_order d
-		INNER JOIN arv_drug ad ON d.drug_inventory_id = ad.drug_id		
-		INNER JOIN orders o ON d.order_id = o.order_id
-			AND d.quantity > 0
-			AND o.voided = 0
-			AND o.start_date <= my_end_date
-			AND o.patient_id = my_patient_id
+	SELECT MAX(o.start_date) INTO @obs_datetime  FROM obs
+                            INNER join encounter USING (encounter_id)
+                            INNER JOIN drug_order d ON obs.order_id = d.order_id
+                            INNER JOIN orders o ON o.order_id = d.order_id
+                            WHERE encounter_type = (SELECT encounter_type_id FROM encounter_type WHERE name = 'DISPENSING')
+                            AND d.drug_inventory_id IN (SELECT drug_id FROM drug
+                            WHERE concept_id IN (SELECT concept_id
+                            FROM concept_set
+                            WHERE concept_set = 1085))
+                            AND obs.concept_id = 2834
+                            AND d.quantity > 0
+                            AND o.voided = 0
+                            AND obs.voided = 0
+                            AND DATE(o.start_date) <= my_end_date
+                            AND encounter.patient_id = my_patient_id
 		GROUP BY o.patient_id;
 
 	OPEN cur1;
