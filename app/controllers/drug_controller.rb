@@ -90,6 +90,7 @@ class DrugController < GenericDrugController
     arv_drugs += Drug.find(:all, :conditions => ["name IN (?)", cotrim_drugs])
     end_date = params[:date]
     relocations = {}
+    
     arv_drugs.each do |drug|
       
       p_start_date = Pharmacy.first_delivery_date(drug.drug_id)
@@ -102,9 +103,11 @@ class DrugController < GenericDrugController
       clinic_verified = Pharmacy.verify_closing_stock_count(drug.drug_id,start_date,end_date, type="clinic", true)
       supervision_verified = Pharmacy.verify_closing_stock_count(drug.drug_id,start_date,end_date, type="supervision", true)
       drug_relocation = Pharmacy.relocated(drug.drug_id,start_date,end_date)
+      new_deliveries =  Pharmacy.delivered(drug.drug_id,start_date,end_date)
 
       stocks[drug.name] = {}
       relocations[drug.name] = {}
+      
       stocks[drug.name]["Total prescribed"] = total_prescribed
       stocks[drug.name]["Total delivered"] = total_delivered
       stocks[drug.name]["Total dispensed"] = total_dispensed
@@ -112,6 +115,7 @@ class DrugController < GenericDrugController
       stocks[drug.name]["Clinic verification"] = clinic_verified
       stocks[drug.name]["Supervision verification"] = supervision_verified
       relocations[drug.name]["relocated"] = drug_relocation
+      stocks[drug.name]["New delivery"] = new_deliveries
 
     end
 
