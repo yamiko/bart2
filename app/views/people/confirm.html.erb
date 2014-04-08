@@ -35,13 +35,80 @@
 
       </style>
     <% end %>
+    <style>
+      #vl_data{
+        position: absolute;
+        -moz-user-select: none;
+        background-color: #FFFFFF;
+        border: 1px solid #999999;
+        border-radius: 20px 20px 20px 20px;
+        display: table;
+        margin: 5px;
+        overflow: hidden;
+        padding: 10px;
+        width: 30%;
+        z-index: 800;
+        right: 10px;
+        top: 8%;
+        height: 167px;
+        }
 
+      #vl_update {
+        position: absolute;
+        border-radius: 17px;
+        background-color:	#BDB76B;
+        border-bottom: 1px outset black;
+        border-style: outset;
+        border-top: 1px outset black;
+        color: white;
+        padding: 4px 8px 8px 4px;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 14pt;
+        width: 44%;
+        left: 29%;
+      }
+      #update_vl_menu{
+        border-radius: 10px;
+        position: absolute;
+        background-color: #DCDCDC;
+        border: 1px outset black;
+        height: 50%;
+        z-index: 991;
+        left: 40%;
+        top:20%;
+        width: 60%;
+        left: 20%;
+      }
+      #update_vl_button{
+        display: block;
+        border-radius: 17px;
+        background-color: #BDB76B;
+        border-style: outset;
+        padding: 19px 21px 18px 45px;
+        cursor: pointer;
+        width: 40%;
+        margin-left: 20%;
+        text-align: center;
+      }
+      
+    </style>
     <script>
 
       jQuery(document).ready(function() {
         loadChart();
+        //addDivToContent()
       });
 
+      function addDivToContent(){
+        c = document.getElementById('content');
+        v = document.getElementById('vl_data');
+        c.appendChild(v);
+      }
+      window.setTimeout("addDivToContent();", 250);
+      
       var patientDash = "/patients/show/<%= params[:found_person_id] %>"
       tt_cancel_destination = "/clinic";
 
@@ -145,6 +212,21 @@ function cancelOperation(action){
   
 			
   setTimeout('reSize()',500);
+
+  function updateVl(){
+    content = document.getElementById('content');
+    vl_menu = document.getElementById('update_vl_menu');
+    content.appendChild(vl_menu);
+    vl_menu.style.display = 'inline';
+    document.getElementById('cover').style.display='inline'
+  }
+
+  function removeUpdateVlMenu(){
+    vl_menu = document.getElementById('update_vl_menu')
+    vl_menu.style.display='none'
+    cover = document.getElementById('cover')
+    cover.style.display='none'
+  }
     </script>
   </head>
   <body onload = "setTimeout('changeAttributes()',500);">
@@ -152,10 +234,11 @@ function cancelOperation(action){
     task_name = (task.encounter_type || 'NONE').upcase rescue 'NONE' %>
 
     <form id = 'dashboard' action='/clinic'>
+      <!--
       <div id='project_name'>
-        <%=what_app?%>
-      </div>
-
+        <%#=what_app?%>
+      </div>-->
+      
       <span id='patient_name'><%= @patient_bean.name rescue "" %></span>
       <span id='patient_id'><%= @patient_bean.national_id_with_dashes rescue "" %></span>
       <span id='patient_residence'><%= @patient_bean.current_residence rescue "" %></span>
@@ -558,7 +641,7 @@ function cancelOperation(action){
       font-weight: bold;
       font-size: 14pt;
     }
-    
+
   </style>
 
 
@@ -699,5 +782,40 @@ function cancelOperation(action){
       </div>
   <% end %>
 <% end %>
+<div id="vl_data">
+  <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">HIV VIRAL LOAD</span>
+  <hr style="margin-left:-2%; width:104%;"></hr>
+        <div id="vl_details">
+          <table style="position:absolute; left:14%;">
+            <tr>
+              <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Viral load </td>
+              <td style="text-align: right">:  12345&nbsp;</td>
+            </tr>
+            <tr>
+              <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Date of Sample</td>
+              <td style="text-align: right">:  12345&nbsp;</td>
+            </tr>
+            <tr>
+              <td style="font-weight: bold; font-size: 1em; padding: 2px; width: 61%;">Date given to patient</td>
+              <td style="text-align: right">:  12345&nbsp;</td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <span id='vl_update' onclick="updateVl();"><span>update</span></span>
+              </td>
+            </tr>
+          </table>
+        </div>
+ </div>
+      <div id="cover">
+      </div>
+      <div id="update_vl_menu" style="display:none">
+        <div><br />
+          <span id="update_vl_button">Result given to patient</span><br />
+          <span id="update_vl_button">Enter new VL result</span><br />
+          <span id="update_vl_button">Patient switched to second line</span><br />
+          <span id="update_vl_button" onClick="removeUpdateVlMenu();">Back to milestone screening</span>
+        </div>
+      </div>
 </body>
 </html>
