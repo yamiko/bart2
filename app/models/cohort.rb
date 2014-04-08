@@ -711,6 +711,7 @@ class Cohort
       INNER JOIN concept_name c ON c.concept_id = pw.concept_id
       WHERE earliest_start_date <= '#{@end_date}'
       AND  name = '#{concept_name}'
+      AND death_date IS NOT NULL
       AND DATEDIFF(death_date, earliest_start_date) BETWEEN #{min_days} AND #{max_days}").each do | patient |
 							patients << patient.patient_id
 					end
@@ -839,7 +840,9 @@ class Cohort
   def outcomes_total(outcome, start_date=@start_date, end_date=@end_date)
     #raise outcome.to_yaml
     concept_name = ConceptName.find_all_by_name(outcome)
-    
+    if outcome == 'PATIENT DIED'
+      condition = " AND death_date IS NOT NULL"
+    end
     state = ProgramWorkflowState.find(:first, :conditions => ["concept_id IN (?)",concept_name.map{|c|c.concept_id}] ).program_workflow_state_id
 		patients = []
 
@@ -847,7 +850,7 @@ class Cohort
                                 INNER JOIN  program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(p.patient_id, 1, '#{end_date}')
                                 INNER join earliest_start_date e ON e.patient_id = p.patient_id
                                 INNER JOIN concept_name c ON c.concept_id = pw.concept_id
-                                WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
+                                WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' #{condition}
                                 AND  name = '#{outcome}'").each do | patient |
 			patients << patient.patient_id.to_i
 		end
