@@ -411,14 +411,23 @@ class Cohort
 				cohort_report['Newly registered children'] +
 				cohort_report['Newly registered infants'])
 
+    #Calculation of No TB has been changed temporarily to match that of BART 1.
+    #This might be changed again after thorough discussions on how to pull TB within the last 2 years.
+    #In BART1 we do not subtract Current episode of TB from TB within the past 2 years which was the case 
+    #in BART2.
+    
+    #This change has also been implemented in cohort_validation model.
 		current_episode = cohort_report['Current episode of TB']
 		total_current_episode = cohort_report['Total Current episode of TB']
 
-		cohort_report['TB within the last 2 years'] = cohort_report['TB within the last 2 years'] - current_episode
-		cohort_report['Total TB within the last 2 years'] = cohort_report['Total TB within the last 2 years'] - total_current_episode
-		
-		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (current_episode + cohort_report['TB within the last 2 years']))
-		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (total_current_episode + cohort_report['Total TB within the last 2 years']))
+		cohort_report['tb_with_the_last_2yrs'] = cohort_report['TB within the last 2 years'] - current_episode
+		cohort_report['total_tb_within_the_last_2yrs'] = cohort_report['Total TB within the last 2 years'] - total_current_episode
+
+		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (current_episode + cohort_report['tb_with_the_last_2yrs']))
+		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (total_current_episode + cohort_report['total_tb_within_the_last_2yrs']))
+
+		cohort_report['No TB on report'] = (cohort_report['Newly total registered'].length - (current_episode.length + cohort_report['TB within the last 2 years'].length))
+		cohort_report['Total No TB on report'] = (cohort_report['Total registered'].length - (total_current_episode.length + cohort_report['Total TB within the last 2 years'].length))
 
 		#cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_quarterly)
 		#cohort_report['Total Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_cumulative)
