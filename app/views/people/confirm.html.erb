@@ -227,6 +227,11 @@ function cancelOperation(action){
     cover = document.getElementById('cover')
     cover.style.display='none'
   }
+
+  function newVlResultPath(){
+    <%  person_id =  params[:found_person_id] %>
+    window.location = "/lab/viral_load_result?patient_id=<%= person_id %>"
+  }
     </script>
   </head>
   <body onload = "setTimeout('changeAttributes()',500);">
@@ -812,7 +817,7 @@ function cancelOperation(action){
       <div id="update_vl_menu" style="display:none">
         <div><br />
           <span id="update_vl_button">Result given to patient</span><br />
-          <span id="update_vl_button">Enter new VL result</span><br />
+          <span id="update_vl_button" onclick="newVlResultPath();">Enter new VL result</span><br />
           <span id="update_vl_button">Patient switched to second line</span><br />
           <span id="update_vl_button" onClick="removeUpdateVlMenu();">Back to milestone screening</span>
         </div>
