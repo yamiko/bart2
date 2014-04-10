@@ -121,6 +121,10 @@ class GenericLabController < ApplicationController
 =end
     return identifiers
   end
+
+  def viral_load_result
+    
+  end
   
   def new
     @available_test = LabTestType.available_test                                
