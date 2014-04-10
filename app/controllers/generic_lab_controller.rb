@@ -123,7 +123,8 @@ class GenericLabController < ApplicationController
   end
 
   def viral_load_result
-    
+    person_id = params[:person_id] || params[:patient_id]
+    @patient = Patient.find(person_id)
   end
   
   def new
