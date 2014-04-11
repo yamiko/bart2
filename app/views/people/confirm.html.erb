@@ -46,10 +46,10 @@
         margin: 5px;
         overflow: hidden;
         padding: 10px;
-        width: 30%;
+        width: 36%;
         z-index: 800;
         right: 10px;
-        top: 8%;
+        top: 5%;
         height: 167px;
         }
 
@@ -68,7 +68,7 @@
         font-weight: bold;
         font-size: 14pt;
         width: 44%;
-        left: 29%;
+        left: 21%;
       }
       #update_vl_menu{
         border-radius: 10px;
@@ -796,18 +796,18 @@ function cancelOperation(action){
   <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">HIV VIRAL LOAD</span>
   <hr style="margin-left:-2%; width:104%;"></hr>
         <div id="vl_details">
-          <table style="position:absolute; left:14%;">
+          <table style="position:absolute; left:14%; width: 80%;">
             <tr>
               <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Viral load </td>
-              <td style="text-align: right">:  12345&nbsp;</td>
+              <td style=""><%= @latest_result %></td>
             </tr>
             <tr>
               <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Date of Sample</td>
-              <td style="text-align: right">:  12345&nbsp;</td>
+              <td style=""><%= @latest_date %></td>
             </tr>
             <tr>
-              <td style="font-weight: bold; font-size: 1em; padding: 2px; width: 61%;">Date given to patient</td>
-              <td style="text-align: right">:  12345&nbsp;</td>
+              <td style="font-weight: bold; font-size: 1em; padding: 2px; max-width: 61%;">Date given to patient</td>
+              <td style=""></td>
             </tr>
             <tr>
               <td colspan="2">

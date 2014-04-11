@@ -94,7 +94,7 @@ function resetPad() {
 
 </script>
 
-<% form_tag '', :method => :post do %>
+<% form_tag 'create_viral_load_result', :method => :post do %>
 <%  
    optionsString = "<option>" "" "</option>"
   1.upto(12){ |number| 
@@ -163,5 +163,6 @@ function resetPad() {
      :tt_pageStyleClass => "NoKeyboard"})  %>
 
 <%= hidden_field_tag "patient_id", @patient.id %>
+<%= hidden_field_tag "lab_result", "HIV_DNA_PCR" %>
 
 <%end%>
