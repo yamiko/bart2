@@ -17,7 +17,7 @@
 
 </script>
 
-<% form_tag '', :method => :post do %>
+<% form_tag 'result_given_to_patient', :method => :post do %>
 <%  
    optionsString = "<option>" "" "</option>"
   1.upto(12){ |number| 
@@ -51,5 +51,5 @@
      :helpText => 'Date result given to patient(Day)',
      :tt_pageStyleClass => "NoKeyboard"})  %>
 
-
+<%= hidden_field_tag("patient_id", params[:patient_id]) %>
 <%end%>

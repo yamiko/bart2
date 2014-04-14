@@ -218,7 +218,7 @@ class GenericLabController < ApplicationController
     obs.encounter_id = enc.id
     obs.save
   end
-  
+  redirect_to("/people/confirm?found_person_id=#{params[:patient_id]}")
   end
 
   def patient_switched_to_second_line

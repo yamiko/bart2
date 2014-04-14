@@ -93,7 +93,9 @@
         margin-left: 20%;
         text-align: center;
       }
-      
+      #gray_button{
+        background-color: gray;
+      }
     </style>
     <script>
 
@@ -799,15 +801,15 @@ function cancelOperation(action){
           <table style="position:absolute; left:14%; width: 80%;">
             <tr>
               <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Viral load </td>
-              <td style=""><%= @latest_result %></td>
+              <td style=""><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
             </tr>
             <tr>
               <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Date of Sample</td>
-              <td style=""><%= @latest_date %></td>
+              <td style=""><%= @latest_date.strftime("%a, %m-%b-%Y") rescue nil %></td>
             </tr>
             <tr>
               <td style="font-weight: bold; font-size: 1em; padding: 2px; max-width: 61%;">Date given to patient</td>
-              <td style=""></td>
+              <td id="gray_button" style=""></td>
             </tr>
             <tr>
               <td colspan="2">
