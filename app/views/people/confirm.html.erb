@@ -95,6 +95,8 @@
       }
       #gray_button{
         background-color: gray;
+        border-radius: 10px;
+        /*width: 50%;*/
       }
     </style>
     <script>
@@ -806,15 +808,27 @@ function cancelOperation(action){
           <table style="position:absolute; left:14%; width: 80%;">
             <tr>
               <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Viral load </td>
+              <% unless @latest_result.blank?%>
               <td style=""><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
+              <% else %>
+                <td id="gray_button" style=""></td>
+              <% end %>
             </tr>
             <tr>
               <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Date of Sample</td>
-              <td style=""><%= @latest_date.strftime("%a, %m-%b-%Y") rescue nil %></td>
+              <% unless  @latest_date.blank?%>
+              <td style=""><%= @latest_date.strftime("%a, %d-%b-%Y") rescue nil %></td>
+              <% else %>
+                <td id="gray_button" style=""></td>
+              <% end %>
             </tr>
             <tr>
               <td style="font-weight: bold; font-size: 1em; padding: 2px; max-width: 61%;">Date given to patient</td>
-              <td id="gray_button" style=""></td>
+              <% unless @date_vl_result_given.blank?%>
+                <td style=""><%= @date_vl_result_given.strftime("%a, %d-%b-%Y") %></td>
+              <% else %>
+                <td id="gray_button" style=""></td>
+              <%  end %>
             </tr>
             <tr>
               <td colspan="2">
