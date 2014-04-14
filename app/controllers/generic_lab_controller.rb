@@ -186,7 +186,7 @@ class GenericLabController < ApplicationController
   end
 
   def result_given_to_patient
-    raise params.to_yaml
+ 
     patient_id = params[:patient_id]
     year_given = params[:year_given]
     month_given = params[:month_given]
@@ -234,7 +234,6 @@ class GenericLabController < ApplicationController
       :conditions => ["person_id =? AND encounter_type =? AND concept_id =? AND value_text REGEXP ?", patient_id, encounter_type,
         viral_load, 'Patient switched to second line'])
 
-    raise patient_switched_to_second_line_obs.to_yaml
       if (patient_switched_to_second_line_obs.blank?)
         enc = Encounter.new
         enc.encounter_type = encounter_type
@@ -253,6 +252,7 @@ class GenericLabController < ApplicationController
         obs.encounter_id = enc.id
         obs.save
       end
+      
   redirect_to("/people/confirm?found_person_id=#{params[:patient_id]}")
   end
   
