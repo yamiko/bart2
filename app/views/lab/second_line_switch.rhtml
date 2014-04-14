@@ -1,0 +1,55 @@
+<style>
+
+.tt_controls_test_result #date,#minus,#abc,#comma,#qwerty,
+  #slash,#percent,#star,#plus,#date,#Unknown,#char,#backspace {     
+  display:none;                                                               
+}
+
+.tt_controls_test_date #Unknown { display: none; }
+
+
+</style>
+
+<script>
+   tt_cancel_destination = "/people/confirm?found_person_id=<%=params[:patient_id]%>";
+
+
+
+</script>
+
+<% form_tag 'patient_switched_to_second_line', :method => :post do %>
+<%  
+   optionsString = "<option>" "" "</option>"
+  1.upto(12){ |number| 
+   optionsString += "<option value = '" + number.to_s + "'>" + Date::MONTHNAMES[number] + "</option>"
+  }
+%>
+
+<%  day=Array.new(31){|d|d + 1 }
+    options = "<option>" "" "</option>"
+    day.each{ |number| 
+       options += "<option value = '" + number.to_s + "'>" + number.to_s + "</option>"
+      }
+%>
+
+
+<%= text_field_tag :year_switched, nil,
+      {
+      :id => "test_year",
+      :helpText => "Date the patient switched(Year)",
+      :field_type => 'number',
+      :tt_pageStyleClass => "Numeric NumbersOnly",
+      :absoluteMax => Date.today.year} %>
+
+<%=  select_tag(:month_switched, optionsString,
+      {:field_type => 'alpha',
+       :helpText => "Date the patient switched(Month)",
+       :tt_pageStyleClass => "NoKeyboard"})%>
+
+<%= select_tag(:day_switched, options,
+    {:field_type => 'number',
+     :helpText => 'Date the patient switched(Day)',
+     :tt_pageStyleClass => "NoKeyboard"})  %>
+
+<%= hidden_field_tag("patient_id", params[:patient_id]) %>
+<%end%>

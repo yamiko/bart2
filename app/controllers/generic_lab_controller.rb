@@ -197,7 +197,7 @@ class GenericLabController < ApplicationController
     viral_load = Concept.find_by_name("Hiv viral load").concept_id
     today_result_given_obs = Observation.find(:last, :joins => [:encounter], :conditions => ["
         person_id =? AND DATE(encounter_datetime) =? AND encounter_type =? AND
-        concept_id =? AND AND value_text REGEXP ?", patient_id, Date.today, encounter_type, 
+        concept_id =? AND value_text REGEXP ?", patient_id, Date.today, encounter_type, 
         viral_load, 'Result given to patient'])
 
   if (today_result_given_obs.blank?)
@@ -222,7 +222,38 @@ class GenericLabController < ApplicationController
   end
 
   def patient_switched_to_second_line
+    patient_id = params[:patient_id]
 
+    year_switched = params[:year_switched]
+    month_switched = params[:month_switched]
+    day_switched = params[:day_switched]
+    date_switched = (year_switched.to_s + '-' + month_switched.to_s + '-' + day_switched).to_date
+    encounter_type = EncounterType.find_by_name("REQUEST").id
+    viral_load = Concept.find_by_name("Hiv viral load").concept_id
+    patient_switched_to_second_line_obs = Observation.find(:last, :joins => [:encounter], 
+      :conditions => ["person_id =? AND encounter_type =? AND concept_id =? AND value_text REGEXP ?", patient_id, encounter_type,
+        viral_load, 'Patient switched to second line'])
+
+    raise patient_switched_to_second_line_obs.to_yaml
+      if (patient_switched_to_second_line_obs.blank?)
+        enc = Encounter.new
+        enc.encounter_type = encounter_type
+        enc.patient_id = 		patient_id
+        enc.creator = current_user.id
+        enc.location_id = Location.current_location
+        enc.save
+
+        obs = Observation.new
+        obs.person_id = patient_id
+        obs.creator = current_user.id
+        obs.location_id = Location.current_location
+        obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
+        obs.value_text = "Patient switched to second line"
+        obs.value_datetime = date_switched
+        obs.encounter_id = enc.id
+        obs.save
+      end
+  redirect_to("/people/confirm?found_person_id=#{params[:patient_id]}")
   end
   
   def new
