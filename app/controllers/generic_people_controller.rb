@@ -334,7 +334,7 @@ class GenericPeopleController < ApplicationController
 		@relation = params[:relation]
 		@person = Person.find(@found_person_id) rescue nil
 		patient = @person.patient
-		#@outcome = patient.patient_programs.last.patient_states.last.program_workflow_state.concept.fullname rescue nil
+		@outcome = patient.patient_programs.last.patient_states.last.program_workflow_state.concept.fullname rescue nil
 
 		@pp = PatientProgram.find(:first, :joins => :location, :conditions => ["program_id = ? AND patient_id = ?", Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id,@person.id]).patient_states.last.program_workflow_state.concept.fullname	rescue ""
 		

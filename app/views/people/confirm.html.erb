@@ -113,6 +113,24 @@
         color: gray;
         font-size: 14pt;
       }
+      .popup_vl{
+        border-radius: 10px !important;
+        position: absolute;
+        background-color: #DCDCDC;
+        border: 3px solid black !important;
+        height: 45% !important;
+        left: 40% !important;
+        top:20% !important;
+        width: 45% !important;
+        left: 20% !important;
+      }
+
+      #close{
+        height: 18%;
+        width: 11%;
+        position: absolute;
+        left: 87%;
+      }
     </style>
     <script>
 
@@ -161,6 +179,8 @@
 			
   function showPopup(){
     popup = document.getElementById('popup')
+    content = document.getElementById('content')
+    content.appendChild(popup)
     if (typeof popup != 'undefined'){
       document.getElementById('popup').style.display='inline'
       document.getElementById('cover').style.display='inline'
@@ -517,11 +537,11 @@ function cancelOperation(action){
       color: black;
       font-size: 28px;
       height: 579px;
-      left: 30px !important;
+      left: 14%;
       padding: 5px;
       position: absolute;
       text-align: center;
-      top: 39px !important;
+      top: 5%;
       width: 947px;
       z-index: 991;
     }
@@ -686,70 +706,25 @@ function cancelOperation(action){
 
   <!-------------------------------------------->
    <% if @vl_request == "YES" %>
-      <div id="popup" style="display:none">
+      <div id="popup" class="popup_vl" style="display:none; background-color: #DCDCDC;">
+        <span style="color: green"><u>Routine Viral Load Screening Due</u></span><br />
+        <span style="color: red">VL Results Available?</span>
+        <div style="margin-top:8%;">
 
-            <div class="art_container">
-              <div class="header" style="position: absolute; left: 150px">
-                <div id="viral_header">
-                  <u>Routine Viral Load Screening Due</u><br />
-                  <u>Assess Adherence:</u> <br />
-                </div>
-                <div id="more_details" style="font-size: 16pt; font-weight:bold; ">
-                  If good then request VL today <br />
-                  If poor then defer VL for three months after intensive adherence support
-                </div>
-              </div>
-              <table  border=0.5 style = "border-radius:10px;">
-                <tr>
-                  <td><span>ART start date</span></td>
-                  <td style='text-align:left'><span><%= @art_start_date.strftime("%A, %d %B %Y") rescue '' %></span></td>
-                </tr>
-                <tr><td colspan =2><hr/></td></tr>
-                <tr>
-                  <td><span>Duration on ART (Months)</span></td>
-                  <td style='text-align:left'><span><%= @duration_in_months %></span></td>
-                </tr>
-                <tr><td colspan =2><hr/></td></tr>
-
-                <% unless @second_line_treatment_start_date.blank? %>
-                  <tr>
-                    <td><span>Duration on 2<sup>nd</sup>Line ART (Months)</span></td>
-                    <td style='text-align:left'><span><%= @second_line_duration_in_months %></span></td>
-                  </tr>
-                  <tr><td colspan =2><hr/></td></tr>
-                <% end  %>
-
-                <% unless @results.blank?%>
-                  <tr>
-                    <td><span>Latest viral load (<%= @latest_date.strftime("%A, %d %B %Y")%>)</span></td>
-                    <td style='text-align:left'><span><%= @modifier + ' ' + @latest_result.to_s %></span></td>
-                  </tr>
-                  <tr><td colspan =2><hr/></td></tr>
-                <% end %>
-
-                <tr>
-                  <td><span>Outcome</span></td>
-                  <td style='text-align:left'><span><%= @outcome %></span></td>
-                </tr>
-                <tr><td colspan =2><hr/></td></tr>
-                <tr>
-                  <td><span>Reason for starting</span></td>
-                  <td style='text-align:left'><span><%=@reason_for_art%></span></td>
-                </tr>
-
-              </table>
-            </div>
-
-            <hr class="popup_hr_without_lab"></hr>
-            <a id='viral_load_requested_today' onclick = "captureVl()" ><span>Enter Viral load result</span></a>
-            <a id='viral_load_already_done' onclick="hidePopup()"><span>No viral load result available</span></a>
+          <span id="update_vl_button" onclick="captureVl();">Enter Viral load result</span><br />
+        
+         <span id="update_vl_button" onclick="hidePopup();">No viral load result available</span><br />
+        </div>
+          <!--<hr class="popup_hr_without_lab"></hr>-->
+            <!--<a id='viral_load_requested_today' onclick = "captureVl()" style="background-color: #6E7B8B"><span>Enter Viral load result</span></a>
+            <a id='viral_load_already_done' onclick="hidePopup()" style="background-color: #6E7B8B"><span>No viral load result available</span></a>-->
             <!--
             <a id='viral_load_adherence_issues' onclick="vl_adherence_issue();"><span>Not Requested Today<br />(Due to poor adherence to ART)</span></a>
             -->
           </div>
       <!-------------------------------------------->
    <% else %>
-      <div id="popup" style="display:none">
+      <div id="popup" style="display:none; background-color: #DCDCDC;">
 
             <div class="art_container">
               <div class="header" style="position: absolute; left: 150px">
