@@ -669,13 +669,18 @@ module ApplicationHelper
   #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
   def viral_load_check_without_lab_results_modified(patient)
-    #raise 'dde'.inspec
+
     arv_start_date = PatientService.patient_art_start_date(patient).to_date rescue nil
     return false if arv_start_date.blank?
     period_on_art_in_months = PatientService.period_on_treatment(arv_start_date).to_i rescue 0
-    return false if (period_on_art_in_months < 6)
     second_line_art_start_date = PatientService.date_started_second_line_regimen(patient).to_date rescue nil
-    return false unless second_line_art_start_date.blank?
+
+    #This part resets the ART period of a patient by using date started 2nd line treatment
+    unless (second_line_art_start_date.blank? || second_line_art_start_date == "")
+      period_on_art_in_months = PatientService.period_on_treatment(second_line_art_start_date).to_i rescue 0
+    end
+    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    return false if (period_on_art_in_months < 6)
     today = Date.today
 
     milestones = {
