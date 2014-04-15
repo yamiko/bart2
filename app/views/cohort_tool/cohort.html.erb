@@ -57,7 +57,7 @@
 
       div.scrollTableContainer {
         border-style:solid;
-		height:46.5%;
+		height:60%;
       }
 
       .survival-analysis th, .survival-analysis td {
@@ -281,7 +281,7 @@
     <h1><%= Location.current_health_center.name + " : " + @quarter %></h1>
     <br />
 
-    <div style="width:100%; height:auto; background-color: <%= params[:print].blank? ? "#7784AE" : "white" %>; max-height:200px; border: 1px solid <%= params[:print].blank? ? "red" : "white" %>; overflow: auto;">
+    <div style="width:100%; height:auto; background-color: <%= params[:print].blank? ? "#7784AE" : "white" %>; max-height:100px; border: 1px solid <%= params[:print].blank? ? "red" : "white" %>; overflow: auto;">
 
       <table class="tb">
 
@@ -538,9 +538,9 @@
           <tr class = 'row_break'>
             <td>44</td>
             <td style="text-align:left;border-width:1px 0px 0px 1px"><b>Nev/>2yrs </b> Never TB or TB over 2yrs ago</td>
-            <td style="border-width:3px 3px 0px 3px"><%= link_to "<span class='clinic_data_value' >#{@cohort['No TB'].length rescue 0}", "/cohort_tool/list_patients_details?field=no_tb&quarter=#{@quarter}" -%></span><span class="checked_data_value">&nbsp;</span></td>
+            <td style="border-width:3px 3px 0px 3px"><%= link_to "<span class='clinic_data_value' >#{@cohort['No TB on report'] rescue 0}", "/cohort_tool/list_patients_details?field=no_tb&quarter=#{@quarter}" -%></span><span class="checked_data_value">&nbsp;</span></td>
             <td>&nbsp;</td>
-            <td style="border-width:3px 3px 0px 3px"><%= link_to "<span class='clinic_data_value' >#{@cohort['Total No TB'].length rescue 0}", "/cohort_tool/list_patients_details?field=total_no_tb&quarter=#{@quarter}" -%></span><span class="checked_data_value">&nbsp;</span></td>
+            <td style="border-width:3px 3px 0px 3px"><%= link_to "<span class='clinic_data_value' >#{@cohort['Total No TB on report'] rescue 0}", "/cohort_tool/list_patients_details?field=total_no_tb&quarter=#{@quarter}" -%></span><span class="checked_data_value">&nbsp;</span></td>
           </tr>
 
           <tr class = 'row_break'>

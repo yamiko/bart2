@@ -11,6 +11,8 @@ Rails::Initializer.run do |config|
 	config.action_controller.session_store = :active_record_store
 	config.active_record.schema_format = :sql
 
+	config.gem 'actionmailer'
+
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
   

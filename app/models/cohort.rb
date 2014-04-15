@@ -328,7 +328,12 @@ class Cohort
 				cohort_report['TB not suspected'] = tb_status_outcomes['TB STATUS']['Not Suspected']
 				cohort_report['TB confirmed not treatment'] = tb_status_outcomes['TB STATUS']['Not on treatment']
 				cohort_report['TB confirmed on treatment'] = tb_status_outcomes['TB STATUS']['On Treatment']
-				cohort_report['TB Unknown'] = tb_status_outcomes['TB STATUS']['Unknown']
+				#cohort_report['TB Unknown'] = tb_status_outcomes['TB STATUS']['Unknown']
+				cohort_report['TB Unknown'] = cohort_report['Total alive and on ART'] -
+				                              ((cohort_report['TB suspected']  || []) +
+				                               (cohort_report['TB not suspected'] || []) +
+				                               (cohort_report['TB confirmed not treatment'] || []) +
+				                               (cohort_report['TB confirmed on treatment'] || []))
 		  rescue Exception => e
 		    Thread.current[:exception] = e
 		  end
@@ -406,14 +411,23 @@ class Cohort
 				cohort_report['Newly registered children'] +
 				cohort_report['Newly registered infants'])
 
+    #Calculation of No TB has been changed temporarily to match that of BART 1.
+    #This might be changed again after thorough discussions on how to pull TB within the last 2 years.
+    #In BART1 we do not subtract Current episode of TB from TB within the past 2 years which was the case 
+    #in BART2.
+    
+    #This change has also been implemented in cohort_validation model.
 		current_episode = cohort_report['Current episode of TB']
 		total_current_episode = cohort_report['Total Current episode of TB']
 
-		cohort_report['TB within the last 2 years'] = cohort_report['TB within the last 2 years'] - current_episode
-		cohort_report['Total TB within the last 2 years'] = cohort_report['Total TB within the last 2 years'] - total_current_episode
-		
-		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (current_episode + cohort_report['TB within the last 2 years']))
-		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (total_current_episode + cohort_report['Total TB within the last 2 years']))
+		cohort_report['tb_with_the_last_2yrs'] = cohort_report['TB within the last 2 years'] - current_episode
+		cohort_report['total_tb_within_the_last_2yrs'] = cohort_report['Total TB within the last 2 years'] - total_current_episode
+
+		cohort_report['No TB'] = (cohort_report['Newly total registered'] - (current_episode + cohort_report['tb_with_the_last_2yrs']))
+		cohort_report['Total No TB'] = (cohort_report['Total registered'] - (total_current_episode + cohort_report['total_tb_within_the_last_2yrs']))
+
+		cohort_report['No TB on report'] = (cohort_report['Newly total registered'].length - (current_episode.length + cohort_report['TB within the last 2 years'].length))
+		cohort_report['Total No TB on report'] = (cohort_report['Total registered'].length - (total_current_episode.length + cohort_report['Total TB within the last 2 years'].length))
 
 		#cohort_report['Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_quarterly)
 		#cohort_report['Total Unknown reason'] += (cohort_report['Newly total registered'] - total_for_start_reason_cumulative)
@@ -706,6 +720,7 @@ class Cohort
       INNER JOIN concept_name c ON c.concept_id = pw.concept_id
       WHERE earliest_start_date <= '#{@end_date}'
       AND  name = '#{concept_name}'
+      AND death_date IS NOT NULL
       AND DATEDIFF(death_date, earliest_start_date) BETWEEN #{min_days} AND #{max_days}").each do | patient |
 							patients << patient.patient_id
 					end
@@ -834,7 +849,9 @@ class Cohort
   def outcomes_total(outcome, start_date=@start_date, end_date=@end_date)
     #raise outcome.to_yaml
     concept_name = ConceptName.find_all_by_name(outcome)
-    
+    if outcome == 'PATIENT DIED'
+      condition = " AND death_date IS NOT NULL"
+    end
     state = ProgramWorkflowState.find(:first, :conditions => ["concept_id IN (?)",concept_name.map{|c|c.concept_id}] ).program_workflow_state_id
 		patients = []
 
@@ -842,7 +859,7 @@ class Cohort
                                 INNER JOIN  program_workflow_state pw ON pw.program_workflow_state_id = current_state_for_program(p.patient_id, 1, '#{end_date}')
                                 INNER join earliest_start_date e ON e.patient_id = p.patient_id
                                 INNER JOIN concept_name c ON c.concept_id = pw.concept_id
-                                WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
+                                WHERE earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}' #{condition}
                                 AND  name = '#{outcome}'").each do | patient |
 			patients << patient.patient_id.to_i
 		end
@@ -1079,7 +1096,7 @@ class Cohort
       LEFT JOIN obs o ON o.encounter_id = e.encounter_id AND
                          o.concept_id IN (#{date_art_last_taken_concept},#{taken_arvs_concept})
       WHERE  ((o.concept_id = #{date_art_last_taken_concept} AND
-               (DATEDIFF(o.obs_datetime,o.value_datetime)) > 60) OR
+               (DATEDIFF(o.obs_datetime,o.value_datetime)) > 14) OR
              (o.concept_id = #{taken_arvs_concept} AND
               (o.value_coded = #{no_concept})
               ))
@@ -1115,7 +1132,7 @@ class Cohort
 		@art_defaulters ||= self.art_defaulted_patients
 		@patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
 		patient_ids = @patients_alive_and_on_art
-    patient_ids = [0] if patient_ids.blank?
+    patient_ids = [] if patient_ids.blank?
    
 		art_adherence_concept = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
 		art_adherence_encounter = EncounterType.find_by_name("ART ADHERENCE").id
@@ -1164,7 +1181,7 @@ class Cohort
 		@art_defaulters ||= self.art_defaulted_patients
 		@patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
 		patient_ids = @patients_alive_and_on_art
-    patient_ids = [0] if patient_ids.blank?
+    patient_ids = [] if patient_ids.blank?
    
     patient_ids = patient_ids - self.patients_not_adherent_at_their_last_visit
 

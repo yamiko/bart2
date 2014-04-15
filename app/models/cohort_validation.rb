@@ -42,7 +42,6 @@ class CohortValidation
     #                               total registered  
     # Amendments  :
 
-   
 	  validation_rule = ValidationRule.find_by_expr('{new_total_reg} == {new_males} + {new_non_preg} + {new_preg_all_age}')
     return nil if validation_rule.blank?
         
@@ -502,14 +501,14 @@ class CohortValidation
     # Developer   : Precious Bondwe
     # Date        : 26/02/2014
     # Purpose     : Validate Stage Defining Conditions of TB within last 2 years (Cumulative >= New)
-    # Amendments  :
+    # Amendments  : 
 
    
     validation_rule = ValidationRule.find_by_expr('{cum_tb_w2yrs}>={new_tb_w2yrs}')
     return nil if validation_rule.blank?
         
-    values = [self.cohort_object['Total TB within the last 2 years'],
-              self.cohort_object['TB within the last 2 years']
+    values = [self.cohort_object['tb_with_the_last_2yrs'],
+              self.cohort_object['total_tb_with_the_last_2yrs']
                 ]
     return self.feed_values(validation_rule, values)
   end
@@ -528,8 +527,8 @@ def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
      validation_rule = ValidationRule.find_by_desc("[CUMULATIVE] No TB, TB within the last 2 years, Current episode of TB, and Kaposis Sarcoma should add up to Total registered")
      values = [self.cohort_object['Total registered'],
 				 			self.cohort_object['Total No TB'],
-				 			self.cohort_object['Total TB within the last 2 years'],
-				 			self.cohort_object['Total Current episode of TB']
+				 			self.cohort_object['tb_with_the_last_2yrs'],
+				 			self.cohort_object['total_tb_with_the_last_2yrs']
 				 			]
 		return self.feed_values(validation_rule, values)
 

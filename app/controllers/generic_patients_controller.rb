@@ -691,7 +691,20 @@ class GenericPatientsController < ApplicationController
     @encounters.each do |encounter|
       id = encounter.creator
       user_name = User.find(id).person.names.first
-      @creator_name[id] = '(' + user_name.given_name.first + '. ' + user_name.family_name + ')'
+      #@creator_name[id] = '(' + user_name.given_name.first + '. ' + user_name.family_name + ')'
+      if user_name.given_name.blank?
+        given_name = ""
+      else
+        given_name = user_name.given_name.first
+      end
+
+      if user_name.family_name.blank?
+        family_name = ""
+      else
+        family_name = user_name.family_name
+      end
+
+      @creator_name[id] = '(' + given_name.to_s + '. ' + family_name.to_s + ')'
     end
 
     @prescriptions = @patient.orders.unfinished.prescriptions.all
