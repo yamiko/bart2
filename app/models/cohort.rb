@@ -542,8 +542,8 @@ class Cohort
 		conditions = ''
 		patients = []
 		if min_age and max_age
-		  conditions = "AND DATEDIFF(esd.earliest_start_date, person.birthdate) >= #{min_age}
-				        AND DATEDIFF(esd.earliest_start_date, person.birthdate) < #{max_age}"
+		  conditions = "AND DATEDIFF(date_antiretrovirals_started(esd.patient_id), person.birthdate) >= #{min_age}
+				        AND DATEDIFF(date_antiretrovirals_started(esd.patient_id), person.birthdate) < #{max_age}"
 		end
 
 		if sex
