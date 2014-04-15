@@ -57,7 +57,7 @@
 
       div.scrollTableContainer {
         border-style:solid;
-		height:46.5%;
+		height:60%;
       }
 
       .survival-analysis th, .survival-analysis td {
@@ -281,7 +281,7 @@
     <h1><%= Location.current_health_center.name + " : " + @quarter %></h1>
     <br />
 
-    <div style="width:100%; height:auto; background-color: <%= params[:print].blank? ? "#7784AE" : "white" %>; max-height:200px; border: 1px solid <%= params[:print].blank? ? "red" : "white" %>; overflow: auto;">
+    <div style="width:100%; height:auto; background-color: <%= params[:print].blank? ? "#7784AE" : "white" %>; max-height:100px; border: 1px solid <%= params[:print].blank? ? "red" : "white" %>; overflow: auto;">
 
       <table class="tb">
 
