@@ -85,18 +85,33 @@
       #update_vl_button{
         display: block;
         border-radius: 17px;
-        background-color: #9370DB;
+        background-color: #6E7B8B;
         border-style: outset;
         padding: 19px 21px 18px 45px;
         cursor: pointer;
         width: 40%;
         margin-left: 20%;
         text-align: center;
+        color: white;
+        font-size: 14pt;
       }
       #gray_button{
         background-color: gray;
         border-radius: 10px;
         width: 50%;
+      }
+      #update_vl_button_gray{
+        display: block;
+        border-radius: 17px;
+        background-color: #C5C1AA;
+        border-style: outset;
+        padding: 19px 21px 18px 45px;
+        cursor: not-allowed;
+        width: 40%;
+        margin-left: 20%;
+        text-align: center;
+        color: gray;
+        font-size: 14pt;
       }
     </style>
     <script>
@@ -811,7 +826,7 @@ function cancelOperation(action){
               <% unless @latest_result.blank?%>
               <td style=""><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
               <% else %>
-                <td id="gray_button" style=""></td>
+                <td><span style="margin-left: 10%; font-weight: bold; color: red">(Not done)</span></td>
               <% end %>
             </tr>
             <tr>
@@ -819,7 +834,7 @@ function cancelOperation(action){
               <% unless  @latest_date.blank?%>
               <td style=""><%= @latest_date.strftime("%a, %d-%b-%Y") rescue nil %></td>
               <% else %>
-                <td id="gray_button" style=""></td>
+                <td id="" style="">----------------------------</td>
               <% end %>
             </tr>
             <tr>
@@ -827,7 +842,7 @@ function cancelOperation(action){
               <% unless @date_vl_result_given.blank?%>
                 <td style=""><%= @date_vl_result_given.strftime("%a, %d-%b-%Y") %></td>
               <% else %>
-                <td id="gray_button" style=""></td>
+                <td id="" style="">----------------------------</td>
               <%  end %>
             </tr>
             <tr>
@@ -842,7 +857,11 @@ function cancelOperation(action){
       </div>
       <div id="update_vl_menu" style="display:none">
         <div><br />
+          <% unless @latest_result.blank?%>
           <span id="update_vl_button" onclick="giveResultPath();">Result given to patient</span><br />
+          <% else %>
+          <span id="update_vl_button_gray" onclick="">Result given to patient</span><br />
+          <%  end %>
           <span id="update_vl_button" onclick="newVlResultPath();">Enter new VL result</span><br />
           <span id="update_vl_button" onclick="secondlineSwitchPath();">Patient switched to second line</span><br />
           <span id="update_vl_button" onClick="removeUpdateVlMenu();">Back to milestone screening</span>
