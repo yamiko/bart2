@@ -380,6 +380,7 @@ class GenericPeopleController < ApplicationController
     @date_vl_result_given = Observation.find(:last, :conditions => ["
         person_id =? AND concept_id =? AND value_text REGEXP ?", @person.id,
         Concept.find_by_name("Viral load").concept_id, 'Result given to patient']).value_datetime rescue nil
+    @enter_lab_results = GlobalProperty.find_by_property('enter.lab.results').property_value == 'true' rescue false
     
 		render :layout => false
 	end

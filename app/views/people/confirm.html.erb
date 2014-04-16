@@ -710,9 +710,11 @@ function cancelOperation(action){
         <span style="color: green"><u>Routine Viral Load Screening Due</u></span><br />
         <span style="color: red">VL Results Available?</span>
         <div style="margin-top:8%;">
-
+          <%  if @enter_lab_results %>
           <span id="update_vl_button" onclick="captureVl();">Enter Viral load result</span><br />
-        
+          <%  else %>
+          <span id="update_vl_button_gray" onclick="">Enter Viral load result</span><br />
+          <% end %>
          <span id="update_vl_button" onclick="hidePopup();">No viral load result available</span><br />
         </div>
           <!--<hr class="popup_hr_without_lab"></hr>-->
@@ -837,7 +839,11 @@ function cancelOperation(action){
           <% else %>
           <span id="update_vl_button_gray" onclick="">Result given to patient</span><br />
           <%  end %>
+          <%  if @enter_lab_results %>
           <span id="update_vl_button" onclick="newVlResultPath();">Enter new VL result</span><br />
+          <% else %>
+          <span id="update_vl_button_gray" onclick=";">Enter new VL result</span><br />
+          <% end %>
           <span id="update_vl_button" onclick="secondlineSwitchPath();">Patient switched to second line</span><br />
           <span id="update_vl_button" onClick="removeUpdateVlMenu();">Back to milestone screening</span>
         </div>
