@@ -30,9 +30,9 @@ def start
 
     #For each patient with unknow start reason check if cd4 count could be the reason. If correct save
     last_hiv_staging_encounter = Encounter.find(:last, :conditions => ["patient_id = ? 
-      AND encounter_type = ? AND encounter_datetime = (SELECT MAX(e.encounter_datetime)
+      AND encounter_type = ? AND voided = 0 AND encounter_datetime = (SELECT MAX(e.encounter_datetime)
       FROM encounter e WHERE e.encounter_type = #{enc_type} 
-      AND e.patient_id=#{patient.id}) AND e.voided = 0", patient.id, enc_type ])
+      AND e.patient_id=#{patient.id} AND e.voided = 0)", patient.id, enc_type ])
 
     next if last_hiv_staging_encounter.blank?
 
