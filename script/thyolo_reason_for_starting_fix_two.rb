@@ -44,14 +44,15 @@ end
 
 def update_reason_for_starting(patient, reason_for_starting_enc, start_reason)
   reason_for_starting = Observation.find(:first,:conditions =>["person_id = ? AND
-    concept_id = ? AND value_coded IS NOT NULL", patient.id, REASON_FOR_STARTING.id])
+    encounter_id = ? AND concept_id = ? AND value_coded IS NOT NULL",
+    patient.id,reason_for_starting_enc.id, REASON_FOR_STARTING.id])
 
   if reason_for_starting.blank?
     Observation.create(:person_id => patient.id,
       :concept_id => REASON_FOR_STARTING.id,
       :obs_datetime => reason_for_starting_enc.encounter_datetime,
       :encounter_id => reason_for_starting_enc.id,
-      :value_coded => get_start_reason(patient, start_reason))
+      :value_coded => get_start_reason(patient,reason_for_starting_enc.encounter_datetime,start_reason))
   else
     reason_for_starting.value_coded = get_start_reason(patient, reason_for_starting_enc.encounter_datetime, start_reason)
     reason_for_starting.save
@@ -60,7 +61,7 @@ def update_reason_for_starting(patient, reason_for_starting_enc, start_reason)
 end
 
 def get_latest_hiv_encounter(patient)
-  Encounter.find(:fisrt,:conditions =>["patient_id = ? AND encounter_type = ? 
+  Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?
     AND encounter_datetime = (SELECT MAX(e.encounter_datetime) FROM encounter e 
     WHERE e.patient_id = #{patient.id})",patient.id,
     HIV_STAGING_ENC_TYPE.id]) #.encounter_datetime rescue nil
