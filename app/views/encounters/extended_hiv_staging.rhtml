@@ -493,7 +493,7 @@
       /*try{
         presumedSeverHiv == null} catch (e) {
       } finally {presumedSeverHiv = null}*/
-
+     
       try {
         if (ageInMonths < 12 && firstPositiveHivTestType == "HIV rapid test" && presumedSevereHiv) {
           reasonForArtEligibility = "PRESUMED SEVERE HIV";
@@ -513,7 +513,10 @@
           reasonForArtEligibility = "PATIENT PREGNANT";              
         } else if ($('breast_feeding') && $('breast_feeding').value == "YES") {
           reasonForArtEligibility = "BREASTFEEDING";              
-        } 
+        }
+        else if (tstCurrentDate > '2014-04-01' && age <= 5){
+           reasonForArtEligibility = "HIV infected";
+        }
       }catch(e){}
     }
     artifitial_reason = false
