@@ -1,13 +1,14 @@
-
+require "csv"
 HIV_PROGRAM = Program.find_by_name('HIV Program')
 UnknownLocation = Location.find_by_name('Unknown')
+Location.current_location = Location.find_by_name('Unknown')
 
 def start
   User.current = User.find(1)
 
   arv_numbers = []
   csv_url =  RAILS_ROOT + "/doc/THYOLOTRANSFEREDOUT.csv"
-  FasterCSV.foreach("#{csv_url}", :quote_char => '"', :col_sep =>',', :row_sep =>:auto) do |row|
+  CSV.foreach("#{csv_url}") do |row|
     arv_number = row[2].to_i rescue 0
     next if arv_number < 1
     arv_numbers << arv_number
@@ -46,7 +47,7 @@ def update_outcome(patient, outcome_date)
 end
 
 def get_latest_encounter_date(patient)
-  Encounter.find(:fisrt,:conditions =>["patient_id = ? AND encounter_datetime = (
+  Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_datetime = (
     SELECT MAX(e.encounter_datetime) FROM encounter e WHERE e.patient_id = #{patient.id})",
     patient.id]).encounter_datetime rescue nil
 end
@@ -59,8 +60,8 @@ def create_exit_from_care_encounter(patient, outcome_date, current_active_state)
   current_state = given_params[:current_state]
 =end
 
-  new_encounter = {"encounter_datetime" => given_params[:current_date] ,
-    "encounter_type_name"=>"EXIT FROM HIV CARE",
+  new_encounter = {"encounter_datetime" => outcome_date ,
+    "encounter_type"=> EncounterType.find_by_name("EXIT FROM HIV CARE").id,
     "patient_id" => patient.id,
     "provider_id" => 1 }
 
@@ -92,7 +93,7 @@ def create_exit_from_care_encounter(patient, outcome_date, current_active_state)
   date_obs['value_datetime'] = outcome_date
   Observation.create(date_obs)
 
-  if current_state.upcase == 'PATIENT TRANSFERRED OUT'
+  if current_active_state.name.upcase == 'PATIENT TRANSFERRED OUT'
     observation = {}
     observation[:concept_name] = 'TRANSFER OUT TO'
     observation[:encounter_id] = encounter.id
