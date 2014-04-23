@@ -102,7 +102,7 @@ def get_start_reason(patient, start_date, reason)
       return WHO4_ADULT.id
     end
   elsif reason.match(/Pregnant/i)
-    return Pregnant.id
+    return PatientPregnant.id
   elsif reason.match(/PCR/i)
     return DNA_PCR.id
   elsif reason.match(/Stage3/i)
@@ -114,7 +114,7 @@ def get_start_reason(patient, start_date, reason)
   elsif reason.match(/Breastfeeding/i)
     return Breastfeeding.id
   elsif reason.match(/Preg/i)
-    return Pregnant.id
+    return PatientPregnant.id
   else
     Unknown.id
   end
