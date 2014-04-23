@@ -63,11 +63,42 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
 	FROM `encounter`
 	WHERE (`encounter`.`encounter_type` = 9 AND `encounter`.`voided` = 0);
 
+
+
+DROP FUNCTION IF EXISTS date_antiretrovirals_started;                                          
+                                                                                
+DELIMITER $$                                                                     
+CREATE FUNCTION date_antiretrovirals_started(set_patient_id INT, min_state_date DATE) RETURNS DATE
+BEGIN                                                                           
+                                                                                
+DECLARE date_started DATE;
+DECLARE start_date_concept_id INT;
+
+SET start_date_concept_id = (SELECT concept_id FROM concept_name WHERE name = 'ART START DATE' LIMIT 1);
+SET date_started = (SELECT value_datetime FROM obs WHERE concept_id = start_date_concept_id AND person_id = set_patient_id LIMIT 1);
+
+if date_started is null then
+SET start_date_concept_id = (SELECT concept_id FROM concept_name WHERE name = 'Date antiretrovirals started' LIMIT 1);
+SET date_started = (SELECT value_datetime FROM obs WHERE concept_id = start_date_concept_id AND person_id = set_patient_id LIMIT 1);
+end if;
+
+if date_started is NULL then 
+SET date_started = min_state_date;
+end if;
+
+RETURN date_started;
+END$$                                                                           
+DELIMITER ;
+
+
+
+
 -- The date of the first On ARVs state for each patient
 CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
   VIEW `earliest_start_date` AS
   SELECT `p`.`patient_id` AS `patient_id`,`p`.`date_enrolled`,
-         MIN(`s`.`start_date`) AS `earliest_start_date`, `person`.`death_date` AS death_date
+         MIN(`s`.`start_date`) AS `earliest_start_date`, `person`.`death_date` AS death_date,
+         DATEDIFF(date_antiretrovirals_started(`p`.`patient_id`, MIN(`s`.`start_date`)), `person`.`birthdate`) AS age_at_initiation
   FROM ((`patient_program` `p`
   LEFT JOIN `patient_state` `s` ON((`p`.`patient_program_id` = `s`.`patient_program_id`)))
   LEFT JOIN `person` ON((`person`.`person_id` = `p`.`patient_id`)))

@@ -2032,6 +2032,8 @@ class GenericPatientsController < ApplicationController
       next if encounter_name.blank?
       next if encounter_name.match(/REGISTRATION/i)
       next if encounter_name.match(/HIV STAGING/i)
+      next if encounter_name.match(/OUTPATIENT DIAGNOSIS/i)
+      next if encounter_name.match(/OUTPATIENT RECEPTION/i)
 
       visit_date = obs.obs_datetime.to_date
 

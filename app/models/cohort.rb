@@ -542,8 +542,8 @@ class Cohort
 		conditions = ''
 		patients = []
 		if min_age and max_age
-		  conditions = "AND DATEDIFF(esd.earliest_start_date, person.birthdate) >= #{min_age}
-				        AND DATEDIFF(esd.earliest_start_date, person.birthdate) < #{max_age}"
+		  conditions = "AND esd.age_at_initiation >= #{min_age}
+				        AND esd.age_at_initiation < #{max_age}"
 		end
 
 		if sex
@@ -1096,7 +1096,7 @@ class Cohort
       LEFT JOIN obs o ON o.encounter_id = e.encounter_id AND
                          o.concept_id IN (#{date_art_last_taken_concept},#{taken_arvs_concept})
       WHERE  ((o.concept_id = #{date_art_last_taken_concept} AND
-               (DATEDIFF(o.obs_datetime,o.value_datetime)) > 60) OR
+               (DATEDIFF(o.obs_datetime,o.value_datetime)) > 14) OR
              (o.concept_id = #{taken_arvs_concept} AND
               (o.value_coded = #{no_concept})
               ))
@@ -1132,7 +1132,7 @@ class Cohort
 		@art_defaulters ||= self.art_defaulted_patients
 		@patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
 		patient_ids = @patients_alive_and_on_art
-    patient_ids = [0] if patient_ids.blank?
+    patient_ids = [] if patient_ids.blank?
    
 		art_adherence_concept = ConceptName.find_by_name("WHAT WAS THE PATIENTS ADHERENCE FOR THIS DRUG ORDER").concept_id
 		art_adherence_encounter = EncounterType.find_by_name("ART ADHERENCE").id
@@ -1181,7 +1181,7 @@ class Cohort
 		@art_defaulters ||= self.art_defaulted_patients
 		@patients_alive_and_on_art ||= self.total_alive_and_on_art(@art_defaulters)
 		patient_ids = @patients_alive_and_on_art
-    patient_ids = [0] if patient_ids.blank?
+    patient_ids = [] if patient_ids.blank?
    
     patient_ids = patient_ids - self.patients_not_adherent_at_their_last_visit
 

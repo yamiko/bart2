@@ -2054,14 +2054,14 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
   def self.get_national_id(patient, force = true)
     id = patient.patient_identifiers.find_by_identifier_type(PatientIdentifierType.find_by_name("National id").id).identifier rescue nil
     return id unless force
-    id ||= PatientIdentifierType.find_by_name("National id").next_identifier(:patient => patient).identifier
+    id ||= PatientIdentifierType.find_by_name("National id").next_identifier(:patient => patient).identifier rescue nil
     id
   end
 
   def self.get_remote_national_id(patient)
     id = patient.patient_identifiers.find_by_identifier_type(PatientIdentifierType.find_by_name("National id").id).identifier rescue nil
     return id unless id.blank?
-    PatientIdentifierType.find_by_name("National id").next_identifier(:patient => patient).identifier
+    PatientIdentifierType.find_by_name("National id").next_identifier(:patient => patient).identifier rescue nil
   end
 
   def self.get_national_id_with_dashes(patient, force = true)
