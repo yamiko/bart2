@@ -316,7 +316,16 @@
         width: 53%;
         left: 20%;
       }
-      
+  #protector{
+      position: absolute;
+      background-color: black;
+      width: 100%;
+      height: 102%;
+      left: 0%;
+      top: 0%;
+      z-index: 990;
+      opacity: 0.5;
+    }
 </style>
 
 <%= javascript_include_tag "prototype"%>
@@ -995,6 +1004,8 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   }
 
   function show_confirm_cpt_mgs(){
+    protector = document.getElementById('protector')
+    protector.style.display = 'inline'
     content = document.getElementById('content')
     confirm_cpt = document.getElementById('confirm_cpt_mgs');
     content.appendChild(confirm_cpt);
@@ -1004,11 +1015,15 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   function confirm_cpt_mgs_no_button(){
     confirm_cpt = document.getElementById('confirm_cpt_mgs');
     confirm_cpt.style.display = 'none';
+    protector = document.getElementById('protector')
+    protector.style.display = 'none'
   }
 
   function confirm_cpt_mgs_yes_button(){
     confirm_cpt = document.getElementById('confirm_cpt_mgs');
     confirm_cpt.style.display = 'none';
+    protector = document.getElementById('protector')
+    protector.style.display = 'none'
     gotoNextPage();
   }
 
@@ -1422,6 +1437,10 @@ element.setAttribute("onmousedown", "gotoNextPage()")
             <button onclick="confirm_cpt_mgs_no_button()" style="position:absolute; right:20%; min-width: 140px; bottom: 2%;" id="no"><span>No</span></button></center>
      
         </div>
+  </div>
+  
+  <div id="protector" style="display:none">
+
   </div>
   
 </body>
