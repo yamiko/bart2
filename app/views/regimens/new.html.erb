@@ -303,6 +303,20 @@
 	background-color:gray;
 	padding:10px;
   }
+
+  #confirm_cpt_mgs{
+        border-radius: 10px;
+        position: absolute;
+        background-color: #DCDCDC;
+        border: 3px solid black;
+        height: 32%;
+        z-index: 991;
+        left: 40%;
+        top:20%;
+        width: 53%;
+        left: 20%;
+      }
+      
 </style>
 
 <%= javascript_include_tag "prototype"%>
@@ -979,6 +993,36 @@ element.setAttribute("onmousedown", "gotoNextPage()")
       __$("buttons").removeChild(__$("addHere"));
     }
   }
+
+  function show_confirm_cpt_mgs(){
+    content = document.getElementById('content')
+    confirm_cpt = document.getElementById('confirm_cpt_mgs');
+    content.appendChild(confirm_cpt);
+    confirm_cpt.style.display = 'inline'
+  }
+
+  function confirm_cpt_mgs_no_button(){
+    confirm_cpt = document.getElementById('confirm_cpt_mgs');
+    confirm_cpt.style.display = 'none';
+  }
+
+  function confirm_cpt_mgs_yes_button(){
+    confirm_cpt = document.getElementById('confirm_cpt_mgs');
+    confirm_cpt.style.display = 'none';
+    gotoNextPage();
+  }
+
+  function set_cpt_options_events(){
+    available_cpt_options = document.getElementsByTagName('li');
+    for(i=0; i<available_cpt_options.length; i++){
+
+      available_cpt_options[i].onmouseup = function(){
+        if (this.innerHTML == '480'){
+          show_confirm_cpt_mgs();
+        }
+      }
+    }
+  }
 </script>
 <% if @patient_bean.age < 14
    options = ["120","240","480","960"]
@@ -1240,7 +1284,8 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	  :allowFreeText => 'false',
 	  :condition => "$('cpt_given').value == 'YES'",
 	  :helpText => "Prescribed cotrimoxazole milligrams",
-          :tt_onLoad => "showCategory('Regimen');"} %>
+          :tt_onLoad => "showCategory('Regimen'); set_cpt_options_events();",
+          :tt_onmousedown => "show_confirm_cpt_mgs()"} %>
   <% end %>
 
   <% if @patient_bean.age >= 2 && !@current_hiv_program_state.match(/On antiretrovirals/i) && !@current_hiv_program_state.match(/Patient transferred in/i) %>
@@ -1367,4 +1412,16 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 </form>
   <div id="previous_drugs_dispensed">
   </div>
+
+  <div id="confirm_cpt_mgs" style="display:none">
+        <div><br />
+          <center><span style="font-size: 2em; color: red">You are about to change the new guidelines for
+              CPT.<br />
+              Are you sure about this?</span><br /><br /><br />
+            <button onclick="confirm_cpt_mgs_yes_button()" style="position:absolute; left:20%; min-width: 140px; bottom: 2%;" id="yes"><span>Yes</span></button>
+            <button onclick="confirm_cpt_mgs_no_button()" style="position:absolute; right:20%; min-width: 140px; bottom: 2%;" id="no"><span>No</span></button></center>
+     
+        </div>
+  </div>
+  
 </body>
