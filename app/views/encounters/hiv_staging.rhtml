@@ -406,6 +406,9 @@
 		} else if ($('breast_feeding') && $('breast_feeding').value == "YES") {
 		  reasonForArtEligibility = "BREASTFEEDING";
 		}
+                 else if (tstCurrentDate > '2014-04-01' && age <= 5){
+                   reasonForArtEligibility = "HIV infected";
+                }
 	  } catch (e) {}
 	}
   
