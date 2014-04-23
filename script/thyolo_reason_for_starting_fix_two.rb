@@ -1,29 +1,33 @@
+require 'csv'
 
-REASON_FOR_STARTING = ConceptName.find_by_name('Reason for ART eligibility')
+Location.current_location = Location.find(1)
+User.current = User.find(1)
+
+
+REASON_FOR_STARTING = ConceptName.find_by_name('Reason for ART eligibility').concept
 HIV_STAGING_ENC_TYPE = EncounterType.find_by_name('HIV Staging')
 
 
-CD4Count250 = ConceptName.find_by_name('CD4 count less than or equal to 250')
-CD4Count350 = ConceptName.find_by_name('CD4 count less than or equal to 350')
+CD4Count250 = ConceptName.find_by_name('CD4 count less than or equal to 250').concept
+CD4Count350 = ConceptName.find_by_name('CD4 count less than or equal to 350').concept
 
 
-WHO4_ADULT = ConceptName.find_by_name('WHO stage IV adult')
-WHO3_ADULT = ConceptName.find_by_name('WHO stage III adult')
-WHO4_PEADS = ConceptName.find_by_name('WHO stage IV peds')
-WHO3_PEADS = ConceptName.find_by_name('WHO stage III peds')
+WHO4_ADULT = ConceptName.find_by_name('WHO stage IV adult').concept
+WHO3_ADULT = ConceptName.find_by_name('WHO stage III adult').concept
+WHO4_PEADS = ConceptName.find_by_name('WHO stage IV peds').concept
+WHO3_PEADS = ConceptName.find_by_name('WHO stage III peds').concept
 
-Breastfeeding = ConceptName.find_by_name('Breastfeeding')
-PatientPregnant = ConceptName.find_by_name('Patient pregnant')
-DNA_PCR = ConceptName.find_by_name('DNA PCR')
-Unknown = ConceptName.find_by_name('Unknown')
+Breastfeeding = ConceptName.find_by_name('Breastfeeding').concept
+PatientPregnant = ConceptName.find_by_name('Patient pregnant').concept
+DNA_PCR = ConceptName.find_by_name('DNA PCR').concept
+Unknown = ConceptName.find_by_name('Unknown').concept
 
 
 def start
-  User.current = User.find(1)
 
   arv_numbers = {}
   csv_url =  RAILS_ROOT + "/doc/UnkownstartReasonsThyolo.csv"
-  FasterCSV.foreach("#{csv_url}", :quote_char => '"', :col_sep =>',', :row_sep =>:auto) do |row|
+  CSV.foreach("#{csv_url}") do |row|
     arv_number = row[0].upcase rescue nil
     start_reason = row[1]
     next if arv_number.blank?
@@ -61,10 +65,21 @@ def update_reason_for_starting(patient, reason_for_starting_enc, start_reason)
 end
 
 def get_latest_hiv_encounter(patient)
-  Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?
+  hiv = Encounter.find(:first,:conditions =>["patient_id = ? AND encounter_type = ?
     AND encounter_datetime = (SELECT MAX(e.encounter_datetime) FROM encounter e 
     WHERE e.patient_id = #{patient.id})",patient.id,
     HIV_STAGING_ENC_TYPE.id]) #.encounter_datetime rescue nil
+  return hiv unless hiv.blank?
+  earliest_start_date = get_earliest_start_date(patient.id) 
+  return nil if earliest_start_date.blank?
+  return Encounter.create(:patient_id => patient.id,
+         :encounter_type => HIV_STAGING_ENC_TYPE.id,
+         :encounter_datetime => earliest_start_date)
+end
+
+def get_earliest_start_date(patient_id)
+  Encounter.find_by_sql("SELECT earliest_start_date FROM earliest_start_date
+    WHERE patient_id = #{patient_id}").first.earliest_start_date.to_date.strftime('%Y-%m-%d 00:00:01') rescue nil
 end
 
 def get_start_reason(patient, start_date, reason)
