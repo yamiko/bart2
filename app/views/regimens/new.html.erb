@@ -1029,11 +1029,14 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 
   function set_cpt_options_events(){
     available_cpt_options = document.getElementsByTagName('li');
+    current_weight = '<%= @current_weight %>'
     for(i=0; i<available_cpt_options.length; i++){
 
       available_cpt_options[i].onmouseup = function(){
         if (this.innerHTML == '480'){
+         if (current_weight >= 30){
           show_confirm_cpt_mgs();
+         }
         }
       }
     }
