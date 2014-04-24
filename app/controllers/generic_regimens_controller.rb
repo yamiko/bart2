@@ -604,6 +604,12 @@ class GenericRegimensController < ApplicationController
       if ! params[:cpt_duration].blank?
         #params[:cpt_duration] =  params[:duration]
         auto_cpt_ipt_expire_date = session[:datetime] + params[:cpt_duration].to_i.days + arvs_buffer.days rescue Time.now + params[:cpt_duration].to_i.days + arvs_buffer.days
+      elsif prescribe_arvs
+        auto_cpt_ipt_expire_date = auto_expire_date
+      elsif prescribe_tb_drugs
+        auto_cpt_ipt_expire_date = auto_tb_expire_date
+      else
+        auto_cpt_ipt_expire_date = auto_tb_continuation_expire_date
       end
        concept_name = "pyridoxine"
        yes_no = ConceptName.find_by_name(prescribe_pyridoxine)

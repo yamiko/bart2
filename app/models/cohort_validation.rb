@@ -554,7 +554,7 @@ def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
               self.cohort_object['Regimens']['7A'] ||= [],
               self.cohort_object['Regimens']['8A'] ||= [],
               self.cohort_object['Regimens']['9P'] ||= [],
-              self.cohort_object['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'] ||= []]
+              self.cohort_object['non-standard'] ||= []]
 
    return self.feed_values(validation_rule, values)
   end
