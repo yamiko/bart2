@@ -374,13 +374,14 @@ class GenericRegimensController < ApplicationController
 	end
 
 	def create
-		#raise params[:ipt_mgs].to_yaml
+		#raise params[:observation][].to_yaml
 		prescribe_tb_drugs = false   
 		prescribe_tb_continuation_drugs = false   
 		prescribe_arvs = false
 		prescribe_cpt = false
 		prescribe_ipt = false
 		clinical_notes = nil
+    prescribe_pyridoxine = nil
 		condoms = nil
 		reason = nil
 		(params[:observations] || []).each do |observation|
@@ -399,9 +400,12 @@ class GenericRegimensController < ApplicationController
 				condoms = observation['value_numeric']
 			elsif observation['concept_name'] == 'Reason antiretrovirals changed or stopped'
 				reason = observation['value_coded_or_text']
+      elsif observation['concept_name'] == "pyridoxine"
+        prescribe_pyridoxine =  observation['value_coded_or_text']
 			end
+
 		end
-		#raise prescribe_arvs.to_yaml
+		#raise prescribe_pyridoxine.to_yaml
 		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
 		session_date = session[:datetime] || Time.now()
 
@@ -595,7 +599,57 @@ class GenericRegimensController < ApplicationController
 					end
 #=end
 		end
-		
+
+    unless prescribe_pyridoxine .blank?
+      if ! params[:cpt_duration].blank?
+        #params[:cpt_duration] =  params[:duration]
+        auto_cpt_ipt_expire_date = session[:datetime] + params[:cpt_duration].to_i.days + arvs_buffer.days rescue Time.now + params[:cpt_duration].to_i.days + arvs_buffer.days
+      elsif prescribe_arvs
+        auto_cpt_ipt_expire_date = auto_expire_date
+      elsif prescribe_tb_drugs
+        auto_cpt_ipt_expire_date = auto_tb_expire_date
+      else
+        auto_cpt_ipt_expire_date = auto_tb_continuation_expire_date
+      end
+       concept_name = "pyridoxine"
+       yes_no = ConceptName.find_by_name(prescribe_pyridoxine)
+			 obs = Observation.create(
+				:concept_name => concept_name ,
+				:person_id => @patient.person.person_id ,
+				:encounter_id => encounter.encounter_id ,
+				:value_coded => yes_no.concept_id ,
+				:obs_datetime => start_date)
+
+       if params[:pyridoxine_value] == "50"
+         drug = Drug.find_by_name('Pyridoxine (50mg)')
+       else
+         drug = Drug.find_by_name('Pyridoxine (25mg)')
+       end unless params[:pyridoxine_value].blank?
+
+       unless params[:pyridoxine_value].blank?
+         
+          weight = @current_weight = PatientService.get_patient_attribute_value(@patient, "current_weight")
+          regimen_id = Regimen.all(:conditions =>  ['min_weight <= ? AND max_weight >= ? AND concept_id = ?', weight, weight, drug.concept_id]).first.regimen_id
+          orders = RegimenDrugOrder.all(:conditions => {:regimen_id => regimen_id, :drug_inventory_id => drug.id})
+       end
+#=begin
+					orders.each do |order|
+						regimen_name = (order.regimen.concept.concept_names.typed("SHORT").first || order.regimen.concept_names.typed("FULLY_SPECIFIED").first).name
+						DrugOrder.write_order(
+						encounter,
+						@patient,
+						obs,
+						drug,
+						start_date,
+						auto_cpt_ipt_expire_date,
+						order.dose,
+						order.frequency,
+						order.prn,
+						"#{drug.name}: #{order.instructions} (#{regimen_name})",
+						order.equivalent_daily_dose)
+					end unless params[:pyridoxine_value].blank?
+    end
+
 		obs = Observation.create(
 			:concept_name => "Reason antiretrovirals changed or stopped",
 			:person_id => @patient.person.person_id,

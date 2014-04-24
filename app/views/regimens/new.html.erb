@@ -1053,7 +1053,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
  ipt_options = ["100","150","200"] if @current_weight >= 14 and @current_weight < 20
  ipt_options = ["100","150","200","250"] if @current_weight >= 20 and @current_weight < 25
  ipt_options = ["100","150","200","250","300"] if @current_weight >= 25
-
+ pyridoxine_options = ["","25", "50"]
 %>
 <body>
    <div id="cover" align="center">
@@ -1305,8 +1305,27 @@ element.setAttribute("onmousedown", "gotoNextPage()")
           :tt_onLoad => "showCategory('Regimen'); set_cpt_options_events();",
           :tt_onmousedown => "show_confirm_cpt_mgs()"} %>
   <% end %>
+ <% current = session[:datetime].to_date rescue Date.today
+ if current >= '2014-04-01'.to_date %>
+  <% if @patient_bean.age >= 5 && !@current_hiv_program_state.match(/On antiretrovirals/i) && !@current_hiv_program_state.match(/Patient transferred in/i) %>
+	<%= touch_yes_no_tag "ISONIAZID", @patient, nil,
+	  {	:id => 'ipt_given',
+	  :allowFreeText => 'false',
+	  :condition => "prescribeAntiretroviralDrugs() && $('prescribe_arvs').value != 'YES'",
+	  :helpText => "Prescribe IPT",
+          :tt_onLoad => "showCategory('Regimen');"} %>
 
-  <% if @patient_bean.age >= 2 && !@current_hiv_program_state.match(/On antiretrovirals/i) && !@current_hiv_program_state.match(/Patient transferred in/i) %>
+    <%= select_tag :ipt_mgs, options_for_select(ipt_options), {
+	  :allowFreeText => 'false',
+	  :condition => "prescribeAntiretroviralDrugs() && $('ipt_given').value == 'YES'",
+	  :helpText => "IPT milligrams",
+          :tt_onLoad => "showCategory('Regimen');"} %>
+
+  <%else%>
+	<%= touch_hidden_tag "ISONIAZID", @patient, "", :id => "ipt_given" %>
+  <%end
+ else %>
+    <% if @patient_bean.age >= 2 && !@current_hiv_program_state.match(/On antiretrovirals/i) && !@current_hiv_program_state.match(/Patient transferred in/i) %>
 	<%= touch_yes_no_tag "ISONIAZID", @patient, nil,
 	  {	:id => 'ipt_given',
 	  :allowFreeText => 'false',
@@ -1321,12 +1340,27 @@ element.setAttribute("onmousedown", "gotoNextPage()")
           :tt_onLoad => "showCategory('Regimen');"} %>
   <%else%>
 	<%= touch_hidden_tag "ISONIAZID", @patient, "", :id => "ipt_given" %>
-  <%end%>
+  <%end %>
+  <% end %>
 
-  <%= select_tag :cpt_duration, optionsString,
-	  {	:condition => '($("prescribe_arvs").value == "NO" || $("prescribe_arvs").value == "") && ($("cpt_given").value == "YES" || $("ipt_given").value == "YES")',
+     <%= touch_yes_no_tag "pyridoxine", @patient, nil,
+	  {	:id => 'pyridoxine',
+	  :allowFreeText => 'false',
+	  :condition => "prescribeAntiretroviralDrugs() && $('prescribe_arvs').value != 'YES'",
+	  :helpText => "Prescribe Pyridoxine",
+          :tt_onLoad => "showCategory('Regimen');"} %>
+
+  <%= select_tag :pyridoxine_value, options_for_select(pyridoxine_options), {
+	  :allowFreeText => 'false',
+	  :condition => "prescribeAntiretroviralDrugs() && $('pyridoxine').value == 'YES'",
+	  :helpText => "Pyridoxine Milligrams",
+          :tt_onLoad => "showCategory('Regimen');"} %>
+
+    <%= select_tag :cpt_duration, optionsString,
+	  {	:condition => '($("prescribe_arvs").value == "NO" || $("prescribe_arvs").value == "") && ($("cpt_given").value == "YES" || $("ipt_given").value == "YES"  || $("pyridoxine").value == "YES")',
 	  :tt_onLoad => "__$('keyboard').style.display = 'none';showCategory('Regimen');",
 	  :helpText => 'Duration' } %>
+
 
    <%#= select_tag :ipt_duration, optionsString,
 	  {	:condition => '$("prescribe_arvs").value == "NO" && $("ipt_given").value == "YES"',
