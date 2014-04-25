@@ -680,6 +680,16 @@ class GenericRegimensController < ApplicationController
 		current_weight = PatientService.get_patient_attribute_value(patient_program.patient, "current_weight", session_date)
 		#regimen_concepts = patient_program.regimens(current_weight).uniq
 		@options = MedicationService.regimen_options(current_weight, patient_program.program)
+		
+		tmp = []
+		@options.each{|i|
+			if i.to_s.include?("2P")
+				i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
+			end
+			tmp << i
+		}
+		@options = tmp
+		
 		render :layout => false
 	end
 
