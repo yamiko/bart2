@@ -10,21 +10,24 @@ def start
 
   csv_url =  RAILS_ROOT + "/doc/Thyolo_Died_List.csv"
   CSV.foreach("#{csv_url}") do |row|
-    arv_number = row[2].to_i rescue 0
+    arv_number = row[2].to_s.split("/")[0].to_i rescue 0
     next if arv_number < 1
     arv_numbers << arv_number
   end
-
+  count = 0
   #find a patient using the ARV number and update the outcome
   (arv_numbers || []).each do |arv_number|
     valid_arv_num = "#{PatientIdentifier.site_prefix}-ARV-#{arv_number}"
     patient = PatientIdentifier.find_by_identifier(valid_arv_num).patient rescue nil
+
     next if patient.blank? || patient.person.dead == 1
     outcome_date = get_latest_encounter_date(patient)
     next if outcome_date.blank?
     update_outcome(patient, outcome_date)
     puts "Patient Died - ARV number:#{valid_arv_num}"
+
   end
+  puts count
 end
 
 def update_outcome(patient, outcome_date)
