@@ -53,12 +53,26 @@ class GenericPatientsController < ApplicationController
 
 #######################
       regimen_category = Concept.find_by_name("Regimen Category")
+=begin
       @current_regimen = Observation.find_by_sql("SELECT * FROM obs o INNER JOIN encounter enc ON
-      o.encounter_id= enc.encounter_id AND
-      enc.encounter_type= (SELECT encounter_type_id FROM encounter_type WHERE
-      name='DISPENSING') AND o.concept_id=#{regimen_category.id} AND enc.patient_id=#{@patient.id}
+      o.encounter_id = enc.encounter_id AND
+      enc.encounter_type = (SELECT encounter_type_id FROM encounter_type WHERE
+      name = 'DISPENSING') AND o.concept_id=#{regimen_category.id} AND enc.patient_id=#{@patient.id}
       AND enc.voided = 0
       order by enc.date_created DESC LIMIT 1").first.answer_string.squish rescue nil
+=end
+
+
+    #ToDo
+=begin
+The following block of code should be replaced by a more cleaner function
+=end
+      @current_regimen = Observation.find(:first, :conditions => ["concept_id = ? AND
+        person_id = ? AND obs_datetime = (SELECT MAX(obs_datetime) FROM obs o
+        WHERE o.person_id = #{@patient.id} AND o.concept_id =#{regimen_category.id}
+        AND o.voided = 0)",regimen_category.id, @patient.id]).value_text rescue nil
+
+
 
       identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
       identifiers = PatientIdentifierType.find(:all, :conditions=>["name IN (?)",
