@@ -12,7 +12,7 @@ def start
 
   patients = []
 
-  csv_url =  RAILS_ROOT + "/doc/"  #where the CSV file containing the ARV numbers will be
+  csv_url =  RAILS_ROOT + "/doc/pregnant_at_start.csv"  #where the CSV file containing the ARV numbers will be
   CSV.foreach("#{csv_url}") do |row|
     arv_number = row[0].upcase rescue nil
     next if arv_number.blank?
