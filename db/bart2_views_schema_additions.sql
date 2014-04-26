@@ -175,7 +175,7 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
          `obs`.`uuid` AS `uuid` 
   FROM `obs`
   INNER JOIN `person` ON ((`person`.`person_id` = `obs`.`person_id`))
-  WHERE ((`obs`.`concept_id` IN (6131,1755)) AND
+  WHERE ((`obs`.`concept_id` IN (6131,1755, 7972)) AND
          (`obs`.`value_coded` = 1065) AND
          (`obs`.`voided` = 0) AND
          (`person`.`gender` = 'F'));
