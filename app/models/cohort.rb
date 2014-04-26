@@ -344,6 +344,34 @@ class Cohort
 			#begin
 				#logger.info("regimens " + Time.now.to_s)
 				cohort_report['Regimens'] = self.regimens_all(@@first_registration_date)
+				regimens = self.regimens_all(@@first_registration_date)
+				cohort_report['1A'] = regimens['1A']
+				cohort_report['1P'] = regimens['1P']
+				cohort_report['2A'] = regimens['2A']
+				cohort_report['2P'] = regimens['2P']
+				cohort_report['3A'] = regimens['3A']
+				cohort_report['3P'] = regimens['3P']
+				cohort_report['4A'] = regimens['4A']
+				cohort_report['4P'] = regimens['4P']
+				cohort_report['5A'] = regimens['5A']
+				cohort_report['6A'] = regimens['6A']
+				cohort_report['7A'] = regimens['7A']
+				cohort_report['8A'] = regimens['8A']
+				cohort_report['9P'] = regimens['9P']
+				cohort_report['non-standard'] = cohort_report['Total alive and on ART'] -
+				                                  ((cohort_report['1A'] || []) +
+  				                                 (cohort_report['1P'] || []) +
+  				                                 (cohort_report['2A'] || []) +
+  				                                 (cohort_report['2P'] || []) +
+  				                                 (cohort_report['3A'] || []) +
+  				                                 (cohort_report['3P'] || []) +
+  				                                 (cohort_report['4A'] || []) +
+  				                                 (cohort_report['4P'] || []) +
+  				                                 (cohort_report['5A'] || []) +
+  				                                 (cohort_report['6A'] || []) +
+  				                                 (cohort_report['7A'] || []) +
+  				                                 (cohort_report['8A'] || []) +
+  				                                 (cohort_report['9P'] || []))
 		  #rescue Exception => e
 		   # Thread.current[:exception] = e
 		  #end
