@@ -4,6 +4,8 @@
 
 <script>
 </script>
+<%= javascript_include_tag("miscellaneous")%>
+<%= stylesheet_link_tag("miscellaneous")%>
 <style type="text/css">
 
 
@@ -1048,12 +1050,17 @@ element.setAttribute("onmousedown", "gotoNextPage()")
       }
     }
   }
+
+
 </script>
-<% if @patient_bean.age < 14
-   options = ["120","240","480","960"]
-  else
-    options = ["480","960"]
-  end
+
+<%
+   options = ["120","240","480"]
+    if (@current_weight >= 30)
+     options << ['960 <span class="moh_recommend">(MoH Recommended)</span>', '960']
+    else
+      options << ['960', '960']
+    end
 
  ipt_options = ["100"] if @current_weight < 10
  ipt_options = ["100","150"] if @current_weight >= 10 and @current_weight < 14
@@ -1309,7 +1316,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	  :allowFreeText => 'false',
 	  :condition => "$('cpt_given').value == 'YES'",
 	  :helpText => "Prescribed cotrimoxazole milligrams",
-          :tt_onLoad => "showCategory('Regimen'); set_cpt_options_events();",
+          :tt_onLoad => "showCategory('Regimen'); setTextToAppear();",
           :tt_onmousedown => "show_confirm_cpt_mgs()"} %>
   <% end %>
  <% current = session[:datetime].to_date rescue Date.today
