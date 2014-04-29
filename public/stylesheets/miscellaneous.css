@@ -2,5 +2,7 @@
 .moh_recommend{
     color:white;
     float: right;
-    padding-right: 8cm;
+    margin-right: 8cm;
+    display:block;
+    background-color:#00CD66;
 }

@@ -680,6 +680,25 @@ class GenericRegimensController < ApplicationController
 		current_weight = PatientService.get_patient_attribute_value(patient_program.patient, "current_weight", session_date)
 		#regimen_concepts = patient_program.regimens(current_weight).uniq
 		@options = MedicationService.regimen_options(current_weight, patient_program.program)
+		
+		tmp = []
+		
+		@options.each{|i|
+			if i.to_s.include?("2P") && current_weight<25
+				i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
+				
+			elsif i.to_s.include?("2A") && (current_weight >= 25 && current_weight <= 35)
+				i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
+				
+			elsif i.to_s.include?("5A") && current_weight > 35
+				i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
+			end
+			
+			tmp << i
+		}
+		
+		@options = tmp
+		
 		render :layout => false
 	end
 
@@ -691,6 +710,27 @@ class GenericRegimensController < ApplicationController
 		#current_weight = PatientService.get_patient_attribute_value(patient_program.patient, "current_weight", session_date)
 		#regimen_concepts = patient_program.regimens(current_weight).uniq
 		@options = MedicationService.all_regimen_options(patient_program.program)
+		
+		tmp = []
+		
+		current_weight = params[:current_weight].to_f
+		
+		@options.each{|i|
+			if i.to_s.include?("2P") && current_weight<25.to_f
+				i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
+				
+			elsif i.to_s.include?("2A") && (current_weight >= 25.to_f && current_weight <= 35.to_f)
+				i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
+				
+			elsif i.to_s.include?("5A") && current_weight > 35.to_f
+				i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
+			end
+			
+			tmp << i
+		}
+		
+		@options = tmp
+		
 		render :layout => false
 	end
 

@@ -5,7 +5,7 @@ function setTextToAppear(){
       available_cpt_options[i].style.backgroundColor='#00CD66';
       available_cpt_options[i].onclick = function(){
         tmp = this.innerHTML
-        this.innerHTML = this.innerHTML.replace(' <span class="moh_recommend">(MoH Recommended)</span>', "")
+        this.innerHTML = this.innerHTML.replace(' <span class="moh_recommend">(MoH Recommended)</span>', "") + " (MoH Recommended)"
         updateTouchscreenInputForSelect(this);
         this.innerHTML=tmp
 
