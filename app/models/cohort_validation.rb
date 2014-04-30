@@ -667,13 +667,13 @@ def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
 		#Task 51
 		#sum of reason starting ART equal to total registered
 
-		validation_rule = ValidationRule.find_by_desc("[CUMULATIVE] Presumed severe HIV disease in infants, Confirmed HIV infection in infants (PCR), WHO stage 1 or 2, CD4 below threshold, , Children 12-23 mths, Breastfeeding mothers, Pregnant women, WHO stage 3, WHO stage 4, and Unknown/other reason outside ")
+		validation_rule = ValidationRule.find_by_desc("[CUMULATIVE] Presumed severe HIV disease in infants, Confirmed HIV infection in infants (PCR), WHO stage 1 or 2, CD4 below threshold, Children 12-23 mths, Breastfeeding mothers, Pregnant women, WHO stage 3, WHO stage 4, and Unknown/other reason outside ")
 		return nil if validation_rule.blank?
 
 		values = [self.cohort_object['Total registered'],
 							self.cohort_object['Total Presumed severe HIV disease in infants'],
 							self.cohort_object['Total Confirmed HIV infection in infants (PCR)'],
-							self.cohort_object['WHO stage 1 or 2, CD4 below threshold'],
+							self.cohort_object['Total WHO stage 1 or 2, CD4 below threshold'],
 							self.cohort_object['Total WHO stage 2, total lymphocytes'],
 							self.cohort_object['Total registered children'],
 							self.cohort_object['Total Patient breastfeeding'],
