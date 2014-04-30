@@ -745,5 +745,24 @@ def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
     return self.feed_values(validation_rule, values)
   end    
 
+  def validate_total_registered_minus_sum_of_outcomes_equal_total_alive_and_on_art
+    #validate total registered minus all outcomes should equal to total alive and on art
+
+    validation_rule = ValidationRule.find_by_desc('Total registered minus Died total, Defaulted (more than 2 months overdue after expected to have run out of ARVs), Stopped taking ARVs (clinician or patient own decision last known alive), Transfered and Unknown outcome should equal to Total alive and on art')
+
+    return nil if validation_rule.blank?
+
+    values = [self.cohort_object['Total alive and on ART'],
+              self.cohort_object['Total registered'],
+              self.cohort_object['Died total'],
+              self.cohort_object['Defaulted'],
+              self.cohort_object['Stopped taking ARVs'],
+              self.cohort_object['Transferred out'],
+              self.cohort_object['Unknown outcomes']
+                ]
+
+    return self.feed_values(validation_rule, values)
+  end
+
 end
 
