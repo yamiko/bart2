@@ -221,14 +221,14 @@ class GenericRegimensController < ApplicationController
 					['Hepatitis/Jaundice','Hepatitis/Jaundice']
 				],
 				'alt1' => [
-				['Neuropathy','2'],
-        ['Hepatitis, Skin rash','3'],
+				['Neuropathy','2 or 5'],
+        ['Hepatitis, Skin rash','5 or 4'],
         ['Lipodystrophy, Lactic acidocis','5'],
         ['Treatment failure','7']
 				],
 				'alt2'=> [
-				['Neuropathy','5 or 6'],
-        ['Hepatitis, Skin rash',' None'],
+				['Neuropathy','0 or 6'],
+        ['Hepatitis, Skin rash',' NS'],
         ['Lipodystrophy, Lactic acidocis','NS'],
         ['Treatment failure','9']
 				]
@@ -247,13 +247,13 @@ class GenericRegimensController < ApplicationController
 				['Hepatitis, Skin rash','4'],
 				['Treatment failure','7'],
 				['Lipodystrophy, Lactic acidocis','5'],
-				['Anemia','1']
+				['Anemia','0 or 5']
 				],
 				'alt2'=> [
-				['Hepatitis, Skin rash','3'],
+				['Hepatitis, Skin rash','5 or 3'],
 				['Treatment failure','9'],
 				['Lipodystrophy, Lactic acidocis','NS'],
-				['Anemia','5 or 6']
+				['Anemia','6']
 				]},
 			'3' => { 'adverse' =>[
 				['Neuropathy','Neuropathy'],
@@ -265,15 +265,15 @@ class GenericRegimensController < ApplicationController
 					['History of psychiatric illness','History of psychiatric illness']
 				],
 				'alt1' => [
-				['Neuropathy','2'],
-				['Hepatitis, Skin rash, psychiat disorder','1'],
+				['Neuropathy','5'],
+				['Hepatitis, Skin rash, psychiat disorder','0 or 6'],
 				['Lipodystrophy, Lactic acidocis','5'],
-				['Treatment failure','7']
+				['Treatment failure','7 or 9']
 				],
 				'alt2'=> [
-				['Neuropathy','5 or 6 or NS'],
+				['Neuropathy','4 or NS'],
 				['Hepatitis, Skin rash, psychiat disorder','NS'],
-				['Lipodystrophy, Lactic acidocis','None'],
+				['Lipodystrophy, Lactic acidocis','6'],
 				['Treatment failure','None']
 				]},
 			'4' => { 'adverse' => [
@@ -287,36 +287,39 @@ class GenericRegimensController < ApplicationController
 					['Anaemia <8g/dl','Anaemia <8g/dl']
 				],
 				'alt1' => [
-				['Anemia','3'],
+				['Anemia','5 or 0'],
 				['Lipodystrophy, Lactic acidocis','5'],
-				['Hepatitis, Skin rash, psychiat disorder','2'],
+				['Hepatitis, Skin rash, psychiat disorder','2 or 0'],
 				['Treatment failure','7']
 				],
 				'alt2'=> [
-				['Anemia','5'],
-				['Lipodystrophy, Lactic acidocis','9'],
-				['Hepatitis, Skin rash, psychiat disorder','NS'],
+				['Anemia','3 or 6'],
+				['Lipodystrophy, Lactic acidocis', 'None'],
+				['Hepatitis, Skin rash, psychiat disorder','6'],
 				['Treatment failure','9']
 				]},
 			'5' => { 'adverse' =>[
 				['Renal Failure','Renal Failure'],
 				['Hepatitis, Skin rash, psychiat disorder','Hepatitis, Skin rash, psychiat disorder'],
+        ['Persistent dizziness, Visual disturbances', 'Persistent dizziness, Visual disturbances'],
 				['Treatment failure','Treatment failure']
 				],
 				'contraindications' => [
 					['History of psychiatric illness','History of psychiatric illness'],
 					['Renal failure','Renal failure'],
-					['Child under 12 years','Child under 12 years']
+					['Child under 3 years','Child under 3 years']
 				],
 				'alt1' => [
-				['Renal Failure','Lower dose'],
+				['Renal Failure','0'],
 				['Hepatitis, Skin rash, psychiat disorder','6'],
+        ['Persistent dizziness, Visual disturbances', '6'],
 				['Treatment failure','8']
 				],
 				'alt2'=> [
 				['Renal Failure','2'],
-				['Hepatitis, Skin rash, psychiat disorder','NS'],
-				['Treatment failure','None']
+				['Hepatitis, Skin rash, psychiat disorder','0 or 2'],
+        ['Persistent dizziness, Visual disturbances', '0 or 2'],
+				['Treatment failure','NS']
 				]},
 			'6' => { 'adverse' =>[
 				['Renal failure','Renal failure'],
@@ -326,69 +329,72 @@ class GenericRegimensController < ApplicationController
 				'contraindications' => [
 					['Hepatitis/Jaundice','Hepatitis/Jaundice'],
 					['Renal failure','Renal failure'],
-					['Child under 12 years','Child under 12 years']
+					['Child under 3 years','Child under 3 years']
 				],
 				'alt1' => [
-				['Renal failure','Lower dose'],
+				['Renal failure','0'],
 				['Hepatitis, Skin rash','5'],
 				['Treatment failure','8']
 				],
 				'alt2'=> [
 				['Renal failure','2'],
 				['Hepatitis, Skin rash','NS'],
-				['Treatment failure','None']
+				['Treatment failure','NS']
 				]},
 			'7' =>{ 'adverse' =>[
 				['Nausia, vomiting','Nausia, vomiting'],
 				['Renal failure','Renal failure'],
-				['Treatment failure','Treatment failure']
+				['Jaundice','Jaundice']
 				],
 				'contraindications' => [
 					['Renal failure','Renal failure'],
-					['Child under 12 years','Child under 12 years']
+					['Patient on rifampicin','Patient on rifampicin'],
+          ['Hepatitis/Jaundice','Hepatitis/Jaundice']
 				],
 				'alt1' => [
-				['Nausia, vomiting','8'],
-				['Renal failure','NS'],
-				['Treatment failure','None']
+				['Nausia, vomiting','NS'],
+				['Renal failure','8'],
+				['Jaundice','TDF/3TC + LPV/r']
 				],
 				'alt2'=> [
 				['Nausia, vomiting','None'],
-				['Renal failure','None'],
-				['Treatment failure','(3rd line)']
+				['Renal failure','NS'],
+				['Jaundice','None']
 				]},
 			'8' => { 'adverse' => [
 				['Nausia, vomiting','Nausia, vomiting'],
 				['Anemia','Anemia'],
-				['Treatment failure','Treatment failure']
+				['Jaundice', 'Jaundice']
 				],
 				'contraindications' => [
-					['Anaemia <8g/dl','Anaemia <8g/dl']
+					['Anaemia <8g/dl','Anaemia <8g/dl'],
+          ['Patient on rifampicin','Patient on rifampicin'],
+          ['Hepatitis/Jaundice','Hepatitis/Jaundice']
 				],
 				'alt1' => [
-				['Nausia, vomiting','7'],
-				['Anemia','NS'],
-				['Treatment failure','None']
+				['Nausia, vomiting','NS'],
+				['Anemia','7'],
+				['Jaundice','AZT/3TC + LPV/r']
 				],
 				'alt2'=> [
 				['Nausia, vomiting','None'],
-				['Anemia','None'],
-				['Treatment failure','(3rd line)']
+				['Anemia','9'],
+				['Jaundice','None']
 				]},
 			'9' => { 'adverse' =>[
-				['ABC hypersensitivity','ABC hypersensitivity'],
-				['Treatment failure','Treatment failure']
+				['Fever, Body pains, Vomiting, Cough', 'Fever, Body pains, Vomiting, Cough'],
+				['Diarrhoea, Vomiting','Diarrhoea, Vomiting']
 				],
 				'contraindications' => [
-					['Abacavir hypersensitivity','Abacavir hypersensitivity']
+					['ABC hypersensitivity','ABC hypersensitivity']
 				],
 				'alt1' => [
-				['ABC hypersensitivity','8 or 7'],
-				['Treatment failure','None']
+				['Fever, Body pains, Vomiting, Cough', '7'],
+				['Diarrhoea, Vomiting','NS']
 				],
 				'alt2'=> [
-				['ABC hypersensitivity','None'],
-				['Treatment failure','(3rd line)']
+				['Fever, Body pains, Vomiting, Cough', '8'],
+				['Diarrhoea, Vomiting','None']
 				]
 				}
 
