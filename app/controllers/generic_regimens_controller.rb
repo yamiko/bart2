@@ -188,6 +188,29 @@ class GenericRegimensController < ApplicationController
 
 	def regimen_options
     adverse_options = {
+      '0' => { 'adverse' => [
+        ['Fever', 'Body pains', 'Vomiting', 'Cough', 'Fever', 'Body pains', 'Vomiting', 'Cough'],
+        ['Hepatitis, Skin rash', 'Hepatitis, Skin rash'],
+        ['Lipodystrophy, Lactic acidocis', 'Lipodystrophy, Lactic acidocis'],
+        ['Treatment failure','Treatment failure']
+      ],
+				'contraindications' => [
+          ['ABC hypersensitivity', 'ABC hypersensitivity'],
+					['Hepatitis/Jaundice','Hepatitis/Jaundice']
+				],
+				'alt1' => [
+				['Fever', 'Body pains', 'Vomiting', 'Cough', '2'],
+        ['Hepatitis, Skin rash','ABC/3TC+EFV'],
+        ['Lipodystrophy, Lactic acidocis','5'],
+        ['Treatment failure','7']
+				],
+				'alt2'=> [
+				['Fever', 'Body pains', 'Vomiting', 'Cough', '6 or 5 or NS'],
+        ['Hepatitis, Skin rash','5 or 4'],
+        ['Lipodystrophy, Lactic acidocis','6 or NS'],
+        ['Treatment failure','8']
+				]
+			},
       '1' => { 'adverse' => [
         ['Neuropathy','Neuropathy'],
         ['Hepatitis, Skin rash','Hepatitis, Skin rash'],

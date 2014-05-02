@@ -667,13 +667,13 @@ def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
 		#Task 51
 		#sum of reason starting ART equal to total registered
 
-		validation_rule = ValidationRule.find_by_desc("[CUMULATIVE] Presumed severe HIV disease in infants, Confirmed HIV infection in infants (PCR), WHO stage 1 or 2, CD4 below threshold, , Children 12-23 mths, Breastfeeding mothers, Pregnant women, WHO stage 3, WHO stage 4, and Unknown/other reason outside ")
+		validation_rule = ValidationRule.find_by_desc("[CUMULATIVE] Presumed severe HIV disease in infants, Confirmed HIV infection in infants (PCR), WHO stage 1 or 2, CD4 below threshold, Children 12-23 mths, Breastfeeding mothers, Pregnant women, WHO stage 3, WHO stage 4, and Unknown/other reason outside ")
 		return nil if validation_rule.blank?
 
 		values = [self.cohort_object['Total registered'],
 							self.cohort_object['Total Presumed severe HIV disease in infants'],
 							self.cohort_object['Total Confirmed HIV infection in infants (PCR)'],
-							self.cohort_object['WHO stage 1 or 2, CD4 below threshold'],
+							self.cohort_object['Total WHO stage 1 or 2, CD4 below threshold'],
 							self.cohort_object['Total WHO stage 2, total lymphocytes'],
 							self.cohort_object['Total registered children'],
 							self.cohort_object['Total Patient breastfeeding'],
@@ -744,6 +744,25 @@ def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
 
     return self.feed_values(validation_rule, values)
   end    
+
+  def validate_total_registered_minus_sum_of_outcomes_equal_total_alive_and_on_art
+    #validate total registered minus all outcomes should equal to total alive and on art
+
+    validation_rule = ValidationRule.find_by_desc('Total registered minus Died total, Defaulted (more than 2 months overdue after expected to have run out of ARVs), Stopped taking ARVs (clinician or patient own decision last known alive), Transfered and Unknown outcome should equal to Total alive and on art')
+
+    return nil if validation_rule.blank?
+
+    values = [self.cohort_object['Total alive and on ART'],
+              self.cohort_object['Total registered'],
+              self.cohort_object['Died total'],
+              self.cohort_object['Defaulted'],
+              self.cohort_object['Stopped taking ARVs'],
+              self.cohort_object['Transferred out'],
+              self.cohort_object['Unknown outcomes']
+                ]
+
+    return self.feed_values(validation_rule, values)
+  end
 
 end
 
