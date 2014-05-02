@@ -188,6 +188,29 @@ class GenericRegimensController < ApplicationController
 
 	def regimen_options
     adverse_options = {
+      '0' => { 'adverse' => [
+        ['Fever', 'Body pains', 'Vomiting', 'Cough', 'Fever', 'Body pains', 'Vomiting', 'Cough'],
+        ['Hepatitis, Skin rash', 'Hepatitis, Skin rash'],
+        ['Lipodystrophy, Lactic acidocis', 'Lipodystrophy, Lactic acidocis'],
+        ['Treatment failure','Treatment failure']
+      ],
+				'contraindications' => [
+          ['ABC hypersensitivity', 'ABC hypersensitivity'],
+					['Hepatitis/Jaundice','Hepatitis/Jaundice']
+				],
+				'alt1' => [
+				['Fever', 'Body pains', 'Vomiting', 'Cough', '2'],
+        ['Hepatitis, Skin rash','ABC/3TC+EFV'],
+        ['Lipodystrophy, Lactic acidocis','5'],
+        ['Treatment failure','7']
+				],
+				'alt2'=> [
+				['Fever', 'Body pains', 'Vomiting', 'Cough', '6 or 5 or NS'],
+        ['Hepatitis, Skin rash','5 or 4'],
+        ['Lipodystrophy, Lactic acidocis','6 or NS'],
+        ['Treatment failure','8']
+				]
+			},
       '1' => { 'adverse' => [
         ['Neuropathy','Neuropathy'],
         ['Hepatitis, Skin rash','Hepatitis, Skin rash'],
@@ -680,6 +703,25 @@ class GenericRegimensController < ApplicationController
 		current_weight = PatientService.get_patient_attribute_value(patient_program.patient, "current_weight", session_date)
 		#regimen_concepts = patient_program.regimens(current_weight).uniq
 		@options = MedicationService.regimen_options(current_weight, patient_program.program)
+		
+		tmp = []
+		
+		@options.each{|i|
+			if i.to_s.include?("2P") && current_weight<25
+				i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
+				
+			elsif i.to_s.include?("2A") && (current_weight >= 25 && current_weight <= 35)
+				i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
+				
+			elsif i.to_s.include?("5A") && current_weight > 35
+				i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
+			end
+			
+			tmp << i
+		}
+		
+		@options = tmp
+		
 		render :layout => false
 	end
 
@@ -691,6 +733,27 @@ class GenericRegimensController < ApplicationController
 		#current_weight = PatientService.get_patient_attribute_value(patient_program.patient, "current_weight", session_date)
 		#regimen_concepts = patient_program.regimens(current_weight).uniq
 		@options = MedicationService.all_regimen_options(patient_program.program)
+		
+		tmp = []
+		
+		current_weight = params[:current_weight].to_f
+		
+		@options.each{|i|
+			if i.to_s.include?("2P") && current_weight<25.to_f
+				i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
+				
+			elsif i.to_s.include?("2A") && (current_weight >= 25.to_f && current_weight <= 35.to_f)
+				i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
+				
+			elsif i.to_s.include?("5A") && current_weight > 35.to_f
+				i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
+			end
+			
+			tmp << i
+		}
+		
+		@options = tmp
+		
 		render :layout => false
 	end
 

@@ -1,8 +1,14 @@
 
-<% %>
+<%= javascript_include_tag 'miscellaneous.js'%>
+<%=  stylesheet_link_tag  'miscellaneous.css'%>
+
 <script>
 </script>
+<%= javascript_include_tag("miscellaneous")%>
+<%= stylesheet_link_tag("miscellaneous")%>
 <style type="text/css">
+
+
  #popup {
  	top: 50px;
 	height:80% ! important;
@@ -306,6 +312,29 @@
 	background-color:gray;
 	padding:10px;
   }
+
+  #confirm_cpt_mgs{
+        border-radius: 10px;
+        position: absolute;
+        background-color: #DCDCDC;
+        border: 3px solid black;
+        height: 32%;
+        z-index: 991;
+        left: 40%;
+        top:20%;
+        width: 53%;
+        left: 20%;
+      }
+  #protector{
+      position: absolute;
+      background-color: black;
+      width: 100%;
+      height: 102%;
+      left: 0%;
+      top: 0%;
+      z-index: 990;
+      opacity: 0.5;
+    }
 </style>
 
 <%= javascript_include_tag "prototype"%>
@@ -486,7 +515,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 				display += "</table></td></tr>"; //Alt 2 */
 				//Selected Regimen
 				
-				display += "<tr><td colspan='6'><hr></td></tr><tr  class='" + chart_color +"'><td class='title" + chart_color +"'>Selected </td><td>" + $('regimen_concept_id').options[$('regimen_concept_id').selectedIndex].text + "</td><td><table>";
+				display += "<tr><td colspan='6'><hr></td></tr><tr  class='" + chart_color +"'><td class='title" + chart_color +"'>Selectedd </td><td>" + $('regimen_concept_id').options[$('regimen_concept_id').selectedIndex].text.replace('(MoH Recommended)', "") + "</td><td><table>";
 				for (x=0; x < adverse_events[selected.toString()]["contraindications"].length; x++){
 				   display += "<tr><td>" + adverse_events[selected.toString()]["contraindications"][x][0] + "</td></tr>"
 				}
@@ -668,7 +697,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 
   function set_patient_posible_all_suggestions(programId) {
 	//var program_id = encodeURIComponent($('patient_program').value);
-	$('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/regimens/suggest_all?patient_age=<%= @patient_bean.age %>&id=" + programId + "&search_string=");
+	$('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/regimens/suggest_all?patient_age=<%= @patient_bean.age %>&current_weight=<%= @current_weight %>&id=" + programId + "&search_string=");
 	listSuggestions(tstCurrentPage);
 	//$("regimen_concept_id").setAttribute("onmousedown", alert('yes'))
   }
@@ -982,12 +1011,65 @@ element.setAttribute("onmousedown", "gotoNextPage()")
       __$("buttons").removeChild(__$("addHere"));
     }
   }
+
+  function show_confirm_cpt_mgs(){
+    protector = document.getElementById('protector')
+    protector.style.display = 'inline'
+    content = document.getElementById('content')
+    confirm_cpt = document.getElementById('confirm_cpt_mgs');
+    content.appendChild(confirm_cpt);
+    confirm_cpt.style.display = 'inline'
+  }
+
+  function confirm_cpt_mgs_no_button(){
+    confirm_cpt = document.getElementById('confirm_cpt_mgs');
+    confirm_cpt.style.display = 'none';
+    protector = document.getElementById('protector')
+    protector.style.display = 'none'
+  }
+
+  function confirm_cpt_mgs_yes_button(){
+    confirm_cpt = document.getElementById('confirm_cpt_mgs');
+    confirm_cpt.style.display = 'none';
+    protector = document.getElementById('protector')
+    protector.style.display = 'none'
+    gotoNextPage();
+  }
+
+  function set_cpt_options_events(){
+    available_cpt_options = document.getElementsByTagName('li');
+    current_weight = '<%= @current_weight %>'
+    for(i=0; i<available_cpt_options.length; i++){
+
+      available_cpt_options[i].onmouseup = function(){
+        if (this.innerHTML == '480'){
+         if (current_weight >= 30){
+          show_confirm_cpt_mgs();
+         }
+        }
+      }
+    }
+  }
+
 </script>
-<% if @patient_bean.age < 14
-   options = ["120","240","480","960"]
-  else
-    options = ["480","960"]
-  end
+
+<%
+      options = [["240", "240"]]
+    if (@current_weight < 14)
+      options << ['120 <span class="moh_recommend">(MoH Recommended)</span>', '120']
+      options << ['480 <span class="moh_recommend">(MoH Recommended)</span>', '480']
+    else
+      options << ['120', '120']
+    end
+    
+    if (@current_weight >= 14)
+      options << ['480 <span class="moh_recommend">(MoH Recommended)</span>', '480']
+      options << ['960 <span class="moh_recommend">(MoH Recommended)</span>', '960']
+    else
+      options << ['960', '960']
+    end
+      options = options.sort_by{|key, value| value.to_i}
+      #options = options.sort_by{|key, value| value}
 
  ipt_options = ["100"] if @current_weight < 10
  ipt_options = ["100","150"] if @current_weight >= 10 and @current_weight < 14
@@ -1179,7 +1261,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   <%= select_tag :regimen_concept_id, nil, {
 	:ajaxUrl => "",
 	:allowFreeText => 'false',
-	:tt_onLoad => "removeButton();addButton();changeRegimen();set_patient_program_for_suggestions($('patient_program').value);setTimeout('setSelectedRow()',500);showCategory('Regimen');",
+	:tt_onLoad => "removeButton();addButton();changeRegimen();set_patient_program_for_suggestions($('patient_program').value);setTimeout('setSelectedRow();setTextToAppear(\" (MoH Recommended)\");',1000);showCategory('Regimen');",
 	:condition => 'hasReasonForART() == true && $("prescribe_arvs").value == "YES" && $("continue_existing_regimen").value != "YES"',
 	:optional => true,
         :helpText => "Select ART regimen",
@@ -1188,7 +1270,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   <%= select_tag :regimen_concept_id_all, nil, {
 	:ajaxUrl => "",
 	:allowFreeText => 'false',
-	:tt_onLoad => "changeRegimen();set_patient_posible_all_suggestions($('patient_program').value);setTimeout('setSelectedRow()',500);showCategory('Regimen');",
+	:tt_onLoad => "changeRegimen();set_patient_posible_all_suggestions($('patient_program').value);setTimeout('setSelectedRow(); setTextToAppear(\" (MoH Recommended)\")',1000);showCategory('Regimen');",
 	:condition => 'other_regimen == "yes"',
 	:helpText => "Select ART regimen",
 	:tt_onUnload => "resetRegimen()"}%>
@@ -1243,7 +1325,8 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	  :allowFreeText => 'false',
 	  :condition => "$('cpt_given').value == 'YES'",
 	  :helpText => "Prescribed cotrimoxazole milligrams",
-          :tt_onLoad => "showCategory('Regimen');"} %>
+          :tt_onLoad => "showCategory('Regimen'); setTextToAppear();",
+          :tt_onmousedown => "show_confirm_cpt_mgs()"} %>
   <% end %>
  <% current = session[:datetime].to_date rescue Date.today
  if current >= '2014-04-01'.to_date %>
@@ -1404,4 +1487,20 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 </form>
   <div id="previous_drugs_dispensed">
   </div>
+
+  <div id="confirm_cpt_mgs" style="display:none">
+        <div><br />
+          <center><span style="font-size: 2em; color: red">You are about to change the new guidelines for
+              CPT.<br />
+              Are you sure about this?</span><br /><br /><br />
+            <button onclick="confirm_cpt_mgs_yes_button()" style="position:absolute; left:20%; min-width: 140px; bottom: 2%;" id="yes"><span>Yes</span></button>
+            <button onclick="confirm_cpt_mgs_no_button()" style="position:absolute; right:20%; min-width: 140px; bottom: 2%;" id="no"><span>No</span></button></center>
+     
+        </div>
+  </div>
+  
+  <div id="protector" style="display:none">
+
+  </div>
+  
 </body>
