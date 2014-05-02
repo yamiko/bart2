@@ -692,7 +692,6 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	//var program_id = encodeURIComponent($('patient_program').value);
 	$('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/regimens/suggested?patient_age=<%= @patient_bean.age %>&id=" + programId + "&search_string=");
 	listSuggestions(tstCurrentPage);
-
 	//$("regimen_concept_id").setAttribute("onmousedown", alert('yes'))
   }
 
@@ -1052,16 +1051,25 @@ element.setAttribute("onmousedown", "gotoNextPage()")
     }
   }
 
-
 </script>
 
 <%
-   options = ["120","240","480"]
-    if (@current_weight >= 30)
-     options << ['960 <span class="moh_recommend">(MoH Recommended)</span>', '960']
+      options = [["240", "240"]]
+    if (@current_weight < 14)
+      options << ['120 <span class="moh_recommend">(MoH Recommended)</span>', '120']
+      options << ['480 <span class="moh_recommend">(MoH Recommended)</span>', '480']
+    else
+      options << ['120', '120']
+    end
+    
+    if (@current_weight >= 14)
+      options << ['480 <span class="moh_recommend">(MoH Recommended)</span>', '480']
+      options << ['960 <span class="moh_recommend">(MoH Recommended)</span>', '960']
     else
       options << ['960', '960']
     end
+      options = options.sort_by{|key, value| value.to_i}
+      #options = options.sort_by{|key, value| value}
 
  ipt_options = ["100"] if @current_weight < 10
  ipt_options = ["100","150"] if @current_weight >= 10 and @current_weight < 14
@@ -1253,7 +1261,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   <%= select_tag :regimen_concept_id, nil, {
 	:ajaxUrl => "",
 	:allowFreeText => 'false',
-	:tt_onLoad => "removeButton();addButton();changeRegimen();set_patient_program_for_suggestions($('patient_program').value);setTimeout('setSelectedRow();setTextToAppear();',1000);showCategory('Regimen');",
+	:tt_onLoad => "removeButton();addButton();changeRegimen();set_patient_program_for_suggestions($('patient_program').value);setTimeout('setSelectedRow();setTextToAppear(\" (MoH Recommended)\");',1000);showCategory('Regimen');",
 	:condition => 'hasReasonForART() == true && $("prescribe_arvs").value == "YES" && $("continue_existing_regimen").value != "YES"',
 	:optional => true,
         :helpText => "Select ART regimen",
@@ -1262,7 +1270,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   <%= select_tag :regimen_concept_id_all, nil, {
 	:ajaxUrl => "",
 	:allowFreeText => 'false',
-	:tt_onLoad => "changeRegimen();set_patient_posible_all_suggestions($('patient_program').value);setTimeout('setSelectedRow()',500);showCategory('Regimen');",
+	:tt_onLoad => "changeRegimen();set_patient_posible_all_suggestions($('patient_program').value);setTimeout('setSelectedRow(); setTextToAppear(\" (MoH Recommended)\")',1000);showCategory('Regimen');",
 	:condition => 'other_regimen == "yes"',
 	:helpText => "Select ART regimen",
 	:tt_onUnload => "resetRegimen()"}%>
