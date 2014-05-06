@@ -66,4 +66,4 @@
 1	"{cum_ks} >= {new_ks}"	
 1	"{cum_total_reg} >= {total_ks}"	"[CUMULATIVE] Total karposis sarcoma cases should not exceed total ever registered"
 1	"{newly_reg} >= {ks}"	"[QUARTELY] Karposis sarcoma cases should not exceed total newly registered"
-1	"{total_on_art} == {cum_total_reg} - {died_total} - {total_on_art} - {defaulted} - {stopped} - {transfered} - {unknown_outcome}"  "Total registered minus Died total, Defaulted (more than 2 months overdue after expected to have run out of ARVs), Stopped taking ARVs (clinician or patient own decision last known alive), Transfered and Unknown outcome should equal to Total alive and on art"
+1	"{total_on_art} == {cum_total_reg} - {died_total} - {total_on_art} - {defaulted} - {stopped} - {transfered} - {unknown_outcome}"	"Total registered minus Died total, Defaulted (more than 2 months overdue after expected to have run out of ARVs), Stopped taking ARVs (clinician or patient own decision last known alive), Transfered and Unknown outcome should equal to Total alive and on art"
