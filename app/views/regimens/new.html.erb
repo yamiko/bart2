@@ -1253,12 +1253,12 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	:helpText => "Continue current ARV drugs?"}%>
   <%= touch_hidden_tag "Reason antiretrovirals changed or stopped", @patient, nil, {
 	  :id => 'reason_antiretrovirals_changed_or_stopped'} %>
-
+	  
   <%= select_tag :continue_existing_regimen, options_for_select([['',''],['Yes','YES'],['No','NO']], ''), {
 	:textCase => "upper",
 	:allowFreeText => 'false',
 	:id => "continue_existing_regimen",
-	:tt_onLoad => 'showDrugs();setAttributes();changeButton();showCategory("Regimen");',
+	:tt_onLoad => 'showDrugs();setAttributes();changeButton();showCategory("Regimen");showRegimenChangeAlert()',
 	:tt_onUnLoad => 'resetAttributes();resetRegimen();',
 	:condition => 'existingRegimen();',
 	:helpText => "Continue current ARV drugs?"}%>
@@ -1495,9 +1495,8 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 
   <div id="confirm_cpt_mgs" style="display:none">
         <div><br />
-          <center><span style="font-size: 2em; color: red">You are about to change the new guidelines for
-              CPT.<br />
-              Are you sure about this?</span><br /><br /><br />
+          <center><span style="font-size: 2em; color: red">Children on 2nd line regimen 9P rountinely change to standard adult 2nd line regimen 7A once they weigh over 35Kg.<br />
+              Would you like to change?</span><br /><br /><br />
             <button onclick="confirm_cpt_mgs_yes_button()" style="position:absolute; left:20%; min-width: 140px; bottom: 2%;" id="yes"><span>Yes</span></button>
             <button onclick="confirm_cpt_mgs_no_button()" style="position:absolute; right:20%; min-width: 140px; bottom: 2%;" id="no"><span>No</span></button></center>
      
@@ -1509,3 +1508,12 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   </div>
   
 </body>
+<script>
+
+function showRegimenChangeAlert(){
+	<% if @current_weight > 35 && @patient_bean.age <=14 && @current_regimen.upcase == '9P' %>
+		document.getElementById('confirm_cpt_mgs').style.display = 'inline'
+		document.getElementById('protector').style.display = 'inline'
+	<% end %>
+}
+</script>

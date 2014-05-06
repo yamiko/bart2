@@ -11,6 +11,9 @@ class GenericRegimensController < ApplicationController
 		@patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
 		@patient_bean = PatientService.get_patient(@patient.person)
 		@programs = @patient.patient_programs.all
+		
+		@current_regimen = current_regimen(@patient.id) rescue nil
+
 		#@hiv_programs = @patient.patient_programs.not_completed.in_programs('HIV PROGRAM')
     @hiv_programs = []
     @programs.each do |prog|
@@ -897,6 +900,16 @@ class GenericRegimensController < ApplicationController
       PatientProgram.update_all "date_completed = '#{date_completed.strftime('%Y-%m-%d %H:%M:%S')}'",
                                  "patient_program_id = #{patient_program.patient_program_id}"
     end
+  end
+  
+  
+  def current_regimen(patient_id)
+	  regimen_category = Concept.find_by_name("Regimen Category")
+ 
+      current_regimen = Observation.find(:first, :conditions => ["concept_id = ? AND
+        person_id = ? AND obs_datetime = (SELECT MAX(obs_datetime) FROM obs o
+        WHERE o.person_id = #{patient_id} AND o.concept_id =#{regimen_category.id}
+        AND o.voided = 0)",regimen_category.id, patient_id]).value_text rescue nil
   end
   
   protected
