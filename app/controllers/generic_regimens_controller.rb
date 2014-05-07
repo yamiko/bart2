@@ -718,7 +718,13 @@ class GenericRegimensController < ApplicationController
 		@options.each{|i|
 			if i.to_s.include?("2P") && current_weight<25
 				i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
-				
+
+      elsif (i.to_s.include?("7A") || i.to_s.include?("8A")) && (current_weight >= 35) && (i.to_s.upcase.include?("ATV/R"))
+        i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
+
+      elsif i.to_s.include?("9P") && (current_weight < 35)
+        i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
+
 			elsif i.to_s.include?("2A") && (current_weight >= 25 && current_weight <= 35)
 				i[0] = i[0].to_s + " <span class='moh_recommend'>(MoH Recommended)</span>"
 				
