@@ -521,25 +521,20 @@ BEGIN
 				AND voided = 0
 				ORDER BY patient_program_id DESC LIMIT 1;
 
-  	SELECT start_date INTO @start_date FROM patient_state
-		WHERE patient_program_id = @patient_program_id
-			AND voided = 0
-			AND start_date <= my_end_date
-		ORDER BY start_date DESC, date_created DESC, patient_state_id DESC LIMIT 1;
 
-	SELECT state INTO @state_id FROM patient_state
+	SELECT state, start_date INTO @state_id, @start_date FROM patient_state
 		WHERE patient_program_id = @patient_program_id
 			AND voided = 0
 			AND start_date <= my_end_date
 		ORDER BY start_date DESC, date_created DESC, patient_state_id DESC LIMIT 1;
 
    IF ( @state_id != 3 ) THEN
+
       SELECT state INTO @new_state_id FROM patient_state
 		   WHERE patient_program_id = @patient_program_id
 			AND voided = 0
 			AND start_date = @start_date
-         AND state = 3
-		ORDER BY start_date DESC, date_created DESC, patient_state_id DESC LIMIT 1;
+         AND state = 3 LIMIT 1;
    END IF;
 
     IF ( @new_state_id IS NOT NULL ) THEN
