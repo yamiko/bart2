@@ -550,6 +550,7 @@ class EncountersController < GenericEncountersController
 				['',''],
 				['Sputum Test','TB sputum test'],
 				['X-Ray','X-Ray'],
+        ['GeneXpert','GeneXpert'],
 				['None','None']
 			],
       'tb_clinic_visit_type' => [
