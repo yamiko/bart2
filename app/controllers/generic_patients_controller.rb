@@ -2496,26 +2496,65 @@ The following block of code should be replaced by a more cleaner function
         patient.person.update_attributes(gender) if !gender.empty?
       when "location"
         location = params[:person][:addresses]
-        patient.person.addresses.first.update_attributes(location) if location
+        
+        addresses = patient.person.addresses.first    
+
+        if addresses.blank?
+          PersonAddress.create(:person_id => patient.id,
+                                :city_village => location)
+        else
+          addresses.update_attributes(location)
+        end
+
       when "occupation"
         attribute = params[:person][:attributes]
         occupation_attribute = PersonAttributeType.find_by_name("Occupation")
         exists_person_attribute = PersonAttribute.find(:first, :conditions => ["person_id = ? AND person_attribute_type_id = ?", patient.person.id, occupation_attribute.person_attribute_type_id]) rescue nil
         if exists_person_attribute
           exists_person_attribute.update_attributes({'value' => attribute[:occupation].to_s})
+        else
+          attribute = {'value' => params[:person]["Occupation"],
+                       'person_attribute_type_id' => occupation_attribute.id,
+                       'person_id' => patient.id}
+          PersonAttribute.create(attribute)
+        
         end
       when "guardian"
         names_params =  {"given_name" => params[:given_name].to_s,"family_name" => params[:family_name].to_s}
         Person.find(params[:guardian_id].to_s).names.first.update_attributes(names_params) rescue '' if names_params
       when "address"
         address2 = params[:person][:addresses]
-        patient.person.addresses.first.update_attributes(address2) if address2
+        
+        addresses = patient.person.addresses.first    
+
+        if addresses.blank?
+          PersonAddress.create(:person_id => patient.id,
+                               :address1 => address2 )
+        else
+          addresses.update_attributes(address2)
+        end
+        
       when "ta"
         county_district = params[:person][:addresses]
-        patient.person.addresses.first.update_attributes(county_district) if county_district
+        addresses = patient.person.addresses.first    
+
+        if addresses.blank?
+          PersonAddress.create(:person_id => patient.id,
+                               :county_district => county_district)
+        else
+          addresses.update_attributes(county_district)
+        end
+
       when "home_district"
         home_district = params[:person][:addresses]
-        patient.person.addresses.first.update_attributes(home_district) if home_district
+        addresses = patient.person.addresses.first    
+
+        if addresses.blank?
+          PersonAddress.create(:person_id => patient.id,
+                               :address2 => home_district)
+        else
+          addresses.update_attributes(home_district)
+        end
 
       when "cell_phone_number"
         attribute_type = PersonAttributeType.find_by_name("Cell Phone Number").id
