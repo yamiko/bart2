@@ -25,10 +25,10 @@ def write_sql(a_hash,table)
    
     #create sql statement
     a_hash.each do |key,value|
-	fields = "'#{key}', "
-	values = "'#{value}', "	
+	fields += fields.empty? ? "`#{key}`" : ", `#{key}`"
+	values += values.empty? ? "`#{value}`" : ", `#{value}`"	
     end
-    full_string = initial_text + "(" + fields + ")" + " VALUES (" + values + ")" + ";"
+    full_string = initial_text + "(" + fields + ")" + " VALUES (" + values + ");"
     #write to output file
     $temp_outfile << full_string
 
