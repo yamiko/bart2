@@ -441,6 +441,8 @@ function loadFrequenciesAndDuration(id){
   clearTimeout(clicksChecker);
   
   __$("switcher").innerHTML = "";
+  __$("searchbox").value = "";
+  __$("searchbox").style.display = "none";
   
   var table = document.createElement("div");
   table.className = "table";
@@ -603,6 +605,8 @@ function loadDrugSets(){
   clearTimeout(clicksChecker);
   
   __$("switcher").innerHTML = "";
+  __$("searchbox").value = "";
+  __$("searchbox").style.display = "none";
   
   var table = document.createElement("div");
   table.className = "table";
@@ -671,13 +675,14 @@ function listAllDrugs(){
       formulations.push({
         drug: drugs[i] ,
         dose: strengths[i],
-        unit: units[i]
+        unit: units[i],
+        drug_id: drug_ids[i]
       });
     }
     
     for(var l = 0; l < formulations.length; l++){
       var li = document.createElement("li");
-      li.id = "all_" + l;
+      li.id = "all_" + formulations[l].drug_id;
       li.innerHTML = formulations[l].drug;
       li.style.backgroundColor = (l % 2 == 0 ? "#f8f7ec" : "#fff");
       li.setAttribute("dose", formulations[l].dose);
@@ -867,7 +872,31 @@ String.prototype.toProperCase = function()
 
 // Stub for searching the drugs
 function searchDrug(){
-
+  var search_str = document.getElementById('search').value;               
+                                                                                  
+  if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari  
+    xmlhttp=new XMLHttpRequest();                                             
+  }else{// code for IE6, IE5                                                  
+    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");                           
+  }                                                                           
+  xmlhttp.onreadystatechange=function() {                                     
+    if (xmlhttp.readyState==4 && xmlhttp.status==200) {                       
+      var results = xmlhttp.responseText;                                     
+      if(results) { 
+        var searchedDrugs = JSON.parse(results);            
+        drugs = []; strengths = []; units = []; drug_ids = []; 
+        for(drug_id in searchedDrugs) {
+          drugs.push(searchedDrugs[drug_id].name);
+          strengths.push(searchedDrugs[drug_id].dose_strength);
+          units.push(searchedDrugs[drug_id].unit);
+          drug_ids.push(drug_id);
+        }
+        listAllDrugs();
+      }                                                                     
+    }                                                                         
+  }                                                                           
+  xmlhttp.open("GET","/prescriptions/search_for_drugs?search_str=" + search_str, true); 
+  xmlhttp.send();
 }
 
 function clearAll() {

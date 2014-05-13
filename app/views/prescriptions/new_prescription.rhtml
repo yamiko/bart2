@@ -8,7 +8,7 @@
       var drugs = [];
       var strengths = [];
       var units = [];
-
+      var drug_ids = [];	
   
       var drug_set_name = [];
       var drug_set_dose = [];
@@ -21,6 +21,7 @@
         drugs.push("<%=drug.name%>");
         strengths.push(<%=drug.dose_strength || 1%>);
         units.push("<%=drug.units%>");
+        drug_ids.push("<%=drug.id%>");
       <%end%>
 
       <%@drug_sets.each do |drug_name, attr|%>
@@ -125,4 +126,35 @@
 
 <script>
   setInterval("setDuration();", 500);
+  //setInterval("getSearchedDrugs();", 500);
+
+  function getSearchedDrugs() {                                                           
+    var search_str = document.getElementById('search').value;               
+                                                                                  
+    if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari  
+        xmlhttp=new XMLHttpRequest();                                             
+      }else{// code for IE6, IE5                                                  
+        xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");                           
+      }                                                                           
+      xmlhttp.onreadystatechange=function() {                                     
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {                       
+          var results = xmlhttp.responseText;                                     
+          if(results) { 
+	    var searchedDrugs = JSON.parse(results);	          
+            drugs = []; strengths = []; units = []; drug_ids = []; 
+            for(drug_id in searchedDrugs) {
+                           //alert(searchedDrugs[drug_id].name);                
+              drugs.push(searchedDrugs[drug_id].name);
+              strengths.push(searchedDrugs[drug_id].dose_strength);
+              units.push(searchedDrugs[drug_id].unit);
+              drug_ids.push(drug_id);
+            }
+	    listAllDrugs();
+          }                                                                     
+        }                                                                         
+      }                                                                           
+      xmlhttp.open("GET","/prescriptions/search_for_drugs?search_str=" + search_str, true); 
+      xmlhttp.send();                                                             
+    }
+
 </script>
