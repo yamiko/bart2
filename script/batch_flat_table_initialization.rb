@@ -66,9 +66,9 @@ def get_patients_data(patient_id)
 			:conditions => ['voided = 0 AND patient_id = ? AND date(encounter_datetime) = ?', patient_id, visit])
 	
 	encounters.each do |enc|
-		if enc.encounter_type = 6 #vitals
-			vitals = generate_vitals_string(encounter)
-		elsif
+		if enc.encounter_type == 6 #vitals
+			vitals = process_vitals_encounter(encounter)
+		elsif enc.encounter_type == #HIV reception
 
 		elsif
 
@@ -87,7 +87,7 @@ def get_patients_data(patient_id)
 	
    end
 end
-def generate_vitals_string(encounter)
+def process_vitals_encounter(encounter, type = 0) #type 0 normal encounter, 1 generate_template only 
 
     #initialize field and values variables
     fields = ""
@@ -104,6 +104,8 @@ def generate_vitals_string(encounter)
 		   :weight_for_age => 0,
 		   :height_for_age => 0
 		}
+	
+    return generate_sql_string(vitals_hash) if type == 1 
 
     encounter.observations.each do |obs|
 	if obs.concept_id == 5089 #weight
@@ -127,12 +129,103 @@ def generate_vitals_string(encounter)
 	end
     end
 
-    #create sql statement
-    vitals_hash.each do |key,value|
+    return generate_sql_string(vitals_hash)
+end
+
+def process_vitals_encounter(encounter, type = 0) #type 0 normal encounter, 1 generate_template only 
+
+    #initialize field and values variables
+    fields = ""
+    values = ""
+
+    #create vitals field list hash template
+    a_hash = {:height => 0,
+                   :weight => 0,
+                   :temperature => 0,
+                   :bmi => 0,
+                   :systolic_blood_pressure => 0,
+                   :diastolic_blood_pressure => 0,
+                   :weight_for_height => 0,
+                   :weight_for_age => 0,
+                   :height_for_age => 0
+                }
+
+    return generate_sql_string(a_hash) if type == 1
+
+    encounter.observations.each do |obs|
+        if obs.concept_id == 5089 #weight
+                a_hash[:weight] = obs.value_numeric
+        elsif obs.concept_id == 5090 #height
+                a_hash[:height] = obs.value_numeric
+        elsif obs.concept_id == 5088 #temperature
+                a_hash[:temperature] = obs.value_numeric
+        elsif obs.concept_id == 2137 #bmi
+                a_hash[:bmi] = obs.value_numeric
+        elsif obs.concept_id == 5085 #systolic blood pressure
+                a_hash[:systolic_blood_pressure] = obs.value_numeric
+        elsif obs.concept_id == 5086 #diastolic blood pressure
+                a_hash[:diastolic_blood_pressure] = obs.value_numeric
+        elsif obs.concept_id == 1822 #weight for height
+                a_hash[:weight_for_height] = obs.value_numeric
+        elsif obs.concept_id == 6396 #weight for age
+                a_hash[:weight_for_age] = obs.value_numeric
+        elsif obs.concept_id == 6397 #height_for_age 
+                a_hash[:height_for_age] = obs.value_numeric
+        end
+    end
+
+    return generate_sql_string(a_hash)
+end
+
+def process_hiv_reception_encounter(encounter, type = 0) #type 0 normal encounter, 1 generate_template only 
+
+    #initialize field and values variables
+    fields = ""
+    values = ""
+
+    #create vitals field list hash template
+    a_hash =	  {:patient_present_no => 'NULL',
+                   :patient_present_yes => 'NULL',
+                   :patient_present_yes_enc_id => 'NULL',
+                   :patient_present_no_enc_id => 'NULL',
+                   :guardian_present_yes => 'NULL',
+                   :guardian_present_no => 'NULL',
+                   :guardian_present_yes_enc_id => 'NULL',
+                   :guardian_present_no_enc_id => 'NULL'
+                }
+
+    return generate_sql_string(a_hash) if type == 1
+
+    encounter.observations.each do |obs|
+        if obs.concept_id == 2122 #Guardian Present
+		if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
+			a_hash[:guardian_present_yes] = 'Yes'
+			a_hash[:guardian_present_yes_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
+			a_hash[:guardian_present_no] = 'No'
+			a_hash[:guardian_present_no_enc_id] = encounter.encounter_id
+		end		
+        elsif obs.concept_id == 1805 #Patient Present
+                if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
+                        a_hash[:patient_present_yes] = 'Yes'           
+                        a_hash[:patient_present_yes_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
+                        a_hash[:patient_present_no] = 'No'             
+                        a_hash[:patient_present_no_enc_id] = encounter.encounter_id
+                end	
+        end
+    end
+
+    return generate_sql_string(a_hash)
+end
+
+def generate_sql_string(a_hash)
+
+    a_hash.each do |key,value|
         fields += fields.empty? ? "`#{key}`" : ", `#{key}`"
         values += values.empty? ? "`#{value}`" : ", `#{value}`"
     end
-    
+
     return [fields, values]
 end
 
