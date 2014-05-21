@@ -75,7 +75,13 @@ def get_patients_data(patient_id)
     hiv_staging = process_hiv_staging_encounter(hiv_staging_obs)
   end
 
+  #check if any of the strings are empty
+  demographics = get_patient_demographics(patient_id, 1) if demographics.empty?
+  hiv_staging = process_hiv_staging_encounter(hiv_staging_obs, 1) if hiv_staging.empty?
+  hiv_clinic_registration = process_hiv_clinic_registration_encounter(hiv_clinic_reg_obs, 1) if hiv_clinic_registration.empty?
+
   #write sql statement
+
   sql_statement = initial_flat_table1_string + "(" + demographics[0] + hiv_clinic_registration[0] + hiv_staging[0] ")" + \
 		 " VALUES (" + demographics + hiv_clinic_registration[1] + hiv_staging[1] + ");"
 
@@ -459,7 +465,7 @@ def process_hiv_clinic_registration_encounter(encounter, type = 0) #type 0 norma
 
   return generate_sql_string(a_hash) if type == 1
 
-  (ecnounter.observations || []).each do | obs |
+  (ecnounter || []).each do | obs |
     if obs.concept_id == 2552 #FOLLOW UP AGREEMENT
       a_hash[:agrees_to_follow_up] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7882 #CONFIRMATORY HIV TEST DATE
@@ -580,7 +586,7 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
 
   return generate_sql_string(a_hash) if type == 1
 
-  (encounter.observations || []).each do | obs |
+  (encounter || []).each do | obs |
     if obs.concept_id == 1755 #patient pregnant
       a_hash[:patient_pregnant] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7965 #is patient breast feeding?
