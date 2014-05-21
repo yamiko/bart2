@@ -2407,7 +2407,6 @@ The following block of code should be replaced by a more cleaner function
     count = 1
     (visit.gave || []).each do | drug, pills |
       
-      drug.gsub("Vitamin B6", "Pyridoxine")
       string = "#{drug} (#{pills})"
       if string.length > 26
         line = string[0..25]
