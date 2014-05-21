@@ -1374,7 +1374,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
      <%= touch_yes_no_tag "pyridoxine", @patient, nil,
 	  {	:id => 'pyridoxine',
 	  :allowFreeText => 'false',
-	  :condition => "prescribeAntiretroviralDrugs() && $('prescribe_arvs').value != 'YES'",
+	  :condition => "prescribeAntiretroviralDrugs() && $('prescribe_arvs').value != 'YES' && $('ipt_given').value == 'YES'",
 	  :helpText => "Prescribe Pyridoxine",
           :tt_onLoad => "showCategory('Regimen');"} %>
 
