@@ -40,25 +40,63 @@ end
 def get_all_patients
     patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date").map(&:patient_id) 
     patient_list.each do |p|
-	get_patient_data(p)
+	    get_patient_data(p)
     end
 end
 
 def get_patients_data(patient_id)
-   visits = Encounter.find_by_sql("SELECT date(encounter_datetime) AS visit_date FROM #{@source_db}.encounter 
+   #flat_table1 will contain hiv_staging, hiv clinic regitsrtaion observations
+   #and patient demographics
+
+   hiv_clinic_registration = []; hiv_staging = []; demographics = []
+   initial_flat_table1_string = "INSERT INTO flat_table1 "
+
+   #get patient demographics
+   demographics = get_patient_demographics(patient_id)
+
+   #hiv_clinic_registration observations
+   hiv_clinic_reg_obs = Encounter.find(:first,
+                                       :conditions => ['patient_id = ?
+                                                        AND encounter_type = 9',
+                                                        patient_id],
+                                       :order => 'encounter_datetime DESC').observations
+   if hiv_clinic_reg_obs
+    hiv_clinic_registration = process_hiv_clinic_registration_encounter(hiv_clinic_reg_obs)
+   end
+
+   #hiv_staging observations
+   hiv_staging_obs = Encounter.find(:first,
+                                    :conditions => ['patient_id = ?
+                                                     AND encounter_type = 52',
+                                                     patient_id],
+                                    :order => 'encounter_datetime DESC').observations
+
+  if hiv_staging_obs
+    hiv_staging = process_hiv_staging_encounter(hiv_staging_obs)
+  end
+
+  #write sql statement
+  sql_statement = initial_flat_table1_string + "(" + demographics[0] + hiv_clinic_registration[0] + hiv_staging[0] ")" + \
+		 " VALUES (" + demographics + hiv_clinic_registration[1] + hiv_staging[1] + ");"
+
+  $temp_outfile = File.open("./migration_output/flat_table_1-" + @started_at + ".sql", "w")
+  $temp_outfile << sql_statement
+  $temp_outfile.close
+
+  visits = Encounter.find_by_sql("SELECT date(encounter_datetime) AS visit_date FROM #{@source_db}.encounter
 				WHERE patient_id = #{patient_id} AND voided = 0  
 					group_by date(encounter_datetime)".map(&:visit_date)
 
-#list of encounters for bart2
-#vitals => 6, appointment => 7, treatment => 25, hiv clinic consultation => 53, hiv_reception => 51
-   initial_string = "INSERT INTO flat_table2 "
+  #list of encounters for bart2
+  #vitals => 6, appointment => 7, treatment => 25, hiv clinic consultation => 53, hiv_reception => 51
+  initial_string = "INSERT INTO flat_table2 "
 
-   visits.each do |visit|
+  visits.each do |visit|
 	# arrays of [fields, values]
 	vitals = []
 	appointment = []
 	hiv_clinic_consultation = []
-	hiv_reception = []	
+	hiv_reception = []
 
 	encounters = Encounter.find(:all,
 			:include => [:observations],
@@ -81,11 +119,48 @@ def get_patients_data(patient_id)
     sql_statement = initial_string + "(" + vitals[0] + appointment[0] + hcc[0] + hiv_reception[0] ")" + \
 		 " VALUES (" + vitals[1] + appointment[1] + hcc[1] + hiv_reception[1] + ");"
 	
-    $temp_outfile = File.open("./migration_output/flat_table_2-" + @started_at + ".sql", "w") 
+    $temp_outfile = File.open("./migration_output/flat_table_2-" + @started_at + ".sql", "w")
     $temp_outfile << sql_statement
     $temp_outfile.close
 	
    end
+end
+
+def get_patient_demographics(patient_id)
+  #get all patient visits
+  pat = Patient.find(patient_id)
+  patient_obj = PatientService.get_patient(pat.person) #rescue nil
+
+  earliest_start_date = PatientProgram.find_by_sql("SELECT *
+                                           FROM earliest_start_date
+                                           WHERE patient_id = #{patient_id}").map(&:earliest_start_date).first
+
+  a_hash[:given_name] = patient_obj.first_name
+  a_hash[:middle_name] = patient_obj.last_name
+  a_hash[:family_name] = patient_obj.last_name
+  a_hash[:gender] = patient_obj.sex
+  a_hash[:dob] = patient_obj.birth_date
+  a_hash[:dob_estimated] = patient_obj.birthdate_estimated
+  a_hash[:ta] = patient_obj.traditional_authority
+  a_hash[:current_address] = patient_obj.current_residence
+  a_hash[:home_district] = patient_obj.home_district
+  a_hash[:landmark] = patient_obj.landmark
+  a_hash[:cellphone_number] = patient_obj.cell_phone_number
+  a_hash[:home_phone_number] = patient_obj.home_phone_number
+  a_hash[:office_phone_number] = patient_obj.office_phone_number
+  a_hash[:occupation] = patient_obj.occupation
+  a_hash[:nat_id] = patient_obj.national_id
+  a_hash[:arv_number]  = patient_obj.arv_number
+  a_hash[:pre_art_number] = patient_obj.pre_art_number
+  a_hash[:tb_number]  = PatientService.get_patient_identifier(pat, 'District TB Number')
+  a_hash[:legacy_id]  = patient_obj.occupation
+  a_hash[:legacy_id2]  = patient_obj.occupation
+  a_hash[:legacy_id3]  = patient_obj.occupation
+  a_hash[:new_nat_id]  = patient_obj.occupation
+  a_hash[:prev_art_number]  = PatientService.get_patient_identifier(pat, 'z_deprecated Pre ART Number (Old format)')
+  a_hash[:filing_number]  = patient_obj.filing_number
+  a_hash[:archived_filing_number]  = patient_obj.archived_filing_number
+  a_hash[:earliest_start_date]  = earliest_start_date
 end
 
 def process_vitals_encounter(encounter, type = 0) #type 0 normal encounter, 1 generate_template only 
@@ -171,7 +246,7 @@ def process_hiv_reception_encounter(encounter, type = 0) #type 0 normal encounte
     return generate_sql_string(a_hash) if type == 1
 
     encounter.observations.each do |obs|
-        if obs.concept_id == 2122 #Guardian Present
+      if obs.concept_id == 2122 #Guardian Present
 		if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
 			a_hash[:guardian_present_yes] = 'Yes'
 			a_hash[:guardian_present_yes_enc_id] = encounter.encounter_id
