@@ -908,6 +908,7 @@ function clearAll() {
   for(selected_set in selectedSets) {
     removeDrug(selected_set);
   }
+  document.getElementById('search').value = '';               
   switchViews('All drugs');
 }
 
