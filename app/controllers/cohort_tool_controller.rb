@@ -1509,7 +1509,8 @@ class CohortToolController < GenericCohortToolController
                                 AND observation.person_id = obs.person_id) > 1                               
                                 AND date_created >= ? AND date_created <= ?
                                 AND obs.concept_id = ?
-                                AND obs.voided = 0 
+                                AND obs.voided = 0
+                 GROUP BY person_id, value_coded_name_id
                	 ORDER BY person_id ASC", art_eligibility_id, start_date, end_date, art_eligibility_id])
 
     patients_data = []
