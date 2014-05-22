@@ -157,4 +157,24 @@
       xmlhttp.send();                                                             
     }
 
+	
+    function setHoliday(){
+
+      submitForm = document.createElement("FORM");
+      submitForm.setAttribute("type","hidden");
+      document.body.appendChild(submitForm);
+      submitForm.method = "POST";
+
+      newElement = document.createElement("input")
+      newElement.setAttribute("name",'set_appointment_date')
+      newElement.setAttribute("type","hidden");
+      newElement.value = previous_selected;
+      submitForm.appendChild(newElement);
+
+      submitForm.action= "/prescriptions/prescribe";
+      submitForm.submit();
+    }
+
+
+
 </script>
