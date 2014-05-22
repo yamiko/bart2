@@ -359,9 +359,9 @@
 	  if (whoStage >= 3) {
 		reasonForArtEligibility = whoStageConcept(whoStage, "ADULT");
 	  
-	  } else if (tstCurrentDate > '2014-04-01' && $('cd4_count_less_than_500').value == "YES"){
+	  } else if (tstCurrentDate >= '2014-04-01' && $('cd4_count_less_than_500').value == "YES"){
                    reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 500";
-          } else if (tstCurrentDate <= '2014-04-01' && $('cd4_count_less_than_350').value == "YES"){
+          } else if (tstCurrentDate < '2014-04-01' && $('cd4_count_less_than_350').value == "YES"){
                    reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 350";
           } else {
 		if (whoStage == 1 && lymphocyteCount < 1200 && lymphocyteCount != null) {
@@ -414,9 +414,9 @@
 		  reasonForArtEligibility = "PATIENT PREGNANT";
 		} else if ($('breast_feeding') && $('breast_feeding').value == "YES") {
 		  reasonForArtEligibility = "BREASTFEEDING";
-		} else if (tstCurrentDate > '2014-04-01' && age > 5 && $('cd4_count_less_than_500').value == "YES"){
+		} else if (tstCurrentDate >= '2014-04-01' && age > 5 && $('cd4_count_less_than_500').value == "YES"){
                    reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 500";
-                } else if (tstCurrentDate > '2014-04-01' && age <= 5){
+                } else if (tstCurrentDate >= '2014-04-01' && age <= 5){
                    reasonForArtEligibility = "HIV infected";
                 }
 	  } catch (e) {}
