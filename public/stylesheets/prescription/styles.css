@@ -36,11 +36,6 @@ button {
     margin: 10px;
 }
 
-.cancelpx {
-  width: 200px !important;
-}
-
-
 button:active{
     background-color: #ffc579 !important; 
     background-image: -webkit-gradient(linear, left top, left bottom, from(#ffc579), to(#fb9d23)) !important;

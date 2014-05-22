@@ -4,8 +4,19 @@ class PrescriptionsController < GenericPrescriptionsController
     @partial_name = params[:screen] unless params[:screen].blank?
     @drugs = Drug.find(:all,:limit => 100)
     @drug_sets = {}
-    Drug.find(:all,:limit => 5,:order => "name DESC").each do |d|
-      @drug_sets[d.name] = { :duration => '30',:frequency => "OD",:dose => 2, :unit => 2 }
+    drug_names = ['Quinine (600mg)','Azithromycin (250mg tablet)','Albendazole (400mg tablet)','Fefol (450 mg)','Doxycycline (200mg tablet)']
+    drug_set_attr = [
+      ['OD', 1, 7],
+      ['OD', 1, 7],
+      ['BD', 2, 2],
+      ['OD', 1, 30],
+      ['OD', 1, 7]
+    ]
+
+    Drug.find(:all,:limit => 5,:order => "name DESC",
+      :conditions =>["name IN(?)",drug_names]).each_with_index do |d , i|
+      @drug_sets[d.name] = { :duration => drug_set_attr[i][2],
+        :frequency => drug_set_attr[i][0],:dose => drug_set_attr[i][1], :unit => 2 }
     end
     render :layout => false
   end
