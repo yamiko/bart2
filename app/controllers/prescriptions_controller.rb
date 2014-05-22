@@ -16,7 +16,8 @@ class PrescriptionsController < GenericPrescriptionsController
     Drug.find(:all,:limit => 5,:order => "name DESC",
       :conditions =>["name IN(?)",drug_names]).each_with_index do |d , i|
       @drug_sets[d.name] = { :duration => drug_set_attr[i][2],
-        :frequency => drug_set_attr[i][0],:dose => drug_set_attr[i][1], :unit => 2 }
+        :frequency => drug_set_attr[i][0],:dose => drug_set_attr[i][1], :unit => 2,
+        :display_name => "#{drug_names[i]} (#{drug_set_attr[i][0]}) #{drug_set_attr[i][2]} day(s)" }
     end
     render :layout => false
   end

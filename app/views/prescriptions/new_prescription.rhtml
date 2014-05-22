@@ -10,6 +10,7 @@
       var units = [];
       var drug_ids = [];	
   
+      var drug_set_name_display = [];
       var drug_set_name = [];
       var drug_set_dose = [];
       var drug_set_unit = [];
@@ -25,6 +26,7 @@
       <%end%>
 
       <%@drug_sets.each do |drug_name, attr|%>
+        drug_set_name_display.push("<%=attr[:display_name] %>");
         drug_set_name.push("<%=drug_name%>");
         drug_set_dose.push("<%=attr[:dose] %>");
         drug_set_unit.push("<%=attr[:unit] %>");

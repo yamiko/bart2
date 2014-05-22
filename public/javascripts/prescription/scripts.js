@@ -732,7 +732,7 @@ function listDrugsSets(){
     
     for(var i = 0; i < drug_set_name.length; i++){
       formulations.push({
-        display: drug_set_name[i] ,
+        display: drug_set_name_display[i] ,
         drug: drug_set_name[i] ,
         dose: drug_set_dose[i],
         unit: drug_set_unit[i],
