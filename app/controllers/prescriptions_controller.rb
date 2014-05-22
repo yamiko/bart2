@@ -13,7 +13,7 @@ class PrescriptionsController < GenericPrescriptionsController
   def search_for_drugs
     drugs = {}
     Drug.find(:all, :conditions => ["name LIKE (?)",
-      "%#{params[:search_str]}%"],:order => 'name',:limit => 20).map do |drug|
+      "#{params[:search_str]}%"],:order => 'name',:limit => 20).map do |drug|
       drugs[drug.id] = { :name => drug.name,:dose_strength =>drug.dose_strength || 1, :unit => drug.units }
     end
     render :text => drugs.to_json
