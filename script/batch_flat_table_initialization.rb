@@ -388,6 +388,32 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
 		:drug_induced_fever_enc_id => '',
 		:drug_induced_cough => '',
 		:drug_induced_cough_enc_id => '',
+		:tb_status_tb_not_suspected => '',
+                :tb_status_tb_not_suspected_enc_id => '',
+                :tb_status_tbsuspected => '',
+                :tb:_status_tb_suspected_enc_id => '',
+                :tb_status_confirmed_tb_not_on_treatment => '',
+                :tb_status_confirmed_tb_not_on_treatment_enc_id => '',
+                :tb_status_confirmed_tb_on_treatment => '',
+                :tb_status_confirmed_tb_on_treatment_enc_id => '',
+                :tb_status_unknown => '',
+                :tb_status_unknown_enc_id => '',
+                :prescribe_arvs_yes => '',
+                :prescribe_arvs_yes_enc_id => '',
+                :prescribe_arvs_no => '',
+                :prescribe_arvs_no_enc_id => '',
+                :routine_tb_screening_fever => '',
+                :routine_tb_screening_fever_enc_id => '',
+                :routine_tb_screening_night_sweats => '',
+                :routine_tb_screening_night_sweats_enc_id => '',
+                :routine_tb_screening_cough_of_any_duration => '',
+                :routine_tb_screening_cough_of_any_duration_enc_id => '',
+                :routine_tb_screening_weight_loss_failure => '',
+                :routine_tb_screening_weight_loss_failure_enc_id => '',
+                :allergic_to_surphur_yes => '',
+                :allergic_to_surphur_yes_enc_id => '',
+                :allergic_to_surphur_no => '',
+                :allergic_to_surphur_no_enc => '',
         :abdominal_pains => 'NULL',
                 :anorexia => 'NULL',
                 :cough => 'NULL',
@@ -409,22 +435,39 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
     return generate_sql_string(a_hash) if type == 1
 
     encounter.observations.each do |obs|
-        if obs.concept_id == 2122 #Guardian Present
+        if obs.concept_id == 6131 #Patient Pregnant
                 if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
-                        a_hash[:guardian_present_yes] = 'Yes'
-                        a_hash[:guardian_present_yes_enc_id] = encounter.encounter_id
+                        a_hash[:patient_pregnant_yes] = 'Yes'
+                        a_hash[:patient_pregnant_yes_enc_id] = encounter.encounter_id
                 elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
-                        a_hash[:guardian_present_no] = 'No'
-                        a_hash[:guardian_present_no_enc_id] = encounter.encounter_id
+                        a_hash[:patient_pregnant_no] = 'No'
+                        a_hash[:patient_pregnant_no_enc_id] = encounter.encounter_id
                 end
-        elsif obs.concept_id == 1805 #Patient Present
+        elsif obs.concept_id == 7965 #breastfeeding
                 if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
-                        a_hash[:patient_present_yes] = 'Yes'
-                        a_hash[:patient_present_yes_enc_id] = encounter.encounter_id
+                        a_hash[:breastfeeding_yes] = 'Yes'
+                        a_hash[:breastfeeding_yes_enc_id] = encounter.encounter_id
                 elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
-                        a_hash[:patient_present_no] = 'No'
-                        a_hash[:patient_present_no_enc_id] = encounter.encounter_id
+                        a_hash[:breastfeeding_no] = 'No'
+                        a_hash[:breastfeeding_no_enc_id] = encounter.encounter_id
                 end
+	elsif obs.concept_id == 7459 #tb status
+		if obs.value_coded == 7454 && obs.value_coded_name_id == 10270
+			a_hash[:tb_status_tb_not_suspected] = 'Yes'
+			a_hash[:tb_status_tb_not_suspected_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 7455 && obs.value_coded_name_id == 10273
+			a_hash[:tb_status_tbsuspected] = 'Yes'
+                        a_hash[:tb_status_tb_suspected_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 7456 && obs.value_coded_name_id == 10274
+			a_hash[:tb_status_confirmed_tb_not_on_treatment] = 'Yes'
+                        a_hash[:tb_status_confirmed_tb_not_on_treatment_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 7458 && obs.value_coded_name_id == 10279
+			a_hash[:tb_status_confirmed_tb_on_treatment] = 'Yes'
+                        a_hash[:tb_status_confirmed_tb_on_treatment_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 1067 && obs.value_coded_name_id == 1104
+			a_hash[:tb_status_unknown] = 'Yes'
+                        a_hash[:tb_status_unknown_enc_id] = encounter.encounter_id
+		end
         end
     end
 
