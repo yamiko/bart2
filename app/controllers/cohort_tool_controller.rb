@@ -1509,7 +1509,8 @@ class CohortToolController < GenericCohortToolController
                                 AND observation.person_id = obs.person_id) > 1                               
                                 AND date_created >= ? AND date_created <= ?
                                 AND obs.concept_id = ?
-                                AND obs.voided = 0 
+                                AND obs.voided = 0
+                 GROUP BY person_id, value_coded_name_id
                	 ORDER BY person_id ASC", art_eligibility_id, start_date, end_date, art_eligibility_id])
 
     patients_data = []
@@ -1627,10 +1628,10 @@ class CohortToolController < GenericCohortToolController
     patient_died_concept    = ConceptName.find_by_name('PATIENT DIED').concept_id
 
     all_dead_patients_with_visits = "SELECT * 
-    FROM (SELECT observation.person_id AS patient_id, DATE(p.death_date) AS date_of_death, DATE(observation.date_created) AS date_started
+    FROM (SELECT observation.person_id AS patient_id, DATE(p.death_date) AS date_of_death, DATE(observation.obs_datetime) AS date_started
           FROM person p right join obs observation ON p.person_id = observation.person_id
-          WHERE p.dead = 1 AND DATE(p.death_date) < DATE(observation.date_created) AND observation.voided = 0
-          ORDER BY observation.date_created ASC) AS dead_patients_visits
+          WHERE p.dead = 1 AND DATE(p.death_date) < DATE(observation.obs_datetime) AND observation.voided = 0
+          ORDER BY observation.obs_datetime ASC) AS dead_patients_visits
     WHERE DATE(date_of_death) >= DATE('#{start_date}') AND DATE(date_of_death) <= DATE('#{end_date}')
     GROUP BY patient_id"
     patients = Patient.find_by_sql([all_dead_patients_with_visits])
