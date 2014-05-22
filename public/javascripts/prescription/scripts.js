@@ -334,6 +334,7 @@ function showNumber(id, global_control, showDefault){
             if(this.innerHTML.match(/<span>(.+)<\/span>/)[1] == "C"){
                 __$(global_control).value = __$(global_control).value.substring(0,__$(global_control).value.length - 1);
             }else if(this.innerHTML.match(/Done/)){
+                document.getElementById('search').value = '';               
                 switchViews('All drugs');
             }else if(!this.innerHTML.match(/^$/)){
                 __$(global_control).value += this.innerHTML.match(/<span>(.+)<\/span>/)[1];
