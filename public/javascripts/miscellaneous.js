@@ -9,9 +9,11 @@ function setTextToAppear(replace){
       available_cpt_options[i].style.backgroundColor='#00CD66';
 
       available_cpt_options[i].onclick = null;
+      available_cpt_options[i].setAttribute("pos", i)
       available_cpt_options[i].onmousedown = function(){
         tmp = this.innerHTML
-        this.innerHTML = this.innerHTML.replace(' <span class="moh_recommend">(MoH Recommended)</span>', "") + replace
+        this.innerHTML = this.innerHTML.replace(' <span class="moh_recommend">(MoH Recommended)</span>', "")// + replace
+        tstFormElements[tstCurrentPage].options[this.getAttribute("pos")].innerHTML = this.innerHTML
         updateTouchscreenInputForSelect(this);
         this.innerHTML=tmp
 
