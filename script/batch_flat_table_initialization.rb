@@ -103,6 +103,20 @@ def get_patients_data(patient_id)
 	appointment = []
 	hiv_clinic_consultation = []
 	hiv_reception = []
+  patient_orders = []
+
+  orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
+                                         o.start_date, o.auto_expire_date, d.quantity,
+                                         d.drug_inventory_id, d.dose, d.frequency,
+                                         o.concept_id, d.equivalent_daily_dose
+                              FROM orders o
+                                INNER JOIN drug_order d ON d.order_id = o.order_id
+                              WHERE o.start_date = '#{visit}'
+                              AND o.patient_id = #{patient_id} ")
+
+  if orders
+    patient_orders = process_patient_orders(orders, 1) if patient_orders.empty?
+  end
 
 	encounters = Encounter.find(:all,
 			:include => [:observations],
@@ -122,8 +136,8 @@ def get_patients_data(patient_id)
 	end
 
    #write sql statement
-    sql_statement = initial_string + "(" + vitals[0] + appointment[0] + hcc[0] + hiv_reception[0] ")" + \
-		 " VALUES (" + vitals[1] + appointment[1] + hcc[1] + hiv_reception[1] + ");"
+    sql_statement = initial_string + "(" + vitals[0] + appointment[0] + hcc[0] + hiv_reception[0] + patient_orders[0] + ")" + \
+		 " VALUES (" + vitals[1] + appointment[1] + hcc[1] + hiv_reception[1] + patient_orders[1] + ");"
 	
     $temp_outfile = File.open("./migration_output/flat_table_2-" + @started_at + ".sql", "w")
     $temp_outfile << sql_statement
@@ -931,6 +945,109 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
     end
   end
 
+  return generate_sql_string(a_hash)
+end
+
+def process_patient_orders(orders)
+  patient_orders = {}
+  drug_dose_hash = {}; drug_frequency_hash = {};
+  drug_equivalent_daily_dose_hash = {}; drug_inventory_ids_hash = {}
+  patient_orders = {}; drug_order_ids_hash = {}; drug_enc_ids_hash = {}
+  drug_start_date_hash = {}; drug_auto_expire_date_hash = {}; drug_quantity_hash = {}
+  
+  (orders || []).each do |ord|
+    drug_name = Drug.find(ord.drug_inventory_id).name
+
+    if patient_orders[drug_name].blank?
+      patient_orders[drug_name] = drug_name
+      drug_order_ids_hash[drug_name] = ord.order_id
+      drug_enc_ids_hash[drug_name] = ord.encounter_id
+      drug_start_date_hash[drug_name] = ord.start_date
+      drug_auto_expire_date_hash[drug_name] = ord.auto_expire_date
+      drug_quantity_hash[drug_name] = ord.quantity
+      drug_dose_hash[drug_name] = ord.dose
+      drug_frequency_hash[drug_name] = ord.frequency
+      drug_equivalent_daily_dose_hash[drug_name] = ord.equivalent_daily_dose
+      drug_inventory_ids_hash[drug_name] = ord.drug_inventory_id
+    else
+      patient_orders[drug_name] += drug_name
+      drug_order_ids_hash[drug_name] += ord.order_id
+      drug_enc_ids_hash[drug_name] += ord.encounter_id
+      drug_start_date_hash[drug_name] += ord.start_date
+      drug_auto_expire_date_hash[drug_name] += ord.auto_expire_date
+      drug_quantity_hash[drug_name] += ord.quantity
+      drug_dose_hash[drug_name] += ord.dose
+      drug_frequency_hash[drug_name] += ord.frequency
+      drug_equivalent_daily_dose_hash[drug_name] += ord.equivalent_daily_dose
+      drug_inventory_ids_hash[drug_name] += ord.drug_inventory_id    
+    end
+  end
+
+  count = 1
+  (patient_orders).each do |drug_name, name|
+    case count
+      when 1
+       a_hash[:drug_name1] = drug_name
+       a_hash[:drug_order_id1] = drug_order_ids_hash[drug_name]
+       a_hash[:start_date1] = drug_start_date_hash[drug_name]
+       a_hash[:auto_expire_date1] = drug_auto_expire_date_hash[drug_name]
+       a_hash[:quantity1] = drug_quantity_hash[drug_name]
+       a_hash[:frequency1] = drug_frequency_hash[drug_name]
+       a_hash[:dose1] = drug_dose_hash[drug_name]
+       a_hash[:equivalent_daily_dose1] = drug_equivalent_daily_dose_hash[drug_name]
+       a_hash[:encounter_id1] = drug_enc_ids_hash[drug_name]
+       a_hash[:drug_inventory_id1] = drug_inventory_ids_hash[drug_name] 
+       count += 1
+      when 2
+       a_hash[:drug_name2] = drug_name
+       a_hash[:drug_order_id2] = drug_order_ids_hash[drug_name]
+       a_hash[:start_date2] = drug_start_date_hash[drug_name]
+       a_hash[:auto_expire_date2] = drug_auto_expire_date_hash[drug_name]
+       a_hash[:quantity2] = drug_quantity_hash[drug_name]
+       a_hash[:frequency2] = drug_frequency_hash[drug_name]
+       a_hash[:dose2] = drug_dose_hash[drug_name]
+       a_hash[:equivalent_daily_dose2] = drug_equivalent_daily_dose_hash[drug_name]
+       a_hash[:encounter_id2] = drug_enc_ids_hash[drug_name]
+       a_hash[:drug_inventory_id2] = drug_inventory_ids_hash[drug_name]
+       count += 1
+      when 3
+       a_hash[:drug_name3] = drug_name
+       a_hash[:drug_order_id3] = drug_order_ids_hash[drug_name]
+       a_hash[:start_date3] = drug_start_date_hash[drug_name]
+       a_hash[:auto_expire_date3] = drug_auto_expire_date_hash[drug_name]
+       a_hash[:quantity3] = drug_quantity_hash[drug_name]
+       a_hash[:frequency3] = drug_frequency_hash[drug_name]
+       a_hash[:dose3] = drug_dose_hash[drug_name]
+       a_hash[:equivalent_daily_dose3] = drug_equivalent_daily_dose_hash[drug_name]
+       a_hash[:encounter_id3] = drug_enc_ids_hash[drug_name]
+       a_hash[:drug_inventory_id3] = drug_inventory_ids_hash[drug_name]
+       count += 1
+      when 4
+       a_hash[:drug_name4] = drug_name
+       a_hash[:drug_order_id4] = drug_order_ids_hash[drug_name]
+       a_hash[:start_date4] = drug_start_date_hash[drug_name]
+       a_hash[:auto_expire_date4] = drug_auto_expire_date_hash[drug_name]
+       a_hash[:quantity4] = drug_quantity_hash[drug_name]
+       a_hash[:frequency4] = drug_frequency_hash[drug_name]
+       a_hash[:dose4] = drug_dose_hash[drug_name]
+       a_hash[:equivalent_daily_dose4] = drug_equivalent_daily_dose_hash[drug_name]
+       a_hash[:encounter_id4] = drug_enc_ids_hash[drug_name]
+       a_hash[:drug_inventory_id4] = drug_inventory_ids_hash[drug_name]
+       count += 1
+      when 5
+       a_hash[:drug_name5] = drug_name
+       a_hash[:drug_order_id5] = drug_order_ids_hash[drug_name]
+       a_hash[:start_date5] = drug_start_date_hash[drug_name]
+       a_hash[:auto_expire_date5] = drug_auto_expire_date_hash[drug_name]
+       a_hash[:quantity5] = drug_quantity_hash[drug_name]
+       a_hash[:frequency5] = drug_frequency_hash[drug_name]
+       a_hash[:dose5] = drug_dose_hash[drug_name]
+       a_hash[:equivalent_daily_dose5] = drug_equivalent_daily_dose_hash[drug_name]
+       a_hash[:encounter_id5] = drug_enc_ids_hash[drug_name]
+       a_hash[:drug_inventory_id5] = drug_inventory_ids_hash[drug_name]
+       count += 1    
+      end
+  end
   return generate_sql_string(a_hash)
 end
 
