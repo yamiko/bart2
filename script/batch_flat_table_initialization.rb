@@ -103,8 +103,9 @@ def get_patients_data(patient_id)
 	appointment = []
 	hiv_clinic_consultation = []
 	hiv_reception = []
-  patient_orders = []
-
+ 	patient_orders = []
+	patient_state = []
+	
   orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
                                          o.start_date, o.auto_expire_date, d.quantity,
                                          d.drug_inventory_id, d.dose, d.frequency,
@@ -143,6 +144,7 @@ def get_patients_data(patient_id)
     $temp_outfile << sql_statement
     $temp_outfile.close
 	
+	patient_state = process_patient_state(patient_id)
    end
 end
 
@@ -1049,6 +1051,31 @@ def process_patient_orders(orders)
       end
   end
   return generate_sql_string(a_hash)
+end
+
+def process_patient_state(patient_id)
+	#initialize field and values variables
+  	fields = ""
+  	values = ""
+
+	a_hash = {:current_state => 'NULL', :initial_start_date => 'NULL'}
+
+	program_id = PatientProgram.find_by_sql("SELECT patient_program_id 
+				FROM patient_program
+				WHERE patient_id = #{patient_id}
+				AND program = 1 AND voided = 0 
+				ORDER BY patient_program_id DESC LIMIT 1").patient_program_id
+
+	a_hash[:current_state] = PatientProgram.find_by_sql("SELECT 
+		current_state_for_program(#{patient_id},1,'#{visit} 23:59') AS state").state
+	a_hash[:initial_start_date] = PatientState.find_by_sql("SELECT start_date 
+								FROM patient_state 
+								WHERE patient_program_id = #{program_id}
+					AND voided = 0 AND state = #{a_hash[:current_state]}
+					AND start_date <= #{visit}
+					ORDER BY start_date DESC, date_created DESC, patient_state_id DESC LIMIT 1").start_date
+
+	return generate_sql_string(a_hash)
 end
 
 def generate_sql_string(a_hash)
