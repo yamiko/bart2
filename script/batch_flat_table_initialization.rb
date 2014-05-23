@@ -317,7 +317,6 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
 		:family_planning_method_emergency__contraception_enc_id => '',
 		:family_planning_method_vasectomy => '',
 		:family_planning_method_vasectomy_enc_id => '',
-                :family_planning_method_used => 'NULL',
 		:symptom_present_lipodystrophy => '',        
 		:symptom_present_lipodystrophy_enc_id => '',        
 		:symptom_present_anemia => '',        
@@ -468,6 +467,98 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
 			a_hash[:tb_status_unknown] = 'Yes'
                         a_hash[:tb_status_unknown_enc_id] = encounter.encounter_id
 		end
+        elsif obs.concept_id == 1717 #using family planning methods
+                if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
+                        a_hash[:currently_using_family_planning_method_yes] = 'Yes'
+                        a_hash[:currently_using_family_planning_method_yes_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
+                        a_hash[:currently_using_family_planning_method_no] = 'No'
+                        a_hash[:currently_using_family_planning_method_no_enc_id] = encounter.encounter_id
+                end
+        elsif obs.concept_id == 374 #family planning method
+                if obs.value_coded == 780 && obs.value_coded_name_id == 10736
+                        a_hash[:family_planning_method_oral_contraceptive_pills] = 'Yes'
+                        a_hash[:family_planning_method_oral_contraceptive_pills_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 907 && obs.value_coded_name_id == 931
+                        a_hash[:family_planning_method_depo_provera] = 'Yes'
+                        a_hash[:family_planning_method_depo_provera_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 5275 && obs.value_coded_name_id == 10737
+                        a_hash[:family_planning_method_intrauterine_contraception] = 'Yes'
+                        a_hash[:family_planning_method_intrauterine_contraception_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 7857 && obs.value_coded_name_id == 10738
+                        a_hash[:family_planning_method_contraceptive_implant] = 'Yes'
+                        a_hash[:family_planning_method_contraceptive_implant_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 7858 && obs.value_coded_name_id == 10739
+                        a_hash[:family_planning_method_male_condoms] = 'Yes'
+                        a_hash[:family_planning_method_male_condoms_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 7859 && obs.value_coded_name_id == 10740
+                        a_hash[:family_planning_method_female_condoms] = 'Yes'
+                        a_hash[:family_planning_method_female_condoms_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 7860 && obs.value_coded_name_id == 10741
+                        a_hash[:family_planning_method__rythm_method] = 'Yes'
+                        a_hash[:family_planning_method__rythm_method_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 7861 && obs.value_coded_name_id == 10743
+                        a_hash[:family_planning_method_withdrawal] = 'Yes'
+                        a_hash[:family_planning_method_withdrawal_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1720 && obs.value_coded_name_id == 1876
+                        a_hash[:family_planning_method_abstinence] = 'Yes'
+                        a_hash[:family_planning_method_abstinence_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1719 && obs.value_coded_name_id == 1874
+                        a_hash[:family_planning_method_tubal_ligation] = 'Yes'
+                        a_hash[:family_planning_method_tubal_ligation_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1721 && obs.value_coded_name_id == 1877
+                        a_hash[:family_planning_method_vasectomy] = 'Yes'
+                        a_hash[:family_planning_method_vasectomy_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 7862 && obs.value_coded_name_id == 10744
+                        a_hash[:family_planning_method_emergency__contraception] = 'Yes'
+                        a_hash[:family_planning_method_emergency__contraception_enc_id] = encounter.encounter_id
+                end
+	elsif obs.concept_id == 1293 #symptoms present
+#Note : hepatitis should be addedto the list of the symptoms present
+                if obs.value_coded == 2148 && obs.value_coded_name_id == 2325
+                        a_hash[:symptom_present_lipodystrophy] = 'Yes'
+                        a_hash[:symptom_present_lipodystrophy_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 3 && obs.value_coded_name_id == 3
+                        a_hash[:symptom_present_anemia] = 'Yes'
+                        a_hash[:symptom_present_anemia_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 215 && obs.value_coded_name_id == 226
+                        a_hash[:symptom_present_jaundice] = 'Yes'
+                        a_hash[:symptom_present_jaundice_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1458 && obs.value_coded_name_id == 1576
+                        a_hash[:symptom_present_lactic_acidosis] = 'Yes'
+                        a_hash[:symptom_present_lactic_acidosis_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 5945 && obs.value_coded_name_id == 4315
+                        a_hash[:symptom_present_fever] = 'Yes'
+                        a_hash[:symptom_present_fever_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 512 && obs.value_coded_name_id == 524
+                        a_hash[:symptom_present_skin_rash] = 'Yes'
+                        a_hash[:symptom_present_skin_rash_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 151 && obs.value_coded_name_id == 156
+                        a_hash[:symptom_present_abdominal_pain] = 'Yes'
+                        a_hash[:symptom_present_abdominal_pain_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 868 && obs.value_coded_name_id == 888
+                        a_hash[:symptom_present_anorexia] = 'Yes'
+                        a_hash[:symptom_present_anorexia_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 107 && obs.value_coded_name_id == 110
+                        a_hash[:symptom_present_cough] = 'Yes'
+                        a_hash[:symptom_present_cough_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 16 && obs.value_coded_name_id == 17
+			a_hash[:symptom_present_diarrhea] = 'Yes'
+                        a_hash[:symptom_present_diarrhea_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 7952 && obs.value_coded_name_id == 10894
+			a_hash[:symptom_present_leg_pain_numbness] = 'Yes'
+                        a_hash[:symptom_present_leg_pain_numbness_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 821 && obs.value_coded_name_id == 838
+			a_hash[:symptom_present_peripheral_neuropathy = 'Yes'
+                        a_hash[:symptom_present_peripheral_neuropathy_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 5980 && obs.value_coded_name_id == 4355
+			a_hash[:symptom_present_vomiting] = 'Yes'
+                        a_hash[:symptom_present_vomiting_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 6779 && obs.value_coded_name_id == 4355
+			a_hash[:symptom_present_other_symptom] = 'Yes'
+                        a_hash[:symptom_present_other_symptom_enc_id] = encounter.encounter_id
+		end
+
         end
     end
 
