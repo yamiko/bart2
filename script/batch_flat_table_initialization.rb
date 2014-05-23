@@ -91,7 +91,7 @@ def get_patients_data(patient_id)
 
   visits = Encounter.find_by_sql("SELECT date(encounter_datetime) AS visit_date FROM #{@source_db}.encounter
 				WHERE patient_id = #{patient_id} AND voided = 0  
-					group_by date(encounter_datetime)".map(&:visit_date)
+				group by date(encounter_datetime)").map(&:visit_date)
 
   #list of encounters for bart2
   #vitals => 6, appointment => 7, treatment => 25, hiv clinic consultation => 53, hiv_reception => 51
@@ -103,6 +103,21 @@ def get_patients_data(patient_id)
 	appointment = []
 	hiv_clinic_consultation = []
 	hiv_reception = []
+ 	patient_orders = []
+	patient_state = []
+	
+  orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
+                                         o.start_date, o.auto_expire_date, d.quantity,
+                                         d.drug_inventory_id, d.dose, d.frequency,
+                                         o.concept_id, d.equivalent_daily_dose
+                              FROM orders o
+                                INNER JOIN drug_order d ON d.order_id = o.order_id
+                              WHERE o.start_date = '#{visit}'
+                              AND o.patient_id = #{patient_id} ")
+
+  if orders
+    patient_orders = process_patient_orders(orders, 1) if patient_orders.empty?
+  end
 
 	encounters = Encounter.find(:all,
 			:include => [:observations],
@@ -122,13 +137,14 @@ def get_patients_data(patient_id)
 	end
 
    #write sql statement
-    sql_statement = initial_string + "(" + vitals[0] + appointment[0] + hcc[0] + hiv_reception[0] ")" + \
-		 " VALUES (" + vitals[1] + appointment[1] + hcc[1] + hiv_reception[1] + ");"
+    sql_statement = initial_string + "(" + vitals[0] + appointment[0] + hcc[0] + hiv_reception[0] + patient_orders[0] + ")" + \
+		 " VALUES (" + vitals[1] + appointment[1] + hcc[1] + hiv_reception[1] + patient_orders[1] + ");"
 	
     $temp_outfile = File.open("./migration_output/flat_table_2-" + @started_at + ".sql", "w")
     $temp_outfile << sql_statement
     $temp_outfile.close
 	
+	patient_state = process_patient_state(patient_id)
    end
 end
 
@@ -282,154 +298,137 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
 
     #create vitals field list hash template
     a_hash =   {:pregnant_yes => 'NULL',
-		:pregnant_yes_enc_id => '',
-		:pregnant_no => '',
-		:pregnant_no_enc_id => '',
-		:breastfeeding_yes => ''
+		:pregnant_yes_enc_id => 'NULL',
+		:pregnant_no => 'NULL',
+		:pregnant_no_enc_id => 'NULL',
+		:breastfeeding_yes => 'NULL'
                 :breastfeeding_yes_enc_id => 'NULL',
-		:breastfeeding_no => '',
-		:breastfeeding_no_enc_id => '',
+		:breastfeeding_no => 'NULL',
+		:breastfeeding_no_enc_id => 'NULL',
                 :currently_using_family_planning_method_yes => 'NULL',
                 :currently_using_family_planning_method_yes_enc_id => 'NULL',
                 :currently_using_family_planning_method_no => 'NULL',
                 :currently_using_family_planning_method_no_enc_id => 'NULL',
-		:family_planning_method_oral_contraceptive_pills => '',
-		:family_planning_method_oral_contraceptive_pills_enc_id => '',
-		:family_planning_method_depo_provera => '',
-		:family_planning_method_depo_provera_enc_id => '',
-		:family_planning_method_intrauterine_contraception => '',
-		:family_planning_method_intrauterine_contraception_enc_id => '',
-		:family_planning_method_contraceptive_implant => '',
-		:family_planning_method_contraceptive_implant_enc_id => '',
-		:family_planning_method_male_condoms => '',
-		:family_planning_method_male_condoms_enc_id => '',
-		:family_planning_method_female_condoms => '',
-		:family_planning_method_female_condoms_enc_id => '',
-		:family_planning_method__rythm_method => '',
-		:family_planning_method__rythm_method_enc_id => '',
-		:family_planning_method_withdrawal => '',
-		:family_planning_method_withdrawal_enc_id => '',
-		:family_planning_method_abstinence => '',
-		:family_planning_method_abstinence_enc_id => '',
-		:family_planning_method_tubal_ligation => '',
-		:family_planning_method_tubal_ligation_enc_id => '',
-		:family_planning_method_emergency__contraception => '',
-		:family_planning_method_emergency__contraception_enc_id => '',
-		:family_planning_method_vasectomy => '',
-		:family_planning_method_vasectomy_enc_id => '',
-                :family_planning_method_used => 'NULL',
-		:symptom_present_lipodystrophy => '',        
-		:symptom_present_lipodystrophy_enc_id => '',        
-		:symptom_present_anemia => '',        
-		:symptom_present_anemia_enc_id => '',        
-		:symptom_present_jaundice => '',        
-		:symptom_present_jaundice_enc_id => '',        
-		:symptom_present_lactic_acidosis => '',        
-		:symptom_present_lactic_acidosis_enc_id => '',        
-		:symptom_present_fever => '',        
-		:symptom_present_fever_enc_id => '',        
-		:symptom_present_skin_rash => '',        
-		:symptom_present_skin_rash_enc_id => '',        
-		:symptom_present_abdominal_pain => '',        
-		:symptom_present_abdominal_pain_enc_id => '',        
-		:symptom_present_anorexia => '',        
-		:symptom_present_anorexia_enc_id => '',        
-		:symptom_present_cough => '',        
-		:symptom_present_cough_enc_id => '',        
-		:symptom_present_diarrhea => '',        
-		:symptom_present_diarrhea_enc_id => '',        
-		:symptom_present_hepatitis => '',        
-		:symptom_present_hepatitis_enc_id => '',        
-		:symptom_present_leg_pain_numbness => '',        
-		:symptom_present_leg_pain_numbness_enc_id => '',        
-		:symptom_present_peripheral_neuropathy => '',        
-		:symptom_present_peripheral_neuropathy_enc_id => '',        
-		:symptom_present_vomiting => '',        
-		:symptom_present_vomiting_enc_id => '',        
-		:symptom_present_other_symptom => '',        
-		:symptom_present_other_symptom_enc_id => '',        
-		:side_effects_peripheral_neuropathy => '',
-		:side_effects_peripheral_neuropathy_enc_id => '',
-		:side_effects_peripheral_hepatitis => '',
-		:side_effects_peripheral_hepatitis_enc_id => '',
-		:side_effects_peripheral_skin_rash => '',
-		:side_effects_peripheral_skin_rash_enc_id => '',
-		:side_effects_peripheral_lipodystrophy => '',
-		:side_effects_peripheral_lipodystrophy_enc_id => '',
-		:side_effects_peripheral_other => '',
-		:side_effects_peripheral_other_enc_id => '',
-		:drug_induced_abdominal_pain => '',
-		:drug_induced_abdominal_pain_enc_id => '',
-		:drug_induced_anorexia => '',
-		:drug_induced_anorexia_enc_id => '',
-		:drug_induced_diarrhea => '',
-		:drug_induced_diarrhea_enc_id => '',
-		:drug_induced_jaundice => '',
-		:drug_induced_jaundice_enc_id => '',
-		:drug_induced_leg_pain_numbness => '',
-		:drug_induced_leg_pain_numbness_enc_id => '',
-		:drug_induced_vomiting => '',
-		:drug_induced_vomiting_enc_id => '',
-		:drug_induced_peripheral_neuropathy => '',
-		:drug_induced_peripheral_neuropathy_enc_id => '',
-		:drug_induced_hepatitis => '',
-		:drug_induced_hepatitis_enc_id => '',
-		:drug_induced_anemia => '',
-		:drug_induced_anemia_enc_id => '',
-		:drug_induced_lactic_acidosis => '',
-		:drug_induced_lactic_acidosis_enc_id => '',
-		:drug_induced_lipodystrophy => '',
-		:drug_induced_lipodystrophy_enc_id => '',
-		:drug_induced_skin_rash => '',
-		:drug_induced_skin_rash_enc_id => '',
-		:drug_induced_other_symptom => '',
-		:drug_induced_other_symptom_enc_id => '',
-		:drug_induced_fever => '',
-		:drug_induced_fever_enc_id => '',
-		:drug_induced_cough => '',
-		:drug_induced_cough_enc_id => '',
-		:tb_status_tb_not_suspected => '',
-                :tb_status_tb_not_suspected_enc_id => '',
-                :tb_status_tbsuspected => '',
-                :tb:_status_tb_suspected_enc_id => '',
-                :tb_status_confirmed_tb_not_on_treatment => '',
-                :tb_status_confirmed_tb_not_on_treatment_enc_id => '',
-                :tb_status_confirmed_tb_on_treatment => '',
-                :tb_status_confirmed_tb_on_treatment_enc_id => '',
-                :tb_status_unknown => '',
-                :tb_status_unknown_enc_id => '',
-                :prescribe_arvs_yes => '',
-                :prescribe_arvs_yes_enc_id => '',
-                :prescribe_arvs_no => '',
-                :prescribe_arvs_no_enc_id => '',
-                :routine_tb_screening_fever => '',
-                :routine_tb_screening_fever_enc_id => '',
-                :routine_tb_screening_night_sweats => '',
-                :routine_tb_screening_night_sweats_enc_id => '',
-                :routine_tb_screening_cough_of_any_duration => '',
-                :routine_tb_screening_cough_of_any_duration_enc_id => '',
-                :routine_tb_screening_weight_loss_failure => '',
-                :routine_tb_screening_weight_loss_failure_enc_id => '',
-                :allergic_to_surphur_yes => '',
-                :allergic_to_surphur_yes_enc_id => '',
-                :allergic_to_surphur_no => '',
-                :allergic_to_surphur_no_enc => '',
-        :abdominal_pains => 'NULL',
-                :anorexia => 'NULL',
-                :cough => 'NULL',
-                :diarrhoea => 'NULL',
-	 	:fever => '',
-	 	:jaundice => '',
-		:leg_pain_numbness => '',
-		:vomit => '',
-		:weight_loss => '',
-		:peripheral_neuropathy => '',
-		:hepatitis => '',
-		:anaemia => '',
-		:lactic_acidosis => '',
-		:lipodystrophy => '',
-		:skin_rash => '',
-		:other_symptoms => ''
+		:family_planning_method_oral_contraceptive_pills => 'NULL',
+		:family_planning_method_oral_contraceptive_pills_enc_id => 'NULL',
+		:family_planning_method_depo_provera => 'NULL',
+		:family_planning_method_depo_provera_enc_id => 'NULL',
+		:family_planning_method_intrauterine_contraception => 'NULL',
+		:family_planning_method_intrauterine_contraception_enc_id => 'NULL',
+		:family_planning_method_contraceptive_implant => 'NULL',
+		:family_planning_method_contraceptive_implant_enc_id => 'NULL',
+		:family_planning_method_male_condoms => 'NULL',
+		:family_planning_method_male_condoms_enc_id => 'NULL',
+		:family_planning_method_female_condoms => 'NULL',
+		:family_planning_method_female_condoms_enc_id => 'NULL',
+		:family_planning_method__rythm_method => 'NULL',
+		:family_planning_method__rythm_method_enc_id => 'NULL',
+		:family_planning_method_withdrawal => 'NULL',
+		:family_planning_method_withdrawal_enc_id => 'NULL',
+		:family_planning_method_abstinence => 'NULL',
+		:family_planning_method_abstinence_enc_id => 'NULL',
+		:family_planning_method_tubal_ligation => 'NULL',
+		:family_planning_method_tubal_ligation_enc_id => 'NULL',
+		:family_planning_method_emergency__contraception => 'NULL',
+		:family_planning_method_emergency__contraception_enc_id => 'NULL',
+		:family_planning_method_vasectomy => 'NULL',
+		:family_planning_method_vasectomy_enc_id => 'NULL',
+		:symptom_present_lipodystrophy => 'NULL',        
+		:symptom_present_lipodystrophy_enc_id => 'NULL',        
+		:symptom_present_anemia => 'NULL',        
+		:symptom_present_anemia_enc_id => 'NULL',        
+		:symptom_present_jaundice => 'NULL',        
+		:symptom_present_jaundice_enc_id => 'NULL',        
+		:symptom_present_lactic_acidosis => 'NULL',        
+		:symptom_present_lactic_acidosis_enc_id => 'NULL',        
+		:symptom_present_fever => 'NULL',        
+		:symptom_present_fever_enc_id => 'NULL',        
+		:symptom_present_skin_rash => 'NULL',        
+		:symptom_present_skin_rash_enc_id => 'NULL',        
+		:symptom_present_abdominal_pain => 'NULL',        
+		:symptom_present_abdominal_pain_enc_id => 'NULL',        
+		:symptom_present_anorexia => 'NULL',        
+		:symptom_present_anorexia_enc_id => 'NULL',        
+		:symptom_present_cough => 'NULL',        
+		:symptom_present_cough_enc_id => 'NULL',        
+		:symptom_present_diarrhea => 'NULL',        
+		:symptom_present_diarrhea_enc_id => 'NULL',        
+		:symptom_present_hepatitis => 'NULL',        
+		:symptom_present_hepatitis_enc_id => 'NULL',        
+		:symptom_present_leg_pain_numbness => 'NULL',        
+		:symptom_present_leg_pain_numbness_enc_id => 'NULL',        
+		:symptom_present_peripheral_neuropathy => 'NULL',        
+		:symptom_present_peripheral_neuropathy_enc_id => 'NULL',        
+		:symptom_present_vomiting => 'NULL',        
+		:symptom_present_vomiting_enc_id => 'NULL',        
+		:symptom_present_other_symptom => 'NULL',        
+		:symptom_present_other_symptom_enc_id => 'NULL',        
+		:side_effects_peripheral_neuropathy => 'NULL',
+		:side_effects_peripheral_neuropathy_enc_id => 'NULL',
+		:side_effects_hepatitis => 'NULL',
+		:side_effects_hepatitis_enc_id => 'NULL',
+		:side_effects_skin_rash => 'NULL',
+		:side_effects_skin_rash_enc_id => 'NULL',
+		:side_effects_lipodystrophy => 'NULL',
+		:side_effects_lipodystrophy_enc_id => 'NULL',
+		:side_effects_other => 'NULL',
+		:side_effects_other_enc_id => 'NULL',
+		:drug_induced_abdominal_pain => 'NULL',
+		:drug_induced_abdominal_pain_enc_id => 'NULL',
+		:drug_induced_anorexia => 'NULL',
+		:drug_induced_anorexia_enc_id => 'NULL',
+		:drug_induced_diarrhea => 'NULL',
+		:drug_induced_diarrhea_enc_id => 'NULL',
+		:drug_induced_jaundice => 'NULL',
+		:drug_induced_jaundice_enc_id => 'NULL',
+		:drug_induced_leg_pain_numbness => 'NULL',
+		:drug_induced_leg_pain_numbness_enc_id => 'NULL',
+		:drug_induced_vomiting => 'NULL',
+		:drug_induced_vomiting_enc_id => 'NULL',
+		:drug_induced_peripheral_neuropathy => 'NULL',
+		:drug_induced_peripheral_neuropathy_enc_id => 'NULL',
+		:drug_induced_hepatitis => 'NULL',
+		:drug_induced_hepatitis_enc_id => 'NULL',
+		:drug_induced_anemia => 'NULL',
+		:drug_induced_anemia_enc_id => 'NULL',
+		:drug_induced_lactic_acidosis => 'NULL',
+		:drug_induced_lactic_acidosis_enc_id => 'NULL',
+		:drug_induced_lipodystrophy => 'NULL',
+		:drug_induced_lipodystrophy_enc_id => 'NULL',
+		:drug_induced_skin_rash => 'NULL',
+		:drug_induced_skin_rash_enc_id => 'NULL',
+		:drug_induced_other_symptom => 'NULL',
+		:drug_induced_other_symptom_enc_id => 'NULL',
+		:drug_induced_fever => 'NULL',
+		:drug_induced_fever_enc_id => 'NULL',
+		:drug_induced_cough => 'NULL',
+		:drug_induced_cough_enc_id => 'NULL',
+		:tb_status_tb_not_suspected => 'NULL',
+                :tb_status_tb_not_suspected_enc_id => 'NULL',
+                :tb_status_tbsuspected => 'NULL',
+                :tb_status_tb_suspected_enc_id => 'NULL',
+                :tb_status_confirmed_tb_not_on_treatment => 'NULL',
+                :tb_status_confirmed_tb_not_on_treatment_enc_id => 'NULL',
+                :tb_status_confirmed_tb_on_treatment => 'NULL',
+                :tb_status_confirmed_tb_on_treatment_enc_id => 'NULL',
+                :tb_status_unknown => 'NULL',
+                :tb_status_unknown_enc_id => 'NULL',
+                :prescribe_arvs_yes => 'NULL',
+                :prescribe_arvs_yes_enc_id => 'NULL',
+                :prescribe_arvs_no => 'NULL',
+                :prescribe_arvs_no_enc_id => 'NULL',
+                :routine_tb_screening_fever => 'NULL',
+                :routine_tb_screening_fever_enc_id => 'NULL',
+                :routine_tb_screening_night_sweats => 'NULL',
+                :routine_tb_screening_night_sweats_enc_id => 'NULL',
+                :routine_tb_screening_cough_of_any_duration => 'NULL',
+                :routine_tb_screening_cough_of_any_duration_enc_id => 'NULL',
+                :routine_tb_screening_weight_loss_failure => 'NULL',
+                :routine_tb_screening_weight_loss_failure_enc_id => 'NULL',
+                :allergic_to_surphur_yes => 'NULL',
+                :allergic_to_surphur_yes_enc_id => 'NULL',
+                :allergic_to_surphur_no => 'NULL',
+                :allergic_to_surphur_no_enc => 'NULL'
                 }
 
     return generate_sql_string(a_hash) if type == 1
@@ -468,7 +467,194 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
 			a_hash[:tb_status_unknown] = 'Yes'
                         a_hash[:tb_status_unknown_enc_id] = encounter.encounter_id
 		end
-        end
+        elsif obs.concept_id == 1717 #using family planning methods
+                if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
+                        a_hash[:currently_using_family_planning_method_yes] = 'Yes'
+                        a_hash[:currently_using_family_planning_method_yes_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
+                        a_hash[:currently_using_family_planning_method_no] = 'No'
+                        a_hash[:currently_using_family_planning_method_no_enc_id] = encounter.encounter_id
+                end
+        elsif obs.concept_id == 374 #family planning method
+                if obs.value_coded == 780 && obs.value_coded_name_id == 10736
+                        a_hash[:family_planning_method_oral_contraceptive_pills] = 'Yes'
+                        a_hash[:family_planning_method_oral_contraceptive_pills_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 907 && obs.value_coded_name_id == 931
+                        a_hash[:family_planning_method_depo_provera] = 'Yes'
+                        a_hash[:family_planning_method_depo_provera_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 5275 && obs.value_coded_name_id == 10737
+                        a_hash[:family_planning_method_intrauterine_contraception] = 'Yes'
+                        a_hash[:family_planning_method_intrauterine_contraception_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 7857 && obs.value_coded_name_id == 10738
+                        a_hash[:family_planning_method_contraceptive_implant] = 'Yes'
+                        a_hash[:family_planning_method_contraceptive_implant_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 7858 && obs.value_coded_name_id == 10739
+                        a_hash[:family_planning_method_male_condoms] = 'Yes'
+                        a_hash[:family_planning_method_male_condoms_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 7859 && obs.value_coded_name_id == 10740
+                        a_hash[:family_planning_method_female_condoms] = 'Yes'
+                        a_hash[:family_planning_method_female_condoms_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 7860 && obs.value_coded_name_id == 10741
+                        a_hash[:family_planning_method__rythm_method] = 'Yes'
+                        a_hash[:family_planning_method__rythm_method_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 7861 && obs.value_coded_name_id == 10743
+                        a_hash[:family_planning_method_withdrawal] = 'Yes'
+                        a_hash[:family_planning_method_withdrawal_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1720 && obs.value_coded_name_id == 1876
+                        a_hash[:family_planning_method_abstinence] = 'Yes'
+                        a_hash[:family_planning_method_abstinence_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1719 && obs.value_coded_name_id == 1874
+                        a_hash[:family_planning_method_tubal_ligation] = 'Yes'
+                        a_hash[:family_planning_method_tubal_ligation_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1721 && obs.value_coded_name_id == 1877
+                        a_hash[:family_planning_method_vasectomy] = 'Yes'
+                        a_hash[:family_planning_method_vasectomy_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 7862 && obs.value_coded_name_id == 10744
+                        a_hash[:family_planning_method_emergency__contraception] = 'Yes'
+                        a_hash[:family_planning_method_emergency__contraception_enc_id] = encounter.encounter_id
+                end
+	elsif obs.concept_id == 1293 #symptoms present
+                if obs.value_coded == 2148 && obs.value_coded_name_id == 2325
+                        a_hash[:symptom_present_lipodystrophy] = 'Yes'
+                        a_hash[:symptom_present_lipodystrophy_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 3 && obs.value_coded_name_id == 3
+                        a_hash[:symptom_present_anemia] = 'Yes'
+                        a_hash[:symptom_present_anemia_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 215 && obs.value_coded_name_id == 226
+                        a_hash[:symptom_present_jaundice] = 'Yes'
+                        a_hash[:symptom_present_jaundice_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1458 && obs.value_coded_name_id == 1576
+                        a_hash[:symptom_present_lactic_acidosis] = 'Yes'
+                        a_hash[:symptom_present_lactic_acidosis_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 5945 && obs.value_coded_name_id == 4315
+                        a_hash[:symptom_present_fever] = 'Yes'
+                        a_hash[:symptom_present_fever_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 512 && obs.value_coded_name_id == 524
+                        a_hash[:symptom_present_skin_rash] = 'Yes'
+                        a_hash[:symptom_present_skin_rash_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 151 && obs.value_coded_name_id == 156
+                        a_hash[:symptom_present_abdominal_pain] = 'Yes'
+                        a_hash[:symptom_present_abdominal_pain_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 868 && obs.value_coded_name_id == 888
+                        a_hash[:symptom_present_anorexia] = 'Yes'
+                        a_hash[:symptom_present_anorexia_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 107 && obs.value_coded_name_id == 110
+                        a_hash[:symptom_present_cough] = 'Yes'
+                        a_hash[:symptom_present_cough_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 16 && obs.value_coded_name_id == 17
+			a_hash[:symptom_present_diarrhea] = 'Yes'
+                        a_hash[:symptom_present_diarrhea_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 7952 && obs.value_coded_name_id == 10894
+			a_hash[:symptom_present_leg_pain_numbness] = 'Yes'
+                        a_hash[:symptom_present_leg_pain_numbness_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 821 && obs.value_coded_name_id == 838
+			a_hash[:symptom_present_peripheral_neuropathy = 'Yes'
+                        a_hash[:symptom_present_peripheral_neuropathy_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 5980 && obs.value_coded_name_id == 4355
+			a_hash[:symptom_present_vomiting] = 'Yes'
+                        a_hash[:symptom_present_vomiting_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 6779 && obs.value_coded_name_id == 4355
+			a_hash[:symptom_present_other_symptom] = 'Yes'
+                        a_hash[:symptom_present_other_symptom_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 29 && obs.value_coded_name_id == 30
+			a_hash[:symptom_present_hepatitis] = 'Yes'
+                        a_hash[:symptom_present_hepatitis_enc_id] = encounter.encounter_id
+		end
+        elsif obs.concept_id == 8012 #allergic to sulpher
+                if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
+                        a_hash[:allergic_to_sulpger_yes] = 'Yes'
+                        a_hash[:allergic_to_sulpher_yes_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
+                        a_hash[:allergic_to_sulpher_no] = 'No'
+                        a_hash[:allergic_to_sulpher_no_enc_id] = encounter.encounter_id
+                end
+        elsif obs.concept_id == 7874 #prescribe drugs
+                if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
+                        a_hash[:prescribe_arvs_yes] = 'Yes'
+                        a_hash[:prescribe_arvs_yes_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
+                        a_hash[:prescribe_arvs_no] = 'No'
+                        a_hash[:prescribe_arvs_no_enc_id] = encounter.encounter_id
+                end
+	elsif obs.concept_id == 8259 #routine tb screening
+		if obs.value_coded == 5945 && obs.value_coded_name_id == 4315
+			a_hash[:routine_tb_screening_fever] = 'Yes'
+			a_hash[:routing_tb_screening_fever_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 6029 && obs.value_coded_name_id == 4407
+			a_hash[:routine_tb_screening_night_sweats] = 'Yes'
+                        a_hash[:routine_tb_screening_night_sweats_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 8261 && obs.value_coded_name_id == 11335
+			a_hash[:routine_tb_screening_cough_of_any_duration] = 'Yes'
+                        a_hash[:routine_tb_screening_cough_of_any_duration_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 8260 && obs.value_coded_name_id == 11333
+			a_hash[:routine_tb_screening_weight_loss_failure] = 'Yes'
+                        a_hash[:routine_tb_screening_weight_loss_failure_enc_id] = encounter.encounter_id
+		end
+       	elsif obs.concept_id == 2146 #side effects
+		if obs.value_coded == 821 && obs.value_coded_name_id == 838
+			a_hash[:side_effects_peripheral_neuropathy] = 'Yes'
+			a_hash[:side_effects_peripheral_neuropathy_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 29 && obs.value_coded_name_id == 30
+			a_hash[:side_effects_hepatitis] = 'Yes'
+                        a_hash[:side_effects_hepatitis_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 512 && obs.value_coded_name_id == 524
+			a_hash[:side_effects_skin_rash] = 'Yes'
+                        a_hash[:side_effects_skin_rash_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 2148 && obs.value_coded_name_id == 2325
+			a_hash[:side_effects_lipodystrophy] = 'Yes'
+                        a_hash[:side_effects_lipodystrophy_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 6408 && obs.value_coded_name_id == 8873
+			a_hash[:side_effects_other] = 'Yes'
+                        a_hash[:side_effects_other_enc_id] = encounter.encounter_id
+		end
+	elsif obs.concept_id == 7567 #drug induced symptoms
+                if obs.value_coded == 2148 && obs.value_coded_name_id == 2325
+                        a_hash[:drug_induced_lipodystrophy] = 'Yes'
+                        a_hash[:drug_induced_lipodystrophy_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 3 && obs.value_coded_name_id == 3
+                        a_hash[:drug_induced_anemia] = 'Yes'
+                        a_hash[:drug_induced_anemia_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 215 && obs.value_coded_name_id == 226
+                        a_hash[:drug_induced_jaundice] = 'Yes'
+                        a_hash[:drug_induced_jaundice_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1458 && obs.value_coded_name_id == 1576
+                        a_hash[:drug_induced_lactic_acidosis] = 'Yes'
+                        a_hash[:drug_induced_lactic_acidosis_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 5945 && obs.value_coded_name_id == 4315
+                        a_hash[:drug_induced_fever] = 'Yes'
+                        a_hash[:drug_induced_fever_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 512 && obs.value_coded_name_id == 524
+                        a_hash[:drug_induced_skin_rash] = 'Yes'
+                        a_hash[:drug_induced_skin_rash_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 151 && obs.value_coded_name_id == 156
+                        a_hash[:drug_induced_abdominal_pain] = 'Yes'
+                        a_hash[:drug_induced_abdominal_pain_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 868 && obs.value_coded_name_id == 888
+                        a_hash[:drug_induced_anorexia] = 'Yes'
+                        a_hash[:drug_induced_anorexia_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 107 && obs.value_coded_name_id == 110
+                        a_hash[:drug_induced_cough] = 'Yes'
+                        a_hash[:drug_induced_cough_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 16 && obs.value_coded_name_id == 17
+			a_hash[:drug_induced_diarrhea] = 'Yes'
+                        a_hash[:drug_induced_diarrhea_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 7952 && obs.value_coded_name_id == 10894
+			a_hash[:drug_induced_leg_pain_numbness] = 'Yes'
+                        a_hash[:drug_induced_leg_pain_numbness_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 821 && obs.value_coded_name_id == 838
+			a_hash[:drug_induced_peripheral_neuropathy = 'Yes'
+                        a_hash[:drug_induced_peripheral_neuropathy_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 5980 && obs.value_coded_name_id == 4355
+			a_hash[:drug_induced_vomiting] = 'Yes'
+                        a_hash[:drug_induced_vomiting_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 6779 && obs.value_coded_name_id == 4355
+			a_hash[:drug_induced_other_symptom] = 'Yes'
+                        a_hash[:drug_induced_other_symptom_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 29 && obs.value_coded_name_id == 30
+			a_hash[:drug_induced_hepatitis] = 'Yes'
+                        a_hash[:drug_induced_hepatitis_enc_id] = encounter.encounter_id
+		end
+ 	end
     end
 
     return generate_sql_string(a_hash)
@@ -762,6 +948,134 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
   end
 
   return generate_sql_string(a_hash)
+end
+
+def process_patient_orders(orders)
+  patient_orders = {}
+  drug_dose_hash = {}; drug_frequency_hash = {};
+  drug_equivalent_daily_dose_hash = {}; drug_inventory_ids_hash = {}
+  patient_orders = {}; drug_order_ids_hash = {}; drug_enc_ids_hash = {}
+  drug_start_date_hash = {}; drug_auto_expire_date_hash = {}; drug_quantity_hash = {}
+  
+  (orders || []).each do |ord|
+    drug_name = Drug.find(ord.drug_inventory_id).name
+
+    if patient_orders[drug_name].blank?
+      patient_orders[drug_name] = drug_name
+      drug_order_ids_hash[drug_name] = ord.order_id
+      drug_enc_ids_hash[drug_name] = ord.encounter_id
+      drug_start_date_hash[drug_name] = ord.start_date
+      drug_auto_expire_date_hash[drug_name] = ord.auto_expire_date
+      drug_quantity_hash[drug_name] = ord.quantity
+      drug_dose_hash[drug_name] = ord.dose
+      drug_frequency_hash[drug_name] = ord.frequency
+      drug_equivalent_daily_dose_hash[drug_name] = ord.equivalent_daily_dose
+      drug_inventory_ids_hash[drug_name] = ord.drug_inventory_id
+    else
+      patient_orders[drug_name] += drug_name
+      drug_order_ids_hash[drug_name] += ord.order_id
+      drug_enc_ids_hash[drug_name] += ord.encounter_id
+      drug_start_date_hash[drug_name] += ord.start_date
+      drug_auto_expire_date_hash[drug_name] += ord.auto_expire_date
+      drug_quantity_hash[drug_name] += ord.quantity
+      drug_dose_hash[drug_name] += ord.dose
+      drug_frequency_hash[drug_name] += ord.frequency
+      drug_equivalent_daily_dose_hash[drug_name] += ord.equivalent_daily_dose
+      drug_inventory_ids_hash[drug_name] += ord.drug_inventory_id    
+    end
+  end
+
+  count = 1
+  (patient_orders).each do |drug_name, name|
+    case count
+      when 1
+       a_hash[:drug_name1] = drug_name
+       a_hash[:drug_order_id1] = drug_order_ids_hash[drug_name]
+       a_hash[:start_date1] = drug_start_date_hash[drug_name]
+       a_hash[:auto_expire_date1] = drug_auto_expire_date_hash[drug_name]
+       a_hash[:quantity1] = drug_quantity_hash[drug_name]
+       a_hash[:frequency1] = drug_frequency_hash[drug_name]
+       a_hash[:dose1] = drug_dose_hash[drug_name]
+       a_hash[:equivalent_daily_dose1] = drug_equivalent_daily_dose_hash[drug_name]
+       a_hash[:encounter_id1] = drug_enc_ids_hash[drug_name]
+       a_hash[:drug_inventory_id1] = drug_inventory_ids_hash[drug_name] 
+       count += 1
+      when 2
+       a_hash[:drug_name2] = drug_name
+       a_hash[:drug_order_id2] = drug_order_ids_hash[drug_name]
+       a_hash[:start_date2] = drug_start_date_hash[drug_name]
+       a_hash[:auto_expire_date2] = drug_auto_expire_date_hash[drug_name]
+       a_hash[:quantity2] = drug_quantity_hash[drug_name]
+       a_hash[:frequency2] = drug_frequency_hash[drug_name]
+       a_hash[:dose2] = drug_dose_hash[drug_name]
+       a_hash[:equivalent_daily_dose2] = drug_equivalent_daily_dose_hash[drug_name]
+       a_hash[:encounter_id2] = drug_enc_ids_hash[drug_name]
+       a_hash[:drug_inventory_id2] = drug_inventory_ids_hash[drug_name]
+       count += 1
+      when 3
+       a_hash[:drug_name3] = drug_name
+       a_hash[:drug_order_id3] = drug_order_ids_hash[drug_name]
+       a_hash[:start_date3] = drug_start_date_hash[drug_name]
+       a_hash[:auto_expire_date3] = drug_auto_expire_date_hash[drug_name]
+       a_hash[:quantity3] = drug_quantity_hash[drug_name]
+       a_hash[:frequency3] = drug_frequency_hash[drug_name]
+       a_hash[:dose3] = drug_dose_hash[drug_name]
+       a_hash[:equivalent_daily_dose3] = drug_equivalent_daily_dose_hash[drug_name]
+       a_hash[:encounter_id3] = drug_enc_ids_hash[drug_name]
+       a_hash[:drug_inventory_id3] = drug_inventory_ids_hash[drug_name]
+       count += 1
+      when 4
+       a_hash[:drug_name4] = drug_name
+       a_hash[:drug_order_id4] = drug_order_ids_hash[drug_name]
+       a_hash[:start_date4] = drug_start_date_hash[drug_name]
+       a_hash[:auto_expire_date4] = drug_auto_expire_date_hash[drug_name]
+       a_hash[:quantity4] = drug_quantity_hash[drug_name]
+       a_hash[:frequency4] = drug_frequency_hash[drug_name]
+       a_hash[:dose4] = drug_dose_hash[drug_name]
+       a_hash[:equivalent_daily_dose4] = drug_equivalent_daily_dose_hash[drug_name]
+       a_hash[:encounter_id4] = drug_enc_ids_hash[drug_name]
+       a_hash[:drug_inventory_id4] = drug_inventory_ids_hash[drug_name]
+       count += 1
+      when 5
+       a_hash[:drug_name5] = drug_name
+       a_hash[:drug_order_id5] = drug_order_ids_hash[drug_name]
+       a_hash[:start_date5] = drug_start_date_hash[drug_name]
+       a_hash[:auto_expire_date5] = drug_auto_expire_date_hash[drug_name]
+       a_hash[:quantity5] = drug_quantity_hash[drug_name]
+       a_hash[:frequency5] = drug_frequency_hash[drug_name]
+       a_hash[:dose5] = drug_dose_hash[drug_name]
+       a_hash[:equivalent_daily_dose5] = drug_equivalent_daily_dose_hash[drug_name]
+       a_hash[:encounter_id5] = drug_enc_ids_hash[drug_name]
+       a_hash[:drug_inventory_id5] = drug_inventory_ids_hash[drug_name]
+       count += 1    
+      end
+  end
+  return generate_sql_string(a_hash)
+end
+
+def process_patient_state(patient_id)
+	#initialize field and values variables
+  	fields = ""
+  	values = ""
+
+	a_hash = {:current_state => 'NULL', :initial_start_date => 'NULL'}
+
+	program_id = PatientProgram.find_by_sql("SELECT patient_program_id 
+				FROM patient_program
+				WHERE patient_id = #{patient_id}
+				AND program = 1 AND voided = 0 
+				ORDER BY patient_program_id DESC LIMIT 1").patient_program_id
+
+	a_hash[:current_state] = PatientProgram.find_by_sql("SELECT 
+		current_state_for_program(#{patient_id},1,'#{visit} 23:59') AS state").state
+	a_hash[:initial_start_date] = PatientState.find_by_sql("SELECT start_date 
+								FROM patient_state 
+								WHERE patient_program_id = #{program_id}
+					AND voided = 0 AND state = #{a_hash[:current_state]}
+					AND start_date <= #{visit}
+					ORDER BY start_date DESC, date_created DESC, patient_state_id DESC LIMIT 1").start_date
+
+	return generate_sql_string(a_hash)
 end
 
 def generate_sql_string(a_hash)
