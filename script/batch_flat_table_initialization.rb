@@ -91,7 +91,7 @@ def get_patients_data(patient_id)
 
   visits = Encounter.find_by_sql("SELECT date(encounter_datetime) AS visit_date FROM #{@source_db}.encounter
 				WHERE patient_id = #{patient_id} AND voided = 0  
-					group_by date(encounter_datetime)".map(&:visit_date)
+				group by date(encounter_datetime)").map(&:visit_date)
 
   #list of encounters for bart2
   #vitals => 6, appointment => 7, treatment => 25, hiv clinic consultation => 53, hiv_reception => 51
