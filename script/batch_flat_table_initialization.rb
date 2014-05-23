@@ -390,7 +390,7 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
 		:tb_status_tb_not_suspected => '',
                 :tb_status_tb_not_suspected_enc_id => '',
                 :tb_status_tbsuspected => '',
-                :tb:_status_tb_suspected_enc_id => '',
+                :tb_status_tb_suspected_enc_id => '',
                 :tb_status_confirmed_tb_not_on_treatment => '',
                 :tb_status_confirmed_tb_not_on_treatment_enc_id => '',
                 :tb_status_confirmed_tb_on_treatment => '',
@@ -558,7 +558,36 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
 			a_hash[:symptom_present_other_symptom] = 'Yes'
                         a_hash[:symptom_present_other_symptom_enc_id] = encounter.encounter_id
 		end
-
+        elsif obs.concept_id == 8012 #allergic to sulpher
+                if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
+                        a_hash[:allergic_to_sulpger_yes] = 'Yes'
+                        a_hash[:allergic_to_sulpher_yes_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
+                        a_hash[:allergic_to_sulpher_no] = 'No'
+                        a_hash[:allergic_to_sulpher_no_enc_id] = encounter.encounter_id
+                end
+        elsif obs.concept_id == 7874 #prescribe drugs
+                if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
+                        a_hash[:prescribe_arvs_yes] = 'Yes'
+                        a_hash[:prescribe_arvs_yes_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
+                        a_hash[:prescribe_arvs_no] = 'No'
+                        a_hash[:prescribe_arvs_no_enc_id] = encounter.encounter_id
+                end
+	elsif obs.concept_id == 8259 #routine tb screening
+		if obs.value_coded == 5945 && obs.value_coded_name_id == 4315
+			a_hash[:routine_tb_screening_fever] = 'Yes'
+			a_hash[:routing_tb_screening_fever_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 6029 && obs.value_coded_name_id == 4407
+			a_hash[:routine_tb_screening_night_sweats] = 'Yes'
+                        a_hash[:routine_tb_screening_night_sweats_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 8261 && obs.value_coded_name_id == 11335
+			a_hash[:routine_tb_screening_cough_of_any_duration] = 'Yes'
+                        a_hash[:routine_tb_screening_cough_of_any_duration_enc_id] = encounter.encounter_id
+		elsif obs.value_coded == 8260 && obs.value_coded_name_id == 11333
+			a_hash[:routine_tb_screening_weight_loss_failure] = 'Yes'
+                        a_hash[:routine_tb_screening_weight_loss_failure_enc_id] = encounter.encounter_id
+		end
         end
     end
 
