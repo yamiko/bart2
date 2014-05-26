@@ -600,8 +600,12 @@
 			  <%  end %>
 	}
   function denyStaging(){
-       window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat=cancel"
-
+       //window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat=cancel"
+       <%
+          current_date = session[:datetime].to_date rescue Date.today
+          session["#{@patient.id}"]["#{current_date}"][:stage_patient] = "No"
+        %>
+       window.location = "<%= next_task(@patient) %>"
   }
   function allowStaging(){
     window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat=no"
@@ -612,7 +616,8 @@
   .tt_controls_cd4_count #lessthan, .tt_controls_cd4_count #greaterthan { display:block; float:right }
   .tt_controls_cd4_percent #lessthan, .tt_controls_cd4_percent #greaterthan { display:block; float:right }
 </style>
-<% 
+<%
+
   current_date = session[:datetime].to_date rescue Date.today
   staging = session["#{@patient.id}"]["#{current_date}"][:stage_patient] rescue []
   if ! staging.blank?
