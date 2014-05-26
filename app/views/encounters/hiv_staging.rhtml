@@ -618,7 +618,7 @@
   if ! staging.blank?
   if staging != "No" %>
      <script>
-     window.location = "<%= next_task(@patient) -%>";
+     //window.location = "<%= next_task(@patient) -%>";//This part was commented out because of endless looping. Needs to be re-checked.
      </script>
   <% end
  end %>
