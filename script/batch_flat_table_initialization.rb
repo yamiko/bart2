@@ -1,6 +1,7 @@
+require 'yaml'
 
-def initialize
-  @source_db= YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))['bart2']["database"]
+def initialize_variables
+  @source_db = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))["production"]["database"]
   @started_at = Time.now.strftime("%Y-%m-%d-%H%M%S")
 end
 
@@ -38,10 +39,14 @@ def write_sql(a_hash,table)
 end
 
 def get_all_patients
-    patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date").map(&:patient_id) 
+    puts "started"
+#    patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date").map(&:patient_id) 
+    patient_list = [61961,61952]
     patient_list.each do |p|
-	    get_patient_data(p)
+	    get_patients_data(p)
     end
+    
+    puts "ended"
 end
 
 def get_patients_data(patient_id)
@@ -71,9 +76,9 @@ def get_patients_data(patient_id)
                                                      patient_id],
                                     :order => 'encounter_datetime DESC').observations
 
-  if hiv_staging_obs
-    hiv_staging = process_hiv_staging_encounter(hiv_staging_obs)
-  end
+   if hiv_staging_obs
+     hiv_staging = process_hiv_staging_encounter(hiv_staging_obs)
+   end
 
   #check if any of the strings are empty
   demographics = get_patient_demographics(patient_id, 1) if demographics.empty?
@@ -81,11 +86,11 @@ def get_patients_data(patient_id)
   hiv_clinic_registration = process_hiv_clinic_registration_encounter(hiv_clinic_reg_obs, 1) if hiv_clinic_registration.empty?
 
   #write sql statement
+  #raise hiv_staging[1].to_yaml
+  sql_statement = initial_flat_table1_string + "(" + demographics[0] + "," + hiv_clinic_registration[0] + "," + hiv_staging[0] + ")" + \
+		 " VALUES (" + demographics[1] + "," + hiv_clinic_registration[1] + "," + hiv_staging[1] + ");"
 
-  sql_statement = initial_flat_table1_string + "(" + demographics[0] + hiv_clinic_registration[0] + hiv_staging[0] ")" + \
-		 " VALUES (" + demographics + hiv_clinic_registration[1] + hiv_staging[1] + ");"
-
-  $temp_outfile = File.open("./migration_output/flat_table_1-" + @started_at + ".sql", "w")
+  $temp_outfile = File.open("./db/flat_table_1-" + @started_at + ".sql", "w")
   $temp_outfile << sql_statement
   $temp_outfile.close
 
@@ -99,14 +104,15 @@ def get_patients_data(patient_id)
 
   visits.each do |visit|
 	# arrays of [fields, values]
+	patient_details = ["patient_id, visit_date","#{patient_id},'#{visit}'"]
 	vitals = []
 	appointment = []
-	hiv_clinic_consultation = []
+	hcc = []
 	hiv_reception = []
  	patient_orders = []
 	patient_state = []
 	
-  orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
+ 	orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
                                          o.start_date, o.auto_expire_date, d.quantity,
                                          d.drug_inventory_id, d.dose, d.frequency,
                                          o.concept_id, d.equivalent_daily_dose
@@ -115,48 +121,61 @@ def get_patients_data(patient_id)
                               WHERE o.start_date = '#{visit}'
                               AND o.patient_id = #{patient_id} ")
 
-  if orders
-    patient_orders = process_patient_orders(orders, 1) if patient_orders.empty?
-  end
+  	if orders
+    		patient_orders = process_patient_orders(orders, 1) if patient_orders.empty?
+  	end
 
 	encounters = Encounter.find(:all,
 			:include => [:observations],
-			:order => "encounter_datetime ASC"
+			:order => "encounter_datetime ASC",
 			:conditions => ['voided = 0 AND patient_id = ? AND date(encounter_datetime) = ?', patient_id, visit])
+			
 	
 	encounters.each do |enc|
 		if enc.encounter_type == 6 #vitals
-			vitals = process_vitals_encounter(encounter)
+			vitals = process_vitals_encounter(enc)
 		elsif enc.encounter_type == 51#HIV Reception
-			hiv_reception = process_hiv_reception_encounter(encounter)
+			hiv_reception = process_hiv_reception_encounter(enc)
 		elsif enc.encounter_type == 53 #HIV Clinic Consultation
-			hiv_clinic_consultation = process_hiv_clinic_consultation_encounter(encounter)
-		elsif
-
+			hcc = process_hiv_clinic_consultation_encounter(enc)
 		end
 	end
+	patient_state = process_patient_state(patient_id, visit)
+	#check for nils within the arrays
+	 vitals = process_vitals_encounter(1, 1) if vitals.empty?
+   hcc = process_hiv_clinic_consultation_encounter(1, 1) if hcc.empty?
+   hiv_reception = process_hiv_reception_encounter(1, 1) if hiv_reception.empty?
+   #vitals = process_vitals(1, 1) if vitals.empty?
+   #raise patient_state.to_yaml
+   	#write sql statement
+# the statement below will be reactivated once the whole testing is done 
+=begin
+    	sql_statement = initial_string + "(" + patient_details[0] + patient_state[0] + vitals[0] + appointment[0] + hcc[0] + hiv_reception[0] + patient_orders[0] + ")" + \
+		 " VALUES (" + patient_details[1] + patient_state[1]  + vitals[1] + appointment[1] + hcc[1] + hiv_reception[1] + patient_orders[1] + ");"
+=end
+      sql_statement = initial_string + "(" + patient_details[0] + "," + patient_state[0] + "," + vitals[0] + "," + hcc[0] + "," + hiv_reception[0] + "," + patient_orders[0] + ")" + \
+     " VALUES (" + patient_details[1] + "," + patient_state[1]  + "," + vitals[1] + "," + hcc[1] + "," + hiv_reception[1] + "," + patient_orders[1] + ");"
 
-   #write sql statement
-    sql_statement = initial_string + "(" + vitals[0] + appointment[0] + hcc[0] + hiv_reception[0] + patient_orders[0] + ")" + \
-		 " VALUES (" + vitals[1] + appointment[1] + hcc[1] + hiv_reception[1] + patient_orders[1] + ");"
+    	$temp_outfile = File.open("./db/flat_table_2-" + @started_at + ".sql", "w")
+    	$temp_outfile << sql_statement
+    	$temp_outfile.close
 	
-    $temp_outfile = File.open("./migration_output/flat_table_2-" + @started_at + ".sql", "w")
-    $temp_outfile << sql_statement
-    $temp_outfile.close
 	
-	patient_state = process_patient_state(patient_id)
    end
 end
 
 def get_patient_demographics(patient_id)
-  #get all patient visits
+  # get all patient visits
   pat = Patient.find(patient_id)
+  # raise pat.to_yaml
   patient_obj = PatientService.get_patient(pat.person) #rescue nil
 
   earliest_start_date = PatientProgram.find_by_sql("SELECT *
                                            FROM earliest_start_date
                                            WHERE patient_id = #{patient_id}").map(&:earliest_start_date).first
-
+  #raise patient_obj.to_yaml
+  a_hash = {}
+  
   a_hash[:given_name] = patient_obj.first_name
   a_hash[:middle_name] = patient_obj.last_name
   a_hash[:family_name] = patient_obj.last_name
@@ -183,6 +202,8 @@ def get_patient_demographics(patient_id)
   a_hash[:filing_number]  = patient_obj.filing_number
   a_hash[:archived_filing_number]  = patient_obj.archived_filing_number
   a_hash[:earliest_start_date]  = earliest_start_date
+  
+  return generate_sql_string(a_hash)
 end
 
 def process_vitals_encounter(encounter, type = 0) #type 0 normal encounter, 1 generate_template only 
@@ -192,24 +213,24 @@ def process_vitals_encounter(encounter, type = 0) #type 0 normal encounter, 1 ge
     values = ""
 
     #create vitals field list hash template
-    a_hash = {  :height => 0,
-		:height_enc_id => 0,
-                :weight => 0,
-		:weight_enc_id => 0,
-                :temperature => 0,
-		:temperature_enc_id => 0,
-                :bmi => 0,
-		:bmi_enc_id => 0,
-                :systolic_blood_pressure => 0,
-		:systolic_blood_pressure_enc_id => 0,
-                :diastolic_blood_pressure => 0,
-		:diastolic_blood_pressure_enc_id => 0
-                :weight_for_height => 0,
-		:weight_for_height_enc_id => 0,
-                :weight_for_age => 0,
-		:weight_for_age_enc_id => 0,
-                :height_for_age => 0,
-		:height_for_age_enc_id => 0
+    a_hash = {  :height => 'NULL',
+		            :height_enc_id => 'NULL',
+                :weight => 'NULL',
+		            :weight_enc_id => 'NULL',
+                :temperature => 'NULL',
+		            :temperature_enc_id => 'NULL',
+                :bmi => 'NULL',
+		            :bmi_enc_id => 'NULL',
+                :systolic_blood_pressure => 'NULL',
+		            :systolic_blood_pressure_enc_id => 'NULL',
+                :diastolic_blood_pressure => 'NULL',
+		            :diastolic_blood_pressure_enc_id => 'NULL',
+                :weight_for_height => 'NULL',
+		            :weight_for_height_enc_id => 'NULL',
+                :weight_for_age => 'NULL',
+		            :weight_for_age_enc_id => 'NULL',
+                :height_for_age => 'NULL',
+		            :height_for_age_enc_id => 'NULL'
                 }
 
     return generate_sql_string(a_hash) if type == 1
@@ -298,112 +319,112 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
 
     #create vitals field list hash template
     a_hash =   {:pregnant_yes => 'NULL',
-		:pregnant_yes_enc_id => 'NULL',
-		:pregnant_no => 'NULL',
-		:pregnant_no_enc_id => 'NULL',
-		:breastfeeding_yes => 'NULL'
+            		:pregnant_yes_enc_id => 'NULL',
+            		:pregnant_no => 'NULL',
+            		:pregnant_no_enc_id => 'NULL',
+            		:breastfeeding_yes => 'NULL',
                 :breastfeeding_yes_enc_id => 'NULL',
-		:breastfeeding_no => 'NULL',
-		:breastfeeding_no_enc_id => 'NULL',
+            		:breastfeeding_no => 'NULL',
+            		:breastfeeding_no_enc_id => 'NULL',
                 :currently_using_family_planning_method_yes => 'NULL',
                 :currently_using_family_planning_method_yes_enc_id => 'NULL',
                 :currently_using_family_planning_method_no => 'NULL',
                 :currently_using_family_planning_method_no_enc_id => 'NULL',
-		:family_planning_method_oral_contraceptive_pills => 'NULL',
-		:family_planning_method_oral_contraceptive_pills_enc_id => 'NULL',
-		:family_planning_method_depo_provera => 'NULL',
-		:family_planning_method_depo_provera_enc_id => 'NULL',
-		:family_planning_method_intrauterine_contraception => 'NULL',
-		:family_planning_method_intrauterine_contraception_enc_id => 'NULL',
-		:family_planning_method_contraceptive_implant => 'NULL',
-		:family_planning_method_contraceptive_implant_enc_id => 'NULL',
-		:family_planning_method_male_condoms => 'NULL',
-		:family_planning_method_male_condoms_enc_id => 'NULL',
-		:family_planning_method_female_condoms => 'NULL',
-		:family_planning_method_female_condoms_enc_id => 'NULL',
-		:family_planning_method__rythm_method => 'NULL',
-		:family_planning_method__rythm_method_enc_id => 'NULL',
-		:family_planning_method_withdrawal => 'NULL',
-		:family_planning_method_withdrawal_enc_id => 'NULL',
-		:family_planning_method_abstinence => 'NULL',
-		:family_planning_method_abstinence_enc_id => 'NULL',
-		:family_planning_method_tubal_ligation => 'NULL',
-		:family_planning_method_tubal_ligation_enc_id => 'NULL',
-		:family_planning_method_emergency__contraception => 'NULL',
-		:family_planning_method_emergency__contraception_enc_id => 'NULL',
-		:family_planning_method_vasectomy => 'NULL',
-		:family_planning_method_vasectomy_enc_id => 'NULL',
-		:symptom_present_lipodystrophy => 'NULL',        
-		:symptom_present_lipodystrophy_enc_id => 'NULL',        
-		:symptom_present_anemia => 'NULL',        
-		:symptom_present_anemia_enc_id => 'NULL',        
-		:symptom_present_jaundice => 'NULL',        
-		:symptom_present_jaundice_enc_id => 'NULL',        
-		:symptom_present_lactic_acidosis => 'NULL',        
-		:symptom_present_lactic_acidosis_enc_id => 'NULL',        
-		:symptom_present_fever => 'NULL',        
-		:symptom_present_fever_enc_id => 'NULL',        
-		:symptom_present_skin_rash => 'NULL',        
-		:symptom_present_skin_rash_enc_id => 'NULL',        
-		:symptom_present_abdominal_pain => 'NULL',        
-		:symptom_present_abdominal_pain_enc_id => 'NULL',        
-		:symptom_present_anorexia => 'NULL',        
-		:symptom_present_anorexia_enc_id => 'NULL',        
-		:symptom_present_cough => 'NULL',        
-		:symptom_present_cough_enc_id => 'NULL',        
-		:symptom_present_diarrhea => 'NULL',        
-		:symptom_present_diarrhea_enc_id => 'NULL',        
-		:symptom_present_hepatitis => 'NULL',        
-		:symptom_present_hepatitis_enc_id => 'NULL',        
-		:symptom_present_leg_pain_numbness => 'NULL',        
-		:symptom_present_leg_pain_numbness_enc_id => 'NULL',        
-		:symptom_present_peripheral_neuropathy => 'NULL',        
-		:symptom_present_peripheral_neuropathy_enc_id => 'NULL',        
-		:symptom_present_vomiting => 'NULL',        
-		:symptom_present_vomiting_enc_id => 'NULL',        
-		:symptom_present_other_symptom => 'NULL',        
-		:symptom_present_other_symptom_enc_id => 'NULL',        
-		:side_effects_peripheral_neuropathy => 'NULL',
-		:side_effects_peripheral_neuropathy_enc_id => 'NULL',
-		:side_effects_hepatitis => 'NULL',
-		:side_effects_hepatitis_enc_id => 'NULL',
-		:side_effects_skin_rash => 'NULL',
-		:side_effects_skin_rash_enc_id => 'NULL',
-		:side_effects_lipodystrophy => 'NULL',
-		:side_effects_lipodystrophy_enc_id => 'NULL',
-		:side_effects_other => 'NULL',
-		:side_effects_other_enc_id => 'NULL',
-		:drug_induced_abdominal_pain => 'NULL',
-		:drug_induced_abdominal_pain_enc_id => 'NULL',
-		:drug_induced_anorexia => 'NULL',
-		:drug_induced_anorexia_enc_id => 'NULL',
-		:drug_induced_diarrhea => 'NULL',
-		:drug_induced_diarrhea_enc_id => 'NULL',
-		:drug_induced_jaundice => 'NULL',
-		:drug_induced_jaundice_enc_id => 'NULL',
-		:drug_induced_leg_pain_numbness => 'NULL',
-		:drug_induced_leg_pain_numbness_enc_id => 'NULL',
-		:drug_induced_vomiting => 'NULL',
-		:drug_induced_vomiting_enc_id => 'NULL',
-		:drug_induced_peripheral_neuropathy => 'NULL',
-		:drug_induced_peripheral_neuropathy_enc_id => 'NULL',
-		:drug_induced_hepatitis => 'NULL',
-		:drug_induced_hepatitis_enc_id => 'NULL',
-		:drug_induced_anemia => 'NULL',
-		:drug_induced_anemia_enc_id => 'NULL',
-		:drug_induced_lactic_acidosis => 'NULL',
-		:drug_induced_lactic_acidosis_enc_id => 'NULL',
-		:drug_induced_lipodystrophy => 'NULL',
-		:drug_induced_lipodystrophy_enc_id => 'NULL',
-		:drug_induced_skin_rash => 'NULL',
-		:drug_induced_skin_rash_enc_id => 'NULL',
-		:drug_induced_other_symptom => 'NULL',
-		:drug_induced_other_symptom_enc_id => 'NULL',
-		:drug_induced_fever => 'NULL',
-		:drug_induced_fever_enc_id => 'NULL',
-		:drug_induced_cough => 'NULL',
-		:drug_induced_cough_enc_id => 'NULL',
-		:tb_status_tb_not_suspected => 'NULL',
+            		:family_planning_method_oral_contraceptive_pills => 'NULL',
+            		:family_planning_method_oral_contraceptive_pills_enc_id => 'NULL',
+            		:family_planning_method_depo_provera => 'NULL',
+            		:family_planning_method_depo_provera_enc_id => 'NULL',
+            		:family_planning_method_intrauterine_contraception => 'NULL',
+            		:family_planning_method_intrauterine_contraception_enc_id => 'NULL',
+            		:family_planning_method_contraceptive_implant => 'NULL',
+            		:family_planning_method_contraceptive_implant_enc_id => 'NULL',
+            		:family_planning_method_male_condoms => 'NULL',
+            		:family_planning_method_male_condoms_enc_id => 'NULL',
+            		:family_planning_method_female_condoms => 'NULL',
+            		:family_planning_method_female_condoms_enc_id => 'NULL',
+            		:family_planning_method__rythm_method => 'NULL',
+            		:family_planning_method__rythm_method_enc_id => 'NULL',
+            		:family_planning_method_withdrawal => 'NULL',
+            		:family_planning_method_withdrawal_enc_id => 'NULL',
+            		:family_planning_method_abstinence => 'NULL',
+            		:family_planning_method_abstinence_enc_id => 'NULL',
+            		:family_planning_method_tubal_ligation => 'NULL',
+            		:family_planning_method_tubal_ligation_enc_id => 'NULL',
+            		:family_planning_method_emergency__contraception => 'NULL',
+            		:family_planning_method_emergency__contraception_enc_id => 'NULL',
+            		:family_planning_method_vasectomy => 'NULL',
+            		:family_planning_method_vasectomy_enc_id => 'NULL',
+            		:symptom_present_lipodystrophy => 'NULL',        
+            		:symptom_present_lipodystrophy_enc_id => 'NULL',        
+            		:symptom_present_anemia => 'NULL',        
+            		:symptom_present_anemia_enc_id => 'NULL',        
+            		:symptom_present_jaundice => 'NULL',        
+            		:symptom_present_jaundice_enc_id => 'NULL',        
+            		:symptom_present_lactic_acidosis => 'NULL',        
+            		:symptom_present_lactic_acidosis_enc_id => 'NULL',        
+            		:symptom_present_fever => 'NULL',        
+            		:symptom_present_fever_enc_id => 'NULL',        
+            		:symptom_present_skin_rash => 'NULL',        
+            		:symptom_present_skin_rash_enc_id => 'NULL',        
+            		:symptom_present_abdominal_pain => 'NULL',        
+            		:symptom_present_abdominal_pain_enc_id => 'NULL',        
+            		:symptom_present_anorexia => 'NULL',        
+            		:symptom_present_anorexia_enc_id => 'NULL',        
+            		:symptom_present_cough => 'NULL',        
+            		:symptom_present_cough_enc_id => 'NULL',        
+            		:symptom_present_diarrhea => 'NULL',        
+            		:symptom_present_diarrhea_enc_id => 'NULL',        
+            		:symptom_present_hepatitis => 'NULL',        
+            		:symptom_present_hepatitis_enc_id => 'NULL',        
+            		:symptom_present_leg_pain_numbness => 'NULL',        
+            		:symptom_present_leg_pain_numbness_enc_id => 'NULL',        
+            		:symptom_present_peripheral_neuropathy => 'NULL',        
+            		:symptom_present_peripheral_neuropathy_enc_id => 'NULL',        
+            		:symptom_present_vomiting => 'NULL',        
+            		:symptom_present_vomiting_enc_id => 'NULL',        
+            		:symptom_present_other_symptom => 'NULL',        
+            		:symptom_present_other_symptom_enc_id => 'NULL',        
+            		:side_effects_peripheral_neuropathy => 'NULL',
+            		:side_effects_peripheral_neuropathy_enc_id => 'NULL',
+            		:side_effects_hepatitis => 'NULL',
+            		:side_effects_hepatitis_enc_id => 'NULL',
+            		:side_effects_skin_rash => 'NULL',
+            		:side_effects_skin_rash_enc_id => 'NULL',
+            		:side_effects_lipodystrophy => 'NULL',
+            		:side_effects_lipodystrophy_enc_id => 'NULL',
+            		:side_effects_other => 'NULL',
+            		:side_effects_other_enc_id => 'NULL',
+            		:drug_induced_abdominal_pain => 'NULL',
+            		:drug_induced_abdominal_pain_enc_id => 'NULL',
+            		:drug_induced_anorexia => 'NULL',
+            		:drug_induced_anorexia_enc_id => 'NULL',
+            		:drug_induced_diarrhea => 'NULL',
+            		:drug_induced_diarrhea_enc_id => 'NULL',
+            		:drug_induced_jaundice => 'NULL',
+            		:drug_induced_jaundice_enc_id => 'NULL',
+            		:drug_induced_leg_pain_numbness => 'NULL',
+            		:drug_induced_leg_pain_numbness_enc_id => 'NULL',
+            		:drug_induced_vomiting => 'NULL',
+            		:drug_induced_vomiting_enc_id => 'NULL',
+            		:drug_induced_peripheral_neuropathy => 'NULL',
+            		:drug_induced_peripheral_neuropathy_enc_id => 'NULL',
+            		:drug_induced_hepatitis => 'NULL',
+            		:drug_induced_hepatitis_enc_id => 'NULL',
+            		:drug_induced_anemia => 'NULL',
+            		:drug_induced_anemia_enc_id => 'NULL',
+            		:drug_induced_lactic_acidosis => 'NULL',
+            		:drug_induced_lactic_acidosis_enc_id => 'NULL',
+            		:drug_induced_lipodystrophy => 'NULL',
+            		:drug_induced_lipodystrophy_enc_id => 'NULL',
+            		:drug_induced_skin_rash => 'NULL',
+            		:drug_induced_skin_rash_enc_id => 'NULL',
+            		:drug_induced_other_symptom => 'NULL',
+            		:drug_induced_other_symptom_enc_id => 'NULL',
+            		:drug_induced_fever => 'NULL',
+            		:drug_induced_fever_enc_id => 'NULL',
+            		:drug_induced_cough => 'NULL',
+            		:drug_induced_cough_enc_id => 'NULL',
+            		:tb_status_tb_not_suspected => 'NULL',
                 :tb_status_tb_not_suspected_enc_id => 'NULL',
                 :tb_status_tbsuspected => 'NULL',
                 :tb_status_tb_suspected_enc_id => 'NULL',
@@ -450,23 +471,23 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
                         a_hash[:breastfeeding_no] = 'No'
                         a_hash[:breastfeeding_no_enc_id] = encounter.encounter_id
                 end
-	elsif obs.concept_id == 7459 #tb status
-		if obs.value_coded == 7454 && obs.value_coded_name_id == 10270
-			a_hash[:tb_status_tb_not_suspected] = 'Yes'
-			a_hash[:tb_status_tb_not_suspected_enc_id] = encounter.encounter_id
-		elsif obs.value_coded == 7455 && obs.value_coded_name_id == 10273
-			a_hash[:tb_status_tbsuspected] = 'Yes'
-                        a_hash[:tb_status_tb_suspected_enc_id] = encounter.encounter_id
-		elsif obs.value_coded == 7456 && obs.value_coded_name_id == 10274
-			a_hash[:tb_status_confirmed_tb_not_on_treatment] = 'Yes'
-                        a_hash[:tb_status_confirmed_tb_not_on_treatment_enc_id] = encounter.encounter_id
-		elsif obs.value_coded == 7458 && obs.value_coded_name_id == 10279
-			a_hash[:tb_status_confirmed_tb_on_treatment] = 'Yes'
-                        a_hash[:tb_status_confirmed_tb_on_treatment_enc_id] = encounter.encounter_id
-		elsif obs.value_coded == 1067 && obs.value_coded_name_id == 1104
-			a_hash[:tb_status_unknown] = 'Yes'
-                        a_hash[:tb_status_unknown_enc_id] = encounter.encounter_id
-		end
+      	elsif obs.concept_id == 7459 #tb status
+            		if obs.value_coded == 7454 && obs.value_coded_name_id == 10270
+            			a_hash[:tb_status_tb_not_suspected] = 'Yes'
+            			a_hash[:tb_status_tb_not_suspected_enc_id] = encounter.encounter_id
+            		elsif obs.value_coded == 7455 && obs.value_coded_name_id == 10273
+            			a_hash[:tb_status_tbsuspected] = 'Yes'
+                  a_hash[:tb_status_tb_suspected_enc_id] = encounter.encounter_id
+            		elsif obs.value_coded == 7456 && obs.value_coded_name_id == 10274
+            			a_hash[:tb_status_confirmed_tb_not_on_treatment] = 'Yes'
+                  a_hash[:tb_status_confirmed_tb_not_on_treatment_enc_id] = encounter.encounter_id
+            		elsif obs.value_coded == 7458 && obs.value_coded_name_id == 10279
+            			a_hash[:tb_status_confirmed_tb_on_treatment] = 'Yes'
+                  a_hash[:tb_status_confirmed_tb_on_treatment_enc_id] = encounter.encounter_id
+            		elsif obs.value_coded == 1067 && obs.value_coded_name_id == 1104
+            			a_hash[:tb_status_unknown] = 'Yes'
+                  a_hash[:tb_status_unknown_enc_id] = encounter.encounter_id
+            		end
         elsif obs.concept_id == 1717 #using family planning methods
                 if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
                         a_hash[:currently_using_family_planning_method_yes] = 'Yes'
@@ -542,24 +563,24 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
                         a_hash[:symptom_present_cough] = 'Yes'
                         a_hash[:symptom_present_cough_enc_id] = encounter.encounter_id
                 elsif obs.value_coded == 16 && obs.value_coded_name_id == 17
-			a_hash[:symptom_present_diarrhea] = 'Yes'
+			                  a_hash[:symptom_present_diarrhea] = 'Yes'
                         a_hash[:symptom_present_diarrhea_enc_id] = encounter.encounter_id
                 elsif obs.value_coded == 7952 && obs.value_coded_name_id == 10894
-			a_hash[:symptom_present_leg_pain_numbness] = 'Yes'
+    			              a_hash[:symptom_present_leg_pain_numbness] = 'Yes'
                         a_hash[:symptom_present_leg_pain_numbness_enc_id] = encounter.encounter_id
                 elsif obs.value_coded == 821 && obs.value_coded_name_id == 838
-			a_hash[:symptom_present_peripheral_neuropathy = 'Yes'
+    			              a_hash[:symptom_present_peripheral_neuropathy] = 'Yes'
                         a_hash[:symptom_present_peripheral_neuropathy_enc_id] = encounter.encounter_id
                 elsif obs.value_coded == 5980 && obs.value_coded_name_id == 4355
-			a_hash[:symptom_present_vomiting] = 'Yes'
+    			              a_hash[:symptom_present_vomiting] = 'Yes'
                         a_hash[:symptom_present_vomiting_enc_id] = encounter.encounter_id
                 elsif obs.value_coded == 6779 && obs.value_coded_name_id == 4355
-			a_hash[:symptom_present_other_symptom] = 'Yes'
+    			              a_hash[:symptom_present_other_symptom] = 'Yes'
                         a_hash[:symptom_present_other_symptom_enc_id] = encounter.encounter_id
                 elsif obs.value_coded == 29 && obs.value_coded_name_id == 30
-			a_hash[:symptom_present_hepatitis] = 'Yes'
+    			              a_hash[:symptom_present_hepatitis] = 'Yes'
                         a_hash[:symptom_present_hepatitis_enc_id] = encounter.encounter_id
-		end
+		            end
         elsif obs.concept_id == 8012 #allergic to sulpher
                 if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
                         a_hash[:allergic_to_sulpger_yes] = 'Yes'
@@ -642,7 +663,7 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
 			a_hash[:drug_induced_leg_pain_numbness] = 'Yes'
                         a_hash[:drug_induced_leg_pain_numbness_enc_id] = encounter.encounter_id
                 elsif obs.value_coded == 821 && obs.value_coded_name_id == 838
-			a_hash[:drug_induced_peripheral_neuropathy = 'Yes'
+			a_hash[:drug_induced_peripheral_neuropathy] = 'Yes'
                         a_hash[:drug_induced_peripheral_neuropathy_enc_id] = encounter.encounter_id
                 elsif obs.value_coded == 5980 && obs.value_coded_name_id == 4355
 			a_hash[:drug_induced_vomiting] = 'Yes'
@@ -668,33 +689,32 @@ def process_hiv_clinic_registration_encounter(encounter, type = 0) #type 0 norma
 
   #create hiv_clinic_registration field list hash template
 
-  a_hash{
-    a_hash[:agrees_to_follow_up] => 'NULL',
-    a_hash[:date_of_hiv_pos_test] => 'NULL',
-    a_hash[:date_of_hiv_pos_test_estimated] => 'NULL',
-    a_hash[:location_of_hiv_pos_test] => 'NULL',
-    a_hash[:arv_number_at_that_site] => 'NULL',
-    a_hash[:location_of_art_initiation] => 'NULL',
-    a_hash[:taken_arvs_in_last_two_months] => 'NULL',
-    a_hash[:taken_art_in_last_two_months_v_date] => 'NULL',
-    a_hash[:taken_arvs_in_last_two_weeks] => 'NULL',
-    a_hash[:has_transfer_letter] => 'NULL',
-    a_hash[:site_transferred_from] => 'NULL',
-    a_hash[:date_of_art_initiation] => 'NULL',
-    a_hash[:ever_registered_at_art] => 'NULL',
-    a_hash[:ever_registered_at_art_v_date] => 'NULL',
-    a_hash[:ever_received_arv] => 'NULL',
-    a_hash[:last_arv_regimen] => 'NULL',
-    a_hash[:date_last_arv_taken] => 'NULL',
-    a_hash[:date_art_last_taken_v_date] => 'NULL',
-    a_hash[:weight] => 'NULL',
-    a_hash[:height] => 'NULL',
-    a_hash[:bmi] => 'NULL'
+  a_hash = {:agrees_to_follow_up => 'NULL',
+            :date_of_hiv_pos_test => 'NULL',
+            :date_of_hiv_pos_test_estimated => 'NULL',
+            :location_of_hiv_pos_test => 'NULL',
+            :arv_number_at_that_site => 'NULL',
+            :location_of_art_initiation => 'NULL',
+            :taken_arvs_in_last_two_months => 'NULL',
+            :taken_art_in_last_two_months_v_date => 'NULL',
+            :taken_arvs_in_last_two_weeks => 'NULL',
+            :has_transfer_letter => 'NULL',
+            :site_transferred_from => 'NULL',
+            :date_of_art_initiation => 'NULL',
+            :ever_registered_at_art => 'NULL',
+            :ever_registered_at_art_v_date => 'NULL',
+            :ever_received_arv => 'NULL',
+            :last_arv_regimen => 'NULL',
+            :date_last_arv_taken => 'NULL',
+            :date_art_last_taken_v_date => 'NULL',
+            :weight => 'NULL',
+            :height => 'NULL',
+            :bmi => 'NULL'
   }
 
   return generate_sql_string(a_hash) if type == 1
 
-  (ecnounter || []).each do | obs |
+  (encounter || []).each do | obs |
     if obs.concept_id == 2552 #FOLLOW UP AGREEMENT
       a_hash[:agrees_to_follow_up] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7882 #CONFIRMATORY HIV TEST DATE
@@ -744,74 +764,73 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
   values = ""
 
   #create hiv_staging field list hash template
-  a_hash{
-    :patient_pregnant => 'NULL',
-    :is_patient_breast_feeding? => 'NULL',
-    :cd4_count_location => 'NULL',
-    :cd4_count => 'NULL',
-    :cd4_count_modifier => 'NULL',
-    :cd4_count_percentage => 'NULL',
-    :date_of_cd4_count => 'NULL',
-    :asymptomatic => 'NULL',
-    :persistent_generalized_lymphadenopathy => 'NULL',
-    :unspecified_stage_1_cond => 'NULL',
-    :molluscumm_contagiosum => 'NULL',
-    :wart_virus_infection_extensive => 'NULL',
-    :oral_ulcerations_recurrent => 'NULL',
-    :parotid_enlargement_persistent_unexplained => 'NULL',
-    :lineal_gingival_erythema => 'NULL',
-    :herpes_zoster => 'NULL',
-    :respiratory_tract_infections_recurrent => 'NULL',
-    :unspecified_stage2_condition => 'NULL',
-    :angular_chelitis => 'NULL',
-    :papular_prurtic_eruptions => 'NULL',
-    :hepatosplenomegaly_unexplained => 'NULL',
-    :oral_hairy_leukoplakia => 'NULL',
-    :severe_weight_loss => 'NULL',
-    :fever_persistent_unexplained => 'NULL',
-    :pulmonary_tuberculosis => 'NULL',
-    :pulmonary_tuberculosis_v_date => 'NULL',
-    :pulmonary_tuberculosis_last_2_years => 'NULL',
-    :pulmonary_tuberculosis_last_2_years_v_date => 'NULL',
-    :severe_bacterial_infection => 'NULL',
-    :bacterial_pnuemonia => 'NULL',
-    :symptomatic_lymphoid_interstitial_pnuemonitis => 'NULL',
-    :chronic_hiv_assoc_lung_disease => 'NULL',
-    :unspecified_stage3_condition => 'NULL',
-    :aneamia => 'NULL',
-    :neutropaenia => 'NULL',
-    :thrombocytopaenia_chronic => 'NULL',
-    :diarhoea => 'NULL',
-    :oral_candidiasis => 'NULL',
-    :acute_necrotizing_ulcerative_gingivitis => 'NULL',
-    :lymph_node_tuberculosis => 'NULL',
-    :toxoplasmosis_of_brain => 'NULL',
-    :cryptococcal_meningitis => 'NULL',
-    :progressive_multifocal_leukoencephalopathy => 'NULL',
-    :disseminated_mycosis => 'NULL',
-    :candidiasis_of_oesophagus => 'NULL',
-    :extrapulmonary_tuberculosis => 'NULL',
-    :extrapulmonary_tuberculosis_v_date => 'NULL',
-    :cerebral_non_hodgkin_lymphoma => 'NULL',
-    :kaposis => 'NULL',
-    :kaposis_sarcoma_v_date => 'NULL',
-    :hiv_encephalopathy => 'NULL',
-    :bacterial_infections_severe_recurrent => 'NULL',
-    :unspecified_stage_4_condition => 'NULL',
-    :pnuemocystis_pnuemonia => 'NULL',
-    :disseminated_non_tuberculosis_mycobactierial_infection => 'NULL',
-    :cryptosporidiosis => 'NULL',
-    :isosporiasis => 'NULL',
-    :symptomatic_hiv_asscoiated_nephropathy => 'NULL',
-    :chronic_herpes_simplex_infection => 'NULL',
-    :cytomegalovirus_infection => 'NULL',
-    :toxoplasomis_of_the_brain_1month => 'NULL',
-    :recto_vaginal_fitsula => 'NULL',
-    :hiv_wasting_syndrome => 'NULL',
-    :reason_for_starting_art => 'NULL',
-    :reason_for_starting_v_date => 'NULL',
-    :who_stage => 'NULL'
-  }
+  a_hash = {:patient_pregnant => 'NULL',
+            :is_patient_breast_feeding? => 'NULL',
+            :cd4_count_location => 'NULL',
+            :cd4_count => 'NULL',
+            :cd4_count_modifier => 'NULL',
+            :cd4_count_percentage => 'NULL',
+            :date_of_cd4_count => 'NULL',
+            :asymptomatic => 'NULL',
+            :persistent_generalized_lymphadenopathy => 'NULL',
+            :unspecified_stage_1_cond => 'NULL',
+            :molluscumm_contagiosum => 'NULL',
+            :wart_virus_infection_extensive => 'NULL',
+            :oral_ulcerations_recurrent => 'NULL',
+            :parotid_enlargement_persistent_unexplained => 'NULL',
+            :lineal_gingival_erythema => 'NULL',
+            :herpes_zoster => 'NULL',
+            :respiratory_tract_infections_recurrent => 'NULL',
+            :unspecified_stage2_condition => 'NULL',
+            :angular_chelitis => 'NULL',
+            :papular_prurtic_eruptions => 'NULL',
+            :hepatosplenomegaly_unexplained => 'NULL',
+            :oral_hairy_leukoplakia => 'NULL',
+            :severe_weight_loss => 'NULL',
+            :fever_persistent_unexplained => 'NULL',
+            :pulmonary_tuberculosis => 'NULL',
+            :pulmonary_tuberculosis_v_date => 'NULL',
+            :pulmonary_tuberculosis_last_2_years => 'NULL',
+            :pulmonary_tuberculosis_last_2_years_v_date => 'NULL',
+            :severe_bacterial_infection => 'NULL',
+            :bacterial_pnuemonia => 'NULL',
+            :symptomatic_lymphoid_interstitial_pnuemonitis => 'NULL',
+            :chronic_hiv_assoc_lung_disease => 'NULL',
+            :unspecified_stage3_condition => 'NULL',
+            :aneamia => 'NULL',
+            :neutropaenia => 'NULL',
+            :thrombocytopaenia_chronic => 'NULL',
+            :diarhoea => 'NULL',
+            :oral_candidiasis => 'NULL',
+            :acute_necrotizing_ulcerative_gingivitis => 'NULL',
+            :lymph_node_tuberculosis => 'NULL',
+            :toxoplasmosis_of_brain => 'NULL',
+            :cryptococcal_meningitis => 'NULL',
+            :progressive_multifocal_leukoencephalopathy => 'NULL',
+            :disseminated_mycosis => 'NULL',
+            :candidiasis_of_oesophagus => 'NULL',
+            :extrapulmonary_tuberculosis => 'NULL',
+            :extrapulmonary_tuberculosis_v_date => 'NULL',
+            :cerebral_non_hodgkin_lymphoma => 'NULL',
+            :kaposis => 'NULL',
+            :kaposis_sarcoma_v_date => 'NULL',
+            :hiv_encephalopathy => 'NULL',
+            :bacterial_infections_severe_recurrent => 'NULL',
+            :unspecified_stage_4_condition => 'NULL',
+            :pnuemocystis_pnuemonia => 'NULL',
+            :disseminated_non_tuberculosis_mycobactierial_infection => 'NULL',
+            :cryptosporidiosis => 'NULL',
+            :isosporiasis => 'NULL',
+            :symptomatic_hiv_asscoiated_nephropathy => 'NULL',
+            :chronic_herpes_simplex_infection => 'NULL',
+            :cytomegalovirus_infection => 'NULL',
+            :toxoplasomis_of_the_brain_1month => 'NULL',
+            :recto_vaginal_fitsula => 'NULL',
+            :hiv_wasting_syndrome => 'NULL',
+            :reason_for_starting_art => 'NULL',
+            :reason_for_starting_v_date => 'NULL',
+            :who_stage => 'NULL'
+          }
 
   return generate_sql_string(a_hash) if type == 1
 
@@ -950,12 +969,13 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
   return generate_sql_string(a_hash)
 end
 
-def process_patient_orders(orders)
+def process_patient_orders(orders, type = 0)
   patient_orders = {}
   drug_dose_hash = {}; drug_frequency_hash = {};
   drug_equivalent_daily_dose_hash = {}; drug_inventory_ids_hash = {}
   patient_orders = {}; drug_order_ids_hash = {}; drug_enc_ids_hash = {}
   drug_start_date_hash = {}; drug_auto_expire_date_hash = {}; drug_quantity_hash = {}
+  a_hash = {}
   
   (orders || []).each do |ord|
     drug_name = Drug.find(ord.drug_inventory_id).name
@@ -1053,7 +1073,7 @@ def process_patient_orders(orders)
   return generate_sql_string(a_hash)
 end
 
-def process_patient_state(patient_id)
+def process_patient_state(patient_id,visit)
 	#initialize field and values variables
   	fields = ""
   	values = ""
@@ -1061,24 +1081,28 @@ def process_patient_state(patient_id)
 	a_hash = {:current_state => 'NULL', :initial_start_date => 'NULL'}
 
 	program_id = PatientProgram.find_by_sql("SELECT patient_program_id 
-				FROM patient_program
-				WHERE patient_id = #{patient_id}
-				AND program = 1 AND voided = 0 
-				ORDER BY patient_program_id DESC LIMIT 1").patient_program_id
+				FROM patient_program 
+				WHERE patient_id = #{patient_id} 
+				AND program_id = 1 AND voided = 0 
+				ORDER BY patient_program_id DESC LIMIT 1").first.patient_program_id
 
 	a_hash[:current_state] = PatientProgram.find_by_sql("SELECT 
-		current_state_for_program(#{patient_id},1,'#{visit} 23:59') AS state").state
+		current_state_for_program(#{patient_id},1,'#{visit} 23:59') AS state").first.state
+		
+		#raise visit.to_yaml
 	a_hash[:initial_start_date] = PatientState.find_by_sql("SELECT start_date 
 								FROM patient_state 
 								WHERE patient_program_id = #{program_id}
-					AND voided = 0 AND state = #{a_hash[:current_state]}
-					AND start_date <= #{visit}
-					ORDER BY start_date DESC, date_created DESC, patient_state_id DESC LIMIT 1").start_date
+					AND voided = 0 AND state = #{a_hash[:current_state]} 
+					AND start_date <= '#{visit}'
+					ORDER BY start_date DESC, date_created DESC, patient_state_id DESC LIMIT 1").first.start_date  
 
 	return generate_sql_string(a_hash)
 end
 
 def generate_sql_string(a_hash)
+   fields = ""
+   values = ""
 
     a_hash.each do |key,value|
         fields += fields.empty? ? "`#{key}`" : ", `#{key}`"
@@ -1089,7 +1113,8 @@ def generate_sql_string(a_hash)
 end
 
 def start
- initialize
+ initialize_variables
  get_all_patients
 end
 
+start 
