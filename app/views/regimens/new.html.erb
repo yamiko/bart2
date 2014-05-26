@@ -1067,11 +1067,12 @@ element.setAttribute("onmousedown", "gotoNextPage()")
       options << ['120', '120']
     end
     
-    if (@current_weight >= 14)
+    if (@current_weight >= 14) and (@current_weight < 30)
       options << ['480 <span class="moh_recommend">(MoH Recommended)</span>', '480']
-      options << ['960 <span class="moh_recommend">(MoH Recommended)</span>', '960']
-    else
       options << ['960', '960']
+    elsif (@current_weight >= 30)
+      options << ['480', '480']
+      options << ['960 <span class="moh_recommend">(MoH Recommended)</span>', '960']
     end
       options = options.sort_by{|key, value| value.to_i}
       #options = options.sort_by{|key, value| value}

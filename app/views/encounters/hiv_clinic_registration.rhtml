@@ -795,6 +795,8 @@ function checkConfirmDate(){
 				@reasons << "PATIENT PREGNANT"
 				@reasons << "BREASTFEEDING"
 			end
+                        @reasons << "CD4 count less than or equal to 500"
+                        @reasons = @reasons.sort
 	        art_reasons = []
 	        @reasons.map do |reason|
         
