@@ -121,6 +121,7 @@ def get_patients_data(patient_id)
       	hiv_reception = []
        	patient_orders = []
       	patient_state = []
+      	patient_adh = []
       	
        	orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
                                                o.start_date, o.auto_expire_date, d.quantity,
@@ -148,6 +149,8 @@ def get_patients_data(patient_id)
       			hiv_reception = process_hiv_reception_encounter(enc)
       		elsif enc.encounter_type == 53 #HIV Clinic Consultation
       			hcc = process_hiv_clinic_consultation_encounter(enc)
+      		elsif enc.encounter_type == 68 #ART adherence
+      		  patient_adh = process_patient_adherence(enc)
       		end
       	end
       	patient_state = process_patient_state(patient_id, visit)
@@ -163,8 +166,8 @@ def get_patients_data(patient_id)
           	sql_statement = initial_string + "(" + patient_details[0] + patient_state[0] + vitals[0] + appointment[0] + hcc[0] + hiv_reception[0] + patient_orders[0] + ")" + \
       		 " VALUES (" + patient_details[1] + patient_state[1]  + vitals[1] + appointment[1] + hcc[1] + hiv_reception[1] + patient_orders[1] + ");"
 =end
-            table_2_sql_statement = initial_string + "(" + patient_details[0] + "," + patient_state[0] + "," + vitals[0] + "," + hcc[0] + "," + hiv_reception[0] + "," + patient_orders[0] + ")" + \
-           " VALUES (" + patient_details[1] + "," + patient_state[1]  + "," + vitals[1] + "," + hcc[1] + "," + hiv_reception[1] + "," + patient_orders[1] + ");"
+            table_2_sql_statement = initial_string + "(" + patient_details[0] + "," + patient_state[0] + "," + vitals[0] + "," + hcc[0] + "," + hiv_reception[0] + "," + patient_orders[0] + "," + patient_adh[0] + ")" + \
+           " VALUES (" + patient_details[1] + "," + patient_state[1]  + "," + vitals[1] + "," + hcc[1] + "," + hiv_reception[1] + "," + patient_orders[1] + "," + patient_adh[1] + ");"
 =begin      
           	$temp_outfile = File.open("./db/flat_table_2-" + @started_at + ".sql", "w")
           	$temp_outfile << sql_statement
@@ -1159,6 +1162,93 @@ def process_patient_state(patient_id,visit)
   					ORDER BY start_date DESC, date_created DESC, patient_state_id DESC LIMIT 1").first.start_date  
   end
 	return generate_sql_string(a_hash)
+end
+
+def process_adherence_encounter(encounter, type = 0) #type 0 normal encounter, 1 generate_template only 
+
+    #initialize field and values variables
+    fields = ""
+    values = ""
+
+    #create patient adherence field list hash template
+    a_hash = {:amount_of_drug1_brought_to_clinic => 'NULL',
+              :amount_of_drug1_remaining_at_home => 'NULL',
+              :what_was_the_patient_adherence_for_this_drug1 => 'NULL',
+              :missed_hiv_drug_construct1 => 'NULL',
+              :amount_of_drug2_brought_to_clinic => 'NULL',
+              :amount_of_drug2_remaining_at_home => 'NULL',
+              :what_was_the_patient_adherence_for_this_drug2 => 'NULL',
+              :missed_hiv_drug_construct2 => 'NULL',
+              :amount_of_drug3_brought_to_clinic => 'NULL',
+              :amount_of_drug3_remaining_at_home => 'NULL',
+              :what_was_the_patient_adherence_for_this_drug3 => 'NULL',
+              :missed_hiv_drug_construct3 => 'NULL',
+              :amount_of_drug4_brought_to_clinic => 'NULL',
+              :amount_of_drug4_remaining_at_home => 'NULL',
+              :what_was_the_patient_adherence_for_this_drug4 => 'NULL',
+              :missed_hiv_drug_construct4 => 'NULL',
+              :amount_of_drug5_brought_to_clinic => 'NULL',
+              :amount_of_drug5_remaining_at_home => 'NULL',
+              :what_was_the_patient_adherence_for_this_drug5 => 'NULL',
+              :missed_hiv_drug_construct5 => 'NULL'}
+
+    return generate_sql_string(a_hash) if type == 1
+
+    (encounter || []).each do |adh|
+      if patient_adh[visit_date].blank?
+        patient_adh[visit_date] = visit_date
+        amount_of_drug_brought_to_clinic_hash[visit_date] = adh.to_s.split(':')[1].strip rescue nil
+        missed_hiv_drug_const_hash[visit_date] = adh.to_s.split(':')[1].strip rescue nil
+        patient_adherence_hash[visit_date] = adh.to_s.split(':')[1].strip rescue nil
+        amount_of_drug_remaining_at_home_hash[visit_date] = adh.to_s.split(':')[1].strip rescue nil
+      else
+        patient_adh[visit_date] += visit_date
+        amount_of_drug_brought_to_clinic_hash[visit_date] += adh.to_s.split(':')[1].strip rescue nil
+        missed_hiv_drug_const_hash[visit_date] += adh.to_s.split(':')[1].strip rescue nil
+        patient_adherence_hash[visit_date] += adh.to_s.split(':')[1].strip rescue nil
+        amount_of_drug_remaining_at_home_hash[visit_date] += adh.to_s.split(':')[1].strip rescue nil
+      end
+    end
+
+    count = 1
+    (patient_adh || []).each do |visit_date, data|
+
+      case count
+        when 1
+         a_hash[:amount_of_drug1_brought_to_clinic] = amount_of_drug_brought_to_clinic_hash[visit_date]
+         a_hash[:amount_of_drug1_remaining_at_home] = amount_of_drug_remaining_at_home_hash[visit_date]
+         a_hash[:what_was_the_patient_adherence_for_this_drug1] = patient_adherence_hash[visit_date]
+         a_hash[:missed_hiv_drug_construct1] = missed_hiv_drug_const_hash[visit_date]
+         count += 1
+        when 2
+         a_hash[:amount_of_drug2_brought_to_clinic] = amount_of_drug_brought_to_clinic_hash[visit_date]
+         a_hash[:amount_of_drug2_remaining_at_home] = amount_of_drug_remaining_at_home_hash[visit_date]
+         a_hash[:what_was_the_patient_adherence_for_this_drug2] = patient_adherence_hash[visit_date]
+         a_hash[:missed_hiv_drug_construct2] = missed_hiv_drug_const_hash[visit_date]
+         count += 1
+        when 3
+         a_hash[:amount_of_drug3_brought_to_clinic] = amount_of_drug_brought_to_clinic_hash[visit_date]
+         a_hash[:amount_of_drug3_remaining_at_home] = amount_of_drug_remaining_at_home_hash[visit_date]
+         a_hash[:what_was_the_patient_adherence_for_this_drug3] = patient_adherence_hash[visit_date]
+         a_hash[:missed_hiv_drug_construct3] = missed_hiv_drug_const_hash[visit_date]
+         count += 1
+        when 4
+         a_hash[:amount_of_drug4_brought_to_clinic] = amount_of_drug_brought_to_clinic_hash[visit_date]
+         a_hash[:amount_of_drug4_remaining_at_home] = amount_of_drug_remaining_at_home_hash[visit_date]
+         a_hash[:what_was_the_patient_adherence_for_this_drug4] = patient_adherence_hash[visit_date]
+         a_hash[:missed_hiv_drug_construct4] = missed_hiv_drug_const_hash[visit_date]
+         count += 1
+        when 5
+         a_hash[:amount_of_drug5_brought_to_clinic] = amount_of_drug_brought_to_clinic_hash[visit_date]
+         a_hash[:amount_of_drug5_remaining_at_home] = amount_of_drug_remaining_at_home_hash[visit_date]
+         a_hash[:what_was_the_patient_adherence_for_this_drug5] = patient_adherence_hash[visit_date] 
+         a_hash[:missed_hiv_drug_construct5] = missed_hiv_drug_const_hash[visit_date]
+         count += 1    
+        end
+    end
+  end
+  
+  return generate_sql_string(a_hash)
 end
 
 def generate_sql_string(a_hash)
