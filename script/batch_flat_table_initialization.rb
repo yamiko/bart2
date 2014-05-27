@@ -150,7 +150,7 @@ def get_patients_data(patient_id)
       		elsif enc.encounter_type == 53 #HIV Clinic Consultation
       			hcc = process_hiv_clinic_consultation_encounter(enc)
       		elsif enc.encounter_type == 68 #ART adherence
-      		  patient_adh = process_patient_adherence(enc)
+      		  patient_adh = process_adherence_encounter(enc)
       		end
       	end
       	patient_state = process_patient_state(patient_id, visit)
@@ -158,6 +158,8 @@ def get_patients_data(patient_id)
       	 vitals = process_vitals_encounter(1, 1) if vitals.empty?
          hcc = process_hiv_clinic_consultation_encounter(1, 1) if hcc.empty?
          hiv_reception = process_hiv_reception_encounter(1, 1) if hiv_reception.empty?
+         patient_adh = process_adherence_encounter(1,1) if patient_adh.empty?
+         
          #vitals = process_vitals(1, 1) if vitals.empty?
          #raise patient_state.to_yaml
          	#write sql statement
@@ -1244,9 +1246,8 @@ def process_adherence_encounter(encounter, type = 0) #type 0 normal encounter, 1
          a_hash[:what_was_the_patient_adherence_for_this_drug5] = patient_adherence_hash[visit_date] 
          a_hash[:missed_hiv_drug_construct5] = missed_hiv_drug_const_hash[visit_date]
          count += 1    
-        end
+     end
     end
-  end
   
   return generate_sql_string(a_hash)
 end
@@ -1257,7 +1258,7 @@ def generate_sql_string(a_hash)
 
     a_hash.each do |key,value|
         fields += fields.empty? ? "`#{key}`" : ", `#{key}`"
-        values += values.empty? ? "`#{value}`" : ", `#{value}`"
+        values += values.empty? ? "'#{value}'" : ", '#{value}'"
     end
 
     return [fields, values]
