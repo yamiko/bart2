@@ -1209,7 +1209,7 @@ EOF
     patient.arv_number = get_patient_identifier(person.patient, 'ARV Number')
     patient.address = person.addresses.first.city_village rescue nil
     patient.national_id = get_patient_identifier(person.patient, 'National id')
-	  patient.national_id_with_dashes = get_national_id_with_dashes(person.patient)
+	  patient.national_id_with_dashes = get_national_id_with_dashes(person.patient) rescue nil
     patient.name = person.names.first.given_name + ' ' + person.names.first.family_name rescue nil
 		patient.first_name = person.names.first.given_name rescue nil
 		patient.last_name = person.names.first.family_name rescue nil
