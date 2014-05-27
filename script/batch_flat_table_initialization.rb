@@ -114,7 +114,8 @@ def get_patients_data(patient_id)
   #list of encounters for bart2
   #vitals => 6, appointment => 7, treatment => 25, hiv clinic consultation => 53, hiv_reception => 51
   initial_string = "INSERT INTO flat_table2 "
-
+  table2_sql_batch = ""
+  
   visits.each do |visit|
       	# arrays of [fields, values]
       	patient_details = ["patient_id, visit_date","#{patient_id},'#{visit}'"]
@@ -178,8 +179,9 @@ def get_patients_data(patient_id)
           	$temp_outfile << sql_statement
           	$temp_outfile.close
 =end
-      return [table_1_sql_statement, table_2_sql_statement] 
+      table2_sql_batch += table_2_sql_statement 
    end
+   return [table_1_sql_statement, table2_sql_batch]
 end
 
 def get_patient_demographics(patient_id)
