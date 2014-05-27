@@ -491,7 +491,7 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
             			a_hash[:tb_status_tb_not_suspected] = 'Yes'
             			a_hash[:tb_status_tb_not_suspected_enc_id] = encounter.encounter_id
             		elsif obs.value_coded == 7455 && obs.value_coded_name_id == 10273
-            			a_hash[:tb_status_tbsuspected] = 'Yes'
+            			a_hash[:tb_status_tb_suspected] = 'Yes'
                   a_hash[:tb_status_tb_suspected_enc_id] = encounter.encounter_id
             		elsif obs.value_coded == 7456 && obs.value_coded_name_id == 10274
             			a_hash[:tb_status_confirmed_tb_not_on_treatment] = 'Yes'
