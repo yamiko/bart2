@@ -49,7 +49,7 @@ def get_all_patients
     patients_done = []
 #   patient_list = [61961] #,61952]
     patient_list.each do |p|
-         $temp_outfile_3 << p 
+         $temp_outfile_3 << "#{p}," 
 	    sql_statements = get_patients_data(p)
       	 $temp_outfile_1 << sql_statements[0]
       	 $temp_outfile_2 << sql_statements[1]
