@@ -477,8 +477,8 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
 #                        a_hash[:patient_pregnant_yes] = 'Yes'
 #                        a_hash[:patient_pregnant_yes_enc_id] = encounter.encounter_id
                 elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
-                        a_hash[:patient_pregnant_no] = 'No'
-                        a_hash[:patient_pregnant_no_enc_id] = encounter.encounter_id
+#                        a_hash[:patient_pregnant_no] = 'No'
+#                        a_hash[:patient_pregnant_no_enc_id] = encounter.encounter_id
                 end
         elsif obs.concept_id == 7965 #breastfeeding
                 if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
