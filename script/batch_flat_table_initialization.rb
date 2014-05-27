@@ -191,6 +191,7 @@ def get_patient_demographics(patient_id)
   #raise patient_obj.to_yaml
   a_hash = {}
   
+  a_hash[:patient_id] = patient_id
   a_hash[:given_name] = patient_obj.first_name
   a_hash[:middle_name] = patient_obj.last_name
   a_hash[:family_name] = patient_obj.last_name
@@ -700,66 +701,62 @@ def process_hiv_clinic_registration_encounter(encounter, type = 0) #type 0 norma
 
   #create hiv_clinic_registration field list hash template
 
-  a_hash = {:agrees_to_follow_up => 'NULL',
-            :date_of_hiv_pos_test => 'NULL',
-            :date_of_hiv_pos_test_estimated => 'NULL',
-            :location_of_hiv_pos_test => 'NULL',
-            :arv_number_at_that_site => 'NULL',
-            :location_of_art_initiation => 'NULL',
-            :taken_arvs_in_last_two_months => 'NULL',
+  a_hash = {:agrees_to_followup => 'NULL',
+            :confirmatory_hiv_test_date => 'NULL',
+            :confirmatory_hiv_test_location => 'NULL',
+            :location_of_art_initialization => 'NULL',
+            :taken_art_in_last_two_months => 'NULL',
             :taken_art_in_last_two_months_v_date => 'NULL',
-            :taken_arvs_in_last_two_weeks => 'NULL',
+            :taken_art_in_last_two_weeks => 'NULL',
             :has_transfer_letter => 'NULL',
+            :date_started_art => 'NULL',
             :ever_registered_at_art_clinic => 'NULL',
             :ever_registered_at_art_v_date => 'NULL',
-            :ever_received_arv => 'NULL',
-            :last_arv_regimen => 'NULL',
-            :date_last_arv_taken => 'NULL',
-            :date_art_last_taken_v_date => 'NULL',
-            :weight => 'NULL',
-            :height => 'NULL',
-            :bmi => 'NULL'
+            :ever_received_art => 'NULL',
+            :last_art_drugs_taken => 'NULL',
+            :date_art_last_taken => 'NULL',
+            :date_art_last_taken_v_date => 'NULL'
   }
 
   return generate_sql_string(a_hash) if type == 1
 
   (encounter || []).each do | obs |
     if obs.concept_id == 2552 #FOLLOW UP AGREEMENT
-      a_hash[:agrees_to_follow_up] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:agrees_to_followup] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7882 #CONFIRMATORY HIV TEST DATE
-      a_hash[:date_of_hiv_pos_test] = obs.value_datetime.to_date rescue nil
-    elsif obs.concept_id == 7437 #ESTIMATED DATE
-      a_hash[:date_of_hiv_pos_test_estimated] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:confirmatory_hiv_test_date] = obs.value_datetime.to_date rescue nil
+    #elsif obs.concept_id == 7437 #ESTIMATED DATE
+    #  a_hash[:date_of_hiv_pos_test_estimated] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7881 #CONFIRMATORY HIV TEST LOCATION
-      a_hash[:location_of_hiv_pos_test] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 6981 #ART NUMBER AT PREVIOUS LOCATION
-      a_hash[:arv_number_at_that_site] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:confirmatory_hiv_test_location] = obs.to_s.split(':')[1].strip rescue nil
+    #elsif obs.concept_id == 6981 #ART NUMBER AT PREVIOUS LOCATION
+    #  a_hash[:arv_number_at_that_site] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7750 #LOCATION OF ART INITIATION
-      a_hash[:location_of_art_initiation] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:location_of_art_initialization] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7752 #HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS
-      a_hash[:taken_arvs_in_last_two_months] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:taken_art_in_last_two_months] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 6394 #HAS THE PATIENT TAKEN ART IN THE LAST TWO WEEKS
-      a_hash[:taken_arvs_in_last_two_weeks] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:taken_art_in_last_two_weeks] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 6393 #HAS TRANSFER LETTER
       a_hash[:has_transfer_letter] = obs.to_s.split(':')[1].strip rescue nil
- #   elsif obs.concept_id == 1427 #TRANSFER IN FROM
- #     a_hash[:site_transferred_from] = obs.to_s.split(':')[1].strip rescue nil
- #   elsif obs.concept_id == 2516 #DATE ANTIRETROVIRALS STARTED
- #     a_hash[:date_of_art_initiation] = obs.value_datetime.to_date rescue nil
+    #elsif obs.concept_id == 1427 #TRANSFER IN FROM
+    #  a_hash[:site_transferred_from] = obs.to_s.split(':')[1].strip rescue nil
+    elsif obs.concept_id == 2516 #DATE ANTIRETROVIRALS STARTED
+      a_hash[:date_started_art] = obs.value_datetime.to_date rescue nil
     elsif obs.concept_id == 7937 #EVER REGISTERED AT ART CLINIC
       a_hash[:ever_registered_at_art_clinic] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7754 #EVER RECEIVED ART?
-      a_hash[:ever_received_arv] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:ever_received_art] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7753 #LAST ART DRUGS TAKEN
-      a_hash[:last_arv_regimen] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:last_art_drugs_taken] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7751 #DATE ART LAST TAKEN
-      a_hash[:date_last_arv_taken] = obs.value_datetime.to_date rescue nil
-    elsif obs.concept_id == 5089 #WEIGHT (KG)
-      a_hash[:weight] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 5090 #HEIGHT (CM)
-      a_hash[:height] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 2137 #BODY MASS INDEX, MEASURED
-      a_hash[:bmi] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:date_art_last_taken] = obs.value_datetime.to_date rescue nil
+    #elsif obs.concept_id == 5089 #WEIGHT (KG)
+    #  a_hash[:weight] = obs.to_s.split(':')[1].strip rescue nil
+    #elsif obs.concept_id == 5090 #HEIGHT (CM)
+    #  a_hash[:height] = obs.to_s.split(':')[1].strip rescue nil
+    #elsif obs.concept_id == 2137 #BODY MASS INDEX, MEASURED
+    #  a_hash[:bmi] = obs.to_s.split(':')[1].strip rescue nil
     end
   end
 
@@ -773,13 +770,11 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
   values = ""
 
   #create hiv_staging field list hash template
-  a_hash = {:patient_pregnant => 'NULL',
-            :is_patient_breast_feeding? => 'NULL',
-            :cd4_count_location => 'NULL',
+  a_hash = {:cd4_count_location => 'NULL',
             :cd4_count => 'NULL',
             :cd4_count_modifier => 'NULL',
-            :cd4_count_percentage => 'NULL',
-            :date_of_cd4_count => 'NULL',
+            :cd4_count_percent => 'NULL',
+            :cd4_count_datetime => 'NULL',
             :asymptomatic => 'NULL',
             :persistent_generalized_lymphadenopathy => 'NULL',
             :unspecified_stage_1_cond => 'NULL',
@@ -792,7 +787,7 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
             :respiratory_tract_infections_recurrent => 'NULL',
             :unspecified_stage2_condition => 'NULL',
             :angular_chelitis => 'NULL',
-            :papular_prurtic_eruptions => 'NULL',
+            :papular_pruritic_eruptions => 'NULL',
             :hepatosplenomegaly_unexplained => 'NULL',
             :oral_hairy_leukoplakia => 'NULL',
             :severe_weight_loss => 'NULL',
@@ -813,7 +808,7 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
             :oral_candidiasis => 'NULL',
             :acute_necrotizing_ulcerative_gingivitis => 'NULL',
             :lymph_node_tuberculosis => 'NULL',
-            :toxoplasmosis_of_brain => 'NULL',
+            :toxoplasmosis_of_the_brain => 'NULL',
             :cryptococcal_meningitis => 'NULL',
             :progressive_multifocal_leukoencephalopathy => 'NULL',
             :disseminated_mycosis => 'NULL',
@@ -821,22 +816,22 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
             :extrapulmonary_tuberculosis => 'NULL',
             :extrapulmonary_tuberculosis_v_date => 'NULL',
             :cerebral_non_hodgkin_lymphoma => 'NULL',
-            :kaposis => 'NULL',
+            :kaposis_sarcoma => 'NULL',
             :kaposis_sarcoma_v_date => 'NULL',
             :hiv_encephalopathy => 'NULL',
             :bacterial_infections_severe_recurrent => 'NULL',
             :unspecified_stage_4_condition => 'NULL',
             :pnuemocystis_pnuemonia => 'NULL',
-            :disseminated_non_tuberculosis_mycobactierial_infection => 'NULL',
+            :disseminated_non_tuberculosis_mycobacterial_infection => 'NULL',
             :cryptosporidiosis => 'NULL',
             :isosporiasis => 'NULL',
-            :symptomatic_hiv_asscoiated_nephropathy => 'NULL',
+            :symptomatic_hiv_associated_nephropathy => 'NULL',
             :chronic_herpes_simplex_infection => 'NULL',
             :cytomegalovirus_infection => 'NULL',
             :toxoplasomis_of_the_brain_1month => 'NULL',
             :recto_vaginal_fitsula => 'NULL',
-            :hiv_wasting_syndrome => 'NULL',
-            :reason_for_starting_art => 'NULL',
+            :moderate_weight_loss_less_than_or_equal_to_10_percent_unexpl => 'NULL',
+            :reason_for_eligibility => 'NULL',
             :reason_for_starting_v_date => 'NULL',
             :who_stage => 'NULL'
           }
@@ -844,20 +839,20 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
   return generate_sql_string(a_hash) if type == 1
 
   (encounter || []).each do | obs |
-    if obs.concept_id == 1755 #patient pregnant
-      a_hash[:patient_pregnant] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 7965 #is patient breast feeding?
-      a_hash[:is_patient_breast_feeding?] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 9099 #cd4 count location
+    #if obs.concept_id == 1755 #patient pregnant
+    #  a_hash[:patient_pregnant] = obs.to_s.split(':')[1].strip rescue nil
+    #elsif obs.concept_id == 7965 #is patient breast feeding?
+    #  a_hash[:is_patient_breast_feeding?] = obs.to_s.split(':')[1].strip rescue nil
+    if obs.concept_id == 9099 #cd4 count location
       a_hash[:cd4_count_location] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 5497 #cd4_count
       a_hash[:cd4_count] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 9098 #cd4_count_modifier
       a_hash[:cd4_count_modifier] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 730 #cd4_count_percent
-      a_hash[:cd4_count_percentage] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:cd4_count_percent] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 6831 #cd4_count_datetime
-      a_hash[:date_of_cd4_count] = obs.value_datetime.to_date rescue nil
+      a_hash[:cd4_count_datetime] = obs.value_datetime.to_date rescue nil
     elsif obs.concept_id == 5006 #asymptomatic
       a_hash[:asymptomatic] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 5328 #persistent_generalized_lymphadenopathy
@@ -882,8 +877,8 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
       a_hash[:unspecified_stage2_condition] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 2575 #angular_chelitis
       a_hash[:angular_chelitis] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 2577 #papular_prurtic_eruptions
-      a_hash[:papular_prurtic_eruptions] = obs.to_s.split(':')[1].strip rescue nil
+    elsif obs.concept_id == 2577 #papular_pruritic_eruptions
+      a_hash[:papular_pruritic_eruptions] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7537 #hepatosplenomegaly_unexplained
       a_hash[:hepatosplenomegaly_unexplained] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 5337 #oral_hairy_leukoplakia
@@ -922,8 +917,8 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
       a_hash[:acute_necrotizing_ulcerative_gingivitis] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7547 #lymph_node_tuberculosis
       a_hash[:lymph_node_tuberculosis] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 2583 #toxoplasmosis_of_brain
-      a_hash[:toxoplasmosis_of_brain] = obs.to_s.split(':')[1].strip rescue nil
+    elsif obs.concept_id == 2583 #toxoplasmosis_of_the_brain
+      a_hash[:toxoplasmosis_of_the_brain] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 1359 #cryptococcal_meningitis
       a_hash[:cryptococcal_meningitis] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 5046 #progressive_multifocal_leukoencephalopathy
@@ -938,7 +933,7 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
     elsif obs.concept_id == 2587 #cerebral_non_hodgkin_lymphoma
       a_hash[:cerebral_non_hodgkin_lymphoma] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 507 #kaposis
-      a_hash[:kaposis] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:kaposis_sarcoma] = obs.to_s.split(':')[1].strip rescue nil
       a_hash[:kaposis_sarcoma_v_date] = obs.obs_datetime.to_date rescue nil
     elsif obs.concept_id == 1362 #hiv_encephalopathy
       a_hash[:hiv_encephalopathy] = obs.to_s.split(':')[1].strip rescue nil
@@ -948,14 +943,14 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
       a_hash[:unspecified_stage_4_condition] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 882 #pnuemocystis_pnuemonia
       a_hash[:pnuemocystis_pnuemonia] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 2585 #disseminated_non_tuberculosis_mycobactierial_infection
-      a_hash[:disseminated_non_tuberculosis_mycobactierial_infection] = obs.to_s.split(':')[1].strip rescue nil
+    elsif obs.concept_id == 2585 #disseminated_non_tuberculosis_mycobacterial_infection
+      a_hash[:disseminated_non_tuberculosis_mycobacterial_infection] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 5034 #cryptosporidiosis
       a_hash[:cryptosporidiosis] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 2858 #isosporiasis
       a_hash[:isosporiasis] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 7957 #symptomatic_hiv_asscoiated_nephropathy
-      a_hash[:symptomatic_hiv_asscoiated_nephropathy] = obs.to_s.split(':')[1].strip rescue nil
+    elsif obs.concept_id == 7957 #symptomatic_hiv_associated_nephropathy
+      a_hash[:symptomatic_hiv_associated_nephropathy] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 5344 #chronic_herpes_simplex_infection
       a_hash[:chronic_herpes_simplex_infection] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7551 #cytomegalovirus_infection
@@ -964,10 +959,10 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
       a_hash[:toxoplasomis_of_the_brain_1month] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7961 #recto_vaginal_fitsula
       a_hash[:recto_vaginal_fitsula] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 823 #hiv_wasting_syndrome
-      a_hash[:hiv_wasting_syndrome] = obs.to_s.split(':')[1].strip rescue nil
+    elsif obs.concept_id == 823 #moderate_weight_loss_less_than_or_equal_to_10_percent_unexpl
+      a_hash[:moderate_weight_loss_less_than_or_equal_to_10_percent_unexpl] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7563 #reason_for_starting_art
-      a_hash[:reason_for_starting_art] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:reason_for_eligibility] = obs.to_s.split(':')[1].strip rescue nil
       a_hash[:reason_for_starting_v_date] = obs.obs_datetime.to_date rescue nil
     elsif obs.concept_id == 7562 #who_stage
       a_hash[:who_stage] = obs.to_s.split(':')[1].strip rescue nil
