@@ -39,14 +39,24 @@ def write_sql(a_hash,table)
 end
 
 def get_all_patients
-    puts "started"
-#    patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date").map(&:patient_id) 
-    patient_list = [61961,61952]
-    patient_list.each do |p|
-	    get_patients_data(p)
-    end
+    puts "started at #{@started_at}"
+    #open files for writing
+    $temp_outfile_1 = File.open("./db/flat_table_1-" + @started_at + ".sql", "w")
+    $temp_outfile_2 = File.open("./db/flat_table_2-" + @started_at + ".sql", "w")
     
-    puts "ended"
+#    patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date limit 100").map(&:patient_id)
+ 
+    patient_list = [61961] #,61952]
+    patient_list.each do |p|
+	    sql_statements = get_patients_data(p)
+      	 $temp_outfile_1 << sql_statements[0]
+      	 $temp_outfile_2 << sql_statements[1]
+    end
+    #close files 
+    $temp_outfile_1.close
+    $temp_outfile_2.close
+    
+    puts "ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
 end
 
 def get_patients_data(patient_id)
@@ -74,7 +84,7 @@ def get_patients_data(patient_id)
                                     :conditions => ['patient_id = ?
                                                      AND encounter_type = 52',
                                                      patient_id],
-                                    :order => 'encounter_datetime DESC').observations
+                                    :order => 'encounter_datetime DESC').observations rescue nil
 
    if hiv_staging_obs
      hiv_staging = process_hiv_staging_encounter(hiv_staging_obs)
@@ -87,13 +97,13 @@ def get_patients_data(patient_id)
 
   #write sql statement
   #raise hiv_staging[1].to_yaml
-  sql_statement = initial_flat_table1_string + "(" + demographics[0] + "," + hiv_clinic_registration[0] + "," + hiv_staging[0] + ")" + \
+  table_1_sql_statement = initial_flat_table1_string + "(" + demographics[0] + "," + hiv_clinic_registration[0] + "," + hiv_staging[0] + ")" + \
 		 " VALUES (" + demographics[1] + "," + hiv_clinic_registration[1] + "," + hiv_staging[1] + ");"
-
+=begin
   $temp_outfile = File.open("./db/flat_table_1-" + @started_at + ".sql", "w")
   $temp_outfile << sql_statement
   $temp_outfile.close
-
+=end
   visits = Encounter.find_by_sql("SELECT date(encounter_datetime) AS visit_date FROM #{@source_db}.encounter
 				WHERE patient_id = #{patient_id} AND voided = 0  
 				group by date(encounter_datetime)").map(&:visit_date)
@@ -103,64 +113,64 @@ def get_patients_data(patient_id)
   initial_string = "INSERT INTO flat_table2 "
 
   visits.each do |visit|
-	# arrays of [fields, values]
-	patient_details = ["patient_id, visit_date","#{patient_id},'#{visit}'"]
-	vitals = []
-	appointment = []
-	hcc = []
-	hiv_reception = []
- 	patient_orders = []
-	patient_state = []
-	
- 	orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
-                                         o.start_date, o.auto_expire_date, d.quantity,
-                                         d.drug_inventory_id, d.dose, d.frequency,
-                                         o.concept_id, d.equivalent_daily_dose
-                              FROM orders o
-                                INNER JOIN drug_order d ON d.order_id = o.order_id
-                              WHERE o.start_date = '#{visit}'
-                              AND o.patient_id = #{patient_id} ")
-
-  	if orders
-    		patient_orders = process_patient_orders(orders, 1) if patient_orders.empty?
-  	end
-
-	encounters = Encounter.find(:all,
-			:include => [:observations],
-			:order => "encounter_datetime ASC",
-			:conditions => ['voided = 0 AND patient_id = ? AND date(encounter_datetime) = ?', patient_id, visit])
-			
-	
-	encounters.each do |enc|
-		if enc.encounter_type == 6 #vitals
-			vitals = process_vitals_encounter(enc)
-		elsif enc.encounter_type == 51#HIV Reception
-			hiv_reception = process_hiv_reception_encounter(enc)
-		elsif enc.encounter_type == 53 #HIV Clinic Consultation
-			hcc = process_hiv_clinic_consultation_encounter(enc)
-		end
-	end
-	patient_state = process_patient_state(patient_id, visit)
-	#check for nils within the arrays
-	 vitals = process_vitals_encounter(1, 1) if vitals.empty?
-   hcc = process_hiv_clinic_consultation_encounter(1, 1) if hcc.empty?
-   hiv_reception = process_hiv_reception_encounter(1, 1) if hiv_reception.empty?
-   #vitals = process_vitals(1, 1) if vitals.empty?
-   #raise patient_state.to_yaml
-   	#write sql statement
-# the statement below will be reactivated once the whole testing is done 
+      	# arrays of [fields, values]
+      	patient_details = ["patient_id, visit_date","#{patient_id},'#{visit}'"]
+      	vitals = []
+      	appointment = []
+      	hcc = []
+      	hiv_reception = []
+       	patient_orders = []
+      	patient_state = []
+      	
+       	orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
+                                               o.start_date, o.auto_expire_date, d.quantity,
+                                               d.drug_inventory_id, d.dose, d.frequency,
+                                               o.concept_id, d.equivalent_daily_dose
+                                    FROM orders o
+                                      INNER JOIN drug_order d ON d.order_id = o.order_id
+                                    WHERE o.start_date = '#{visit}'
+                                    AND o.patient_id = #{patient_id} ")
+      
+        	if orders
+          		patient_orders = process_patient_orders(orders, 1) if patient_orders.empty?
+        	end
+      
+      	encounters = Encounter.find(:all,
+      			:include => [:observations],
+      			:order => "encounter_datetime ASC",
+      			:conditions => ['voided = 0 AND patient_id = ? AND date(encounter_datetime) = ?', patient_id, visit])
+      			
+      	
+      	encounters.each do |enc|
+      		if enc.encounter_type == 6 #vitals
+      			vitals = process_vitals_encounter(enc)
+      		elsif enc.encounter_type == 51#HIV Reception
+      			hiv_reception = process_hiv_reception_encounter(enc)
+      		elsif enc.encounter_type == 53 #HIV Clinic Consultation
+      			hcc = process_hiv_clinic_consultation_encounter(enc)
+      		end
+      	end
+      	patient_state = process_patient_state(patient_id, visit)
+      	#check for nils within the arrays
+      	 vitals = process_vitals_encounter(1, 1) if vitals.empty?
+         hcc = process_hiv_clinic_consultation_encounter(1, 1) if hcc.empty?
+         hiv_reception = process_hiv_reception_encounter(1, 1) if hiv_reception.empty?
+         #vitals = process_vitals(1, 1) if vitals.empty?
+         #raise patient_state.to_yaml
+         	#write sql statement
+      # the statement below will be reactivated once the whole testing is done 
 =begin
-    	sql_statement = initial_string + "(" + patient_details[0] + patient_state[0] + vitals[0] + appointment[0] + hcc[0] + hiv_reception[0] + patient_orders[0] + ")" + \
-		 " VALUES (" + patient_details[1] + patient_state[1]  + vitals[1] + appointment[1] + hcc[1] + hiv_reception[1] + patient_orders[1] + ");"
+          	sql_statement = initial_string + "(" + patient_details[0] + patient_state[0] + vitals[0] + appointment[0] + hcc[0] + hiv_reception[0] + patient_orders[0] + ")" + \
+      		 " VALUES (" + patient_details[1] + patient_state[1]  + vitals[1] + appointment[1] + hcc[1] + hiv_reception[1] + patient_orders[1] + ");"
 =end
-      sql_statement = initial_string + "(" + patient_details[0] + "," + patient_state[0] + "," + vitals[0] + "," + hcc[0] + "," + hiv_reception[0] + "," + patient_orders[0] + ")" + \
-     " VALUES (" + patient_details[1] + "," + patient_state[1]  + "," + vitals[1] + "," + hcc[1] + "," + hiv_reception[1] + "," + patient_orders[1] + ");"
-
-    	$temp_outfile = File.open("./db/flat_table_2-" + @started_at + ".sql", "w")
-    	$temp_outfile << sql_statement
-    	$temp_outfile.close
-	
-	
+            table_2_sql_statement = initial_string + "(" + patient_details[0] + "," + patient_state[0] + "," + vitals[0] + "," + hcc[0] + "," + hiv_reception[0] + "," + patient_orders[0] + ")" + \
+           " VALUES (" + patient_details[1] + "," + patient_state[1]  + "," + vitals[1] + "," + hcc[1] + "," + hiv_reception[1] + "," + patient_orders[1] + ");"
+=begin      
+          	$temp_outfile = File.open("./db/flat_table_2-" + @started_at + ".sql", "w")
+          	$temp_outfile << sql_statement
+          	$temp_outfile.close
+=end
+      return [table_1_sql_statement, table_2_sql_statement] 
    end
 end
 
@@ -975,7 +985,58 @@ def process_patient_orders(orders, type = 0)
   drug_equivalent_daily_dose_hash = {}; drug_inventory_ids_hash = {}
   patient_orders = {}; drug_order_ids_hash = {}; drug_enc_ids_hash = {}
   drug_start_date_hash = {}; drug_auto_expire_date_hash = {}; drug_quantity_hash = {}
-  a_hash = {}
+  a_hash = {
+      :drug_name1  =>  'NULL',
+      :drug_order_id1  =>  'NULL',
+      :start_date1  =>  'NULL',
+      :auto_expire_date1  =>  'NULL',
+      :quantity1  =>  'NULL',
+      :frequency1  =>  'NULL',
+      :dose1  =>  'NULL',
+      :equivalent_daily_dose1  =>  'NULL',
+      :encounter_id1  =>  'NULL',
+      :drug_inventory_id1  =>  'NULL',
+      :drug_name2  =>  'NULL',
+      :drug_order_id2  =>  'NULL',
+      :start_date2  =>  'NULL',
+      :auto_expire_date2  =>  'NULL',
+      :quantity2  =>  'NULL',
+      :frequency2  =>  'NULL',
+      :dose2  =>  'NULL',
+      :equivalent_daily_dose2  =>  'NULL',
+      :encounter_id2  =>  'NULL',
+      :drug_inventory_id2  =>  'NULL',
+      :drug_name3  =>  'NULL',
+      :drug_order_id3  =>  'NULL',
+      :start_date3  =>  'NULL',
+      :auto_expire_date3  =>  'NULL',
+      :quantity3  =>  'NULL',
+      :frequency3  =>  'NULL',
+      :dose3  =>  'NULL',
+      :equivalent_daily_dose3  =>  'NULL',
+      :encounter_id3  =>  'NULL',
+      :drug_inventory_id3  =>  'NULL',   
+      :drug_name4  =>  'NULL',
+      :drug_order_id4  =>  'NULL',
+      :start_date4  =>  'NULL',
+      :auto_expire_date4  =>  'NULL',
+      :quantity4  =>  'NULL',
+      :frequency4  =>  'NULL',
+      :dose4  =>  'NULL',
+      :equivalent_daily_dose4  =>  'NULL',
+      :encounter_id4  =>  'NULL',
+      :drug_inventory_id4  =>  'NULL',
+      :drug_name5  =>  'NULL',
+      :drug_order_id5  =>  'NULL',
+      :start_date5  =>  'NULL',
+      :auto_expire_date5  =>  'NULL',
+      :quantity5  =>  'NULL',
+      :frequency5  =>  'NULL',
+      :dose5  =>  'NULL',
+      :equivalent_daily_dose5  =>  'NULL',
+      :encounter_id5  =>  'NULL',
+      :drug_inventory_id5  =>  'NULL'
+  }
   
   (orders || []).each do |ord|
     drug_name = Drug.find(ord.drug_inventory_id).name
@@ -1088,15 +1149,15 @@ def process_patient_state(patient_id,visit)
 
 	a_hash[:current_state] = PatientProgram.find_by_sql("SELECT 
 		current_state_for_program(#{patient_id},1,'#{visit} 23:59') AS state").first.state
-		
-		#raise visit.to_yaml
-	a_hash[:initial_start_date] = PatientState.find_by_sql("SELECT start_date 
-								FROM patient_state 
-								WHERE patient_program_id = #{program_id}
-					AND voided = 0 AND state = #{a_hash[:current_state]} 
-					AND start_date <= '#{visit}'
-					ORDER BY start_date DESC, date_created DESC, patient_state_id DESC LIMIT 1").first.start_date  
-
+	
+  if ! a_hash[:current_state] == ''
+  	a_hash[:initial_start_date] = PatientState.find_by_sql("SELECT start_date 
+  								FROM patient_state 
+  								WHERE patient_program_id = #{program_id}
+  					AND voided = 0 AND state = #{a_hash[:current_state]} 
+  					AND start_date <= '#{visit}'
+  					ORDER BY start_date DESC, date_created DESC, patient_state_id DESC LIMIT 1").first.start_date  
+  end
 	return generate_sql_string(a_hash)
 end
 
