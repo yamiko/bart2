@@ -47,7 +47,7 @@ def get_all_patients
     
     patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date").map(&:patient_id)
     patients_done = []
-#   patient_list = [61961] #,61952]
+#    patient_list = [246] #,61952]
     patient_list.each do |p|
          $temp_outfile_3 << "#{p}," 
 	    sql_statements = get_patients_data(p)
@@ -1035,16 +1035,33 @@ def process_patient_orders(orders, type = 0)
       :drug_inventory_id5  =>  'NULL'
   }
   
-  (orders || []).each do |ord|
-    drug_name = Drug.find(ord.drug_inventory_id).name
+ (orders || []).each do |ord|
+    if ord.drug_inventory_id == '2833'
+      drug_name = Drug.find(738).name
+    elsif ord.drug_inventory_id == '1610'
+      drug_name = Drug.find(731).name
+    elsif ord.drug_inventory_id == '1613'
+      drug_name = Drug.find(955).name
+    elsif ord.drug_inventory_id == '2985'
+      drug_name = Drug.find(735).name
+    elsif ord.drug_inventory_id == '7927'
+      drug_name = Drug.find(969).name
+    elsif ord.drug_inventory_id == '7928'
+      drug_name = Drug.find(734).name
+    elsif ord.drug_inventory_id == '9775'
+      drug_name = Drug.find(932).name
+    else
+      drug_name = Drug.find(ord.drug_inventory_id).name
+    end
+    #drug_name = Drug.find(ord.drug_inventory_id).name
 
     if patient_orders[drug_name].blank?
       patient_orders[drug_name] = drug_name
       drug_order_ids_hash[drug_name] = ord.order_id
       drug_enc_ids_hash[drug_name] = ord.encounter_id
-      drug_start_date_hash[drug_name] = ord.start_date
-      drug_auto_expire_date_hash[drug_name] = ord.auto_expire_date
-      drug_quantity_hash[drug_name] = ord.quantity
+      drug_start_date_hash[drug_name] = ord.start_date.strftime("%Y-%m-%d")  rescue nil
+      drug_auto_expire_date_hash[drug_name] = ord.auto_expire_date.strftime("%Y-%m-%d")  rescue nil
+      drug_quantity_hash[drug_name] = ord.quantity rescue nil
       drug_dose_hash[drug_name] = ord.dose
       drug_frequency_hash[drug_name] = ord.frequency
       drug_equivalent_daily_dose_hash[drug_name] = ord.equivalent_daily_dose
@@ -1053,16 +1070,16 @@ def process_patient_orders(orders, type = 0)
       patient_orders[drug_name] += drug_name
       drug_order_ids_hash[drug_name] += ord.order_id
       drug_enc_ids_hash[drug_name] += ord.encounter_id
-      drug_start_date_hash[drug_name] += ord.start_date
-      drug_auto_expire_date_hash[drug_name] += ord.auto_expire_date
-      drug_quantity_hash[drug_name] += ord.quantity
+      drug_start_date_hash[drug_name] += ord.start_date.strftime("%Y-%m-%d")  rescue nil
+      drug_auto_expire_date_hash[drug_name] += ord.auto_expire_date.strftime("%Y-%m-%d")  rescue nil
+      drug_quantity_hash[drug_name] += ord.quantity rescue nil
       drug_dose_hash[drug_name] += ord.dose
       drug_frequency_hash[drug_name] += ord.frequency
       drug_equivalent_daily_dose_hash[drug_name] += ord.equivalent_daily_dose
-      drug_inventory_ids_hash[drug_name] += ord.drug_inventory_id    
+      drug_inventory_ids_hash[drug_name] += ord.drug_inventory_id
     end
   end
-
+ 
   count = 1
   (patient_orders).each do |drug_name, name|
     case count
@@ -1097,7 +1114,7 @@ def process_patient_orders(orders, type = 0)
        a_hash[:drug_auto_expire_date3] = drug_auto_expire_date_hash[drug_name]
        a_hash[:drug_quantity3] = drug_quantity_hash[drug_name]
        a_hash[:drug_frequency3] = drug_frequency_hash[drug_name]
-       a_hash[:dose3] = drug_dose_hash[drug_name]
+       a_hash[:drug_dose3] = drug_dose_hash[drug_name]
        a_hash[:drug_equivalent_daily_dose3] = drug_equivalent_daily_dose_hash[drug_name]
        a_hash[:drug_encounter_id3] = drug_enc_ids_hash[drug_name]
        a_hash[:drug_inventory_id3] = drug_inventory_ids_hash[drug_name]
@@ -1250,7 +1267,9 @@ def generate_sql_string(a_hash)
 
     a_hash.each do |key,value|
         fields += fields.empty? ? "`#{key}`" : ", `#{key}`"
-        values += values.empty? ? "'#{value}'" : ", '#{value}'"
+	str = '"' + value.to_s + '"'
+#        values += values.empty? ? "'#{value}'" : ", '#{value}'"
+        values += values.empty? ? "#{str}" : ", #{str}"
     end
 
     return [fields, values]
