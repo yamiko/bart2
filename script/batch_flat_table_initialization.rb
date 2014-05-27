@@ -43,11 +43,13 @@ def get_all_patients
     #open files for writing
     $temp_outfile_1 = File.open("./db/flat_table_1-" + @started_at + ".sql", "w")
     $temp_outfile_2 = File.open("./db/flat_table_2-" + @started_at + ".sql", "w")
+    $temp_outfile_3 = File.open("./db/patients_initialized-" + @started_at + ".sql", "w")
     
-#    patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date limit 100").map(&:patient_id)
- 
-    patient_list = [61961] #,61952]
+    patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date").map(&:patient_id)
+    patients_done = []
+#   patient_list = [61961] #,61952]
     patient_list.each do |p|
+         $temp_outfile_3 << p 
 	    sql_statements = get_patients_data(p)
       	 $temp_outfile_1 << sql_statements[0]
       	 $temp_outfile_2 << sql_statements[1]
@@ -55,6 +57,7 @@ def get_all_patients
     #close files 
     $temp_outfile_1.close
     $temp_outfile_2.close
+    $temp_outfile_3.close
     
     puts "ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
 end
@@ -74,7 +77,7 @@ def get_patients_data(patient_id)
                                        :conditions => ['patient_id = ?
                                                         AND encounter_type = 9',
                                                         patient_id],
-                                       :order => 'encounter_datetime DESC').observations
+                                       :order => 'encounter_datetime DESC').observations rescue nil
    if hiv_clinic_reg_obs
     hiv_clinic_registration = process_hiv_clinic_registration_encounter(hiv_clinic_reg_obs)
    end
