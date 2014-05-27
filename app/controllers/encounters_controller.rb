@@ -44,7 +44,7 @@ class EncountersController < GenericEncountersController
        last_staging_date = Encounter.find_by_sql("
          SELECT * FROM encounter
           WHERE patient_id = #{@patient.id} AND encounter_type = #{EncounterType.find_by_name('HIV Staging').id}
-          AND encounter_datetime < '#{current_date}' ORDER BY encounter_datetime DESC LIMIT 1").first.encounter_datetime.to_date rescue ""
+          AND encounter_datetime < '#{current_date}' AND voided=0 ORDER BY encounter_datetime DESC LIMIT 1").first.encounter_datetime.to_date rescue ""
         
         if ! last_staging_date.blank? 
           month_gone = (current_date.year * 12 + current_date.month) - (last_staging_date.year * 12 + last_staging_date.month)
