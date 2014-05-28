@@ -3,6 +3,7 @@ require 'yaml'
 def initialize_variables
   @source_db = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))["production"]["database"]
   @started_at = Time.now.strftime("%Y-%m-%d-%H%M%S")
+  @drug_list = get_drug_list
 end
 
 def write_sql(a_hash,table)
@@ -43,11 +44,13 @@ def get_all_patients
     #open files for writing
     $temp_outfile_1 = File.open("./db/flat_table_1-" + @started_at + ".sql", "w")
     $temp_outfile_2 = File.open("./db/flat_table_2-" + @started_at + ".sql", "w")
+    $temp_outfile_3 = File.open("./db/patients_initialized-" + @started_at + ".sql", "w")
     
-#    patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date limit 100").map(&:patient_id)
- 
-    patient_list = [61961] #,61952]
+    patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date").map(&:patient_id)
+    patients_done = []
+    #patient_list = [61952] #,61952]
     patient_list.each do |p|
+         $temp_outfile_3 << "#{p}," 
 	    sql_statements = get_patients_data(p)
       	 $temp_outfile_1 << sql_statements[0]
       	 $temp_outfile_2 << sql_statements[1]
@@ -55,6 +58,7 @@ def get_all_patients
     #close files 
     $temp_outfile_1.close
     $temp_outfile_2.close
+    $temp_outfile_3.close
     
     puts "ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
 end
@@ -74,7 +78,7 @@ def get_patients_data(patient_id)
                                        :conditions => ['patient_id = ?
                                                         AND encounter_type = 9',
                                                         patient_id],
-                                       :order => 'encounter_datetime DESC').observations
+                                       :order => 'encounter_datetime DESC').observations rescue nil
    if hiv_clinic_reg_obs
     hiv_clinic_registration = process_hiv_clinic_registration_encounter(hiv_clinic_reg_obs)
    end
@@ -111,7 +115,8 @@ def get_patients_data(patient_id)
   #list of encounters for bart2
   #vitals => 6, appointment => 7, treatment => 25, hiv clinic consultation => 53, hiv_reception => 51
   initial_string = "INSERT INTO flat_table2 "
-
+  table2_sql_batch = ""
+  
   visits.each do |visit|
       	# arrays of [fields, values]
       	patient_details = ["patient_id, visit_date","#{patient_id},'#{visit}'"]
@@ -122,15 +127,16 @@ def get_patients_data(patient_id)
        	patient_orders = []
       	patient_state = []
       	patient_adh = []
-      	
+ # we will exclude the orders having drug_inventory_id null     	
        	orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
                                                o.start_date, o.auto_expire_date, d.quantity,
                                                d.drug_inventory_id, d.dose, d.frequency,
                                                o.concept_id, d.equivalent_daily_dose
                                     FROM orders o
                                       INNER JOIN drug_order d ON d.order_id = o.order_id
-                                    WHERE o.start_date = '#{visit}'
-                                    AND o.patient_id = #{patient_id} ")
+                                    WHERE DATE(o.start_date) = '#{visit}' 
+                                    AND o.patient_id = #{patient_id} 
+                                    AND d.drug_inventory_id IS NOT NULL ")
       
         	if orders
           		patient_orders = process_patient_orders(orders, 1) if patient_orders.empty?
@@ -150,7 +156,7 @@ def get_patients_data(patient_id)
       		elsif enc.encounter_type == 53 #HIV Clinic Consultation
       			hcc = process_hiv_clinic_consultation_encounter(enc)
       		elsif enc.encounter_type == 68 #ART adherence
-      		  patient_adh = process_adherence_encounter(enc)
+      		  patient_adh = process_adherence_encounter(enc, visit)
       		end
       	end
       	patient_state = process_patient_state(patient_id, visit)
@@ -158,7 +164,7 @@ def get_patients_data(patient_id)
       	 vitals = process_vitals_encounter(1, 1) if vitals.empty?
          hcc = process_hiv_clinic_consultation_encounter(1, 1) if hcc.empty?
          hiv_reception = process_hiv_reception_encounter(1, 1) if hiv_reception.empty?
-         patient_adh = process_adherence_encounter(1,1) if patient_adh.empty?
+         patient_adh = process_adherence_encounter(1, visit,1) if patient_adh.empty?
          
          #vitals = process_vitals(1, 1) if vitals.empty?
          #raise patient_state.to_yaml
@@ -175,8 +181,9 @@ def get_patients_data(patient_id)
           	$temp_outfile << sql_statement
           	$temp_outfile.close
 =end
-      return [table_1_sql_statement, table_2_sql_statement] 
+      table2_sql_batch += table_2_sql_statement 
    end
+   return [table_1_sql_statement, table2_sql_batch]
 end
 
 def get_patient_demographics(patient_id)
@@ -190,12 +197,13 @@ def get_patient_demographics(patient_id)
                                            WHERE patient_id = #{patient_id}").map(&:earliest_start_date).first
   #raise patient_obj.to_yaml
   a_hash = {}
-  
+
+  a_hash[:patient_id] = patient_id
   a_hash[:given_name] = patient_obj.first_name
   a_hash[:middle_name] = patient_obj.last_name
   a_hash[:family_name] = patient_obj.last_name
   a_hash[:gender] = patient_obj.sex
-  a_hash[:dob] = patient_obj.birth_date
+  a_hash[:dob] = pat.person.birthdate
   a_hash[:dob_estimated] = patient_obj.birthdate_estimated
   a_hash[:ta] = patient_obj.traditional_authority
   a_hash[:current_address] = patient_obj.current_residence
@@ -205,8 +213,8 @@ def get_patient_demographics(patient_id)
   a_hash[:home_phone_number] = patient_obj.home_phone_number
   a_hash[:office_phone_number] = patient_obj.office_phone_number
   a_hash[:occupation] = patient_obj.occupation
-  a_hash[:nat_id] = patient_obj.national_id
-  a_hash[:arv_number]  = patient_obj.arv_number
+  a_hash[:nat_id] = PatientService.get_patient_identifier(pat, 'National id')
+  a_hash[:arv_number]  = PatientService.get_patient_identifier(pat, 'ART Number')
   a_hash[:pre_art_number] = patient_obj.pre_art_number
   a_hash[:tb_number]  = PatientService.get_patient_identifier(pat, 'District TB Number')
   a_hash[:legacy_id]  = patient_obj.occupation
@@ -333,11 +341,7 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
     values = ""
 
     #create vitals field list hash template
-    a_hash =   {:pregnant_yes => 'NULL',
-            		:pregnant_yes_enc_id => 'NULL',
-            		:pregnant_no => 'NULL',
-            		:pregnant_no_enc_id => 'NULL',
-            		:breastfeeding_yes => 'NULL',
+    a_hash =   {:breastfeeding_yes => 'NULL',
                 :breastfeeding_yes_enc_id => 'NULL',
             		:breastfeeding_no => 'NULL',
             		:breastfeeding_no_enc_id => 'NULL',
@@ -441,7 +445,7 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
             		:drug_induced_cough_enc_id => 'NULL',
             		:tb_status_tb_not_suspected => 'NULL',
                 :tb_status_tb_not_suspected_enc_id => 'NULL',
-                :tb_status_tbsuspected => 'NULL',
+                :tb_status_tb_suspected => 'NULL',
                 :tb_status_tb_suspected_enc_id => 'NULL',
                 :tb_status_confirmed_tb_not_on_treatment => 'NULL',
                 :tb_status_confirmed_tb_not_on_treatment_enc_id => 'NULL',
@@ -461,10 +465,10 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
                 :routine_tb_screening_cough_of_any_duration_enc_id => 'NULL',
                 :routine_tb_screening_weight_loss_failure => 'NULL',
                 :routine_tb_screening_weight_loss_failure_enc_id => 'NULL',
-                :allergic_to_surphur_yes => 'NULL',
-                :allergic_to_surphur_yes_enc_id => 'NULL',
-                :allergic_to_surphur_no => 'NULL',
-                :allergic_to_surphur_no_enc => 'NULL'
+                :allergic_to_sulphur_yes => 'NULL',
+                :allergic_to_sulphur_yes_enc_id => 'NULL',
+                :allergic_to_sulphur_no => 'NULL',
+                :allergic_to_sulphur_no_enc_id => 'NULL'
                 }
 
     return generate_sql_string(a_hash) if type == 1
@@ -472,11 +476,11 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
     encounter.observations.each do |obs|
         if obs.concept_id == 6131 #Patient Pregnant
                 if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
-                        a_hash[:patient_pregnant_yes] = 'Yes'
-                        a_hash[:patient_pregnant_yes_enc_id] = encounter.encounter_id
+#                        a_hash[:patient_pregnant_yes] = 'Yes'
+#                        a_hash[:patient_pregnant_yes_enc_id] = encounter.encounter_id
                 elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
-                        a_hash[:patient_pregnant_no] = 'No'
-                        a_hash[:patient_pregnant_no_enc_id] = encounter.encounter_id
+#                        a_hash[:patient_pregnant_no] = 'No'
+#                        a_hash[:patient_pregnant_no_enc_id] = encounter.encounter_id
                 end
         elsif obs.concept_id == 7965 #breastfeeding
                 if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
@@ -491,7 +495,7 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
             			a_hash[:tb_status_tb_not_suspected] = 'Yes'
             			a_hash[:tb_status_tb_not_suspected_enc_id] = encounter.encounter_id
             		elsif obs.value_coded == 7455 && obs.value_coded_name_id == 10273
-            			a_hash[:tb_status_tbsuspected] = 'Yes'
+            			a_hash[:tb_status_tb_suspected] = 'Yes'
                   a_hash[:tb_status_tb_suspected_enc_id] = encounter.encounter_id
             		elsif obs.value_coded == 7456 && obs.value_coded_name_id == 10274
             			a_hash[:tb_status_confirmed_tb_not_on_treatment] = 'Yes'
@@ -598,11 +602,11 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
 		            end
         elsif obs.concept_id == 8012 #allergic to sulpher
                 if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
-                        a_hash[:allergic_to_sulpger_yes] = 'Yes'
-                        a_hash[:allergic_to_sulpher_yes_enc_id] = encounter.encounter_id
+                        a_hash[:allergic_to_sulphur_yes] = 'Yes'
+                        a_hash[:allergic_to_sulphur_yes_enc_id] = encounter.encounter_id
                 elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
-                        a_hash[:allergic_to_sulpher_no] = 'No'
-                        a_hash[:allergic_to_sulpher_no_enc_id] = encounter.encounter_id
+                        a_hash[:allergic_to_sulphur_no] = 'No'
+                        a_hash[:allergic_to_sulphur_no_enc_id] = encounter.encounter_id
                 end
         elsif obs.concept_id == 7874 #prescribe drugs
                 if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
@@ -704,68 +708,62 @@ def process_hiv_clinic_registration_encounter(encounter, type = 0) #type 0 norma
 
   #create hiv_clinic_registration field list hash template
 
-  a_hash = {:agrees_to_follow_up => 'NULL',
-            :date_of_hiv_pos_test => 'NULL',
-            :date_of_hiv_pos_test_estimated => 'NULL',
-            :location_of_hiv_pos_test => 'NULL',
-            :arv_number_at_that_site => 'NULL',
-            :location_of_art_initiation => 'NULL',
-            :taken_arvs_in_last_two_months => 'NULL',
+  a_hash = {:agrees_to_followup => 'NULL',
+            :confirmatory_hiv_test_date => 'NULL',
+            :confirmatory_hiv_test_location => 'NULL',
+            :location_of_art_initialization => 'NULL',
+            :taken_art_in_last_two_months => 'NULL',
             :taken_art_in_last_two_months_v_date => 'NULL',
-            :taken_arvs_in_last_two_weeks => 'NULL',
+            :taken_art_in_last_two_weeks => 'NULL',
             :has_transfer_letter => 'NULL',
-            :site_transferred_from => 'NULL',
-            :date_of_art_initiation => 'NULL',
-            :ever_registered_at_art => 'NULL',
+            :date_started_art => 'NULL',
+            :ever_registered_at_art_clinic => 'NULL',
             :ever_registered_at_art_v_date => 'NULL',
-            :ever_received_arv => 'NULL',
-            :last_arv_regimen => 'NULL',
-            :date_last_arv_taken => 'NULL',
-            :date_art_last_taken_v_date => 'NULL',
-            :weight => 'NULL',
-            :height => 'NULL',
-            :bmi => 'NULL'
+            :ever_received_art => 'NULL',
+            :last_art_drugs_taken => 'NULL',
+            :date_art_last_taken => 'NULL',
+            :date_art_last_taken_v_date => 'NULL'
   }
 
   return generate_sql_string(a_hash) if type == 1
 
   (encounter || []).each do | obs |
     if obs.concept_id == 2552 #FOLLOW UP AGREEMENT
-      a_hash[:agrees_to_follow_up] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:agrees_to_followup] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7882 #CONFIRMATORY HIV TEST DATE
-      a_hash[:date_of_hiv_pos_test] = obs.value_datetime.to_date rescue nil
-    elsif obs.concept_id == 7437 #ESTIMATED DATE
-      a_hash[:date_of_hiv_pos_test_estimated] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:confirmatory_hiv_test_date] = obs.value_datetime.to_date rescue nil
+    #elsif obs.concept_id == 7437 #ESTIMATED DATE
+    #  a_hash[:date_of_hiv_pos_test_estimated] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7881 #CONFIRMATORY HIV TEST LOCATION
-      a_hash[:location_of_hiv_pos_test] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 6981 #ART NUMBER AT PREVIOUS LOCATION
-      a_hash[:arv_number_at_that_site] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:confirmatory_hiv_test_location] = obs.to_s.split(':')[1].strip rescue nil
+    #elsif obs.concept_id == 6981 #ART NUMBER AT PREVIOUS LOCATION
+    #  a_hash[:arv_number_at_that_site] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7750 #LOCATION OF ART INITIATION
-      a_hash[:location_of_art_initiation] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:location_of_art_initialization] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7752 #HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS
-      a_hash[:taken_arvs_in_last_two_months] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:taken_art_in_last_two_months] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 6394 #HAS THE PATIENT TAKEN ART IN THE LAST TWO WEEKS
-      a_hash[:taken_arvs_in_last_two_weeks] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:taken_art_in_last_two_weeks] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 6393 #HAS TRANSFER LETTER
       a_hash[:has_transfer_letter] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 1427 #TRANSFER IN FROM
-      a_hash[:site_transferred_from] = obs.to_s.split(':')[1].strip rescue nil
+    #elsif obs.concept_id == 1427 #TRANSFER IN FROM
+    #  a_hash[:site_transferred_from] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 2516 #DATE ANTIRETROVIRALS STARTED
-      a_hash[:date_of_art_initiation] = obs.value_datetime.to_date rescue nil
+      a_hash[:date_started_art] = obs.value_datetime.to_date rescue nil
     elsif obs.concept_id == 7937 #EVER REGISTERED AT ART CLINIC
-      a_hash[:ever_registered_at_art] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:ever_registered_at_art_clinic] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7754 #EVER RECEIVED ART?
-      a_hash[:ever_received_arv] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:ever_received_art] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7753 #LAST ART DRUGS TAKEN
-      a_hash[:last_arv_regimen] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:last_art_drugs_taken] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7751 #DATE ART LAST TAKEN
-      a_hash[:date_last_arv_taken] = obs.value_datetime.to_date rescue nil
-    elsif obs.concept_id == 5089 #WEIGHT (KG)
-      a_hash[:weight] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 5090 #HEIGHT (CM)
-      a_hash[:height] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 2137 #BODY MASS INDEX, MEASURED
-      a_hash[:bmi] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:date_art_last_taken] = obs.value_datetime.to_date rescue nil
+    #elsif obs.concept_id == 5089 #WEIGHT (KG)
+    #  a_hash[:weight] = obs.to_s.split(':')[1].strip rescue nil
+    #elsif obs.concept_id == 5090 #HEIGHT (CM)
+    #  a_hash[:height] = obs.to_s.split(':')[1].strip rescue nil
+    #elsif obs.concept_id == 2137 #BODY MASS INDEX, MEASURED
+    #  a_hash[:bmi] = obs.to_s.split(':')[1].strip rescue nil
     end
   end
 
@@ -779,13 +777,11 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
   values = ""
 
   #create hiv_staging field list hash template
-  a_hash = {:patient_pregnant => 'NULL',
-            :is_patient_breast_feeding? => 'NULL',
-            :cd4_count_location => 'NULL',
+  a_hash = {:cd4_count_location => 'NULL',
             :cd4_count => 'NULL',
             :cd4_count_modifier => 'NULL',
-            :cd4_count_percentage => 'NULL',
-            :date_of_cd4_count => 'NULL',
+            :cd4_count_percent => 'NULL',
+            :cd4_count_datetime => 'NULL',
             :asymptomatic => 'NULL',
             :persistent_generalized_lymphadenopathy => 'NULL',
             :unspecified_stage_1_cond => 'NULL',
@@ -798,7 +794,7 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
             :respiratory_tract_infections_recurrent => 'NULL',
             :unspecified_stage2_condition => 'NULL',
             :angular_chelitis => 'NULL',
-            :papular_prurtic_eruptions => 'NULL',
+            :papular_pruritic_eruptions => 'NULL',
             :hepatosplenomegaly_unexplained => 'NULL',
             :oral_hairy_leukoplakia => 'NULL',
             :severe_weight_loss => 'NULL',
@@ -819,7 +815,7 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
             :oral_candidiasis => 'NULL',
             :acute_necrotizing_ulcerative_gingivitis => 'NULL',
             :lymph_node_tuberculosis => 'NULL',
-            :toxoplasmosis_of_brain => 'NULL',
+            :toxoplasmosis_of_the_brain => 'NULL',
             :cryptococcal_meningitis => 'NULL',
             :progressive_multifocal_leukoencephalopathy => 'NULL',
             :disseminated_mycosis => 'NULL',
@@ -827,22 +823,22 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
             :extrapulmonary_tuberculosis => 'NULL',
             :extrapulmonary_tuberculosis_v_date => 'NULL',
             :cerebral_non_hodgkin_lymphoma => 'NULL',
-            :kaposis => 'NULL',
+            :kaposis_sarcoma => 'NULL',
             :kaposis_sarcoma_v_date => 'NULL',
             :hiv_encephalopathy => 'NULL',
             :bacterial_infections_severe_recurrent => 'NULL',
             :unspecified_stage_4_condition => 'NULL',
             :pnuemocystis_pnuemonia => 'NULL',
-            :disseminated_non_tuberculosis_mycobactierial_infection => 'NULL',
+            :disseminated_non_tuberculosis_mycobacterial_infection => 'NULL',
             :cryptosporidiosis => 'NULL',
             :isosporiasis => 'NULL',
-            :symptomatic_hiv_asscoiated_nephropathy => 'NULL',
+            :symptomatic_hiv_associated_nephropathy => 'NULL',
             :chronic_herpes_simplex_infection => 'NULL',
             :cytomegalovirus_infection => 'NULL',
             :toxoplasomis_of_the_brain_1month => 'NULL',
             :recto_vaginal_fitsula => 'NULL',
-            :hiv_wasting_syndrome => 'NULL',
-            :reason_for_starting_art => 'NULL',
+            :moderate_weight_loss_less_than_or_equal_to_10_percent_unexpl => 'NULL',
+            :reason_for_eligibility => 'NULL',
             :reason_for_starting_v_date => 'NULL',
             :who_stage => 'NULL'
           }
@@ -850,20 +846,20 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
   return generate_sql_string(a_hash) if type == 1
 
   (encounter || []).each do | obs |
-    if obs.concept_id == 1755 #patient pregnant
-      a_hash[:patient_pregnant] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 7965 #is patient breast feeding?
-      a_hash[:is_patient_breast_feeding?] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 9099 #cd4 count location
+    #if obs.concept_id == 1755 #patient pregnant
+    #  a_hash[:patient_pregnant] = obs.to_s.split(':')[1].strip rescue nil
+    #elsif obs.concept_id == 7965 #is patient breast feeding?
+    #  a_hash[:is_patient_breast_feeding?] = obs.to_s.split(':')[1].strip rescue nil
+    if obs.concept_id == 9099 #cd4 count location
       a_hash[:cd4_count_location] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 5497 #cd4_count
       a_hash[:cd4_count] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 9098 #cd4_count_modifier
       a_hash[:cd4_count_modifier] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 730 #cd4_count_percent
-      a_hash[:cd4_count_percentage] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:cd4_count_percent] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 6831 #cd4_count_datetime
-      a_hash[:date_of_cd4_count] = obs.value_datetime.to_date rescue nil
+      a_hash[:cd4_count_datetime] = obs.value_datetime.to_date rescue nil
     elsif obs.concept_id == 5006 #asymptomatic
       a_hash[:asymptomatic] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 5328 #persistent_generalized_lymphadenopathy
@@ -888,8 +884,8 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
       a_hash[:unspecified_stage2_condition] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 2575 #angular_chelitis
       a_hash[:angular_chelitis] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 2577 #papular_prurtic_eruptions
-      a_hash[:papular_prurtic_eruptions] = obs.to_s.split(':')[1].strip rescue nil
+    elsif obs.concept_id == 2577 #papular_pruritic_eruptions
+      a_hash[:papular_pruritic_eruptions] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7537 #hepatosplenomegaly_unexplained
       a_hash[:hepatosplenomegaly_unexplained] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 5337 #oral_hairy_leukoplakia
@@ -928,8 +924,8 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
       a_hash[:acute_necrotizing_ulcerative_gingivitis] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7547 #lymph_node_tuberculosis
       a_hash[:lymph_node_tuberculosis] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 2583 #toxoplasmosis_of_brain
-      a_hash[:toxoplasmosis_of_brain] = obs.to_s.split(':')[1].strip rescue nil
+    elsif obs.concept_id == 2583 #toxoplasmosis_of_the_brain
+      a_hash[:toxoplasmosis_of_the_brain] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 1359 #cryptococcal_meningitis
       a_hash[:cryptococcal_meningitis] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 5046 #progressive_multifocal_leukoencephalopathy
@@ -944,7 +940,7 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
     elsif obs.concept_id == 2587 #cerebral_non_hodgkin_lymphoma
       a_hash[:cerebral_non_hodgkin_lymphoma] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 507 #kaposis
-      a_hash[:kaposis] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:kaposis_sarcoma] = obs.to_s.split(':')[1].strip rescue nil
       a_hash[:kaposis_sarcoma_v_date] = obs.obs_datetime.to_date rescue nil
     elsif obs.concept_id == 1362 #hiv_encephalopathy
       a_hash[:hiv_encephalopathy] = obs.to_s.split(':')[1].strip rescue nil
@@ -954,14 +950,14 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
       a_hash[:unspecified_stage_4_condition] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 882 #pnuemocystis_pnuemonia
       a_hash[:pnuemocystis_pnuemonia] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 2585 #disseminated_non_tuberculosis_mycobactierial_infection
-      a_hash[:disseminated_non_tuberculosis_mycobactierial_infection] = obs.to_s.split(':')[1].strip rescue nil
+    elsif obs.concept_id == 2585 #disseminated_non_tuberculosis_mycobacterial_infection
+      a_hash[:disseminated_non_tuberculosis_mycobacterial_infection] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 5034 #cryptosporidiosis
       a_hash[:cryptosporidiosis] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 2858 #isosporiasis
       a_hash[:isosporiasis] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 7957 #symptomatic_hiv_asscoiated_nephropathy
-      a_hash[:symptomatic_hiv_asscoiated_nephropathy] = obs.to_s.split(':')[1].strip rescue nil
+    elsif obs.concept_id == 7957 #symptomatic_hiv_associated_nephropathy
+      a_hash[:symptomatic_hiv_associated_nephropathy] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 5344 #chronic_herpes_simplex_infection
       a_hash[:chronic_herpes_simplex_infection] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7551 #cytomegalovirus_infection
@@ -970,10 +966,10 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
       a_hash[:toxoplasomis_of_the_brain_1month] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7961 #recto_vaginal_fitsula
       a_hash[:recto_vaginal_fitsula] = obs.to_s.split(':')[1].strip rescue nil
-    elsif obs.concept_id == 823 #hiv_wasting_syndrome
-      a_hash[:hiv_wasting_syndrome] = obs.to_s.split(':')[1].strip rescue nil
+    elsif obs.concept_id == 823 #moderate_weight_loss_less_than_or_equal_to_10_percent_unexpl
+      a_hash[:moderate_weight_loss_less_than_or_equal_to_10_percent_unexpl] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 7563 #reason_for_starting_art
-      a_hash[:reason_for_starting_art] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:reason_for_eligibility] = obs.to_s.split(':')[1].strip rescue nil
       a_hash[:reason_for_starting_v_date] = obs.obs_datetime.to_date rescue nil
     elsif obs.concept_id == 7562 #who_stage
       a_hash[:who_stage] = obs.to_s.split(':')[1].strip rescue nil
@@ -993,66 +989,83 @@ def process_patient_orders(orders, type = 0)
   a_hash = {
       :drug_name1  =>  'NULL',
       :drug_order_id1  =>  'NULL',
-      :start_date1  =>  'NULL',
-      :auto_expire_date1  =>  'NULL',
-      :quantity1  =>  'NULL',
-      :frequency1  =>  'NULL',
-      :dose1  =>  'NULL',
-      :equivalent_daily_dose1  =>  'NULL',
-      :encounter_id1  =>  'NULL',
+      :drug_start_date1  =>  'NULL',
+      :drug_auto_expire_date1  =>  'NULL',
+      :drug_quantity1  =>  'NULL',
+      :drug_frequency1  =>  'NULL',
+      :drug_dose1  =>  'NULL',
+      :drug_equivalent_daily_dose1  =>  'NULL',
+      :drug_encounter_id1  =>  'NULL',
       :drug_inventory_id1  =>  'NULL',
       :drug_name2  =>  'NULL',
       :drug_order_id2  =>  'NULL',
-      :start_date2  =>  'NULL',
-      :auto_expire_date2  =>  'NULL',
-      :quantity2  =>  'NULL',
-      :frequency2  =>  'NULL',
-      :dose2  =>  'NULL',
-      :equivalent_daily_dose2  =>  'NULL',
-      :encounter_id2  =>  'NULL',
+      :drug_start_date2  =>  'NULL',
+      :drug_auto_expire_date2  =>  'NULL',
+      :drug_quantity2  =>  'NULL',
+      :drug_frequency2  =>  'NULL',
+      :drug_dose2  =>  'NULL',
+      :drug_equivalent_daily_dose2  =>  'NULL',
+      :drug_encounter_id2  =>  'NULL',
       :drug_inventory_id2  =>  'NULL',
       :drug_name3  =>  'NULL',
       :drug_order_id3  =>  'NULL',
-      :start_date3  =>  'NULL',
-      :auto_expire_date3  =>  'NULL',
-      :quantity3  =>  'NULL',
-      :frequency3  =>  'NULL',
-      :dose3  =>  'NULL',
-      :equivalent_daily_dose3  =>  'NULL',
-      :encounter_id3  =>  'NULL',
+      :drug_start_date3  =>  'NULL',
+      :drug_auto_expire_date3  =>  'NULL',
+      :drug_quantity3  =>  'NULL',
+      :drug_frequency3  =>  'NULL',
+      :drug_dose3  =>  'NULL',
+      :drug_equivalent_daily_dose3  =>  'NULL',
+      :drug_encounter_id3  =>  'NULL',
       :drug_inventory_id3  =>  'NULL',   
       :drug_name4  =>  'NULL',
       :drug_order_id4  =>  'NULL',
-      :start_date4  =>  'NULL',
-      :auto_expire_date4  =>  'NULL',
-      :quantity4  =>  'NULL',
-      :frequency4  =>  'NULL',
-      :dose4  =>  'NULL',
-      :equivalent_daily_dose4  =>  'NULL',
-      :encounter_id4  =>  'NULL',
+      :drug_start_date4  =>  'NULL',
+      :drug_auto_expire_date4  =>  'NULL',
+      :drug_quantity4  =>  'NULL',
+      :drug_frequency4  =>  'NULL',
+      :drug_dose4  =>  'NULL',
+      :drug_equivalent_daily_dose4  =>  'NULL',
+      :drug_encounter_id4  =>  'NULL',
       :drug_inventory_id4  =>  'NULL',
       :drug_name5  =>  'NULL',
       :drug_order_id5  =>  'NULL',
-      :start_date5  =>  'NULL',
-      :auto_expire_date5  =>  'NULL',
-      :quantity5  =>  'NULL',
-      :frequency5  =>  'NULL',
-      :dose5  =>  'NULL',
-      :equivalent_daily_dose5  =>  'NULL',
-      :encounter_id5  =>  'NULL',
+      :drug_start_date5  =>  'NULL',
+      :drug_auto_expire_date5  =>  'NULL',
+      :drug_quantity5  =>  'NULL',
+      :drug_frequency5  =>  'NULL',
+      :drug_dose5  =>  'NULL',
+      :drug_equivalent_daily_dose5  =>  'NULL',
+      :drug_encounter_id5  =>  'NULL',
       :drug_inventory_id5  =>  'NULL'
   }
-  
-  (orders || []).each do |ord|
-    drug_name = Drug.find(ord.drug_inventory_id).name
+ 
+ (orders || []).each do |ord|
+    if ord.drug_inventory_id == '2833'
+      drug_name = @drug_list[:"738"] #Drug.find(738).name
+    elsif ord.drug_inventory_id == '1610'
+      drug_name = @drug_list[:"731"] #Drug.find(731).name
+    elsif ord.drug_inventory_id == '1613'
+      drug_name = @drug_list[:"955"] #Drug.find(955).name
+    elsif ord.drug_inventory_id == '2985'
+      drug_name = @drug_list[:"735"] #Drug.find(735).name
+    elsif ord.drug_inventory_id == '7927'
+      drug_name = @drug_list[:"969"] #Drug.find(969).name
+    elsif ord.drug_inventory_id == '7928'
+      drug_name = @drug_list[:"734"] #Drug.find(734).name
+    elsif ord.drug_inventory_id == '9175'
+      drug_name = @drug_list[:"932"] #Drug.find(932).name
+    else
+      drug_name = @drug_list[:"#{ord.drug_inventory_id}"] #Drug.find(ord.drug_inventory_id).name
+    end
+    #drug_name = Drug.find(ord.drug_inventory_id).name
 
     if patient_orders[drug_name].blank?
       patient_orders[drug_name] = drug_name
       drug_order_ids_hash[drug_name] = ord.order_id
       drug_enc_ids_hash[drug_name] = ord.encounter_id
-      drug_start_date_hash[drug_name] = ord.start_date
-      drug_auto_expire_date_hash[drug_name] = ord.auto_expire_date
-      drug_quantity_hash[drug_name] = ord.quantity
+      drug_start_date_hash[drug_name] = ord.start_date.strftime("%Y-%m-%d")  rescue nil
+      drug_auto_expire_date_hash[drug_name] = ord.auto_expire_date.strftime("%Y-%m-%d")  rescue nil
+      drug_quantity_hash[drug_name] = ord.quantity rescue nil
       drug_dose_hash[drug_name] = ord.dose
       drug_frequency_hash[drug_name] = ord.frequency
       drug_equivalent_daily_dose_hash[drug_name] = ord.equivalent_daily_dose
@@ -1061,77 +1074,77 @@ def process_patient_orders(orders, type = 0)
       patient_orders[drug_name] += drug_name
       drug_order_ids_hash[drug_name] += ord.order_id
       drug_enc_ids_hash[drug_name] += ord.encounter_id
-      drug_start_date_hash[drug_name] += ord.start_date
-      drug_auto_expire_date_hash[drug_name] += ord.auto_expire_date
-      drug_quantity_hash[drug_name] += ord.quantity
+      drug_start_date_hash[drug_name] += ord.start_date.strftime("%Y-%m-%d")  rescue nil
+      drug_auto_expire_date_hash[drug_name] += ord.auto_expire_date.strftime("%Y-%m-%d")  rescue nil
+      drug_quantity_hash[drug_name] += ord.quantity rescue nil
       drug_dose_hash[drug_name] += ord.dose
       drug_frequency_hash[drug_name] += ord.frequency
       drug_equivalent_daily_dose_hash[drug_name] += ord.equivalent_daily_dose
-      drug_inventory_ids_hash[drug_name] += ord.drug_inventory_id    
+      drug_inventory_ids_hash[drug_name] += ord.drug_inventory_id
     end
   end
-
+ 
   count = 1
   (patient_orders).each do |drug_name, name|
     case count
       when 1
        a_hash[:drug_name1] = drug_name
        a_hash[:drug_order_id1] = drug_order_ids_hash[drug_name]
-       a_hash[:start_date1] = drug_start_date_hash[drug_name]
-       a_hash[:auto_expire_date1] = drug_auto_expire_date_hash[drug_name]
-       a_hash[:quantity1] = drug_quantity_hash[drug_name]
-       a_hash[:frequency1] = drug_frequency_hash[drug_name]
-       a_hash[:dose1] = drug_dose_hash[drug_name]
-       a_hash[:equivalent_daily_dose1] = drug_equivalent_daily_dose_hash[drug_name]
-       a_hash[:encounter_id1] = drug_enc_ids_hash[drug_name]
+       a_hash[:drug_start_date1] = drug_start_date_hash[drug_name]
+       a_hash[:drug_auto_expire_date1] = drug_auto_expire_date_hash[drug_name]
+       a_hash[:drug_quantity1] = drug_quantity_hash[drug_name]
+       a_hash[:drug_frequency1] = drug_frequency_hash[drug_name]
+       a_hash[:drug_dose1] = drug_dose_hash[drug_name]
+       a_hash[:drug_equivalent_daily_dose1] = drug_equivalent_daily_dose_hash[drug_name]
+       a_hash[:drug_encounter_id1] = drug_enc_ids_hash[drug_name]
        a_hash[:drug_inventory_id1] = drug_inventory_ids_hash[drug_name] 
        count += 1
       when 2
        a_hash[:drug_name2] = drug_name
        a_hash[:drug_order_id2] = drug_order_ids_hash[drug_name]
-       a_hash[:start_date2] = drug_start_date_hash[drug_name]
-       a_hash[:auto_expire_date2] = drug_auto_expire_date_hash[drug_name]
-       a_hash[:quantity2] = drug_quantity_hash[drug_name]
-       a_hash[:frequency2] = drug_frequency_hash[drug_name]
-       a_hash[:dose2] = drug_dose_hash[drug_name]
-       a_hash[:equivalent_daily_dose2] = drug_equivalent_daily_dose_hash[drug_name]
-       a_hash[:encounter_id2] = drug_enc_ids_hash[drug_name]
+       a_hash[:drug_start_date2] = drug_start_date_hash[drug_name]
+       a_hash[:drug_auto_expire_date2] = drug_auto_expire_date_hash[drug_name]
+       a_hash[:drug_quantity2] = drug_quantity_hash[drug_name]
+       a_hash[:drug_frequency2] = drug_frequency_hash[drug_name]
+       a_hash[:drug_dose2] = drug_dose_hash[drug_name]
+       a_hash[:drug_equivalent_daily_dose2] = drug_equivalent_daily_dose_hash[drug_name]
+       a_hash[:drug_encounter_id2] = drug_enc_ids_hash[drug_name]
        a_hash[:drug_inventory_id2] = drug_inventory_ids_hash[drug_name]
        count += 1
       when 3
        a_hash[:drug_name3] = drug_name
        a_hash[:drug_order_id3] = drug_order_ids_hash[drug_name]
-       a_hash[:start_date3] = drug_start_date_hash[drug_name]
-       a_hash[:auto_expire_date3] = drug_auto_expire_date_hash[drug_name]
-       a_hash[:quantity3] = drug_quantity_hash[drug_name]
-       a_hash[:frequency3] = drug_frequency_hash[drug_name]
-       a_hash[:dose3] = drug_dose_hash[drug_name]
-       a_hash[:equivalent_daily_dose3] = drug_equivalent_daily_dose_hash[drug_name]
-       a_hash[:encounter_id3] = drug_enc_ids_hash[drug_name]
+       a_hash[:drug_start_date3] = drug_start_date_hash[drug_name]
+       a_hash[:drug_auto_expire_date3] = drug_auto_expire_date_hash[drug_name]
+       a_hash[:drug_quantity3] = drug_quantity_hash[drug_name]
+       a_hash[:drug_frequency3] = drug_frequency_hash[drug_name]
+       a_hash[:drug_dose3] = drug_dose_hash[drug_name]
+       a_hash[:drug_equivalent_daily_dose3] = drug_equivalent_daily_dose_hash[drug_name]
+       a_hash[:drug_encounter_id3] = drug_enc_ids_hash[drug_name]
        a_hash[:drug_inventory_id3] = drug_inventory_ids_hash[drug_name]
        count += 1
       when 4
        a_hash[:drug_name4] = drug_name
        a_hash[:drug_order_id4] = drug_order_ids_hash[drug_name]
-       a_hash[:start_date4] = drug_start_date_hash[drug_name]
-       a_hash[:auto_expire_date4] = drug_auto_expire_date_hash[drug_name]
-       a_hash[:quantity4] = drug_quantity_hash[drug_name]
-       a_hash[:frequency4] = drug_frequency_hash[drug_name]
-       a_hash[:dose4] = drug_dose_hash[drug_name]
-       a_hash[:equivalent_daily_dose4] = drug_equivalent_daily_dose_hash[drug_name]
-       a_hash[:encounter_id4] = drug_enc_ids_hash[drug_name]
+       a_hash[:drug_start_date4] = drug_start_date_hash[drug_name]
+       a_hash[:drug_auto_expire_date4] = drug_auto_expire_date_hash[drug_name]
+       a_hash[:drug_quantity4] = drug_quantity_hash[drug_name]
+       a_hash[:drug_frequency4] = drug_frequency_hash[drug_name]
+       a_hash[:drug_dose4] = drug_dose_hash[drug_name]
+       a_hash[:drug_equivalent_daily_dose4] = drug_equivalent_daily_dose_hash[drug_name]
+       a_hash[:drug_encounter_id4] = drug_enc_ids_hash[drug_name]
        a_hash[:drug_inventory_id4] = drug_inventory_ids_hash[drug_name]
        count += 1
       when 5
        a_hash[:drug_name5] = drug_name
        a_hash[:drug_order_id5] = drug_order_ids_hash[drug_name]
-       a_hash[:start_date5] = drug_start_date_hash[drug_name]
-       a_hash[:auto_expire_date5] = drug_auto_expire_date_hash[drug_name]
-       a_hash[:quantity5] = drug_quantity_hash[drug_name]
-       a_hash[:frequency5] = drug_frequency_hash[drug_name]
-       a_hash[:dose5] = drug_dose_hash[drug_name]
-       a_hash[:equivalent_daily_dose5] = drug_equivalent_daily_dose_hash[drug_name]
-       a_hash[:encounter_id5] = drug_enc_ids_hash[drug_name]
+       a_hash[:drug_start_date5] = drug_start_date_hash[drug_name]
+       a_hash[:drug_auto_expire_date5] = drug_auto_expire_date_hash[drug_name]
+       a_hash[:drug_quantity5] = drug_quantity_hash[drug_name]
+       a_hash[:drug_frequency5] = drug_frequency_hash[drug_name]
+       a_hash[:drug_dose5] = drug_dose_hash[drug_name]
+       a_hash[:drug_equivalent_daily_dose5] = drug_equivalent_daily_dose_hash[drug_name]
+       a_hash[:drug_encounter_id5] = drug_enc_ids_hash[drug_name]
        a_hash[:drug_inventory_id5] = drug_inventory_ids_hash[drug_name]
        count += 1    
       end
@@ -1166,11 +1179,17 @@ def process_patient_state(patient_id,visit)
 	return generate_sql_string(a_hash)
 end
 
-def process_adherence_encounter(encounter, type = 0) #type 0 normal encounter, 1 generate_template only 
+def process_adherence_encounter(encounter, visit, type = 0) #type 0 normal encounter, 1 generate_template only 
 
     #initialize field and values variables
     fields = ""
     values = ""
+    
+    patient_adh = {}
+    amount_of_drug_brought_to_clinic_hash  = {}
+    missed_hiv_drug_const_hash  = {}
+    patient_adherence_hash  = {}
+    amount_of_drug_remaining_at_home_hash  = {}
 
     #create patient adherence field list hash template
     a_hash = {:amount_of_drug1_brought_to_clinic => 'NULL',
@@ -1196,31 +1215,31 @@ def process_adherence_encounter(encounter, type = 0) #type 0 normal encounter, 1
 
     return generate_sql_string(a_hash) if type == 1
 
-    (encounter || []).each do |adh|
-      if patient_adh[visit_date].blank?
-        patient_adh[visit_date] = visit_date
-        amount_of_drug_brought_to_clinic_hash[visit_date] = adh.to_s.split(':')[1].strip rescue nil
-        missed_hiv_drug_const_hash[visit_date] = adh.to_s.split(':')[1].strip rescue nil
-        patient_adherence_hash[visit_date] = adh.to_s.split(':')[1].strip rescue nil
-        amount_of_drug_remaining_at_home_hash[visit_date] = adh.to_s.split(':')[1].strip rescue nil
+    (encounter.observations || []).each do |adh|
+      if patient_adh[visit].blank?
+        patient_adh[visit] = visit
+        amount_of_drug_brought_to_clinic_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
+        missed_hiv_drug_const_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
+        patient_adherence_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
+        amount_of_drug_remaining_at_home_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
       else
-        patient_adh[visit_date] += visit_date
-        amount_of_drug_brought_to_clinic_hash[visit_date] += adh.to_s.split(':')[1].strip rescue nil
-        missed_hiv_drug_const_hash[visit_date] += adh.to_s.split(':')[1].strip rescue nil
-        patient_adherence_hash[visit_date] += adh.to_s.split(':')[1].strip rescue nil
-        amount_of_drug_remaining_at_home_hash[visit_date] += adh.to_s.split(':')[1].strip rescue nil
+        patient_adh[visit] += visit
+        amount_of_drug_brought_to_clinic_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
+        missed_hiv_drug_const_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
+        patient_adherence_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
+        amount_of_drug_remaining_at_home_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
       end
     end
 
     count = 1
-    (patient_adh || []).each do |visit_date, data|
+    (patient_adh || []).each do |visit, data|
 
       case count
         when 1
-         a_hash[:amount_of_drug1_brought_to_clinic] = amount_of_drug_brought_to_clinic_hash[visit_date]
-         a_hash[:amount_of_drug1_remaining_at_home] = amount_of_drug_remaining_at_home_hash[visit_date]
-         a_hash[:what_was_the_patient_adherence_for_this_drug1] = patient_adherence_hash[visit_date]
-         a_hash[:missed_hiv_drug_construct1] = missed_hiv_drug_const_hash[visit_date]
+         a_hash[:amount_of_drug1_brought_to_clinic] = amount_of_drug_brought_to_clinic_hash[visit]
+         a_hash[:amount_of_drug1_remaining_at_home] = amount_of_drug_remaining_at_home_hash[visit]
+         a_hash[:what_was_the_patient_adherence_for_this_drug1] = patient_adherence_hash[visit]
+         a_hash[:missed_hiv_drug_construct1] = missed_hiv_drug_const_hash[visit]
          count += 1
         when 2
          a_hash[:amount_of_drug2_brought_to_clinic] = amount_of_drug_brought_to_clinic_hash[visit_date]
@@ -1229,22 +1248,22 @@ def process_adherence_encounter(encounter, type = 0) #type 0 normal encounter, 1
          a_hash[:missed_hiv_drug_construct2] = missed_hiv_drug_const_hash[visit_date]
          count += 1
         when 3
-         a_hash[:amount_of_drug3_brought_to_clinic] = amount_of_drug_brought_to_clinic_hash[visit_date]
-         a_hash[:amount_of_drug3_remaining_at_home] = amount_of_drug_remaining_at_home_hash[visit_date]
-         a_hash[:what_was_the_patient_adherence_for_this_drug3] = patient_adherence_hash[visit_date]
-         a_hash[:missed_hiv_drug_construct3] = missed_hiv_drug_const_hash[visit_date]
+         a_hash[:amount_of_drug3_brought_to_clinic] = amount_of_drug_brought_to_clinic_hash[visit]
+         a_hash[:amount_of_drug3_remaining_at_home] = amount_of_drug_remaining_at_home_hash[visit]
+         a_hash[:what_was_the_patient_adherence_for_this_drug3] = patient_adherence_hash[visit]
+         a_hash[:missed_hiv_drug_construct3] = missed_hiv_drug_const_hash[visit]
          count += 1
         when 4
-         a_hash[:amount_of_drug4_brought_to_clinic] = amount_of_drug_brought_to_clinic_hash[visit_date]
-         a_hash[:amount_of_drug4_remaining_at_home] = amount_of_drug_remaining_at_home_hash[visit_date]
-         a_hash[:what_was_the_patient_adherence_for_this_drug4] = patient_adherence_hash[visit_date]
-         a_hash[:missed_hiv_drug_construct4] = missed_hiv_drug_const_hash[visit_date]
+         a_hash[:amount_of_drug4_brought_to_clinic] = amount_of_drug_brought_to_clinic_hash[visit]
+         a_hash[:amount_of_drug4_remaining_at_home] = amount_of_drug_remaining_at_home_hash[visit]
+         a_hash[:what_was_the_patient_adherence_for_this_drug4] = patient_adherence_hash[visit]
+         a_hash[:missed_hiv_drug_construct4] = missed_hiv_drug_const_hash[visit]
          count += 1
         when 5
-         a_hash[:amount_of_drug5_brought_to_clinic] = amount_of_drug_brought_to_clinic_hash[visit_date]
-         a_hash[:amount_of_drug5_remaining_at_home] = amount_of_drug_remaining_at_home_hash[visit_date]
-         a_hash[:what_was_the_patient_adherence_for_this_drug5] = patient_adherence_hash[visit_date] 
-         a_hash[:missed_hiv_drug_construct5] = missed_hiv_drug_const_hash[visit_date]
+         a_hash[:amount_of_drug5_brought_to_clinic] = amount_of_drug_brought_to_clinic_hash[visit]
+         a_hash[:amount_of_drug5_remaining_at_home] = amount_of_drug_remaining_at_home_hash[visit]
+         a_hash[:what_was_the_patient_adherence_for_this_drug5] = patient_adherence_hash[visit] 
+         a_hash[:missed_hiv_drug_construct5] = missed_hiv_drug_const_hash[visit]
          count += 1    
      end
     end
@@ -1258,7 +1277,9 @@ def generate_sql_string(a_hash)
 
     a_hash.each do |key,value|
         fields += fields.empty? ? "`#{key}`" : ", `#{key}`"
-        values += values.empty? ? "'#{value}'" : ", '#{value}'"
+	str = '"' + value.to_s + '"'
+#        values += values.empty? ? "'#{value}'" : ", '#{value}'"
+        values += values.empty? ? "#{str}" : ", #{str}"
     end
 
     return [fields, values]
@@ -1267,6 +1288,14 @@ end
 def start
  initialize_variables
  get_all_patients
+end
+def get_drug_list
+  drug_hash = {}
+  drug_list = Drug.find_by_sql("SELECT drug_id, name FROM drug")
+  drug_list.each do |drug|
+    drug_hash[:"#{drug.drug_id}"] = drug.name 
+  end
+  return drug_hash
 end
 
 start 

@@ -124,7 +124,13 @@ class GenericPeopleController < ApplicationController
              
       person = PatientService.create_patient_from_dde(passed_params) 
     else
-    
+      #raise params["addresses"].to_yaml
+      state = params["addresses"]["state_province"] rescue nil
+      address2 = params["addresses"]["address2"] rescue nil
+      address1 = params["addresses"]["address1"] rescue nil
+      address  = params["addresses"]["neighborhood_cell"] rescue nil
+      city_village = params["addresses"]["city_village"] rescue nil
+      district = params["addresses"]["county_district"] rescue nil
       person_params = {"occupation"=> params[:occupation],
         "age_estimate"=> params['patient_age']['age_estimate'],
         "cell_phone_number"=> params['cell_phone']['identifier'] || nil,
@@ -132,19 +138,19 @@ class GenericPeopleController < ApplicationController
         "office_phone_number"=> params['office_phone']['identifier'] || nil,
         "birth_month"=> params[:patient_month],
        "addresses"=>
-            {"state_province"=> params["addresses"]["state_province"],
-            "address2"=> params["addresses"]["address2"],
-            "address1"=> params["addresses"]["address1"],
-            "neighborhood_cell"=> params["addresses"]["neighborhood_cell"],
-            "city_village"=> params["addresses"]["city_village"],
-            "county_district"=> params["addresses"]["county_district"]},   
+            {"state_province"=> state,
+            "address2"=> address2,
+            "address1"=> address1,
+            "neighborhood_cell"=> address,
+            "city_village"=> city_village,
+            "county_district"=> district},   
         "gender" => params['patient']['gender'],
         "birth_day" => params[:patient_day],
         "names"=> {"family_name2"=>"Unknown",
 					"family_name"=> params['patient_name']['family_name'],
 					"given_name"=> params['patient_name']['given_name'] },
         "birth_year"=> params[:patient_year] }
-
+        
       person = PatientService.create_from_form(person_params)
 
       if person
