@@ -3,6 +3,7 @@ require 'yaml'
 def initialize_variables
   @source_db = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))["production"]["database"]
   @started_at = Time.now.strftime("%Y-%m-%d-%H%M%S")
+  @drug_list = get_drug_list
 end
 
 def write_sql(a_hash,table)
@@ -1036,24 +1037,24 @@ def process_patient_orders(orders, type = 0)
       :drug_encounter_id5  =>  'NULL',
       :drug_inventory_id5  =>  'NULL'
   }
-  
+ 
  (orders || []).each do |ord|
     if ord.drug_inventory_id == '2833'
-      drug_name = Drug.find(738).name
+      drug_name = @drug_list[:"738"] #Drug.find(738).name
     elsif ord.drug_inventory_id == '1610'
-      drug_name = Drug.find(731).name
+      drug_name = @drug_list[:"731"] #Drug.find(731).name
     elsif ord.drug_inventory_id == '1613'
-      drug_name = Drug.find(955).name
+      drug_name = @drug_list[:"955"] #Drug.find(955).name
     elsif ord.drug_inventory_id == '2985'
-      drug_name = Drug.find(735).name
+      drug_name = @drug_list[:"735"] #Drug.find(735).name
     elsif ord.drug_inventory_id == '7927'
-      drug_name = Drug.find(969).name
+      drug_name = @drug_list[:"969"] #Drug.find(969).name
     elsif ord.drug_inventory_id == '7928'
-      drug_name = Drug.find(734).name
+      drug_name = @drug_list[:"734"] #Drug.find(734).name
     elsif ord.drug_inventory_id == '9175'
-      drug_name = Drug.find(932).name
+      drug_name = @drug_list[:"932"] #Drug.find(932).name
     else
-      drug_name = Drug.find(ord.drug_inventory_id).name
+      drug_name = @drug_list[:"#{ord.drug_inventory_id}"] #Drug.find(ord.drug_inventory_id).name
     end
     #drug_name = Drug.find(ord.drug_inventory_id).name
 
@@ -1286,6 +1287,14 @@ end
 def start
  initialize_variables
  get_all_patients
+end
+def get_drug_list
+  drug_hash = {}
+  drug_list = Drug.find_by_sql("SELECT drug_id, name FROM drug")
+  drug_list.each do |drug|
+    drug_hash[:"#{drug.drug_id}"] = drug.name 
+  end
+  return drug_hash
 end
 
 start 
