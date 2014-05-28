@@ -325,9 +325,9 @@ class PatientsController < GenericPatientsController
   def set_allow_hiv_staging_sessions
     current_date = session[:datetime].to_date rescue Date.today
     patient = Patient.find(params[:patient_id])
-    unless (session["#{patient.id}"]["#{current_date}"][:stage_patient].blank?)
-        session["#{patient.id}"]["#{current_date}"][:stage_patient] = nil
-    end
+    session["#{patient.id}"] = {} if session["#{patient.id}"].blank?
+    session["#{patient.id}"]["#{current_date}"] = {} if session["#{patient.id}"]["#{current_date}"].blank?
+    session["#{patient.id}"]["#{current_date}"][:stage_patient] = nil
     render :text => "true" and return
   end
 
