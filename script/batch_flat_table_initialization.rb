@@ -127,15 +127,16 @@ def get_patients_data(patient_id)
        	patient_orders = []
       	patient_state = []
       	patient_adh = []
-      	
+ # we will exclude the orders having drug_inventory_id null     	
        	orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
                                                o.start_date, o.auto_expire_date, d.quantity,
                                                d.drug_inventory_id, d.dose, d.frequency,
                                                o.concept_id, d.equivalent_daily_dose
                                     FROM orders o
                                       INNER JOIN drug_order d ON d.order_id = o.order_id
-                                    WHERE DATE(o.start_date) = '#{visit}'
-                                    AND o.patient_id = #{patient_id} ")
+                                    WHERE DATE(o.start_date) = '#{visit}' 
+                                    AND o.patient_id = #{patient_id} 
+                                    AND d.drug_inventory_id IS NOT NULL ")
       
         	if orders
           		patient_orders = process_patient_orders(orders, 1) if patient_orders.empty?
