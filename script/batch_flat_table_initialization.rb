@@ -1050,7 +1050,7 @@ def process_patient_orders(orders, type = 0)
       drug_name = Drug.find(969).name
     elsif ord.drug_inventory_id == '7928'
       drug_name = Drug.find(734).name
-    elsif ord.drug_inventory_id == '9775'
+    elsif ord.drug_inventory_id == '9175'
       drug_name = Drug.find(932).name
     else
       drug_name = Drug.find(ord.drug_inventory_id).name
