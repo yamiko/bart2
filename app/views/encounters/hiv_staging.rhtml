@@ -1,3 +1,4 @@
+<%= javascript_include_tag "prototype" %>
 <style>
   .tt_controls_clinical_notes_optional #space { display:inline; }
 
@@ -600,18 +601,27 @@
 			  <%  end %>
 	}
   function denyStaging(){
-       //window.location = "/encounters/new/<%#= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat=cancel"
-       <%
-          current_date = session[:datetime].to_date rescue Date.today
-          session["#{@patient.id}"] = {} if session["#{@patient.id}"].blank?
-          session["#{@patient.id}"]["#{current_date}"] = {} if session["#{@patient.id}"]["#{current_date}"].blank?
-          session["#{@patient.id}"]["#{current_date}"][:stage_patient] = "No"
-        %>
-       window.location = "<%= next_task(@patient) %>"
+    jQuery.ajax({
+      type: "POST",
+      url: "/patients/set_deny_hiv_staging_sessions",
+      data: "patient_id="+<%=@patient.id %>,
+      success: function(){
+        window.location = "<%= next_task(@patient) %>";
+      }
+    });
   }
+  
   function allowStaging(){
-    window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat=no"
+    jQuery.ajax({
+      type: "POST",
+      url: "/patients/set_allow_hiv_staging_sessions",
+      data: "patient_id="+<%=@patient.id %>,
+      success: function(){
+        window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat=no"
+      }
+    });   
   }
+
 </script>  
 <style type="text/css">
   .small .options li { font-size:1.1em; }
