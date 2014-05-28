@@ -121,6 +121,131 @@ class GenericLabController < ApplicationController
 =end
     return identifiers
   end
+
+  def viral_load_result
+    person_id = params[:person_id] || params[:patient_id]
+    @patient = Patient.find(person_id)
+  end
+
+  def create_viral_load_result
+
+    patient_bean = PatientService.get_patient(Person.find(params[:patient_id]))
+    test_year = params[:test_year]
+    test_month = params[:test_month]
+    test_day = params[:test_day]
+    
+    test_date = (test_year.to_s + '-' + test_month.to_s + '-' + test_day.to_s).to_date
+    date = test_date #params[:test_date].to_date rescue "1900-01-01".to_date
+
+    test_type = LabTestType.find(:first,
+      :conditions =>["TestName = ?",params[:lab_result].to_s])
+
+    test_modifier = params[:test_value].to_s.match(/=|>|</)[0]
+    test_value = params[:test_value].to_s.gsub('>','').gsub('<','').gsub('=','')
+    available_test_type = LabTestType.find(:all,:conditions=>["TestType IN (?)", test_type.TestType]).collect{|n|n.Panel_ID}
+
+    lab_test_table = LabTestTable.new()
+    lab_test_table.TestOrdered = LabPanel.test_name(available_test_type)[0]
+    lab_test_table.Pat_ID = patient_bean.national_id
+    lab_test_table.OrderDate = date
+    lab_test_table.OrderTime = Time.now().strftime("%H:%M:%S")
+    lab_test_table.OrderedBy = current_user.id
+    lab_test_table.Location = Location.current_health_center.name
+    lab_test_table.save
+
+    lab_test_table.reload
+
+    lab_sample = LabSample.new()
+    lab_sample.AccessionNum = lab_test_table.AccessionNum
+    lab_sample.USERID = current_user.id
+    lab_sample.TESTDATE = date
+    lab_sample.PATIENTID = patient_bean.national_id
+    lab_sample.DATE = date
+    lab_sample.TIME = Time.now().strftime("%H:%M:%S")
+    lab_sample.SOURCE = Location.current_location.id
+    lab_sample.DeleteYN = 0
+    lab_sample.Attribute = "pass"
+    lab_sample.TimeStamp = Time.now()
+    lab_sample.save
+
+    lab_sample.reload
+
+    lab_parameter = LabParameter.new()
+    lab_parameter.Sample_ID = lab_sample.Sample_ID
+    lab_parameter.TESTTYPE =  test_type.TestType
+    lab_parameter.TESTVALUE = test_value
+    lab_parameter.TimeStamp = Time.now()
+    lab_parameter.Range = test_modifier
+    lab_parameter.save
+
+    unless params[:result_given].match(/YES/i).blank?
+      
+    end
+    
+    redirect_to("/people/confirm?found_person_id=#{params[:patient_id]}")
+  end
+
+  def result_given_to_patient
+ 
+    patient_id = params[:patient_id]
+    year_given = params[:year_given]
+    month_given = params[:month_given]
+    day_given = params[:day_given]
+    date_given_result = (year_given.to_s + '-' + month_given.to_s + '-' + day_given).to_date
+    patient = Patient.find(patient_id)
+    encounter_type = EncounterType.find_by_name("REQUEST").id
+    viral_load = Concept.find_by_name("Hiv viral load").concept_id
+    today_result_given_obs = Observation.find(:last, :joins => [:encounter], :conditions => ["
+        person_id =? AND DATE(encounter_datetime) =? AND encounter_type =? AND
+        concept_id =? AND value_text REGEXP ?", patient_id, Date.today, encounter_type, 
+        viral_load, 'Result given to patient'])
+
+  if (today_result_given_obs.blank?)
+    enc = patient.encounters.current.find_by_encounter_type(encounter_type)
+    enc ||= patient.encounters.create(:encounter_type => encounter_type)
+    obs = Observation.new
+    obs.person_id = patient_id
+    obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
+    obs.value_text = "Result given to patient"
+    obs.value_datetime = date_given_result
+    obs.encounter_id = enc.id
+    obs.obs_datetime = Time.now
+    obs.save
+  end
+  
+  redirect_to("/people/confirm?found_person_id=#{params[:patient_id]}")
+  end
+
+  def patient_switched_to_second_line
+    patient_id = params[:patient_id]
+
+    year_switched = params[:year_switched]
+    month_switched = params[:month_switched]
+    day_switched = params[:day_switched]
+    date_switched = (year_switched.to_s + '-' + month_switched.to_s + '-' + day_switched).to_date
+    patient = Patient.find(patient_id)
+    encounter_type = EncounterType.find_by_name("REQUEST").id
+    viral_load = Concept.find_by_name("Hiv viral load").concept_id
+    patient_switched_to_second_line_obs = Observation.find(:last, :joins => [:encounter], 
+      :conditions => ["person_id =? AND encounter_type =? AND concept_id =? AND value_text REGEXP ?", patient_id, encounter_type,
+        viral_load, 'Patient switched to second line'])
+
+    if (patient_switched_to_second_line_obs.blank?)
+      enc = patient.encounters.current.find_by_encounter_type(encounter_type)
+      enc ||= patient.encounters.create(:encounter_type => encounter_type)
+
+      obs = Observation.new
+      obs.person_id = patient_id
+      obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
+      obs.value_text = "Patient switched to second line"
+      obs.value_datetime = date_switched
+      obs.encounter_id = enc.id
+      obs.obs_datetime = Time.now
+      obs.save
+    end
+      
+  redirect_to("/people/confirm?found_person_id=#{params[:patient_id]}")
+  end
   
   def new
     @available_test = LabTestType.available_test                                

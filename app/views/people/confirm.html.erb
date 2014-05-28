@@ -35,13 +35,117 @@
 
       </style>
     <% end %>
+    <style>
+      #vl_data{
+        position: absolute;
+        -moz-user-select: none;
+        background-color: #FFFFFF;
+        border: 1px solid #999999;
+        border-radius: 20px 20px 20px 20px;
+        display: table;
+        margin: 5px;
+        overflow: hidden;
+        padding: 10px;
+        width: 36%;
+        z-index: 800;
+        right: 10px;
+        top: 5%;
+        height: 167px;
+        }
 
+      #vl_update {
+        position: absolute;
+        border-radius: 17px;
+        background-color: #CD853F;
+        border-bottom: 1px outset black;
+        border-style: outset;
+        border-top: 1px outset black;
+        color: white;
+        padding: 4px 8px 8px 4px;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 14pt;
+        width: 44%;
+        left: 21%;
+      }
+      #update_vl_menu{
+        border-radius: 10px;
+        position: absolute;
+        background-color: #DCDCDC;
+        border: 3px solid black;
+        height: 50%;
+        z-index: 991;
+        left: 40%;
+        top:20%;
+        width: 45%;
+        left: 20%;
+      }
+      #update_vl_button{
+        display: block;
+        border-radius: 17px;
+        background-color: #6E7B8B;
+        border-style: outset;
+        padding: 19px 21px 18px 45px;
+        cursor: pointer;
+        width: 40%;
+        margin-left: 20%;
+        text-align: center;
+        color: white;
+        font-size: 14pt;
+      }
+      #gray_button{
+        background-color: gray;
+        border-radius: 10px;
+        width: 50%;
+      }
+      #update_vl_button_gray{
+        display: block;
+        border-radius: 17px;
+        background-color: #C5C1AA;
+        border-style: outset;
+        padding: 19px 21px 18px 45px;
+        cursor: not-allowed;
+        width: 40%;
+        margin-left: 20%;
+        text-align: center;
+        color: gray;
+        font-size: 14pt;
+      }
+      .popup_vl{
+        border-radius: 10px !important;
+        position: absolute;
+        background-color: #DCDCDC;
+        border: 3px solid black !important;
+        height: 45% !important;
+        left: 40% !important;
+        top:20% !important;
+        width: 45% !important;
+        left: 20% !important;
+      }
+
+      #close{
+        height: 18%;
+        width: 11%;
+        position: absolute;
+        left: 87%;
+      }
+    </style>
     <script>
 
       jQuery(document).ready(function() {
         loadChart();
+        //addDivToContent()
       });
 
+      function addDivToContent(){
+        c = document.getElementById('content');
+        v = document.getElementById('vl_data');
+        c.appendChild(v);
+      }
+      window.setTimeout("addDivToContent();", 250);
+      
       var patientDash = "/patients/show/<%= params[:found_person_id] %>"
       tt_cancel_destination = "/clinic";
 
@@ -75,6 +179,8 @@
 			
   function showPopup(){
     popup = document.getElementById('popup')
+    content = document.getElementById('content')
+    content.appendChild(popup)
     if (typeof popup != 'undefined'){
       document.getElementById('popup').style.display='inline'
       document.getElementById('cover').style.display='inline'
@@ -145,6 +251,36 @@ function cancelOperation(action){
   
 			
   setTimeout('reSize()',500);
+
+  function updateVl(){
+    content = document.getElementById('content');
+    vl_menu = document.getElementById('update_vl_menu');
+    content.appendChild(vl_menu);
+    vl_menu.style.display = 'inline';
+    document.getElementById('cover').style.display='inline'
+  }
+
+  function removeUpdateVlMenu(){
+    vl_menu = document.getElementById('update_vl_menu')
+    vl_menu.style.display='none'
+    cover = document.getElementById('cover')
+    cover.style.display='none'
+  }
+
+  function newVlResultPath(){
+    <%  person_id =  params[:found_person_id] %>
+    window.location = "/lab/viral_load_result?patient_id=<%= person_id %>"
+  }
+
+  function giveResultPath(){
+    <%  person_id =  params[:found_person_id] %>
+    window.location = "/lab/give_result?patient_id=<%= person_id %>"
+  }
+
+  function secondlineSwitchPath(){
+    <%  person_id =  params[:found_person_id] %>
+    window.location = "/lab/second_line_switch?patient_id=<%= person_id %>"
+  }
     </script>
   </head>
   <body onload = "setTimeout('changeAttributes()',500);">
@@ -152,10 +288,11 @@ function cancelOperation(action){
     task_name = (task.encounter_type || 'NONE').upcase rescue 'NONE' %>
 
     <form id = 'dashboard' action='/clinic'>
+      <!--
       <div id='project_name'>
-        <%=what_app?%>
-      </div>
-
+        <%#=what_app?%>
+      </div>-->
+      
       <span id='patient_name'><%= @patient_bean.name rescue "" %></span>
       <span id='patient_id'><%= @patient_bean.national_id_with_dashes rescue "" %></span>
       <span id='patient_residence'><%= @patient_bean.current_residence rescue "" %></span>
@@ -400,11 +537,11 @@ function cancelOperation(action){
       color: black;
       font-size: 28px;
       height: 579px;
-      left: 30px !important;
+      left: 14%;
       padding: 5px;
       position: absolute;
       text-align: center;
-      top: 39px !important;
+      top: 5%;
       width: 947px;
       z-index: 991;
     }
@@ -558,7 +695,7 @@ function cancelOperation(action){
       font-weight: bold;
       font-size: 14pt;
     }
-    
+
   </style>
 
 
@@ -569,70 +706,27 @@ function cancelOperation(action){
 
   <!-------------------------------------------->
    <% if @vl_request == "YES" %>
-      <div id="popup" style="display:none">
-
-            <div class="art_container">
-              <div class="header" style="position: absolute; left: 150px">
-                <div id="viral_header">
-                  <u>Routine Viral Load Screening Due</u><br />
-                  <u>Assess Adherence:</u> <br />
-                </div>
-                <div id="more_details" style="font-size: 16pt; font-weight:bold; ">
-                  If good then request VL today <br />
-                  If poor then defer VL for three months after intensive adherence support
-                </div>
-              </div>
-              <table  border=0.5 style = "border-radius:10px;">
-                <tr>
-                  <td><span>ART start date</span></td>
-                  <td style='text-align:left'><span><%= @art_start_date.strftime("%A, %d %B %Y") rescue '' %></span></td>
-                </tr>
-                <tr><td colspan =2><hr/></td></tr>
-                <tr>
-                  <td><span>Duration on ART (Months)</span></td>
-                  <td style='text-align:left'><span><%= @duration_in_months %></span></td>
-                </tr>
-                <tr><td colspan =2><hr/></td></tr>
-
-                <% unless @second_line_treatment_start_date.blank? %>
-                  <tr>
-                    <td><span>Duration on 2<sup>nd</sup>Line ART (Months)</span></td>
-                    <td style='text-align:left'><span><%= @second_line_duration_in_months %></span></td>
-                  </tr>
-                  <tr><td colspan =2><hr/></td></tr>
-                <% end  %>
-
-                <% unless @results.blank?%>
-                  <tr>
-                    <td><span>Latest viral load (<%= @latest_date.strftime("%A, %d %B %Y")%>)</span></td>
-                    <td style='text-align:left'><span><%= @modifier + ' ' + @latest_result.to_s %></span></td>
-                  </tr>
-                  <tr><td colspan =2><hr/></td></tr>
-                <% end %>
-
-                <tr>
-                  <td><span>Outcome</span></td>
-                  <td style='text-align:left'><span><%= @outcome %></span></td>
-                </tr>
-                <tr><td colspan =2><hr/></td></tr>
-                <tr>
-                  <td><span>Reason for starting</span></td>
-                  <td style='text-align:left'><span><%=@reason_for_art%></span></td>
-                </tr>
-
-              </table>
-            </div>
-
-            <hr class="popup_hr_without_lab"></hr>
-            <a id='viral_load_requested_today' onclick = "captureVl()" ><span>Enter Viral load result</span></a>
-            <a id='viral_load_already_done' onclick="hidePopup()"><span>No viral load result available</span></a>
+      <div id="popup" class="popup_vl" style="display:none; background-color: #DCDCDC;">
+        <span style="color: green"><u>Routine Viral Load Screening Due</u></span><br />
+        <span style="color: red">VL Results Available?</span>
+        <div style="margin-top:8%;">
+          <%  if @enter_lab_results %>
+          <span id="update_vl_button" onclick="captureVl();">Enter Viral load result</span><br />
+          <%  else %>
+          <span id="update_vl_button_gray" onclick="">Enter Viral load result</span><br />
+          <% end %>
+         <span id="update_vl_button" onclick="hidePopup();">No viral load result available</span><br />
+        </div>
+          <!--<hr class="popup_hr_without_lab"></hr>-->
+            <!--<a id='viral_load_requested_today' onclick = "captureVl()" style="background-color: #6E7B8B"><span>Enter Viral load result</span></a>
+            <a id='viral_load_already_done' onclick="hidePopup()" style="background-color: #6E7B8B"><span>No viral load result available</span></a>-->
             <!--
             <a id='viral_load_adherence_issues' onclick="vl_adherence_issue();"><span>Not Requested Today<br />(Due to poor adherence to ART)</span></a>
             -->
           </div>
       <!-------------------------------------------->
    <% else %>
-      <div id="popup" style="display:none">
+      <div id="popup" style="display:none; background-color: #DCDCDC;">
 
             <div class="art_container">
               <div class="header" style="position: absolute; left: 150px">
@@ -699,5 +793,60 @@ function cancelOperation(action){
       </div>
   <% end %>
 <% end %>
+<div id="vl_data">
+  <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">HIV VIRAL LOAD</span>
+  <hr style="margin-left:-2%; width:104%;"></hr>
+        <div id="vl_details">
+          <table style="position:absolute; left:14%; width: 80%;">
+            <tr>
+              <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Viral load </td>
+              <% unless @latest_result.blank?%>
+              <td style=""><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
+              <% else %>
+                <td><span style="margin-left: 10%; font-weight: bold; color: red">(Not done)</span></td>
+              <% end %>
+            </tr>
+            <tr>
+              <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Date of Sample</td>
+              <% unless  @latest_date.blank?%>
+              <td style=""><%= @latest_date.strftime("%a, %d-%b-%Y") rescue nil %></td>
+              <% else %>
+                <td id="" style="">----------------------------</td>
+              <% end %>
+            </tr>
+            <tr>
+              <td style="font-weight: bold; font-size: 1em; padding: 2px; max-width: 61%;">Date given to patient</td>
+              <% unless @date_vl_result_given.blank?%>
+                <td style=""><%= @date_vl_result_given.strftime("%a, %d-%b-%Y") %></td>
+              <% else %>
+                <td id="" style="">----------------------------</td>
+              <%  end %>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <span id='vl_update' onclick="updateVl();"><span>update</span></span>
+              </td>
+            </tr>
+          </table>
+        </div>
+ </div>
+      <div id="cover">
+      </div>
+      <div id="update_vl_menu" style="display:none">
+        <div><br />
+          <% unless @latest_result.blank?%>
+          <span id="update_vl_button" onclick="giveResultPath();">Result given to patient</span><br />
+          <% else %>
+          <span id="update_vl_button_gray" onclick="">Result given to patient</span><br />
+          <%  end %>
+          <%  if @enter_lab_results %>
+          <span id="update_vl_button" onclick="newVlResultPath();">Enter new VL result</span><br />
+          <% else %>
+          <span id="update_vl_button_gray" onclick=";">Enter new VL result</span><br />
+          <% end %>
+          <span id="update_vl_button" onclick="secondlineSwitchPath();">Patient switched to second line</span><br />
+          <span id="update_vl_button" onClick="removeUpdateVlMenu();">Back to milestone screening</span>
+        </div>
+      </div>
 </body>
 </html>
