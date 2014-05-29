@@ -605,8 +605,9 @@
       type: "POST",
       url: "/patients/set_deny_hiv_staging_sessions",
       data: "patient_id="+<%=@patient.id %>,
-      success: function(){
-        window.location = "<%= next_task(@patient) %>";
+      success: function(next_url){
+        next_task = next_url;
+        window.location = next_task;
       }
     });
   }
@@ -635,7 +636,7 @@
   if ! staging.blank?
   if staging != "No" %>
      <script>
-     //window.location = "<%= next_task(@patient) -%>";//This part was commented out because of endless looping. Needs to be re-checked.
+     //window.location = "<%#= next_task(@patient) -%>";//This part was commented out because of endless looping. Needs to be re-checked.
      </script>
   <% end
  end %>
