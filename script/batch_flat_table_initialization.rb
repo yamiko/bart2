@@ -920,17 +920,27 @@ def process_patient_state(patient_id,visit)
 				AND program_id = 1 AND voided = 0 
 				ORDER BY patient_program_id DESC LIMIT 1").first.patient_program_id
 
-	a_hash[:current_state] = PatientProgram.find_by_sql("SELECT 
-		current_state_for_program(#{patient_id},1,'#{visit} 23:59') AS state").first.state
-	
-  if ! a_hash[:current_state] == ''
-  	a_hash[:initial_start_date] = PatientState.find_by_sql("SELECT start_date 
-  								FROM patient_state 
-  								WHERE patient_program_id = #{program_id}
-  					AND voided = 0 AND state = #{a_hash[:current_state]} 
-  					AND start_date <= '#{visit}'
-  					ORDER BY start_date DESC, date_created DESC, patient_state_id DESC LIMIT 1").first.start_date  
+  patient_state = PatientProgram.find_by_sql("SELECT 
+	                        current_state_for_program(#{patient_id},1,'#{visit} 23:59:59') AS state").first.state  
+  
+  if !patient_state.blank?
+    state_name = ProgramWorkflowState.find_by_sql("SELECT 
+                                             c.name AS name
+                                           FROM
+                                                program_workflow_state pws
+                                                    INNER JOIN
+                                                concept_name c ON c.concept_id = pws.concept_id
+                                                    AND c.voided = 0
+                                                    AND pws.retired = 0
+                                           WHERE
+                                                program_workflow_state_id = #{patient_state}
+                                                    and program_workflow_id = 1
+                                            LIMIT 1").map(&:name) #rescue nil
   end
+ 
+  a_hash[:current_hiv_program_state] = state_name
+	a_hash[:current_hiv_program_start_date] = visit
+
 	return generate_sql_string(a_hash)
 end
 
@@ -954,16 +964,27 @@ def process_adherence_encounter(encounter, visit, type = 0) #type 0 normal encou
     (encounter.observations || []).each do |adh|
       if patient_adh[visit].blank?
         patient_adh[visit] = visit
-        amount_of_drug_brought_to_clinic_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
-        missed_hiv_drug_const_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
-        patient_adherence_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
-        amount_of_drug_remaining_at_home_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
+        if adh.concept_id == 2540 #amount brought
+          amount_of_drug_brought_to_clinic_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
+        elsif adh.concept_id == 2667 #missed hiv drug
+          missed_hiv_drug_const_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
+        elsif adh.concept_id == 6987 #patient adherence
+          patient_adherence_hash[visit] = adh.value_text rescue nil
+        elsif adh.concept_id == 6781 #amount remaining
+          amount_of_drug_remaining_at_home_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
+        end
       else
         patient_adh[visit] += visit
-        amount_of_drug_brought_to_clinic_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
-        missed_hiv_drug_const_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
-        patient_adherence_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
-        amount_of_drug_remaining_at_home_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
+        if adh.concept_id == 2540 #amount brought
+        #raise .to_yaml
+          amount_of_drug_brought_to_clinic_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
+        elsif adh.concept_id == 2667 #missed hiv drug
+          missed_hiv_drug_const_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
+        elsif adh.concept_id == 6987 #patient adherence
+          patient_adherence_hash[visit] += adh.value_text rescue nil
+        elsif adh.concept_id == 6781 #amount remaining
+          amount_of_drug_remaining_at_home_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
+        end
       end
     end
 
