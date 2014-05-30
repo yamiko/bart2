@@ -1,3 +1,4 @@
+<%= javascript_include_tag "prototype" %>
 <style>
   .tt_controls_clinical_notes_optional #space { display:inline; }
 
@@ -359,9 +360,9 @@
 	  if (whoStage >= 3) {
 		reasonForArtEligibility = whoStageConcept(whoStage, "ADULT");
 	  
-	  } else if (tstCurrentDate > '2014-04-01' && $('cd4_count_less_than_500').value == "YES"){
+	  } else if (tstCurrentDate >= '2014-04-01' && $('cd4_count_less_than_500').value == "YES"){
                    reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 500";
-          } else if (tstCurrentDate <= '2014-04-01' && $('cd4_count_less_than_350').value == "YES"){
+          } else if (tstCurrentDate < '2014-04-01' && $('cd4_count_less_than_350').value == "YES"){
                    reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 350";
           } else {
 		if (whoStage == 1 && lymphocyteCount < 1200 && lymphocyteCount != null) {
@@ -414,9 +415,9 @@
 		  reasonForArtEligibility = "PATIENT PREGNANT";
 		} else if ($('breast_feeding') && $('breast_feeding').value == "YES") {
 		  reasonForArtEligibility = "BREASTFEEDING";
-		} else if (tstCurrentDate > '2014-04-01' && age > 5 && $('cd4_count_less_than_500').value == "YES"){
+		} else if (tstCurrentDate >= '2014-04-01' && age > 5 && $('cd4_count_less_than_500').value == "YES"){
                    reasonForArtEligibility = "CD4 COUNT LESS THAN OR EQUAL TO 500";
-                } else if (tstCurrentDate > '2014-04-01' && age <= 5){
+                } else if (tstCurrentDate >= '2014-04-01' && age <= 5){
                    reasonForArtEligibility = "HIV infected";
                 }
 	  } catch (e) {}
@@ -600,25 +601,42 @@
 			  <%  end %>
 	}
   function denyStaging(){
-       window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat=cancel"
-
+    jQuery.ajax({
+      type: "POST",
+      url: "/patients/set_deny_hiv_staging_sessions",
+      data: "patient_id="+<%=@patient.id %>,
+      success: function(next_url){
+        next_task = next_url;
+        window.location = next_task;
+      }
+    });
   }
+  
   function allowStaging(){
-    window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat=no"
+    jQuery.ajax({
+      type: "POST",
+      url: "/patients/set_allow_hiv_staging_sessions",
+      data: "patient_id="+<%=@patient.id %>,
+      success: function(){
+        window.location = "/encounters/new/<%= params[:encounter_type] %>?action=show&controller=encounter_types&encounter_type='HIV staging'&id=show&patient_id=<%= params[:patient_id] %>&repeat=no"
+      }
+    });   
   }
+
 </script>  
 <style type="text/css">
   .small .options li { font-size:1.1em; }
   .tt_controls_cd4_count #lessthan, .tt_controls_cd4_count #greaterthan { display:block; float:right }
   .tt_controls_cd4_percent #lessthan, .tt_controls_cd4_percent #greaterthan { display:block; float:right }
 </style>
-<% 
+<%
+
   current_date = session[:datetime].to_date rescue Date.today
   staging = session["#{@patient.id}"]["#{current_date}"][:stage_patient] rescue []
   if ! staging.blank?
   if staging != "No" %>
      <script>
-     window.location = "<%= next_task(@patient) -%>";
+     //window.location = "<%#= next_task(@patient) -%>";//This part was commented out because of endless looping. Needs to be re-checked.
      </script>
   <% end
  end %>

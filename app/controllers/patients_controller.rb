@@ -322,4 +322,22 @@ class PatientsController < GenericPatientsController
     end
   end
 
+  def set_allow_hiv_staging_sessions
+    current_date = session[:datetime].to_date rescue Date.today
+    patient = Patient.find(params[:patient_id])
+    session["#{patient.id}"] = {} if session["#{patient.id}"].blank?
+    session["#{patient.id}"]["#{current_date}"] = {} if session["#{patient.id}"]["#{current_date}"].blank?
+    session["#{patient.id}"]["#{current_date}"][:stage_patient] = nil
+    render :text => "true" and return
+  end
+
+  def set_deny_hiv_staging_sessions
+    current_date = session[:datetime].to_date rescue Date.today
+    patient = Patient.find(params[:patient_id])
+    session["#{patient.id}"] = {} if session["#{patient.id}"].blank?
+    session["#{patient.id}"]["#{current_date}"] = {} if session["#{patient.id}"]["#{current_date}"].blank?
+    session["#{patient.id}"]["#{current_date}"][:stage_patient] = "No"
+    next_url = (next_task(patient))
+    render :text => next_url and return
+  end
 end

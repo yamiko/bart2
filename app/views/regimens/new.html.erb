@@ -1067,11 +1067,12 @@ element.setAttribute("onmousedown", "gotoNextPage()")
       options << ['120', '120']
     end
     
-    if (@current_weight >= 14)
+    if (@current_weight >= 14) and (@current_weight < 30)
       options << ['480 <span class="moh_recommend">(MoH Recommended)</span>', '480']
-      options << ['960 <span class="moh_recommend">(MoH Recommended)</span>', '960']
-    else
       options << ['960', '960']
+    elsif (@current_weight >= 30)
+      options << ['480', '480']
+      options << ['960 <span class="moh_recommend">(MoH Recommended)</span>', '960']
     end
       options = options.sort_by{|key, value| value.to_i}
       #options = options.sort_by{|key, value| value}
@@ -1266,10 +1267,9 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   <%= select_tag :regimen_concept_id, nil, {
 	:ajaxUrl => "",
 	:allowFreeText => 'false',
-	:tt_onLoad => "checkInput(); removeButton();addButton();changeRegimen();set_patient_program_for_suggestions($('patient_program').value);setTimeout('setSelectedRow();setTextToAppear(\" (MoH Recommended)\");',1000);showCategory('Regimen');",
+	:tt_onLoad => "checkInput(); removeButton();addButton();changeRegimen();set_patient_program_for_suggestions($('patient_program').value);setTimeout('setSelectedRow();setTextToAppear(\" (MoH Recommended)\")',1000);showCategory('Regimen');",
 	:condition => 'hasReasonForART() == true && $("prescribe_arvs").value == "YES" && $("continue_existing_regimen").value != "YES"',
-	:optional => true,
-        :helpText => "Select ART regimen",
+	:helpText => "Select ART regimen",
 	:tt_onUnload => "resetRegimen();removeButton();"}%>
 
   <%= select_tag :regimen_concept_id_all, nil, {
@@ -1374,7 +1374,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
      <%= touch_yes_no_tag "pyridoxine", @patient, nil,
 	  {	:id => 'pyridoxine',
 	  :allowFreeText => 'false',
-	  :condition => "prescribeAntiretroviralDrugs() && $('prescribe_arvs').value != 'YES'",
+	  :condition => "prescribeAntiretroviralDrugs() && $('prescribe_arvs').value != 'YES' && $('ipt_given').value == 'YES'",
 	  :helpText => "Prescribe Pyridoxine",
           :tt_onLoad => "showCategory('Regimen');"} %>
 
