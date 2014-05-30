@@ -63,19 +63,20 @@ def get_patients_data(patient_id)
    #building flat_cohort_table
 
    initial_flat_table1_string = "INSERT INTO flat_cohort_table "
-
+   
+   flat_table_1_data = []; flat_table_2_data = [] 
+    
    #get flat_table1 data
-   flat_table_1_data = FlatTable.find_by_sql("SELECT
+   flat_table_1_data = Encounter.find_by_sql("SELECT
                                                 patient_id,
                                                 gender,
                                                 dob,
-                                                death_date,
                                                 earliest_start_date,
                                                 reason_for_eligibility,
                                                 ever_registered_at_art_clinic,
                                                 date_art_last_taken,
-                                                taken_art_in_the_last_two_months,
-                                                taken_art_in_the_last_two_weeks,
+                                                taken_art_in_last_two_months,
+                                                taken_art_in_last_two_weeks,
                                                 extrapulmonary_tuberculosis,
                                                 pulmonary_tuberculosis,
                                                 pulmonary_tuberculosis_last_2_years,
@@ -88,8 +89,8 @@ def get_patients_data(patient_id)
                                                 ever_registered_at_art_v_date,
                                                 date_art_last_taken_v_date,
                                                 date_art_last_taken_v_date,
-                                                taken_art_in_last_two_months_v_date,
-                                              FROM flat_table1
+                                                taken_art_in_last_two_months_v_date
+                                              FROM #{@source_db}.flat_table1
                                               WHERE patient_id = #{patient_id}")
 
    if flat_table_1_data
@@ -97,7 +98,7 @@ def get_patients_data(patient_id)
    end
 
    #get flat_table2 data
-    FlatTable2.find_by_sql("SELECT
+    flat_table_2_data = Encounter.find_by_sql("SELECT
                               patient_id,
                               visit_date,
                               pregnant_yes,
@@ -148,7 +149,7 @@ def get_patients_data(patient_id)
                               current_hiv_program_state,
                               current_hiv_program_start_date,
                               current_hiv_program_end_date
-                            FROM flat_table2
+                            FROM #{@source_db}.flat_table2
                             WHERE patient_id = #{patient_id}
                             ORDER BY visit_date DESC
                             LIMIT 1")
@@ -165,7 +166,7 @@ def get_patients_data(patient_id)
   flat_cohort_table_sql_statement = initial_flat_table1_string + "(" + flat_table1[0] + "," + flat_table2[0] + ")" + \
 		 " VALUES (" + flat_table1[1] + "," + flat_table2[1] + ");"
 
-   return [table_1_sql_statement]
+   return [flat_cohort_table_sql_statement]
 end
 
 def process_flat_table_1(flat_table_1_data, type = 0) #type 0 normal encounter, 1 generate_template only 
@@ -175,13 +176,13 @@ def process_flat_table_1(flat_table_1_data, type = 0) #type 0 normal encounter, 
     values = ""
 
     #create flat_table1 field list hash template
-    a_hash = {  :patient_id => 'NULL'}
+    a_hash = {  :ever_registered_at_art_v_date => 'NULL'}
 
     return generate_sql_string(a_hash) if type == 1
 
     (flat_table_1_data || []).each do |patient|
     
-      pat = Patien.find_by_patient_id(patient.patient_id)
+      pat = Patient.find_by_patient_id(patient.patient_id)
 
       a_hash[:patient_id] = patient.patient_id,
       a_hash[:gender] = patient.gender,
@@ -191,7 +192,7 @@ def process_flat_table_1(flat_table_1_data, type = 0) #type 0 normal encounter, 
       a_hash[:reason_for_starting] = patient.reason_for_eligibility,
       a_hash[:ever_registered_at_art] = patient.ever_registered_at_art_clinic,
       a_hash[:date_art_last_taken] = patient.date_art_last_taken,
-      a_hash[:taken_art_in_last_two_months] = patient.taken_art_in_the_last_two_months,
+      a_hash[:taken_art_in_last_two_months] = patient.taken_art_in_last_two_months,
       a_hash[:extrapulmonary_tuberculosis] = patient.extrapulmonary_tuberculosis,
       a_hash[:pulmonary_tuberculosis] = patient.pulmonary_tuberculosis,
       a_hash[:pulmonary_tuberculosis_last_2_years] = patient.pulmonary_tuberculosis_last_2_years,
@@ -209,18 +210,18 @@ def process_flat_table_1(flat_table_1_data, type = 0) #type 0 normal encounter, 
     return generate_sql_string(a_hash)
 end
 
-def process_flat_table_1(flat_table_1_data, type = 0) #type 0 normal encounter, 1 generate_template only 
+def process_flat_table_2(flat_table_2_data, type = 0) #type 0 normal encounter, 1 generate_template only 
 
     #initialize field and values variables
     fields = ""
     values = ""
 
-    #create flat_table1 field list hash template
-    a_hash = {  :patient_id => 'NULL'}
+    #create flat_table2 field list hash template
+    a_hash = {  :drug_auto_expire_date5_v_date => 'NULL'}
 
     return generate_sql_string(a_hash) if type == 1
 
-    (flat_table_1_data || []).each do |patient|
+    (flat_table_2_data || []).each do |patient|
       a_hash[:hiv_program_state] = patient.current_state,
       a_hash[:hiv_program_start_date] = patient.initial_start_date,
       a_hash[:pregnant_yes] = patient.pregnant_yes,
