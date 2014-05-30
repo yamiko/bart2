@@ -1499,7 +1499,7 @@ class EncountersController < GenericEncountersController
   end 
 
   def export_on_art_patients
-    	@ids = params["ids"].split(",")
+    @ids = params["ids"].split(",")
 		@id_string = "'" + @ids.join("','") + "'"
 		@end_date = params["end_date"]
 		@start_date = params["start_date"]

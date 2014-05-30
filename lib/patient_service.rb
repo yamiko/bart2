@@ -2139,8 +2139,7 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
       art_start_date = start_date
       if art_start_date.blank? || art_start_date == ""
         start_date = ActiveRecord::Base.connection.select_value "
-        SELECT earliest_start_date FROM earliest_start_date
-        WHERE patient_id = #{patient.id} LIMIT 1"
+        SELECT earliest_start_date_at_clinic(#{patient.id});"
       end
     end
 
