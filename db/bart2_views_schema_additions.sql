@@ -72,15 +72,8 @@ CREATE FUNCTION date_antiretrovirals_started(set_patient_id INT, min_state_date 
 BEGIN                                                                           
                                                                                 
 DECLARE date_started DATE;
-DECLARE start_date_concept_id INT;
 
-SET start_date_concept_id = (SELECT concept_id FROM concept_name WHERE name = 'ART START DATE' LIMIT 1);
-SET date_started = (SELECT value_datetime FROM obs WHERE concept_id = start_date_concept_id AND person_id = set_patient_id LIMIT 1);
-
-if date_started is null then
-SET start_date_concept_id = (SELECT concept_id FROM concept_name WHERE name = 'Date antiretrovirals started' LIMIT 1);
-SET date_started = (SELECT value_datetime FROM obs WHERE concept_id = start_date_concept_id AND person_id = set_patient_id LIMIT 1);
-end if;
+SET date_started = (SELECT LEFT(value_datetime,10) FROM obs WHERE concept_id = 2516 AND person_id = set_patient_id LIMIT 1);
 
 if date_started is NULL then 
 SET date_started = min_state_date;
@@ -98,7 +91,7 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
   VIEW `earliest_start_date` AS
   SELECT `p`.`patient_id` AS `patient_id`,`p`.`date_enrolled`,
          MIN(`s`.`start_date`) AS `earliest_start_date`, `person`.`death_date` AS death_date,
-         DATEDIFF(date_antiretrovirals_started(`p`.`patient_id`, MIN(`s`.`start_date`)), `person`.`birthdate`) AS age_at_initiation
+         ROUND(DATEDIFF(date_antiretrovirals_started(`p`.`patient_id`, MIN(`s`.`start_date`)), `person`.`birthdate`)/365) AS age_at_initiation
   FROM ((`patient_program` `p`
   LEFT JOIN `patient_state` `s` ON((`p`.`patient_program_id` = `s`.`patient_program_id`)))
   LEFT JOIN `person` ON((`person`.`person_id` = `p`.`patient_id`)))
@@ -275,6 +268,22 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
          `obs`.`uuid` AS `uuid` 
   FROM `obs` 
   WHERE ((`obs`.`concept_id` = 7459) and (`obs`.`voided` = 0));
+
+
+
+DROP FUNCTION IF EXISTS earliest_start_date_at_clinic;                                          
+                                                                                
+DELIMITER $$                                                                     
+CREATE FUNCTION earliest_start_date_at_clinic(set_patient_id INT) RETURNS DATE
+BEGIN                                                                           
+                                                                                
+DECLARE date_started DATE;
+
+SET date_started = (SELECT MIN(start_date) FROM patient_state WHERE voided = 0 AND state = 7 AND patient_program_id IN (SELECT patient_program_id FROM patient_program WHERE patient_id = set_patient_id AND voided = 0 AND program_id = 1));
+
+RETURN date_started;
+END$$                                                                           
+DELIMITER ;
 
 --
 -- Dumping routines for database 'bart2'
