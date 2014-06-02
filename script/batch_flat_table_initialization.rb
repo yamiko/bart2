@@ -127,6 +127,8 @@ def get_patients_data(patient_id)
        	patient_orders = []
       	patient_state = []
       	patient_adh = []
+      	patient_reg_category = []
+      	
  # we will exclude the orders having drug_inventory_id null     	
        	orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
                                                o.start_date, o.auto_expire_date, d.quantity,
@@ -141,7 +143,20 @@ def get_patients_data(patient_id)
         	if orders
           		patient_orders = process_patient_orders(orders, visit, 1) if patient_orders.empty?
         	end
-      
+
+          reg_category = Encounter.find_by_sql("SELECT e.patient_id, o.value_text, o.encounter_id, e.encounter_datetime
+                                              FROM encounter e
+                                               INNER JOIN obs o on o.encounter_id = e.encounter_id 
+                                                    AND o.concept_id = 8375
+                                                    AND o.voided = 0 AND e.voided = 0
+                                              WHERE e.encounter_type = 54
+                                              AND DATE(e.encounter_datetime) = '#{visit}'
+                                              AND e.patient_id = #{patient_id}")
+
+          if reg_category
+            patient_reg_category = process_pat_regimen_category(reg_category, visit, 1) if patient_reg_category.empty?
+          end
+
       	encounters = Encounter.find(:all,
       			:include => [:observations],
       			:order => "encounter_datetime ASC",
@@ -174,13 +189,14 @@ def get_patients_data(patient_id)
           	sql_statement = initial_string + "(" + patient_details[0] + patient_state[0] + vitals[0] + appointment[0] + hcc[0] + hiv_reception[0] + patient_orders[0] + ")" + \
       		 " VALUES (" + patient_details[1] + patient_state[1]  + vitals[1] + appointment[1] + hcc[1] + hiv_reception[1] + patient_orders[1] + ");"
 =end
-            table_2_sql_statement = initial_string + "(" + patient_details[0] + "," + patient_state[0] + "," + vitals[0] + "," + hcc[0] + "," + hiv_reception[0] + "," + patient_orders[0] + "," + patient_adh[0] + ")" + \
-           " VALUES (" + patient_details[1] + "," + patient_state[1]  + "," + vitals[1] + "," + hcc[1] + "," + hiv_reception[1] + "," + patient_orders[1] + "," + patient_adh[1] + ");"
+            table_2_sql_statement = initial_string + "(" + patient_details[0] + "," + patient_state[0] + "," + vitals[0] + "," + hcc[0] + "," + hiv_reception[0] + "," + patient_orders[0] + "," + patient_adh[0] + "," + patient_reg_category[0] + ")" + \
+           " VALUES (" + patient_details[1] + "," + patient_state[1]  + "," + vitals[1] + "," + hcc[1] + "," + hiv_reception[1] + "," + patient_orders[1] + "," + patient_adh[1] + "," + patient_reg_category[1] + ");"
 =begin      
           	$temp_outfile = File.open("./db/flat_table_2-" + @started_at + ".sql", "w")
           	$temp_outfile << sql_statement
           	$temp_outfile.close
 =end
+patient_reg_category
       table2_sql_batch += table_2_sql_statement 
    end
    return [table_1_sql_statement, table2_sql_batch]
@@ -767,6 +783,21 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
   return generate_sql_string(a_hash)
 end
 
+def process_pat_regimen_category(reg_category, visit, type = 0)
+  a_hash = {:transfer_within_responsibility_no => 'NULL'}
+
+  if reg_category
+    (reg_category || []).each do |regimen|
+      a_hash[:regimen_category] = regimen.value_text
+      a_hash[:regimen_category_enc_id] = regimen.encounter_id
+    end
+   
+    return generate_sql_string(a_hash)
+  end
+  
+  
+end
+
 def process_patient_orders(orders, visit, type = 0)
   patient_orders = {}
   drug_dose_hash = {}; drug_frequency_hash = {};
@@ -778,39 +809,26 @@ def process_patient_orders(orders, visit, type = 0)
   
   if !orders.blank?  
     patient_id = orders.map(&:patient_id).first
-
-    dispensing_encounter_id = EncounterType.find_by_name("DISPENSING").id
-    treatment_encounter_id = EncounterType.find_by_name("TREATMENT").id
-    regimen_category_concept_id = ConceptName.find_by_name("REGIMEN CATEGORY").concept_id
-      
-    reg_category = Encounter.find_by_sql("SELECT last_text_for_obs(#{patient_id}, #{dispensing_encounter_id}, #{regimen_category_concept_id}, '#{visit}') AS regimen_category").map(&:regimen_category)
-
-    if !reg_category.blank?
-      pat_reg_category = reg_category.first
-    else
-      pat_reg_category = Encounter.find_by_sql("SELECT last_text_for_obs(#{patient_id}, #{treatment_encounter_id}, #{regimen_category_concept_id}, '#{visit}') AS regimen_category").map(&:regimen_category)
-    end
-  end
- 
- (orders || []).each do |ord|
-    if ord.drug_inventory_id == '2833'
-      drug_name = @drug_list[:"738"] #Drug.find(738).name
-    elsif ord.drug_inventory_id == '1610'
-      drug_name = @drug_list[:"731"] #Drug.find(731).name
-    elsif ord.drug_inventory_id == '1613'
-      drug_name = @drug_list[:"955"] #Drug.find(955).name
-    elsif ord.drug_inventory_id == '2985'
-      drug_name = @drug_list[:"735"] #Drug.find(735).name
-    elsif ord.drug_inventory_id == '7927'
-      drug_name = @drug_list[:"969"] #Drug.find(969).name
-    elsif ord.drug_inventory_id == '7928'
-      drug_name = @drug_list[:"734"] #Drug.find(734).name
-    elsif ord.drug_inventory_id == '9175'
-      drug_name = @drug_list[:"932"] #Drug.find(932).name
-    else
-      drug_name = @drug_list[:"#{ord.drug_inventory_id}"] #Drug.find(ord.drug_inventory_id).name
-    end
-    #drug_name = Drug.find(ord.drug_inventory_id).name
+  end  
+    (orders || []).each do |ord|
+      if ord.drug_inventory_id == '2833'
+        drug_name = @drug_list[:"738"] #Drug.find(738).name
+      elsif ord.drug_inventory_id == '1610'
+        drug_name = @drug_list[:"731"] #Drug.find(731).name
+      elsif ord.drug_inventory_id == '1613'
+        drug_name = @drug_list[:"955"] #Drug.find(955).name
+      elsif ord.drug_inventory_id == '2985'
+        drug_name = @drug_list[:"735"] #Drug.find(735).name
+      elsif ord.drug_inventory_id == '7927'
+        drug_name = @drug_list[:"969"] #Drug.find(969).name
+      elsif ord.drug_inventory_id == '7928'
+        drug_name = @drug_list[:"734"] #Drug.find(734).name
+      elsif ord.drug_inventory_id == '9175'
+        drug_name = @drug_list[:"932"] #Drug.find(932).name
+      else
+        drug_name = @drug_list[:"#{ord.drug_inventory_id}"] #Drug.find(ord.drug_inventory_id).name
+      end
+      #drug_name = Drug.find(ord.drug_inventory_id).name
 
     if patient_orders[drug_name].blank?
       patient_orders[drug_name] = drug_name
@@ -902,7 +920,6 @@ def process_patient_orders(orders, visit, type = 0)
        count += 1    
       end
   end
-  a_hash[:regimen_category] = pat_reg_category
 
   return generate_sql_string(a_hash)
 end
@@ -945,16 +962,15 @@ def process_patient_state(patient_id,visit)
 end
 
 def process_adherence_encounter(encounter, visit, type = 0) #type 0 normal encounter, 1 generate_template only 
-
-    #initialize field and values variables
-    fields = ""
-    values = ""
-    
     patient_adh = {}
     amount_of_drug_brought_to_clinic_hash  = {}
     missed_hiv_drug_const_hash  = {}
     patient_adherence_hash  = {}
     amount_of_drug_remaining_at_home_hash  = {}
+
+    #initialize field and values variables
+    fields = ""
+    values = ""
 
     #create patient adherence field list hash template
     a_hash = {:missed_hiv_drug_construct1 => 'NULL'}
@@ -976,7 +992,6 @@ def process_adherence_encounter(encounter, visit, type = 0) #type 0 normal encou
       else
         patient_adh[visit] += visit
         if adh.concept_id == 2540 #amount brought
-        #raise .to_yaml
           amount_of_drug_brought_to_clinic_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
         elsif adh.concept_id == 2667 #missed hiv drug
           missed_hiv_drug_const_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
@@ -1024,7 +1039,7 @@ def process_adherence_encounter(encounter, visit, type = 0) #type 0 normal encou
          count += 1    
      end
     end
-  
+
   return generate_sql_string(a_hash)
 end
 
@@ -1046,6 +1061,7 @@ def start
  initialize_variables
  get_all_patients
 end
+
 def get_drug_list
   drug_hash = {}
   drug_list = Drug.find_by_sql("SELECT drug_id, name FROM drug")
