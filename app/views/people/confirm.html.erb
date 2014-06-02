@@ -141,7 +141,9 @@
 
       function addDivToContent(){
         c = document.getElementById('content');
+        p = document.getElementById('popup');
         v = document.getElementById('vl_data');
+        c.appendChild(p);
         c.appendChild(v);
       }
       window.setTimeout("addDivToContent();", 250);
@@ -427,7 +429,7 @@ function cancelOperation(action){
         <hr class="popup_hr"></hr>
         <a id='viral_load_done' onclick = "viral_load_requested_today();" ><span>VL Requested Today</span></a>
                     <!--<a id='lab_trail' onclick="window.location='/lab/results/<%=@person.id%>'"><span>View Lab Trail</span></a>-->
-        <a id='reminder' onclick="viral_load_not_requested_today(); removePopup();"><span>VL Not Requested Today</span></a>
+        <a id='reminder' onclick="removePopup();"><span>VL Not Requested Today</span></a>
       </div>
 
       <div id="cover">
@@ -526,7 +528,7 @@ function cancelOperation(action){
       line-height: 35px;
       position: absolute;
       top: 152px;
-      width: 941px;
+      width: 99%;
       border: 1px solid black;
     }
     #popup{
@@ -537,12 +539,12 @@ function cancelOperation(action){
       color: black;
       font-size: 28px;
       height: 579px;
-      left: 14%;
+      left: 2%;
       padding: 5px;
       position: absolute;
       text-align: center;
       top: 5%;
-      width: 947px;
+      width: 94%;
       z-index: 991;
     }
     #cover{
@@ -711,7 +713,7 @@ function cancelOperation(action){
         <span style="color: red">VL Results Available?</span>
         <div style="margin-top:8%;">
           <%  if @enter_lab_results %>
-          <span id="update_vl_button" onclick="captureVl();">Enter Viral load result</span><br />
+          <span id="update_vl_button" onclick="newVlResultPath();">Enter Viral load result</span><br />
           <%  else %>
           <span id="update_vl_button_gray" onclick="">Enter Viral load result</span><br />
           <% end %>
@@ -729,7 +731,7 @@ function cancelOperation(action){
       <div id="popup" style="display:none; background-color: #DCDCDC;">
 
             <div class="art_container">
-              <div class="header" style="position: absolute; left: 150px">
+              <div class="header" style="position: absolute; left: 20%">
                 <div id="viral_header">
                   <u>Routine Viral Load Screening Due</u><br />
                   <u>Assess Adherence:</u> <br />
@@ -782,7 +784,7 @@ function cancelOperation(action){
 
             <hr class="popup_hr_without_lab"></hr>
             <a id='viral_load_requested_today' onclick = "viral_load_requested_today();" ><span>VL Requested Today</span></a>
-            <a id='viral_load_already_done' onclick="vl_already_done();"><span>VL Not Requested Today</span></a>
+            <a id='viral_load_already_done' onclick="removePopup();"><span>VL Not Requested Today</span></a>
             <!--
             <a id='viral_load_adherence_issues' onclick="vl_adherence_issue();"><span>Not Requested Today<br />(Due to poor adherence to ART)</span></a>
             -->
