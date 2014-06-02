@@ -362,6 +362,14 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
                         a_hash[:pregnant_no] = 'No'
                         a_hash[:pregnant_no_enc_id] = encounter.encounter_id
                 end
+         elsif obs.concept_id == 1755 #Patient Pregnant
+                if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
+                        a_hash[:pregnant_yes] = 'Yes'
+                        a_hash[:pregnant_yes_enc_id] = encounter.encounter_id
+                elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
+                        a_hash[:pregnant_no] = 'No'
+                        a_hash[:pregnant_no_enc_id] = encounter.encounter_id
+                end
         elsif obs.concept_id == 7965 #breastfeeding
                 if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
                         a_hash[:breastfeeding_yes] = 'Yes'
@@ -1049,7 +1057,7 @@ def generate_sql_string(a_hash)
 
     a_hash.each do |key,value|
         fields += fields.empty? ? "`#{key}`" : ", `#{key}`"
-	str = '"' + value.to_s + '"'
+      	str = '"' + value.to_s + '"'
 #        values += values.empty? ? "'#{value}'" : ", '#{value}'"
         values += values.empty? ? "#{str}" : ", #{str}"
     end
