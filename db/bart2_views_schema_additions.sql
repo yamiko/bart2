@@ -285,6 +285,21 @@ RETURN date_started;
 END$$                                                                           
 DELIMITER ;
 
+-- creating a view to hold patients' service waiting time
+CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
+  VIEW `patient_service_waiting_time` AS
+  SELECT  e.patient_id, LEFT(e.encounter_datetime,10) visit_date, 
+    MIN(e.encounter_datetime) start_time , MAX(e.encounter_datetime) finish_time,
+    TIMEDIFF( MAX(e.encounter_datetime) , MIN(e.encounter_datetime) ) service_time
+  FROM encounter e  INNER JOIN encounter e2 ON e.patient_id = e2.patient_id 
+  AND e.encounter_type IN(7, 9, 12, 25, 51, 52, 53, 54, 68) WHERE e.encounter_datetime 
+  BETWEEN date_format(DATE_SUB(NOW() , INTERVAL 175 DAY),'%Y-%m-%d 00:00:00')
+  AND date_format(DATE_SUB(NOW() , INTERVAL 168 DAY),'%Y-%m-%d 23:59:59')
+  AND (RIGHT(e.encounter_datetime,2) <> '01' AND RIGHT(e.encounter_datetime,2) <> '01')
+  GROUP BY e.patient_id,DATE(e.encounter_datetime)
+  ORDER BY e.patient_id,e.encounter_datetime; 
+
+
 --
 -- Dumping routines for database 'bart2'
 --
@@ -865,7 +880,7 @@ BEGIN
 	SELECT MAX(o.start_date) INTO @obs_datetime  FROM obs
                             INNER join encounter USING (encounter_id)
                             INNER JOIN drug_order d ON obs.order_id = d.order_id
-                            INNER JOIN orders o ON o.order_id = d.order_id
+                            INNER JOIN orders o ON o.order_id = d.order_id AND o.patient_id = my_patient_id
                             WHERE encounter_type = (SELECT encounter_type_id FROM encounter_type WHERE name = 'DISPENSING')
                             AND d.drug_inventory_id IN (SELECT drug_id FROM drug
                             WHERE concept_id IN (SELECT concept_id
@@ -876,7 +891,6 @@ BEGIN
                             AND o.voided = 0
                             AND obs.voided = 0
                             AND DATE(o.start_date) <= my_end_date
-                            AND encounter.patient_id = my_patient_id
 		GROUP BY o.patient_id;
 
 	OPEN cur1;
