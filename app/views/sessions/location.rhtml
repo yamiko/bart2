@@ -35,6 +35,28 @@
 
 <form id='sessions' action="/sessions/update" method='post'>
     <label for="location">Location</label>
-    <%= text_field_tag(:location, nil, :helpText => "Workstation location", :field_type => "number", :tt_onLoad => "inform();__$('keyboard').style.display = 'none'") %><br>
+    <%= text_field_tag(:location, nil, :helpText => "Workstation location", 
+        :field_type => "number", 
+        :tt_onLoad => "inform();__$('keyboard').style.display = 'none';addGraph();") %><br>
     <%= submit_tag :value => "Submit" %>
 </form>
+    
+
+<div id="charts" style="height:485px;margin:2px 6px 6px;padding:2px;width:380px;">
+  <%#= render(:partial => "average_length_of_stay" ) %>
+</div>
+
+  <style>
+    #inputFrame0 {
+      //background: red;
+    }
+
+  </style>
+  
+  <script> 
+     
+    function addGraph() {
+     // chart = document.getElementById('charts')
+     // document.getElementById('inputFrame'+tstCurrentPage).appendChild(chart); 
+    }     
+  </script>      
