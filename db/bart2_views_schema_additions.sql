@@ -847,7 +847,7 @@ BEGIN
 	DECLARE cur1 CURSOR FOR SELECT d.drug_inventory_id, o.start_date, d.equivalent_daily_dose daily_dose, obs.value_numeric, o.start_date FROM obs
                             INNER join encounter USING (encounter_id)
                             INNER JOIN drug_order d ON obs.order_id = d.order_id
-                            INNER JOIN orders o ON o.order_id = d.order_id
+                            INNER JOIN orders o ON o.order_id = d.order_id AND o.patient_id = my_patient_id
                             WHERE encounter_type = (SELECT encounter_type_id FROM encounter_type WHERE name = 'DISPENSING')
                             AND d.drug_inventory_id IN (SELECT drug_id FROM drug
                             WHERE concept_id IN (SELECT concept_id
@@ -857,8 +857,7 @@ BEGIN
                             AND d.quantity > 0
                             AND o.voided = 0
                             AND obs.voided = 0
-                            AND DATE(o.start_date) <= my_end_date
-                            AND encounter.patient_id = my_patient_id;
+                            AND DATE(o.start_date) <= my_end_date;
 
 	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
