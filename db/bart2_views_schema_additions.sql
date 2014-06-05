@@ -288,13 +288,13 @@ DELIMITER ;
 -- creating a view to hold patients' service waiting time
 CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
   VIEW `patient_service_waiting_time` AS
-  SELECT  e.patient_id, LEFT(e.encounter_datetime,10) visit_date, 
+  SELECT  e.patient_id, DATE(e.encounter_datetime) visit_date, 
     MIN(e.encounter_datetime) start_time , MAX(e.encounter_datetime) finish_time,
     TIMEDIFF( MAX(e.encounter_datetime) , MIN(e.encounter_datetime) ) service_time
   FROM encounter e  INNER JOIN encounter e2 ON e.patient_id = e2.patient_id 
   AND e.encounter_type IN(7, 9, 12, 25, 51, 52, 53, 54, 68) WHERE e.encounter_datetime 
-  BETWEEN date_format(DATE_SUB(NOW() , INTERVAL 175 DAY),'%Y-%m-%d 00:00:00')
-  AND date_format(DATE_SUB(NOW() , INTERVAL 168 DAY),'%Y-%m-%d 23:59:59')
+  BETWEEN date_format(DATE_SUB(NOW() , INTERVAL 7 DAY),'%Y-%m-%d 00:00:00')
+  AND date_format(DATE_SUB(NOW() , INTERVAL 1 DAY),'%Y-%m-%d 23:59:59')
   AND (RIGHT(e.encounter_datetime,2) <> '01' AND RIGHT(e.encounter_datetime,2) <> '01')
   GROUP BY e.patient_id,DATE(e.encounter_datetime)
   ORDER BY e.patient_id,e.encounter_datetime; 

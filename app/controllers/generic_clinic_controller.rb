@@ -140,7 +140,8 @@ class GenericClinicController < ApplicationController
       ["Pre-ART","/cohort_tool/cohort_menu?type=pre_art"],
       ["View appointments","/properties/select_date"],
       ["Missed Appointments", "/report/missed_appointment_duration?type=missed"],
-      ["Defaulted patients", "/report/missed_appointment_duration?type=defaulter"]
+      ["Defaulted patients", "/report/missed_appointment_duration?type=defaulter"],
+      ["Avg ART clinic duration for patients", "/report/avg_waiting_time_for_art_patients"]
     ]
 
 

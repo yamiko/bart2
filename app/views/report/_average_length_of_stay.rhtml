@@ -15,9 +15,11 @@
 
       var dates = [];
       var people = [];
-      <%@visits.sort_by{ |k,v| k }.each_with_index do |(date,attr), i|%>
+      var avg_time = [];
+      <%@visits.sort_by{ |k,v| k.to_date }.each_with_index do |(date,attr), i|%>
         dates.push("<%=date.strftime('%a')%>");
         people.push(<%=attr[:number_of_patients]%>);
+        avg_time.push(<%=attr[:avg_waiting_time].to_i%>);
       <%end%>    
  
       $(function () {
@@ -26,7 +28,7 @@
                 zoomType: 'xy'
             },
             title: {
-                text: 'Average waiting time for ART/HIV patients'
+                text: 'Average ART/HIV clinic time per patient'
             },
             subtitle: {
                 text: ''
@@ -81,16 +83,16 @@
                 yAxis: 1,
                 data: people,
                 tooltip: {
-                    valueSuffix: ' min'
+                    valueSuffix: ''
                 }
     
             }, {
-                name: 'Time',
+                name: 'Avg time/patient',
                 color: '#89A54E',
                 type: 'spline',
-                data: [49.9, 71.5, 106.4, 129.2, 144.0,10,9],
+                data: avg_time,
                 tooltip: {
-                    valueSuffix: ''
+                    valueSuffix: ' min'
                 }
             }]
         });
@@ -100,17 +102,15 @@
     </script>
   </head>
   <body>
-<!--script src="../../js/highcharts.js"></script>
-<script src="../../js/modules/exporting.js"></script-->
 <%= javascript_include_tag "Highcharts/js/highcharts" %>
 <%= javascript_include_tag "Highcharts/js/modules/exporting" %>
 
     <div id="main-container" style="display:table; width: 100%;">
       <div style="display:table-row; width: 100%;"></div>
-        <div id="chart-container" style="display:table-cell; min-width:1000px !important; height: 470px;"></div>
+        <div id="chart-container" style="display:table-cell; min-width:1000px !important; height: 570px;"></div>
         <div id="details-container" style="display:table-cell; min-width:500px; vertical-align: top !important; padding-left: 20px;">
-          <div style="display:table-row; min-width: 200px;"><b>Number of patients who came the past seven days</b></div><br />
-          <%(@visits || {}).each_with_index do |(date, attr), i|
+          <div style="display:table-row; min-width: 200px;"><b>Number of patients who came the past Five days</b></div><br />
+          <%(@visits || {}).sort_by{ |k,v| k.to_date }.reverse.each_with_index do |(date, attr), i|
               row_color = i.odd? ? 'white' : 'blue' %>
               <table style="width:99%;">
                 <tr>
@@ -122,7 +122,6 @@
               </table>
           <%end%>
         </div>
-      </div>
     </div>
   </body>
 </html>

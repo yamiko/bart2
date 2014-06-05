@@ -33,51 +33,6 @@ class GenericSessionsController < ApplicationController
 		if (CoreService.get_global_property_value('select_login_location').to_s == "true" rescue false)
 			render :template => 'sessions/select_location'
 		end
-    @visits = {}
-    encounter_type = ["PART_FOLLOWUP",'HIV STAGING','HIV RECEPTION',
-      'HIV CLINIC REGISTRATION','DISPENSING','HIV CLINIC CONSULTATION',
-      'TREATMENT','APPOINTMENT','ART ADHERENCE']
-
-    encounter_type_ids =  EncounterType.find(:all,:conditions => ["name IN(?)",encounter_type]).map(&:id)
-
-    ((7.day.ago.to_date..1.day.ago.to_date).map{ |date| date }).each do |date|
-      @visits[date] = {:number_of_patients => 0, :avg_waiting_time => 0,:total_clinic_hrs => 0 }
-      @visits[date][:number_of_patients] = Encounter.count(:all,:conditions =>["encounter_type IN(?) 
-        AND encounter_datetime BETWEEN ? AND ?",encounter_type_ids,date.strftime('%Y-%m-%d 00:00:00'),
-        date.strftime('%Y-%m-%d 23:59:59')])
-    end
-
-
-    (@visits || {}).each do |date, attr|
-      rec = Encounter.find(:all,:conditions => ["encounter.encounter_datetime BETWEEN ? AND ? 
-        AND (RIGHT(encounter.encounter_datetime,2) <> '01' 
-        AND RIGHT(encounter.encounter_datetime,2) <> '01')
-        AND encounter.encounter_type IN(?)",date.strftime('%Y-%m-%d 00:00:00'),
-        date.strftime('%Y-%m-%d 23:59:59'), encounter_type_ids],
-        :group => "encounter.patient_id",:select => "encounter.patient_id, 
-        TIMEDIFF( MAX(encounter.encounter_datetime) , MIN(encounter.encounter_datetime) ) difference")
-
-      next if rec.blank?
-
-      time = '00:00:00'
-      sum_time = []
-      rec.collect do |t| 
-        result = ActiveRecord::Base.connection.select_value <<EOF
-          SELECT ADDTIME(TIME('#{time}'),TIME('#{t.difference}'));
-EOF
-
-        sec = ActiveRecord::Base.connection.select_value <<EOF
-          SELECT TIME_TO_SEC(TIME('#{result}'));
-EOF
-
-        time = t.difference
-        sum_time << [result,sec]
-      end
-      @visits[date][:avg_waiting_time] = (sum_time.last.last.to_i/rec.length)
-      @visits[date][:total_clinic_hrs] = sum_time.last
-    end
-
-      
 	end
 
 	# Update the session with the location information
