@@ -4,6 +4,9 @@ def initialize_variables
   @source_db = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))["production"]["database"]
   @started_at = Time.now.strftime("%Y-%m-%d-%H%M%S")
   @drug_list = get_drug_list
+  @max_dispensing_enc_date = Encounter.find_by_sql("SELECT DATE(max(encounter_datetime)) AS adate
+                                                    FROM encounter
+                                                    WHERE encounter_type = 54").map(&:adate)
 end
 
 def write_sql(a_hash,table)
@@ -46,9 +49,9 @@ def get_all_patients
     $temp_outfile_2 = File.open("./db/flat_table_2-" + @started_at + ".sql", "w")
     $temp_outfile_3 = File.open("./db/patients_initialized-" + @started_at + ".sql", "w")
     
-    #patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date").map(&:patient_id)
+    patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date").map(&:patient_id)
     patients_done = []
-    patient_list = [4, 14, 38, 46, 70, 70, 86, 88, 90, 104, 112, 118, 126, 134, 182, 204, 232, 240, 244, 246, 492] #,61952]
+    #patient_list = [16952]#[4, 14, 38, 46, 70, 70, 86, 88, 90, 104, 112, 118, 126, 134, 182, 204, 232, 240, 244, 246, 492] #,61952]
     patient_list.each do |p|
          $temp_outfile_3 << "#{p}," 
 	    sql_statements = get_patients_data(p)
@@ -114,7 +117,8 @@ def get_patients_data(patient_id)
 	
 	
 	#visits.each do |visit_date|
-	session_date = Date.today
+	  session_date = @max_dispensing_enc_date
+
 	  defaulted_dates = patient_defaulted_dates(patient_obj, session_date) 
 	  #raise defaulted_dates.to_yaml
 	  #rescue nilpatient_defaulted_dates(patient_obj, visit_date)
@@ -132,7 +136,7 @@ def get_patients_data(patient_id)
   initial_string = "INSERT INTO flat_table2 "
   table2_sql_batch = ""
   
-  visits.each do |visit|
+  visits.sort.each do |visit|
       	# arrays of [fields, values]
       patient_details = ["patient_id, visit_date","#{patient_id},'#{visit}'"]   	
       vitals = []
@@ -1082,41 +1086,50 @@ def patient_defaulted_dates(patient_obj, session_date)
     dates = 0
     total_dispensations = all_dispensations.length
     defaulted_dates = all_dispensations.map(&:obs_datetime)
+    test = []
     
     all_dispensations.each do |disp_date|
       d = ((dates - total_dispensations) + 1)
 
       prev_dispenation_date = all_dispensations[d].obs_datetime.to_date
 
-      if d == 0
-        previous_date = session_date
-        defaulted_state = ActiveRecord::Base.connection.select_value "                  
-        SELECT current_defaulter(#{disp_date.person_id},'#{previous_date}')"
+      if (d == 0 && dates ==0) or (d != 0)
+            test << "#{d}-#{prev_dispenation_date}, #{dates}"
+        if d == 0
+          previous_date = session_date
+          #defaulted_state = ActiveRecord::Base.connection.select_value "                  
+         # SELECT current_defaulter(#{disp_date.person_id},'#{previous_date}')"
 
-        if defaulted_state.to_i == 1
-          defaulted_date = ActiveRecord::Base.connection.select_value "                   
-            SELECT current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
+          #if defaulted_state.to_i == 1
+            defaulted_date = ActiveRecord::Base.connection.select_value "                   
+              SELECT current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
 
-          outcome_dates << defaulted_date if !defaulted_dates.include?(defaulted_date)
-        end
-      else
-        previous_date = prev_dispenation_date.to_date
-        
-        defaulted_state = ActiveRecord::Base.connection.select_value "                   
-        SELECT current_defaulter(#{disp_date.person_id},'#{previous_date}')"
-
-        if defaulted_state.to_i == 1
-          defaulted_date = ActiveRecord::Base.connection.select_value "
-            SELECT current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
-          if !defaulted_dates.blank?
-            outcome_dates << defaulted_date if !defaulted_dates.include?(defaulted_date)
+            if !defaulted_date.blank?
+              outcome_dates << defaulted_date if !outcome_dates.include?(defaulted_date)
+            end
+          #end
+        else
+          if d == -1
+            previous_date = session_date
+          else
+            previous_date = prev_dispenation_date
           end
+          #defaulted_state = ActiveRecord::Base.connection.select_value "                   
+          #SELECT current_defaulter(#{disp_date.person_id},'#{previous_date}')"
+
+          #if defaulted_state.to_i == 1
+            defaulted_date = ActiveRecord::Base.connection.select_value "
+              SELECT current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
+              
+            if !defaulted_date.blank? #.blank?
+              outcome_dates << defaulted_date if !outcome_dates.include?(defaulted_date)
+            end
+          #end
         end
+              dates += 1
       end
-      
-      dates += 1
     end
-    #raise outcome_dates.to_yaml
+
     return outcome_dates
 end
 
