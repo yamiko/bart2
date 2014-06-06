@@ -72,15 +72,8 @@ CREATE FUNCTION date_antiretrovirals_started(set_patient_id INT, min_state_date 
 BEGIN                                                                           
                                                                                 
 DECLARE date_started DATE;
-DECLARE start_date_concept_id INT;
 
-SET start_date_concept_id = (SELECT concept_id FROM concept_name WHERE name = 'ART START DATE' LIMIT 1);
-SET date_started = (SELECT value_datetime FROM obs WHERE concept_id = start_date_concept_id AND person_id = set_patient_id LIMIT 1);
-
-if date_started is null then
-SET start_date_concept_id = (SELECT concept_id FROM concept_name WHERE name = 'Date antiretrovirals started' LIMIT 1);
-SET date_started = (SELECT value_datetime FROM obs WHERE concept_id = start_date_concept_id AND person_id = set_patient_id LIMIT 1);
-end if;
+SET date_started = (SELECT LEFT(value_datetime,10) FROM obs WHERE concept_id = 2516 AND person_id = set_patient_id LIMIT 1);
 
 if date_started is NULL then 
 SET date_started = min_state_date;
@@ -98,7 +91,7 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
   VIEW `earliest_start_date` AS
   SELECT `p`.`patient_id` AS `patient_id`,`p`.`date_enrolled`,
          MIN(`s`.`start_date`) AS `earliest_start_date`, `person`.`death_date` AS death_date,
-         DATEDIFF(date_antiretrovirals_started(`p`.`patient_id`, MIN(`s`.`start_date`)), `person`.`birthdate`) AS age_at_initiation
+         ROUND(DATEDIFF(date_antiretrovirals_started(`p`.`patient_id`, MIN(`s`.`start_date`)), `person`.`birthdate`)/365) AS age_at_initiation
   FROM ((`patient_program` `p`
   LEFT JOIN `patient_state` `s` ON((`p`.`patient_program_id` = `s`.`patient_program_id`)))
   LEFT JOIN `person` ON((`person`.`person_id` = `p`.`patient_id`)))
@@ -275,6 +268,37 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
          `obs`.`uuid` AS `uuid` 
   FROM `obs` 
   WHERE ((`obs`.`concept_id` = 7459) and (`obs`.`voided` = 0));
+
+
+
+DROP FUNCTION IF EXISTS earliest_start_date_at_clinic;                                          
+                                                                                
+DELIMITER $$                                                                     
+CREATE FUNCTION earliest_start_date_at_clinic(set_patient_id INT) RETURNS DATE
+BEGIN                                                                           
+                                                                                
+DECLARE date_started DATE;
+
+SET date_started = (SELECT MIN(start_date) FROM patient_state WHERE voided = 0 AND state = 7 AND patient_program_id IN (SELECT patient_program_id FROM patient_program WHERE patient_id = set_patient_id AND voided = 0 AND program_id = 1));
+
+RETURN date_started;
+END$$                                                                           
+DELIMITER ;
+
+-- creating a view to hold patients' service waiting time
+CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
+  VIEW `patient_service_waiting_time` AS
+  SELECT  e.patient_id, DATE(e.encounter_datetime) visit_date, 
+    MIN(e.encounter_datetime) start_time , MAX(e.encounter_datetime) finish_time,
+    TIMEDIFF( MAX(e.encounter_datetime) , MIN(e.encounter_datetime) ) service_time
+  FROM encounter e  INNER JOIN encounter e2 ON e.patient_id = e2.patient_id 
+  AND e.encounter_type IN(7, 9, 12, 25, 51, 52, 53, 54, 68) WHERE e.encounter_datetime 
+  BETWEEN date_format(DATE_SUB(NOW() , INTERVAL 7 DAY),'%Y-%m-%d 00:00:00')
+  AND date_format(DATE_SUB(NOW() , INTERVAL 1 DAY),'%Y-%m-%d 23:59:59')
+  AND (RIGHT(e.encounter_datetime,2) <> '01' AND RIGHT(e.encounter_datetime,2) <> '01')
+  GROUP BY e.patient_id,DATE(e.encounter_datetime)
+  ORDER BY e.patient_id,e.encounter_datetime; 
+
 
 --
 -- Dumping routines for database 'bart2'
@@ -856,7 +880,7 @@ BEGIN
 	SELECT MAX(o.start_date) INTO @obs_datetime  FROM obs
                             INNER join encounter USING (encounter_id)
                             INNER JOIN drug_order d ON obs.order_id = d.order_id
-                            INNER JOIN orders o ON o.order_id = d.order_id
+                            INNER JOIN orders o ON o.order_id = d.order_id AND o.patient_id = my_patient_id
                             WHERE encounter_type = (SELECT encounter_type_id FROM encounter_type WHERE name = 'DISPENSING')
                             AND d.drug_inventory_id IN (SELECT drug_id FROM drug
                             WHERE concept_id IN (SELECT concept_id
@@ -867,7 +891,6 @@ BEGIN
                             AND o.voided = 0
                             AND obs.voided = 0
                             AND DATE(o.start_date) <= my_end_date
-                            AND encounter.patient_id = my_patient_id
 		GROUP BY o.patient_id;
 
 	OPEN cur1;
