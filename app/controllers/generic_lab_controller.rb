@@ -128,14 +128,14 @@ class GenericLabController < ApplicationController
   end
 
   def create_viral_load_result
-
     patient_bean = PatientService.get_patient(Person.find(params[:patient_id]))
-    test_year = params[:test_year]
+    
+    test_date_or_year = params[:test_year]
     test_month = params[:test_month]
     test_day = params[:test_day]
     
-    test_date = (test_year.to_s + '-' + test_month.to_s + '-' + test_day.to_s).to_date
-    date = test_date #params[:test_date].to_date rescue "1900-01-01".to_date
+    test_date = test_date_or_year.to_date rescue (test_date_or_year.to_s + '-' + test_month.to_s + '-' + test_day.to_s).to_date
+    date = test_date 
 
     test_type = LabTestType.find(:first,
       :conditions =>["TestName = ?",params[:lab_result].to_s])
@@ -178,20 +178,16 @@ class GenericLabController < ApplicationController
     lab_parameter.Range = test_modifier
     lab_parameter.save
 
-    unless params[:result_given].match(/YES/i).blank?
-      
-    end
-    
-    redirect_to("/people/confirm?found_person_id=#{params[:patient_id]}")
+    redirect_to ("/lab/give_result?patient_id=#{params[:patient_id]}") and return if params[:result_given].match(/YES/i)
+    redirect_to("/people/confirm?found_person_id=#{params[:patient_id]}") and return
   end
 
   def result_given_to_patient
-  raise params.inspect
     patient_id = params[:patient_id]
-    year_given = params[:year_given]
-    month_given = params[:month_given]
-    day_given = params[:day_given]
-    date_given_result = (year_given.to_s + '-' + month_given.to_s + '-' + day_given).to_date
+    date_or_year_given = params[:set_year]
+    month_given = params[:set_month]
+    day_given = params[:set_day]
+    date_given_result = date_or_year_given.to_date rescue (date_or_year_given.to_s + '-' + month_given.to_s + '-' + day_given).to_date
     patient = Patient.find(patient_id)
     encounter_type = EncounterType.find_by_name("REQUEST").id
     viral_load = Concept.find_by_name("Hiv viral load").concept_id

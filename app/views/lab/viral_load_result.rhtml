@@ -7,7 +7,12 @@
 
 .tt_controls_test_date #Unknown { display: none; }
 
-
+#tt_page_test_month .inputFrameClass{
+  height: 86%;
+}
+#tt_page_test_month .options{
+  height: 22em;
+}
 </style>
 
 <script>
@@ -91,7 +96,33 @@ function resetPad() {
   } 
 
 
+   tested_today = false;
+   function changeValues(){
+    elements =  document.getElementsByTagName('li');
+    id = 'touchscreenInput' + tstCurrentPage;
+    input = document.getElementById(id);
+    clear_button = document.getElementById('clearButton');
+    next_button = document.getElementById('nextButton');
+      for(i=0; i<elements.length; i++){
+        if (elements[i].innerHTML.toUpperCase().match("TODAY")){
+          elements[i].style.color = 'green';
+          elements[i].style.fontWeight='bold';
+          elements[i].onmousedown = function(){
+            tested_today = true;
+            updateTouchscreenInputForSelect(this);
+          }
+        }
+        else{
+          elements[i].onmousedown = function(){
+            tested_today = false;
+            updateTouchscreenInputForSelect(this);
+            gotoNextPage();
+            next_button.style.display='none';
+          }
 
+        }
+      }
+   }
 </script>
 
 <% form_tag 'create_viral_load_result', :method => :post do %>
@@ -109,6 +140,12 @@ function resetPad() {
       }
 %>
 
+<%
+  today = Date.today.strftime("%d-%b-%Y").to_s
+  choices = [["Today", today]]
+  choices +=(2011..Date.today.year).to_a.reverse
+%>
+
 <%= text_field 'test_value', nil,:size => 8, :field_type => "number",
     :helpText => 'Test results', 
     :validationRule => "^(>|<|=|U|M)([\\d.]+|nknown|issing)$",
@@ -117,50 +154,35 @@ function resetPad() {
     :tt_onUnLoad => "removeImportantAttributes()"; %>
 
 
-<%= text_field_tag :test_year, nil,
+<%= select_tag :test_year, options_for_select(choices),
       {
-      :id => "test_year",
-      :helpText => "Test Date(Year)",
-      :field_type => 'number',
-      :tt_pageStyleClass => "Numeric NumbersOnly",
-      :absoluteMax => Date.today.year} %>
+        :id => "test_year",
+        :helpText => "Test Date",
+        :tt_onLoad => "changeValues();"
+      } %>
 
 <%=  select_tag(:test_month, optionsString,
-      {:field_type => 'alpha', :helpText => "Test Date(Month)",
-      :tt_pageStyleClass => "NoKeyboard"})%>
+      {
+        :field_type => 'alpha',
+        :condition => "tested_today == false",
+        :tt_requireNextClick => false,
+        :helpText => "Test Month",
+        :tt_onLoad => "$('nextButton').style.display = 'none';$('keyboard').style.display='none'",
+        :tt_onUnLoad => "$('nextButton').style.display = 'inline';"
+      })%>
 
-<%= select_tag(:test_day, options,
-    {:field_type => 'number',
-     :helpText => 'Test Date(Day)',
-     :min => "1", :absoluteMin =>"1",
-     :absoluteMax =>"31",
-    :tt_pageStyleClass => "NoKeyboard"})  %>
+<%= text_field_tag(:test_day, nil,
+    {
+      :field_type => 'number',
+      :condition => "tested_today == false",
+      :helpText => 'Test Day'
+    })  %>
 
   <%= select_tag 'result_given',options_for_select(["","Yes","No"]),
   {
    :id => "result_given",
    :helpText => 'Result given to patient?'} %>
 
-<%= text_field_tag :year_given, nil,
-      {
-      :id => "test_year",
-      :helpText => "Date result given to patient(Year)",
-      :field_type => 'number',
-      :condition => '$("result_given").value.toLowerCase() =="yes"',
-      :tt_pageStyleClass => "Numeric NumbersOnly",
-      :absoluteMax => Date.today.year} %>
-
-<%=  select_tag(:month_given, optionsString,
-      {:field_type => 'alpha',
-       :helpText => "Date result given to patient(Month)",
-       :condition => '$("result_given").value.toLowerCase() =="yes"',
-       :tt_pageStyleClass => "NoKeyboard"})%>
-
-<%= select_tag(:day_given, options,
-    {:field_type => 'number',
-     :helpText => 'Date result given to patient(Day)',
-     :condition => '$("result_given").value.toLowerCase() =="yes"',
-     :tt_pageStyleClass => "NoKeyboard"})  %>
 
 <%= hidden_field_tag "patient_id", @patient.id %>
 <%= hidden_field_tag "lab_result", "HIV_DNA_PCR" %>

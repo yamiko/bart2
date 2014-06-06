@@ -63,9 +63,9 @@
       }
 %>
 <%
-  choices = ["Today"]
-  choices += (2011..Date.today.year).to_a.reverse
   today = Date.today.strftime("%d-%b-%Y").to_s
+  choices = [["Today", today]]
+  choices += (2011..Date.today.year).to_a.reverse
 %>
 
 <%= select_tag :set_year, options_for_select(choices),
