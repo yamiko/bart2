@@ -49,8 +49,8 @@
         width: 36%;
         z-index: 800;
         right: 10px;
-        top: 5%;
-        height: 167px;
+        top: 0%;
+        height: 26%;
         }
 
       #vl_update {
@@ -59,7 +59,7 @@
         background-color: #CD853F;
         border-bottom: 1px outset black;
         border-style: outset;
-        border-top: 1px outset black;
+        border-top: 5px outset #0000CD;
         color: white;
         padding: 4px 8px 8px 4px;
         text-align: center;
@@ -67,9 +67,31 @@
         cursor: pointer;
         font-weight: bold;
         font-size: 14pt;
-        width: 44%;
-        left: 21%;
+        width: 32%;
+        left: 0%;
+        top: 117%;
+        letter-spacing: 7px;
       }
+      #view_vl_results{
+        position: absolute;
+        border-radius: 17px;
+        background-color: #CD853F;
+        border-bottom: 1px outset black;
+        border-style: outset;
+        border-top: 5px outset #0000CD;
+        color: white;
+        padding: 4px 8px 8px 4px;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 14pt;
+        width: 38%;
+        right: 6%;
+        top: 117%;
+        letter-spacing: 7px;
+      }
+      
       #update_vl_menu{
         border-radius: 10px;
         position: absolute;
@@ -143,7 +165,7 @@
         c = document.getElementById('content');
         p = document.getElementById('popup');
         v = document.getElementById('vl_data');
-        c.appendChild(p);
+        //c.appendChild(p);
         c.appendChild(v);
       }
       window.setTimeout("addDivToContent();", 250);
@@ -796,16 +818,32 @@ function cancelOperation(action){
   <% end %>
 <% end %>
 <div id="vl_data">
-  <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">HIV VIRAL LOAD</span>
+
+  <% unless @latest_result.blank?%>
+      <% if @latest_result.to_i >= 1000 %>
+          <span style="letter-spacing: 11px;font-weight:bold; font-family: Nimbus Sans L; margin-left: 20%; color: red; font-size: 1.4em">HIGH VIRAL LOAD</span>
+      <% else %>
+          <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">VIRAL LOAD</span>
+      <% end %>
+  <% else %>
+    <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">VIRAL LOAD</span>
+  <% end %>
+
   <hr style="margin-left:-2%; width:104%;"></hr>
         <div id="vl_details">
           <table style="position:absolute; left:14%; width: 80%;">
             <tr>
-              <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Viral load </td>
+              <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Last Viral load </td>
               <% unless @latest_result.blank?%>
-              <td style=""><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
+                  <% if @latest_result.to_i >= 1000 %>
+                    <td style="color:red; font-weight: bold; font-size: 1.3em"><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
+                  <% else %>
+                    <td style=""><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
+                  <% end %>
               <% else %>
+
                 <td><span style="margin-left: 10%; font-weight: bold; color: red">(Not done)</span></td>
+
               <% end %>
             </tr>
             <tr>
@@ -826,7 +864,8 @@ function cancelOperation(action){
             </tr>
             <tr>
               <td colspan="2">
-                <span id='vl_update' onclick="updateVl();"><span>update</span></span>
+                <span id='vl_update' onclick="updateVl();"><span>Update</span></span>
+                <span id='view_vl_results' onclick=""><span>Lab Trail</span></span>
               </td>
             </tr>
           </table>

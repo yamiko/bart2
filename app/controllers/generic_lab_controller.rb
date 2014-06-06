@@ -186,7 +186,7 @@ class GenericLabController < ApplicationController
   end
 
   def result_given_to_patient
- 
+  raise params.inspect
     patient_id = params[:patient_id]
     year_given = params[:year_given]
     month_given = params[:month_given]
