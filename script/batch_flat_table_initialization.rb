@@ -316,12 +316,6 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
 
     #create vitals field list hash template
     a_hash =   {
-                :routine_tb_screening_fever_enc_id => 'NULL',
-                :routine_tb_screening_night_sweats => 'NULL',
-                :routine_tb_screening_night_sweats_enc_id => 'NULL',
-                :routine_tb_screening_cough_of_any_duration => 'NULL',
-                :routine_tb_screening_cough_of_any_duration_enc_id => 'NULL',
-                :routine_tb_screening_weight_loss_failure => 'NULL',
                 :routine_tb_screening_weight_loss_failure_enc_id => 'NULL'
                 }
 
@@ -481,7 +475,7 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
       elsif obs.concept_id == 8259 #routine tb screening
 	      if obs.value_coded == 5945 && obs.value_coded_name_id == 4315
 		      a_hash[:routine_tb_screening_fever] = 'Yes'
-		      a_hash[:routing_tb_screening_fever_enc_id] = encounter.encounter_id
+		      a_hash[:routine_tb_screening_fever_enc_id] = encounter.encounter_id
 	      elsif obs.value_coded == 6029 && obs.value_coded_name_id == 4407
 		      a_hash[:routine_tb_screening_night_sweats] = 'Yes'
           a_hash[:routine_tb_screening_night_sweats_enc_id] = encounter.encounter_id
@@ -794,7 +788,7 @@ def process_patient_orders(orders, visit, type = 0)
   patient_orders = {}; drug_order_ids_hash = {}; drug_enc_ids_hash = {}
   drug_start_date_hash = {}; drug_auto_expire_date_hash = {}; drug_quantity_hash = {}
   
-  a_hash = {:routine_tb_screening_fever => 'NULL'}
+  a_hash = {:arv_regimen_type_triomune_enc_id => 'NULL'}
   
   if !orders.blank?  
     patient_id = orders.map(&:patient_id).first
