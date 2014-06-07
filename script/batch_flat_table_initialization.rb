@@ -788,7 +788,7 @@ def process_patient_orders(orders, visit, type = 0)
   patient_orders = {}; drug_order_ids_hash = {}; drug_enc_ids_hash = {}
   drug_start_date_hash = {}; drug_auto_expire_date_hash = {}; drug_quantity_hash = {}
   
-  a_hash = {:arv_regimen_type_triomune_enc_id => 'NULL'}
+  a_hash = {:arv_regimen_type_AZT_3TC_AZT_3TC_NVP_enc_id => 'NULL'}
   
   if !orders.blank?  
     patient_id = orders.map(&:patient_id).first
