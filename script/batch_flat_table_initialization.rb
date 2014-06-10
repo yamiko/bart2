@@ -10,6 +10,7 @@ def initialize_variables
                                                     FROM encounter
                                                     WHERE encounter_type = 54").map(&:adate)
 end
+
 def pre_export_check
   #to contain checks before starting the process of initialization
 end
@@ -628,7 +629,7 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:pregnant_no] = 'No'
           a_hash[:pregnant_no_enc_id] = obs.encounter_id
-          a_has[:pregnant_no_v_date] = obs.obs_datetime.to_date
+          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date
         end
     elsif obs.concept_id == 1755 #Patient Pregnant
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
@@ -638,7 +639,7 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:pregnant_no] = 'No'
           a_hash[:pregnant_no_enc_id] = obs.encounter_id
-          a_has[:pregnant_no_v_date] = obs.obs_datetime.to_date          
+          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date          
         end
     elsif obs.concept_id == 7965 #breastfeeding
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
@@ -773,6 +774,10 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
       a_hash[:reason_for_starting_v_date] = obs.obs_datetime.to_date rescue nil
     elsif obs.concept_id == 7562 #who_stage
       a_hash[:who_stage] = obs.to_s.split(':')[1].strip rescue nil
+    elsif obs.concept_id == 2743 #who_stage_criteria_present
+      a_hash[:who_stages_criteria_present] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:who_stages_criteria_present_enc_id] = obs.encounter_id rescue nil
+      a_hash[:who_stages_criteria_present_v_date] = obs.obs_datetime.to_date rescue nil
     else
     end
   end

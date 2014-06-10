@@ -40,13 +40,10 @@ end
 def get_all_patients
     puts "started at #{@started_at}"
     #open files for writing
-    $temp_outfile_1 = File.open("./db/flat_cohort_table-" + @started_at + ".sql", "w")
-    $temp_outfile_3 = File.open("./db/patients_initialized_in_flat_cohort_table-" + @started_at + ".sql", "w")
+    $temp_outfile_1 = File.open("./db/flat_tables_init_output/flat_cohort_table-" + @started_at + ".sql", "w")
+    $temp_outfile_3 = File.open("./db/flat_tables_init_output/patients_initialized_in_flat_cohort_table-" + @started_at + ".sql", "w")
     
     patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.flat_table1").map(&:patient_id)
-    #patients_done = []
- 
-    #patient_list = [16930, 10, 14714, 2, 11784, 10456, ] #,[61952]
     patient_list.each do |p|
          $temp_outfile_3 << "#{p}," 
 	       sql_statements = get_patients_data(p)
