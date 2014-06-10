@@ -206,7 +206,7 @@ class GenericLabController < ApplicationController
         ORDER BY DATE(TESTDATE) DESC",national_id,'HIV_viral_load'
     ]).last rescue nil
 
-    vl_lab_sample_obs = Observation.find(:last, :joins => [:encounter], :conditions => ["
+    vl_lab_sample_obs = Observation.find(:last, :readonly => false, :joins => [:encounter], :conditions => ["
         person_id =? AND encounter_type =? AND concept_id =? AND accession_number IS NOT NULL",
         patient_id, encounter_type, viral_load]) rescue nil
     #raise (vl_lab_sample.Sample_ID.to_s + ' : ' + vl_lab_sample_obs.accession_number).inspect
