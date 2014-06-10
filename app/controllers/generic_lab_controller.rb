@@ -191,24 +191,49 @@ class GenericLabController < ApplicationController
     patient = Patient.find(patient_id)
     encounter_type = EncounterType.find_by_name("REQUEST").id
     viral_load = Concept.find_by_name("Hiv viral load").concept_id
-    today_result_given_obs = Observation.find(:last, :joins => [:encounter], :conditions => ["
-        person_id =? AND DATE(encounter_datetime) =? AND encounter_type =? AND
-        concept_id =? AND value_text REGEXP ?", patient_id, Date.today, encounter_type, 
-        viral_load, 'Result given to patient'])
 
-  if (today_result_given_obs.blank?)
-    enc = patient.encounters.current.find_by_encounter_type(encounter_type)
-    enc ||= patient.encounters.create(:encounter_type => encounter_type)
-    obs = Observation.new
-    obs.person_id = patient_id
-    obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
-    obs.value_text = "Result given to patient"
-    obs.value_datetime = date_given_result
-    obs.encounter_id = enc.id
-    obs.obs_datetime = Time.now
-    obs.save
-  end
-  
+    national_id = "p114800601241" #For testing purposes
+    
+    vl_lab_sample = LabSample.find_by_sql(["
+        SELECT * FROM Lab_Sample s
+        INNER JOIN Lab_Parameter p ON p.sample_id = s.sample_id
+        INNER JOIN codes_TestType c ON p.testtype = c.testtype
+        INNER JOIN (SELECT DISTINCT rec_id, short_name FROM map_lab_panel) m ON c.panel_id = m.rec_id
+        WHERE s.patientid =?
+        AND short_name = ?
+        AND s.deleteyn = 0
+        AND s.attribute = 'pass'
+        ORDER BY DATE(TESTDATE) DESC",national_id,'HIV_viral_load'
+    ]).last rescue nil
+
+    vl_lab_sample_obs = Observation.find(:last, :joins => [:encounter], :conditions => ["
+        person_id =? AND encounter_type =? AND concept_id =? AND accession_number IS NOT NULL",
+        patient_id, encounter_type, viral_load]) rescue nil
+    
+        unless vl_lab_sample.blank?
+              enc = patient.encounters.current.find_by_encounter_type(encounter_type)
+              enc ||= patient.encounters.create(:encounter_type => encounter_type)
+              obs = nil
+              unless vl_lab_sample_obs.blank?
+                if (vl_lab_sample_obs.accession_number == vl_lab_sample.Sample_ID)
+                  obs = vl_lab_sample_obs
+                else
+                  obs = Observation.new
+                end
+              else
+                obs = Observation.new
+              end
+
+              obs.person_id = patient_id
+              obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
+              obs.value_text = "Result given to patient"
+              obs.value_datetime = date_given_result
+              obs.accession_number = vl_lab_sample.Sample_ID
+              obs.encounter_id = enc.id
+              obs.obs_datetime = Time.now
+              obs.save
+        end
+    
   redirect_to("/people/confirm?found_person_id=#{params[:patient_id]}")
   end
 
