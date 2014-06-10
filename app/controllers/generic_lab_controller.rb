@@ -209,13 +209,13 @@ class GenericLabController < ApplicationController
     vl_lab_sample_obs = Observation.find(:last, :joins => [:encounter], :conditions => ["
         person_id =? AND encounter_type =? AND concept_id =? AND accession_number IS NOT NULL",
         patient_id, encounter_type, viral_load]) rescue nil
-    
+    #raise (vl_lab_sample.Sample_ID.to_s + ' : ' + vl_lab_sample_obs.accession_number).inspect
         unless vl_lab_sample.blank?
               enc = patient.encounters.current.find_by_encounter_type(encounter_type)
               enc ||= patient.encounters.create(:encounter_type => encounter_type)
               obs = nil
               unless vl_lab_sample_obs.blank?
-                if (vl_lab_sample_obs.accession_number == vl_lab_sample.Sample_ID)
+                if (vl_lab_sample_obs.accession_number.to_i == vl_lab_sample.Sample_ID.to_i)
                   obs = vl_lab_sample_obs
                 else
                   obs = Observation.new
