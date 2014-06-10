@@ -326,25 +326,31 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
           a_hash[:pregnant_yes] = 'Yes'
           a_hash[:pregnant_yes_enc_id] = encounter.encounter_id
+          a_hash[:pregnant_yes_v_date] = obs.obs_datetime.to_date                    
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:pregnant_no] = 'No'
           a_hash[:pregnant_no_enc_id] = encounter.encounter_id
+          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date                    
         end
       elsif obs.concept_id == 1755 #Patient Pregnant
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
           a_hash[:pregnant_yes] = 'Yes'
           a_hash[:pregnant_yes_enc_id] = encounter.encounter_id
-        elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
+          a_hash[:pregnant_yes_v_date] = obs.obs_datetime.to_date                    
+        elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103        
           a_hash[:pregnant_no] = 'No'
           a_hash[:pregnant_no_enc_id] = encounter.encounter_id
+          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date          
         end
       elsif obs.concept_id == 7965 #breastfeeding
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
           a_hash[:breastfeeding_yes] = 'Yes'
           a_hash[:breastfeeding_yes_enc_id] = encounter.encounter_id
+          a_hash[:breastfeeding_yes_v_date] = obs.obs_datetime.to_date          
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:breastfeeding_no] = 'No'
           a_hash[:breastfeeding_no_enc_id] = encounter.encounter_id
+          a_hash[:breastfeeding_no_v_date] = obs.obs_datetime.to_date          
         end
     	elsif obs.concept_id == 7459 #tb status
     		if obs.value_coded == 7454 && obs.value_coded_name_id == 10270
@@ -618,25 +624,31 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
           a_hash[:pregnant_yes] = 'Yes'
           a_hash[:pregnant_yes_enc_id] = obs.encounter_id
+          a_hash[:pregnant_yes_v_date] = obs.obs_datetime.to_date
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:pregnant_no] = 'No'
           a_hash[:pregnant_no_enc_id] = obs.encounter_id
+          a_has[:pregnant_no_v_date] = obs.obs_datetime.to_date
         end
     elsif obs.concept_id == 1755 #Patient Pregnant
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
           a_hash[:pregnant_yes] = 'Yes'
           a_hash[:pregnant_yes_enc_id] = obs.encounter_id
+          a_hash[:pregnant_yes_v_date] = obs.obs_datetime.to_date
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:pregnant_no] = 'No'
           a_hash[:pregnant_no_enc_id] = obs.encounter_id
+          a_has[:pregnant_no_v_date] = obs.obs_datetime.to_date          
         end
     elsif obs.concept_id == 7965 #breastfeeding
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
           a_hash[:breastfeeding_yes] = 'Yes'
           a_hash[:breastfeeding_yes_enc_id] = obs.encounter_id
+          a_hash[:breastfeeding_yes_v_date] = obs.obs_datetime.to_date
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:breastfeeding_no] = 'No'
           a_hash[:breastfeeding_no_enc_id] = obs.encounter_id
+          a_hash[:breastfeeding_no_v_date]  = obs.obs_datetime.to_date                    
         end
     elsif obs.concept_id == 9099 #cd4 count location
       a_hash[:cd4_count_location] = obs.to_s.split(':')[1].strip rescue nil
