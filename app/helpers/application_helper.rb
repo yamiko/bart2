@@ -771,5 +771,41 @@ module ApplicationHelper
       end
     end
   end
-  
+
+  def vl_available_and_result_given(patient)
+    identifier_type = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
+    identifier_types = PatientIdentifierType.find(:all,
+      :conditions=>["name IN (?)",identifier_type]
+    ).collect{| type |type.id }
+
+    identifiers = []
+    PatientIdentifier.find(:all,
+      :conditions=>["patient_id=? AND identifier_type IN (?)",
+        patient.id,identifier_types]).each{| i | identifiers << i.identifier }
+
+    encounter_type = EncounterType.find_by_name("REQUEST").id
+    viral_load = Concept.find_by_name("Hiv viral load").concept_id
+    national_ids = identifiers
+    vl_lab_sample = LabSample.find_by_sql(["
+        SELECT * FROM Lab_Sample s
+        INNER JOIN Lab_Parameter p ON p.sample_id = s.sample_id
+        INNER JOIN codes_TestType c ON p.testtype = c.testtype
+        INNER JOIN (SELECT DISTINCT rec_id, short_name FROM map_lab_panel) m ON c.panel_id = m.rec_id
+        WHERE s.patientid IN (?)
+        AND short_name = ?
+        AND s.deleteyn = 0
+        AND s.attribute = 'pass'
+        ORDER BY DATE(TESTDATE) DESC",national_ids,'HIV_viral_load'
+    ]).first rescue nil
+
+   vl_lab_sample_obs = Observation.find(:last, :readonly => false, :joins => [:encounter], :conditions => ["
+        person_id =? AND encounter_type =? AND concept_id =? AND accession_number =?",
+        patient.id, encounter_type, viral_load, vl_lab_sample.Sample_ID.to_i]) rescue nil
+    #raise "x" if vl_lab_sample.blank?
+    #raise "y" if vl_lab_sample_obs.blank?
+    return false if vl_lab_sample.blank?
+    return false if vl_lab_sample_obs.blank?
+    return true unless vl_lab_sample_obs.blank?
+    
+  end
 end

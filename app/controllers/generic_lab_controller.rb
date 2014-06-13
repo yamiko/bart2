@@ -192,34 +192,31 @@ class GenericLabController < ApplicationController
     encounter_type = EncounterType.find_by_name("REQUEST").id
     viral_load = Concept.find_by_name("Hiv viral load").concept_id
 
-    national_id = "p114800601241" #For testing purposes
+    national_ids = id_identifiers(Patient.find(patient_id)) #For testing purposes
     
     vl_lab_sample = LabSample.find_by_sql(["
         SELECT * FROM Lab_Sample s
         INNER JOIN Lab_Parameter p ON p.sample_id = s.sample_id
         INNER JOIN codes_TestType c ON p.testtype = c.testtype
         INNER JOIN (SELECT DISTINCT rec_id, short_name FROM map_lab_panel) m ON c.panel_id = m.rec_id
-        WHERE s.patientid =?
+        WHERE s.patientid IN (?)
         AND short_name = ?
         AND s.deleteyn = 0
         AND s.attribute = 'pass'
-        ORDER BY DATE(TESTDATE) DESC",national_id,'HIV_viral_load'
-    ]).last rescue nil
+        ORDER BY DATE(TESTDATE) DESC",national_ids,'HIV_viral_load'
+    ]).first rescue nil
 
     vl_lab_sample_obs = Observation.find(:last, :readonly => false, :joins => [:encounter], :conditions => ["
-        person_id =? AND encounter_type =? AND concept_id =? AND accession_number IS NOT NULL",
-        patient_id, encounter_type, viral_load]) rescue nil
+        person_id =? AND encounter_type =? AND concept_id =? AND accession_number =?",
+        patient.id, encounter_type, viral_load, vl_lab_sample.Sample_ID.to_i]) rescue nil
     #raise (vl_lab_sample.Sample_ID.to_s + ' : ' + vl_lab_sample_obs.accession_number).inspect
         unless vl_lab_sample.blank?
               enc = patient.encounters.current.find_by_encounter_type(encounter_type)
               enc ||= patient.encounters.create(:encounter_type => encounter_type)
               obs = nil
               unless vl_lab_sample_obs.blank?
-                if (vl_lab_sample_obs.accession_number.to_i == vl_lab_sample.Sample_ID.to_i)
+   
                   obs = vl_lab_sample_obs
-                else
-                  obs = Observation.new
-                end
               else
                 obs = Observation.new
               end

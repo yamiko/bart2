@@ -855,12 +855,12 @@ function cancelOperation(action){
               <% end %>
             </tr>
             <tr>
-              <td style="font-weight: bold; font-size: 1em; padding: 2px; max-width: 61%;">Date given to patient</td>
-              <% unless @date_vl_result_given.blank?%>
-                <td style=""><%= @date_vl_result_given.strftime("%d-%b-%Y") %></td>
-              <% else %>
-                <td id="" style="">----------------------------</td>
-              <%  end %>
+                <td style="font-weight: bold; font-size: 1em; padding: 2px; max-width: 61%;">Date given to patient</td>
+                <% if vl_available_and_result_given(Patient.find(params[:found_person_id])) == true %>
+                    <td style=""><%= @date_vl_result_given.strftime("%d-%b-%Y") %></td>
+                <% else %>
+                    <td id="" style="">----------------------------</td>
+                <% end %>
             </tr>
             <tr>
               <td colspan="2">
