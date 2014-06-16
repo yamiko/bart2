@@ -538,7 +538,14 @@ function cancelOperation(action){
   function captureVl(){
     window.location="/lab/new?patient_id=<%= @person.patient.id %>&viral_load=true"
   }
-  
+
+  function showVlLabTrail(){
+    document.getElementById('vl_lab_trail').style.display='inline';
+  }
+
+  function hideVlLabTrail(){
+    document.getElementById('vl_lab_trail').style.display='none';
+  }
 </script>
   <style>
     .art_container table{
@@ -907,7 +914,7 @@ function cancelOperation(action){
             <tr>
               <td colspan="2">
                 <span id='vl_update' onclick="updateVl();"><span>Update</span></span>
-                <span id='view_vl_results' onclick=""><span>Lab Trail</span></span>
+                <span id='view_vl_results' onclick="showVlLabTrail();"><span>Lab Trail</span></span>
               </td>
             </tr>
           </table>
@@ -932,7 +939,7 @@ function cancelOperation(action){
         </div>
       </div>
 
-      <div id="vl_lab_trail" style="">
+      <div id="vl_lab_trail" style="display:none;">
         <div id="vl_lab_trail_header">
           <span style="font-size: 16pt; margin-left: 4.5%;">Viral load lab trail</span>
         </div>
@@ -961,7 +968,7 @@ function cancelOperation(action){
         </div>
         
         <div id="vl_lab_trail_footer">
-          <span>Done</span>
+          <span onclick="hideVlLabTrail();">Done</span>
         </div>
       </div>
       
