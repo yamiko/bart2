@@ -934,22 +934,22 @@ function cancelOperation(action){
 
       <div id="vl_lab_trail" style="">
         <div id="vl_lab_trail_header">
-          <span>Viral load lab trail</span>
+          <span style="font-size: 16pt; margin-left: 4.5%;">Viral load lab trail</span>
         </div>
 
         <div id="vl_lab_trail_content">
           <div style="position: relative; overflow:auto; height: 80%;">
           <table cellspacing='0' style="position:absolute; width:90%; top:10%; left: 5%;">
             <tr class="vl_table_header" style="background-color: #A2CD5A; line-height: 2em; font-size: 18px;">
-              <td><span><center>Date of Sample</center></span></td>
-              <td><span><center>Result</center></span></td>
+              <td style="min-width: 200px;"><span><center>Date of Sample</center></span></td>
+              <td style="min-width: 200px;"><span><center>Result</center></span></td>
               <td><span><center>Result given to patient?</center></span></td>
               <td><span><center>Date result given to patient</center></span></td>
             </tr>
           <% @vl_result_hash.each do |sample_id, result| %>
             <tr style="line-height: 3em;" class="vl_tbody">
               <td style="border-left: 1px solid black;">
-                  <span><center>  <%= result["date_of_sample"] %></center></span>
+                  <span><center>  <%= result["date_of_sample"].strftime("%d-%b-%Y") %></center></span>
               </td>
               <td><span><center><%= result["result"] %></center></span></td>
               <td><span><center><%= result["result_given"].capitalize %></center></span></td>
