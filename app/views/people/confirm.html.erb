@@ -752,6 +752,16 @@ function cancelOperation(action){
       left: 27%;
       bottom: 8px;
      }
+
+     .vl_tbody td{
+        border-bottom: 1px solid black;
+        border-right: 1px solid black;
+      }
+      .vl_table_header td{
+        border-bottom: 1px solid black;
+        border-top: 1px solid black;
+      }
+      
   </style>
 
 
@@ -928,27 +938,32 @@ function cancelOperation(action){
         </div>
 
         <div id="vl_lab_trail_content">
-          <table style="position:absolute; width:100%;">
-            <tr>
-              <td>&nbsp;</td>
-              <td>Result</td>
-              <td>Result given to patient?</td>
-              <td>Date result given to patient</td>
+          <div style="position: relative; overflow:auto; height: 80%;">
+          <table cellspacing='0' style="position:absolute; width:90%; top:10%; left: 5%;">
+            <tr class="vl_table_header" style="background-color: #A2CD5A; line-height: 2em; font-size: 18px;">
+              <td><span><center>Date of Sample</center></span></td>
+              <td><span><center>Result</center></span></td>
+              <td><span><center>Result given to patient?</center></span></td>
+              <td><span><center>Date result given to patient</center></span></td>
             </tr>
           <% @vl_result_hash.each do |sample_id, result| %>
-            <tr>
-              <td><%= result["date_of_sample"] %></td>
-              <td><%= result["result"] %></td>
-              <td><%= result["result_given"].capitalize %></td>
-              <td><%= result["date_result_given"].strftime("%d-%b-%Y") rescue "------" %></td>
+            <tr style="line-height: 3em;" class="vl_tbody">
+              <td style="border-left: 1px solid black;">
+                  <span><center>  <%= result["date_of_sample"] %></center></span>
+              </td>
+              <td><span><center><%= result["result"] %></center></span></td>
+              <td><span><center><%= result["result_given"].capitalize %></center></span></td>
+              <td><span><center><%= result["date_result_given"].strftime("%d-%b-%Y") rescue "------" %></center></span></td>
             </tr>
           <% end %>
           </table>
+          </div>
         </div>
         
         <div id="vl_lab_trail_footer">
           <span>Done</span>
         </div>
       </div>
+      
 </body>
 </html>
