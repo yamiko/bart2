@@ -387,7 +387,8 @@ class GenericPeopleController < ApplicationController
         person_id =? AND concept_id =? AND value_text REGEXP ?", @person.id,
         Concept.find_by_name("Viral load").concept_id, 'Result given to patient']).value_datetime rescue nil
     @enter_lab_results = GlobalProperty.find_by_property('enter.lab.results').property_value == 'true' rescue false
-    
+
+    @vl_result_hash = Patient.vl_result_hash(patient)
 		render :layout => false
 	end
 

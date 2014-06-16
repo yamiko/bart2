@@ -272,7 +272,7 @@ def self.vl_result_hash(patient)
 
     results.each do |result|
 
-      accession_number = 'sample_id_' + result[0].to_s
+      accession_number = result[0]
       vl_result = result[2]
       date_of_sample = result[3].to_date
       
