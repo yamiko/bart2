@@ -15,15 +15,58 @@ def pre_export_check
   #to contain checks before starting the process of initialization
 end
 
-def get_all_patients
+def initiate_script
     puts "started at #{@started_at}"
+
+    threads = []
+    patients = Patient.find_by_sql("SELECT max(patient_id) as max_patient_id, count(*) record_count FROM #{@source_db}.earliest_start_date")
+    record_count = patients.first.record_count
+    max_patient_id = patients.first.max_patient_id
+    thresholds = generate_thresholds(record_count, max_patient_id)
+
+    count = 0
+    thresholds.each do |threshold|
+	count += 1
+	threads << Thread.new(count) do 
+	    get_all_patients(threshold[0], threshold[1], count)
+	end
+    end
     
+    threads.each {|thread| thread.join}
+
+    puts "ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
+end
+
+def generate_thresholds(records, patient_id)
+   number_iterations = patient_id.to_i / records.to_i
+   threshold = (patient_id.to_i + (number_iterations * 2)) / number_iterations.to_i
+   threshold_array = []
+
+   count = 0
+   number_iterations.times do
+	if count == 0
+	   item = ["1", "#{threshold}"]
+	else
+	   last_item_index = threshold_array.length - 1
+	   item = ["#{(threshold_array[last_item_index][1].to_i + 1)}","#{(threshold_array[last_item_index][1].to_i + threshold.to_i)}"]
+	end
+	threshold_array << item
+	count += 1
+   end
+   
+   return threshold_array
+end
+
+def get_all_patients(min, max, thread)
+    puts "thread #{thread} started at #{Time.now.strftime("%Y-%m-%d-%H%M%S")} for ids #{min} to #{max}"
+    min_patient_id = min
+    max_patient_id = max
     #open output files for writing
-    $temp_outfile_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + ".sql", "w")
-    $temp_outfile_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + ".sql", "w")
-    $temp_outfile_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + ".sql", "w")
+    $temp_outfile_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    $temp_outfile_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    $temp_outfile_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
     
-    patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date").map(&:patient_id)
+    patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
     patient_list.each do |p|
       $temp_outfile_3 << "#{p}," 
 	    sql_statements = get_patients_data(p)
@@ -36,7 +79,8 @@ def get_all_patients
     $temp_outfile_2.close
     $temp_outfile_3.close
     
-    puts "ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
+    puts "thread #{thread} ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")} for ids #{min} to #{max}"
+
 end
 
 def get_patients_data(patient_id)
@@ -1130,7 +1174,8 @@ end
 
 def start
  initialize_variables
- get_all_patients
+ #get_all_patients
+ initiate_script
 end
 
 def get_drug_list
