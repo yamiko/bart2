@@ -22,18 +22,33 @@ def initiate_script
     patients = Patient.find_by_sql("SELECT max(patient_id) as max_patient_id, count(*) record_count FROM #{@source_db}.earliest_start_date")
     record_count = patients.first.record_count
     max_patient_id = patients.first.max_patient_id
-    thresholds = generate_thresholds(record_count, max_patient_id)
+    thresholds = generate_thresholds(100, 338)
 
+count = 0
+  thresholds.each do |threshold| 
+    threads << Thread.new(count) do |i|
+      get_all_patients(threshold[0], threshold[1], count)
+    end
+      puts "#{count}"
+      count += 1
+  end
+ 
+threads.each {|t| t.join}
+
+
+
+=begin
     count = 0
     thresholds.each do |threshold|
-	count += 1
-	threads << Thread.new(count) do 
-	    get_all_patients(threshold[0], threshold[1], count)
-	end
+	    count += 1
+	    puts "#{threshold[0]}, #{threshold[1]}"
+	    threads << Thread.new(count) do 
+	        get_all_patients(threshold[0], threshold[1], count)
+	    end
     end
-    
-    threads.each {|thread| thread.join}
 
+    threads.each {|thread| thread.join}
+=end
     puts "ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
 end
 
@@ -227,8 +242,8 @@ end
 
 def get_patient_demographics(patient_id)
   pat = Patient.find(patient_id)
-  
-  patient_obj = PatientService.get_patient(pat.person) 
+  puts patient_id.to_yaml
+  patient_obj = PatientService.get_patient(pat.person) rescue nil
 
   earliest_start_date = PatientProgram.find_by_sql("SELECT earliest_start_date
                                            FROM earliest_start_date
@@ -246,30 +261,30 @@ def get_patient_demographics(patient_id)
     pat_identifier[identifier.identifier_type] = identifier.identifier
   end
 
-  a_hash[:patient_id] = patient_id
-  a_hash[:given_name] = pat.person.names.first.given_name
-  a_hash[:middle_name] = pat.person.names.first.middle_name
-  a_hash[:family_name] = pat.person.names.first.family_name
-  a_hash[:gender] = patient_obj.sex
-  a_hash[:dob] = pat.person.birthdate
-  a_hash[:dob_estimated] = patient_obj.birthdate_estimated
-  a_hash[:ta] = pat.person.addresses.first.county_district 
-  a_hash[:current_address] = pat.person.addresses.first.city_village
-  a_hash[:home_district] = pat.person.addresses.first.address2
-  a_hash[:landmark] = pat.person.addresses.first.address1
-  a_hash[:cellphone_number] = pat_attributes[12] #cell phone
-  a_hash[:home_phone_number] = pat_attributes[14] #home phone number
-  a_hash[:office_phone_number] = pat_identifier[15] #office_phone_number
-  a_hash[:occupation] = pat_attributes[13] #occupation
-  a_hash[:nat_id] = pat_identifier[3] #national_id
-  a_hash[:arv_number]  = pat_identifier[4] #arv_number
-  a_hash[:pre_art_number] = pat_identifier[22] #pre_art_number
-  a_hash[:tb_number]  = pat_identifier[7] #tb_number
-  a_hash[:legacy_id]  = pat_identifier[2] #legacy 1
-  a_hash[:prev_art_number]  = pat_identifier[5] #prev_arv_number
-  a_hash[:filing_number]  = pat_identifier[17] #filing_number
-  a_hash[:archived_filing_number]  = pat_identifier[18] #archived_filing_number
-  a_hash[:earliest_start_date]  = earliest_start_date
+  a_hash[:patient_id] = patient_id rescue nil
+  a_hash[:given_name] = pat.person.names.first.given_name  rescue nil
+  a_hash[:middle_name] = pat.person.names.first.middle_name  rescue nil
+  a_hash[:family_name] = pat.person.names.first.family_name  rescue nil
+  a_hash[:gender] = patient_obj.sex  rescue nil
+  a_hash[:dob] = pat.person.birthdate  rescue nil
+  a_hash[:dob_estimated] = patient_obj.birthdate_estimated  rescue nil
+  a_hash[:ta] = pat.person.addresses.first.county_district  rescue nil
+  a_hash[:current_address] = pat.person.addresses.first.city_village  rescue nil
+  a_hash[:home_district] = pat.person.addresses.first.address2  rescue nil
+  a_hash[:landmark] = pat.person.addresses.first.address1  rescue nil
+  a_hash[:cellphone_number] = pat_attributes[12]  rescue nil #cell phone
+  a_hash[:home_phone_number] = pat_attributes[14]  rescue nil #home phone number
+  a_hash[:office_phone_number] = pat_identifier[15]  rescue nil #office_phone_number
+  a_hash[:occupation] = pat_attributes[13]  rescue nil #occupation
+  a_hash[:nat_id] = pat_identifier[3]  rescue nil #national_id
+  a_hash[:arv_number]  = pat_identifier[4]  rescue nil #arv_number
+  a_hash[:pre_art_number] = pat_identifier[22]  rescue nil #pre_art_number
+  a_hash[:tb_number]  = pat_identifier[7]  rescue nil #tb_number
+  a_hash[:legacy_id]  = pat_identifier[2]  rescue nil #legacy 1
+  a_hash[:prev_art_number]  = pat_identifier[5]  rescue nil #prev_arv_number
+  a_hash[:filing_number]  = pat_identifier[17]  rescue nil #filing_number
+  a_hash[:archived_filing_number]  = pat_identifier[18]  rescue nil #archived_filing_number
+  a_hash[:earliest_start_date]  = earliest_start_date  rescue nil
   
   return generate_sql_string(a_hash)
 end
