@@ -293,15 +293,7 @@ def get_patients_data(patient_id)
                                     AND o.patient_id = #{patient_id} 
                                     AND d.drug_inventory_id IS NOT NULL ")
       
-        	if o    count = 0
-      thresholds.each do |threshold| 
-        threads << Thread.new(count) do |i|
-          count += 1
-          get_all_patients(threshold[0], threshold[1], count)
-        end
-      end
-     
-    thrders
+        	if orders
           		patient_orders = process_patient_orders(orders, visit, 1) if patient_orders.empty?
         	end
 
