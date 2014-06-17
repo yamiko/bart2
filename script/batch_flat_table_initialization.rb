@@ -22,33 +22,18 @@ def initiate_script
     patients = Patient.find_by_sql("SELECT max(patient_id) as max_patient_id, count(*) record_count FROM #{@source_db}.earliest_start_date")
     record_count = patients.first.record_count
     max_patient_id = patients.first.max_patient_id
-    thresholds = generate_thresholds(100, 338)
+    thresholds = generate_thresholds(record_count, max_patient_id)
 
-count = 0
-  thresholds.each do |threshold| 
-    threads << Thread.new(count) do |i|
-      get_all_patients(threshold[0], threshold[1], count)
-    end
-      puts "#{count}"
-      count += 1
-  end
- 
-threads.each {|t| t.join}
-
-
-
-=begin
     count = 0
-    thresholds.each do |threshold|
-	    count += 1
-	    puts "#{threshold[0]}, #{threshold[1]}"
-	    threads << Thread.new(count) do 
-	        get_all_patients(threshold[0], threshold[1], count)
-	    end
-    end
-
-    threads.each {|thread| thread.join}
-=end
+      thresholds.each do |threshold| 
+        threads << Thread.new(count) do |i|
+          count += 1
+          get_all_patients(threshold[0], threshold[1], count)
+        end
+      end
+     
+    threads.each {|t| t.join}
+    
     puts "ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
 end
 
@@ -77,22 +62,137 @@ def get_all_patients(min, max, thread)
     min_patient_id = min
     max_patient_id = max
     #open output files for writing
-    $temp_outfile_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
-    $temp_outfile_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
-    $temp_outfile_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    if thread == 1
+      $temp_outfile_1_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_1_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_1_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 2
+      $temp_outfile_2_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_2_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_2_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 3
+      $temp_outfile_3_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_3_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_3_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 4
+      $temp_outfile_4_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_4_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_4_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 5
+      $temp_outfile_5_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_5_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_5_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 6
+      $temp_outfile_6_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_6_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_6_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 7
+      $temp_outfile_7_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_7_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_7_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 8
+      $temp_outfile_8_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_8_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_8_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 9
+      $temp_outfile_9_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_9_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_9_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 10
+      $temp_outfile_10_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_10_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_10_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    end
     
     patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
-    patient_list.each do |p|
-      $temp_outfile_3 << "#{p}," 
+    patient_list.each do |p| 
 	    sql_statements = get_patients_data(p)
-    	$temp_outfile_1 << sql_statements[0]
-    	$temp_outfile_2 << sql_statements[1]
+	    
+	    if thread == 1
+  	    $temp_outfile_1_3 << "#{p},"
+      	$temp_outfile_1_1 << sql_statements[0]
+      	$temp_outfile_1_2 << sql_statements[1]
+      elsif thread == 2
+        $temp_outfile_2_3 << "#{p},"
+        $temp_outfile_2_1 << sql_statements[0]
+        $temp_outfile_2_2 << sql_statements[1]
+      elsif thread == 3
+        $temp_outfile_3_3 << "#{p},"
+        $temp_outfile_3_1 << sql_statements[0]
+        $temp_outfile_3_2 << sql_statements[1]
+      elsif thread == 4
+        $temp_outfile_4_3 << "#{p},"
+        $temp_outfile_4_1 << sql_statements[0]
+        $temp_outfile_4_2 << sql_statements[1]
+      elsif thread == 5
+        $temp_outfile_5_3 << "#{p},"
+        $temp_outfile_5_1 << sql_statements[0]
+        $temp_outfile_5_2 << sql_statements[1]
+      elsif thread == 6
+        $temp_outfile_6_3 << "#{p},"
+        $temp_outfile_6_1 << sql_statements[0]
+        $temp_outfile_6_2 << sql_statements[1]
+      elsif thread == 7
+        $temp_outfile_7_3 << "#{p},"
+        $temp_outfile_7_1 << sql_statements[0]
+        $temp_outfile_7_2 << sql_statements[1]
+      elsif thread == 8
+        $temp_outfile_8_3 << "#{p},"
+        $temp_outfile_8_1 << sql_statements[0]
+        $temp_outfile_8_2 << sql_statements[1]
+      elsif thread == 9
+        $temp_outfile_9_3 << "#{p},"
+        $temp_outfile_9_1 << sql_statements[0]
+        $temp_outfile_9_2 << sql_statements[1]
+      elsif thread == 10
+        $temp_outfile_10_3 << "#{p},"
+        $temp_outfile_10_1 << sql_statements[0]
+        $temp_outfile_10_2 << sql_statements[1]
+      end
     end
     
     #close output files 
-    $temp_outfile_1.close
-    $temp_outfile_2.close
-    $temp_outfile_3.close
+    if thread == 1
+      $temp_outfile_1_3.close
+      $temp_outfile_1_1.close
+      $temp_outfile_1_2.close
+    elsif thread == 2
+      $temp_outfile_2_3.close
+      $temp_outfile_2_1.close
+      $temp_outfile_2_2.close
+    elsif thread == 3
+      $temp_outfile_3_3.close
+      $temp_outfile_3_1.close
+      $temp_outfile_3_2.close
+    elsif thread == 4
+      $temp_outfile_4_3.close
+      $temp_outfile_4_1.close
+      $temp_outfile_4_2.close
+    elsif thread == 5
+      $temp_outfile_5_3.close
+      $temp_outfile_5_1.close
+      $temp_outfile_5_2.close
+    elsif thread == 6
+      $temp_outfile_6_3.close
+      $temp_outfile_6_1.close
+      $temp_outfile_6_2.close
+    elsif thread == 7
+      $temp_outfile_7_3.close
+      $temp_outfile_7_1.close
+      $temp_outfile_7_2.close
+    elsif thread == 8
+      $temp_outfile_8_3.close
+      $temp_outfile_8_1.close
+      $temp_outfile_8_2.close
+    elsif thread == 9
+      $temp_outfile_9_3.close
+      $temp_outfile_9_1.close
+      $temp_outfile_9_2.close
+    elsif thread == 10
+      $temp_outfile_10_3.close
+      $temp_outfile_10_1.close
+      $temp_outfile_10_2.close
+    end
     
     puts "thread #{thread} ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")} for ids #{min} to #{max}"
 
@@ -188,7 +288,15 @@ def get_patients_data(patient_id)
                                     AND o.patient_id = #{patient_id} 
                                     AND d.drug_inventory_id IS NOT NULL ")
       
-        	if orders
+        	if o    count = 0
+      thresholds.each do |threshold| 
+        threads << Thread.new(count) do |i|
+          count += 1
+          get_all_patients(threshold[0], threshold[1], count)
+        end
+      end
+     
+    thrders
           		patient_orders = process_patient_orders(orders, visit, 1) if patient_orders.empty?
         	end
 
@@ -242,7 +350,6 @@ end
 
 def get_patient_demographics(patient_id)
   pat = Patient.find(patient_id)
-  puts patient_id.to_yaml
   patient_obj = PatientService.get_patient(pat.person) rescue nil
 
   earliest_start_date = PatientProgram.find_by_sql("SELECT earliest_start_date
