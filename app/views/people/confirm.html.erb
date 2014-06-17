@@ -540,10 +540,12 @@ function cancelOperation(action){
   }
 
   function showVlLabTrail(){
+    document.getElementById('vl_lab_trail_cover').style.display='inline';
     document.getElementById('vl_lab_trail').style.display='inline';
   }
 
   function hideVlLabTrail(){
+    document.getElementById('vl_lab_trail_cover').style.display='none';
     document.getElementById('vl_lab_trail').style.display='none';
   }
 </script>
@@ -732,15 +734,17 @@ function cancelOperation(action){
       width: 70%;
       height: 70%;
       top: 10%;
-      z-index: 801;
+      z-index: 991;
       left: 15%;
       border: 1px solid black;
       background-color: #FEE0C6;
+      border-radius: 15px;
     }
     #vl_lab_trail_header{
       padding: 10px;
       background-color: gray;
       color: white;
+      border-radius: 15px 15px 0px 0px;
       
     }
      #vl_lab_trail_footer{
@@ -751,13 +755,16 @@ function cancelOperation(action){
       width: 100%;
       position: absolute;
       bottom: 0px;
+      border-radius: 0px 0px 15px 15px;
      }
      #vl_lab_trail_footer span{
-      background-color: #C1CDCD;
-      position: absolute;
-      padding: 12px 20%;
-      left: 27%;
-      bottom: 8px;
+        border-radius: 13px;
+        background-color: #C1CDCD;
+        position: absolute;
+        padding: 12px 20%;
+        left: 27%;
+        bottom: 8px;
+        cursor: pointer;
      }
 
      .vl_tbody td{
@@ -768,7 +775,18 @@ function cancelOperation(action){
         border-bottom: 1px solid black;
         border-top: 1px solid black;
       }
-      
+
+      #vl_lab_trail_cover{
+        position: absolute;
+        background-color: black;
+        width: 100%;
+        height: 102%;
+        left: 0%;
+        top: 0%;
+        z-index: 990;
+        opacity: 0.25;
+      }
+
   </style>
 
 
@@ -939,6 +957,10 @@ function cancelOperation(action){
         </div>
       </div>
 
+      <div id="vl_lab_trail_cover" style="display:none;">
+
+      </div>
+      
       <div id="vl_lab_trail" style="display:none;">
         <div id="vl_lab_trail_header">
           <span style="font-size: 16pt; margin-left: 4.5%;">Viral load lab trail</span>
