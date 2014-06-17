@@ -39,6 +39,11 @@ end
 
 def generate_thresholds(records, patient_id)
    number_iterations = patient_id.to_i / records.to_i
+
+   if number_iterations > 10
+       number_iterations = 10
+   end
+
    threshold = (patient_id.to_i + (number_iterations * 2)) / number_iterations.to_i
    threshold_array = []
 
