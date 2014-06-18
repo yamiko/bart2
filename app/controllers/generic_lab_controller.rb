@@ -236,31 +236,30 @@ class GenericLabController < ApplicationController
 
   def patient_switched_to_second_line
     patient_id = params[:patient_id]
-
-    year_switched = params[:year_switched]
-    month_switched = params[:month_switched]
-    day_switched = params[:day_switched]
-    date_switched = (year_switched.to_s + '-' + month_switched.to_s + '-' + day_switched).to_date
+    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    date_or_year_switched = params[:set_year]
+    month_switched = params[:set_month]
+    day_switched = params[:set_day]
+    date_switched = date_or_year_switched.to_date rescue (date_or_year_switched.to_s + '-' + month_switched.to_s + '-' + day_switched).to_date
+    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     patient = Patient.find(patient_id)
     encounter_type = EncounterType.find_by_name("REQUEST").id
     viral_load = Concept.find_by_name("Hiv viral load").concept_id
-    patient_switched_to_second_line_obs = Observation.find(:last, :joins => [:encounter], 
+    second_line_obs = Observation.find(:last, :joins => [:encounter], :readonly => false,
       :conditions => ["person_id =? AND encounter_type =? AND concept_id =? AND value_text REGEXP ?", patient_id, encounter_type,
         viral_load, 'Patient switched to second line'])
 
-    if (patient_switched_to_second_line_obs.blank?)
-      enc = patient.encounters.current.find_by_encounter_type(encounter_type)
-      enc ||= patient.encounters.create(:encounter_type => encounter_type)
-
-      obs = Observation.new
-      obs.person_id = patient_id
-      obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
-      obs.value_text = "Patient switched to second line"
-      obs.value_datetime = date_switched
-      obs.encounter_id = enc.id
-      obs.obs_datetime = Time.now
-      obs.save
-    end
+    enc = patient.encounters.current.find_by_encounter_type(encounter_type)
+    enc ||= patient.encounters.create(:encounter_type => encounter_type)
+    obs = second_line_obs unless second_line_obs.blank?
+    obs = Observation.new if second_line_obs.blank?
+    obs.person_id = patient_id
+    obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
+    obs.value_text = "Patient switched to second line"
+    obs.value_datetime = date_switched
+    obs.encounter_id = enc.id
+    obs.obs_datetime = Time.now
+    obs.save
       
   redirect_to("/people/confirm?found_person_id=#{params[:patient_id]}")
   end
