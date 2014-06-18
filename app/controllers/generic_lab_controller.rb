@@ -236,6 +236,7 @@ class GenericLabController < ApplicationController
 
   def patient_switched_to_second_line
     patient_id = params[:patient_id]
+    counselling_done = params[:counselling_done]
     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     date_or_year_switched = params[:set_year]
     month_switched = params[:set_month]
@@ -248,6 +249,18 @@ class GenericLabController < ApplicationController
     second_line_obs = Observation.find(:last, :joins => [:encounter], :readonly => false,
       :conditions => ["person_id =? AND encounter_type =? AND concept_id =? AND value_text REGEXP ?", patient_id, encounter_type,
         viral_load, 'Patient switched to second line'])
+    national_ids = id_identifiers(Patient.find(patient_id))
+    vl_lab_sample = LabSample.find_by_sql(["
+        SELECT * FROM Lab_Sample s
+        INNER JOIN Lab_Parameter p ON p.sample_id = s.sample_id
+        INNER JOIN codes_TestType c ON p.testtype = c.testtype
+        INNER JOIN (SELECT DISTINCT rec_id, short_name FROM map_lab_panel) m ON c.panel_id = m.rec_id
+        WHERE s.patientid IN (?)
+        AND short_name = ?
+        AND s.deleteyn = 0
+        AND s.attribute = 'pass'
+        ORDER BY DATE(TESTDATE) DESC",national_ids,'HIV_viral_load'
+    ]).first rescue nil
 
     enc = patient.encounters.current.find_by_encounter_type(encounter_type)
     enc ||= patient.encounters.create(:encounter_type => encounter_type)
@@ -256,7 +269,18 @@ class GenericLabController < ApplicationController
     obs.person_id = patient_id
     obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
     obs.value_text = "Patient switched to second line"
+    obs.accession_number = vl_lab_sample.Sample_ID unless vl_lab_sample.blank?
     obs.value_datetime = date_switched
+    obs.encounter_id = enc.id
+    obs.obs_datetime = Time.now
+    obs.save
+
+    status = counselling_done.match(/yes/i)?'done':'not done'
+    obs = Observation.new
+    obs.person_id = patient_id
+    obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
+    obs.value_text = "Adherent counselling #{status}"
+    obs.accession_number = vl_lab_sample.Sample_ID unless vl_lab_sample.blank?
     obs.encounter_id = enc.id
     obs.obs_datetime = Time.now
     obs.save
