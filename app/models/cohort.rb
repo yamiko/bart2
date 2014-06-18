@@ -151,7 +151,7 @@ class Cohort
 		#	begin
 				logger.info("adults " + Time.now.to_s)
 				cohort_report['Newly registered adults'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 15, 1000)
-				cohort_report['Total registered adults'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 15, 120)
+				cohort_report['Total registered adults'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 15, 1000)
 		#	rescue Exception => e
 		#		Thread.current[:exception] = e
 		#	end
