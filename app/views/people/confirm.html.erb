@@ -971,7 +971,7 @@ function cancelOperation(action){
                   <% end %>
               <% else %>
 
-                <td><span style="margin-left: 10%; font-weight: bold; color: red">(Not done)</span></td>
+                <td><span style="margin-left: 4%; font-weight: bold; color: red">(Not requested)</span></td>
 
               <% end %>
             </tr>
@@ -1063,7 +1063,11 @@ function cancelOperation(action){
           </div>
           <div id="new_vl_menu_content">
             <table cellspacing="0" style="position:absolute; width: 100%; height:75%;">
-              <tr onclick="giveResultPath();" style="line-height: 3em;"><td><span>Result given to patient</span></td></tr>
+              <% unless @latest_result.blank?%>
+                <tr onclick="giveResultPath();" style="line-height: 3em;"><td><span>Result given to patient</span></td></tr>
+              <% else %>
+                <tr onclick="" style="line-height: 3em;"><td><span style="color:gray;">Result given to patient</span></td></tr>
+              <% end %>
               <tr onclick="newVlResultPath();" style="line-height: 3em;"><td><span>Enter new VL result</span></td></tr>
               <tr onclick="secondlineSwitchPath();" style="line-height: 3em;"><td><span>Patient switched to second line</span></td></tr>
               <tr onclick="removeUpdateVlMenu();" style="line-height: 3em;"><td><span>Back to milestone screening</span></td></tr>
