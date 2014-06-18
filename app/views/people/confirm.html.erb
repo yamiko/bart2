@@ -935,7 +935,7 @@ function cancelOperation(action){
 
             <hr class="popup_hr_without_lab"></hr>
             <a id='viral_load_requested_today' onclick = "viral_load_requested_today();" ><span>VL Requested Today</span></a>
-            <a id='viral_load_already_done' onclick="removePopup();"><span>VL Not Requested Today</span></a>
+            <a id='viral_load_already_done' onclick="viral_load_not_requested_today();"><span>VL Not Requested Today</span></a>
             <!--
             <a id='viral_load_adherence_issues' onclick="vl_adherence_issue();"><span>Not Requested Today<br />(Due to poor adherence to ART)</span></a>
             -->
@@ -970,9 +970,11 @@ function cancelOperation(action){
                     <td style=""><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
                   <% end %>
               <% else %>
-
-                <td><span style="margin-left: 4%; font-weight: bold; color: red">(Not requested)</span></td>
-
+                  <% if @vl_request == "YES" %>
+                    <td><span style="margin-left: 8%; font-weight: bold; color: red">(Requested)</span></td>
+                  <%  else %>
+                      <td><span style="margin-left: 4%; font-weight: bold; color: red">(Not requested)</span></td>
+                  <% end %>
               <% end %>
             </tr>
             <tr>
