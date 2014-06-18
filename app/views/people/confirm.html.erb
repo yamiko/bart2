@@ -278,16 +278,17 @@ function cancelOperation(action){
 
   function updateVl(){
     content = document.getElementById('content');
-    vl_menu = document.getElementById('update_vl_menu');
+    vl_menu = document.getElementById('new_vl_menu');
     content.appendChild(vl_menu);
     vl_menu.style.display = 'inline';
-    document.getElementById('cover').style.display='inline'
+    document.getElementById('vl_lab_trail_cover').style.display='inline';
+    //document.getElementById('cover').style.display='inline'
   }
 
   function removeUpdateVlMenu(){
-    vl_menu = document.getElementById('update_vl_menu')
-    vl_menu.style.display='none'
-    cover = document.getElementById('cover')
+    vl_menu = document.getElementById('new_vl_menu');
+    vl_menu.style.display='none';
+    cover = document.getElementById('vl_lab_trail_cover');
     cover.style.display='none'
   }
 
@@ -540,6 +541,9 @@ function cancelOperation(action){
   }
 
   function showVlLabTrail(){
+    c = document.getElementById('content');
+    v = document.getElementById('vl_lab_trail');
+    c.appendChild(v);
     document.getElementById('vl_lab_trail_cover').style.display='inline';
     document.getElementById('vl_lab_trail').style.display='inline';
   }
@@ -836,7 +840,7 @@ function cancelOperation(action){
 
       #lab_trail_span{
        position: absolute;
-       padding: 2% 13.5%;
+       padding: 2% 11.5%;
        background-color: #5F9EA0;
        color: white !important;
        right: 1%;
@@ -992,7 +996,7 @@ function cancelOperation(action){
         </div>
         <div id="vl_data_footer">
           <span onclick="updateVl();" id="update_span" style="color: white;">Update</span>
-          <span onclick="showVlLabTrail();" id="lab_trail_span" style="color: white;">Lab Trail</span>
+          <span onclick="showVlLabTrail();" id="lab_trail_span" style="color: white;">VL Trail</span>
         </div>
  </div>
       <div id="cover">
@@ -1062,11 +1066,11 @@ function cancelOperation(action){
               <tr onclick="giveResultPath();" style="line-height: 3em;"><td><span>Result given to patient</span></td></tr>
               <tr onclick="newVlResultPath();" style="line-height: 3em;"><td><span>Enter new VL result</span></td></tr>
               <tr onclick="secondlineSwitchPath();" style="line-height: 3em;"><td><span>Patient switched to second line</span></td></tr>
-              <tr style="line-height: 3em;"><td><span>Back to milestone screening</span></td></tr>
+              <tr onclick="removeUpdateVlMenu();" style="line-height: 3em;"><td><span>Back to milestone screening</span></td></tr>
             </table>
           </div>
           <div id="new_vl_menu_footer">
-            <span><b style="margin-left: 45%;">Cancel</b></span>
+            <span onclick="removeUpdateVlMenu();"><b style="margin-left: 45%;">Cancel</b></span>
           </div>
       </div>
 </body>
