@@ -1031,12 +1031,13 @@ function cancelOperation(action){
 
         <div id="vl_lab_trail_content">
           <div style="position: relative; overflow:auto; height: 80%;">
-          <table cellspacing='0' style="position:absolute; width:90%; top:10%; left: 5%;">
+          <table cellspacing='0' style="position:absolute; width:94%; top:10%; left: 3%;">
             <tr class="vl_table_header" style="background-color: #A2CD5A; line-height: 2em; font-size: 18px;">
-              <td style="min-width: 200px;"><span><center>Date of Sample</center></span></td>
-              <td style="min-width: 200px;"><span><center>Result</center></span></td>
-              <td><span><center>Result given to patient?</center></span></td>
-              <td><span><center>Date result given to patient</center></span></td>
+              <td style="min-width: 130px;"><span><center>Date of Sample</center></span></td>
+              <td style="min-width: 120px;"><span><center>Result</center></span></td>
+              <td><span><center>Result given?</center></span></td>
+              <td><span><center>Date result given</center></span></td>
+              <td><span><center>Switched to second line?</center></span></td>
             </tr>
           <% @vl_result_hash.each do |sample_id, result| %>
             <tr style="line-height: 3em;" class="vl_tbody">
@@ -1046,6 +1047,7 @@ function cancelOperation(action){
               <td><span><center><%= result["result"] %></center></span></td>
               <td><span><center><%= result["result_given"].capitalize %></center></span></td>
               <td><span><center><%= result["date_result_given"].strftime("%d-%b-%Y") rescue "------" %></center></span></td>
+              <td><span><center><%= result["second_line_switch"].capitalize %></center></span></td>
             </tr>
           <% end %>
           </table>

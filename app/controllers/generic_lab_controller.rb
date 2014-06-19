@@ -246,9 +246,7 @@ class GenericLabController < ApplicationController
     patient = Patient.find(patient_id)
     encounter_type = EncounterType.find_by_name("REQUEST").id
     viral_load = Concept.find_by_name("Hiv viral load").concept_id
-    second_line_obs = Observation.find(:last, :joins => [:encounter], :readonly => false,
-      :conditions => ["person_id =? AND encounter_type =? AND concept_id =? AND value_text REGEXP ?", patient_id, encounter_type,
-        viral_load, 'Patient switched to second line'])
+    
     national_ids = id_identifiers(Patient.find(patient_id))
     vl_lab_sample = LabSample.find_by_sql(["
         SELECT * FROM Lab_Sample s
@@ -262,6 +260,11 @@ class GenericLabController < ApplicationController
         ORDER BY DATE(TESTDATE) DESC",national_ids,'HIV_viral_load'
     ]).first rescue nil
 
+    second_line_obs = Observation.find(:last, :readonly => false, :joins => [:encounter], :conditions => ["
+        person_id =? AND encounter_type =? AND concept_id =? AND accession_number =?
+        AND value_text LIKE (?)",
+        patient.id, encounter_type, viral_load, vl_lab_sample.Sample_ID.to_i, '%Patient switched to second line%']) rescue nil
+    
     enc = patient.encounters.current.find_by_encounter_type(encounter_type)
     enc ||= patient.encounters.create(:encounter_type => encounter_type)
     obs = second_line_obs unless second_line_obs.blank?
