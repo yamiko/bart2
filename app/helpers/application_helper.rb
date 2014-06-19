@@ -799,8 +799,9 @@ module ApplicationHelper
     ]).first rescue nil
 
    vl_lab_sample_obs = Observation.find(:last, :readonly => false, :joins => [:encounter], :conditions => ["
-        person_id =? AND encounter_type =? AND concept_id =? AND accession_number =?",
-        patient.id, encounter_type, viral_load, vl_lab_sample.Sample_ID.to_i]) rescue nil
+        person_id =? AND encounter_type =? AND concept_id =? AND accession_number =?
+        AND value_text LIKE (?)",
+        patient.id, encounter_type, viral_load, vl_lab_sample.Sample_ID.to_i, '%Result given to patient%']) rescue nil
     #raise "x" if vl_lab_sample.blank?
     #raise "y" if vl_lab_sample_obs.blank?
     return false if vl_lab_sample.blank?

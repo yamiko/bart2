@@ -283,8 +283,10 @@ def self.vl_result_hash(patient)
       vl_hash[accession_number]["date_of_sample"] = date_of_sample
 
       vl_lab_sample_obs = Observation.find(:last, :joins => [:encounter], :conditions => ["
-        person_id =? AND encounter_type =? AND concept_id =? AND accession_number =?",
-        patient.id, encounter_type, viral_load, accession_number.to_i]) rescue nil
+        person_id =? AND encounter_type =? AND concept_id =? AND accession_number =?
+        AND value_text LIKE (?)",
+        patient.id, encounter_type, viral_load, accession_number.to_i, '%Result given to patient%']) rescue nil
+    
       unless vl_lab_sample_obs.blank?
         vl_hash[accession_number]["result_given"] = {} if vl_hash[accession_number]["result_given"].blank?
         vl_hash[accession_number]["result_given"] = "yes"
