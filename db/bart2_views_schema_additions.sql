@@ -285,21 +285,6 @@ RETURN date_started;
 END$$                                                                           
 DELIMITER ;
 
--- creating a view to hold patients' service waiting time
-CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
-  VIEW `patient_service_waiting_time` AS
-  SELECT  e.patient_id, DATE(e.encounter_datetime) visit_date, 
-    MIN(e.encounter_datetime) start_time , MAX(e.encounter_datetime) finish_time,
-    TIMEDIFF( MAX(e.encounter_datetime) , MIN(e.encounter_datetime) ) service_time
-  FROM encounter e  INNER JOIN encounter e2 ON e.patient_id = e2.patient_id 
-  AND e.encounter_type IN(7, 9, 12, 25, 51, 52, 53, 54, 68) WHERE e.encounter_datetime 
-  BETWEEN date_format(DATE_SUB(NOW() , INTERVAL 7 DAY),'%Y-%m-%d 00:00:00')
-  AND date_format(DATE_SUB(NOW() , INTERVAL 1 DAY),'%Y-%m-%d 23:59:59')
-  AND (RIGHT(e.encounter_datetime,2) <> '01' AND RIGHT(e.encounter_datetime,2) <> '01')
-  GROUP BY e.patient_id,DATE(e.encounter_datetime)
-  ORDER BY e.patient_id,e.encounter_datetime; 
-
-
 --
 -- Dumping routines for database 'bart2'
 --
@@ -851,46 +836,30 @@ DELIMITER ;
 
 DROP FUNCTION IF EXISTS `current_defaulter_date`;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_defaulter_date`(my_patient_id INT, my_end_date DATETIME) RETURNS varchar(10) CHARSET latin1
-    DETERMINISTIC
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `current_defaulter_date`(my_patient_id INT, my_end_date DATETIME) RETURNS DATE
 BEGIN
 	DECLARE done INT DEFAULT FALSE;
-	DECLARE my_start_date, my_expiry_date, my_obs_datetime, default_date DATETIME;
+	DECLARE my_start_date, my_expiry_date, my_obs_datetime, my_defaulted_date DATETIME;
 	DECLARE my_daily_dose, my_quantity, my_pill_count, my_total_text, my_total_numeric DECIMAL;
 	DECLARE my_drug_id, flag INT;
 
-	DECLARE cur1 CURSOR FOR SELECT d.drug_inventory_id, o.start_date, d.equivalent_daily_dose daily_dose, obs.value_numeric, o.start_date FROM obs
-                            INNER join encounter USING (encounter_id)
-                            INNER JOIN drug_order d ON obs.order_id = d.order_id
-                            INNER JOIN orders o ON o.order_id = d.order_id
-                            WHERE encounter_type = (SELECT encounter_type_id FROM encounter_type WHERE name = 'DISPENSING')
-                            AND d.drug_inventory_id IN (SELECT drug_id FROM drug
-                            WHERE concept_id IN (SELECT concept_id
-                            FROM concept_set
-                            WHERE concept_set = 1085))
-                            AND obs.concept_id = 2834
-                            AND d.quantity > 0
-                            AND o.voided = 0
-                            AND obs.voided = 0
-                            AND DATE(o.start_date) <= my_end_date
-                            AND encounter.patient_id = my_patient_id;
+	DECLARE cur1 CURSOR FOR SELECT d.drug_inventory_id, o.start_date, d.equivalent_daily_dose daily_dose, d.quantity, o.start_date FROM drug_order d
+		INNER JOIN arv_drug ad ON d.drug_inventory_id = ad.drug_id		
+		INNER JOIN orders o ON d.order_id = o.order_id
+			AND d.quantity > 0
+			AND o.voided = 0
+			AND o.start_date <= my_end_date
+			AND o.patient_id = my_patient_id;
 
 	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-	SELECT MAX(o.start_date) INTO @obs_datetime  FROM obs
-                            INNER join encounter USING (encounter_id)
-                            INNER JOIN drug_order d ON obs.order_id = d.order_id
-                            INNER JOIN orders o ON o.order_id = d.order_id AND o.patient_id = my_patient_id
-                            WHERE encounter_type = (SELECT encounter_type_id FROM encounter_type WHERE name = 'DISPENSING')
-                            AND d.drug_inventory_id IN (SELECT drug_id FROM drug
-                            WHERE concept_id IN (SELECT concept_id
-                            FROM concept_set
-                            WHERE concept_set = 1085))
-                            AND obs.concept_id = 2834
-                            AND d.quantity > 0
-                            AND o.voided = 0
-                            AND obs.voided = 0
-                            AND DATE(o.start_date) <= my_end_date
+	SELECT MAX(o.start_date) INTO @obs_datetime FROM drug_order d
+		INNER JOIN arv_drug ad ON d.drug_inventory_id = ad.drug_id		
+		INNER JOIN orders o ON d.order_id = o.order_id
+			AND d.quantity > 0
+			AND o.voided = 0
+			AND o.start_date <= my_end_date
+			AND o.patient_id = my_patient_id
 		GROUP BY o.patient_id;
 
 	OPEN cur1;
@@ -922,10 +891,10 @@ BEGIN
     END LOOP;
 
     IF DATEDIFF(my_end_date, my_expiry_date) > 56 THEN
-      SET default_date = ADDDATE(my_expiry_date, 56);
+        SET my_defaulted_date = ADDDATE(my_expiry_date, 56);
     END IF;
 
-	RETURN default_date;
+	RETURN my_defaulted_date;
 END */;;
 DELIMITER ;
 
