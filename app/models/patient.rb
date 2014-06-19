@@ -298,7 +298,22 @@ def self.vl_result_hash(patient)
         vl_hash[accession_number]["date_result_given"] = {} if vl_hash[accession_number]["date_result_given"].blank?
         vl_hash[accession_number]["date_result_given"] = ""
       end
+
+    switched_to_second_line_obs = Observation.find(:last, :joins => [:encounter], :conditions => ["
+        person_id =? AND encounter_type =? AND concept_id =? AND accession_number =?
+        AND value_text LIKE (?)",
+        patient.id, encounter_type, viral_load, accession_number.to_i, '%Patient switched to second line%']) rescue nil
+    
+    unless switched_to_second_line_obs.blank?
+      vl_hash[accession_number]["second_line_switch"] = {} if vl_hash[accession_number]["second_line_switch"].blank?
+      vl_hash[accession_number]["second_line_switch"] = "yes"
+    else
+      vl_hash[accession_number]["second_line_switch"] = {} if vl_hash[accession_number]["second_line_switch"].blank?
+      vl_hash[accession_number]["second_line_switch"] = "no"
     end
-    return vl_hash
+
+    end
+    
+    return vl_hash.sort_by{|key, value|value["date_of_sample"].to_date}.reverse rescue {}
   end
 end
