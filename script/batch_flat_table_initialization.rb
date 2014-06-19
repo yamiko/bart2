@@ -284,9 +284,9 @@ def get_patients_data(patient_id)
 
       # we will exclude the orders having drug_inventory_id null     	
       orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
-                                               o.start_date, o.auto_expire_date, d.quantity,
-                                               d.drug_inventory_id, d.dose, d.frequency,
-                                               o.concept_id, d.equivalent_daily_dose
+                                               o.start_date, o.auto_expire_date, IFNULL(d.quantity, 0) AS quantity,
+                                               d.drug_inventory_id, IFNULL(d.dose, 2) As dose, d.frequency,
+                                               o.concept_id, IFNULL(d.equivalent_daily_dose, 2) AS equivalent_daily_dose 
                                     FROM orders o
                                       INNER JOIN drug_order d ON d.order_id = o.order_id
                                     WHERE DATE(o.start_date) = '#{visit}' 
