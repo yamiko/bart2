@@ -1070,7 +1070,7 @@ function cancelOperation(action){
               <% unless @latest_result.blank?%>
                 <tr onclick="giveResultPath();" style="line-height: 3em;"><td><span>Result given to patient</span></td></tr>
               <% else %>
-                <tr onclick="" style="line-height: 3em;"><td><span style="color:gray;">Result given to patient</span></td></tr>
+                <tr onclick="" style="line-height: 3em; background-color: #FEE0C6;"><td><span style="color:gray;">Result given to patient</span></td></tr>
               <% end %>
               <tr onclick="newVlResultPath();" style="line-height: 3em;"><td><span>Enter new VL result</span></td></tr>
               <tr onclick="secondlineSwitchPath();" style="line-height: 3em;"><td><span>Patient switched to second line</span></td></tr>
