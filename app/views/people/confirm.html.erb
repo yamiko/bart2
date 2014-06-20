@@ -950,7 +950,7 @@ function cancelOperation(action){
 
   <% unless @latest_result.blank?%>
       <% if @latest_result.to_i >= 1000 %>
-          <span style="letter-spacing: 11px;font-weight:bold; font-family: Nimbus Sans L; margin-left: 20%; color: red; font-size: 1.4em">HIGH VIRAL LOAD</span>
+          <span style="letter-spacing: 11px;font-weight:bold; font-family: Nimbus Sans L; margin-left: 20%; color: red; font-size: 14px">HIGH VIRAL LOAD</span>
       <% else %>
           <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">VIRAL LOAD</span>
       <% end %>
@@ -965,7 +965,7 @@ function cancelOperation(action){
               <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Last Viral load </td>
               <% unless @latest_result.blank?%>
                   <% if @latest_result.to_i >= 1000 %>
-                    <td style="color:red; font-weight: bold; font-size: 1.3em"><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
+                    <td style="color:red; font-weight: bold; font-size: 14px"><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
                   <% else %>
                     <td style=""><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
                   <% end %>
