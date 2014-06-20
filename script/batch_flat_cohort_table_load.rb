@@ -69,6 +69,7 @@ def get_patients_data(patient_id)
                                                 gender,
                                                 dob,
                                                 earliest_start_date,
+                                                age_at_initiation,
                                                 reason_for_eligibility,
                                                 ever_registered_at_art_clinic,
                                                 date_art_last_taken,
@@ -184,6 +185,7 @@ def process_flat_table_1(flat_table_1_data, type = 0) #type 0 normal encounter, 
       a_hash[:birthdate] = patient.dob
       a_hash[:death_date] = pat.person.death_date
       a_hash[:earliest_start_date] = patient.earliest_start_date
+      a_hash[:age_at_initiation] = patient.age_at_initiation
       a_hash[:reason_for_starting] = patient.reason_for_eligibility
       a_hash[:ever_registered_at_art] = patient.ever_registered_at_art_clinic
       a_hash[:date_art_last_taken] = patient.date_art_last_taken
