@@ -352,6 +352,10 @@ def get_patient_demographics(patient_id)
   earliest_start_date = PatientProgram.find_by_sql("SELECT earliest_start_date
                                            FROM earliest_start_date
                                            WHERE patient_id = #{patient_id}").map(&:earliest_start_date).first
+
+  age_at_initiation = PatientProgram.find_by_sql("SELECT age_at_initiation
+                                           FROM earliest_start_date
+                                           WHERE patient_id = #{patient_id}").map(&:age_at_initiation).first
   
   a_hash = {:legacy_id2 => 'NULL'}
 
@@ -389,7 +393,8 @@ def get_patient_demographics(patient_id)
   a_hash[:filing_number]  = pat_identifier[17]  rescue nil #filing_number
   a_hash[:archived_filing_number]  = pat_identifier[18]  rescue nil #archived_filing_number
   a_hash[:earliest_start_date]  = earliest_start_date  rescue nil
-  
+  a_hash[:age_at_initiation] = age_at_initiation rescue nil
+
   return generate_sql_string(a_hash)
 end
 
@@ -1243,7 +1248,7 @@ def patient_defaulted_dates(patient_obj, session_date)
     total_dispensations = all_dispensations.length
     defaulted_dates = all_dispensations.map(&:obs_datetime)
     test = []
-    
+
     all_dispensations.each do |disp_date|
       d = ((dates - total_dispensations) + 1)
 
