@@ -18,3 +18,5 @@ log/*
 .idea/*
 .ruby-version
 public/touchscreentoolkit/*
+db/flat_tables_init_output/backup/*
+db/flat_tables_init_output/*
