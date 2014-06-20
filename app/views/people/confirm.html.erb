@@ -860,7 +860,7 @@ function cancelOperation(action){
   <!-------------------------------------------->
    <% if @vl_request == "YES" %>
       <div id="popup" class="popup_vl" style="display:none; background-color: #DCDCDC;">
-        <span style="color: green"><u>Routine Viral Load Screening Due</u></span><br />
+        <span style="color: green"><u>Routine Viral Load Screening</u></span><br />
         <span style="color: red">VL Results Available?</span>
         <div style="margin-top:8%;">
           <%  if @enter_lab_results %>
@@ -950,7 +950,7 @@ function cancelOperation(action){
 
   <% unless @latest_result.blank?%>
       <% if @latest_result.to_i >= 1000 %>
-          <span style="letter-spacing: 11px;font-weight:bold; font-family: Nimbus Sans L; margin-left: 20%; color: red; font-size: 14px">HIGH VIRAL LOAD</span>
+          <span style="letter-spacing: 11px;font-weight:bold; font-family: Nimbus Sans L; margin-left: 20%; color: red; font-size: 14px"><blink>HIGH VIRAL LOAD</blink></span>
       <% else %>
           <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">VIRAL LOAD</span>
       <% end %>
