@@ -1,9 +1,15 @@
 require 'yaml'
 
+if ARGV[0].nil?
+  raise "Please include the environment that you would like to choose. Either development or production"
+else
+  @environment = ARGV[0]
+end
+
 def initialize_variables
   # initializes the different variables required for the
   # flat table initalization process
-  @source_db = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))["production"]["database"]
+  @source_db = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))["#{@environment}"]["database"]
   @started_at = Time.now.strftime("%Y-%m-%d-%H%M%S")
   @drug_list = get_drug_list
   @max_dispensing_enc_date = Encounter.find_by_sql("SELECT DATE(max(encounter_datetime)) AS adate
@@ -111,7 +117,8 @@ def get_all_patients(min, max, thread)
       $temp_outfile_10_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
     end
     
-    patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
+    patient_list = [10542] #Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
+
     patient_list.each do |p| 
 	    sql_statements = get_patients_data(p)
 	    
