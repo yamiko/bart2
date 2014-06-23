@@ -13,6 +13,29 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+-- view to capture avg ART/HIV care treatment time for ART patients at a given site
+CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
+VIEW `patient_service_waiting_time` AS
+    SELECT 
+        `e`.`patient_id` AS `patient_id`,
+        cast(`e`.`encounter_datetime` as date) AS `visit_date`,
+        min(`e`.`encounter_datetime`) AS `start_time`,
+        max(`e`.`encounter_datetime`) AS `finish_time`,
+        timediff(max(`e`.`encounter_datetime`),
+                min(`e`.`encounter_datetime`)) AS `service_time`
+    FROM
+        (`encounter` `e`
+        join `encounter` `e2` ON (((`e`.`patient_id` = `e2`.`patient_id`)
+            AND (`e`.`encounter_type` in (7 , 9, 12, 25, 51, 52, 53, 54, 68)))))
+    WHERE
+        ((`e`.`encounter_datetime` BETWEEN date_format((now() - interval 7 day),
+                '%Y-%m-%d 00:00:00') AND date_format((now() - interval 1 day),
+                '%Y-%m-%d 23:59:59'))
+            AND (right(`e`.`encounter_datetime`, 2) <> '01')
+            AND (right(`e`.`encounter_datetime`, 2) <> '01'))
+    GROUP BY `e`.`patient_id` , cast(`e`.`encounter_datetime` as date)
+    ORDER BY `e`.`patient_id` , `e`.`encounter_datetime`;
+
 -- Non-voided HIV Clinic Consultation encounters
 CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
   VIEW `clinic_consultation_encounter` AS
