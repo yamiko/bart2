@@ -379,7 +379,7 @@ class GenericPeopleController < ApplicationController
       @modifier = @results[1]["Range"] rescue nil
     #end
     @reason_for_art = PatientService.reason_for_art_eligibility(patient)
-    @vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?",
+    @vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL",
             patient.patient_id, Concept.find_by_name("Viral load").concept_id]
         ).answer_string.squish.upcase rescue nil
 

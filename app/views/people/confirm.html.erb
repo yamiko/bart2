@@ -395,10 +395,46 @@ function cancelOperation(action){
         show_lab_results &&
         (current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
 
+        <!-------------------------------------------->
+   <% if @vl_request == "YES" %>
+      <div id="popup" style="display:none; border:0px; width: 0px; height: 0px; padding: 0px;">
+        <!--<span style="color: green"><u>Routine Viral Load Screening</u></span><br />
+        <span style="color: red">VL Results Available?</span>
+        <div style="margin-top:8%;">
+          <%  if @enter_lab_results %>
+          <span id="update_vl_button" onclick="newVlResultPath();">Enter Viral load result</span><br />
+          <%  else %>
+          <span id="update_vl_button_gray" onclick="">Enter Viral load result</span><br />
+          <% end %>
+         <span id="update_vl_button" onclick="hidePopup();">No viral load result available</span><br />
+        </div>-->
+
+
+        <div id="new_vl_menu" style="position:fixed; width:40%; height: 45%; left:30%;">
+              <div id="new_vl_menu_header">
+                <span style="font-size: 15pt;">Routine Viral Load Screening<br/>
+                Viral load result available?</span>
+              </div>
+              <div id="new_vl_menu_content">
+                <table cellspacing="0" style="position:absolute; width: 100%; height:75%;">
+                  <tr onclick="newVlResultPath();" style="line-height: 3em;"><td><span>Enter VL result</span></td></tr>
+                  <tr onclick="hidePopup();" style="line-height: 3em;"><td><span>No VL result available</span></td></tr>
+                </table>
+              </div>
+              <div id="new_vl_menu_footer" style="height: 0px;">
+
+              </div>
+        </div>
+
+
+      </div>
+      <!-------------------------------------------->
+   <% else %>
+
       <div id="popup" style="display:none">
 
         <div class="art_container">
-          <div class="header" style="position: absolute; left: 150px">
+          <div class="header" style="position: absolute; left: 20%">
             <div id="viral_header">
               <u>Routine Viral Load Screening Due</u><br />
               <u>Assess Adherence:</u> <br />
@@ -452,9 +488,9 @@ function cancelOperation(action){
         <hr class="popup_hr"></hr>
         <a id='viral_load_done' onclick = "viral_load_requested_today();" ><span>VL Requested Today</span></a>
                     <!--<a id='lab_trail' onclick="window.location='/lab/results/<%=@person.id%>'"><span>View Lab Trail</span></a>-->
-        <a id='reminder' onclick="removePopup();"><span>VL Not Requested Today</span></a>
+        <a id='viral_load_already_done' onclick="removePopup();"><span>VL Not Requested Today</span></a>
       </div>
-
+      <% end %>
       <div id="cover">
       </div>
     <% end %>
@@ -859,16 +895,21 @@ function cancelOperation(action){
 
   <!-------------------------------------------->
    <% if @vl_request == "YES" %>
-      <div id="popup" class="popup_vl" style="display:none; background-color: #DCDCDC;">
-        <span style="color: green"><u>Routine Viral Load Screening</u></span><br />
-        <span style="color: red">VL Results Available?</span>
-        <div style="margin-top:8%;">
-          <%  if @enter_lab_results %>
-          <span id="update_vl_button" onclick="newVlResultPath();">Enter Viral load result</span><br />
-          <%  else %>
-          <span id="update_vl_button_gray" onclick="">Enter Viral load result</span><br />
-          <% end %>
-         <span id="update_vl_button" onclick="hidePopup();">No viral load result available</span><br />
+      <div id="popup" style="display:none; border:0px; width: 0px; height: 0px; padding: 0px;">
+        <div id="new_vl_menu" style="position:fixed; width:40%; height: 45%; left:30%;">
+              <div id="new_vl_menu_header">
+                <span style="font-size: 15pt;">Routine Viral Load Screening<br/>
+                Viral load result available?</span>
+              </div>
+              <div id="new_vl_menu_content">
+                <table cellspacing="0" style="position:absolute; width: 100%; height:75%;">
+                  <tr onclick="newVlResultPath();" style="line-height: 3em;"><td><span>Enter VL result</span></td></tr>
+                  <tr onclick="hidePopup();" style="line-height: 3em;"><td><span>No VL result available</span></td></tr>
+                </table>
+              </div>
+              <div id="new_vl_menu_footer" style="height: 0px;">
+
+              </div>
         </div>
           <!--<hr class="popup_hr_without_lab"></hr>-->
             <!--<a id='viral_load_requested_today' onclick = "captureVl()" style="background-color: #6E7B8B"><span>Enter Viral load result</span></a>
