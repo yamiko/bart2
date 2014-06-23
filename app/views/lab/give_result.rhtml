@@ -9,7 +9,24 @@
 
 
 </style>
+<%
+    patient = Patient.find(params[:patient_id])
+    identifier_type = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
+    identifier_types = PatientIdentifierType.find(:all, :conditions=>["name IN (?)",identifier_type]
+    ).collect{| type |type.id }
 
+    identifiers = []
+    PatientIdentifier.find(:all, :conditions=>["patient_id=? AND identifier_type IN (?)",
+        patient.id,identifier_types]).each{| i | 
+          identifiers << i.identifier
+        }
+    
+    results = Lab.latest_result_by_test_type(patient, 'HIV_viral_load', identifiers) rescue nil
+    latest_result = results[1]["TestValue"] rescue nil
+
+
+
+%>
 <script>
    tt_cancel_destination = "/people/confirm?found_person_id=<%=params[:patient_id]%>";
    result_given_today = false;
@@ -31,7 +48,9 @@
           elements[i].onmousedown = function(){
             result_given_today = true;
             updateTouchscreenInputForSelect(this);
-            next_button.innerHTML='<span>Finish</span>';
+            <% if latest_result.to_i < 1000 %>
+              next_button.innerHTML='<span>Finish</span>';
+            <% end %>
           }
         }
         else{         
@@ -94,6 +113,12 @@
       :id => 'set_day',
       :helpText => 'Day result given to patient'
     })  %>
-
+<% if latest_result.to_i >= 1000 %>
+    <%= select_tag(:counselling_done, options_for_select(['', 'Yes', 'No']),
+        {
+          :id => 'adherent_counselling',
+          :helpText => 'Enhanced adherent counselling done if viral load is > 1000?'
+        })  %>
+<% end %>
 <%= hidden_field_tag("patient_id", params[:patient_id]) %>
 <%end%>

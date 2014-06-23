@@ -230,7 +230,19 @@ class GenericLabController < ApplicationController
               obs.obs_datetime = Time.now
               obs.save
         end
-    
+
+    counselling_done = params[:counselling_done]
+    unless counselling_done.blank?
+      status = counselling_done.match(/yes/i)?'done':'not done'
+      obs = Observation.new
+      obs.person_id = patient_id
+      obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
+      obs.value_text = "Adherent counselling #{status}"
+      obs.accession_number = vl_lab_sample.Sample_ID unless vl_lab_sample.blank?
+      obs.encounter_id = enc.id
+      obs.obs_datetime = Time.now
+      obs.save
+    end
   redirect_to("/people/confirm?found_person_id=#{params[:patient_id]}")
   end
 
@@ -277,7 +289,7 @@ class GenericLabController < ApplicationController
     obs.encounter_id = enc.id
     obs.obs_datetime = Time.now
     obs.save
-
+=begin
     status = counselling_done.match(/yes/i)?'done':'not done'
     obs = Observation.new
     obs.person_id = patient_id
@@ -287,7 +299,7 @@ class GenericLabController < ApplicationController
     obs.encounter_id = enc.id
     obs.obs_datetime = Time.now
     obs.save
-      
+=end
   redirect_to("/people/confirm?found_person_id=#{params[:patient_id]}")
   end
   

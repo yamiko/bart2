@@ -31,7 +31,7 @@
           elements[i].onmousedown = function(){
             patient_switched_today = true;
             updateTouchscreenInputForSelect(this);
-            //next_button.innerHTML='<span>Finish</span>';
+            next_button.innerHTML='<span>Finish</span>';
           }
         }
         else{
@@ -97,11 +97,6 @@
       :helpText => 'Day patient switched to second line'
     })  %>
 
-<%= select_tag(:counselling_done, options_for_select(['', 'Yes', 'No']),
-    { 
-      :id => 'adherent_counselling',
-      :helpText => 'Enhanced adherent counselling done if viral load is > 1000?'
-    })  %>
 
 <%= hidden_field_tag("patient_id", params[:patient_id]) %>
 <%end%>

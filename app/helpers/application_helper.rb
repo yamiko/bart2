@@ -600,11 +600,12 @@ module ApplicationHelper
         first_date = art_start_date + key.months
         second_date = art_start_date + value.months
         viral_loads_request = Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? 
-            AND DATE(obs_datetime) >= ? AND DATE(obs_datetime) <= ?",
+            AND DATE(obs_datetime) >= ? AND DATE(obs_datetime) <= ? AND value_coded IS NOT NULL",
             patient.patient_id, Concept.find_by_name("Viral load").concept_id, first_date, second_date])
         return true unless viral_loads_request.blank?
         if (viral_loads_request.blank?)
-          viral_loads_request = Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?",
+          viral_loads_request = Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?
+              AND value_coded IS NOT NULL",
             patient.patient_id, Concept.find_by_name("Viral load").concept_id])
           return true unless viral_loads_request.blank?
           return false if viral_loads_request.blank?
@@ -702,7 +703,6 @@ module ApplicationHelper
     latest_viral_results_date = results[0].split('::')[0].to_date rescue nil
     #yes_concept_id = ConceptName.find_by_name('yes').concept_id
 
-
     milestone_exceeded = true
 
     milestones.each do |key, value|
@@ -763,7 +763,7 @@ module ApplicationHelper
         first_date = art_start_date + key.months
         second_date = art_start_date + value.months
         vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?
-            AND DATE(obs_datetime) >= ? AND DATE(obs_datetime) <= ?",
+            AND DATE(obs_datetime) >= ? AND DATE(obs_datetime) <= ? AND value_coded IS NOT NULL",
             patient.patient_id, Concept.find_by_name("Viral load").concept_id, first_date, second_date])
         answer_string = vl_request.answer_string.squish rescue nil
         return false if answer_string.blank?
