@@ -351,6 +351,8 @@ def get_patient_demographics(patient_id)
   pat = Patient.find(patient_id)
   patient_obj = PatientService.get_patient(pat.person) rescue nil
 
+  current_location = Location.find(GlobalProperty.find_by_property("current_health_center_id").property_value).name
+
   earliest_start_date = PatientProgram.find_by_sql("SELECT earliest_start_date
                                            FROM earliest_start_date
                                            WHERE patient_id = #{patient_id}").map(&:earliest_start_date).first
@@ -396,6 +398,7 @@ def get_patient_demographics(patient_id)
   a_hash[:archived_filing_number]  = pat_identifier[18]  rescue nil #archived_filing_number
   a_hash[:earliest_start_date]  = earliest_start_date  rescue nil
   a_hash[:age_at_initiation] = age_at_initiation rescue nil
+  a_hash[:current_location] = current_location rescue nil
 
   return generate_sql_string(a_hash)
 end
