@@ -121,4 +121,9 @@
         })  %>
 <% end %>
 <%= hidden_field_tag("patient_id", params[:patient_id]) %>
+
+<% if params[:go_to_next_task] %>
+  <%= hidden_field_tag "go_to_next_task", "true" %>
+<% end  %>
+
 <%end%>

@@ -187,4 +187,8 @@ function resetPad() {
 <%= hidden_field_tag "patient_id", @patient.id %>
 <%= hidden_field_tag "lab_result", "HIV_DNA_PCR" %>
 
+<% if params[:go_to_next_task] %>
+  <%= hidden_field_tag "go_to_next_task", "true" %>
+<% end  %>
+
 <%end%>

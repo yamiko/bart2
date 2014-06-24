@@ -297,6 +297,11 @@ function cancelOperation(action){
     window.location = "/lab/viral_load_result?patient_id=<%= person_id %>"
   }
 
+  function newVlResultPathWithParam(){
+    <%  person_id =  params[:found_person_id] %>
+    window.location = "/lab/viral_load_result?patient_id=<%= person_id %>&go_to_next_task=true"
+  }
+
   function giveResultPath(){
     <%  person_id =  params[:found_person_id] %>
     window.location = "/lab/give_result?patient_id=<%= person_id %>"
@@ -417,7 +422,7 @@ function cancelOperation(action){
               </div>
               <div class="new_vl_menu_content">
                 <table cellspacing="0" style="position:absolute; width: 100%; height:75%;">
-                  <tr onclick="newVlResultPath();" style="line-height: 3em;"><td><span>Enter VL result</span></td></tr>
+                  <tr onclick="newVlResultPathWithParam();" style="line-height: 3em;"><td><span>Enter VL result</span></td></tr>
                   <tr onclick="hidePopup();" style="line-height: 3em;"><td><span>No VL result available</span></td></tr>
                 </table>
               </div>
@@ -915,7 +920,7 @@ function cancelOperation(action){
               </div>
               <div class="new_vl_menu_content">
                 <table cellspacing="0" style="position:absolute; width: 100%; height:75%;">
-                  <tr onclick="newVlResultPath();" style="line-height: 3em;"><td><span>Enter VL result</span></td></tr>
+                  <tr onclick="newVlResultPathWithParam();" style="line-height: 3em;"><td><span>Enter VL result</span></td></tr>
                   <tr onclick="hidePopup();" style="line-height: 3em;"><td><span>No VL result available</span></td></tr>
                 </table>
               </div>

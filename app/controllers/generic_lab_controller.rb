@@ -178,6 +178,12 @@ class GenericLabController < ApplicationController
     lab_parameter.Range = test_modifier
     lab_parameter.save
 
+    unless params[:go_to_next_task].blank?
+      patient = Patient.find(params[:patient_id])
+      redirect_to ("/lab/give_result?patient_id=#{params[:patient_id]}&go_to_next_task=true") and return if params[:result_given].match(/YES/i)
+      redirect_to next_task(patient) and return
+    end
+    
     redirect_to ("/lab/give_result?patient_id=#{params[:patient_id]}") and return if params[:result_given].match(/YES/i)
     redirect_to("/people/confirm?found_person_id=#{params[:patient_id]}") and return
   end
@@ -243,7 +249,13 @@ class GenericLabController < ApplicationController
       obs.obs_datetime = Time.now
       obs.save
     end
-  redirect_to("/people/confirm?found_person_id=#{params[:patient_id]}")
+
+    unless params[:go_to_next_task].blank?
+      patient = Patient.find(params[:patient_id])
+      redirect_to next_task(patient) and return
+    end
+
+    redirect_to("/people/confirm?found_person_id=#{params[:patient_id]}") and return
   end
 
   def patient_switched_to_second_line
