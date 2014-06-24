@@ -1,13 +1,19 @@
 require 'yaml'
 
+if ARGV[0].nil?
+  raise "Please include the environment that you would like to choose. Either development or production"
+else
+  @environment = ARGV[0]
+end
+
 def initialize_variables
   # initializes the different variables required for the
   # flat table initalization process
-  @source_db = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))["production"]["database"]
+  @source_db = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))["#{@environment}"]["database"]
   @started_at = Time.now.strftime("%Y-%m-%d-%H%M%S")
   @drug_list = get_drug_list
   @max_dispensing_enc_date = Encounter.find_by_sql("SELECT DATE(max(encounter_datetime)) AS adate
-                                                    FROM encounter
+                                                    FROM #{@source_db}.encounter
                                                     WHERE encounter_type = 54").map(&:adate)
 end
 
@@ -112,6 +118,7 @@ def get_all_patients(min, max, thread)
     end
     
     patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
+
     patient_list.each do |p| 
 	    sql_statements = get_patients_data(p)
 	    
@@ -289,8 +296,8 @@ def get_patients_data(patient_id)
                                                o.start_date, o.auto_expire_date, IFNULL(d.quantity, 0) AS quantity,
                                                d.drug_inventory_id, IFNULL(d.dose, 2) As dose, d.frequency,
                                                o.concept_id, IFNULL(d.equivalent_daily_dose, 2) AS equivalent_daily_dose 
-                                    FROM orders o
-                                      INNER JOIN drug_order d ON d.order_id = o.order_id
+                                    FROM #{@source_db}.orders o
+                                      INNER JOIN #{@source_db}.drug_order d ON d.order_id = o.order_id
                                     WHERE DATE(o.start_date) = '#{visit}' 
                                     AND o.patient_id = #{patient_id} 
                                     AND d.drug_inventory_id IS NOT NULL ")
@@ -300,8 +307,8 @@ def get_patients_data(patient_id)
         	end
 
           reg_category = Encounter.find_by_sql("SELECT e.patient_id, o.value_text, o.encounter_id, e.encounter_datetime
-                                              FROM encounter e
-                                               INNER JOIN obs o on o.encounter_id = e.encounter_id 
+                                              FROM #{@source_db}.encounter e
+                                               INNER JOIN #{@source_db}.obs o on o.encounter_id = e.encounter_id 
                                                     AND o.concept_id = 8375
                                                     AND o.voided = 0 AND e.voided = 0
                                               WHERE e.encounter_type = 54
@@ -352,11 +359,11 @@ def get_patient_demographics(patient_id)
   patient_obj = PatientService.get_patient(pat.person) rescue nil
 
   earliest_start_date = PatientProgram.find_by_sql("SELECT earliest_start_date
-                                           FROM earliest_start_date
+                                           FROM #{@source_db}.earliest_start_date
                                            WHERE patient_id = #{patient_id}").map(&:earliest_start_date).first
 
   age_at_initiation = PatientProgram.find_by_sql("SELECT age_at_initiation
-                                           FROM earliest_start_date
+                                           FROM #{@source_db}.earliest_start_date
                                            WHERE patient_id = #{patient_id}").map(&:age_at_initiation).first
   
   a_hash = {:legacy_id2 => 'NULL'}
@@ -1102,7 +1109,7 @@ def process_patient_state(patient_id,visit, defaulted_dates)
 	a_hash = {:current_hiv_program_start_date => 'NULL'}
 
 	program_id = PatientProgram.find_by_sql("SELECT patient_program_id 
-				FROM patient_program 
+				FROM #{@source_db}.patient_program 
 				WHERE patient_id = #{patient_id} 
 				AND program_id = 1 AND voided = 0 
 				ORDER BY patient_program_id DESC LIMIT 1").first.patient_program_id
@@ -1111,15 +1118,15 @@ def process_patient_state(patient_id,visit, defaulted_dates)
     state_name = 'Defaulter'
   else
     patient_state = PatientProgram.find_by_sql("SELECT 
-	                        current_state_for_program(#{patient_id},1,'#{visit} 23:59:59') AS state").first.state  
+	                        #{@source_db}.current_state_for_program(#{patient_id},1,'#{visit} 23:59:59') AS state").first.state  
 	  
 	   if !patient_state.blank?
       state_name = ProgramWorkflowState.find_by_sql("SELECT 
                                              c.name AS name
                                            FROM
-                                                program_workflow_state pws
+                                               #{@source_db}. program_workflow_state pws
                                                     INNER JOIN
-                                                concept_name c ON c.concept_id = pws.concept_id
+                                                #{@source_db}.concept_name c ON c.concept_id = pws.concept_id
                                                     AND c.voided = 0
                                                     AND pws.retired = 0
                                            WHERE
@@ -1232,12 +1239,12 @@ def patient_defaulted_dates(patient_obj, session_date)
     #getting all patient's dispensations encounters
     
     all_dispensations = Observation.find_by_sql("SELECT obs.person_id, obs.obs_datetime AS obs_datetime, d.order_id
-                            FROM drug_order d 
-                              LEFT JOIN orders o ON d.order_id = o.order_id
-                              LEFT JOIN obs ON d.order_id = obs.order_id
-                            WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug
+                            FROM #{@source_db}.drug_order d 
+                              LEFT JOIN #{@source_db}.orders o ON d.order_id = o.order_id
+                              LEFT JOIN #{@source_db}.obs ON d.order_id = obs.order_id
+                            WHERE d.drug_inventory_id IN (SELECT drug_id FROM #{@source_db}.drug
                                                           WHERE concept_id IN (SELECT concept_id 
-                                                                               FROM concept_set
+                                                                               FROM #{@source_db}.concept_set
                                                                                WHERE concept_set = 1085))
                                                           AND quantity > 0
                                                           AND obs.voided = 0
@@ -1260,7 +1267,7 @@ def patient_defaulted_dates(patient_obj, session_date)
         if d == 0
           previous_date = session_date
           defaulted_date = ActiveRecord::Base.connection.select_value "                   
-          SELECT current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
+          SELECT #{@source_db}.current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
           
           if !defaulted_date.blank?
             outcome_dates << defaulted_date if !outcome_dates.include?(defaulted_date)
@@ -1272,7 +1279,7 @@ def patient_defaulted_dates(patient_obj, session_date)
             previous_date = prev_dispenation_date
           end          
           defaulted_date = ActiveRecord::Base.connection.select_value "
-              SELECT current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
+              SELECT #{@source_db}.current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
               
           if !defaulted_date.blank? 
             outcome_dates << defaulted_date if !outcome_dates.include?(defaulted_date)
@@ -1306,7 +1313,7 @@ end
 
 def get_drug_list
   drug_hash = {}
-  drug_list = Drug.find_by_sql("SELECT drug_id, name FROM drug")
+  drug_list = Drug.find_by_sql("SELECT drug_id, name FROM #{@source_db}.drug")
   drug_list.each do |drug|
     drug_hash[:"#{drug.drug_id}"] = drug.name 
   end
