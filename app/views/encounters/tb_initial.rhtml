@@ -11,7 +11,7 @@
 
 <script>
   var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
-
+  var tstCurrentDate = '<%= session[:datetime].to_date.strftime("%Y-%m-%d") rescue Date.today.strftime("%Y-%m-%d") %>'
 
    function compileDate(){
     var tmpDate = $('sputum_microscopy_year').value + "-" + $('sputum_microscopy_month').value +"-" +$('sputum_microscopy_day').value;
@@ -216,7 +216,7 @@
       {:id => "transfer_in",
        :condition => "$('tb_treatment').value == 'YES'",
        :helpText => 'Transfer in?',
-	   :tt_onLoad => '")'} %>
+	   :tt_onLoad => ''} %>
 
   <%= touch_text_field_tag "Clinic Location", @patient, nil,
       {:id => "location_of_tb_initiation",
@@ -228,7 +228,7 @@
   <%= touch_date_tag "Date of TB initiation", @patient, nil,
 			{:id => "date_of_tb_initiation",
 			 :condition => "$('transfer_in').value =='YES'",
-			 :max => "#{session[:datetime].to_date rescue Date.today}",
+			 :max => '#{session[:datetime].to_date rescue Date.today}',
 			 :helpText => "Date of TB initiation"} %>
 
  <%= touch_select_tag "Sputum result at initiation", @patient, options_for_select([['',''],['Negative','Negative'],['Positive','Positive'], ['NA','NA']]),
