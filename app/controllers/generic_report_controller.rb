@@ -533,4 +533,25 @@ class GenericReportController < ApplicationController
     render :layout => 'menu'
   end
 
+  def avg_waiting_time_for_art_patients
+    @visits = {}
+
+    patient_waiting_time = Encounter.find_by_sql("SELECT * FROM patient_service_waiting_time")
+
+    (patient_waiting_time || []).each do |rec|
+      date = rec.visit_date.to_date
+      if @visits[date].blank?
+        @visits[date] = {:number_of_patients => 0, :avg_waiting_time => nil,:total_clinic_hrs => '00:00:00' }
+      end
+      @visits[date][:number_of_patients] += 1
+      time = @visits[date][:total_clinic_hrs]
+      @visits[date][:total_clinic_hrs] = ActiveRecord::Base.connection.select_value("SELECT ADDTIME(TIME('#{time}'),TIME('#{rec.service_time}'));")
+      @visits[date][:avg_waiting_time] = ActiveRecord::Base.connection.select_value("SELECT CEIL((TIME_TO_SEC(TIME('#{@visits[date][:total_clinic_hrs]}'))/#{@visits[date][:number_of_patients]})/60)")
+
+    end
+    @start_date = (Date.today - 1.day)
+    @end_date = (Date.today - 7.day)
+    render :layout => 'report'
+  end
+
 end

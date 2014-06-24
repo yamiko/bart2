@@ -1,0 +1,129 @@
+<style>
+
+.tt_controls_test_result #date,#minus,#abc,#comma,#qwerty,
+  #slash,#percent,#star,#plus,#date,#Unknown,#char,#backspace {     
+  display:none;                                                               
+}
+
+.tt_controls_test_date #Unknown { display: none; }
+
+
+</style>
+<%
+    patient = Patient.find(params[:patient_id])
+    identifier_type = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
+    identifier_types = PatientIdentifierType.find(:all, :conditions=>["name IN (?)",identifier_type]
+    ).collect{| type |type.id }
+
+    identifiers = []
+    PatientIdentifier.find(:all, :conditions=>["patient_id=? AND identifier_type IN (?)",
+        patient.id,identifier_types]).each{| i | 
+          identifiers << i.identifier
+        }
+    
+    results = Lab.latest_result_by_test_type(patient, 'HIV_viral_load', identifiers) rescue nil
+    latest_result = results[1]["TestValue"] rescue nil
+
+
+
+%>
+<script>
+   tt_cancel_destination = "/people/confirm?found_person_id=<%=params[:patient_id]%>";
+   result_given_today = false;
+   function changeValues(){
+    elements =  document.getElementsByTagName('li');
+    id = 'touchscreenInput' + tstCurrentPage;
+    input = document.getElementById(id);
+    clear_button = document.getElementById('clearButton');
+    next_button = document.getElementById('nextButton');
+    clear_button.onmouseup = function(){
+      if ((typeof next_button)!= 'undefined'){
+        next_button.innerHTML='<span>Next</span>';
+      }
+    }
+      for(i=0; i<elements.length; i++){
+        if (elements[i].innerHTML.toUpperCase().match("TODAY")){
+          elements[i].style.color = 'green';
+          elements[i].style.fontWeight='bold';
+          elements[i].onmousedown = function(){
+            result_given_today = true;
+            updateTouchscreenInputForSelect(this);
+            <% if latest_result.to_i < 1000 %>
+              next_button.innerHTML='<span>Finish</span>';
+            <% end %>
+          }
+        }
+        else{         
+          elements[i].onmousedown = function(){
+            result_given_today = false;
+            updateTouchscreenInputForSelect(this);
+            gotoNextPage();
+            next_button.style.display='none';
+          }
+          
+        }
+      }
+   }
+
+</script>
+
+<% form_tag 'result_given_to_patient', :method => :post do %>
+<%  
+   optionsString = "<option>" "" "</option>"
+  1.upto(12){ |number| 
+   optionsString += "<option value = '" + number.to_s + "'>" + Date::MONTHNAMES[number] + "</option>"
+  }
+%>
+
+<%  day=Array.new(31){|d|d + 1 }
+    options = "<option>" "" "</option>"
+    day.each{ |number| 
+       options += "<option value = '" + number.to_s + "'>" + number.to_s + "</option>"
+      }
+%>
+<%
+  today = Date.today.strftime("%d-%b-%Y").to_s
+  choices = [["Today", today]]
+  choices += (2011..Date.today.year).to_a.reverse
+%>
+
+<%= select_tag :set_year, options_for_select(choices),
+      {
+        :id => "set_year",
+        :helpText => "Date result given to patient",
+        :absoluteMax => Date.today.year,
+        :tt_onLoad => "changeValues();",
+        :tt_onUnLoad => "$('nextButton').style.display = 'inline';"
+      } %>
+
+<%=  select_tag(:set_month, optionsString,
+      { :field_type => 'alpha',
+        :id => 'set_month',
+        :helpText => "Month result given to patient",
+        :condition => "result_given_today == false",
+        :tt_requireNextClick => false,
+        :tt_pageStyleClass => "NoKeyboard",
+        :tt_onLoad => "$('nextButton').style.display = 'none';",
+        :tt_onUnLoad => "$('nextButton').style.display = 'inline';"
+      })%>
+
+<%= text_field_tag(:set_day, nil,
+    { :field_type => 'number',
+      :condition => "result_given_today == false",
+      :id => 'set_day',
+      :helpText => 'Day result given to patient'
+    })  %>
+<% if latest_result.to_i >= 1000 %>
+    <%= select_tag(:counselling_done, options_for_select(['', 'Yes', 'No']),
+        {
+          :id => 'adherent_counselling',
+          :helpText => 'Enhanced adherent counselling done if viral load is > 1000?'
+        })  %>
+<% end %>
+<%= hidden_field_tag("patient_id", params[:patient_id]) %>
+
+<% if params[:go_to_next_task] %>
+  <%= hidden_field_tag "go_to_next_task", "true" %>
+<% end  %>
+
+<%end%>
