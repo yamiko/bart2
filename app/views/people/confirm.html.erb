@@ -569,8 +569,16 @@ function cancelOperation(action){
     });
   }
 
-  function vl_requested_today(){
+  function repeat_vl_requested(){
+    jQuery.ajax({
+      type: "POST",
+      url: "/patients/repeat_viral_load_request",
+      data: "patient_id="+<%=@person.patient.id %>,
+      success: function(){
+        window.location="/people/confirm?found_person_id=<%=@person.id%>"
+      }
 
+    });
   }
 
   function vl_already_done(){

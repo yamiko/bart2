@@ -3588,6 +3588,27 @@ The following block of code should be replaced by a more cleaner function
 
   end
 
+  def repeat_viral_load_request
+    patient_id = params[:patient_id]
+    encounter_type = EncounterType.find_by_name("REQUEST").id
+    patient = Patient.find(patient_id)
+    enc = patient.encounters.current.find_by_encounter_type(encounter_type)
+    enc ||= patient.encounters.create(:encounter_type => encounter_type)
+
+    obs = Observation.new
+    obs.person_id = patient_id
+    obs.creator = current_user.id
+    obs.location_id = Location.current_location
+    obs.value_text = "Repeat"
+    obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
+    obs.encounter_id = enc.id
+    obs.obs_datetime = Time.now
+    obs.save
+
+    render :text => "true" and return
+
+  end
+
   def viral_load_already_done
     patient_id = params[:patient_id]
     enc = Encounter.new()
