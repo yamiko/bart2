@@ -383,6 +383,10 @@ class GenericPeopleController < ApplicationController
             patient.patient_id, Concept.find_by_name("Viral load").concept_id]
         ).answer_string.squish.upcase rescue nil
 
+    @repeat_vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?
+              AND value_text =?", patient.patient_id, Concept.find_by_name("Viral load").concept_id,
+              "Repeat"]).answer_string.squish.upcase rescue nil
+          
     @date_vl_result_given = Observation.find(:last, :conditions => ["
         person_id =? AND concept_id =? AND value_text REGEXP ?", @person.id,
         Concept.find_by_name("Viral load").concept_id, 'Result given to patient']).value_datetime rescue nil

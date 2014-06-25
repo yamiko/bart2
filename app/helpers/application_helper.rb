@@ -827,6 +827,7 @@ module ApplicationHelper
               "Repeat"]) rescue nil
     unless repeat_vl_request.blank?
       repeat_vl_obs_date = repeat_vl_request.obs_datetime.to_date
+      #return false if repeat_vl_obs_date == Date.today
       return true if latest_viral_results_date.blank?
 
       unless latest_viral_results_date.blank?
