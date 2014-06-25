@@ -187,18 +187,31 @@
   function changeAttributes(){
     document.getElementById("btnNext").innerHTML = "<span>Continue</span>"
 
-    <% if improved_viral_load_check(@person.patient) == true &&
+    <% if repeat_viral_load_requested(@person.patient) == true &&
         (@task.encounter_type.upcase == "HIV CLINIC CONSULTATION" || @task.encounter_type.upcase == "HIV STAGING") &&  show_lab_results &&
         (current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
-         document.getElementById("btnNext").setAttribute("onclick","showPopup();")
+         document.getElementById("btnNext").setAttribute("onclick","showVlRepeatPopup();")
+    <% else %>
+        <% if improved_viral_load_check(@person.patient) == true &&
+            (@task.encounter_type.upcase == "HIV CLINIC CONSULTATION" || @task.encounter_type.upcase == "HIV STAGING") &&  show_lab_results &&
+            (current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
+             document.getElementById("btnNext").setAttribute("onclick","showPopup();")
+        <% end %>
     <% end %>
 
-  <% if viral_load_check_without_lab_results_modified(@person.patient) == true &&
-        (@task.encounter_type.upcase == "HIV CLINIC CONSULTATION" || @task.encounter_type.upcase == "HIV STAGING") &&
-        !show_lab_results &&
-        (current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
-         document.getElementById("btnNext").setAttribute("onclick","showPopup();")
-  <% end %>
+    <% if repeat_viral_load_requested(@person.patient) == true &&
+          (@task.encounter_type.upcase == "HIV CLINIC CONSULTATION" || @task.encounter_type.upcase == "HIV STAGING") &&
+          !show_lab_results &&
+          (current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
+           document.getElementById("btnNext").setAttribute("onclick","showVlRepeatPopup();")
+    <% else %>
+          <% if viral_load_check_without_lab_results_modified(@person.patient) == true &&
+                (@task.encounter_type.upcase == "HIV CLINIC CONSULTATION" || @task.encounter_type.upcase == "HIV STAGING") &&
+                !show_lab_results &&
+                (current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
+                 document.getElementById("btnNext").setAttribute("onclick","showPopup();")
+          <% end %>
+    <% end %>
   }
 			
   function showPopup(){
@@ -207,6 +220,16 @@
     content.appendChild(popup)
     if (typeof popup != 'undefined'){
       document.getElementById('popup').style.display='inline'
+      document.getElementById('cover').style.display='inline'
+    }
+  }
+
+  function showVlRepeatPopup(){
+    popup = document.getElementById('vl_repeat_popup')
+    content = document.getElementById('content')
+    content.appendChild(popup)
+    if (typeof popup != 'undefined'){
+      document.getElementById('vl_repeat_popup').style.display='inline'
       document.getElementById('cover').style.display='inline'
     }
   }
@@ -1140,6 +1163,24 @@ function cancelOperation(action){
           <div id="new_vl_menu_footer">
             <span onclick="removeUpdateVlMenu();"><b style="margin-left: 45%;">Cancel</b></span>
           </div>
+      </div>
+
+      <div id="vl_repeat_popup" style="display: none;">
+        <div class="new_vl_menu" style="position:fixed; width:40%; height: 45%; left:30%;">
+              <div class="new_vl_menu_header">
+                <span style="font-size: 15pt;">Repeat viral load was requested<br/>
+                Viral load result available?</span>
+              </div>
+              <div class="new_vl_menu_content">
+                <table cellspacing="0" style="position:absolute; width: 100%; height:75%;">
+                  <tr onclick="newVlResultPathWithParam();" style="line-height: 3em;"><td><span>Enter VL result</span></td></tr>
+                  <tr onclick="hidePopup();" style="line-height: 3em;"><td><span>No VL result available</span></td></tr>
+                </table>
+              </div>
+              <div class="new_vl_menu_footer" style="height: 0px;">
+
+              </div>
+        </div>
       </div>
 </body>
 </html>
