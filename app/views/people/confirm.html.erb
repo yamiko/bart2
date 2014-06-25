@@ -346,6 +346,15 @@ function cancelOperation(action){
             <span value="<%= @reason_for_art_eligibility rescue "" %>">Reason for Starting</span>
           <% end %>
 
+          <% unless @art_start_date.blank? %>
+            <span value="<%= @art_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date</span>
+            <span value="<%= @duration_in_months.to_s + ' Months'  rescue "" %>">Duration on ART</span>
+          <% end %>
+          <% unless @second_line_treatment_start_date.blank? %>
+            <span value="<%= @second_line_treatment_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date(2<sup>nd</sup> Line)</span>
+            <span value="<%= @second_line_duration_in_months.to_s + ' Months'  rescue "" %>">Duration on 2<sup>nd</sup> Line ART</span>
+          <% end %>
+            
           <% if (@arv_number rescue nil) != nil && (@arv_number) != " " %>
             <span value="<%= @arv_number rescue '' %>">ARV Number</span>
           <% end %>
@@ -361,14 +370,7 @@ function cancelOperation(action){
           <% if (@patient_bean.pre_art_number rescue nil) != nil && (@patient_bean.pre_art_number) != " " %>
             <span value="<%= @patient_bean.pre_art_number rescue "" %>">Pre-ART Number</span>
           <% end %>
-          <% unless @art_start_date.blank? %>
-            <span value="<%= @art_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date</span>
-            <span value="<%= @duration_in_months.to_s + ' Months'  rescue "" %>">Duration on ART</span>
-          <% end %>
-          <% unless @second_line_treatment_start_date.blank? %>
-            <span value="<%= @second_line_treatment_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date(2<sup>nd</sup> Line)</span>
-            <span value="<%= @second_line_duration_in_months.to_s + ' Months'  rescue "" %>">Duration on 2<sup>nd</sup> Line ART</span>
-          <% end %>
+          
           <% unless @results.blank? %>
             <span value="<%= @modifier + ' ' + @latest_result.to_s + ' (' + @latest_date.strftime("%d-%b-%Y").to_s + ')' %>">Latest Viral load</span>
           <% end %>
