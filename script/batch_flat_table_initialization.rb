@@ -290,6 +290,7 @@ def get_patients_data(patient_id)
       patient_state = []
       patient_adh = []
       patient_reg_category = []
+      treatment_obs = []
 
       # we will exclude the orders having drug_inventory_id null     	
       orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
@@ -323,7 +324,6 @@ def get_patients_data(patient_id)
       			:include => [:observations],
       			:order => "encounter_datetime ASC",
       			:conditions => ['voided = 0 AND patient_id = ? AND date(encounter_datetime) = ?', patient_id, visit])
-      			
       	
       	encounters.each do |enc|
       		if enc.encounter_type == 6 #vitals
@@ -334,9 +334,11 @@ def get_patients_data(patient_id)
       			hcc = process_hiv_clinic_consultation_encounter(enc)
       		elsif enc.encounter_type == 68 #ART adherence
       		  patient_adh = process_adherence_encounter(enc, visit)
+      		elsif enc.encounter_type == 25 #treatment
+      		  treatment_obs = process_treatment_obs(enc)
       		end
       	end
-      	
+
       	patient_state = process_patient_state(patient_id, visit, defaulted_dates)
       	
       	#if some encounters are missing, create a skeleton with defaults
@@ -344,9 +346,10 @@ def get_patients_data(patient_id)
          hcc = process_hiv_clinic_consultation_encounter(1, 1) if hcc.empty?
          hiv_reception = process_hiv_reception_encounter(1, 1) if hiv_reception.empty?
          patient_adh = process_adherence_encounter(1, visit,1) if patient_adh.empty?
-    
-         table_2_sql_statement = initial_string + "(" + patient_details[0] + "," + patient_state[0] + "," + vitals[0] + "," + hcc[0] + "," + hiv_reception[0] + "," + patient_orders[0] + "," + patient_adh[0] + "," + patient_reg_category[0] + ")" + \
-           " VALUES (" + patient_details[1] + "," + patient_state[1]  + "," + vitals[1] + "," + hcc[1] + "," + hiv_reception[1] + "," + patient_orders[1] + "," + patient_adh[1] + "," + patient_reg_category[1] + ");"
+         treatment_obs = process_treatment_obs(1, 1) if treatment_obs.empty?
+
+         table_2_sql_statement = initial_string + "(" + patient_details[0] + "," + patient_state[0] + "," + vitals[0] + "," + hcc[0] + "," + hiv_reception[0] + "," + patient_orders[0] + "," + patient_adh[0] + "," + patient_reg_category[0] + "," + treatment_obs[0] + ")" + \
+           " VALUES (" + patient_details[1] + "," + patient_state[1]  + "," + vitals[1] + "," + hcc[1] + "," + hiv_reception[1] + "," + patient_orders[1] + "," + patient_adh[1] + "," + patient_reg_category[1] + "," + treatment_obs[1] + ");"
 
       table2_sql_batch += table_2_sql_statement 
 
@@ -483,6 +486,43 @@ def process_hiv_reception_encounter(encounter, type = 0) #type 0 normal encounte
           a_hash[:patient_present_no] = 'No'             
           a_hash[:patient_present_no_enc_id] = encounter.encounter_id
         end	
+      end
+    end
+
+    return generate_sql_string(a_hash)
+end
+
+def process_treatment_obs(encounter, type = 0) #type 0 normal encounter, 1 generate_template only 
+
+    #initialize field and values variables
+    fields = ""
+    values = ""
+
+    #create vitals field list hash template
+    a_hash =	  {:arv_regimen_type_d4T_3TC_NVP_enc_id => 'NULL'}
+
+    return generate_sql_string(a_hash) if type == 1
+
+    encounter.observations.each do |obs|
+      if obs.concept_id == 656 #IPT given
+    		if obs.value_coded == 1065 #&& obs.value_coded_name_id == 1102
+    			a_hash[:ipt_given_yes] = 'Yes'
+    			a_hash[:ipt_given_yes_enc_id] = encounter.encounter_id
+    		elsif obs.value_coded == 1066 #&& obs.value_coded_name_id == 1103
+    			a_hash[:ipt_given_no] = 'No'
+    			a_hash[:ipt_given_no_enc_id] = encounter.encounter_id
+    		end		
+      elsif obs.concept_id == 7024 #CPT given
+        if obs.value_coded == 1065 #&& obs.value_coded_name_id == 1102
+          a_hash[:cpt_given_yes] = 'Yes'           
+          a_hash[:cpt_given_yes_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 1066 #&& obs.value_coded_name_id == 1103
+          a_hash[:cpt_given_no] = 'No'             
+          a_hash[:cpt_given_no_enc_id] = encounter.encounter_id
+        end
+      elsif obs.concept_id == 190 #condoms_given
+        a_hash[:condoms_given] = obs.value_numeric
+        a_hash[:condoms_given_enc_id] = encounter.encounter_id
       end
     end
 
@@ -663,13 +703,21 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
           a_hash[:allergic_to_sulphur_no] = 'No'
           a_hash[:allergic_to_sulphur_no_enc_id] = encounter.encounter_id
         end
-      elsif obs.concept_id == 7874 #prescribe drugs
+      elsif obs.concept_id == 7874 #prescribe arvs
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
           a_hash[:prescribe_arvs_yes] = 'Yes'
           a_hash[:prescribe_arvs_yes_enc_id] = encounter.encounter_id
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:prescribe_arvs_no] = 'No'
           a_hash[:prescribe_arvs_no_enc_id] = encounter.encounter_id
+        end
+      elsif obs.concept_id == 656 #prescribe ipt
+        if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
+          a_hash[:prescribe_ipt_yes] = 'Yes'
+          a_hash[:prescribe_ipt_yes_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
+          a_hash[:prescribe_ipt_no] = 'No'
+          a_hash[:prescribe_ipt_no_enc_id] = encounter.encounter_id
         end
       elsif obs.concept_id == 8259 #routine tb screening
 	      if obs.value_coded == 5945 && obs.value_coded_name_id == 4315
