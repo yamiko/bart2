@@ -78,6 +78,7 @@ def get_patients_data(patient_id)
                               visit_date,
                               pregnant_yes,
                               pregnant_no,
+                              pregnant_unknown,
                               drug_induced_abdominal_pain,
                               drug_induced_anorexia,
                               drug_induced_diarrhea,
