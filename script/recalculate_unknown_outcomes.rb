@@ -108,14 +108,6 @@
         WHERE person_id = #{patient_id} AND encounter_id = #{encounter_id}
         AND voided = 0 AND concept_id = #{ReasonForStartingConcept.concept_id}")
 
-
-      puts "Patient ID: >>>>>>>>>>>> #{patient_id}"
-      puts "Encounter ID: >>>>>>>>>>>> #{encounter_id}"
-      puts "CD4 Count modifier: >>>>>>>>>>>> #{cd4_count_modifier}"
-      puts "CD4 Count : >>>>>>>>>>>> #{cd4_count}"
-      puts "Reason For Starting: >>>>>>>>>>>> #{reason_for_starting.name}"
-      puts "......................................................................"
-
       obs = Observation.new()
       obs.concept_id = ReasonForStartingConcept.concept_id
       obs.value_coded = reason_for_starting.concept_id
@@ -124,6 +116,13 @@
       obs.obs_datetime = obs_datetime
       obs.person_id = patient_id
       obs.save
+
+      puts "Patient ID: >>>>>>>>>>>> #{patient_id}"
+      puts "Encounter ID: >>>>>>>>>>>> #{encounter_id}"
+      puts "CD4 Count modifier: >>>>>>>>>>>> #{cd4_count_modifier}"
+      puts "CD4 Count : >>>>>>>>>>>> #{cd4_count}"
+      puts "Reason For Starting: >>>>>>>>>>>> #{reason_for_starting.name}"
+      puts "......................................................................"
 
     end
             
