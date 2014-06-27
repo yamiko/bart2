@@ -3788,4 +3788,43 @@ EOF
     redirect_to :action => "merge_menu" and return
   end
 
+  def switch_to_second_line
+    patient = Patient.find(params[:patient_id])
+    encounter_type = EncounterType.find_by_name("REQUEST").id
+
+    identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_types = PatientIdentifierType.find(:all,
+      :conditions=>["name IN (?)",identifier_types]).collect{| type |type.id }
+
+    patient_identifiers = PatientIdentifier.find(:all,
+      :conditions=>["patient_id=? AND identifier_type IN (?)",
+      patient.id,identifier_types]).collect{| i | i.identifier }
+
+    vl_lab_sample = LabSample.find_by_sql(["
+        SELECT * FROM Lab_Sample s
+        INNER JOIN Lab_Parameter p ON p.sample_id = s.sample_id
+        INNER JOIN codes_TestType c ON p.testtype = c.testtype
+        INNER JOIN (SELECT DISTINCT rec_id, short_name FROM map_lab_panel) m ON c.panel_id = m.rec_id
+        WHERE s.patientid IN (?)
+        AND short_name = ?
+        AND s.deleteyn = 0
+        AND s.attribute = 'pass'
+        ORDER BY DATE(TESTDATE) DESC",patient_identifiers,'HIV_viral_load'
+    ]).first rescue nil
+
+    enc = patient.encounters.current.find_by_encounter_type(encounter_type)
+    enc ||= patient.encounters.create(:encounter_type => encounter_type)
+    obs = Observation.new
+    obs.person_id = params[:patient_id]
+    obs.concept_id = Concept.find_by_name("Hiv viral load").concept_id
+    obs.value_text = "Patient switched to second line"
+    obs.accession_number = vl_lab_sample.Sample_ID
+    obs.value_datetime = Date.today
+    obs.encounter_id = enc.id
+    obs.obs_datetime = Time.now
+    obs.save
+
+    render :text => true and return
+  end
+
 end

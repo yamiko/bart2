@@ -1303,7 +1303,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	:textCase => "upper",
 	:allowFreeText => 'false',
 	:id => "continue_existing_regimen",
-	:tt_onLoad => 'showDrugs();setAttributes();changeButton();showCategory("Regimen");showRegimenChangeAlert()',
+	:tt_onLoad => 'showDrugs();setAttributes();changeButton();showCategory("Regimen");showRegimenChangeAlert(); showHighVlPopup()',
 	:tt_onUnLoad => 'resetAttributes();resetRegimen();',
 	:condition => 'existingRegimen();',
 	:helpText => "Continue current ARV drugs?"}%>
@@ -1583,8 +1583,8 @@ element.setAttribute("onmousedown", "gotoNextPage()")
     </div>
 
     <div id="vl_lab_trail_footer">
-      <span style="left:4%; padding: 12px 20%;" onclick="">Yes</span>
-      <span style="right:4%; padding: 12px 20%;" onclick="">No</span>
+      <span style="left:4%; padding: 12px 20%;" onclick="switchToSecondLine();">Yes</span>
+      <span style="right:4%; padding: 12px 20%;" onclick="hideHighVlPopup();">No</span>
     </div>
 </div>
 
@@ -1598,5 +1598,34 @@ function showRegimenChangeAlert(){
 		document.getElementById('protector').style.display = 'inline'
 	<% end %>
   <% end %>
+}
+
+function showHighVlPopup(){
+  <% if (patient_has_high_viral_loads(@patient)) %>
+        available_options = document.getElementsByTagName('li');
+        for(i=0; i<available_options.length; i++){
+          available_options[i].onmouseup = function(){
+            document.getElementById('protector').style.display='inline';
+            document.getElementById('vl_lab_trail').style.display='inline';
+          }
+        }
+  <% end %>
+}
+
+function switchToSecondLine(){
+  jQuery.ajax({
+      type: "POST",
+      url: "/patients/switch_to_second_line",
+      data: "patient_id="+<%=@patient.id %>,
+      success: function(){
+        document.getElementById('protector').style.display='inline';
+        document.getElementById('vl_lab_trail').style.display='inline';
+      }
+    });
+}
+
+function hideHighVlPopup(){
+  document.getElementById('protector').style.display='none';
+  document.getElementById('vl_lab_trail').style.display='none';
 }
 </script>

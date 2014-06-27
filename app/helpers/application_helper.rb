@@ -845,4 +845,32 @@ module ApplicationHelper
     end
   end
 
+  def patient_has_high_viral_loads(patient)
+    encounter_type = EncounterType.find_by_name("REQUEST").id
+    viral_load = Concept.find_by_name("Hiv viral load").concept_id
+
+    second_line_obs = Observation.find(:last, :joins => [:encounter], :conditions => ["
+        person_id =? AND encounter_type =? AND concept_id =?
+        AND value_text LIKE (?)", patient.id, encounter_type, viral_load,
+        '%Patient switched to second line%']) rescue nil
+
+    return false unless second_line_obs.blank? #Patient already switched to second line
+    
+    identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_types = PatientIdentifierType.find(:all,
+      :conditions=>["name IN (?)",identifier_types]).collect{| type |type.id }
+
+    patient_identifiers = PatientIdentifier.find(:all,
+      :conditions=>["patient_id=? AND identifier_type IN (?)",
+      patient.id,identifier_types]).collect{| i | i.identifier }
+
+    results = Lab.results_by_type(patient, 'HIV_viral_load', patient_identifiers) rescue nil
+    return false if results.blank?
+    unless results.blank?
+      high_results = results.collect{|x, y|y["TestValue"]}.select{|r|r>1000}
+      return true if high_results.count >=2
+      return false if high_results.count < 2
+    end
+  end
+
 end
