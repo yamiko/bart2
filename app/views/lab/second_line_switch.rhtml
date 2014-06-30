@@ -1,0 +1,102 @@
+<style>
+
+.tt_controls_test_result #date,#minus,#abc,#comma,#qwerty,
+  #slash,#percent,#star,#plus,#date,#Unknown,#char,#backspace {     
+  display:none;                                                               
+}
+
+.tt_controls_test_date #Unknown { display: none; }
+
+
+</style>
+
+<script>
+   tt_cancel_destination = "/people/confirm?found_person_id=<%=params[:patient_id]%>";
+   patient_switched_today = false;
+   function changeValues(){
+    elements =  document.getElementsByTagName('li');
+    id = 'touchscreenInput' + tstCurrentPage;
+    input = document.getElementById(id);
+    clear_button = document.getElementById('clearButton');
+    next_button = document.getElementById('nextButton');
+    clear_button.onmouseup = function(){
+      if ((typeof next_button)!= 'undefined'){
+        next_button.innerHTML='<span>Next</span>';
+      }
+    }
+      for(i=0; i<elements.length; i++){
+        if (elements[i].innerHTML.toUpperCase().match("TODAY")){
+          elements[i].style.color = 'green';
+          elements[i].style.fontWeight='bold';
+          elements[i].onmousedown = function(){
+            patient_switched_today = true;
+            updateTouchscreenInputForSelect(this);
+            next_button.innerHTML='<span>Finish</span>';
+          }
+        }
+        else{
+          elements[i].onmousedown = function(){
+            patient_switched_today = false;
+            updateTouchscreenInputForSelect(this);
+            gotoNextPage();
+            next_button.style.display='none';
+          }
+
+        }
+      }
+   }
+
+
+</script>
+
+<% form_tag 'patient_switched_to_second_line', :method => :post do %>
+<%  
+   optionsString = "<option>" "" "</option>"
+  1.upto(12){ |number| 
+   optionsString += "<option value = '" + number.to_s + "'>" + Date::MONTHNAMES[number] + "</option>"
+  }
+%>
+
+<%  day=Array.new(31){|d|d + 1 }
+    options = "<option>" "" "</option>"
+    day.each{ |number| 
+       options += "<option value = '" + number.to_s + "'>" + number.to_s + "</option>"
+      }
+%>
+<%
+  today = Date.today.strftime("%d-%b-%Y").to_s
+  choices = [["Today", today]]
+  choices += (2011..Date.today.year).to_a.reverse
+%>
+
+
+<%= select_tag :set_year, options_for_select(choices),
+      {
+        :id => "set_year",
+        :helpText => "Date patient switched to second line",
+        :absoluteMax => Date.today.year,
+        :tt_onLoad => "changeValues();",
+        :tt_onUnLoad => "$('nextButton').style.display = 'inline';"
+      } %>
+
+<%=  select_tag(:set_month, optionsString,
+      { :field_type => 'alpha',
+        :id => 'set_month',
+        :helpText => "Month patient switched to second line",
+        :condition => "patient_switched_today == false",
+        :tt_requireNextClick => false,
+        :tt_pageStyleClass => "NoKeyboard",
+        :tt_onLoad => "$('nextButton').style.display = 'none';",
+        :tt_onUnLoad => "$('nextButton').style.display = 'inline';"
+      })%>
+
+<%= text_field_tag(:set_day, nil,
+    { :field_type => 'number',
+      :condition => "patient_switched_today == false",
+      :id => 'set_day',
+      :helpText => 'Day patient switched to second line'
+    })  %>
+
+
+<%= hidden_field_tag("patient_id", params[:patient_id]) %>
+<%end%>

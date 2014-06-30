@@ -1,0 +1,133 @@
+
+
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Highcharts Example</title>
+
+    <!--script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script-->
+    <%= javascript_include_tag "Highcharts/js/jquery.min.js" %>
+    <style>
+      
+    </style>
+    <script type="text/javascript">
+
+      var dates = [];
+      var people = [];
+      var avg_time = [];
+      <%@visits.sort_by{ |k,v| k.to_date }.each_with_index do |(date,attr), i|%>
+        dates.push("<%=date.strftime('%a')%>");
+        people.push(<%=attr[:number_of_patients]%>);
+        avg_time.push(<%=attr[:avg_waiting_time].to_i%>);
+      <%end%>    
+ 
+      $(function () {
+        $('#chart-container').highcharts({
+            chart: {
+                zoomType: 'xy'
+            },
+            title: {
+                text: 'Average ART/HIV clinic time per patient'
+            },
+            subtitle: {
+                text: ''
+            },
+            xAxis: [{
+                categories: dates
+            }],
+            yAxis: [{ // Primary yAxis
+                labels: {
+                    format: '{value}min',
+                    style: {
+                        color: '#89A54E'
+                    }
+                },
+                title: {
+                    text: 'Time',
+                    style: {
+                        color: '#89A54E'
+                    }
+                }
+            }, { // Secondary yAxis
+                title: {
+                    text: 'No of patients',
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+                labels: {
+                    format: '{value}',
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+                opposite: true
+            }],
+            tooltip: {
+                shared: true
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'left',
+                x: 120,
+                verticalAlign: 'top',
+                y: 100,
+                floating: true,
+                backgroundColor: '#FFFFFF'
+            },
+            series: [{
+                name: 'No of people',
+                color: '#4572A7',
+                type: 'column',
+                yAxis: 1,
+                data: people,
+                tooltip: {
+                    valueSuffix: ''
+                }
+    
+            }, {
+                name: 'Avg time/patient',
+                color: '#89A54E',
+                type: 'spline',
+                data: avg_time,
+                tooltip: {
+                    valueSuffix: ' min'
+                }
+            }]
+        });
+    });
+    
+
+    </script>
+  </head>
+  <body>
+<%= javascript_include_tag "Highcharts/js/highcharts" %>
+<%= javascript_include_tag "Highcharts/js/modules/exporting" %>
+
+    <div id="main-container" style="display:table; width: 100%;">
+      <div style="display:table-row; width: 100%;"></div>
+        <div id="chart-container" style="display:table-cell; min-width:1000px !important; height: 570px;"></div>
+        <div id="details-container" style="display:table-cell; min-width:500px; vertical-align: top !important; padding-left: 20px;">
+          <div style="display:table-row; min-width: 200px;"><b>Number of patients who came the past Five days</b></div><br />
+          <%(@visits || {}).sort_by{ |k,v| k.to_date }.reverse.each_with_index do |(date, attr), i|
+              row_color = i.odd? ? 'white' : 'blue' %>
+              <table style="width:99%;">
+                <tr>
+                  <td class="divrow <%=row_color%>"><%= date.strftime('%A, %d %B %Y') %></td>
+                  <td class="divrow <%=row_color%>" style="text-align: right; padding-right: 5px;;">
+                    <%= attr[:number_of_patients] %>
+                  </td>
+                </tr>
+              </table>
+          <%end%>
+        </div>
+    </div>
+  </body>
+</html>
+
+<style>
+  .blue {
+    background-color: lightblue;
+  }
+</style>

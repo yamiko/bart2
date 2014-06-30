@@ -522,9 +522,14 @@ module ApplicationHelper
     arv_start_date = PatientService.patient_art_start_date(patient).to_date rescue nil
     return false if arv_start_date.blank?
     period_on_art_in_months = PatientService.period_on_treatment(arv_start_date).to_i rescue 0
-    return false if (period_on_art_in_months < 6)
     second_line_art_start_date = PatientService.date_started_second_line_regimen(patient).to_date rescue nil
-    return false unless second_line_art_start_date.blank?
+
+    #This part resets the ART period of a patient by using date started 2nd line treatment
+    unless (second_line_art_start_date.blank? || second_line_art_start_date == "")
+      period_on_art_in_months = PatientService.period_on_treatment(second_line_art_start_date).to_i rescue 0
+    end
+    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    return false if (period_on_art_in_months < 6)
     today = Date.today
 
     milestones = {
@@ -600,11 +605,12 @@ module ApplicationHelper
         first_date = art_start_date + key.months
         second_date = art_start_date + value.months
         viral_loads_request = Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ? 
-            AND DATE(obs_datetime) >= ? AND DATE(obs_datetime) <= ?",
+            AND DATE(obs_datetime) >= ? AND DATE(obs_datetime) <= ? AND value_coded IS NOT NULL",
             patient.patient_id, Concept.find_by_name("Viral load").concept_id, first_date, second_date])
         return true unless viral_loads_request.blank?
         if (viral_loads_request.blank?)
-          viral_loads_request = Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?",
+          viral_loads_request = Observation.find(:all, :conditions => ["person_id = ? AND concept_id = ?
+              AND value_coded IS NOT NULL",
             patient.patient_id, Concept.find_by_name("Viral load").concept_id])
           return true unless viral_loads_request.blank?
           return false if viral_loads_request.blank?
@@ -669,13 +675,18 @@ module ApplicationHelper
   #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
   def viral_load_check_without_lab_results_modified(patient)
-    #raise 'dde'.inspec
+
     arv_start_date = PatientService.patient_art_start_date(patient).to_date rescue nil
     return false if arv_start_date.blank?
     period_on_art_in_months = PatientService.period_on_treatment(arv_start_date).to_i rescue 0
-    return false if (period_on_art_in_months < 6)
     second_line_art_start_date = PatientService.date_started_second_line_regimen(patient).to_date rescue nil
-    return false unless second_line_art_start_date.blank?
+
+    #This part resets the ART period of a patient by using date started 2nd line treatment
+    unless (second_line_art_start_date.blank? || second_line_art_start_date == "")
+      period_on_art_in_months = PatientService.period_on_treatment(second_line_art_start_date).to_i rescue 0
+    end
+    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    return false if (period_on_art_in_months < 6)
     today = Date.today
 
     milestones = {
@@ -696,7 +707,6 @@ module ApplicationHelper
     results = Lab.latest_result_by_test_type(patient, 'HIV_viral_load', patient_identifiers) rescue nil
     latest_viral_results_date = results[0].split('::')[0].to_date rescue nil
     #yes_concept_id = ConceptName.find_by_name('yes').concept_id
-
 
     milestone_exceeded = true
 
@@ -758,7 +768,7 @@ module ApplicationHelper
         first_date = art_start_date + key.months
         second_date = art_start_date + value.months
         vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?
-            AND DATE(obs_datetime) >= ? AND DATE(obs_datetime) <= ?",
+            AND DATE(obs_datetime) >= ? AND DATE(obs_datetime) <= ? AND value_coded IS NOT NULL",
             patient.patient_id, Concept.find_by_name("Viral load").concept_id, first_date, second_date])
         answer_string = vl_request.answer_string.squish rescue nil
         return false if answer_string.blank?
@@ -766,5 +776,103 @@ module ApplicationHelper
       end
     end
   end
-  
+
+  def vl_available_and_result_given(patient)
+    identifier_type = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
+    identifier_types = PatientIdentifierType.find(:all,
+      :conditions=>["name IN (?)",identifier_type]
+    ).collect{| type |type.id }
+
+    identifiers = []
+    PatientIdentifier.find(:all,
+      :conditions=>["patient_id=? AND identifier_type IN (?)",
+        patient.id,identifier_types]).each{| i | identifiers << i.identifier }
+
+    encounter_type = EncounterType.find_by_name("REQUEST").id
+    viral_load = Concept.find_by_name("Hiv viral load").concept_id
+    national_ids = identifiers
+    vl_lab_sample = LabSample.find_by_sql(["
+        SELECT * FROM Lab_Sample s
+        INNER JOIN Lab_Parameter p ON p.sample_id = s.sample_id
+        INNER JOIN codes_TestType c ON p.testtype = c.testtype
+        INNER JOIN (SELECT DISTINCT rec_id, short_name FROM map_lab_panel) m ON c.panel_id = m.rec_id
+        WHERE s.patientid IN (?)
+        AND short_name = ?
+        AND s.deleteyn = 0
+        AND s.attribute = 'pass'
+        ORDER BY DATE(TESTDATE) DESC",national_ids,'HIV_viral_load'
+    ]).first rescue nil
+
+   vl_lab_sample_obs = Observation.find(:last, :readonly => false, :joins => [:encounter], :conditions => ["
+        person_id =? AND encounter_type =? AND concept_id =? AND accession_number =?
+        AND value_text LIKE (?)",
+        patient.id, encounter_type, viral_load, vl_lab_sample.Sample_ID.to_i, '%Result given to patient%']) rescue nil
+    #raise "x" if vl_lab_sample.blank?
+    #raise "y" if vl_lab_sample_obs.blank?
+    return false if vl_lab_sample.blank?
+    return false if vl_lab_sample_obs.blank?
+    return true unless vl_lab_sample_obs.blank?
+    
+  end
+
+  def repeat_viral_load_requested(patient)
+    identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_types = PatientIdentifierType.find(:all,
+      :conditions=>["name IN (?)",identifier_types]).collect{| type |type.id }
+
+    patient_identifiers = PatientIdentifier.find(:all,
+      :conditions=>["patient_id=? AND identifier_type IN (?)",
+      patient.id,identifier_types]).collect{| i | i.identifier }
+
+    results = Lab.latest_result_by_test_type(patient, 'HIV_viral_load', patient_identifiers) rescue nil
+    latest_viral_results_date = results[0].split('::')[0].to_date rescue nil
+
+    repeat_vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?
+              AND value_text =?", patient.patient_id, Concept.find_by_name("Viral load").concept_id,
+              "Repeat"]) rescue nil
+    unless repeat_vl_request.blank?
+      repeat_vl_obs_date = repeat_vl_request.obs_datetime.to_date
+      return false if repeat_vl_obs_date == Date.today
+      return true if latest_viral_results_date.blank?
+
+      unless latest_viral_results_date.blank?
+        return false if latest_viral_results_date > repeat_vl_obs_date
+        return true if latest_viral_results_date <= repeat_vl_obs_date
+      end
+      
+    else
+      return false
+    end
+  end
+
+  def patient_has_high_viral_loads(patient)
+    encounter_type = EncounterType.find_by_name("REQUEST").id
+    viral_load = Concept.find_by_name("Hiv viral load").concept_id
+
+    second_line_obs = Observation.find(:last, :joins => [:encounter], :conditions => ["
+        person_id =? AND encounter_type =? AND concept_id =?
+        AND value_text LIKE (?)", patient.id, encounter_type, viral_load,
+        '%Patient switched to second line%']) rescue nil
+
+    second_line_art_start_date = PatientService.date_started_second_line_regimen(patient).to_date rescue nil
+    return false unless second_line_art_start_date.blank? #Patient already switched to second line
+    #return false unless second_line_obs.blank? #Patient already switched to second line
+    
+    identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_types = PatientIdentifierType.find(:all,
+      :conditions=>["name IN (?)",identifier_types]).collect{| type |type.id }
+
+    patient_identifiers = PatientIdentifier.find(:all,
+      :conditions=>["patient_id=? AND identifier_type IN (?)",
+      patient.id,identifier_types]).collect{| i | i.identifier }
+
+    results = Lab.results_by_type(patient, 'HIV_viral_load', patient_identifiers) rescue nil
+    return false if results.blank?
+    unless results.blank?
+      high_results = results.collect{|x, y|y["TestValue"]}.select{|r|r>1000}
+      return true if high_results.count >=2
+      return false if high_results.count < 2
+    end
+  end
+
 end

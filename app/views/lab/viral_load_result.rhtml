@@ -1,0 +1,194 @@
+<style>
+
+.tt_controls_test_result #date,#minus,#abc,#comma,#qwerty,
+  #slash,#percent,#star,#plus,#date,#Unknown,#char,#backspace {     
+  display:none;                                                               
+}
+
+.tt_controls_test_date #Unknown { display: none; }
+
+#tt_page_test_month .inputFrameClass{
+  height: 86%;
+}
+#tt_page_test_month .options{
+  height: 22em;
+}
+</style>
+
+<script>
+   tt_cancel_destination = "/people/confirm?found_person_id=<%=@patient.id%>";
+
+function setImportantAttributes(){
+  //#lessthan , #greaterthan , #equals, #decimal
+  lessthan = document.getElementById('lessthan');
+  lessthan.style.setProperty('display', 'inline', 'important');
+  
+  greaterthan = document.getElementById('greaterthan');
+  greaterthan.style.setProperty('display', 'inline', 'important');
+  
+  equals = document.getElementById('equals');
+  equals.style.setProperty('display', 'inline', 'important');
+
+  decimal = document.getElementById('decimal');
+  decimal.style.setProperty('display', 'inline', 'important');
+}
+
+function removeImportantAttributes(){
+  lessthan = document.getElementById('lessthan');
+  lessthan.style.removeProperty('display');
+
+  greaterthan = document.getElementById('greaterthan');
+  greaterthan.style.removeProperty('display');
+
+  equals = document.getElementById('equals');
+  equals.style.removeProperty('display');
+
+  decimal = document.getElementById('decimal');
+  decimal.style.removeProperty('display');
+}
+
+function updateResultKeyPad() {                                             
+    curr_page = tstCurrentPage - 1                                              
+    buttons = document.getElementsByClassName("keyboardButton");                
+    $("clearButton").setAttribute("onmousedown","clearInput();updateResultKeyPad();");
+    $("backButton").setAttribute("onmousedown",";gotoPage(" + curr_page + ", null, true);resetPad();");
+    //$("nextButton").setAttribute("onmousedown","gotoNextPage();resetPad();");   
+                                                                                
+    for(i = 0; i < buttons.length ; i++) {                                      
+      if (buttons[i].id == "equals" || buttons[i].id == "greaterthan" || buttons[i].id == "lessthan") {
+        buttons[i].disabled = false;                                            
+        if( buttons[i].id == "equals"){                                         
+          buttons[i].setAttribute("onmousedown","press('=');resetKeyPad();");   
+        }else if( buttons[i].id == "lessthan") {                                
+          buttons[i].setAttribute("onmousedown","press('<');resetKeyPad();");   
+        }else if( buttons[i].id == "greaterthan") {                             
+          buttons[i].setAttribute("onmousedown","press('>');resetKeyPad();");   
+        }                                                                       
+      }else{                                                                    
+        buttons[i].disabled = true;                                             
+      }                                                                         
+    }                                                                           
+  }    
+
+
+
+
+function resetPad() {                                                         
+    curr_page = tstCurrentPage - 1                                              
+    buttons = document.getElementsByClassName("keyboardButton");                
+    for(i = 0; i < buttons.length ; i++) {                                      
+    buttons[i].disabled = false;                                                
+    }                                                                           
+    $("clearButton").setAttribute("onmousedown","clearInput();");               
+    $("backButton").setAttribute("onmousedown",";gotoPage(" + curr_page + ", null, true);");
+    $("nextButton").setAttribute("onmousedown","gotoNextPage();");              
+  }                                                                             
+                                                                                
+  function resetKeyPad() {                                                      
+    buttons = document.getElementsByClassName("keyboardButton");                
+    for(i = 0; i < buttons.length ; i++) {                                      
+      if (buttons[i].id == "equals" || buttons[i].id == "greaterthan" || buttons[i].id == "lessthan") {
+        buttons[i].disabled = true;                                             
+      }else{                                                                    
+        buttons[i].disabled = false;                                            
+      }                                                                         
+    }                                                                           
+  } 
+
+
+   tested_today = false;
+   function changeValues(){
+    elements =  document.getElementsByTagName('li');
+    id = 'touchscreenInput' + tstCurrentPage;
+    input = document.getElementById(id);
+    clear_button = document.getElementById('clearButton');
+    next_button = document.getElementById('nextButton');
+      for(i=0; i<elements.length; i++){
+        if (elements[i].innerHTML.toUpperCase().match("TODAY")){
+          elements[i].style.color = 'green';
+          elements[i].style.fontWeight='bold';
+          elements[i].onmousedown = function(){
+            tested_today = true;
+            updateTouchscreenInputForSelect(this);
+          }
+        }
+        else{
+          elements[i].onmousedown = function(){
+            tested_today = false;
+            updateTouchscreenInputForSelect(this);
+            gotoNextPage();
+            next_button.style.display='none';
+          }
+
+        }
+      }
+   }
+</script>
+
+<% form_tag 'create_viral_load_result', :method => :post do %>
+<%  
+   optionsString = "<option>" "" "</option>"
+  1.upto(12){ |number| 
+   optionsString += "<option value = '" + number.to_s + "'>" + Date::MONTHNAMES[number] + "</option>"
+  }
+%>
+
+<%  day=Array.new(31){|d|d + 1 }
+    options = "<option>" "" "</option>"
+    day.each{ |number| 
+       options += "<option value = '" + number.to_s + "'>" + number.to_s + "</option>"
+      }
+%>
+
+<%
+  today = Date.today.strftime("%d-%b-%Y").to_s
+  #choices = [["Today", today]]
+  choices =(2011..Date.today.year).to_a.reverse
+%>
+
+<%= text_field 'test_value', nil,:size => 8, :field_type => "number",
+    :helpText => 'Test results', 
+    :validationRule => "^(>|<|=|U|M)([\\d.]+|nknown|issing)$",
+    :validationMessage => "You must specify >, < or =" ,
+    :tt_onLoad => "updateResultKeyPad(); setImportantAttributes()",
+    :tt_onUnLoad => "removeImportantAttributes()"; %>
+
+
+<%= select_tag :test_year, options_for_select(choices),
+      {
+        :id => "test_year",
+        :helpText => "Test Date",
+        :tt_onLoad => "changeValues();"
+      } %>
+
+<%=  select_tag(:test_month, optionsString,
+      {
+        :field_type => 'alpha',
+        :condition => "tested_today == false",
+        :tt_requireNextClick => false,
+        :helpText => "Test Month",
+        :tt_onLoad => "$('nextButton').style.display = 'none';$('keyboard').style.display='none'",
+        :tt_onUnLoad => "$('nextButton').style.display = 'inline';"
+      })%>
+
+<%= text_field_tag(:test_day, nil,
+    {
+      :field_type => 'number',
+      :condition => "tested_today == false",
+      :helpText => 'Test Day'
+    })  %>
+
+  <%= select_tag 'result_given',options_for_select(["","Yes","No"]),
+  {
+   :id => "result_given",
+   :helpText => 'Result given to patient?'} %>
+
+
+<%= hidden_field_tag "patient_id", @patient.id %>
+<%= hidden_field_tag "lab_result", "HIV_DNA_PCR" %>
+
+<% if params[:go_to_next_task] %>
+  <%= hidden_field_tag "go_to_next_task", "true" %>
+<% end  %>
+
+<%end%>
