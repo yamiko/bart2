@@ -1,13 +1,19 @@
 require 'yaml'
 
+if ARGV[0].nil?
+  raise "Please include the environment that you would like to choose. Either development or production"
+else
+  @environment = ARGV[0]
+end
+
 def initialize_variables
   # initializes the different variables required for the
   # flat table initalization process
-  @source_db = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))["production"]["database"]
+  @source_db = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))["#{@environment}"]["database"]
   @started_at = Time.now.strftime("%Y-%m-%d-%H%M%S")
   @drug_list = get_drug_list
   @max_dispensing_enc_date = Encounter.find_by_sql("SELECT DATE(max(encounter_datetime)) AS adate
-                                                    FROM encounter
+                                                    FROM #{@source_db}.encounter
                                                     WHERE encounter_type = 54").map(&:adate)
 end
 
@@ -42,6 +48,8 @@ def generate_thresholds(records, patient_id)
 
    if number_iterations > 10
        number_iterations = 10
+   elsif number_iterations < 5
+       number_iterations = 5
    end
 
    threshold = (patient_id.to_i + (number_iterations * 2)) / number_iterations.to_i
@@ -110,6 +118,7 @@ def get_all_patients(min, max, thread)
     end
     
     patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
+
     patient_list.each do |p| 
 	    sql_statements = get_patients_data(p)
 	    
@@ -281,14 +290,15 @@ def get_patients_data(patient_id)
       patient_state = []
       patient_adh = []
       patient_reg_category = []
+      treatment_obs = []
 
       # we will exclude the orders having drug_inventory_id null     	
       orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
-                                               o.start_date, o.auto_expire_date, d.quantity,
-                                               d.drug_inventory_id, d.dose, d.frequency,
-                                               o.concept_id, d.equivalent_daily_dose
-                                    FROM orders o
-                                      INNER JOIN drug_order d ON d.order_id = o.order_id
+                                               o.start_date, o.auto_expire_date, IFNULL(d.quantity, 0) AS quantity,
+                                               d.drug_inventory_id, IFNULL(d.dose, 2) As dose, d.frequency,
+                                               o.concept_id, IFNULL(d.equivalent_daily_dose, 2) AS equivalent_daily_dose 
+                                    FROM #{@source_db}.orders o
+                                      INNER JOIN #{@source_db}.drug_order d ON d.order_id = o.order_id
                                     WHERE DATE(o.start_date) = '#{visit}' 
                                     AND o.patient_id = #{patient_id} 
                                     AND d.drug_inventory_id IS NOT NULL ")
@@ -298,8 +308,8 @@ def get_patients_data(patient_id)
         	end
 
           reg_category = Encounter.find_by_sql("SELECT e.patient_id, o.value_text, o.encounter_id, e.encounter_datetime
-                                              FROM encounter e
-                                               INNER JOIN obs o on o.encounter_id = e.encounter_id 
+                                              FROM #{@source_db}.encounter e
+                                               INNER JOIN #{@source_db}.obs o on o.encounter_id = e.encounter_id 
                                                     AND o.concept_id = 8375
                                                     AND o.voided = 0 AND e.voided = 0
                                               WHERE e.encounter_type = 54
@@ -314,7 +324,6 @@ def get_patients_data(patient_id)
       			:include => [:observations],
       			:order => "encounter_datetime ASC",
       			:conditions => ['voided = 0 AND patient_id = ? AND date(encounter_datetime) = ?', patient_id, visit])
-      			
       	
       	encounters.each do |enc|
       		if enc.encounter_type == 6 #vitals
@@ -325,9 +334,11 @@ def get_patients_data(patient_id)
       			hcc = process_hiv_clinic_consultation_encounter(enc)
       		elsif enc.encounter_type == 68 #ART adherence
       		  patient_adh = process_adherence_encounter(enc, visit)
+      		elsif enc.encounter_type == 25 #treatment
+      		  treatment_obs = process_treatment_obs(enc)
       		end
       	end
-      	
+
       	patient_state = process_patient_state(patient_id, visit, defaulted_dates)
       	
       	#if some encounters are missing, create a skeleton with defaults
@@ -335,9 +346,10 @@ def get_patients_data(patient_id)
          hcc = process_hiv_clinic_consultation_encounter(1, 1) if hcc.empty?
          hiv_reception = process_hiv_reception_encounter(1, 1) if hiv_reception.empty?
          patient_adh = process_adherence_encounter(1, visit,1) if patient_adh.empty?
-    
-         table_2_sql_statement = initial_string + "(" + patient_details[0] + "," + patient_state[0] + "," + vitals[0] + "," + hcc[0] + "," + hiv_reception[0] + "," + patient_orders[0] + "," + patient_adh[0] + "," + patient_reg_category[0] + ")" + \
-           " VALUES (" + patient_details[1] + "," + patient_state[1]  + "," + vitals[1] + "," + hcc[1] + "," + hiv_reception[1] + "," + patient_orders[1] + "," + patient_adh[1] + "," + patient_reg_category[1] + ");"
+         treatment_obs = process_treatment_obs(1, 1) if treatment_obs.empty?
+
+         table_2_sql_statement = initial_string + "(" + patient_details[0] + "," + patient_state[0] + "," + vitals[0] + "," + hcc[0] + "," + hiv_reception[0] + "," + patient_orders[0] + "," + patient_adh[0] + "," + patient_reg_category[0] + "," + treatment_obs[0] + ")" + \
+           " VALUES (" + patient_details[1] + "," + patient_state[1]  + "," + vitals[1] + "," + hcc[1] + "," + hiv_reception[1] + "," + patient_orders[1] + "," + patient_adh[1] + "," + patient_reg_category[1] + "," + treatment_obs[1] + ");"
 
       table2_sql_batch += table_2_sql_statement 
 
@@ -349,9 +361,15 @@ def get_patient_demographics(patient_id)
   pat = Patient.find(patient_id)
   patient_obj = PatientService.get_patient(pat.person) rescue nil
 
+  current_location = Location.find(GlobalProperty.find_by_property("current_health_center_id").property_value).name
+
   earliest_start_date = PatientProgram.find_by_sql("SELECT earliest_start_date
-                                           FROM earliest_start_date
+                                           FROM #{@source_db}.earliest_start_date
                                            WHERE patient_id = #{patient_id}").map(&:earliest_start_date).first
+
+  age_at_initiation = PatientProgram.find_by_sql("SELECT age_at_initiation
+                                           FROM #{@source_db}.earliest_start_date
+                                           WHERE patient_id = #{patient_id}").map(&:age_at_initiation).first
   
   a_hash = {:legacy_id2 => 'NULL'}
 
@@ -389,7 +407,9 @@ def get_patient_demographics(patient_id)
   a_hash[:filing_number]  = pat_identifier[17]  rescue nil #filing_number
   a_hash[:archived_filing_number]  = pat_identifier[18]  rescue nil #archived_filing_number
   a_hash[:earliest_start_date]  = earliest_start_date  rescue nil
-  
+  a_hash[:age_at_initiation] = age_at_initiation rescue nil
+  a_hash[:current_location] = current_location rescue nil
+
   return generate_sql_string(a_hash)
 end
 
@@ -472,6 +492,43 @@ def process_hiv_reception_encounter(encounter, type = 0) #type 0 normal encounte
     return generate_sql_string(a_hash)
 end
 
+def process_treatment_obs(encounter, type = 0) #type 0 normal encounter, 1 generate_template only 
+
+    #initialize field and values variables
+    fields = ""
+    values = ""
+
+    #create vitals field list hash template
+    a_hash =	  {:arv_regimen_type_d4T_3TC_NVP_enc_id => 'NULL'}
+
+    return generate_sql_string(a_hash) if type == 1
+
+    encounter.observations.each do |obs|
+      if obs.concept_id == 656 #IPT given
+    		if obs.value_coded == 1065 #&& obs.value_coded_name_id == 1102
+    			a_hash[:ipt_given_yes] = 'Yes'
+    			a_hash[:ipt_given_yes_enc_id] = encounter.encounter_id
+    		elsif obs.value_coded == 1066 #&& obs.value_coded_name_id == 1103
+    			a_hash[:ipt_given_no] = 'No'
+    			a_hash[:ipt_given_no_enc_id] = encounter.encounter_id
+    		end		
+      elsif obs.concept_id == 7024 #CPT given
+        if obs.value_coded == 1065 #&& obs.value_coded_name_id == 1102
+          a_hash[:cpt_given_yes] = 'Yes'           
+          a_hash[:cpt_given_yes_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 1066 #&& obs.value_coded_name_id == 1103
+          a_hash[:cpt_given_no] = 'No'             
+          a_hash[:cpt_given_no_enc_id] = encounter.encounter_id
+        end
+      elsif obs.concept_id == 190 #condoms_given
+        a_hash[:condoms_given] = obs.value_numeric
+        a_hash[:condoms_given_enc_id] = encounter.encounter_id
+      end
+    end
+
+    return generate_sql_string(a_hash)
+end
+
 def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 normal encounter, 1 generate_template only 
 
     #initialize field and values variables
@@ -494,7 +551,11 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:pregnant_no] = 'No'
           a_hash[:pregnant_no_enc_id] = encounter.encounter_id
-          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date                    
+          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date
+        elsif obs.value_coded == 1067 && obs.value_coded_name_id == 1104
+          a_hash[:pregnant_unknown] = 'Unknown'
+          a_hash[:pregnant_unknown_enc_id] = encounter.encounter_id
+          a_hash[:pregnant_unknown_v_date] = obs.obs_datetime.to_date                                                 
         end
       elsif obs.concept_id == 1755 #Patient Pregnant
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
@@ -504,7 +565,11 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103        
           a_hash[:pregnant_no] = 'No'
           a_hash[:pregnant_no_enc_id] = encounter.encounter_id
-          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date          
+          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date
+        elsif obs.value_coded == 1067 && obs.value_coded_name_id == 1104
+          a_hash[:pregnant_unknown] = 'Unknown'
+          a_hash[:pregnant_unknown_enc_id] = encounter.encounter_id
+          a_hash[:pregnant_unknown_v_date] = obs.obs_datetime.to_date              
         end
       elsif obs.concept_id == 7965 #breastfeeding
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
@@ -514,7 +579,11 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:breastfeeding_no] = 'No'
           a_hash[:breastfeeding_no_enc_id] = encounter.encounter_id
-          a_hash[:breastfeeding_no_v_date] = obs.obs_datetime.to_date          
+          a_hash[:breastfeeding_no_v_date] = obs.obs_datetime.to_date
+        elsif obs.value_coded == 1067 && obs.value_coded_name_id == 1104
+          a_hash[:breastfeeding_unknown] = 'Unknown'
+          a_hash[:breastfeeding_unknown_enc_id] = encounter.encounter_id
+          a_hash[:breastfeeding_unknown_v_date] = obs.obs_datetime.to_date                    
         end
     	elsif obs.concept_id == 7459 #tb status
     		if obs.value_coded == 7454 && obs.value_coded_name_id == 10270
@@ -634,13 +703,21 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
           a_hash[:allergic_to_sulphur_no] = 'No'
           a_hash[:allergic_to_sulphur_no_enc_id] = encounter.encounter_id
         end
-      elsif obs.concept_id == 7874 #prescribe drugs
+      elsif obs.concept_id == 7874 #prescribe arvs
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
           a_hash[:prescribe_arvs_yes] = 'Yes'
           a_hash[:prescribe_arvs_yes_enc_id] = encounter.encounter_id
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:prescribe_arvs_no] = 'No'
           a_hash[:prescribe_arvs_no_enc_id] = encounter.encounter_id
+        end
+      elsif obs.concept_id == 656 #prescribe ipt
+        if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
+          a_hash[:prescribe_ipt_yes] = 'Yes'
+          a_hash[:prescribe_ipt_yes_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
+          a_hash[:prescribe_ipt_no] = 'No'
+          a_hash[:prescribe_ipt_no_enc_id] = encounter.encounter_id
         end
       elsif obs.concept_id == 8259 #routine tb screening
 	      if obs.value_coded == 5945 && obs.value_coded_name_id == 4315
@@ -793,6 +870,10 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
           a_hash[:pregnant_no] = 'No'
           a_hash[:pregnant_no_enc_id] = obs.encounter_id
           a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date
+        elsif obs.value_coded == 1067 && obs.value_coded_name_id == 1104
+          a_hash[:pregnant_unknown] = 'Unknown'
+          a_hash[:pregnant_unknown_enc_id] = obs.encounter_id
+          a_hash[:pregnant_unknown_v_date] = obs.obs_datetime.to_date          
         end
     elsif obs.concept_id == 1755 #Patient Pregnant
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
@@ -802,7 +883,11 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:pregnant_no] = 'No'
           a_hash[:pregnant_no_enc_id] = obs.encounter_id
-          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date          
+          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date
+        elsif obs.value_coded == 1067 && obs.value_coded_name_id == 1104
+          a_hash[:pregnant_unknown] = 'Unknown'
+          a_hash[:pregnant_unknown_enc_id] = obs.encounter_id
+          a_hash[:pregnant_unknown_v_date] = obs.obs_datetime.to_date               
         end
     elsif obs.concept_id == 7965 #breastfeeding
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
@@ -812,7 +897,11 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:breastfeeding_no] = 'No'
           a_hash[:breastfeeding_no_enc_id] = obs.encounter_id
-          a_hash[:breastfeeding_no_v_date]  = obs.obs_datetime.to_date                    
+          a_hash[:breastfeeding_no_v_date]  = obs.obs_datetime.to_date
+        elsif obs.value_coded == 1067 && obs.value_coded_name_id == 1104
+          a_hash[:breastfeeding_unknown] = 'Unknown'
+          a_hash[:breastfeeding_unknown_enc_id] = obs.encounter_id
+          a_hash[:breastfeeding_unknown_v_date]  = obs.obs_datetime.to_date                             
         end
     elsif obs.concept_id == 9099 #cd4 count location
       a_hash[:cd4_count_location] = obs.to_s.split(':')[1].strip rescue nil
@@ -1095,7 +1184,7 @@ def process_patient_state(patient_id,visit, defaulted_dates)
 	a_hash = {:current_hiv_program_start_date => 'NULL'}
 
 	program_id = PatientProgram.find_by_sql("SELECT patient_program_id 
-				FROM patient_program 
+				FROM #{@source_db}.patient_program 
 				WHERE patient_id = #{patient_id} 
 				AND program_id = 1 AND voided = 0 
 				ORDER BY patient_program_id DESC LIMIT 1").first.patient_program_id
@@ -1104,15 +1193,15 @@ def process_patient_state(patient_id,visit, defaulted_dates)
     state_name = 'Defaulter'
   else
     patient_state = PatientProgram.find_by_sql("SELECT 
-	                        current_state_for_program(#{patient_id},1,'#{visit} 23:59:59') AS state").first.state  
+	                        #{@source_db}.current_state_for_program(#{patient_id},1,'#{visit} 23:59:59') AS state").first.state  
 	  
 	   if !patient_state.blank?
       state_name = ProgramWorkflowState.find_by_sql("SELECT 
                                              c.name AS name
                                            FROM
-                                                program_workflow_state pws
+                                               #{@source_db}. program_workflow_state pws
                                                     INNER JOIN
-                                                concept_name c ON c.concept_id = pws.concept_id
+                                                #{@source_db}.concept_name c ON c.concept_id = pws.concept_id
                                                     AND c.voided = 0
                                                     AND pws.retired = 0
                                            WHERE
@@ -1225,12 +1314,12 @@ def patient_defaulted_dates(patient_obj, session_date)
     #getting all patient's dispensations encounters
     
     all_dispensations = Observation.find_by_sql("SELECT obs.person_id, obs.obs_datetime AS obs_datetime, d.order_id
-                            FROM drug_order d 
-                              LEFT JOIN orders o ON d.order_id = o.order_id
-                              LEFT JOIN obs ON d.order_id = obs.order_id
-                            WHERE d.drug_inventory_id IN (SELECT drug_id FROM drug
+                            FROM #{@source_db}.drug_order d 
+                              LEFT JOIN #{@source_db}.orders o ON d.order_id = o.order_id
+                              LEFT JOIN #{@source_db}.obs ON d.order_id = obs.order_id
+                            WHERE d.drug_inventory_id IN (SELECT drug_id FROM #{@source_db}.drug
                                                           WHERE concept_id IN (SELECT concept_id 
-                                                                               FROM concept_set
+                                                                               FROM #{@source_db}.concept_set
                                                                                WHERE concept_set = 1085))
                                                           AND quantity > 0
                                                           AND obs.voided = 0
@@ -1243,7 +1332,7 @@ def patient_defaulted_dates(patient_obj, session_date)
     total_dispensations = all_dispensations.length
     defaulted_dates = all_dispensations.map(&:obs_datetime)
     test = []
-    
+
     all_dispensations.each do |disp_date|
       d = ((dates - total_dispensations) + 1)
 
@@ -1253,7 +1342,7 @@ def patient_defaulted_dates(patient_obj, session_date)
         if d == 0
           previous_date = session_date
           defaulted_date = ActiveRecord::Base.connection.select_value "                   
-          SELECT current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
+          SELECT #{@source_db}.current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
           
           if !defaulted_date.blank?
             outcome_dates << defaulted_date if !outcome_dates.include?(defaulted_date)
@@ -1265,7 +1354,7 @@ def patient_defaulted_dates(patient_obj, session_date)
             previous_date = prev_dispenation_date
           end          
           defaulted_date = ActiveRecord::Base.connection.select_value "
-              SELECT current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
+              SELECT #{@source_db}.current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
               
           if !defaulted_date.blank? 
             outcome_dates << defaulted_date if !outcome_dates.include?(defaulted_date)
@@ -1299,7 +1388,7 @@ end
 
 def get_drug_list
   drug_hash = {}
-  drug_list = Drug.find_by_sql("SELECT drug_id, name FROM drug")
+  drug_list = Drug.find_by_sql("SELECT drug_id, name FROM #{@source_db}.drug")
   drug_list.each do |drug|
     drug_hash[:"#{drug.drug_id}"] = drug.name 
   end

@@ -221,14 +221,17 @@ function createButtons() {
     buttonsDiv.innerHTML = "<button id='showDataButton' class='button blue navButton' onMouseDown='toggleShowProgress()'><span>Show Data</span></button>";
 
     // create next/finish button
-    buttonsDiv.innerHTML += "<button id='nextButton' class='button green navButton' onMouseDown='gotoNextPage()'><span>Next</span></button>";
+    buttonsDiv.innerHTML += "<button id='nextButton' class='button green navButton' onMouseDown='gotoNextPage()'><span>" + (typeof(tstLocaleWords) != "undefined" ? 
+        (tstLocaleWords["next"] ? tstLocaleWords["next"] : "Next") : "Next") + "</span></button>";
 
     // create back button
-    buttonsDiv.innerHTML += "<button id='backButton' class='button blue navButton'><span>Back</span></button>";
+    buttonsDiv.innerHTML += "<button id='backButton' class='button blue navButton'><span>" + (typeof(tstLocaleWords) != "undefined" ? 
+        (tstLocaleWords["back"] ? tstLocaleWords["back"] : "Back") : "Back") + "</span></button>";
 
     // create clear button or new patient button if on search page
     if (!tstSearchPage) {
-        buttonsDiv.innerHTML += "<button id='clearButton' class='button blue navButton' onMouseDown='clearInput()'><span>Clear</span></button>";
+        buttonsDiv.innerHTML += "<button id='clearButton' class='button blue navButton' onMouseDown='clearInput()'><span>" + (typeof(tstLocaleWords) != "undefined" ? 
+            (tstLocaleWords["clear"] ? tstLocaleWords["clear"] : "Clear") : "Clear") + "</span></button>";
     } else {
         var buttonLabel = "New Patient";
         if (tstSearchMode && (tstSearchMode == "guardian")) {
@@ -242,7 +245,8 @@ function createButtons() {
     buttonsDiv.innerHTML += "<div id='tt_extraButtons'></div>";
 
     // create cancel button
-    buttonsDiv.innerHTML += "<button class='button navButton red' id='cancelButton' onMouseDown='confirmCancelEntry(" + (typeof(save_state) != "undefined"?"true":"") + ");'><span>Cancel</span></button>";
+    buttonsDiv.innerHTML += "<button class='button navButton red' id='cancelButton' onMouseDown='confirmCancelEntry(" + (typeof(save_state) != "undefined"?"true":"") + ");'><span>" + (typeof(tstLocaleWords) != "undefined" ? 
+        (tstLocaleWords["cancel"] ? tstLocaleWords["cancel"] : "Cancel") : "Cancel") + "</span></button>";
 
     return buttonsDiv
 }
@@ -444,6 +448,17 @@ function populateInputPage(pageNum) {
 
     contentContainer.appendChild(wrapperPage);
 
+    // options
+    if (tstFormElements[i].tagName == "SELECT") {
+        if(tstFormElements[i].getAttribute("doublepane") != null){
+            if(tstFormElements[i].getAttribute("doublepane").toLowerCase().trim() == "true"){
+                createMultipleSelectControl();
+            } else {
+                createSingleSelectControl();
+            }
+        } 
+    } 
+
     tstInputTarget.addEventListener("keyup", checkKey, false)
     tstInputTarget.focus();
 
@@ -509,22 +524,24 @@ function getFormPostParams() {
 }
 
 function setTouchscreenAttributes(aInputNode, aFormElement, aPageNum) {
-    aFormElement.setAttribute('touchscreenInputID',aPageNum);
-    aInputNode.setAttribute('refersToTouchscreenInputID',aPageNum);
-    aInputNode.setAttribute('page',aPageNum);
-    aInputNode.setAttribute('id','touchscreenInput'+aPageNum);
+    if(aInputNode){
+        aFormElement.setAttribute('touchscreenInputID',aPageNum);
+        aInputNode.setAttribute('refersToTouchscreenInputID',aPageNum);
+        aInputNode.setAttribute('page',aPageNum);
+        aInputNode.setAttribute('id','touchscreenInput'+aPageNum);
 
-    // Invoke different CSS declaration for TEXTAREA control
-    if(aFormElement.tagName == "TEXTAREA" ){
-        aInputNode.setAttribute('class','touchscreenTextAreaInput');
-        aInputNode.setAttribute('cols','56');
-        aInputNode.setAttribute('rows','8');
-    } else {
-        aInputNode.setAttribute('class','touchscreenTextInput');
+        // Invoke different CSS declaration for TEXTAREA control
+        if(aFormElement.tagName == "TEXTAREA" ){
+            aInputNode.setAttribute('class','touchscreenTextAreaInput');
+            aInputNode.setAttribute('cols','56');
+            aInputNode.setAttribute('rows','8');
+        } else {
+            aInputNode.setAttribute('class','touchscreenTextInput');
+        }
+
+        aInputNode.setAttribute("v", aFormElement.getAttribute("validationRegexp"));
+        if (aInputNode.type == "password") aInputNode.value = "";
     }
-
-    aInputNode.setAttribute("v", aFormElement.getAttribute("validationRegexp"));
-    if (aInputNode.type == "password") aInputNode.value = "";
 }
 
 function getInfoBar(inputElement, aPageNum) {
@@ -679,12 +696,20 @@ function getOptions() {
                 loadOptions(selectOptions, options);
             } else if (tstFormElements[i].getAttribute("type") == "checkbox") {
                 loadOptions([{
-                    value: "Yes"
+                    value: "" + (typeof(tstLocaleWords) != "undefined" ? 
+                        (tstLocaleWords["yes"] ? 
+                            tstLocaleWords["yes"] : 
+                            "Yes") : "Yes") + ""
                 }, {
-                    value: "No"
+                    value: "" + (typeof(tstLocaleWords) != "undefined" ? 
+                        (tstLocaleWords["no"] ? tstLocaleWords["no"] : "No") : "No") + ""
                 }], options);
-                if (tstFormElements[i].checked) tstInputTarget.value = "Yes";
-                else tstInputTarget.value = "No";
+                if (tstFormElements[i].checked) tstInputTarget.value = "" + (typeof(tstLocaleWords) != "undefined" ? 
+                    (tstLocaleWords["yes"] ? 
+                        tstLocaleWords["yes"] : 
+                        "Yes") : "Yes") + "";
+                else tstInputTarget.value = "" + (typeof(tstLocaleWords) != "undefined" ? 
+                    (tstLocaleWords["no"] ? tstLocaleWords["no"] : "No") : "No") + "";
             } else {
                 viewPort.setAttribute('style', 'display:none');
             }
@@ -1450,9 +1475,11 @@ function navigateToPage(destPage, validate, navback){
 
         var nextButton = tstNextButton;
         if (destPage+1 == tstPages.length) {
-            nextButton.innerHTML = "<span>Finish</span>";
+            nextButton.innerHTML = "<span>" + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["finish"] ? tstLocaleWords["finish"] : "Finish") : "Finish") + "</span>";
         } else {
-            nextButton.innerHTML = "<span>Next</span>";
+            nextButton.innerHTML = "<span>" + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["next"] ? tstLocaleWords["next"] : "Next") : "Next") + "</span>";
         }
         showBestKeyboard(destPage);
 
@@ -1522,9 +1549,13 @@ function inputIsValid() {
             ". Are you sure about this value?</p><div style='display: block;'>" +
             "<button class='button' style='float: none;' onclick='this.offsetParent.style.display=\"none\"; " +
             "gotoPage(tstCurrentPage+1, false);' onmousedown='this.offsetParent.style.display=\"none\"; " +
-            "gotoPage(tstCurrentPage+1, false);'><span>Yes</span></button><button class='button' " +
+            "gotoPage(tstCurrentPage+1, false);'><span>" + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["yes"] ? 
+                    tstLocaleWords["yes"] : 
+                    "Yes") : "Yes") + "</span></button><button class='button' " +
             "style='float: none; right: 3px;' onmousedown='this.offsetParent.style.display=\"none\"; '>" +
-            "<span>No</span></button>";
+            "<span>" + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["no"] ? tstLocaleWords["no"] : "No") : "No") + "</span></button>";
 
             messageBar.style.display = "block";
 
@@ -1548,8 +1579,10 @@ function confirmValue() {
     confirmationBar.appendChild(username);
 
     confirmationBar.innerHTML += "<div style='display: block; margin-top: 15px;'><input type='submit'" +
-    " value='OK' class='btn' style='float: left;' onclick='validateConfirmUsername()'" + 
-    " onmousedown='validateConfirmUsername()'/><input type='submit' value='Cancel' " + 
+    " value='" + (typeof(tstLocaleWords) != "undefined" ? 
+        (tstLocaleWords["ok"] ? tstLocaleWords["ok"] : "OK") : "OK") + "' class='btn' style='float: left;' onclick='validateConfirmUsername()'" + 
+    " onmousedown='validateConfirmUsername()'/><input type='submit' value='" + (typeof(tstLocaleWords) != "undefined" ? 
+        (tstLocaleWords["cancel"] ? tstLocaleWords["cancel"] : "Cancel") : "Cancel") + "' " + 
     " class='btn' style='float: right; right: 3px;' onmousedown='cancelConfirmValue()' />";
 
     confirmationBar.style.display = "block";
@@ -1591,6 +1624,34 @@ function cancelConfirmValue() {
 }
 
 function clearInput(){
+    if(tstFormElements[tstCurrentPage].getAttribute("doublepane")){
+        var options = tstFormElements[tstCurrentPage].options;
+        
+        __$("touchscreenInput"+tstCurrentPage).value = "";
+        
+        __$('touchscreenInput'+tstCurrentPage).setAttribute("tstvalue", "");
+        
+        for(var i = 0; i < options.length; i++){
+            if(options[i].selected){
+                if(tstFormElements[tstCurrentPage].getAttribute("doublepane") == "true"){
+                    if(__$(i)){
+                        __$(i).click();
+                    }
+                } else {
+                    options[i].selected = false;
+                    if(__$(i)){
+                        var image = __$(i).getElementsByTagName("img")[0];
+                
+                        image.setAttribute("src", "lib/images/unchecked.png");
+                        __$(i).setAttribute("class", __$(i).getAttribute("group"));
+                    }
+                }
+            }
+        }
+        
+        return;
+    }
+    
     __$('touchscreenInput'+tstCurrentPage).value = "";
 
     if(doListSuggestions){
@@ -1642,9 +1703,11 @@ function showMessage(aMessage, withCancel, timed) {
     messageBar.innerHTML = aMessage +
     "<br />" + (typeof(withCancel) != "undefined" ? (withCancel == true ?
         "<button onmousedown='tstMessageBar.style.display = \"none\"; " +
-        "clearTimeout(tstTimerHandle);'><span>Cancel</span></button>" : "") : "") +
-    "<button style='width: 200px;' onmousedown='tstMessageBar.style.display = \"none\"; " +
-    "clearTimeout(tstTimerHandle); eval(tstTimerFunctionCall);'><span>OK</span></button>";
+        "clearTimeout(tstTimerHandle);'><span>" + (typeof(tstLocaleWords) != "undefined" ? 
+            (tstLocaleWords["cancel"] ? tstLocaleWords["cancel"] : "Cancel") : "Cancel") + "</span></button>" : "") : "") +
+    "<button style='' onmousedown='tstMessageBar.style.display = \"none\"; " +
+    "clearTimeout(tstTimerHandle); eval(tstTimerFunctionCall);'><span>" + (typeof(tstLocaleWords) != "undefined" ? 
+        (tstLocaleWords["ok"] ? tstLocaleWords["ok"] : "OK") : "OK") + "</span></button>";
     if (aMessage.length > 0) {
         messageBar.style.display = 'block'
         if((typeof(timed) == "undefined" ? true : timed) == true){
@@ -1672,12 +1735,20 @@ function disableTouchscreenInterface(){
 function confirmCancelEntry(save) {     // If you want to save state set save =
     // true
     if (tstConfirmCancel) {
-        tstMessageBar.innerHTML = "Are you sure you want to Cancel?<br/>" +
-        "<button onmousedown='hideMessage(); cancelEntry();'><span>Yes</span></button>" +
+        tstMessageBar.innerHTML = "" + (typeof(tstLocaleWords) != "undefined" ? 
+            (tstLocaleWords["are you sure you want to cancel"] ? 
+                tstLocaleWords["are you sure you want to cancel"] : 
+                "Are you sure you want to Cancel") : "Are you sure you want to Cancel") + "?<br/>" +
+        "<button onmousedown='hideMessage(); cancelEntry();'><span>" + (typeof(tstLocaleWords) != "undefined" ? 
+            (tstLocaleWords["yes"] ? 
+                tstLocaleWords["yes"] : 
+                "Yes") : "Yes") + "</span></button>" +
         (save?"<button onmousedown='var completeField = document.createElement(\"input\"); \n\
 				completeField.type = \"hidden\"; completeField.value = \"false\"; completeField.name = \"complete\"; \n\
-				document.forms[0].appendChild(completeField); document.forms[0].submit(); hideMessage();'><span>Save</span></button>":"") +
-        "<button onmousedown='hideMessage();'><span>No</span></button>";
+				document.forms[0].appendChild(completeField); document.forms[0].submit(); hideMessage();'><span>" + (typeof(tstLocaleWords) != "undefined" ? 
+            (tstLocaleWords["save"] ? tstLocaleWords["save"] : "Save") : "Save") + "</span></button>":"") +
+        "<button onmousedown='hideMessage();'><span>" + (typeof(tstLocaleWords) != "undefined" ? 
+            (tstLocaleWords["no"] ? tstLocaleWords["no"] : "No") : "No") + "</span></button>";
         tstMessageBar.style.display = "block";
     } else {
         cancelEntry();
@@ -1892,7 +1963,7 @@ function getQwertyKeyboard(){
     "<span class='qwertyKeyboard'>" +
     "<span class='buttonLine'>" +
     getButtons("QWERTYUIOP") +
-    getButtonString('backspace','Delete') +
+    getButtonString('backspace',"" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["delete"] ? tstLocaleWords["delete"] : "Delete") : "Delete") + "") +
     // getButtonString('date','Date') +
     "</span><span style='padding-left:0px' class='buttonLine'>" +
     getButtons("ASDFGHJKL") +
@@ -1907,7 +1978,7 @@ function getQwertyKeyboard(){
     keyboard = keyboard +
     "</span><span style='padding-left:0px' class='buttonLine'>" +
     getButtons("ZXCVBNM,.") + (tstFormElements[tstCurrentPage].tagName == "TEXTAREA" ? "" :
-        getButtonString('whitespace','Space', 'width: 85px;')) +
+        getButtonString('whitespace',"" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["space"] ? tstLocaleWords["space"] : "Space") : "Space") + "", '')) +
     getButtonString('abc','A-Z') +
     getButtonString('SHIFT','aA') +
     "</span>";
@@ -1915,7 +1986,7 @@ function getQwertyKeyboard(){
     if(tstFormElements[tstCurrentPage].tagName == "TEXTAREA") {
         keyboard = keyboard +
         "</span><span style='padding-left:0px' class='buttonLine'>" +
-        getButtonString('whitespace','Space', 'width: 520px;') +
+        getButtonString('whitespace',"" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["space"] ? tstLocaleWords["space"] : "Space") : "Space") + "", 'width: 520px;') +
         getButtonString('return',"ENTER", 'width: 120px;') +
         "</span>";
     }
@@ -1932,7 +2003,7 @@ function getABCKeyboard(){
     "<span class='buttonLine'>" +
     getButtons("ABCDEFGH") +
     getButtonString('apostrophe',"'") +
-    getButtonString('backspace','Delete') +
+    getButtonString('backspace',"" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["delete"] ? tstLocaleWords["delete"] : "Delete") : "Delete") + "") +
     getButtonString('num','0-9') +
     "</span><span class='buttonLine'>" +
     getButtons("IJKLMNOP") +
@@ -1945,17 +2016,17 @@ function getABCKeyboard(){
     // }
 
     keyboard = keyboard +
-    getButtonString('Unknown','Unknown') +
+    getButtonString('Unknown',"" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["unknown"] ? tstLocaleWords["unknown"] : "Unknown") : "Unknown") + "") +
     getButtonString('na','N/A') +
     "</span><span class='buttonLine'>" +
     getButtons("QRSTUVWXYZ") + (tstFormElements[tstCurrentPage].tagName == "TEXTAREA" ? "" : 
-        getButtonString('whitespace','Space', 'width: 85px;')) +
+        getButtonString('whitespace',"" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["space"] ? tstLocaleWords["space"] : "Space") : "Space") + "", '')) +
     "</span>";
 
     if(tstFormElements[tstCurrentPage].tagName == "TEXTAREA") {
         keyboard = keyboard +
         "</span><span style='padding-left:0px' class='buttonLine'>" +
-        getButtonString('whitespace','Space', 'width: 520px;') +
+        getButtonString('whitespace',"" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["space"] ? tstLocaleWords["space"] : "Space") : "Space") + "", 'width: 520px;') +
         getButtonString('return',"ENTER", 'width: 120px;') +
         "</span>";
     }
@@ -1989,8 +2060,8 @@ function getNumericKeyboard(){
     // getCharButtonSetID("0","zero") +
     getCharButtonSetID(".","decimal") +
     getCharButtonSetID(",","comma") +
-    getButtonString('backspace','Delete') +
-    getButtonString('Unknown','Unknown') +
+    getButtonString('backspace',"" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["delete"] ? tstLocaleWords["delete"] : "Delete") : "Delete") + "") +
+    getButtonString('Unknown',"" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["unknown"] ? tstLocaleWords["unknown"] : "Unknown") : "Unknown") + "") +
     getButtonString('SHIFT','aA') +
     "</span>" +
     "</span><span id='buttonLine3' class='buttonLine'>" +
@@ -2125,7 +2196,7 @@ function getDayOfMonthPicker(aYear, aMonth) {
         /* break on the seventh button, implying the end of the week */
         if(i%7 == 0) keyboard.innerHTML +="<span><br/></span>";
     }
-    keyboard.innerHTML += getButtonString("Unknown","Unknown")
+    keyboard.innerHTML += getButtonString("Unknown","" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["unknown"] ? tstLocaleWords["unknown"] : "Unknown") : "Unknown") + "")
 
     if (tstInputTarget.value > numberOfDays) {
         tstInputTarget.value = numberOfDays;
@@ -2185,7 +2256,7 @@ function press(pressedChar){
         inputTarget.value = "";
 
     var unknownClickedEarlier = inputTarget.value.toLowerCase();
-    if (unknownClickedEarlier == "unknown" || unknownClickedEarlier == "n/a")
+    if (unknownClickedEarlier == "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["unknown"] ? tstLocaleWords["unknown"] : "Unknown") : "Unknown").toLowerCase() + "" || unknownClickedEarlier == "n/a")
         inputTarget.value = "";
 
     if (pressedChar.length == 1) {
@@ -2199,7 +2270,7 @@ function press(pressedChar){
             case 'done':
                 touchScreenEditFinish(inputTarget);
                 break;
-            case 'space':
+            case "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["space"] ? tstLocaleWords["space"] : "space") : "space").toLowerCase() + "":
                 inputTarget.value += ' ';
                 break;
             case 'whitespace':
@@ -2244,7 +2315,7 @@ function press(pressedChar){
                 toggleShift();
                 break;
             case 'Unknown':
-                inputTarget.value = "Unknown";
+                inputTarget.value = "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["unknown"] ? tstLocaleWords["unknown"] : "Unknown") : "Unknown") + "";
                 break;
 
             default:
@@ -2267,6 +2338,9 @@ function listSuggestions(inputTargetPageNumber) {
         return;
     }
     var inputElement = __$('touchscreenInput'+inputTargetPageNumber);
+
+    if(!inputElement) 
+        return;
 
     if(inputElement.getAttribute("ajaxURL") != null){
         ajaxRequest(__$('options'),inputElement.getAttribute("ajaxURL")+inputElement.value);
@@ -2436,7 +2510,8 @@ function validateRule(aNumber) {
     if (aNumber.value.search(re) ==-1){
         var aMsg= aNumber.getAttribute("validationMessage")
         if (aMsg ==null || aMsg=="")
-            return "Please enter a valid value"
+            return "" + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["please enter a valid value"] ? tstLocaleWords["please enter a valid value"] : "Please enter a valid value") : "Please enter a valid value") + ""
         else
             return aMsg
     }
@@ -2503,7 +2578,8 @@ TTInput.prototype = {
         // check for existence
         this.value = this.element.value
         if (this.value.length<1 && this.element.getAttribute("optional") == null) {
-            return "You must enter a value to continue";
+            return "" + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["you must enter a value to continue"] ? tstLocaleWords["you must enter a value to continue"] : "You must enter a value to continue") : "You must enter a value to continue") + "";
         }
         return "";
     },
@@ -2516,8 +2592,10 @@ TTInput.prototype = {
     // validate using specified JS code
     validateCode: function() {
         var code = this.element.getAttribute('validationCode');
-        var msg = this.element.getAttribute('validationMessage') || "Please enter a valid value";
-        msg  += "<br> <a onmousedown='javascript:confirmValue()' href='javascript:;'>Authorise</a> </br>";
+        var msg = this.element.getAttribute('validationMessage') || "" + (typeof(tstLocaleWords) != "undefined" ? 
+            (tstLocaleWords["please enter a valid value"] ? tstLocaleWords["please enter a valid value"] : "Please enter a valid value") : "Please enter a valid value") + "";
+        msg  += "<br> <a onmousedown='javascript:confirmValue()' href='javascript:;'>" + (typeof(tstLocaleWords) != "undefined" ? 
+            (tstLocaleWords["authorise"] ? tstLocaleWords["authorise"] : "Authorise") : "Authorise") + "</a> </br>";
 
         if (!code || eval(code)) {
             return "";
@@ -2629,9 +2707,12 @@ TTInput.prototype = {
 
         if (tooSmall || tooBig) {
             if (!isNaN(minValue) && !isNaN(maxValue))
-                return "Value out of Range: "+minValue+" - "+maxValue;
-            if (tooSmall) return "Value smaller than minimum: "+ minValue;
-            if (tooBig) return "Value bigger than maximum: "+ maxValue;
+                return "" + (typeof(tstLocaleWords) != "undefined" ? 
+                    (tstLocaleWords["value out of range"] ? tstLocaleWords["value out of range"] : "Value out of Range") : "Value out of Range") + ": "+minValue+" - "+maxValue;
+            if (tooSmall) return "" + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["value smaller than minimum"] ? tstLocaleWords["value smaller than minimum"] : "Value smaller than minimum") : "Value smaller than minimum") + ": "+ minValue;
+            if (tooBig) return "" + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["value bigger than maximum"] ? tstLocaleWords["value bigger than maximum"] : "Value bigger than maximum") : "Value bigger than maximum") + ": "+ maxValue;
         }
         return "";
     },
@@ -2680,7 +2761,11 @@ TTInput.prototype = {
 
 
             if (!isAValidEntry)
-                return "Please select value from list (not: " + this.element.value + ")";
+                return "" + (typeof(tstLocaleWords) != "undefined" ? 
+                    (tstLocaleWords["please select value from list (not"] ? 
+                        tstLocaleWords["please select value from list (not"] : 
+                        "Please select value from list (not") : "Please select value from list (not") + 
+                ": " + this.element.value + ")";
 
         }
         return "";
@@ -2877,8 +2962,7 @@ RailsDate.prototype = {
                     (this.element.name == str[1]+'['+str[2]+'(1i)]')) {
                     monthElement = document.getElementsByName(str[1]+'['+str[2]+'(2i)]')[0];
 
-                }
-                else if (this.isDayOfMonthElement() &&
+                } else if (this.isDayOfMonthElement() &&
                     (this.element.name == str[1]+'['+str[2]+'(3i)]')) {
                     monthElement = document.getElementsByName(str[1]+'['+str[2]+'(2i)]')[0];
                 }
@@ -2938,8 +3022,7 @@ RailsDate.prototype = {
             if (!yearElement) {
                 if (str[1].search(/month$/) != -1 ) {
                     elementName = str[1].replace(/month$/, "year")+'['+str[2]+'(1i)]';
-                }
-                else if (str[1].search(/date$/) != -1 ) {
+                } else if (str[1].search(/date$/) != -1 ) {
                     elementName = str[1].replace(/date$/, "year")+'['+str[2]+'(1i)]';
                 }
                 yearElement = document.getElementsByName(elementName)[0];
@@ -2975,7 +3058,7 @@ RailsDate.prototype = {
 
     update: function(aValue) {
         if (this.isDayOfMonthElement()) {
-            if (aValue.toLowerCase() == "unknown") {
+            if (aValue.toLowerCase() == "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["unknown"] ? tstLocaleWords["unknown"] : "Unknown") : "Unknown").toLowerCase() + "") {
                 // this.element.value = "Unknown"
                 this.element.value = aValue
             } else {
@@ -2987,10 +3070,10 @@ RailsDate.prototype = {
         var monthElement = this.getMonthElement();
         var yearElement = this.getYearElement();
 
-        if (aValue.toLowerCase() == "unknown") {
-            dayElement.value = "Unknown";
-            monthElement.value = "Unknown";
-            yearElement.value = "Unknown";
+        if (aValue.toLowerCase() == "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["unknown"] ? tstLocaleWords["unknown"] : "Unknown") : "Unknown").toLowerCase() + "") {
+            dayElement.value = "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["unknown"] ? tstLocaleWords["unknown"] : "Unknown") : "Unknown") + "";
+            monthElement.value = "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["unknown"] ? tstLocaleWords["unknown"] : "Unknown") : "Unknown") + "";
+            yearElement.value = "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["unknown"] ? tstLocaleWords["unknown"] : "Unknown") : "Unknown") + "";
         }
 
         var dateArray = aValue.split('-');
@@ -3047,28 +3130,42 @@ function dispatchMessage(message, messageBoxType) {
 
     switch(messageBoxType){
         case tstMessageBoxType.OKOnly:
-            buttons = "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\"; gotoPage(tstCurrentPage+1, false);'> <span> OK </span> </button>"
+            buttons = "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\"; gotoPage(tstCurrentPage+1, false);'> <span> " + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["ok"] ? tstLocaleWords["ok"] : "OK") : "OK") + " </span> </button>"
             break;
 
         case tstMessageBoxType.OKCancel:
-            buttons = "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\"; gotoPage(tstCurrentPage+1, false);'> <span> OK </span> </button>" +
-            "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\";'> <span> Cancel </span> </button>"
+            buttons = "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\"; gotoPage(tstCurrentPage+1, false);'> <span> " + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["ok"] ? tstLocaleWords["ok"] : "OK") : "OK") + " </span> </button>" +
+            "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\";'> <span> " + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["cancel"] ? tstLocaleWords["cancel"] : "Cancel") : "Cancel") + " </span> </button>"
             break;
 
         case tstMessageBoxType.YesNo:
-            buttons = "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\"; gotoPage(tstCurrentPage+1, false);'> <span> Yes </span> </button>" +
-            "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\";'> <span>No</span> </button>"
+            buttons = "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\"; gotoPage(tstCurrentPage+1, false);'> <span> " + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["yes"] ? 
+                    tstLocaleWords["yes"] : 
+                    "Yes") : "Yes") + " </span> </button>" +
+            "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\";'> <span>" + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["no"] ? tstLocaleWords["no"] : "No") : "No") + "</span> </button>"
             break;
 
         case tstMessageBoxType.YesNoCancel:
-            buttons = "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\"; gotoPage(tstCurrentPage+1, false);'> <span> Yes </span> </button>" +
-            "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\";'> <span> No </span> </button>" +
-            "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\";'> <span> Cancel </span> </button>"
+            buttons = "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\"; gotoPage(tstCurrentPage+1, false);'> <span> " + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["yes"] ? 
+                    tstLocaleWords["yes"] : 
+                    "Yes") : "Yes") + " </span> </button>" +
+            "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\";'> <span> " + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["no"] ? tstLocaleWords["no"] : "No") : "No") + " </span> </button>" +
+            "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\";'> <span> " + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["cancel"] ? tstLocaleWords["cancel"] : "Cancel") : "Cancel") + " </span> </button>"
             break;
 
         default:
-            buttons = "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\"; gotoPage(tstCurrentPage+1, false);'> <span> OK </span> </button>" +
-            "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\";'> <span> Cancel </span> </button>"
+            buttons = "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\"; gotoPage(tstCurrentPage+1, false);'> <span> " + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["ok"] ? tstLocaleWords["ok"] : "OK") : "OK") + " </span> </button>" +
+            "<button class = 'button' onclick = 'this.offsetParent.style.display=\"none\";'> <span> " + (typeof(tstLocaleWords) != "undefined" ? 
+                (tstLocaleWords["cancel"] ? tstLocaleWords["cancel"] : "Cancel") : "Cancel") + " </span> </button>"
             break;
 
     }
@@ -3099,7 +3196,11 @@ function confirmRecordDeletion(message, form) {
         tstMessageBar.className = "messageBar";
 
         tstMessageBar.innerHTML = message + "<br/>" + "<button onmousedown=\"document.getElementById('content').removeChild(document.getElementById('messageBar')); if(document.getElementById('" + form + "')) document.getElementById('"
-        + form + "').submit();\"><span>Yes</span></button><button onmousedown=\"document.getElementById('content').removeChild(document.getElementById('messageBar'));\"><span>No</span></button>";
+        + form + "').submit(); showStatus();\"><span>" + (typeof(tstLocaleWords) != "undefined" ? 
+            (tstLocaleWords["yes"] ? 
+                tstLocaleWords["yes"] : 
+                "Yes") : "Yes") + "</span></button><button onmousedown=\"document.getElementById('content').removeChild(document.getElementById('messageBar'));\"><span>" + (typeof(tstLocaleWords) != "undefined" ? 
+            (tstLocaleWords["no"] ? tstLocaleWords["no"] : "No") : "No") + "</span></button>";
 
         tstMessageBar.style.display = "block";
         document.getElementById("content").appendChild(tstMessageBar);
@@ -3218,7 +3319,7 @@ DateSelector.prototype = {
             'class="blue" ' : 'class="red" ') : 'class="blue" ') + 
         ' onmousedown="setToday()" style="width: 150px;"><span>Today</span></button> \
 			<!--button id="num" onmousedown="updateKeyColor(this);press(this.id);" style="width: 150px;"><span>Num</span></button--> \
-			<button id="Unknown" onmousedown="updateKeyColor(this);press(this.id);" style="width: 150px;"><span>Unknown</span></button> \
+			<button id="Unknown" onmousedown="updateKeyColor(this);press(this.id);" style="width: 150px;"><span>' + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["unknown"] ? tstLocaleWords["unknown"] : "Unknown") : "Unknown") + '</span></button> \
 			</tr></table> \
 			</div> \
 		';
@@ -3522,7 +3623,7 @@ TimeSelector.prototype = {
 				<button id="timeselector_preSecond" onmousedown="ds.decrementSecond();"><span>-</span></button> \
 			</div--> \
 			</td><td> \
-			<!--button id="Unknown" onmousedown="updateKeyColor(this);press(this.id);" style=""><span>Unknown</span></button--> \
+			<!--button id="Unknown" onmousedown="updateKeyColor(this);press(this.id);" style=""><span>' + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["unknown"] ? tstLocaleWords["unknown"] : "Unknown") : "Unknown") + '</span></button--> \
 			</tr></table> \
 			</div> \
 		';
@@ -3671,7 +3772,11 @@ function showKeyboard(full_keyboard, qwerty){
     var row1 = (qwerty ? ["q","w","e","r","t","y","u","i","o","p"] : ["a","b","c","d","e","f","g","h","i","j"]);
     var row2 = (qwerty ? ["a","s","d","f","g","h","j","k","l",":"] : ["k","l","m","n","o","p","q","r","s",":"]);
     var row3 = (qwerty ? ["z","x","c","v","b","n","m",",",".","?"] : ["t","u","v","w","x","y","z",",",".","?"]);
-    var row4 = ["CAP","space","delete"];
+    var row4 = ["" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["cap"] ? 
+        tstLocaleWords["cap"] : "CAP") : "CAP").toUpperCase() + "","" + 
+    (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["space"] ? 
+        tstLocaleWords["space"] : "space") : "space").toLowerCase() + "","" + (typeof(tstLocaleWords) != "undefined" ? 
+        (tstLocaleWords["delete"] ? tstLocaleWords["delete"] : "delete") : "delete").toLowerCase() + ""];
     var row5 = ["1","2","3","4","5","6","7","8","9","0"];
     var row6 = ["_","-","@","(",")","+",";","=","\\","/"];
 
@@ -3838,13 +3943,13 @@ function showKeyboard(full_keyboard, qwerty){
         td4.bgColor = "#ffffff";
 
         switch(row4[i]){
-            case "cap":
+            case "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["cap"] ? tstLocaleWords["cap"] : "CAP") : "CAP").toLowerCase() + "":
                 td4.colSpan = 2;
                 break;
-            case "space":
+            case "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["space"] ? tstLocaleWords["space"] : "space") : "space").toLowerCase() + "":
                 td4.colSpan = 6;
                 break;
-            case "delete":
+            case "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["delete"] ? tstLocaleWords["delete"] : "delete") : "delete") + "":
                 td4.colSpan = 2;
                 break;
             default:
@@ -3856,21 +3961,21 @@ function showKeyboard(full_keyboard, qwerty){
         var btn = document.createElement("button");
         btn.innerHTML = (row4[i].trim().length > 0 ? "<span>" + row4[i] + "</span>" : "");
         
-        if(row4[i] == "space"){
+        if(row4[i] == "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["space"] ? tstLocaleWords["space"] : "space") : "space").toLowerCase() + ""){
             btn.style.minWidth = "60%";
         }
         
         btn.onclick = function(){
-            if(this.innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() == "cap"){
-                if(this.innerHTML.match(/<span>(.+)<\/span>/)[1] == "cap"){
+            if(this.innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() == "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["cap"] ? tstLocaleWords["cap"] : "CAP") : "CAP").toLowerCase() + ""){
+                if(this.innerHTML.match(/<span>(.+)<\/span>/)[1] == "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["cap"] ? tstLocaleWords["cap"] : "CAP") : "CAP").toLowerCase() + ""){
                     this.innerHTML = "<span>" + this.innerHTML.match(/<span>(.+)<\/span>/)[1].toUpperCase() + "</span>";
 
                     var cells = $("tblKeyboard").getElementsByTagName("button");
 
                     for(var c = 0; c < cells.length; c++){
-                        if(cells[c].innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() != "cap"
+                        if(cells[c].innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() != "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["cap"] ? tstLocaleWords["cap"] : "CAP") : "CAP").toLowerCase() + ""
                             && cells[c].innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() != "clear"
-                            && cells[c].innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() != "space"
+                            && cells[c].innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() != "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["space"] ? tstLocaleWords["space"] : "space") : "space").toLowerCase() + ""
                             && cells[c].innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() != "full"
                             && cells[c].innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() != "basic" ){
 
@@ -3885,9 +3990,9 @@ function showKeyboard(full_keyboard, qwerty){
                     var cells = $("tblKeyboard").getElementsByTagName("button");
 
                     for(var c = 0; c < cells.length; c++){
-                        if(cells[c].innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() != "cap"
-                            && cells[c].innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() != "delete"
-                            && cells[c].innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() != "space"
+                        if(cells[c].innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() != "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["cap"] ? tstLocaleWords["cap"] : "CAP") : "CAP").toLowerCase() + ""
+                            && cells[c].innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() != "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["delete"] ? tstLocaleWords["delete"] : "delete") : "delete").toLowerCase() + ""
+                            && cells[c].innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() != "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["space"] ? tstLocaleWords["space"] : "space") : "space").toLowerCase() + ""
                             && cells[c].innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() != "full"
                             && cells[c].innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() != "basic" ){
 
@@ -3901,11 +4006,11 @@ function showKeyboard(full_keyboard, qwerty){
                 if(!this.innerHTML.match(/^$/)){
                     $(global_control).value += "\n";
                 }
-            } else if(this.innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() == "space"){
+            } else if(this.innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() == "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["space"] ? tstLocaleWords["space"] : "space") : "space").toLowerCase() + ""){
 
                 $(global_control).value += " ";
 
-            } else if(this.innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() == "delete"){
+            } else if(this.innerHTML.match(/<span>(.+)<\/span>/)[1].toLowerCase() == "" + (typeof(tstLocaleWords) != "undefined" ? (tstLocaleWords["delete"] ? tstLocaleWords["delete"] : "delete") : "delete").toLowerCase() + ""){
 
                 $(global_control).value = $(global_control).value.substring(0,$(global_control).value.length - 1);
 
@@ -4015,7 +4120,8 @@ function showStatus(){
         popupBox.id = "popupBox";
         popupBox.style.display = "none";
        
-        popupBox.innerHTML = "<p>Processing. Please Wait ...</p>"
+        popupBox.innerHTML = "<p>" + (typeof(tstLocaleWords) != "undefined" ? 
+            (tstLocaleWords["processing. please wait"] ? tstLocaleWords["processing. please wait"] : "Processing. Please Wait") : "Processing. Please Wait") + " ...</p>"
        
         __$("content").appendChild(popupBox);
     }
@@ -4807,3 +4913,331 @@ function hideCategory(){
         document.body.removeChild(__$("category"));
     }
 }
+
+function createMultipleSelectControl(){
+    if(__$("keyboard")){
+        __$("keyboard").style.display = "none";
+    }
+    
+    if(__$("viewport")){
+        __$("viewport").style.display = "none";
+    }
+    
+    if(__$("touchscreenInput" + tstCurrentPage)){
+        __$("touchscreenInput" + tstCurrentPage).style.display = "none";
+    }
+    
+    var parent = document.createElement("div");
+    parent.style.width = "100%";
+    parent.style.height = "80%";
+    parent.style.borderRadius = "10px";
+    parent.style.marginTop = "10px";
+    parent.style.overflow = "auto";
+        
+    __$("inputFrame" + tstCurrentPage).appendChild(parent);
+        
+    var table = document.createElement("div");
+    table.style.display = "table";
+    table.style.width = "98.5%";
+    table.style.margin = "10px";
+        
+    parent.appendChild(table);
+        
+    var row = document.createElement("div");
+    row.style.display = "table-row";
+        
+    table.appendChild(row);
+        
+    var cell1 = document.createElement("div");
+    cell1.style.display = "table-cell";
+    cell1.border = "1px solid #666";  
+    cell1.style.minWidth = "50%";      
+        
+    row.appendChild(cell1);
+        
+    var cell2 = document.createElement("div");
+    cell2.style.display = "table-cell";
+    cell2.border = "1px solid #666";
+    cell2.style.minWidth = "50%";
+        
+    row.appendChild(cell2);
+        
+    var list1 = document.createElement("ul");
+    list1.style.listStyle = "none";
+    list1.style.padding = "0px";
+    list1.margin = "0px";
+        
+    cell1.appendChild(list1);
+        
+    var list2 = document.createElement("ul");
+    list2.style.listStyle = "none";
+    list2.style.padding = "0px";
+    list2.margin = "0px";
+        
+    cell2.appendChild(list2);
+        
+    var options = tstFormElements[tstCurrentPage].options;
+        
+    var j = 0;
+        
+    for(var i = 0; i < options.length; i++){
+        if(options[i].text.trim().length > 0){
+            var li = document.createElement("li");
+            li.id = i;
+            li.setAttribute("pos", i);
+            li.setAttribute("source_id", tstFormElements[tstCurrentPage].id)
+          
+            li.onclick = function(){
+                var img = this.getElementsByTagName("img")[0];
+            
+                if(img.getAttribute("src").toLowerCase().trim().match(/unticked/)){
+                    img.setAttribute("src", "/touchscreentoolkit/lib/images/ticked.jpg");
+                    this.setAttribute("class", "highlighted");
+              
+                    if(__$(this.getAttribute("source_id"))){
+                        __$(this.getAttribute("source_id")).options[parseInt(this.getAttribute("pos"))].selected = true;
+                        
+                        __$("touchscreenInput" + tstCurrentPage).value += 
+                        __$(this.getAttribute("source_id")).options[parseInt(this.getAttribute("pos"))].value + tstMultipleSplitChar;
+                    }                                        
+                } else {
+                    img.setAttribute("src", "/touchscreentoolkit/lib/images/unticked.jpg");
+                    this.setAttribute("class", this.getAttribute("group"));
+              
+                    if(__$(this.getAttribute("source_id"))){
+                        __$(this.getAttribute("source_id")).options[parseInt(this.getAttribute("pos"))].selected = false;
+                        
+                        if(__$(this.getAttribute("source_id")).options[parseInt(this.getAttribute("pos"))].value + tstMultipleSplitChar){
+                            __$("touchscreenInput" + tstCurrentPage).value = 
+                            __$("touchscreenInput" + tstCurrentPage).value.replace(__$(this.getAttribute("source_id")).options[parseInt(this.getAttribute("pos"))].value + tstMultipleSplitChar, "");
+                        } 
+                    }
+                }
+            }
+          
+            if(i % 2 == 0){
+                list1.appendChild(li);
+            
+                if(j % 2 == 0){
+                    li.className = "even";
+                    li.setAttribute("group", "even");
+                } else {
+                    li.className = "odd";
+                    li.setAttribute("group", "odd");
+                }
+            } else {
+                list2.appendChild(li);
+            
+                if(j % 2 == 0){
+                    li.className = "even";
+                    li.setAttribute("group", "even");
+                } else {
+                    li.className = "odd";
+                    li.setAttribute("group", "odd");
+                }
+            
+                j++;
+          
+            }
+          
+            var innerTable = document.createElement("div");
+            innerTable.style.display = "table";
+            innerTable.style.width = "100%";
+          
+            li.appendChild(innerTable);
+          
+            var innerRow = document.createElement("div")          ;
+            innerRow.style.display = "table-row";
+          
+            innerTable.appendChild(innerRow);
+          
+            var innerCell1 = document.createElement("div");
+            innerCell1.style.display = "table-cell";
+            innerCell1.style.width = "30px";
+          
+            innerCell1.innerHTML = "<img src='/touchscreentoolkit/lib/images/unticked.jpg' height='45' />";
+        
+            innerRow.appendChild(innerCell1);
+          
+            var innerCell2 = document.createElement("div");
+            innerCell2.style.display = "table-cell";
+            innerCell2.style.verticalAlign = "middle";
+            innerCell2.style.paddingLeft = "20px";
+          
+            innerCell2.innerHTML = options[i].innerHTML;
+        
+            innerRow.appendChild(innerCell2);
+          
+            if(options[i].selected){
+                innerCell1.innerHTML = "<img src='/touchscreentoolkit/lib/images/ticked.jpg' height='45' />";
+                li.setAttribute("class", "highlighted");
+            }
+        }     
+    }
+    
+    if(__$("touchscreenInput" + tstCurrentPage).value.trim().length > 0){
+        setTimeout("__$('touchscreenInput' + tstCurrentPage).value += tstMultipleSplitChar", 200);
+    }
+    
+}
+      
+function createSingleSelectControl(){
+    if(__$("keyboard")){
+        setTimeout("__$('keyboard').style.display = 'none'", 10);
+    }
+    
+    if(__$("viewport")){
+        __$("viewport").style.display = "none";
+        __$("viewport").innerHTML = "";
+    }
+    
+    if(__$("touchscreenInput" + tstCurrentPage)){
+        __$("touchscreenInput" + tstCurrentPage).style.display = "none";
+    }
+    
+    var parent = document.createElement("div");
+    parent.style.width = "100%";
+    parent.style.height = "80%";
+    parent.style.marginTop = "10px";
+    parent.style.overflow = "auto";
+        
+    __$("inputFrame" + tstCurrentPage).appendChild(parent);
+        
+    var table = document.createElement("div");
+    table.style.display = "table";
+    table.style.width = "98.5%";
+    table.style.margin = "10px";
+        
+    parent.appendChild(table);
+        
+    var row = document.createElement("div");
+    row.style.display = "table-row";
+        
+    table.appendChild(row);
+        
+    var cell1 = document.createElement("div");
+    cell1.style.display = "table-cell";
+    cell1.border = "1px solid #666"; 
+    cell1.style.minWidth = "50%";       
+        
+    row.appendChild(cell1);
+        
+    var cell2 = document.createElement("div");
+    cell2.style.display = "table-cell";
+    cell2.border = "1px solid #666";
+    cell2.style.minWidth = "50%";
+        
+    row.appendChild(cell2);
+        
+    var list1 = document.createElement("ul");
+    list1.style.listStyle = "none";
+    list1.style.padding = "0px";
+    list1.margin = "0px";
+        
+    cell1.appendChild(list1);
+        
+    var list2 = document.createElement("ul");
+    list2.style.listStyle = "none";
+    list2.style.padding = "0px";
+    list2.margin = "0px";
+        
+    cell2.appendChild(list2);
+        
+    var options = tstFormElements[tstCurrentPage].options;
+        
+    var j = 0;
+        
+    for(var i = 0; i < options.length; i++){
+        var li = document.createElement("li");
+        li.id = i;
+        li.setAttribute("pos", i);
+        li.setAttribute("source_id", tstFormElements[tstCurrentPage].id)
+          
+        li.onclick = function(){
+            var img = this.getElementsByTagName("img")[0];
+            
+            if(__$(this.getAttribute("source_id"))){
+                var opts = __$(this.getAttribute("source_id")).options;
+              
+                for(var k = 0; k < opts.length; k++){
+                    var image = __$(k).getElementsByTagName("img")[0];
+                
+                    image.setAttribute("src", "/touchscreentoolkit/lib/images/unchecked.png");
+                    __$(k).setAttribute("class", __$(k).getAttribute("group"));
+                }
+            }
+            
+            if(img.getAttribute("src").toLowerCase().trim().match(/unchecked/)){
+                img.setAttribute("src", "/touchscreentoolkit/lib/images/checked.png");
+                this.setAttribute("class", "highlighted");
+              
+                if(__$(this.getAttribute("source_id"))){
+                    __$(this.getAttribute("source_id")).options[parseInt(this.getAttribute("pos"))].selected = true;
+                    
+                    __$("touchscreenInput" + tstCurrentPage).value = 
+                        __$(this.getAttribute("source_id")).options[parseInt(this.getAttribute("pos"))].value;
+                }
+            } 
+        }
+          
+        if(i % 2 == 0){
+            list1.appendChild(li);
+            
+            if(j % 2 == 0){
+                li.className = "even";
+                li.setAttribute("group", "even");
+            } else {
+                li.className = "odd";
+                li.setAttribute("group", "odd");
+            }
+        } else {
+            list2.appendChild(li);
+            
+            if(j % 2 == 0){
+                li.className = "even";
+                li.setAttribute("group", "even");
+            } else {
+                li.className = "odd";
+                li.setAttribute("group", "odd");
+            }
+            
+            j++;
+          
+        }
+          
+        var innerTable = document.createElement("div");
+        innerTable.style.display = "table";
+        innerTable.style.width = "100%";
+          
+        li.appendChild(innerTable);
+          
+        var innerRow = document.createElement("div")          ;
+        innerRow.style.display = "table-row";
+          
+        innerTable.appendChild(innerRow);
+          
+        var innerCell1 = document.createElement("div");
+        innerCell1.style.display = "table-cell";
+        innerCell1.style.width = "30px";
+          
+        innerCell1.innerHTML = "<img src='/touchscreentoolkit/lib/images/unchecked.png' height='45' />";
+        
+        innerRow.appendChild(innerCell1);
+          
+        var innerCell2 = document.createElement("div");
+        innerCell2.style.display = "table-cell";
+        innerCell2.style.verticalAlign = "middle";
+        innerCell2.style.paddingLeft = "20px";
+          
+        innerCell2.innerHTML = options[i].innerHTML;
+        
+        innerRow.appendChild(innerCell2);
+          
+        if(options[i].selected){
+            innerCell1.innerHTML = "<img src='/touchscreentoolkit/lib/images/checked.png' height='45' />";
+            li.setAttribute("class", "highlighted");
+        }
+    }        
+        
+}
+      

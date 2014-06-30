@@ -1,41 +1,17 @@
 require 'yaml'
 
+if ARGV[0].nil?
+  raise "Please include the environment that you would like to choose. Either development or production"
+else
+  @environment = ARGV[0]
+end
+
+
 def initialize_variables
-  @source_db = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))["development"]["database"]
+  @source_db = YAML.load(File.open(File.join(RAILS_ROOT, "config/database.yml"), "r"))["#{@environment}"]["database"]
   @started_at = Time.now.strftime("%Y-%m-%d-%H%M%S")
 end
 
-def write_sql(a_hash,table)
-
-    #open the necessary output file for writing
-    if table == 'f1'
-        $temp_outfile = File.open("./migration_output/flat_table_1-" + @started_at + ".sql", "w")
-	initial_text = "INSERT INTO flat_table1 "
-    elsif table == 'f2'
- 	$temp_outfile = File.open("./migration_output/flat_table_2-" + @started_at + ".sql", "w") 
-	initial_text = "INSERT INTO flat_table2 "
-    elsif table == 'cft'
-	$temp_outfile = File.open("./migration_output/cohort_flat_table-" + @started_at + ".sql", "w")
-	initial_text = "INSERT INTO cohort_flat_table "
-    else
-	raise "Invalid table"
-    end
-    #initialize field and values variables
-    fields = ""
-    values = ""
-    #create sql statement
-    a_hash.each do |key,value|
-	fields += fields.empty? ? "`#{key}`" : ", `#{key}`"
-	values += values.empty? ? "`#{value}`" : ", `#{value}`"	
-    end
-    full_string = initial_text + "(" + fields + ")" + " VALUES (" + values + ");"
-    
-    #write to output file
-    $temp_outfile << full_string
-
-    #close the output file
-    $temp_outfile.close
-end
 
 def get_all_patients
     puts "started at #{@started_at}"
@@ -62,13 +38,14 @@ def get_patients_data(patient_id)
    initial_flat_table1_string = "INSERT INTO flat_cohort_table "
    
    flat_table_1_data = []; flat_table_2_data = [] 
-    
+
    #get flat_table1 data
    flat_table_1_data = Encounter.find_by_sql("SELECT
                                                 patient_id,
                                                 gender,
                                                 dob,
                                                 earliest_start_date,
+                                                age_at_initiation,
                                                 reason_for_eligibility,
                                                 ever_registered_at_art_clinic,
                                                 date_art_last_taken,
@@ -86,7 +63,8 @@ def get_patients_data(patient_id)
                                                 ever_registered_at_art_v_date,
                                                 date_art_last_taken_v_date,
                                                 date_art_last_taken_v_date,
-                                                taken_art_in_last_two_months_v_date
+                                                taken_art_in_last_two_months_v_date,
+                                                current_location
                                               FROM #{@source_db}.flat_table1
                                               WHERE patient_id = #{patient_id}")
 
@@ -100,6 +78,7 @@ def get_patients_data(patient_id)
                               visit_date,
                               pregnant_yes,
                               pregnant_no,
+                              pregnant_unknown,
                               drug_induced_abdominal_pain,
                               drug_induced_anorexia,
                               drug_induced_diarrhea,
@@ -184,6 +163,7 @@ def process_flat_table_1(flat_table_1_data, type = 0) #type 0 normal encounter, 
       a_hash[:birthdate] = patient.dob
       a_hash[:death_date] = pat.person.death_date
       a_hash[:earliest_start_date] = patient.earliest_start_date
+      a_hash[:age_at_initiation] = patient.age_at_initiation
       a_hash[:reason_for_starting] = patient.reason_for_eligibility
       a_hash[:ever_registered_at_art] = patient.ever_registered_at_art_clinic
       a_hash[:date_art_last_taken] = patient.date_art_last_taken
@@ -192,6 +172,7 @@ def process_flat_table_1(flat_table_1_data, type = 0) #type 0 normal encounter, 
       a_hash[:pulmonary_tuberculosis] = patient.pulmonary_tuberculosis
       a_hash[:pulmonary_tuberculosis_last_2_years] = patient.pulmonary_tuberculosis_last_2_years
       a_hash[:kaposis_sarcoma] = patient.kaposis_sarcoma
+      a_hash[:current_location] = patient.current_location
       a_hash[:extrapulmonary_tuberculosis_v_date] = patient.extrapulmonary_tuberculosis_v_date
       a_hash[:pulmonary_tuberculosis_v_date] = patient.pulmonary_tuberculosis_v_date
       a_hash[:pulmonary_tuberculosis_last_2_years_v_date] = patient.pulmonary_tuberculosis_last_2_years_v_date
