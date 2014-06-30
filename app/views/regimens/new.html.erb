@@ -399,7 +399,7 @@ var regimen_id = null;
 var tb_regimen_id = null;
 var other_regimen = null;
 
-var reasons = ['Jandice/hepatitis','Anaemia < 8g/dl','Renal failure', 'Abacavir hypersensitivity', 'Lypodystrophy', 'Lactic Acidosis', 'Drug Rash', 'Other'] ;
+var reasons = ['Treatment failure', 'Jandice/hepatitis','Anaemia < 8g/dl','Renal failure', 'Abacavir hypersensitivity', 'Lypodystrophy', 'Lactic Acidosis', 'Drug Rash', 'Other'] ;
 <% if @patient_bean.age < 12 %>
   reason += "Child under 12 years";
 <% end %>
@@ -1621,6 +1621,7 @@ function switchToSecondLine(){
       success: function(){
         document.getElementById('protector').style.display='none';
         document.getElementById('vl_lab_trail').style.display='none';
+        //gotoNextPage();
       }
     });
 }

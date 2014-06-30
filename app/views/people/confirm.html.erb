@@ -373,13 +373,20 @@ function cancelOperation(action){
             <span value="<%= @reason_for_art_eligibility rescue "" %>">Reason for Starting</span>
           <% end %>
 
-          <% unless @art_start_date.blank? %>
-            <span value="<%= @art_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date</span>
+          <% unless @art_start_date.blank? %>            
             <span value="<%= @duration_in_months.to_s + ' Months'  rescue "" %>">Duration on ART</span>
           <% end %>
+
+          <% unless @second_line_treatment_start_date.blank? %>            
+            <span value="<%= @second_line_duration_in_months.to_s + ' Months'  rescue "" %>">Duration on 2<sup>nd</sup> Line ART</span>
+          <% end %>
+
+          <% unless @art_start_date.blank? %>
+            <span value="<%= @art_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date</span>
+          <% end %>
+
           <% unless @second_line_treatment_start_date.blank? %>
             <span value="<%= @second_line_treatment_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date(2<sup>nd</sup> Line)</span>
-            <span value="<%= @second_line_duration_in_months.to_s + ' Months'  rescue "" %>">Duration on 2<sup>nd</sup> Line ART</span>
           <% end %>
             
           <% if (@arv_number rescue nil) != nil && (@arv_number) != " " %>
@@ -1044,7 +1051,7 @@ function cancelOperation(action){
 <% if @second_line_treatment_start_date.blank? %>
       <% unless @latest_result.blank?%>
           <% if @latest_result.to_i >= 1000 %>
-              <span style="letter-spacing: 11px;font-weight:bold; font-family: Nimbus Sans L; margin-left: 20%; color: red; font-size: 14px"><blink>HIGH VIRAL LOAD</blink></span>
+              <span style="letter-spacing: 8px;font-weight:bold; font-family: Nimbus Sans L; margin-left: 13%; color: red; font-size: 19px"><blink>HIGH VIRAL LOAD</blink></span>
           <% else %>
               <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">VIRAL LOAD</span>
           <% end %>
