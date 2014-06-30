@@ -854,7 +854,9 @@ module ApplicationHelper
         AND value_text LIKE (?)", patient.id, encounter_type, viral_load,
         '%Patient switched to second line%']) rescue nil
 
-    return false unless second_line_obs.blank? #Patient already switched to second line
+    second_line_art_start_date = PatientService.date_started_second_line_regimen(patient).to_date rescue nil
+    return false unless second_line_art_start_date.blank? #Patient already switched to second line
+    #return false unless second_line_obs.blank? #Patient already switched to second line
     
     identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
     identifier_types = PatientIdentifierType.find(:all,

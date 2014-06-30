@@ -398,9 +398,7 @@ function cancelOperation(action){
             <span value="<%= @patient_bean.pre_art_number rescue "" %>">Pre-ART Number</span>
           <% end %>
           
-          <% unless @results.blank? %>
-            <span value="<%= @modifier + ' ' + @latest_result.to_s + ' (' + @latest_date.strftime("%d-%b-%Y").to_s + ')' %>">Latest Viral load</span>
-          <% end %>
+          
         <% end %>
           <% if (@patient_bean.filing_number rescue nil) != nil && (@patient_bean.filing_number) != " " %>
             <span value="<%= @patient_bean.filing_number rescue "" %>">Filing Number</span>

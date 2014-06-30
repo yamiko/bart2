@@ -6,6 +6,7 @@
 </script>
 <%= javascript_include_tag("miscellaneous")%>
 <%= stylesheet_link_tag("miscellaneous")%>
+<%= javascript_include_tag "Highcharts/js/jquery.min.js" %>
 <style type="text/css">
 
 
@@ -1618,8 +1619,8 @@ function switchToSecondLine(){
       url: "/patients/switch_to_second_line",
       data: "patient_id="+<%=@patient.id %>,
       success: function(){
-        document.getElementById('protector').style.display='inline';
-        document.getElementById('vl_lab_trail').style.display='inline';
+        document.getElementById('protector').style.display='none';
+        document.getElementById('vl_lab_trail').style.display='none';
       }
     });
 }
