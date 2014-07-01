@@ -1602,14 +1602,16 @@ function showRegimenChangeAlert(){
 }
 
 function showHighVlPopup(){
-  <% if (patient_has_high_viral_loads(@patient)) %>
-        available_options = document.getElementsByTagName('li');
-        for(i=0; i<available_options.length; i++){
-          available_options[i].onmouseup = function(){
-            document.getElementById('protector').style.display='inline';
-            document.getElementById('vl_lab_trail').style.display='inline';
+  <% if vl_routine_check_activated %>
+    <% if (patient_has_high_viral_loads(@patient)) %>
+          available_options = document.getElementsByTagName('li');
+          for(i=0; i<available_options.length; i++){
+            available_options[i].onmouseup = function(){
+              document.getElementById('protector').style.display='inline';
+              document.getElementById('vl_lab_trail').style.display='inline';
+            }
           }
-        }
+    <% end %>
   <% end %>
 }
 

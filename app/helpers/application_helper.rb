@@ -34,7 +34,11 @@ module ApplicationHelper
   def show_intro_text
     get_global_property_value("show_intro_text").to_s == "true" rescue false
   end
-  
+
+  def vl_routine_check_activated
+    get_global_property_value("activate.vl.routine.check").to_s == "true" rescue false
+  end
+
   def ask_home_village
     get_global_property_value("demographics.home_village").to_s == "true" rescue false
   end
