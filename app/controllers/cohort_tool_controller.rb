@@ -1209,7 +1209,7 @@ class CohortToolController < GenericCohortToolController
 		#validate Cohort report
 		validation = CohortValidation.new(@cohort)
 		@cohort_validation = validation.get_all_differences
-		print_rules
+		print_rules rescue ""
 		session[:views]=nil; session[:chidren]; session[:nil]
     render :layout => 'cohort'
   end
