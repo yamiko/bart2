@@ -212,6 +212,32 @@ def get_all_patients(min, max, thread)
 
 end
 
+def get_specific_patients(list_of_patients)
+    puts "started exporting specific patients"
+    #open output files for writing
+      $temp_outfile_11_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_11" + ".sql", "w")
+      $temp_outfile_11_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_11" + ".sql", "w")
+      $temp_outfile_11_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_11" + ".sql", "w")
+    
+    patient_list = list_of_patients 
+
+    patient_list.each do |p| 
+	    sql_statements = get_patients_data(p)
+	    
+        $temp_outfile_11_3 << "#{p},"
+      	$temp_outfile_11_1 << sql_statements[0]
+      	$temp_outfile_11_2 << sql_statements[1]
+    end
+    #close output files 
+      $temp_outfile_11_3.close
+      $temp_outfile_11_1.close
+      $temp_outfile_11_2.close
+    
+    puts "completed exporting specific patients"
+
+end
+
+
 def get_patients_data(patient_id)
  #flat_table1 will contain hiv_staging, hiv clinic regitsrtaion observations
  #and patient demographics
@@ -1211,7 +1237,6 @@ def process_patient_state(patient_id,visit, defaulted_dates)
     end
   end
 
-  
  
   a_hash[:current_hiv_program_state] = state_name
 	a_hash[:current_hiv_program_start_date] = visit
@@ -1331,6 +1356,7 @@ def patient_defaulted_dates(patient_obj, session_date)
     dates = 0
     total_dispensations = all_dispensations.length
     defaulted_dates = all_dispensations.map(&:obs_datetime)
+    
     test = []
 
     all_dispensations.each do |disp_date|
@@ -1363,7 +1389,7 @@ def patient_defaulted_dates(patient_obj, session_date)
         dates += 1
       end
     end
-
+    
     return outcome_dates
 end
 
@@ -1383,7 +1409,14 @@ end
 def start
  initialize_variables
  #get_all_patients
- initiate_script
+ #specify patients_list, if you want to debug a list of patients
+ patients_list = []
+
+	if patients_list.length != 0
+	     get_specific_patients(patients_list)
+	else
+	     initiate_script
+	end
 end
 
 def get_drug_list
