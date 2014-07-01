@@ -74,7 +74,8 @@ class ClinicController < GenericClinicController
         ["Set Appointment Limit", "/properties/set_appointment_limit"],
 				["Export Cohort Data", "/properties/export_cohort_data"],
         ["Extended Family Planning","/properties/creation?value=extended_family_planning"],
-        ["Mailing List", "/properties/mailing_management"]
+        ["Mailing List", "/properties/mailing_management"],
+        ["Activate VL routine check", "/properties/creation?value=activate_viral_load_routine_check"]
       ]
     else
       @settings = []
