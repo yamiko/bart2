@@ -340,7 +340,7 @@ class GenericPeopleController < ApplicationController
 		@relation = params[:relation]
 		@person = Person.find(@found_person_id) rescue nil
 		patient = @person.patient
-		#@outcome = patient.patient_programs.last.patient_states.last.program_workflow_state.concept.fullname rescue nil
+		@outcome = patient.patient_programs.last.patient_states.last.program_workflow_state.concept.fullname rescue nil
 
 		@pp = PatientProgram.find(:first, :joins => :location, :conditions => ["program_id = ? AND patient_id = ?", Program.find_by_concept_id(Concept.find_by_name('HIV PROGRAM').id).id,@person.id]).patient_states.last.program_workflow_state.concept.fullname	rescue ""
 		
@@ -379,10 +379,24 @@ class GenericPeopleController < ApplicationController
       @modifier = @results[1]["Range"] rescue nil
     #end
     @reason_for_art = PatientService.reason_for_art_eligibility(patient)
-    @vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?",
+    @vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL",
             patient.patient_id, Concept.find_by_name("Viral load").concept_id]
         ).answer_string.squish.upcase rescue nil
-    
+
+    @repeat_vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?
+              AND value_text =?", patient.patient_id, Concept.find_by_name("Viral load").concept_id,
+              "Repeat"]).answer_string.squish.upcase rescue nil
+
+    @repeat_vl_obs_date = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?
+              AND value_text =?", patient.patient_id, Concept.find_by_name("Viral load").concept_id,
+              "Repeat"]).obs_datetime.to_date rescue nil
+
+    @date_vl_result_given = Observation.find(:last, :conditions => ["
+        person_id =? AND concept_id =? AND value_text REGEXP ?", @person.id,
+        Concept.find_by_name("Viral load").concept_id, 'Result given to patient']).value_datetime rescue nil
+    @enter_lab_results = GlobalProperty.find_by_property('enter.lab.results').property_value == 'true' rescue false
+
+    @vl_result_hash = Patient.vl_result_hash(patient)
 		render :layout => false
 	end
 

@@ -238,4 +238,82 @@ EOF
     #ActiveRecord::Base.connection.execute("UPDATE person SET person_id = #{patient_id} WHERE person_id = #{secondary_patient_id}")
   end
 end
+
+def self.vl_result_hash(patient)
+    encounter_type = EncounterType.find_by_name("REQUEST").id
+    viral_load = Concept.find_by_name("Hiv viral load").concept_id
+    identifier_type = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
+    identifier_types = PatientIdentifierType.find(:all,
+      :conditions=>["name IN (?)",identifier_type]
+    ).collect{| type |type.id }
+
+    identifiers = []
+    PatientIdentifier.find(:all, :conditions=>["patient_id=? AND identifier_type IN (?)",
+        patient.id,identifier_types]).each{| i | identifiers << i.identifier }
+    national_ids = identifiers
+    vl_hash = {}
+    results = Lab.find_by_sql(["
+        SELECT * FROM Lab_Sample s
+        INNER JOIN Lab_Parameter p ON p.sample_id = s.sample_id
+        INNER JOIN codes_TestType c ON p.testtype = c.testtype
+        INNER JOIN (SELECT DISTINCT rec_id, short_name FROM map_lab_panel) m ON c.panel_id = m.rec_id
+        WHERE s.patientid IN (?)
+        AND short_name = ?
+        AND s.deleteyn = 0
+        AND s.attribute = 'pass'", national_ids, 'HIV_viral_load'
+    ]).collect do | result |
+            [
+              result.Sample_ID,
+              result.Range,
+              result.TESTVALUE,
+              result.TESTDATE
+            ]
+    end
+
+    results.each do |result|
+
+      accession_number = result[0]
+      vl_result = result[2]
+      date_of_sample = result[3].to_date
+      
+      vl_hash[accession_number] = {} if vl_hash[accession_number].blank?
+      vl_hash[accession_number]["result"] = {} if vl_hash[accession_number]["result"].blank?
+      vl_hash[accession_number]["result"] = vl_result
+      vl_hash[accession_number]["date_of_sample"] = {} if vl_hash[accession_number]["date_of_sample"].blank?
+      vl_hash[accession_number]["date_of_sample"] = date_of_sample
+
+      vl_lab_sample_obs = Observation.find(:last, :joins => [:encounter], :conditions => ["
+        person_id =? AND encounter_type =? AND concept_id =? AND accession_number =?
+        AND value_text LIKE (?)",
+        patient.id, encounter_type, viral_load, accession_number.to_i, '%Result given to patient%']) rescue nil
+    
+      unless vl_lab_sample_obs.blank?
+        vl_hash[accession_number]["result_given"] = {} if vl_hash[accession_number]["result_given"].blank?
+        vl_hash[accession_number]["result_given"] = "yes"
+        vl_hash[accession_number]["date_result_given"] = {} if vl_hash[accession_number]["date_result_given"].blank?
+        vl_hash[accession_number]["date_result_given"] = vl_lab_sample_obs.value_datetime.to_date
+      else
+        vl_hash[accession_number]["result_given"] = {} if vl_hash[accession_number]["result_given"].blank?
+        vl_hash[accession_number]["result_given"] = "no"
+        vl_hash[accession_number]["date_result_given"] = {} if vl_hash[accession_number]["date_result_given"].blank?
+        vl_hash[accession_number]["date_result_given"] = ""
+      end
+
+    switched_to_second_line_obs = Observation.find(:last, :joins => [:encounter], :conditions => ["
+        person_id =? AND encounter_type =? AND concept_id =? AND accession_number =?
+        AND value_text LIKE (?)",
+        patient.id, encounter_type, viral_load, accession_number.to_i, '%Patient switched to second line%']) rescue nil
+    
+    unless switched_to_second_line_obs.blank?
+      vl_hash[accession_number]["second_line_switch"] = {} if vl_hash[accession_number]["second_line_switch"].blank?
+      vl_hash[accession_number]["second_line_switch"] = "yes"
+    else
+      vl_hash[accession_number]["second_line_switch"] = {} if vl_hash[accession_number]["second_line_switch"].blank?
+      vl_hash[accession_number]["second_line_switch"] = "no"
+    end
+
+    end
+    
+    return vl_hash.sort_by{|key, value|value["date_of_sample"].to_date}.reverse rescue {}
+  end
 end

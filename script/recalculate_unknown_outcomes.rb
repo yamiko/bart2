@@ -106,7 +106,7 @@
       ActiveRecord::Base.connection.execute("UPDATE obs
         SET voided = 1, void_reason = 'Give a new reason for starting' 
         WHERE person_id = #{patient_id} AND encounter_id = #{encounter_id}
-        AND concept_id = #{ReasonForStartingConcept.concept_id}")
+        AND voided = 0 AND concept_id = #{ReasonForStartingConcept.concept_id}")
 
       obs = Observation.new()
       obs.concept_id = ReasonForStartingConcept.concept_id
@@ -123,6 +123,7 @@
       puts "CD4 Count : >>>>>>>>>>>> #{cd4_count}"
       puts "Reason For Starting: >>>>>>>>>>>> #{reason_for_starting.name}"
       puts "......................................................................"
+
     end
             
   end

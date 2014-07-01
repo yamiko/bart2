@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>UI</title>
+    <!--link rel="stylesheet" href="styles.css" type="text/css"-->
+    <%= stylesheet_link_tag "prescription/styles" %>                                         
+    <script>
+      var drugs = [];
+      var strengths = [];
+      var units = [];
+      var drug_ids = [];	
+  
+      var drug_set_name_display = [];
+      var drug_set_name = [];
+      var drug_set_dose = [];
+      var drug_set_unit = [];
+      var drug_set_frequency = [];
+      var drug_set_duration = [];		
+
+
+      <%@drugs.each do |drug|%>
+        drugs.push("<%=drug.name%>");
+        strengths.push(<%=drug.dose_strength || 1%>);
+        units.push("<%=drug.units%>");
+        drug_ids.push("<%=drug.id%>");
+      <%end%>
+
+      <%@drug_sets.each do |drug_name, attr|%>
+        drug_set_name_display.push("<%=attr[:display_name] %>");
+        drug_set_name.push("<%=drug_name%>");
+        drug_set_dose.push("<%=attr[:dose] %>");
+        drug_set_unit.push("<%=attr[:unit] %>");
+	drug_set_frequency.push("<%=attr[:frequency] %>");
+	drug_set_duration.push("<%=attr[:duration] %>");
+      <%end%>
+	
+
+
+    </script>
+  </head>
+  <body onresize="resize()">
+    <div id="container" style="border: 0px solid #999; width: 100%; height: 100%;">
+      <div class="table" style="width: 100%; border: 0px solid #666; height: 100%;">
+        <div class="row">
+          <div class="cell" style="border: 0px solid #999;">
+            <div class="table" style="width: 100%; border: 0px solid #666; height: 100%;">
+              <div class="row">
+                <div id="cummulative" class="cell" style="border: 1px solid #999; 
+                    border-radius: 10px; background-color: #f6f2ca; height: 220px; 
+                    overflow: auto; padding: 5px;">
+                  <div class="table" style="width: 100%; border-spacing: 0px;">
+                    <div class="row" style="color: #000;">
+                      <div class="cell borderBottom" style="font-weight: bold; 
+                          text-align: center; padding: 5px; width: 45%;">
+                        Drug
+                      </div>
+                      <div class="cell borderBottom" style="font-weight: bold; 
+                          text-align: center; padding: 5px; width: 30%;">
+                        Frequency
+                      </div>
+                      <div class="cell borderBottom" style="font-weight: bold;
+                          text-align: center; ">
+                        Duration
+                      </div>
+                      <div class="cell borderBottom" style="font-weight: bold; 
+                          text-align: center; padding: 5px; width: 60px;">
+                        &nbsp;
+                      </div>
+                    </div>
+                  </div>                  
+                  <div style="width: 100%; height: 190px; overflow: auto;">
+                    <div id="drugs" class="table" style="width: 100%; border-spacing: 0px;">
+                    
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="cell" id="switcher" style="border: 0px solid #fff; overflow: auto; 
+                    border: 0px #999 solid; border-radius: 10px; background-color: #fff;">
+              
+                  <div class="table" style="width: 100%; height: 100%;">
+                    <div class="row">
+                      <div id="selections" class="cell" style="border: 0px solid #fff; overflow: auto; border-radius: 10px; background-color: #c8e1d3;">
+                      
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div id="keying" class="cell" style="border: 1px solid #999; overflow: auto; text-align: center; border-radius: 10px; height: 240px;">
+                      
+                      </div>
+                    </div>
+                  </div>
+                
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="cell" style="border: 0px solid #999; width: 300px; text-align: center; vertical-align: top;">
+            <!--button class='button_red' id='btncancel' style='float: none;'-->
+            <button class='button_green' id='btndone' style='float: none;'>		
+                Finish
+            </button>
+            <button class='button_blue' id='btnback' style='float: none;' onmousedown="clearAll();">
+                Clear all
+            </button>
+            <button class='button_red' id='btncancel' style='float: none;'>
+                Cancel
+            </button>
+            
+            <button class='button_blue' id='btnswitch' style='float: none; margin-top: 100px;' onclick="switchViews(this.innerHTML);">
+                Drug Sets
+            </button>
+            
+            <div id="searchbox" style="position: absolute; bottom: 270px; left: 30px; width: 70%; display: none;">
+              <input type="text" id="search" value="" class="input" />
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Add at the end of the document for proper functioning -->
+    <!--script type="text/javascript" src="scripts.js"></script-->
+    <%=javascript_include_tag "prescription/scripts"%>                                         
+  </body>
+</html>
+
+<script>
+  setInterval("setDuration();", 500);
+  //setInterval("getSearchedDrugs();", 500);
+
+  function getSearchedDrugs() {                                                           
+    var search_str = document.getElementById('search').value;               
+                                                                                  
+    if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari  
+        xmlhttp=new XMLHttpRequest();                                             
+      }else{// code for IE6, IE5                                                  
+        xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");                           
+      }                                                                           
+      xmlhttp.onreadystatechange=function() {                                     
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {                       
+          var results = xmlhttp.responseText;                                     
+          if(results) { 
+	    var searchedDrugs = JSON.parse(results);	          
+            drugs = []; strengths = []; units = []; drug_ids = []; 
+            for(drug_id in searchedDrugs) {
+                           //alert(searchedDrugs[drug_id].name);                
+              drugs.push(searchedDrugs[drug_id].name);
+              strengths.push(searchedDrugs[drug_id].dose_strength);
+              units.push(searchedDrugs[drug_id].unit);
+              drug_ids.push(drug_id);
+            }
+	    listAllDrugs();
+          }                                                                     
+        }                                                                         
+      }                                                                           
+      xmlhttp.open("GET","/prescriptions/search_for_drugs?search_str=" + search_str, true); 
+      xmlhttp.send();                                                             
+    }
+
+	
+    function setHoliday(){
+
+      submitForm = document.createElement("FORM");
+      submitForm.setAttribute("type","hidden");
+      document.body.appendChild(submitForm);
+      submitForm.method = "POST";
+
+      newElement = document.createElement("input")
+      newElement.setAttribute("name",'set_appointment_date')
+      newElement.setAttribute("type","hidden");
+      newElement.value = previous_selected;
+      submitForm.appendChild(newElement);
+
+      submitForm.action= "/prescriptions/prescribe";
+      submitForm.submit();
+    }
+
+
+
+</script>
