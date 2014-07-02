@@ -267,6 +267,10 @@ def get_patients_data(patient_id)
 
  if hiv_staging_obs
    hiv_staging = process_hiv_staging_encounter(hiv_staging_obs)
+ else
+  if hiv_clinic_reg_obs
+    hiv_staging = process_hiv_staging_encounter(hiv_clinic_reg_obs)
+  end
  end
 
   #check if any of the strings are empty
