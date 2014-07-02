@@ -298,6 +298,25 @@ def get_patients_data(patient_id)
     end
   end
 
+ states_dates  = PatientProgram.find_by_sql("SELECT 
+                                                  ps.start_date
+                                              FROM
+                                                  #{@source_db}.patient_program pp
+                                                      INNER JOIN
+                                                  #{@source_db}.patient_state ps 
+                                                        ON ps.patient_program_id = pp.patient_program_id
+                                              WHERE
+                                                  patient_id = #{patient_id}
+                                              GROUP BY ps.start_date").map(&:start_date)
+  
+  if !states_dates.blank?
+    states_dates.each do |date|
+      if !date.blank?
+        visits << date
+      end
+    end
+  end
+
   #list of encounters for bart2
   #vitals => 6, appointment => 7, treatment => 25, 
   #hiv clinic consultation => 53, hiv_reception => 51
@@ -305,7 +324,7 @@ def get_patients_data(patient_id)
   initial_string = "INSERT INTO flat_table2 "
   table2_sql_batch = ""
   
-  visits.sort.each do |visit|
+  visits.uniq!.sort.each do |visit|
      	# arrays of [fields, values]
       patient_details = ["patient_id, visit_date","#{patient_id},'#{visit}'"]   	
       vitals = []
