@@ -54,7 +54,7 @@ def initiate_special_script(patients_list)
     if record_count < 200
         thread_number = 1
     else
-	thread_number = 5
+	thread_number = 10
     end
     
     start_element = 0
