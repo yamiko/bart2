@@ -397,6 +397,11 @@ class GenericPeopleController < ApplicationController
     @enter_lab_results = GlobalProperty.find_by_property('enter.lab.results').property_value == 'true' rescue false
 
     @vl_result_hash = Patient.vl_result_hash(patient)
+    
+    @current_regimen = Observation.find(:first, :conditions => ["concept_id = ? AND
+        person_id = ? AND obs_datetime = (SELECT MAX(obs_datetime) FROM obs o
+        WHERE o.person_id = #{@patient.id} AND o.concept_id =#{regimen_category.id}
+        AND o.voided = 0)",regimen_category.id, @patient.id]).value_text rescue nil
 		render :layout => false
 	end
 

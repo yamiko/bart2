@@ -389,7 +389,11 @@ function cancelOperation(action){
           <% unless @second_line_treatment_start_date.blank? %>
             <span value="<%= @second_line_treatment_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date(2<sup>nd</sup> Line)</span>
           <% end %>
-            
+
+            <% unless @current_regimen.blank?  %>
+                <span value="<%= "#{@current_regimen}" %>"> Current Regimen </span>
+              <% end %>
+                
           <% if (@arv_number rescue nil) != nil && (@arv_number) != " " %>
             <span value="<%= @arv_number rescue '' %>">ARV Number</span>
           <% end %>
