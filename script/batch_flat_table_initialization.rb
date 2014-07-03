@@ -1423,7 +1423,7 @@ def patient_defaulted_dates(patient_obj, session_date, visits)
 
     if visits.length != 0 && ref_dates.length != 0
       visits.each do |visit|
-          if visit.to_date > ref_dates[0] && visit.to_date > ref_dates[1] or ref_dates[1] < ref_dates[0] && visit.to_date >= ref_dates[1]
+          if visit.to_date > ref_dates[0] && visit.to_date > ref_dates[1] # or ref_dates[1] < ref_dates[0] && visit.to_date >= ref_dates[1]
             outcome_dates << visit
           end 
       end
