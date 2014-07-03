@@ -43,6 +43,67 @@ def initiate_script
     puts "ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
 end
 
+def initiate_special_script(patients_list)
+    puts "started at #{@started_at}"
+
+    threads = []
+#    patients = Patient.find_by_sql("SELECT max(patient_id) as max_patient_id, count(*) record_count FROM #{@source_db}.earliest_start_date")
+    record_count = patients_list.length
+ #   max_patient_id = patients.first.max_patient_id
+ #   thresholds = generate_thresholds(record_count, max_patient_id)
+    if record_count < 200
+        thread_number = 1
+    else
+	thread_number = 5
+    end
+    
+    start_element = 0
+    end_element = record_count / thread_number
+    block = record_count / thread_number
+    count = 0
+    thread_number.times do
+        threads << Thread.new(count) do |i|
+	 count += 1
+          get_specific_patients(patients_list[start_element..end_element], count)
+        end
+
+	start_element = end_element + 1
+
+	if count == 4
+		end_element = record_count
+	else
+		end_element = end_element + block
+	end
+      end
+     
+    threads.each {|t| t.join}
+    
+    puts "ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
+end
+
+def initiate_script
+    puts "started at #{@started_at}"
+
+    threads = []
+    patients = Patient.find_by_sql("SELECT max(patient_id) as max_patient_id, count(*) record_count FROM #{@source_db}.earliest_start_date")
+    record_count = patients.first.record_count
+    max_patient_id = patients.first.max_patient_id
+    thresholds = generate_thresholds(record_count, max_patient_id)
+
+    count = 0
+      thresholds.each do |threshold| 
+        threads << Thread.new(count) do |i|
+          count += 1
+          get_all_patients(threshold[0], threshold[1], count)
+        end
+      end
+     
+    threads.each {|t| t.join}
+    
+    puts "ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
+end
+
+
 def generate_thresholds(records, patient_id)
    number_iterations = patient_id.to_i / records.to_i
 
@@ -212,30 +273,147 @@ def get_all_patients(min, max, thread)
 
 end
 
-def get_specific_patients(list_of_patients)
-    puts "started exporting specific patients"
+def get_specific_patients(patients_list, thread)
+    puts "thread #{thread} started at #{Time.now.strftime("%Y-%m-%d-%H%M%S")} "
+
     #open output files for writing
-      $temp_outfile_11_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_11" + ".sql", "w")
-      $temp_outfile_11_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_11" + ".sql", "w")
-      $temp_outfile_11_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_11" + ".sql", "w")
+    if thread == 1
+      $temp_outfile_1_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_1_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_1_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 2
+      $temp_outfile_2_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_2_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_2_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 3
+      $temp_outfile_3_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_3_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_3_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 4
+      $temp_outfile_4_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_4_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_4_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 5
+      $temp_outfile_5_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_5_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_5_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 6
+      $temp_outfile_6_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_6_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_6_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 7
+      $temp_outfile_7_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_7_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_7_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 8
+      $temp_outfile_8_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_8_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_8_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 9
+      $temp_outfile_9_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_9_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_9_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 10
+      $temp_outfile_10_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_10_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_10_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    end
     
-    patient_list = list_of_patients 
+    patient_list = patients_list#Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
 
     patient_list.each do |p| 
 	    sql_statements = get_patients_data(p)
 	    
-        $temp_outfile_11_3 << "#{p},"
-      	$temp_outfile_11_1 << sql_statements[0]
-      	$temp_outfile_11_2 << sql_statements[1]
+	    if thread == 1
+  	    $temp_outfile_1_3 << "#{p},"
+      	$temp_outfile_1_1 << sql_statements[0]
+      	$temp_outfile_1_2 << sql_statements[1]
+      elsif thread == 2
+        $temp_outfile_2_3 << "#{p},"
+        $temp_outfile_2_1 << sql_statements[0]
+        $temp_outfile_2_2 << sql_statements[1]
+      elsif thread == 3
+        $temp_outfile_3_3 << "#{p},"
+        $temp_outfile_3_1 << sql_statements[0]
+        $temp_outfile_3_2 << sql_statements[1]
+      elsif thread == 4
+        $temp_outfile_4_3 << "#{p},"
+        $temp_outfile_4_1 << sql_statements[0]
+        $temp_outfile_4_2 << sql_statements[1]
+      elsif thread == 5
+        $temp_outfile_5_3 << "#{p},"
+        $temp_outfile_5_1 << sql_statements[0]
+        $temp_outfile_5_2 << sql_statements[1]
+      elsif thread == 6
+        $temp_outfile_6_3 << "#{p},"
+        $temp_outfile_6_1 << sql_statements[0]
+        $temp_outfile_6_2 << sql_statements[1]
+      elsif thread == 7
+        $temp_outfile_7_3 << "#{p},"
+        $temp_outfile_7_1 << sql_statements[0]
+        $temp_outfile_7_2 << sql_statements[1]
+      elsif thread == 8
+        $temp_outfile_8_3 << "#{p},"
+        $temp_outfile_8_1 << sql_statements[0]
+        $temp_outfile_8_2 << sql_statements[1]
+      elsif thread == 9
+        $temp_outfile_9_3 << "#{p},"
+        $temp_outfile_9_1 << sql_statements[0]
+        $temp_outfile_9_2 << sql_statements[1]
+      elsif thread == 10
+        $temp_outfile_10_3 << "#{p},"
+        $temp_outfile_10_1 << sql_statements[0]
+        $temp_outfile_10_2 << sql_statements[1]
+      end
     end
-    #close output files 
-      $temp_outfile_11_3.close
-      $temp_outfile_11_1.close
-      $temp_outfile_11_2.close
     
-    puts "completed exporting specific patients"
+    #close output files 
+    if thread == 1
+      $temp_outfile_1_3.close
+      $temp_outfile_1_1.close
+      $temp_outfile_1_2.close
+    elsif thread == 2
+      $temp_outfile_2_3.close
+      $temp_outfile_2_1.close
+      $temp_outfile_2_2.close
+    elsif thread == 3
+      $temp_outfile_3_3.close
+      $temp_outfile_3_1.close
+      $temp_outfile_3_2.close
+    elsif thread == 4
+      $temp_outfile_4_3.close
+      $temp_outfile_4_1.close
+      $temp_outfile_4_2.close
+    elsif thread == 5
+      $temp_outfile_5_3.close
+      $temp_outfile_5_1.close
+      $temp_outfile_5_2.close
+    elsif thread == 6
+      $temp_outfile_6_3.close
+      $temp_outfile_6_1.close
+      $temp_outfile_6_2.close
+    elsif thread == 7
+      $temp_outfile_7_3.close
+      $temp_outfile_7_1.close
+      $temp_outfile_7_2.close
+    elsif thread == 8
+      $temp_outfile_8_3.close
+      $temp_outfile_8_1.close
+      $temp_outfile_8_2.close
+    elsif thread == 9
+      $temp_outfile_9_3.close
+      $temp_outfile_9_1.close
+      $temp_outfile_9_2.close
+    elsif thread == 10
+      $temp_outfile_10_3.close
+      $temp_outfile_10_1.close
+      $temp_outfile_10_2.close
+    end
+    
+    puts "thread #{thread} ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
 
 end
+
 
 
 def get_patients_data(patient_id)
@@ -1449,10 +1627,10 @@ def start
  initialize_variables
  #get_all_patients
  #specify patients_list, if you want to debug a list of patients
- patients_list = []
+	patients_list = []
 
 	if patients_list.length != 0
-	     get_specific_patients(patients_list)
+	     initiate_special_script(patients_list)
 	else
 	     initiate_script
 	end
