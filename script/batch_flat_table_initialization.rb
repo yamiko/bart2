@@ -69,7 +69,7 @@ def initiate_special_script(patients_list)
 
 	start_element = end_element + 1
 
-	if count == 4
+	if count == 9
 		end_element = record_count
 	else
 		end_element = end_element + block
