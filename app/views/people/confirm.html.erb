@@ -382,18 +382,18 @@ function cancelOperation(action){
             <span value="<%= @second_line_duration_in_months.to_s + ' Months'  rescue "" %>">Duration on 2<sup>nd</sup> Line ART</span>
           <% end %>
 
-          <% unless @art_start_date.blank? %>
-            <span value="<%= @art_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date</span>
-          <% end %>
 
           <% unless @second_line_treatment_start_date.blank? %>
             <span value="<%= @second_line_treatment_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date(2<sup>nd</sup> Line)</span>
           <% end %>
 
-            <% unless @current_regimen.blank?  %>
-                <span value="<%= "#{@current_regimen}" %>"> Current Regimen </span>
-              <% end %>
-                
+          <% unless @current_regimen.blank?  %>
+              <span value="<%= "#{@current_regimen}" %>"> Current Regimen </span>
+          <% end %>
+
+          <% unless @art_start_date.blank? %>
+            <span value="<%= @art_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date</span>
+          <% end %>
           <% if (@arv_number rescue nil) != nil && (@arv_number) != " " %>
             <span value="<%= @arv_number rescue '' %>">ARV Number</span>
           <% end %>
