@@ -1538,7 +1538,7 @@ end
 
 def patient_defaulted_dates(patient_obj, session_date, visits)
      #getting all patient's dispensations encounters
-    
+
     all_dispensations = Observation.find_by_sql("SELECT obs.person_id, obs.obs_datetime AS obs_datetime, d.order_id
                             FROM #{@source_db}.drug_order d 
                               LEFT JOIN #{@source_db}.orders o ON d.order_id = o.order_id
@@ -1590,9 +1590,10 @@ def patient_defaulted_dates(patient_obj, session_date, visits)
         dates += 1
       end
     end
+    
     max_def_date = defaulted_dates.sort.last.to_date rescue ""
     max_out_date = outcome_dates.sort.last.to_date rescue ""
-    
+
     if max_def_date != "" && max_out_date != ""
       ref_dates = [max_def_date, max_out_date]
     else
@@ -1602,7 +1603,11 @@ def patient_defaulted_dates(patient_obj, session_date, visits)
     if visits.length != 0 && ref_dates.length != 0
       visits.each do |visit|
           if visit.to_date > ref_dates[0] && visit.to_date > ref_dates[1] # or ref_dates[1] < ref_dates[0] && visit.to_date >= ref_dates[1]
-            outcome_dates << visit
+            pat_def = ActiveRecord::Base.connection.select_value "
+              SELECT #{@source_db}.current_defaulter(#{patient_obj.patient_id}, '#{visit}')"
+            if pat_def == 1
+              outcome_dates << visit
+            end
           end 
       end
     end
