@@ -1052,7 +1052,7 @@ function cancelOperation(action){
   <% end %>
 <% end %>
 
-<% if vl_routine_check_activated %>
+<% if vl_routine_check_activated && (@task.encounter_type == 'HIV CLINIC CONSULTATION' || @task.encounter_type == 'HIV STAGING') %>
       <div id="vl_data">
 
       <% if @second_line_treatment_start_date.blank? %>
@@ -1173,7 +1173,7 @@ function cancelOperation(action){
               <td><span><center>Date result given</center></span></td>
               <td><span><center>Switched to second line?</center></span></td>
             </tr>
-          <% @vl_result_hash.each do |sample_id, result| %>
+          <% (@vl_result_hash || {}).each do |sample_id, result| %>
             <tr style="line-height: 3em;" class="vl_tbody">
               <td style="border-left: 1px solid black;">
                   <span><center>  <%= result["date_of_sample"].strftime("%d-%b-%Y") %></center></span>

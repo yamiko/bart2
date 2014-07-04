@@ -1381,4 +1381,8 @@ class ApplicationController < GenericApplicationController
     property.property_value == 'true' rescue false
   end
 
+  def vl_routine_check_activated
+    GlobalProperty.find_by_property("activate.vl.routine.check").property_value.to_s == "true" rescue false
+  end
+
 end
