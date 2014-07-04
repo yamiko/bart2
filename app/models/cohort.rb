@@ -1044,7 +1044,7 @@ class Cohort
     patient_ids = @patients_alive_and_on_art
     patient_ids = [0] if patient_ids.blank?
 
-    dispensing_encounter_id = EncounterType.find_by_name("TREATMENT").id
+    dispensing_encounter_id = EncounterType.find_by_name("DISPENSING").id
     regimen_category = ConceptName.find_by_name("REGIMEN CATEGORY").concept_id
 
         earliest_start_dates = PatientProgram.find_by_sql(

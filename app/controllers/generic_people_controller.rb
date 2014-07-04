@@ -372,32 +372,34 @@ class GenericPeopleController < ApplicationController
 		@patient_identifiers = PatientIdentifier.find(:all,                                                
 		  :conditions=>["patient_id=? AND identifier_type IN (?)",                  
         patient.id,identifier_types]).collect{| i | i.identifier }
-    #if show_lab_results
+
+   if vl_routine_check_activated && (@task.encounter_type == 'HIV CLINIC CONSULTATION' || @task.encounter_type == 'HIV STAGING')
       @results = Lab.latest_result_by_test_type(@person.patient, 'HIV_viral_load', @patient_identifiers) rescue nil
       @latest_date = @results[0].split('::')[0].to_date rescue nil
       @latest_result = @results[1]["TestValue"] rescue nil
       @modifier = @results[1]["Range"] rescue nil
-    #end
-    @reason_for_art = PatientService.reason_for_art_eligibility(patient)
-    @vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL",
-            patient.patient_id, Concept.find_by_name("Viral load").concept_id]
-        ).answer_string.squish.upcase rescue nil
+      @reason_for_art = PatientService.reason_for_art_eligibility(patient)
+      @vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL",
+              patient.patient_id, Concept.find_by_name("Viral load").concept_id]
+          ).answer_string.squish.upcase rescue nil
 
-    @repeat_vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?
-              AND value_text =?", patient.patient_id, Concept.find_by_name("Viral load").concept_id,
-              "Repeat"]).answer_string.squish.upcase rescue nil
+      @repeat_vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?
+                AND value_text =?", patient.patient_id, Concept.find_by_name("Viral load").concept_id,
+                "Repeat"]).answer_string.squish.upcase rescue nil
 
-    @repeat_vl_obs_date = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?
+      @repeat_vl_obs_date = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?
               AND value_text =?", patient.patient_id, Concept.find_by_name("Viral load").concept_id,
               "Repeat"]).obs_datetime.to_date rescue nil
 
-    @date_vl_result_given = Observation.find(:last, :conditions => ["
-        person_id =? AND concept_id =? AND value_text REGEXP ?", @person.id,
-        Concept.find_by_name("Viral load").concept_id, 'Result given to patient']).value_datetime rescue nil
-    @enter_lab_results = GlobalProperty.find_by_property('enter.lab.results').property_value == 'true' rescue false
+      @date_vl_result_given = Observation.find(:last, :conditions => ["
+          person_id =? AND concept_id =? AND value_text REGEXP ?", @person.id,
+          Concept.find_by_name("Viral load").concept_id, 'Result given to patient']).value_datetime rescue nil
+      @enter_lab_results = GlobalProperty.find_by_property('enter.lab.results').property_value == 'true' rescue false
 
-    @vl_result_hash = Patient.vl_result_hash(patient)
+      @vl_result_hash = Patient.vl_result_hash(patient)
 
+   end
+   
     regimen_category = Concept.find_by_name("Regimen Category")
     
     @current_regimen = Observation.find(:first, :conditions => ["concept_id = ? AND

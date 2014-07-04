@@ -873,7 +873,7 @@ module ApplicationHelper
     results = Lab.results_by_type(patient, 'HIV_viral_load', patient_identifiers) rescue nil
     return false if results.blank?
     unless results.blank?
-      high_results = results.collect{|x, y|y["TestValue"]}.select{|r|r>1000}
+      high_results = results.collect{|x, y|y["TestValue"]}.select{|r| r.to_f > 1000}
       return true if high_results.count >=2
       return false if high_results.count < 2
     end
