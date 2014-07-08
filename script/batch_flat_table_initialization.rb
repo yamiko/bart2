@@ -426,30 +426,38 @@ def get_patients_data(patient_id)
  #get patient demographics
  demographics = get_patient_demographics(patient_id)
 
- #hiv_clinic_registration observations
- hiv_clinic_reg_obs = Encounter.find(:first,
-                                     :conditions => ['patient_id = ?
-                                                      AND encounter_type = 9',
-                                                      patient_id],
-                                     :order => 'encounter_datetime DESC').observations rescue nil
- if hiv_clinic_reg_obs
-  hiv_clinic_registration = process_hiv_clinic_registration_encounter(hiv_clinic_reg_obs)
- end
+  hiv_staging_obs_concept_ids = [2743, 7565, 7563,823,7961,5048,7551,5344, 7957,2858,5034,2585,882,6763,2894,1362,507,2587,1547,7553,7550,5046,1359,2583,7546,7546,5334,16,7955,7954,6759,2889, 3,5024,1215,5333,7539,8206,5027,7540,5337,7537,2577,2575,6758,5012,836,2891,1210,2576,6775,1212,6757,5328,5006,6831,730,9098,5497,9099,7965,1755,6131]
 
- #hiv_staging observations
- hiv_staging_obs = Encounter.find(:first,
-                                  :conditions => ['patient_id = ?
-                                                   AND encounter_type = 52',
-                                                   patient_id],
-                                  :order => 'encounter_datetime DESC').observations rescue nil
+  hiv_staging_and_reg_enc = Encounter.find(:all,
+      			:include => [:observations],
+      			:order => "encounter_datetime DESC",
+      			:conditions => ['voided = 0 AND patient_id = ? AND encounter_type IN (9, 52)', patient_id])                                                  
 
- if hiv_staging_obs
-   hiv_staging = process_hiv_staging_encounter(hiv_staging_obs)
- else
-  if hiv_clinic_reg_obs
-    hiv_staging = process_hiv_staging_encounter(hiv_clinic_reg_obs)
+  hiv_staging_and_reg_enc.each do |enc|
+    if enc.encounter_type == 9
+
+      obs_concepts_ids = enc.observations.map(&:concept_id)
+      intersect = obs_concepts_ids & hiv_staging_obs_concept_ids
+
+      if intersect.length != 0
+        hiv_staging = process_hiv_staging_encounter(enc.observations)
+        break
+      end
+    elsif enc.encounter_type == 52
+      hiv_staging = process_hiv_staging_encounter(enc.observations)
+      break
+    end
   end
- end
+
+  reg = []
+
+  hiv_staging_and_reg_enc.each do |enc|
+    reg << enc if enc.encounter_type == 9
+  end
+
+  if reg
+    hiv_clinic_registration = process_hiv_clinic_registration_encounter(reg.first.observations)
+  end
 
   #check if any of the strings are empty
   demographics = get_patient_demographics(patient_id, 1) if demographics.empty?
@@ -1251,6 +1259,7 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
     elsif obs.concept_id == 7563 #reason_for_starting_art
       a_hash[:reason_for_eligibility] = obs.to_s.split(':')[1].strip rescue nil
       a_hash[:reason_for_starting_v_date] = obs.obs_datetime.to_date rescue nil
+      a_hash[:reason_for_eligibility_enc_id] = obs.encounter_id rescue nil
     elsif obs.concept_id == 7562 #who_stage
       a_hash[:who_stage] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 2743 #who_stage_criteria_present
@@ -1650,4 +1659,4 @@ def get_drug_list
   return drug_hash
 end
 
-start 
+start
