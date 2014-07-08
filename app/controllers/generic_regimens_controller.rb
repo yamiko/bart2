@@ -178,6 +178,7 @@ class GenericRegimensController < ApplicationController
                 
             end
         end
+    @vl_result_hash = Patient.vl_result_hash(@patient)
 	end
 
   def check_current_regimen_index

@@ -6,6 +6,7 @@
 </script>
 <%= javascript_include_tag("miscellaneous")%>
 <%= stylesheet_link_tag("miscellaneous")%>
+<%= javascript_include_tag "Highcharts/js/jquery.min.js" %>
 <style type="text/css">
 
 
@@ -335,6 +336,50 @@
       z-index: 990;
       opacity: 0.5;
     }
+
+    #vl_lab_trail{
+      position: absolute;
+      width: 90%;
+      height: 60%;
+      top: 10%;
+      z-index: 991;
+      left: 5%;
+      border: 1px solid black;
+      background-color: #FEE0C6;
+      border-radius: 15px;
+    }
+    #vl_lab_trail_header{
+      padding: 10px;
+      background-color: gray;
+      color: white;
+      border-radius: 15px 15px 0px 0px;
+
+    }
+     #vl_lab_trail_footer{
+      background-color: gray;
+      height: 60px;
+      width: 100%;
+      position: absolute;
+      width: 100%;
+      position: absolute;
+      bottom: 0px;
+      border-radius: 0px 0px 15px 15px;
+     }
+     #vl_lab_trail_footer span{
+        border-radius: 13px;
+        background-color: #C1CDCD;
+        position: absolute;
+        bottom: 8px;
+        cursor: pointer;
+     }
+     .vl_table_header td{
+        border-bottom: 1px solid black;
+        border-top: 1px solid black;
+      }
+      .vl_tbody td{
+        border-bottom: 1px solid black;
+        border-right: 1px solid black;
+      }
 </style>
 
 <%= javascript_include_tag "prototype"%>
@@ -354,7 +399,7 @@ var regimen_id = null;
 var tb_regimen_id = null;
 var other_regimen = null;
 
-var reasons = ['Jandice/hepatitis','Anaemia < 8g/dl','Renal failure', 'Abacavir hypersensitivity', 'Lypodystrophy', 'Lactic Acidosis', 'Drug Rash', 'Other'] ;
+var reasons = ['Treatment failure', 'Jandice/hepatitis','Anaemia < 8g/dl','Renal failure', 'Abacavir hypersensitivity', 'Lypodystrophy', 'Lactic Acidosis', 'Drug Rash', 'Other'] ;
 <% if @patient_bean.age < 12 %>
   reason += "Child under 12 years";
 <% end %>
@@ -1259,7 +1304,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	:textCase => "upper",
 	:allowFreeText => 'false',
 	:id => "continue_existing_regimen",
-	:tt_onLoad => 'showDrugs();setAttributes();changeButton();showCategory("Regimen");showRegimenChangeAlert()',
+	:tt_onLoad => 'showDrugs();setAttributes();changeButton();showCategory("Regimen");showRegimenChangeAlert(); showHighVlPopup()',
 	:tt_onUnLoad => 'resetAttributes();resetRegimen();',
 	:condition => 'existingRegimen();',
 	:helpText => "Continue current ARV drugs?"}%>
@@ -1506,7 +1551,44 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   <div id="protector" style="display:none">
 
   </div>
-  
+
+<div id="vl_lab_trail" style="display:none;">
+    <div id="vl_lab_trail_header">
+      <span style="font-size: 16pt;">
+        <center>This patient has high viral loads. Do you want to switch this patient to second line regimen?</center>
+      </span>
+    </div>
+
+    <div id="vl_lab_trail_content">
+      <div style="position: absolute; height: 63%; width:100%; overflow: auto;">
+          <table cellspacing='0' style="position:absolute; width:94%; left: 3%; margin-top: 3%;">
+            <tr class="vl_table_header" style="background-color: #A2CD5A; line-height: 2em; font-size: 18px;">
+              <td style="min-width: 130px;"><span><center>Date of Sample</center></span></td>
+              <td style="min-width: 120px;"><span><center>Result</center></span></td>
+              <td><span><center>Result given?</center></span></td>
+              <td><span><center>Date result given</center></span></td>
+            </tr>
+
+          <% @vl_result_hash.each do |sample_id, result| %>
+            <tr style="line-height: 3em;" class="vl_tbody">
+              <td style="border-left: 1px solid black;">
+                  <span><center>  <%= result["date_of_sample"].strftime("%d-%b-%Y") %></center></span>
+              </td>
+              <td><span><center><%= result["result"] %></center></span></td>
+              <td><span><center><%= result["result_given"].capitalize %></center></span></td>
+              <td><span><center><%= result["date_result_given"].strftime("%d-%b-%Y") rescue "------" %></center></span></td>
+            </tr>
+          <% end %>
+          </table>
+          </div>
+    </div>
+
+    <div id="vl_lab_trail_footer">
+      <span style="left:4%; padding: 12px 20%;" onclick="switchToSecondLine();">Yes</span>
+      <span style="right:4%; padding: 12px 20%;" onclick="hideHighVlPopup();">No</span>
+    </div>
+</div>
+
 </body>
 <script>
 
@@ -1517,5 +1599,35 @@ function showRegimenChangeAlert(){
 		document.getElementById('protector').style.display = 'inline'
 	<% end %>
   <% end %>
+}
+
+function showHighVlPopup(){
+  <% if (patient_has_high_viral_loads(@patient)) %>
+        available_options = document.getElementsByTagName('li');
+        for(i=0; i<available_options.length; i++){
+          available_options[i].onmouseup = function(){
+            document.getElementById('protector').style.display='inline';
+            document.getElementById('vl_lab_trail').style.display='inline';
+          }
+        }
+  <% end %>
+}
+
+function switchToSecondLine(){
+  jQuery.ajax({
+      type: "POST",
+      url: "/patients/switch_to_second_line",
+      data: "patient_id="+<%=@patient.id %>,
+      success: function(){
+        document.getElementById('protector').style.display='none';
+        document.getElementById('vl_lab_trail').style.display='none';
+        //gotoNextPage();
+      }
+    });
+}
+
+function hideHighVlPopup(){
+  document.getElementById('protector').style.display='none';
+  document.getElementById('vl_lab_trail').style.display='none';
 }
 </script>

@@ -187,18 +187,35 @@
   function changeAttributes(){
     document.getElementById("btnNext").innerHTML = "<span>Continue</span>"
 
-    <% if improved_viral_load_check(@person.patient) == true &&
+    <% if repeat_viral_load_requested(@person.patient) == true &&
         (@task.encounter_type.upcase == "HIV CLINIC CONSULTATION" || @task.encounter_type.upcase == "HIV STAGING") &&  show_lab_results &&
         (current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
-         document.getElementById("btnNext").setAttribute("onclick","showPopup();")
+         document.getElementById("btnNext").setAttribute("onclick","showVlRepeatPopup();")
+    <% else %>
+        <% unless @repeat_vl_obs_date == Date.today %>
+          <% if improved_viral_load_check(@person.patient) == true &&
+              (@task.encounter_type.upcase == "HIV CLINIC CONSULTATION" || @task.encounter_type.upcase == "HIV STAGING") &&  show_lab_results &&
+              (current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
+               document.getElementById("btnNext").setAttribute("onclick","showPopup();")
+          <% end %>
+        <% end %>
     <% end %>
 
-  <% if viral_load_check_without_lab_results_modified(@person.patient) == true &&
-        (@task.encounter_type.upcase == "HIV CLINIC CONSULTATION" || @task.encounter_type.upcase == "HIV STAGING") &&
-        !show_lab_results &&
-        (current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
-         document.getElementById("btnNext").setAttribute("onclick","showPopup();")
-  <% end %>
+    <% if repeat_viral_load_requested(@person.patient) == true &&
+          (@task.encounter_type.upcase == "HIV CLINIC CONSULTATION" || @task.encounter_type.upcase == "HIV STAGING") &&
+          !show_lab_results &&
+          (current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
+           document.getElementById("btnNext").setAttribute("onclick","showVlRepeatPopup();")
+    <% else %>
+        <% unless @repeat_vl_obs_date == Date.today %>
+          <% if viral_load_check_without_lab_results_modified(@person.patient) == true &&
+                (@task.encounter_type.upcase == "HIV CLINIC CONSULTATION" || @task.encounter_type.upcase == "HIV STAGING") &&
+                !show_lab_results &&
+                (current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
+                 document.getElementById("btnNext").setAttribute("onclick","showPopup();")
+          <% end %>
+       <% end %>
+    <% end %>
   }
 			
   function showPopup(){
@@ -207,6 +224,16 @@
     content.appendChild(popup)
     if (typeof popup != 'undefined'){
       document.getElementById('popup').style.display='inline'
+      document.getElementById('cover').style.display='inline'
+    }
+  }
+
+  function showVlRepeatPopup(){
+    popup = document.getElementById('vl_repeat_popup')
+    content = document.getElementById('content')
+    content.appendChild(popup)
+    if (typeof popup != 'undefined'){
+      document.getElementById('vl_repeat_popup').style.display='inline'
       document.getElementById('cover').style.display='inline'
     }
   }
@@ -346,6 +373,22 @@ function cancelOperation(action){
             <span value="<%= @reason_for_art_eligibility rescue "" %>">Reason for Starting</span>
           <% end %>
 
+          <% unless @art_start_date.blank? %>            
+            <span value="<%= @duration_in_months.to_s + ' Months'  rescue "" %>">Duration on ART</span>
+          <% end %>
+
+          <% unless @second_line_treatment_start_date.blank? %>            
+            <span value="<%= @second_line_duration_in_months.to_s + ' Months'  rescue "" %>">Duration on 2<sup>nd</sup> Line ART</span>
+          <% end %>
+
+          <% unless @art_start_date.blank? %>
+            <span value="<%= @art_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date</span>
+          <% end %>
+
+          <% unless @second_line_treatment_start_date.blank? %>
+            <span value="<%= @second_line_treatment_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date(2<sup>nd</sup> Line)</span>
+          <% end %>
+            
           <% if (@arv_number rescue nil) != nil && (@arv_number) != " " %>
             <span value="<%= @arv_number rescue '' %>">ARV Number</span>
           <% end %>
@@ -361,17 +404,8 @@ function cancelOperation(action){
           <% if (@patient_bean.pre_art_number rescue nil) != nil && (@patient_bean.pre_art_number) != " " %>
             <span value="<%= @patient_bean.pre_art_number rescue "" %>">Pre-ART Number</span>
           <% end %>
-          <% unless @art_start_date.blank? %>
-            <span value="<%= @art_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date</span>
-            <span value="<%= @duration_in_months.to_s + ' Months'  rescue "" %>">Duration on ART</span>
-          <% end %>
-          <% unless @second_line_treatment_start_date.blank? %>
-            <span value="<%= @second_line_treatment_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date(2<sup>nd</sup> Line)</span>
-            <span value="<%= @second_line_duration_in_months.to_s + ' Months'  rescue "" %>">Duration on 2<sup>nd</sup> Line ART</span>
-          <% end %>
-          <% unless @results.blank? %>
-            <span value="<%= @modifier + ' ' + @latest_result.to_s + ' (' + @latest_date.strftime("%d-%b-%Y").to_s + ')' %>">Latest Viral load</span>
-          <% end %>
+          
+          
         <% end %>
           <% if (@patient_bean.filing_number rescue nil) != nil && (@patient_bean.filing_number) != " " %>
             <span value="<%= @patient_bean.filing_number rescue "" %>">Filing Number</span>
@@ -544,8 +578,16 @@ function cancelOperation(action){
     });
   }
 
-  function vl_requested_today(){
+  function repeat_vl_requested(){
+    jQuery.ajax({
+      type: "POST",
+      url: "/patients/repeat_viral_load_request",
+      data: "patient_id="+<%=@person.patient.id %>,
+      success: function(){
+        window.location="/people/confirm?found_person_id=<%=@person.id%>"
+      }
 
+    });
   }
 
   function vl_already_done(){
@@ -1006,59 +1048,85 @@ function cancelOperation(action){
 <% end %>
 <div id="vl_data">
 
-  <% unless @latest_result.blank?%>
-      <% if @latest_result.to_i >= 1000 %>
-          <span style="letter-spacing: 11px;font-weight:bold; font-family: Nimbus Sans L; margin-left: 20%; color: red; font-size: 14px"><blink>HIGH VIRAL LOAD</blink></span>
+<% if @second_line_treatment_start_date.blank? %>
+      <% unless @latest_result.blank?%>
+          <% if @latest_result.to_i >= 1000 %>
+              <span style="letter-spacing: 8px;font-weight:bold; font-family: Nimbus Sans L; margin-left: 13%; color: red; font-size: 19px"><blink>HIGH VIRAL LOAD</blink></span>
+          <% else %>
+              <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">VIRAL LOAD</span>
+          <% end %>
       <% else %>
-          <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">VIRAL LOAD</span>
+        <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">VIRAL LOAD</span>
       <% end %>
-  <% else %>
-    <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">VIRAL LOAD</span>
-  <% end %>
 
-  <hr style="margin-left:-2%; width:104%;"></hr>
-        <div id="vl_details">
-          <table style="position:absolute; left:14%; width: 80%;">
-            <tr>
-              <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Last Viral load </td>
-              <% unless @latest_result.blank?%>
-                  <% if @latest_result.to_i >= 1000 %>
-                    <td style="color:red; font-weight: bold; font-size: 14px"><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
+      <hr style="margin-left:-2%; width:104%;"></hr>
+            <div id="vl_details">
+              <table style="position:absolute; left:14%; width: 80%;">
+                <tr>
+                  <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Last Viral load </td>
+                  <% unless @latest_result.blank?%>
+                      <% if @latest_result.to_i >= 1000 %>
+                        <td style="color:red; font-weight: bold; font-size: 14px"><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
+                      <% else %>
+                        <td style=""><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
+                      <% end %>
                   <% else %>
-                    <td style=""><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
+                      <% if @vl_request == "YES" || @repeat_vl_request == "REPEAT" %>
+                        <td><span style="margin-left: 8%; font-weight: bold; color: red">(Requested)</span></td>
+                      <%  else %>
+                          <td><span style="margin-left: 4%; font-weight: bold; color: red">(Not requested)</span></td>
+                      <% end %>
                   <% end %>
-              <% else %>
-                  <% if @vl_request == "YES" %>
-                    <td><span style="margin-left: 8%; font-weight: bold; color: red">(Requested)</span></td>
-                  <%  else %>
-                      <td><span style="margin-left: 4%; font-weight: bold; color: red">(Not requested)</span></td>
-                  <% end %>
-              <% end %>
-            </tr>
-            <tr>
-              <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Date of Sample</td>
-              <% unless  @latest_date.blank?%>
-              <td style=""><%= @latest_date.strftime("%d-%b-%Y") rescue nil %></td>
-              <% else %>
-                <td id="" style="">----------------------------</td>
-              <% end %>
-            </tr>
-            <tr>
-                <td style="font-weight: bold; font-size: 1em; padding: 2px; max-width: 61%;">Date given to patient</td>
-                <% if vl_available_and_result_given(Patient.find(params[:found_person_id])) == true %>
-                    <td style=""><%= @date_vl_result_given.strftime("%d-%b-%Y") %></td>
-                <% else %>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Date of Sample</td>
+                  <% unless  @latest_date.blank?%>
+                  <td style=""><%= @latest_date.strftime("%d-%b-%Y") rescue nil %></td>
+                  <% else %>
                     <td id="" style="">----------------------------</td>
-                <% end %>
-            </tr>
+                  <% end %>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold; font-size: 1em; padding: 2px; max-width: 61%;">Date given to patient</td>
+                    <% if vl_available_and_result_given(Patient.find(params[:found_person_id])) == true %>
+                        <td style=""><%= @date_vl_result_given.strftime("%d-%b-%Y") %></td>
+                    <% else %>
+                        <td id="" style="">----------------------------</td>
+                    <% end %>
+                </tr>
 
-          </table>
-        </div>
-        <div id="vl_data_footer">
-          <span onclick="updateVl();" id="update_span" style="color: white;">Update</span>
-          <span onclick="showVlLabTrail();" id="lab_trail_span" style="color: white;">VL Trail</span>
-        </div>
+              </table>
+            </div>
+      
+<% else %>
+          <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">VIRAL LOAD</span>
+          <hr style="margin-left:-2%; width:104%;"></hr>
+          <div id="vl_details">
+              <table style="position:absolute; left:14%; width: 80%;">
+                <tr>
+                  <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Last Viral load </td>
+                  <td><span style="margin-left: 1%; font-weight: bold; color: red">(Switched to 2<sup>nd</sup>Line)</span></td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Date of Sample</td>
+                  <td id="" style="">---------------------------------</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold; font-size: 1em; padding: 2px; max-width: 61%;">Date given to patient</td>
+                    <td id="" style="">---------------------------------</td>
+                </tr>
+
+              </table>
+           </div>
+          
+<% end %>
+  <div id="vl_data_footer">
+              <span onclick="updateVl();" id="update_span" style="color: white;">Update</span>
+              <span onclick="showVlLabTrail();" id="lab_trail_span" style="color: white;">VL Trail</span>
+  </div>
+          
  </div>
+
       <div id="cover">
       </div>
       <div id="update_vl_menu" style="display:none">
@@ -1131,13 +1199,32 @@ function cancelOperation(action){
                 <tr onclick="" style="line-height: 3em; background-color: #FEE0C6;"><td><span style="color:gray;">Result given to patient</span></td></tr>
               <% end %>
               <tr onclick="newVlResultPath();" style="line-height: 3em;"><td><span>Enter new VL result</span></td></tr>
-              <tr onclick="secondlineSwitchPath();" style="line-height: 3em;"><td><span>Patient switched to second line</span></td></tr>
-              <tr onclick="removeUpdateVlMenu();" style="line-height: 3em;"><td><span>Back to milestone screening</span></td></tr>
+              <!--<tr onclick="secondlineSwitchPath();" style="line-height: 3em;"><td><span>Patient switched to second line</span></td></tr>
+              <tr onclick="removeUpdateVlMenu();" style="line-height: 3em;"><td><span>Back to milestone screening</span></td></tr>-->
+              <tr onclick="repeat_vl_requested();" style="line-height: 3em;"><td><span>Request VL today</span></td></tr>
             </table>
           </div>
           <div id="new_vl_menu_footer">
             <span onclick="removeUpdateVlMenu();"><b style="margin-left: 45%;">Cancel</b></span>
           </div>
+      </div>
+
+      <div id="vl_repeat_popup" style="display: none;">
+        <div class="new_vl_menu" style="position:fixed; width:40%; height: 45%; left:30%;">
+              <div class="new_vl_menu_header">
+                <span style="font-size: 15pt;"><center>Repeat viral load was requested<br/>
+                Viral load result available?</center></span>
+              </div>
+              <div class="new_vl_menu_content">
+                <table cellspacing="0" style="position:absolute; width: 100%; height:75%;">
+                  <tr onclick="newVlResultPathWithParam();" style="line-height: 3em;"><td><span>Enter VL result</span></td></tr>
+                  <tr onclick="hidePopup();" style="line-height: 3em;"><td><span>No VL result available</span></td></tr>
+                </table>
+              </div>
+              <div class="new_vl_menu_footer" style="height: 0px;">
+
+              </div>
+        </div>
       </div>
 </body>
 </html>
