@@ -323,7 +323,7 @@ def get_specific_patients(patients_list, thread)
 
     patient_list.each do |p| 
 	    sql_statements = get_patients_data(p)
-	    
+	    puts ">>working on patient>>>#{p}<<<<<<<"
 	    if thread == 1
   	    $temp_outfile_1_3 << "#{p},"
       	$temp_outfile_1_1 << sql_statements[0]
@@ -365,6 +365,7 @@ def get_specific_patients(patients_list, thread)
         $temp_outfile_10_1 << sql_statements[0]
         $temp_outfile_10_2 << sql_statements[1]
       end
+      puts ">>finished on patient>>>#{p}<<<<<<<"
     end
     
     #close output files 
@@ -432,7 +433,7 @@ def get_patients_data(patient_id)
       			:include => [:observations],
       			:order => "encounter_datetime DESC",
       			:conditions => ['voided = 0 AND patient_id = ? AND encounter_type IN (9, 52)', patient_id])                                                  
-
+  hiv_staging_obs = []
   hiv_staging_and_reg_enc.each do |enc|
     if enc.encounter_type == 9
 
@@ -440,23 +441,25 @@ def get_patients_data(patient_id)
       intersect = obs_concepts_ids & hiv_staging_obs_concept_ids
 
       if intersect.length != 0
-        hiv_staging = process_hiv_staging_encounter(enc.observations)
+        hiv_staging_obs = enc.observations
+        hiv_staging = process_hiv_staging_encounter(hiv_staging_obs)
         break
       end
     elsif enc.encounter_type == 52
-      hiv_staging = process_hiv_staging_encounter(enc.observations)
+      hiv_staging_obs = enc.observations
+      hiv_staging = process_hiv_staging_encounter(hiv_staging_obs)
       break
     end
   end
 
-  reg = []
+  hiv_clinic_reg_obs = []
 
-  hiv_staging_and_reg_enc.each do |enc|
-    reg << enc if enc.encounter_type == 9
+  hiv_staging_and_reg_enc.each do |enc| 
+    hiv_clinic_reg_obs << enc if enc.encounter_type == 9
   end
-
-  if reg
-    hiv_clinic_registration = process_hiv_clinic_registration_encounter(reg.first.observations)
+  
+  if !hiv_clinic_reg_obs.blank?
+    hiv_clinic_registration = process_hiv_clinic_registration_encounter(hiv_clinic_reg_obs.first.observations)
   end
 
   #check if any of the strings are empty
