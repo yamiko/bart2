@@ -514,7 +514,7 @@ def get_patients_data(patient_id)
   initial_string = "INSERT INTO flat_table2 "
   table2_sql_batch = ""
   
-  visits.uniq!.sort.each do |visit|
+  visits.uniq.sort.each do |visit|
      	# arrays of [fields, values]
       patient_details = ["patient_id, visit_date","#{patient_id},'#{visit}'"]   	
       vitals = []
