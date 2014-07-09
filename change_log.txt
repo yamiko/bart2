@@ -37,3 +37,5 @@ Version (1.0.0)
 		added gems in vendor for local bundle installation
 		Updated cohort_regimen_fix script
 		Added Current_Location to void_adherence script to prevent openmrs model from crushing 
+----		
+		updated the way defaulters are being exported in flat_tables
