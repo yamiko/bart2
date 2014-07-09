@@ -91,7 +91,7 @@ def initiate_script
     thresholds = generate_thresholds(record_count, max_patient_id)
 
     count = 0
-      thresholds.each do |threshold| 
+      (thresholds || []).each do |threshold| 
         threads << Thread.new(count) do |i|
           count += 1
           get_all_patients(threshold[0], threshold[1], count)
@@ -180,7 +180,7 @@ def get_all_patients(min, max, thread)
     
     patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
 
-    patient_list.each do |p| 
+    (patient_list || []).each do |p| 
 	    sql_statements = get_patients_data(p)
 	    
 	    if thread == 1
@@ -321,7 +321,7 @@ def get_specific_patients(patients_list, thread)
     
     patient_list = patients_list#Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
 
-    patient_list.each do |p| 
+    (patient_list || []).each do |p| 
 	    sql_statements = get_patients_data(p)
 	    puts ">>working on patient>>>#{p}<<<<<<<"
 	    if thread == 1
