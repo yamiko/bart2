@@ -38,6 +38,4 @@ Version (1.0.0)
 		Updated cohort_regimen_fix script
 		Added Current_Location to void_adherence script to prevent openmrs model from crushing 
 ------------------------------------------------------------------------------------------
-			changes not logged in this file
-------------------------------------------------------------------------------------------
 		updated the way defaulters are being exported in flat_tables
