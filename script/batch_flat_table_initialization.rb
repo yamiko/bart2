@@ -1602,6 +1602,7 @@ def patient_defaulted_dates(patient_obj, session_date, visits)
         dates += 1
       end
     end
+
 =begin
     max_def_date = defaulted_dates.sort.last.to_date rescue ""
     max_out_date = outcome_dates.sort.last.to_date rescue ""
@@ -1617,14 +1618,13 @@ def patient_defaulted_dates(patient_obj, session_date, visits)
       (visits || []).each do |visit|
 #          if visit.to_date > ref_dates[0] && visit.to_date > ref_dates[1] # or ref_dates[1] < ref_dates[0] && visit.to_date >= ref_dates[1]
             pat_def = ActiveRecord::Base.connection.select_value "
-              SELECT #{@source_db}.current_defaulter(#{patient_obj.patient_id}, '#{visit}')"
+              SELECT #{@source_db}.current_defaulter(#{patient_obj.patient_id}, '#{visit} 23:59')"
             if pat_def == "1"
               outcome_dates << visit
             end
 #          end 
       end
 #    end
-
     return outcome_dates          
 end
 
