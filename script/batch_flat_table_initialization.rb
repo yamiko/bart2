@@ -14,7 +14,8 @@ def initialize_variables
   @drug_list = get_drug_list
   @max_dispensing_enc_date = Encounter.find_by_sql("SELECT DATE(max(encounter_datetime)) AS adate
                                                     FROM #{@source_db}.encounter
-                                                    WHERE encounter_type = 54").map(&:adate)
+                                                    WHERE encounter_type = 54
+                                                    AND voided = 0").map(&:adate)
 end
 
 def pre_export_check
@@ -497,9 +498,10 @@ def get_patients_data(patient_id)
                                                   #{@source_db}.patient_program pp
                                                       INNER JOIN
                                                   #{@source_db}.patient_state ps 
-                                                        ON ps.patient_program_id = pp.patient_program_id
+                                                        ON ps.patient_program_id = pp.patient_program_id AND pp.program_id = 1
                                               WHERE
                                                   patient_id = #{patient_id}
+                                              AND ps.voided = 0
                                               GROUP BY ps.start_date").map(&:start_date)
   
   if !states_dates.blank?
@@ -1564,12 +1566,11 @@ def patient_defaulted_dates(patient_obj, session_date, visits)
                                                           AND o.voided = 0
                                                           and obs.person_id = #{patient_obj.patient_id}
                                                           GROUP BY DATE(obs_datetime) order by obs_datetime")
-    
+
     outcome_dates = []
     dates = 0
     total_dispensations = all_dispensations.length
     defaulted_dates = all_dispensations.map(&:obs_datetime)
-    
     test = []
 
     all_dispensations.each do |disp_date|
@@ -1614,7 +1615,7 @@ def patient_defaulted_dates(patient_obj, session_date, visits)
     end
 =end
 #    if visits.length != 0 && ref_dates.length != 0
-#raise visits.to_yaml
+
       (visits || []).each do |visit|
 #          if visit.to_date > ref_dates[0] && visit.to_date > ref_dates[1] # or ref_dates[1] < ref_dates[0] && visit.to_date >= ref_dates[1]
             pat_def = ActiveRecord::Base.connection.select_value "
