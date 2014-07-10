@@ -39,3 +39,5 @@ Version (1.0.0)
 		Added Current_Location to void_adherence script to prevent openmrs model from crushing 
 ----		
 		updated the way defaulters are being exported in flat_tables
+----
+		updated the way defaulted dates are being calculated
