@@ -44,3 +44,4 @@ Version (1.0.0)
 		updated the way patients outcomes are being pulled
 
     improved the way we search locations:  
+ 		updated the way regimen_category and adherence are exported
