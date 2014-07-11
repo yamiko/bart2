@@ -42,3 +42,5 @@ Version (1.0.0)
 ----
 		updated the way defaulted dates are being calculated
 		updated the way patients outcomes are being pulled
+
+    improved the way we search locations:  
