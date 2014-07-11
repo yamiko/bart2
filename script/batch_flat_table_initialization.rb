@@ -14,7 +14,8 @@ def initialize_variables
   @drug_list = get_drug_list
   @max_dispensing_enc_date = Encounter.find_by_sql("SELECT DATE(max(encounter_datetime)) AS adate
                                                     FROM #{@source_db}.encounter
-                                                    WHERE encounter_type = 54").map(&:adate)
+                                                    WHERE encounter_type = 54
+                                                    AND voided = 0").map(&:adate)
 end
 
 def pre_export_check
@@ -91,7 +92,7 @@ def initiate_script
     thresholds = generate_thresholds(record_count, max_patient_id)
 
     count = 0
-      thresholds.each do |threshold| 
+      (thresholds || []).each do |threshold| 
         threads << Thread.new(count) do |i|
           count += 1
           get_all_patients(threshold[0], threshold[1], count)
@@ -180,7 +181,7 @@ def get_all_patients(min, max, thread)
     
     patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
 
-    patient_list.each do |p| 
+    (patient_list || []).each do |p| 
 	    sql_statements = get_patients_data(p)
 	    
 	    if thread == 1
@@ -321,7 +322,7 @@ def get_specific_patients(patients_list, thread)
     
     patient_list = patients_list#Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
 
-    patient_list.each do |p| 
+    (patient_list || []).each do |p| 
 	    sql_statements = get_patients_data(p)
 	    puts ">>working on patient>>>#{p}<<<<<<<"
 	    if thread == 1
@@ -482,7 +483,7 @@ def get_patients_data(patient_id)
   session_date = @max_dispensing_enc_date #date for calculating defaulters 
 
   defaulted_dates = patient_defaulted_dates(patient_obj, session_date, visits) 
-    
+
   if !defaulted_dates.blank?
     defaulted_dates.each do |date|
       if !date.blank?
@@ -497,9 +498,10 @@ def get_patients_data(patient_id)
                                                   #{@source_db}.patient_program pp
                                                       INNER JOIN
                                                   #{@source_db}.patient_state ps 
-                                                        ON ps.patient_program_id = pp.patient_program_id
+                                                        ON ps.patient_program_id = pp.patient_program_id AND pp.program_id = 1
                                               WHERE
                                                   patient_id = #{patient_id}
+                                              AND ps.voided = 0
                                               GROUP BY ps.start_date").map(&:start_date)
   
   if !states_dates.blank?
@@ -1564,12 +1566,11 @@ def patient_defaulted_dates(patient_obj, session_date, visits)
                                                           AND o.voided = 0
                                                           and obs.person_id = #{patient_obj.patient_id}
                                                           GROUP BY DATE(obs_datetime) order by obs_datetime")
-    
+
     outcome_dates = []
     dates = 0
     total_dispensations = all_dispensations.length
     defaulted_dates = all_dispensations.map(&:obs_datetime)
-    
     test = []
 
     all_dispensations.each do |disp_date|
@@ -1602,7 +1603,8 @@ def patient_defaulted_dates(patient_obj, session_date, visits)
         dates += 1
       end
     end
-    
+
+=begin
     max_def_date = defaulted_dates.sort.last.to_date rescue ""
     max_out_date = outcome_dates.sort.last.to_date rescue ""
 
@@ -1611,19 +1613,19 @@ def patient_defaulted_dates(patient_obj, session_date, visits)
     else
       ref_dates = []
     end
+=end
+#    if visits.length != 0 && ref_dates.length != 0
 
-    if visits.length != 0 && ref_dates.length != 0
-      visits.each do |visit|
-          if visit.to_date > ref_dates[0] && visit.to_date > ref_dates[1] # or ref_dates[1] < ref_dates[0] && visit.to_date >= ref_dates[1]
+      (visits || []).each do |visit|
+#          if visit.to_date > ref_dates[0] && visit.to_date > ref_dates[1] # or ref_dates[1] < ref_dates[0] && visit.to_date >= ref_dates[1]
             pat_def = ActiveRecord::Base.connection.select_value "
-              SELECT #{@source_db}.current_defaulter(#{patient_obj.patient_id}, '#{visit}')"
-            if pat_def == 1
+              SELECT #{@source_db}.current_defaulter(#{patient_obj.patient_id}, '#{visit} 23:59')"
+            if pat_def == "1"
               outcome_dates << visit
             end
-          end 
+#          end 
       end
-    end
-
+#    end
     return outcome_dates          
 end
 
