@@ -35,7 +35,8 @@ do
 done
 
 echo "Exporting data into temporary files for tables 1 and 2"
- RAILS_ENV=${ENV}  script/runner script/batch_flat_table_initialization.rb ${ENV}
+ RAILS_ENV=${ENV}
+ script/runner script/batch_flat_table_initialization.rb ${ENV}
 
 echo "Loading data from the temporary files into the database"
 FILES=db/flat_tables_init_output/flat_table_*.sql
