@@ -45,4 +45,6 @@ Version (1.0.0)
 
     improved the way we search locations:  
 
+ 		updated the way regimen_category and adherence are exported
+
     new script to recalculate CD4 count reason for starting for all Unknown reasons

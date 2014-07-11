@@ -547,7 +547,7 @@ def get_patients_data(patient_id)
           		patient_orders = process_patient_orders(orders, visit, 1) if patient_orders.empty?
         	end
 
-          reg_category = Encounter.find_by_sql("SELECT e.patient_id, o.value_text, o.encounter_id, e.encounter_datetime
+          reg_category = Encounter.find_by_sql("SELECT o.obs_id, e.patient_id AS patient_id, o.value_text AS regimen_category, o.encounter_id AS encounter_id, e.encounter_datetime
                                               FROM #{@source_db}.encounter e
                                                INNER JOIN #{@source_db}.obs o on o.encounter_id = e.encounter_id 
                                                     AND o.concept_id = 8375
@@ -1282,9 +1282,10 @@ def process_pat_regimen_category(reg_category, visit, type = 0)
   a_hash = {:transfer_within_responsibility_no => 'NULL'}
 
   if reg_category
-    (reg_category || []).each do |regimen|
-      a_hash[:regimen_category] = regimen.value_text
-      a_hash[:regimen_category_enc_id] = regimen.encounter_id
+    (reg_category || []).each do |patient|
+
+      a_hash[:regimen_category] = patient.regimen_category
+      a_hash[:regimen_category_enc_id] = patient.encounter_id
     end
    
     return generate_sql_string(a_hash)
@@ -1484,7 +1485,7 @@ if encounter != 1
         elsif adh.concept_id == 2667 #missed hiv drug
           missed_hiv_drug_const_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
         elsif adh.concept_id == 6987 #patient adherence
-          patient_adherence_hash[visit] = adh.value_text rescue nil
+          patient_adherence_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
           patient_adherence_enc_ids[visit] = adh.encounter_id rescue nil
         elsif adh.concept_id == 6781 #amount remaining
           amount_of_drug_remaining_at_home_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
@@ -1496,7 +1497,7 @@ if encounter != 1
         elsif adh.concept_id == 2667 #missed hiv drug
           missed_hiv_drug_const_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
         elsif adh.concept_id == 6987 #patient adherence
-          patient_adherence_hash[visit] = adh.value_text rescue nil
+          patient_adherence_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
           patient_adherence_enc_ids[visit] = adh.encounter_id rescue nil
         elsif adh.concept_id == 6781 #amount remaining
           amount_of_drug_remaining_at_home_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
