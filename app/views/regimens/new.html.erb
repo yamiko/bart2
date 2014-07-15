@@ -1051,6 +1051,11 @@ element.setAttribute("onmousedown", "gotoNextPage()")
     }
   }
 
+  function checkInput(){
+    if (document.getElementById('touchscreenInput' + tstCurrentPage).value.length > 0){
+      document.getElementById('touchscreenInput'+tstCurrentPage).value = "";
+    }
+  }
 </script>
 
 <%
@@ -1261,7 +1266,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   <%= select_tag :regimen_concept_id, nil, {
 	:ajaxUrl => "",
 	:allowFreeText => 'false',
-	:tt_onLoad => "removeButton();addButton();changeRegimen();set_patient_program_for_suggestions($('patient_program').value);setTimeout('setSelectedRow();setTextToAppear(\" (MoH Recommended)\");',1000);showCategory('Regimen');",
+	:tt_onLoad => "checkInput(); removeButton();addButton();changeRegimen();set_patient_program_for_suggestions($('patient_program').value);setTimeout('setSelectedRow();setTextToAppear(\" (MoH Recommended)\");',1000);showCategory('Regimen');",
 	:condition => 'hasReasonForART() == true && $("prescribe_arvs").value == "YES" && $("continue_existing_regimen").value != "YES"',
 	:optional => true,
         :helpText => "Select ART regimen",
@@ -1270,7 +1275,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   <%= select_tag :regimen_concept_id_all, nil, {
 	:ajaxUrl => "",
 	:allowFreeText => 'false',
-	:tt_onLoad => "changeRegimen();set_patient_posible_all_suggestions($('patient_program').value);setTimeout('setSelectedRow(); setTextToAppear(\" (MoH Recommended)\")',1000);showCategory('Regimen');",
+	:tt_onLoad => "checkInput(); changeRegimen();set_patient_posible_all_suggestions($('patient_program').value);setTimeout('setSelectedRow(); setTextToAppear(\" (MoH Recommended)\")',1000);showCategory('Regimen');",
 	:condition => 'other_regimen == "yes"',
 	:helpText => "Select ART regimen",
 	:tt_onUnload => "resetRegimen()"}%>
@@ -1325,7 +1330,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	  :allowFreeText => 'false',
 	  :condition => "$('cpt_given').value == 'YES'",
 	  :helpText => "Prescribed cotrimoxazole milligrams",
-          :tt_onLoad => "showCategory('Regimen'); setTextToAppear();",
+          :tt_onLoad => "checkInput(); showCategory('Regimen'); setTextToAppear();",
           :tt_onmousedown => "show_confirm_cpt_mgs()"} %>
   <% end %>
  <% current = session[:datetime].to_date rescue Date.today
