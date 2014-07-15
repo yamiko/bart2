@@ -71,7 +71,7 @@ def initiate_special_script(patients_list)
 	start_element = end_element + 1
 
 	if count == 9
-		end_element = record_count
+		end_element = (record_count - 1)
 	else
 		end_element = end_element + block
 	end
@@ -275,7 +275,8 @@ def get_all_patients(min, max, thread)
 end
 
 def get_specific_patients(patients_list, thread)
-    puts "thread #{thread} started at #{Time.now.strftime("%Y-%m-%d-%H%M%S")} "
+    last_element = (patients_list.length - 1)
+    puts "thread #{thread} started at #{Time.now.strftime("%Y-%m-%d-%H%M%S")} Patients from >>#{patients_list[0]}<< to >>#{patients_list[last_element]}<< "
 
     #open output files for writing
     if thread == 1
@@ -412,7 +413,7 @@ def get_specific_patients(patients_list, thread)
       $temp_outfile_10_2.close
     end
     
-    puts "thread #{thread} ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
+    puts "thread #{thread} ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")} Patients from >>#{patients_list[0]}<< to >>#{patients_list[last_element]}<< "
 
 end
 

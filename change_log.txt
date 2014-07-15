@@ -43,8 +43,7 @@ Version (1.0.0)
 		updated the way defaulted dates are being calculated
 		updated the way patients outcomes are being pulled
 
-    improved the way we search locations:  
-
+		improved the way we search locations:  
  		updated the way regimen_category and adherence are exported
-
-    new script to recalculate CD4 count reason for starting for all Unknown reasons
+   		new script to recalculate CD4 count reason for starting for all Unknown reasons
+		updated the index for the end element when one passes a patients list to batch_flat_table_initializer script
