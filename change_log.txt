@@ -48,6 +48,7 @@ Version (1.0.0)
     - added a script to void 'Has the patient taken ARVs in the past 2 months' observation
       if and only if the patient also have 'Date ART last taken' observation on the same visit.
     - added chichewa translations for some questions in hiv_clinic_registration view
+    - added a condition in ever_registered_obs view to get the latest observation
     
     
      
