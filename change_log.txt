@@ -42,8 +42,15 @@ Version (1.0.0)
 ----
 		updated the way defaulted dates are being calculated
 		updated the way patients outcomes are being pulled
+    improved the way we search locations: 
+		updated the way regimen_category and adherence are exported
+----
+    - added a script to void 'Has the patient taken ARVs in the past 2 months' observation
+      if and only if the patient also have 'Date ART last taken' observation on the same visit.
+    - added chichewa translations for some questions in hiv_clinic_registration view
+    
+    
+     
 
-		improved the way we search locations:  
- 		updated the way regimen_category and adherence are exported
-   		new script to recalculate CD4 count reason for starting for all Unknown reasons
-		updated the index for the end element when one passes a patients list to batch_flat_table_initializer script
+
+
