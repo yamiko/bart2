@@ -50,6 +50,8 @@ Version (1.0.0)
     - added chichewa translations for some questions in hiv_clinic_registration view
     - added a condition in ever_registered_obs view to get the latest observation
     - updated patients_reinitiated query
+----    
+    - updated patients_reinitiated query
     
     
      

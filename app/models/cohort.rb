@@ -1150,6 +1150,9 @@ class Cohort
 			patients_with_date_last_taken_obs << patient.patient_id.to_i
 			end
 
+    patient_ids = patients_with_date_last_taken_obs
+    patient_ids = [0] if patient_ids.blank?
+
     PatientProgram.find_by_sql("SELECT esd.*
       FROM earliest_start_date esd
       LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
@@ -1159,7 +1162,7 @@ class Cohort
       WHERE  ((o.concept_id = #{taken_arvs_concept} AND o.value_coded = #{no_concept}))
             AND
             esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
-            AND esd.patient_id NOT IN (#{patients_with_date_last_taken_obs.join(',')})
+            AND esd.patient_id NOT IN (#{patient_ids.join(',')})
       GROUP BY esd.patient_id").each do | patient | 
 			patients_with_taken_arvs_in_past_2mths_no << patient.patient_id.to_i
 			end
