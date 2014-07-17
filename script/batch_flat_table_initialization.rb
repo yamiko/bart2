@@ -14,7 +14,8 @@ def initialize_variables
   @drug_list = get_drug_list
   @max_dispensing_enc_date = Encounter.find_by_sql("SELECT DATE(max(encounter_datetime)) AS adate
                                                     FROM #{@source_db}.encounter
-                                                    WHERE encounter_type = 54").map(&:adate)
+                                                    WHERE encounter_type = 54
+                                                    AND voided = 0").map(&:adate)
 end
 
 def pre_export_check
@@ -70,7 +71,7 @@ def initiate_special_script(patients_list)
 	start_element = end_element + 1
 
 	if count == 9
-		end_element = record_count
+		end_element = (record_count - 1)
 	else
 		end_element = end_element + block
 	end
@@ -91,7 +92,7 @@ def initiate_script
     thresholds = generate_thresholds(record_count, max_patient_id)
 
     count = 0
-      thresholds.each do |threshold| 
+      (thresholds || []).each do |threshold| 
         threads << Thread.new(count) do |i|
           count += 1
           get_all_patients(threshold[0], threshold[1], count)
@@ -180,11 +181,12 @@ def get_all_patients(min, max, thread)
     
     patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
 
-    patient_list.each do |p| 
+    (patient_list || []).each do |p| 
+	puts ">>working on patient>>>#{p}<<<<<<<"
 	    sql_statements = get_patients_data(p)
 	    
-	    if thread == 1
-  	    $temp_outfile_1_3 << "#{p},"
+      if thread == 1
+  	$temp_outfile_1_3 << "#{p},"
       	$temp_outfile_1_1 << sql_statements[0]
       	$temp_outfile_1_2 << sql_statements[1]
       elsif thread == 2
@@ -224,6 +226,7 @@ def get_all_patients(min, max, thread)
         $temp_outfile_10_1 << sql_statements[0]
         $temp_outfile_10_2 << sql_statements[1]
       end
+puts ">>Finished working on patient>>>#{p}<<<<<<<"
     end
     
     #close output files 
@@ -274,7 +277,8 @@ def get_all_patients(min, max, thread)
 end
 
 def get_specific_patients(patients_list, thread)
-    puts "thread #{thread} started at #{Time.now.strftime("%Y-%m-%d-%H%M%S")} "
+    last_element = (patients_list.length - 1)
+    puts "thread #{thread} started at #{Time.now.strftime("%Y-%m-%d-%H%M%S")} Patients from >>#{patients_list[0]}<< to >>#{patients_list[last_element]}<< "
 
     #open output files for writing
     if thread == 1
@@ -321,10 +325,10 @@ def get_specific_patients(patients_list, thread)
     
     patient_list = patients_list#Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
 
-    patient_list.each do |p| 
+    (patient_list || []).each do |p| 
+       puts ">>working on patient>>>#{p}<<<<<<<"
 	    sql_statements = get_patients_data(p)
-	    
-	    if thread == 1
+     if thread == 1
   	    $temp_outfile_1_3 << "#{p},"
       	$temp_outfile_1_1 << sql_statements[0]
       	$temp_outfile_1_2 << sql_statements[1]
@@ -365,6 +369,7 @@ def get_specific_patients(patients_list, thread)
         $temp_outfile_10_1 << sql_statements[0]
         $temp_outfile_10_2 << sql_statements[1]
       end
+      puts ">>finished on patient>>>#{p}<<<<<<<"
     end
     
     #close output files 
@@ -410,7 +415,7 @@ def get_specific_patients(patients_list, thread)
       $temp_outfile_10_2.close
     end
     
-    puts "thread #{thread} ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
+    puts "thread #{thread} ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")} Patients from >>#{patients_list[0]}<< to >>#{patients_list[last_element]}<< "
 
 end
 
@@ -426,30 +431,40 @@ def get_patients_data(patient_id)
  #get patient demographics
  demographics = get_patient_demographics(patient_id)
 
- #hiv_clinic_registration observations
- hiv_clinic_reg_obs = Encounter.find(:first,
-                                     :conditions => ['patient_id = ?
-                                                      AND encounter_type = 9',
-                                                      patient_id],
-                                     :order => 'encounter_datetime DESC').observations rescue nil
- if hiv_clinic_reg_obs
-  hiv_clinic_registration = process_hiv_clinic_registration_encounter(hiv_clinic_reg_obs)
- end
+  hiv_staging_obs_concept_ids = [2743, 7565, 7563,823,7961,5048,7551,5344, 7957,2858,5034,2585,882,6763,2894,1362,507,2587,1547,7553,7550,5046,1359,2583,7546,7546,5334,16,7955,7954,6759,2889, 3,5024,1215,5333,7539,8206,5027,7540,5337,7537,2577,2575,6758,5012,836,2891,1210,2576,6775,1212,6757,5328,5006,6831,730,9098,5497,9099,7965,1755,6131]
 
- #hiv_staging observations
- hiv_staging_obs = Encounter.find(:first,
-                                  :conditions => ['patient_id = ?
-                                                   AND encounter_type = 52',
-                                                   patient_id],
-                                  :order => 'encounter_datetime DESC').observations rescue nil
+  hiv_staging_and_reg_enc = Encounter.find(:all,
+      			:include => [:observations],
+      			:order => "encounter_datetime DESC",
+      			:conditions => ['voided = 0 AND patient_id = ? AND encounter_type IN (9, 52)', patient_id])                                                  
+  hiv_staging_obs = []
+  hiv_staging_and_reg_enc.each do |enc|
+    if enc.encounter_type == 9
 
- if hiv_staging_obs
-   hiv_staging = process_hiv_staging_encounter(hiv_staging_obs)
- else
-  if hiv_clinic_reg_obs
-    hiv_staging = process_hiv_staging_encounter(hiv_clinic_reg_obs)
+      obs_concepts_ids = enc.observations.map(&:concept_id)
+      intersect = obs_concepts_ids & hiv_staging_obs_concept_ids
+
+      if intersect.length != 0
+        hiv_staging_obs = enc.observations
+        hiv_staging = process_hiv_staging_encounter(hiv_staging_obs)
+        break
+      end
+    elsif enc.encounter_type == 52
+      hiv_staging_obs = enc.observations
+      hiv_staging = process_hiv_staging_encounter(hiv_staging_obs)
+      break
+    end
   end
- end
+
+  hiv_clinic_reg_obs = []
+
+  hiv_staging_and_reg_enc.each do |enc| 
+    hiv_clinic_reg_obs << enc if enc.encounter_type == 9
+  end
+  
+  if !hiv_clinic_reg_obs.blank?
+    hiv_clinic_registration = process_hiv_clinic_registration_encounter(hiv_clinic_reg_obs.first.observations)
+  end
 
   #check if any of the strings are empty
   demographics = get_patient_demographics(patient_id, 1) if demographics.empty?
@@ -471,7 +486,7 @@ def get_patients_data(patient_id)
   session_date = @max_dispensing_enc_date #date for calculating defaulters 
 
   defaulted_dates = patient_defaulted_dates(patient_obj, session_date, visits) 
-    
+
   if !defaulted_dates.blank?
     defaulted_dates.each do |date|
       if !date.blank?
@@ -486,9 +501,10 @@ def get_patients_data(patient_id)
                                                   #{@source_db}.patient_program pp
                                                       INNER JOIN
                                                   #{@source_db}.patient_state ps 
-                                                        ON ps.patient_program_id = pp.patient_program_id
+                                                        ON ps.patient_program_id = pp.patient_program_id AND pp.program_id = 1
                                               WHERE
                                                   patient_id = #{patient_id}
+                                              AND ps.voided = 0
                                               GROUP BY ps.start_date").map(&:start_date)
   
   if !states_dates.blank?
@@ -506,7 +522,7 @@ def get_patients_data(patient_id)
   initial_string = "INSERT INTO flat_table2 "
   table2_sql_batch = ""
   
-  visits.uniq!.sort.each do |visit|
+  visits.uniq.sort.each do |visit|
      	# arrays of [fields, values]
       patient_details = ["patient_id, visit_date","#{patient_id},'#{visit}'"]   	
       vitals = []
@@ -522,7 +538,7 @@ def get_patients_data(patient_id)
       # we will exclude the orders having drug_inventory_id null     	
       orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
                                                o.start_date, o.auto_expire_date, IFNULL(d.quantity, 0) AS quantity,
-                                               d.drug_inventory_id, IFNULL(d.dose, 2) As dose, d.frequency,
+                                               d.drug_inventory_id, IFNULL(d.dose, 2) As dose, IFNULL(d.frequency, 'Unknown') AS frequency,
                                                o.concept_id, IFNULL(d.equivalent_daily_dose, 2) AS equivalent_daily_dose 
                                     FROM #{@source_db}.orders o
                                       INNER JOIN #{@source_db}.drug_order d ON d.order_id = o.order_id
@@ -534,7 +550,7 @@ def get_patients_data(patient_id)
           		patient_orders = process_patient_orders(orders, visit, 1) if patient_orders.empty?
         	end
 
-          reg_category = Encounter.find_by_sql("SELECT e.patient_id, o.value_text, o.encounter_id, e.encounter_datetime
+          reg_category = Encounter.find_by_sql("SELECT o.obs_id, e.patient_id AS patient_id, o.value_text AS regimen_category, o.encounter_id AS encounter_id, e.encounter_datetime
                                               FROM #{@source_db}.encounter e
                                                INNER JOIN #{@source_db}.obs o on o.encounter_id = e.encounter_id 
                                                     AND o.concept_id = 8375
@@ -610,11 +626,18 @@ def get_patient_demographics(patient_id)
     pat_identifier[identifier.identifier_type] = identifier.identifier
   end
 
+  gender = pat.person.gender
+  if gender == 'M'
+    gender = 'Male'
+  elsif gender == 'F'
+    gender = 'Female'
+  end
+
   a_hash[:patient_id] = patient_id rescue nil
   a_hash[:given_name] = pat.person.names.first.given_name  rescue nil
   a_hash[:middle_name] = pat.person.names.first.middle_name  rescue nil
   a_hash[:family_name] = pat.person.names.first.family_name  rescue nil
-  a_hash[:gender] = patient_obj.sex  rescue nil
+  a_hash[:gender] = gender rescue nil#patient_obj.sex  rescue nil
   a_hash[:dob] = pat.person.birthdate  rescue nil
   a_hash[:dob_estimated] = patient_obj.birthdate_estimated  rescue nil
   a_hash[:ta] = pat.person.addresses.first.county_district  rescue nil
@@ -1251,6 +1274,7 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
     elsif obs.concept_id == 7563 #reason_for_starting_art
       a_hash[:reason_for_eligibility] = obs.to_s.split(':')[1].strip rescue nil
       a_hash[:reason_for_starting_v_date] = obs.obs_datetime.to_date rescue nil
+      a_hash[:reason_for_eligibility_enc_id] = obs.encounter_id rescue nil
     elsif obs.concept_id == 7562 #who_stage
       a_hash[:who_stage] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 2743 #who_stage_criteria_present
@@ -1268,9 +1292,10 @@ def process_pat_regimen_category(reg_category, visit, type = 0)
   a_hash = {:transfer_within_responsibility_no => 'NULL'}
 
   if reg_category
-    (reg_category || []).each do |regimen|
-      a_hash[:regimen_category] = regimen.value_text
-      a_hash[:regimen_category_enc_id] = regimen.encounter_id
+    (reg_category || []).each do |patient|
+
+      a_hash[:regimen_category] = patient.regimen_category
+      a_hash[:regimen_category_enc_id] = patient.encounter_id
     end
    
     return generate_sql_string(a_hash)
@@ -1470,7 +1495,7 @@ if encounter != 1
         elsif adh.concept_id == 2667 #missed hiv drug
           missed_hiv_drug_const_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
         elsif adh.concept_id == 6987 #patient adherence
-          patient_adherence_hash[visit] = adh.value_text rescue nil
+          patient_adherence_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
           patient_adherence_enc_ids[visit] = adh.encounter_id rescue nil
         elsif adh.concept_id == 6781 #amount remaining
           amount_of_drug_remaining_at_home_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
@@ -1482,7 +1507,7 @@ if encounter != 1
         elsif adh.concept_id == 2667 #missed hiv drug
           missed_hiv_drug_const_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
         elsif adh.concept_id == 6987 #patient adherence
-          patient_adherence_hash[visit] = adh.value_text rescue nil
+          patient_adherence_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
           patient_adherence_enc_ids[visit] = adh.encounter_id rescue nil
         elsif adh.concept_id == 6781 #amount remaining
           amount_of_drug_remaining_at_home_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
@@ -1538,7 +1563,7 @@ end
 
 def patient_defaulted_dates(patient_obj, session_date, visits)
      #getting all patient's dispensations encounters
-    
+
     all_dispensations = Observation.find_by_sql("SELECT obs.person_id, obs.obs_datetime AS obs_datetime, d.order_id
                             FROM #{@source_db}.drug_order d 
                               LEFT JOIN #{@source_db}.orders o ON d.order_id = o.order_id
@@ -1552,12 +1577,11 @@ def patient_defaulted_dates(patient_obj, session_date, visits)
                                                           AND o.voided = 0
                                                           and obs.person_id = #{patient_obj.patient_id}
                                                           GROUP BY DATE(obs_datetime) order by obs_datetime")
-    
+
     outcome_dates = []
     dates = 0
     total_dispensations = all_dispensations.length
     defaulted_dates = all_dispensations.map(&:obs_datetime)
-    
     test = []
 
     all_dispensations.each do |disp_date|
@@ -1590,23 +1614,29 @@ def patient_defaulted_dates(patient_obj, session_date, visits)
         dates += 1
       end
     end
+
+=begin
     max_def_date = defaulted_dates.sort.last.to_date rescue ""
     max_out_date = outcome_dates.sort.last.to_date rescue ""
-    
+
     if max_def_date != "" && max_out_date != ""
       ref_dates = [max_def_date, max_out_date]
     else
       ref_dates = []
     end
+=end
+#    if visits.length != 0 && ref_dates.length != 0
 
-    if visits.length != 0 && ref_dates.length != 0
-      visits.each do |visit|
-          if visit.to_date > ref_dates[0] && visit.to_date > ref_dates[1] # or ref_dates[1] < ref_dates[0] && visit.to_date >= ref_dates[1]
-            outcome_dates << visit
-          end 
+      (visits || []).each do |visit|
+#          if visit.to_date > ref_dates[0] && visit.to_date > ref_dates[1] # or ref_dates[1] < ref_dates[0] && visit.to_date >= ref_dates[1]
+            pat_def = ActiveRecord::Base.connection.select_value "
+              SELECT #{@source_db}.current_defaulter(#{patient_obj.patient_id}, '#{visit} 23:59')"
+            if pat_def == "1"
+              outcome_dates << visit
+            end
+#          end 
       end
-    end
-
+#    end
     return outcome_dates          
 end
 
@@ -1645,4 +1675,4 @@ def get_drug_list
   return drug_hash
 end
 
-start 
+start

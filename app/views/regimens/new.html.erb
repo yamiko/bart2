@@ -1594,7 +1594,9 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 
 function showRegimenChangeAlert(){
   <% if @current_weight %>
-	<% if @current_weight > 35 && @patient_bean.age <=14 && @current_regimen.upcase == '9P' %>
+	<% 
+  current_regimen = @current_regimen.upcase rescue ''
+  if @current_weight > 35 && @patient_bean.age <=14 && current_regimen == '9P' %>
 		document.getElementById('confirm_cpt_mgs').style.display = 'inline'
 		document.getElementById('protector').style.display = 'inline'
 	<% end %>

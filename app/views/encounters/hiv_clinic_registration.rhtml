@@ -689,7 +689,7 @@ function checkConfirmDate(){
 <!--
 -->
     <%= text_field_tag "year_art_last_taken", nil,                                 
-      { :helpText => 'Year ART last taken',                                        
+      { :helpText => 'Year ART last taken<span style="font-size:0.7em;font-style:italic"> (Chaka chimene munamwa ma ARV komaliza ndi chiti?)</span>',                      
         :field_type => 'number',                                            
         :absoluteMin => "1890", :min => "1940", :absoluteMax => Date.today.year,
         :tt_pageStyleClass => "Numeric NumbersOnly",                            
@@ -698,14 +698,14 @@ function checkConfirmDate(){
                                                                                 
     <%= select_tag "month_art_last_taken", month_name_options,                     
       { :tt_onLoad => "__$('keyboard').style.display = 'none'",
-		:helpText => 'Month ART last taken',
+		    :helpText => 'Month ART last taken<span style="font-size:0.7em;font-style:italic"> (Mwezi umene munamwa ma ARV komaliza ndi uti?)</span>', 
         :condition => '$("year_art_last_taken").value.toLowerCase() != "unknown" && $("ever_received_art").value == "YES"',
         :id => "month_art_last_taken" ,                                            
         :validationMessage => 'Please enter a valid date'}%>                    
                                                                                 
     <%= text_field_tag "day_art_last_taken",  nil,                                 
         :field_type => 'number',
-		:helpText => 'Day ART last taken',
+		    :helpText => 'Day ART last taken<span style="font-size:0.7em;font-style:italic"> (Tsiku limene munamwa ma ARV komaliza ndi liti?)</span>',		
         :condition => '($("year_art_last_taken").value !="Unknown") && ($("month_art_last_taken").value != "Unknown") && $("ever_received_art"). value == "YES"',
         :tt_onLoad => "getDayOfMonthPicker($('year_art_last_taken').value, $('month_art_last_taken').value);$('nextButton').style.display = 'block';",
         :tt_onUnLoad => 'updateTestDate();',
@@ -719,18 +719,18 @@ function checkConfirmDate(){
 		<%= touch_yes_no_unknown_tag "HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS", @patient, nil,
 			{	:id => "taken_art_in_last_two_months",
 			 	:condition => '$("year_art_last_taken").value.toUpperCase() == "UNKNOWN"',
-			 	:helpText => "Taken ART in the last two months?" } %>
+			 	:helpText => "Taken ART in the last two months? <span style='font-size:0.7em;font-style:italic'>(Kodi mwamwa ma ARV m'miyezi iwiri yapitayi?)</span>" } %>
 
 		<%= touch_yes_no_unknown_tag "HAS THE PATIENT TAKEN ART IN THE LAST TWO WEEKS", @patient, nil,
 			{	:id => "taken_art_in_last_two_weeks",
 			 	:condition => '$("taken_art_in_last_two_months").value == "YES" && $("year_art_last_taken").value.toUpperCase() == "UNKNOWN"',
-			 	:helpText => "Taken ART in the last two weeks?" } %>
+			 	:helpText => "Taken ART in the last two weeks? <span style='font-size:0.7em;font-style:italic'>(Kodi mwamwa ma ARV sabata ziwiri zapitazi?)</span>" } %>
 
 		<%= touch_select_tag "LAST ART DRUGS TAKEN", @patient, options_for_select(@arv_drugs),
 			{	:id => "last_art_drugs_taken",
 				:multiple => true,
 			 	:condition => '$("ever_received_art").value == "YES"',
-			 	:helpText => "Last ARV drugs taken" } %>
+			 	:helpText => "Last ARV drugs taken <span style='font-size:0.7em;font-style:italic'>(Ntundu wa ma ARV amene munamwa komaliza)</span>"  } %>
 
 		<%= touch_yes_no_tag "Ever registered at ART clinic", @patient, nil,
 			{	:id => "ever_registered_at_ART_clinic",

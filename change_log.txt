@@ -38,3 +38,21 @@ Version (1.0.0)
 		Updated cohort_regimen_fix script
 		Added Current_Location to void_adherence script to prevent openmrs model from crushing 
 		Managing display of TB and ART mastercard
+------------------------------------------------------------------------------------------
+		updated the way defaulters are being exported in flat_tables
+----
+		updated the way defaulted dates are being calculated
+		updated the way patients outcomes are being pulled
+    improved the way we search locations: 
+		updated the way regimen_category and adherence are exported
+----
+    - added a script to void 'Has the patient taken ARVs in the past 2 months' observation
+      if and only if the patient also have 'Date ART last taken' observation on the same visit.
+    - added chichewa translations for some questions in hiv_clinic_registration view
+    - added a condition in ever_registered_obs view to get the latest observation
+    - updated patients_reinitiated query
+----
+    - defaulted frequency to unknown for orders having no frequency in batch_flat_table_initialization
+    - added descriptive messages to indicate the progress of batch_flat_table_initialization script
+    - updated patients_reinitiated query
+    - changed the way gender is exported to mysql files

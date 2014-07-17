@@ -4,7 +4,16 @@
   RegimensReceived = ConceptName.find_by_name('ARV regimens received abstracted construct')
   RegimenCategory = ConceptName.find_by_name('Regimen Category')
 
+  def delete_all
+    encounter_ids = Encounter.find(:all, :conditions => ["encounter_type=?",DispensionEncounter.id]).map(&:id)
+    Observation.delete_all(["concept_id IN(?) AND encounter_id IN(?)", 
+    [RegimensReceived.concept_id,RegimenCategory.concept_id], encounter_ids]) unless encounter_ids.blank?
+  end
+
   def start
+
+    delete_all
+
     start_datetime = Time.now()
 
     encounters = Encounter.find(:all,:conditions =>["encounter_datetime = (SELECT MAX(e.encounter_datetime)
