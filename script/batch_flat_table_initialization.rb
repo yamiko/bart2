@@ -182,10 +182,11 @@ def get_all_patients(min, max, thread)
     patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
 
     (patient_list || []).each do |p| 
+	puts ">>working on patient>>>#{p}<<<<<<<"
 	    sql_statements = get_patients_data(p)
 	    
-	    if thread == 1
-  	    $temp_outfile_1_3 << "#{p},"
+      if thread == 1
+  	$temp_outfile_1_3 << "#{p},"
       	$temp_outfile_1_1 << sql_statements[0]
       	$temp_outfile_1_2 << sql_statements[1]
       elsif thread == 2
@@ -225,6 +226,7 @@ def get_all_patients(min, max, thread)
         $temp_outfile_10_1 << sql_statements[0]
         $temp_outfile_10_2 << sql_statements[1]
       end
+puts ">>Finished working on patient>>>#{p}<<<<<<<"
     end
     
     #close output files 
@@ -324,9 +326,9 @@ def get_specific_patients(patients_list, thread)
     patient_list = patients_list#Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
 
     (patient_list || []).each do |p| 
+       puts ">>working on patient>>>#{p}<<<<<<<"
 	    sql_statements = get_patients_data(p)
-	    puts ">>working on patient>>>#{p}<<<<<<<"
-	    if thread == 1
+     if thread == 1
   	    $temp_outfile_1_3 << "#{p},"
       	$temp_outfile_1_1 << sql_statements[0]
       	$temp_outfile_1_2 << sql_statements[1]
@@ -536,7 +538,7 @@ def get_patients_data(patient_id)
       # we will exclude the orders having drug_inventory_id null     	
       orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
                                                o.start_date, o.auto_expire_date, IFNULL(d.quantity, 0) AS quantity,
-                                               d.drug_inventory_id, IFNULL(d.dose, 2) As dose, d.frequency,
+                                               d.drug_inventory_id, IFNULL(d.dose, 2) As dose, IFNULL(d.frequency, 'Unknown') AS frequency,
                                                o.concept_id, IFNULL(d.equivalent_daily_dose, 2) AS equivalent_daily_dose 
                                     FROM #{@source_db}.orders o
                                       INNER JOIN #{@source_db}.drug_order d ON d.order_id = o.order_id
