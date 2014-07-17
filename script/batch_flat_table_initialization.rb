@@ -182,10 +182,11 @@ def get_all_patients(min, max, thread)
     patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
 
     (patient_list || []).each do |p| 
+	puts ">>working on patient>>>#{p}<<<<<<<"
 	    sql_statements = get_patients_data(p)
 	    
-	    if thread == 1
-  	    $temp_outfile_1_3 << "#{p},"
+      if thread == 1
+  	$temp_outfile_1_3 << "#{p},"
       	$temp_outfile_1_1 << sql_statements[0]
       	$temp_outfile_1_2 << sql_statements[1]
       elsif thread == 2
@@ -225,6 +226,7 @@ def get_all_patients(min, max, thread)
         $temp_outfile_10_1 << sql_statements[0]
         $temp_outfile_10_2 << sql_statements[1]
       end
+puts ">>Finished working on patient>>>#{p}<<<<<<<"
     end
     
     #close output files 
@@ -324,9 +326,9 @@ def get_specific_patients(patients_list, thread)
     patient_list = patients_list#Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
 
     (patient_list || []).each do |p| 
+       puts ">>working on patient>>>#{p}<<<<<<<"
 	    sql_statements = get_patients_data(p)
-	    puts ">>working on patient>>>#{p}<<<<<<<"
-	    if thread == 1
+     if thread == 1
   	    $temp_outfile_1_3 << "#{p},"
       	$temp_outfile_1_1 << sql_statements[0]
       	$temp_outfile_1_2 << sql_statements[1]

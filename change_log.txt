@@ -51,7 +51,7 @@ Version (1.0.0)
     - added a condition in ever_registered_obs view to get the latest observation
     - updated patients_reinitiated query
     - defaulted frequency to unknown for orders having no frequency in batch_flat_table_initialization
-    
+    - added descriptive messages to indicate the progress of batch_flat_table_initialization script    
      
 
 
