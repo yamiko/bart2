@@ -54,3 +54,4 @@ Version (1.0.0)
     - defaulted frequency to unknown for orders having no frequency in batch_flat_table_initialization
     - added descriptive messages to indicate the progress of batch_flat_table_initialization script
     - updated patients_reinitiated query
+    - changed the way gender is exported to mysql files

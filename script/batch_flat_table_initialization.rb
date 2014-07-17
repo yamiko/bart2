@@ -626,11 +626,18 @@ def get_patient_demographics(patient_id)
     pat_identifier[identifier.identifier_type] = identifier.identifier
   end
 
+  gender = pat.person.gender
+  if gender == 'M'
+    gender = 'Male'
+  elsif gender == 'F'
+    gender = 'Female'
+  end
+
   a_hash[:patient_id] = patient_id rescue nil
   a_hash[:given_name] = pat.person.names.first.given_name  rescue nil
   a_hash[:middle_name] = pat.person.names.first.middle_name  rescue nil
   a_hash[:family_name] = pat.person.names.first.family_name  rescue nil
-  a_hash[:gender] = patient_obj.sex  rescue nil
+  a_hash[:gender] = gender rescue nil#patient_obj.sex  rescue nil
   a_hash[:dob] = pat.person.birthdate  rescue nil
   a_hash[:dob_estimated] = patient_obj.birthdate_estimated  rescue nil
   a_hash[:ta] = pat.person.addresses.first.county_district  rescue nil
