@@ -132,7 +132,11 @@
               </select>
               <select id="navigation_links">
                 <option link="/encounter_types?patient_id=<%= @patient.id -%>" ttSize = "160px">Tasks</option>
-                <option link="/patients/mastercard?patient_id=<%= @patient.id -%>&source=<%= @source -%>">Mastercard</option>
+								<% if what_app? == "TB-ART" %>
+                <option link="/patients/tb_treatment_card?patient_id=<%= @patient.id -%>&source=<%= @source -%>">Mastercard</option>
+									<% else %>
+										 <option link="/patients/mastercard?patient_id=<%= @patient.id -%>&source=<%= @source -%>">Mastercard</option>
+									<% end %>
                 <% if @show_change_app_date %>
                   <option link="/encounter_types/show?encounter_type=Appointment&change_app=true&id=show&patient_id=<%=@patient.id -%>">Change appointment</option>
                 <%end%>
