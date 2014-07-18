@@ -481,6 +481,7 @@ def get_patients_data(patient_id)
  
   visits = Encounter.find_by_sql("SELECT date(encounter_datetime) AS visit_date FROM #{@source_db}.encounter
 			WHERE patient_id = #{patient_id} AND voided = 0  
+			AND encounter_type IN (6, 7, 9, 25, 51, 52, 53, 54, 68, 119)
 			group by date(encounter_datetime)").map(&:visit_date)
   
   session_date = @max_dispensing_enc_date #date for calculating defaulters 
@@ -1445,21 +1446,25 @@ def process_patient_state(patient_id,visit, defaulted_dates)
     state_name = 'Defaulter'
   else
     patient_state = PatientProgram.find_by_sql("SELECT 
-	                        #{@source_db}.current_state_for_program(#{patient_id},1,'#{visit} 23:59:59') AS state").first.state  
+	                        IFNULL(#{@source_db}.current_state_for_program(#{patient_id},1,'#{visit} 23:59:59'), 'Unknown') AS state").first.state  
 	  
 	   if !patient_state.blank?
-      state_name = ProgramWorkflowState.find_by_sql("SELECT 
-                                             c.name AS name
-                                           FROM
-                                               #{@source_db}. program_workflow_state pws
-                                                    INNER JOIN
-                                                #{@source_db}.concept_name c ON c.concept_id = pws.concept_id
-                                                    AND c.voided = 0
-                                                    AND pws.retired = 0
-                                           WHERE
-                                                program_workflow_state_id = #{patient_state}
-                                                    and program_workflow_id = 1
-                                            LIMIT 1").map(&:name) #rescue nil
+	    if patient_state == 'Unknown'
+	      state_name = 'Unknown'
+	    else
+        state_name = ProgramWorkflowState.find_by_sql("SELECT 
+                                               c.name AS name
+                                             FROM
+                                                 #{@source_db}. program_workflow_state pws
+                                                      INNER JOIN
+                                                  #{@source_db}.concept_name c ON c.concept_id = pws.concept_id
+                                                      AND c.voided = 0
+                                                      AND pws.retired = 0
+                                             WHERE
+                                                  program_workflow_state_id = #{patient_state}
+                                                      and program_workflow_id = 1
+                                              LIMIT 1").map(&:name) #rescue nil
+      end
     end
   end
 

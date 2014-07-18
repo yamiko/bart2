@@ -57,4 +57,6 @@ Version (1.0.0)
     - updated patients_reinitiated query
     - changed the way gender is exported to mysql files
 ---
-    - improved the query pulling all orders in batch_flat_table_initialization script   
+    - improved the query pulling all orders in batch_flat_table_initialization script
+    - Defaulted the current_state_for_program to 'Unknown' if patient has no state during that visit
+      in batch_flat_table_initialization
