@@ -56,3 +56,5 @@ Version (1.0.0)
     - added descriptive messages to indicate the progress of batch_flat_table_initialization script
     - updated patients_reinitiated query
     - changed the way gender is exported to mysql files
+---
+    - improved the query pulling all orders in batch_flat_table_initialization script   
