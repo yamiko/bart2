@@ -60,3 +60,5 @@ Version (1.0.0)
     - improved the query pulling all orders in batch_flat_table_initialization script
     - Defaulted the current_state_for_program to 'Unknown' if patient has no state during that visit
       in batch_flat_table_initialization
+---
+    - added death_date field in batch_flat_table_initialization script      

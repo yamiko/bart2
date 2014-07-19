@@ -614,6 +614,10 @@ def get_patient_demographics(patient_id)
   age_at_initiation = PatientProgram.find_by_sql("SELECT age_at_initiation
                                            FROM #{@source_db}.earliest_start_date
                                            WHERE patient_id = #{patient_id}").map(&:age_at_initiation).first
+
+  death_date = PatientProgram.find_by_sql("SELECT death_date
+                                           FROM #{@source_db}.earliest_start_date
+                                           WHERE patient_id = #{patient_id}").map(&:death_date).first rescue nil
   
   a_hash = {:legacy_id2 => 'NULL'}
 
@@ -641,6 +645,7 @@ def get_patient_demographics(patient_id)
   a_hash[:gender] = gender rescue nil#patient_obj.sex  rescue nil
   a_hash[:dob] = pat.person.birthdate  rescue nil
   a_hash[:dob_estimated] = patient_obj.birthdate_estimated  rescue nil
+  a_hash[:death_date] =  death_date
   a_hash[:ta] = pat.person.addresses.first.county_district  rescue nil
   a_hash[:current_address] = pat.person.addresses.first.city_village  rescue nil
   a_hash[:home_district] = pat.person.addresses.first.address2  rescue nil
