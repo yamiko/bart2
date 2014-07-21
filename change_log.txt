@@ -63,4 +63,6 @@ Version (1.0.0)
 ---
     - added death_date field in batch_flat_table_initialization script
 ---
-    - added a age_in_days field in earliest_start_date view which will be used in pulling age_groups      
+    - added a age_in_days field in earliest_start_date view which will be used in pulling age_groups
+    - reverted patients_reinitiated query back to 56 days
+    - also reverted ever_registered_obs to get all patient's hiv_clinic_registration encounters 

@@ -157,13 +157,7 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
          `obs`.`uuid` AS `uuid`
   FROM `obs`
   WHERE ((`obs`.`concept_id` = 7937) AND (`obs`.`voided` = 0))
-  AND (`obs`.`value_coded` = 1065)
-  AND (`obs`.`obs_datetime` = ((SELECT max(`o`.`obs_datetime`)
-                                FROM `obs` `o`
-                                WHERE `o`.`person_id` = `obs`.`person_id`
-                                AND `o`.`concept_id` = 7937
-                                AND `o`.`value_coded` = 1065
-				                        AND `o`.`voided` = 0)));
+  AND (`obs`.`value_coded` = 1065);
 
 CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
   VIEW `patient_pregnant_obs` AS

@@ -1155,7 +1155,7 @@ class Cohort
       LEFT JOIN obs o ON o.encounter_id = e.encounter_id AND
                          o.concept_id IN (#{date_art_last_taken_concept}) AND o.voided = 0
       WHERE  ((o.concept_id = #{date_art_last_taken_concept} AND
-               (DATEDIFF(o.obs_datetime,o.value_datetime)) > 14))
+               (DATEDIFF(o.obs_datetime,o.value_datetime)) > 56))
             AND
             esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
       GROUP BY esd.patient_id").each do | patient | 
