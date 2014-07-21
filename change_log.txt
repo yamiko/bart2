@@ -61,4 +61,6 @@ Version (1.0.0)
     - Defaulted the current_state_for_program to 'Unknown' if patient has no state during that visit
       in batch_flat_table_initialization
 ---
-    - added death_date field in batch_flat_table_initialization script      
+    - added death_date field in batch_flat_table_initialization script
+---
+    - added a age_in_days field in earliest_start_date view which will be used in pulling age_groups      
