@@ -68,3 +68,5 @@ Version (1.0.0)
     - also reverted ever_registered_obs to get all patient's hiv_clinic_registration encounters
 ---
     - updated the way demographics are exported in batch_flat_table_initialization script
+.....
+    - Adding mastercard list menu for TB and ART
