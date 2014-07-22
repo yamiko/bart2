@@ -607,18 +607,16 @@ def get_patient_demographics(patient_id)
 
   current_location = Location.find(GlobalProperty.find_by_property("current_health_center_id").property_value).name
 
-  earliest_start_date = PatientProgram.find_by_sql("SELECT earliest_start_date
-                                           FROM #{@source_db}.earliest_start_date
-                                           WHERE patient_id = #{patient_id}").map(&:earliest_start_date).first
-
-  age_at_initiation = PatientProgram.find_by_sql("SELECT age_at_initiation
-                                           FROM #{@source_db}.earliest_start_date
-                                           WHERE patient_id = #{patient_id}").map(&:age_at_initiation).first
-
-  death_date = PatientProgram.find_by_sql("SELECT death_date
-                                           FROM #{@source_db}.earliest_start_date
-                                           WHERE patient_id = #{patient_id}").map(&:death_date).first rescue nil
-  
+  patient_details = []
+  PatientProgram.find_by_sql("SELECT *
+                              FROM #{@source_db}.earliest_start_date
+                              WHERE patient_id = #{patient_id}").each do |patient| 
+                                @earliest_start_date = patient.earliest_start_date
+                                @age_at_initiation = patient.age_at_initiation
+                                @age_in_days = patient.age_in_days
+                                @death_date = patient.death_date
+                              end
+ 
   a_hash = {:legacy_id2 => 'NULL'}
 
   pat_attributes = {}; pat_identifier = {}
@@ -645,7 +643,7 @@ def get_patient_demographics(patient_id)
   a_hash[:gender] = gender rescue nil#patient_obj.sex  rescue nil
   a_hash[:dob] = pat.person.birthdate  rescue nil
   a_hash[:dob_estimated] = patient_obj.birthdate_estimated  rescue nil
-  a_hash[:death_date] =  death_date
+  a_hash[:death_date] =  @death_date
   a_hash[:ta] = pat.person.addresses.first.county_district  rescue nil
   a_hash[:current_address] = pat.person.addresses.first.city_village  rescue nil
   a_hash[:home_district] = pat.person.addresses.first.address2  rescue nil
@@ -662,8 +660,9 @@ def get_patient_demographics(patient_id)
   a_hash[:prev_art_number]  = pat_identifier[5]  rescue nil #prev_arv_number
   a_hash[:filing_number]  = pat_identifier[17]  rescue nil #filing_number
   a_hash[:archived_filing_number]  = pat_identifier[18]  rescue nil #archived_filing_number
-  a_hash[:earliest_start_date]  = earliest_start_date  rescue nil
-  a_hash[:age_at_initiation] = age_at_initiation rescue nil
+  a_hash[:earliest_start_date]  = @earliest_start_date  rescue nil
+  a_hash[:age_at_initiation] = @age_at_initiation rescue nil
+  a_hash[:age_in_days] = @age_in_days rescue nil  
   a_hash[:current_location] = current_location rescue nil
 
   return generate_sql_string(a_hash)
