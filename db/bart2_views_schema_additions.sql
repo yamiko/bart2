@@ -114,7 +114,8 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
   VIEW `earliest_start_date` AS
   SELECT `p`.`patient_id` AS `patient_id`,`p`.`date_enrolled`,
          MIN(`s`.`start_date`) AS `earliest_start_date`, `person`.`death_date` AS death_date,
-         ROUND(DATEDIFF(date_antiretrovirals_started(`p`.`patient_id`, MIN(`s`.`start_date`)), `person`.`birthdate`)/365) AS age_at_initiation
+         (DATEDIFF(date_antiretrovirals_started(`p`.`patient_id`, MIN(`s`.`start_date`)), `person`.`birthdate`)/365.25) AS age_at_initiation,
+         DATEDIFF(MIN(`s`.`start_date`), `person`.`birthdate`) AS age_in_days
   FROM ((`patient_program` `p`
   LEFT JOIN `patient_state` `s` ON((`p`.`patient_program_id` = `s`.`patient_program_id`)))
   LEFT JOIN `person` ON((`person`.`person_id` = `p`.`patient_id`)))
@@ -156,13 +157,7 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
          `obs`.`uuid` AS `uuid`
   FROM `obs`
   WHERE ((`obs`.`concept_id` = 7937) AND (`obs`.`voided` = 0))
-  AND (`obs`.`value_coded` = 1065)
-  AND (`obs`.`obs_datetime` = ((SELECT max(`o`.`obs_datetime`)
-                                FROM `obs` `o`
-                                WHERE `o`.`person_id` = `obs`.`person_id`
-                                AND `o`.`concept_id` = 7937
-                                AND `o`.`value_coded` = 1065
-				                        AND `o`.`voided` = 0)));
+  AND (`obs`.`value_coded` = 1065);
 
 CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
   VIEW `patient_pregnant_obs` AS

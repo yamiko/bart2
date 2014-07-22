@@ -481,6 +481,7 @@ def get_patients_data(patient_id)
  
   visits = Encounter.find_by_sql("SELECT date(encounter_datetime) AS visit_date FROM #{@source_db}.encounter
 			WHERE patient_id = #{patient_id} AND voided = 0  
+			AND encounter_type IN (6, 7, 9, 25, 51, 52, 53, 54, 68, 119)
 			group by date(encounter_datetime)").map(&:visit_date)
   
   session_date = @max_dispensing_enc_date #date for calculating defaulters 
@@ -536,7 +537,7 @@ def get_patients_data(patient_id)
       treatment_obs = []
 
       # we will exclude the orders having drug_inventory_id null     	
-      orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
+      orders = Order.find_by_sql("SELECT o.patient_id, IFNULL(o.order_id, 0) AS order_id, IFNULL(o.encounter_id, 0) AS encounter_id,
                                                o.start_date, o.auto_expire_date, IFNULL(d.quantity, 0) AS quantity,
                                                d.drug_inventory_id, IFNULL(d.dose, 2) As dose, IFNULL(d.frequency, 'Unknown') AS frequency,
                                                o.concept_id, IFNULL(d.equivalent_daily_dose, 2) AS equivalent_daily_dose 
@@ -606,14 +607,16 @@ def get_patient_demographics(patient_id)
 
   current_location = Location.find(GlobalProperty.find_by_property("current_health_center_id").property_value).name
 
-  earliest_start_date = PatientProgram.find_by_sql("SELECT earliest_start_date
-                                           FROM #{@source_db}.earliest_start_date
-                                           WHERE patient_id = #{patient_id}").map(&:earliest_start_date).first
-
-  age_at_initiation = PatientProgram.find_by_sql("SELECT age_at_initiation
-                                           FROM #{@source_db}.earliest_start_date
-                                           WHERE patient_id = #{patient_id}").map(&:age_at_initiation).first
-  
+  patient_details = []
+  PatientProgram.find_by_sql("SELECT *
+                              FROM #{@source_db}.earliest_start_date
+                              WHERE patient_id = #{patient_id}").each do |patient| 
+                                @earliest_start_date = patient.earliest_start_date
+                                @age_at_initiation = patient.age_at_initiation
+                                @age_in_days = patient.age_in_days
+                                @death_date = patient.death_date
+                              end
+ 
   a_hash = {:legacy_id2 => 'NULL'}
 
   pat_attributes = {}; pat_identifier = {}
@@ -640,6 +643,7 @@ def get_patient_demographics(patient_id)
   a_hash[:gender] = gender rescue nil#patient_obj.sex  rescue nil
   a_hash[:dob] = pat.person.birthdate  rescue nil
   a_hash[:dob_estimated] = patient_obj.birthdate_estimated  rescue nil
+  a_hash[:death_date] =  @death_date
   a_hash[:ta] = pat.person.addresses.first.county_district  rescue nil
   a_hash[:current_address] = pat.person.addresses.first.city_village  rescue nil
   a_hash[:home_district] = pat.person.addresses.first.address2  rescue nil
@@ -656,8 +660,9 @@ def get_patient_demographics(patient_id)
   a_hash[:prev_art_number]  = pat_identifier[5]  rescue nil #prev_arv_number
   a_hash[:filing_number]  = pat_identifier[17]  rescue nil #filing_number
   a_hash[:archived_filing_number]  = pat_identifier[18]  rescue nil #archived_filing_number
-  a_hash[:earliest_start_date]  = earliest_start_date  rescue nil
-  a_hash[:age_at_initiation] = age_at_initiation rescue nil
+  a_hash[:earliest_start_date]  = @earliest_start_date  rescue nil
+  a_hash[:age_at_initiation] = @age_at_initiation rescue nil
+  a_hash[:age_in_days] = @age_in_days rescue nil  
   a_hash[:current_location] = current_location rescue nil
 
   return generate_sql_string(a_hash)
@@ -1445,21 +1450,25 @@ def process_patient_state(patient_id,visit, defaulted_dates)
     state_name = 'Defaulter'
   else
     patient_state = PatientProgram.find_by_sql("SELECT 
-	                        #{@source_db}.current_state_for_program(#{patient_id},1,'#{visit} 23:59:59') AS state").first.state  
+	                        IFNULL(#{@source_db}.current_state_for_program(#{patient_id},1,'#{visit} 23:59:59'), 'Unknown') AS state").first.state  
 	  
 	   if !patient_state.blank?
-      state_name = ProgramWorkflowState.find_by_sql("SELECT 
-                                             c.name AS name
-                                           FROM
-                                               #{@source_db}. program_workflow_state pws
-                                                    INNER JOIN
-                                                #{@source_db}.concept_name c ON c.concept_id = pws.concept_id
-                                                    AND c.voided = 0
-                                                    AND pws.retired = 0
-                                           WHERE
-                                                program_workflow_state_id = #{patient_state}
-                                                    and program_workflow_id = 1
-                                            LIMIT 1").map(&:name) #rescue nil
+	    if patient_state == 'Unknown'
+	      state_name = 'Unknown'
+	    else
+        state_name = ProgramWorkflowState.find_by_sql("SELECT 
+                                               c.name AS name
+                                             FROM
+                                                 #{@source_db}. program_workflow_state pws
+                                                      INNER JOIN
+                                                  #{@source_db}.concept_name c ON c.concept_id = pws.concept_id
+                                                      AND c.voided = 0
+                                                      AND pws.retired = 0
+                                             WHERE
+                                                  program_workflow_state_id = #{patient_state}
+                                                      and program_workflow_id = 1
+                                              LIMIT 1").map(&:name) #rescue nil
+      end
     end
   end
 
