@@ -71,3 +71,4 @@ Version (1.0.0)
 .....
     - Adding mastercard list menu for TB and ART
     - Worked on  fonts for bart2 cohort printer version
+    - Resolved issues on missed appointments pulling visit dates instead of appointment dates
