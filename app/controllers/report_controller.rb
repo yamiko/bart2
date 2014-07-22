@@ -199,7 +199,7 @@ class ReportController < GenericReportController
             'age' => PatientService.cul_age(patient.person.birthdate , patient.person.birthdate_estimated ),
             'dosses_missed' => result['missed_dosses'],
             'exp_tab_remaining' => result['expected_remaining'] ,
-            'booked_date' => last_app.obs_datetime.to_date.strftime('%d/%b/%Y') ,
+            'booked_date' => last_app.value_datetime.to_date.strftime('%d/%b/%Y') ,
             'phone_number' => get_phone(last_app.person_id),
             'overdue' => (Date.today.to_date - last_app.obs_datetime.to_date).to_i,
             'came_late' => next_visit,
