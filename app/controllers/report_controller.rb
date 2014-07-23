@@ -192,17 +192,22 @@ class ReportController < GenericReportController
         next_visit = Observation.find(:first, :conditions =>  ["person_id = ? AND obs_datetime > ?",
                                                                last_app.person_id, last_app.value_datetime])
 
-        next_visit = next_visit.nil? ? "No" : next_visit.obs_datetime.to_date
+        next_visit = next_visit.obs_datetime rescue []
+				
+				if ! next_visit.blank?
+        		next if next_visit.to_date <= last_app.value_datetime.to_date
+        end  
+
         details ={
             'patient_id' => last_app.person_id,
             'name' => patient.name,
             'age' => PatientService.cul_age(patient.person.birthdate , patient.person.birthdate_estimated ),
             'dosses_missed' => result['missed_dosses'],
             'exp_tab_remaining' => result['expected_remaining'] ,
-            'booked_date' => last_app.obs_datetime.to_date.strftime('%d/%b/%Y') ,
+            'booked_date' => last_app.value_datetime.to_date.strftime('%d/%b/%Y') ,
             'phone_number' => get_phone(last_app.person_id),
-            'overdue' => (Date.today.to_date - last_app.obs_datetime.to_date).to_i,
-            'came_late' => next_visit,
+            'overdue' => ((next_visit.to_date rescue Date.today.to_date) - last_app.value_datetime.to_date).to_i,
+            'came_late' => (next_visit.to_date.strftime('%d/%b/%Y') rescue "No"),
             'date_registered' => first_obs.obs_datetime.to_date,
             'last_visit_date' => last_app.obs_datetime.to_date
         }

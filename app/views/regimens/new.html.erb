@@ -1551,7 +1551,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   <div id="protector" style="display:none">
 
   </div>
-
+<% if vl_routine_check_activated %>
 <div id="vl_lab_trail" style="display:none;">
     <div id="vl_lab_trail_header">
       <span style="font-size: 16pt;">
@@ -1588,13 +1588,15 @@ element.setAttribute("onmousedown", "gotoNextPage()")
       <span style="right:4%; padding: 12px 20%;" onclick="hideHighVlPopup();">No</span>
     </div>
 </div>
-
+<% end %>
 </body>
 <script>
 
 function showRegimenChangeAlert(){
   <% if @current_weight %>
-	<% if @current_weight > 35 && @patient_bean.age <=14 && @current_regimen.upcase == '9P' %>
+	<% 
+  current_regimen = @current_regimen.upcase rescue ''
+  if @current_weight > 35 && @patient_bean.age <=14 && current_regimen == '9P' %>
 		document.getElementById('confirm_cpt_mgs').style.display = 'inline'
 		document.getElementById('protector').style.display = 'inline'
 	<% end %>
@@ -1602,14 +1604,16 @@ function showRegimenChangeAlert(){
 }
 
 function showHighVlPopup(){
-  <% if (patient_has_high_viral_loads(@patient)) %>
-        available_options = document.getElementsByTagName('li');
-        for(i=0; i<available_options.length; i++){
-          available_options[i].onmouseup = function(){
-            document.getElementById('protector').style.display='inline';
-            document.getElementById('vl_lab_trail').style.display='inline';
+  <% if vl_routine_check_activated %>
+    <% if (patient_has_high_viral_loads(@patient)) %>
+          available_options = document.getElementsByTagName('li');
+          for(i=0; i<available_options.length; i++){
+            available_options[i].onmouseup = function(){
+              document.getElementById('protector').style.display='inline';
+              document.getElementById('vl_lab_trail').style.display='inline';
+            }
           }
-        }
+    <% end %>
   <% end %>
 }
 

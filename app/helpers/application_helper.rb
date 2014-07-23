@@ -34,7 +34,11 @@ module ApplicationHelper
   def show_intro_text
     get_global_property_value("show_intro_text").to_s == "true" rescue false
   end
-  
+
+  def vl_routine_check_activated
+    get_global_property_value("activate.vl.routine.check").to_s == "true" rescue false
+  end
+
   def ask_home_village
     get_global_property_value("demographics.home_village").to_s == "true" rescue false
   end
@@ -869,7 +873,7 @@ module ApplicationHelper
     results = Lab.results_by_type(patient, 'HIV_viral_load', patient_identifiers) rescue nil
     return false if results.blank?
     unless results.blank?
-      high_results = results.collect{|x, y|y["TestValue"]}.select{|r|r>1000}
+      high_results = results.collect{|x, y|y["TestValue"]}.select{|r| r.to_f > 1000}
       return true if high_results.count >=2
       return false if high_results.count < 2
     end

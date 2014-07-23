@@ -25,6 +25,7 @@ class SurvivalAnalysis
 			transferred = []; arvs =[]; stopped = []; defaulted=[]; dead=[]; unknown =[]; total = []
 
 			if sex == "female"
+         break if range[:start_date].to_date < '2011-07-01'.to_date
 					states = cohort.women_outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id, states = nil, min_age, max_age)
 			else
 					states = cohort.outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id, states = nil, min_age, max_age)

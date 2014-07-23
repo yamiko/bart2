@@ -150,8 +150,12 @@ class Cohort
 		#threads << Thread.new do
 		#	begin
 				logger.info("adults " + Time.now.to_s)
+=begin				
 				cohort_report['Newly registered adults'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 15, 1000)
 				cohort_report['Total registered adults'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 15, 1000)
+=end
+        cohort_report['Newly registered adults'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 5479, 109500)
+        cohort_report['Total registered adults'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 5479, 109500)
 		#	rescue Exception => e
 		#		Thread.current[:exception] = e
 		#	end
@@ -161,8 +165,13 @@ class Cohort
 		#	begin
 				logger.info("children " + Time.now.to_s)
 				# Child min age = 2 yrs = (365.25 * 2) = 730.5 == 731 days to nearest day
+=begin
 				cohort_report['Newly registered children'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 2, 15)
 				cohort_report['Total registered children'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 2, 15)
+=end
+      # Child min age = 2 yrs = (365.25 * 2) = 730.5 == 731 days to nearest day
+        cohort_report['Newly registered children'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 731, 5479)
+        cohort_report['Total registered children'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 731, 5479)
 		#	rescue Exception => e
 		#		Thread.current[:exception] = e
 		#	end
@@ -171,9 +180,12 @@ class Cohort
 	#	threads << Thread.new do
 		#	begin
 				logger.info("infants " + Time.now.to_s)
+=begin
 				cohort_report['Newly registered infants'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 0, 2)
 				cohort_report['Total registered infants'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 0, 2)
-
+=end
+        cohort_report['Newly registered infants'] = self.total_registered_by_gender_age(@start_date, @end_date, nil, 0, 731)
+        cohort_report['Total registered infants'] = self.total_registered_by_gender_age(@@first_registration_date, @end_date, nil, 0, 731)
 			#rescue Exception => e
 			#	Thread.current[:exception] = e
 			#end
@@ -570,8 +582,8 @@ class Cohort
 		conditions = ''
 		patients = []
 		if min_age and max_age
-		  conditions = "AND esd.age_at_initiation >= #{min_age}
-				        AND esd.age_at_initiation < #{max_age}"
+		  conditions = "AND esd.age_in_days >= #{min_age}
+				        AND esd.age_in_days < #{max_age}"
 		end
 
 		if sex
@@ -1044,7 +1056,7 @@ class Cohort
     patient_ids = @patients_alive_and_on_art
     patient_ids = [0] if patient_ids.blank?
 
-    dispensing_encounter_id = EncounterType.find_by_name("TREATMENT").id
+    dispensing_encounter_id = EncounterType.find_by_name("DISPENSING").id
     regimen_category = ConceptName.find_by_name("REGIMEN CATEGORY").concept_id
 
         earliest_start_dates = PatientProgram.find_by_sql(
@@ -1102,7 +1114,6 @@ class Cohort
                                 end
   end
 
-
   def patients_reinitiated_on_art(start_date = @start_date, end_date = @end_date)
     
 =begin
@@ -1110,13 +1121,14 @@ class Cohort
       self.transferred_in_patients(start_date, end_date).map(&:patient_id) +
       self.patients_initiated_on_art_first_time(start_date, end_date).map(&:patient_id))
 =end
-		patients = []
+		patients = []; patients_with_date_last_taken_obs = []; patients_with_taken_arvs_in_past_2mths_no = []
+    
     yes_concept = ConceptName.find_by_name('YES').concept_id
 		no_concept = ConceptName.find_by_name('NO').concept_id
     date_art_last_taken_concept = ConceptName.find_by_name('DATE ART LAST TAKEN').concept_id
 
     taken_arvs_concept = ConceptName.find_by_name('HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS').concept_id 
-    
+=begin
     PatientProgram.find_by_sql("SELECT esd.*
       FROM earliest_start_date esd
       LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
@@ -1134,7 +1146,41 @@ class Cohort
 			patients << patient.patient_id.to_i
 		end
 		return patients
-  end
+=end
+
+    PatientProgram.find_by_sql("SELECT esd.*
+      FROM earliest_start_date esd
+      LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
+      INNER JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
+      LEFT JOIN obs o ON o.encounter_id = e.encounter_id AND
+                         o.concept_id IN (#{date_art_last_taken_concept}) AND o.voided = 0
+      WHERE  ((o.concept_id = #{date_art_last_taken_concept} AND
+               (DATEDIFF(o.obs_datetime,o.value_datetime)) > 56))
+            AND
+            esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
+      GROUP BY esd.patient_id").each do | patient | 
+			patients_with_date_last_taken_obs << patient.patient_id.to_i
+			end
+
+    patient_ids = patients_with_date_last_taken_obs
+    patient_ids = [0] if patient_ids.blank?
+
+    PatientProgram.find_by_sql("SELECT esd.*
+      FROM earliest_start_date esd
+      LEFT JOIN clinic_registration_encounter e ON esd.patient_id = e.patient_id
+      INNER JOIN ever_registered_obs AS ero ON e.encounter_id = ero.encounter_id
+      LEFT JOIN obs o ON o.encounter_id = e.encounter_id AND
+                         o.concept_id IN (#{taken_arvs_concept}) AND o.voided = 0
+      WHERE  ((o.concept_id = #{taken_arvs_concept} AND o.value_coded = #{no_concept}))
+            AND
+            esd.earliest_start_date BETWEEN '#{start_date}' AND '#{end_date}'
+            AND esd.patient_id NOT IN (#{patient_ids.join(',')})
+      GROUP BY esd.patient_id").each do | patient | 
+			patients_with_taken_arvs_in_past_2mths_no << patient.patient_id.to_i
+			end
+
+  		return patients = (patients_with_date_last_taken_obs + patients_with_taken_arvs_in_past_2mths_no).uniq
+  end 
 	
 	def patients_with_doses_missed_at_their_last_visit(start_date = @start_date, end_date = @end_date)
 		@art_defaulters ||= self.art_defaulted_patients

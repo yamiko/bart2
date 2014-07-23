@@ -599,7 +599,18 @@ class GenericDrugController < ApplicationController
       label.draw_text("Quantity: #{drug_quantity}", 40, 130, 0, 2, 2, 2,false)
       label.draw_barcode(40, 180, 0, 1, 5, 15, 100,true, "#{drug_barcode}")
     end
+    create_drug_tins(params[:drug_id], params[:quantity])
     send_data(label.print(1),:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{drug_barcode}.lbl", :disposition => "inline")
+  end
+
+  def create_drug_tins(drug_id, pill_count)
+    drug_order_barcode = DrugOrderBarcode.find(:first, :conditions => ["drug_id =? AND tabs =?",
+                                          drug_id, pill_count])
+    DrugOrderBarcode.create(
+      :drug_id => drug_id,
+      :tabs => pill_count
+    ) if drug_order_barcode.blank? #We don't want to create duplicates of drug vs tins
+    
   end
 
   def expiring

@@ -38,7 +38,7 @@ def get_patients_data(patient_id)
    initial_flat_table1_string = "INSERT INTO flat_cohort_table "
    
    flat_table_1_data = []; flat_table_2_data = [] 
-    
+
    #get flat_table1 data
    flat_table_1_data = Encounter.find_by_sql("SELECT
                                                 patient_id,
@@ -46,6 +46,7 @@ def get_patients_data(patient_id)
                                                 dob,
                                                 earliest_start_date,
                                                 age_at_initiation,
+                                                death_date,
                                                 reason_for_eligibility,
                                                 ever_registered_at_art_clinic,
                                                 date_art_last_taken,
@@ -63,7 +64,8 @@ def get_patients_data(patient_id)
                                                 ever_registered_at_art_v_date,
                                                 date_art_last_taken_v_date,
                                                 date_art_last_taken_v_date,
-                                                taken_art_in_last_two_months_v_date
+                                                taken_art_in_last_two_months_v_date,
+                                                current_location
                                               FROM #{@source_db}.flat_table1
                                               WHERE patient_id = #{patient_id}")
 
@@ -77,6 +79,7 @@ def get_patients_data(patient_id)
                               visit_date,
                               pregnant_yes,
                               pregnant_no,
+                              pregnant_unknown,
                               drug_induced_abdominal_pain,
                               drug_induced_anorexia,
                               drug_induced_diarrhea,
@@ -159,7 +162,7 @@ def process_flat_table_1(flat_table_1_data, type = 0) #type 0 normal encounter, 
       a_hash[:patient_id] = patient.patient_id
       a_hash[:gender] = patient.gender
       a_hash[:birthdate] = patient.dob
-      a_hash[:death_date] = pat.person.death_date
+      a_hash[:death_date] = patient.death_date
       a_hash[:earliest_start_date] = patient.earliest_start_date
       a_hash[:age_at_initiation] = patient.age_at_initiation
       a_hash[:reason_for_starting] = patient.reason_for_eligibility
@@ -170,6 +173,7 @@ def process_flat_table_1(flat_table_1_data, type = 0) #type 0 normal encounter, 
       a_hash[:pulmonary_tuberculosis] = patient.pulmonary_tuberculosis
       a_hash[:pulmonary_tuberculosis_last_2_years] = patient.pulmonary_tuberculosis_last_2_years
       a_hash[:kaposis_sarcoma] = patient.kaposis_sarcoma
+      a_hash[:current_location] = patient.current_location
       a_hash[:extrapulmonary_tuberculosis_v_date] = patient.extrapulmonary_tuberculosis_v_date
       a_hash[:pulmonary_tuberculosis_v_date] = patient.pulmonary_tuberculosis_v_date
       a_hash[:pulmonary_tuberculosis_last_2_years_v_date] = patient.pulmonary_tuberculosis_last_2_years_v_date

@@ -240,40 +240,20 @@ class GenericDispensationsController < ApplicationController
 		  if order.drug_order.quantity and order.drug_order.quantity > 0
 		    dispensed_drugs_inventory_ids << order.drug_order.drug.id
 		  end
-=begin		
-		  if (order.drug_order.amount_needed > 0)
-			dispense_finish = false
-		  end
-=end
 		end
 
-		#return unless dispense_finish
-		#return if dispensed_drugs_inventory_ids.blank?
-
 		return_text = ''
+
 		if !dispensed_drugs_inventory_ids.blank?
 			regimen_drug_order = ActiveRecord::Base.connection.select_all <<EOF
-SELECT r.regimen_id , r.concept_id ,
-(SELECT COUNT(t3.regimen_id) FROM regimen_drug_order t3
-WHERE t3.regimen_id = t.regimen_id GROUP BY t3.regimen_id) as c
-FROM regimen_drug_order t, regimen r
-WHERE t.drug_inventory_id IN (#{dispensed_drugs_inventory_ids.join(',')})
-AND r.regimen_id = t.regimen_id
-GROUP BY r.concept_id
-HAVING c = #{dispensed_drugs_inventory_ids.length}
-AND r.regimen_id = (
-SELECT x.regimen_id FROM regimen_drug_order x 
+SELECT r.regimen_id, regimen_index, r.concept_id FROM regimen_drug_order x 
+INNER JOIN regimen r ON r.regimen_id = x.regimen_id
 WHERE x.drug_inventory_id IN (#{dispensed_drugs_inventory_ids.join(',')}) 
-GROUP BY x.regimen_id 
-HAVING count(x.drug_inventory_id) = c
-LIMIT 1)
+GROUP BY x.regimen_id HAVING count(x.drug_inventory_id) = #{dispensed_drugs_inventory_ids.length}
+LIMIT 1
 EOF
 
 			regimen_prescribed = regimen_drug_order.first['concept_id'].to_i rescue ConceptName.find_by_name('Unknown antiretroviral drug').concept_id
-
-
-#			if (Observation.find(:first,:conditions => ["person_id = ? AND encounter_id = ? AND concept_id = ?",
-#					patient.id,encounter.id,ConceptName.find_by_name('ARV REGIMENS RECEIVED ABSTRACTED CONSTRUCT').concept_id])).blank?
 
 			regimen_value_text = Concept.find(regimen_prescribed).shortname rescue nil
 			if regimen_value_text.blank?

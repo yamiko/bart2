@@ -14,7 +14,8 @@ def initialize_variables
   @drug_list = get_drug_list
   @max_dispensing_enc_date = Encounter.find_by_sql("SELECT DATE(max(encounter_datetime)) AS adate
                                                     FROM #{@source_db}.encounter
-                                                    WHERE encounter_type = 54").map(&:adate)
+                                                    WHERE encounter_type = 54
+                                                    AND voided = 0").map(&:adate)
 end
 
 def pre_export_check
@@ -42,6 +43,67 @@ def initiate_script
     
     puts "ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
 end
+
+def initiate_special_script(patients_list)
+    puts "started at #{@started_at}"
+
+    threads = []
+#    patients = Patient.find_by_sql("SELECT max(patient_id) as max_patient_id, count(*) record_count FROM #{@source_db}.earliest_start_date")
+    record_count = patients_list.length
+ #   max_patient_id = patients.first.max_patient_id
+ #   thresholds = generate_thresholds(record_count, max_patient_id)
+    if record_count < 200
+        thread_number = 1
+    else
+	thread_number = 10
+    end
+    
+    start_element = 0
+    end_element = record_count / thread_number
+    block = record_count / thread_number
+    count = 0
+    thread_number.times do
+        threads << Thread.new(count) do |i|
+	 count += 1
+          get_specific_patients(patients_list[start_element..end_element], count)
+        end
+
+	start_element = end_element + 1
+
+	if count == 9
+		end_element = (record_count - 1)
+	else
+		end_element = end_element + block
+	end
+      end
+     
+    threads.each {|t| t.join}
+    
+    puts "ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
+end
+
+def initiate_script
+    puts "started at #{@started_at}"
+
+    threads = []
+    patients = Patient.find_by_sql("SELECT max(patient_id) as max_patient_id, count(*) record_count FROM #{@source_db}.earliest_start_date")
+    record_count = patients.first.record_count
+    max_patient_id = patients.first.max_patient_id
+    thresholds = generate_thresholds(record_count, max_patient_id)
+
+    count = 0
+      (thresholds || []).each do |threshold| 
+        threads << Thread.new(count) do |i|
+          count += 1
+          get_all_patients(threshold[0], threshold[1], count)
+        end
+      end
+     
+    threads.each {|t| t.join}
+    
+    puts "ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")}"
+end
+
 
 def generate_thresholds(records, patient_id)
    number_iterations = patient_id.to_i / records.to_i
@@ -119,11 +181,12 @@ def get_all_patients(min, max, thread)
     
     patient_list = Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
 
-    patient_list.each do |p| 
+    (patient_list || []).each do |p| 
+	puts ">>working on patient>>>#{p}<<<<<<<"
 	    sql_statements = get_patients_data(p)
 	    
-	    if thread == 1
-  	    $temp_outfile_1_3 << "#{p},"
+      if thread == 1
+  	$temp_outfile_1_3 << "#{p},"
       	$temp_outfile_1_1 << sql_statements[0]
       	$temp_outfile_1_2 << sql_statements[1]
       elsif thread == 2
@@ -163,6 +226,7 @@ def get_all_patients(min, max, thread)
         $temp_outfile_10_1 << sql_statements[0]
         $temp_outfile_10_2 << sql_statements[1]
       end
+puts ">>Finished working on patient>>>#{p}<<<<<<<"
     end
     
     #close output files 
@@ -212,6 +276,151 @@ def get_all_patients(min, max, thread)
 
 end
 
+def get_specific_patients(patients_list, thread)
+    last_element = (patients_list.length - 1)
+    puts "thread #{thread} started at #{Time.now.strftime("%Y-%m-%d-%H%M%S")} Patients from >>#{patients_list[0]}<< to >>#{patients_list[last_element]}<< "
+
+    #open output files for writing
+    if thread == 1
+      $temp_outfile_1_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_1_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_1_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 2
+      $temp_outfile_2_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_2_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_2_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 3
+      $temp_outfile_3_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_3_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_3_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 4
+      $temp_outfile_4_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_4_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_4_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 5
+      $temp_outfile_5_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_5_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_5_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 6
+      $temp_outfile_6_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_6_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_6_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 7
+      $temp_outfile_7_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_7_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_7_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 8
+      $temp_outfile_8_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_8_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_8_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 9
+      $temp_outfile_9_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_9_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_9_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    elsif thread == 10
+      $temp_outfile_10_1 = File.open("./db/flat_tables_init_output/flat_table_1-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_10_2 = File.open("./db/flat_tables_init_output/flat_table_2-" + @started_at + "thread_#{thread}" + ".sql", "w")
+      $temp_outfile_10_3 = File.open("./db/flat_tables_init_output/patients_initialized-" + @started_at + "thread_#{thread}" + ".sql", "w")
+    end
+    
+    patient_list = patients_list#Patient.find_by_sql("SELECT patient_id FROM #{@source_db}.earliest_start_date WHERE patient_id >= #{min_patient_id} AND patient_id <= #{max_patient_id}").map(&:patient_id)
+
+    (patient_list || []).each do |p| 
+       puts ">>working on patient>>>#{p}<<<<<<<"
+	    sql_statements = get_patients_data(p)
+     if thread == 1
+  	    $temp_outfile_1_3 << "#{p},"
+      	$temp_outfile_1_1 << sql_statements[0]
+      	$temp_outfile_1_2 << sql_statements[1]
+      elsif thread == 2
+        $temp_outfile_2_3 << "#{p},"
+        $temp_outfile_2_1 << sql_statements[0]
+        $temp_outfile_2_2 << sql_statements[1]
+      elsif thread == 3
+        $temp_outfile_3_3 << "#{p},"
+        $temp_outfile_3_1 << sql_statements[0]
+        $temp_outfile_3_2 << sql_statements[1]
+      elsif thread == 4
+        $temp_outfile_4_3 << "#{p},"
+        $temp_outfile_4_1 << sql_statements[0]
+        $temp_outfile_4_2 << sql_statements[1]
+      elsif thread == 5
+        $temp_outfile_5_3 << "#{p},"
+        $temp_outfile_5_1 << sql_statements[0]
+        $temp_outfile_5_2 << sql_statements[1]
+      elsif thread == 6
+        $temp_outfile_6_3 << "#{p},"
+        $temp_outfile_6_1 << sql_statements[0]
+        $temp_outfile_6_2 << sql_statements[1]
+      elsif thread == 7
+        $temp_outfile_7_3 << "#{p},"
+        $temp_outfile_7_1 << sql_statements[0]
+        $temp_outfile_7_2 << sql_statements[1]
+      elsif thread == 8
+        $temp_outfile_8_3 << "#{p},"
+        $temp_outfile_8_1 << sql_statements[0]
+        $temp_outfile_8_2 << sql_statements[1]
+      elsif thread == 9
+        $temp_outfile_9_3 << "#{p},"
+        $temp_outfile_9_1 << sql_statements[0]
+        $temp_outfile_9_2 << sql_statements[1]
+      elsif thread == 10
+        $temp_outfile_10_3 << "#{p},"
+        $temp_outfile_10_1 << sql_statements[0]
+        $temp_outfile_10_2 << sql_statements[1]
+      end
+      puts ">>finished on patient>>>#{p}<<<<<<<"
+    end
+    
+    #close output files 
+    if thread == 1
+      $temp_outfile_1_3.close
+      $temp_outfile_1_1.close
+      $temp_outfile_1_2.close
+    elsif thread == 2
+      $temp_outfile_2_3.close
+      $temp_outfile_2_1.close
+      $temp_outfile_2_2.close
+    elsif thread == 3
+      $temp_outfile_3_3.close
+      $temp_outfile_3_1.close
+      $temp_outfile_3_2.close
+    elsif thread == 4
+      $temp_outfile_4_3.close
+      $temp_outfile_4_1.close
+      $temp_outfile_4_2.close
+    elsif thread == 5
+      $temp_outfile_5_3.close
+      $temp_outfile_5_1.close
+      $temp_outfile_5_2.close
+    elsif thread == 6
+      $temp_outfile_6_3.close
+      $temp_outfile_6_1.close
+      $temp_outfile_6_2.close
+    elsif thread == 7
+      $temp_outfile_7_3.close
+      $temp_outfile_7_1.close
+      $temp_outfile_7_2.close
+    elsif thread == 8
+      $temp_outfile_8_3.close
+      $temp_outfile_8_1.close
+      $temp_outfile_8_2.close
+    elsif thread == 9
+      $temp_outfile_9_3.close
+      $temp_outfile_9_1.close
+      $temp_outfile_9_2.close
+    elsif thread == 10
+      $temp_outfile_10_3.close
+      $temp_outfile_10_1.close
+      $temp_outfile_10_2.close
+    end
+    
+    puts "thread #{thread} ended at #{Time.now.strftime("%Y-%m-%d-%H%M%S")} Patients from >>#{patients_list[0]}<< to >>#{patients_list[last_element]}<< "
+
+end
+
+
+
 def get_patients_data(patient_id)
  #flat_table1 will contain hiv_staging, hiv clinic regitsrtaion observations
  #and patient demographics
@@ -222,26 +431,40 @@ def get_patients_data(patient_id)
  #get patient demographics
  demographics = get_patient_demographics(patient_id)
 
- #hiv_clinic_registration observations
- hiv_clinic_reg_obs = Encounter.find(:first,
-                                     :conditions => ['patient_id = ?
-                                                      AND encounter_type = 9',
-                                                      patient_id],
-                                     :order => 'encounter_datetime DESC').observations rescue nil
- if hiv_clinic_reg_obs
-  hiv_clinic_registration = process_hiv_clinic_registration_encounter(hiv_clinic_reg_obs)
- end
+  hiv_staging_obs_concept_ids = [2743, 7565, 7563,823,7961,5048,7551,5344, 7957,2858,5034,2585,882,6763,2894,1362,507,2587,1547,7553,7550,5046,1359,2583,7546,7546,5334,16,7955,7954,6759,2889, 3,5024,1215,5333,7539,8206,5027,7540,5337,7537,2577,2575,6758,5012,836,2891,1210,2576,6775,1212,6757,5328,5006,6831,730,9098,5497,9099,7965,1755,6131]
 
- #hiv_staging observations
- hiv_staging_obs = Encounter.find(:first,
-                                  :conditions => ['patient_id = ?
-                                                   AND encounter_type = 52',
-                                                   patient_id],
-                                  :order => 'encounter_datetime DESC').observations rescue nil
+  hiv_staging_and_reg_enc = Encounter.find(:all,
+      			:include => [:observations],
+      			:order => "encounter_datetime DESC",
+      			:conditions => ['voided = 0 AND patient_id = ? AND encounter_type IN (9, 52)', patient_id])                                                  
+  hiv_staging_obs = []
+  hiv_staging_and_reg_enc.each do |enc|
+    if enc.encounter_type == 9
 
- if hiv_staging_obs
-   hiv_staging = process_hiv_staging_encounter(hiv_staging_obs)
- end
+      obs_concepts_ids = enc.observations.map(&:concept_id)
+      intersect = obs_concepts_ids & hiv_staging_obs_concept_ids
+
+      if intersect.length != 0
+        hiv_staging_obs = enc.observations
+        hiv_staging = process_hiv_staging_encounter(hiv_staging_obs)
+        break
+      end
+    elsif enc.encounter_type == 52
+      hiv_staging_obs = enc.observations
+      hiv_staging = process_hiv_staging_encounter(hiv_staging_obs)
+      break
+    end
+  end
+
+  hiv_clinic_reg_obs = []
+
+  hiv_staging_and_reg_enc.each do |enc| 
+    hiv_clinic_reg_obs << enc if enc.encounter_type == 9
+  end
+  
+  if !hiv_clinic_reg_obs.blank?
+    hiv_clinic_registration = process_hiv_clinic_registration_encounter(hiv_clinic_reg_obs.first.observations)
+  end
 
   #check if any of the strings are empty
   demographics = get_patient_demographics(patient_id, 1) if demographics.empty?
@@ -258,14 +481,35 @@ def get_patients_data(patient_id)
  
   visits = Encounter.find_by_sql("SELECT date(encounter_datetime) AS visit_date FROM #{@source_db}.encounter
 			WHERE patient_id = #{patient_id} AND voided = 0  
+			AND encounter_type IN (6, 7, 9, 25, 51, 52, 53, 54, 68, 119)
 			group by date(encounter_datetime)").map(&:visit_date)
   
   session_date = @max_dispensing_enc_date #date for calculating defaulters 
 
-  defaulted_dates = patient_defaulted_dates(patient_obj, session_date) 
-    
+  defaulted_dates = patient_defaulted_dates(patient_obj, session_date, visits) 
+
   if !defaulted_dates.blank?
     defaulted_dates.each do |date|
+      if !date.blank?
+        visits << date
+      end
+    end
+  end
+
+ states_dates  = PatientProgram.find_by_sql("SELECT 
+                                                  ps.start_date
+                                              FROM
+                                                  #{@source_db}.patient_program pp
+                                                      INNER JOIN
+                                                  #{@source_db}.patient_state ps 
+                                                        ON ps.patient_program_id = pp.patient_program_id AND pp.program_id = 1
+                                              WHERE
+                                                  patient_id = #{patient_id}
+                                              AND ps.voided = 0
+                                              GROUP BY ps.start_date").map(&:start_date)
+  
+  if !states_dates.blank?
+    states_dates.each do |date|
       if !date.blank?
         visits << date
       end
@@ -279,7 +523,7 @@ def get_patients_data(patient_id)
   initial_string = "INSERT INTO flat_table2 "
   table2_sql_batch = ""
   
-  visits.sort.each do |visit|
+  visits.uniq.sort.each do |visit|
      	# arrays of [fields, values]
       patient_details = ["patient_id, visit_date","#{patient_id},'#{visit}'"]   	
       vitals = []
@@ -290,11 +534,12 @@ def get_patients_data(patient_id)
       patient_state = []
       patient_adh = []
       patient_reg_category = []
+      treatment_obs = []
 
       # we will exclude the orders having drug_inventory_id null     	
-      orders = Order.find_by_sql("SELECT o.patient_id, o.order_id, o.encounter_id,
+      orders = Order.find_by_sql("SELECT o.patient_id, IFNULL(o.order_id, 0) AS order_id, IFNULL(o.encounter_id, 0) AS encounter_id,
                                                o.start_date, o.auto_expire_date, IFNULL(d.quantity, 0) AS quantity,
-                                               d.drug_inventory_id, IFNULL(d.dose, 2) As dose, d.frequency,
+                                               d.drug_inventory_id, IFNULL(d.dose, 2) As dose, IFNULL(d.frequency, 'Unknown') AS frequency,
                                                o.concept_id, IFNULL(d.equivalent_daily_dose, 2) AS equivalent_daily_dose 
                                     FROM #{@source_db}.orders o
                                       INNER JOIN #{@source_db}.drug_order d ON d.order_id = o.order_id
@@ -306,7 +551,7 @@ def get_patients_data(patient_id)
           		patient_orders = process_patient_orders(orders, visit, 1) if patient_orders.empty?
         	end
 
-          reg_category = Encounter.find_by_sql("SELECT e.patient_id, o.value_text, o.encounter_id, e.encounter_datetime
+          reg_category = Encounter.find_by_sql("SELECT o.obs_id, e.patient_id AS patient_id, o.value_text AS regimen_category, o.encounter_id AS encounter_id, e.encounter_datetime
                                               FROM #{@source_db}.encounter e
                                                INNER JOIN #{@source_db}.obs o on o.encounter_id = e.encounter_id 
                                                     AND o.concept_id = 8375
@@ -323,7 +568,6 @@ def get_patients_data(patient_id)
       			:include => [:observations],
       			:order => "encounter_datetime ASC",
       			:conditions => ['voided = 0 AND patient_id = ? AND date(encounter_datetime) = ?', patient_id, visit])
-      			
       	
       	encounters.each do |enc|
       		if enc.encounter_type == 6 #vitals
@@ -334,9 +578,11 @@ def get_patients_data(patient_id)
       			hcc = process_hiv_clinic_consultation_encounter(enc)
       		elsif enc.encounter_type == 68 #ART adherence
       		  patient_adh = process_adherence_encounter(enc, visit)
+      		elsif enc.encounter_type == 25 #treatment
+      		  treatment_obs = process_treatment_obs(enc)
       		end
       	end
-      	
+
       	patient_state = process_patient_state(patient_id, visit, defaulted_dates)
       	
       	#if some encounters are missing, create a skeleton with defaults
@@ -344,9 +590,10 @@ def get_patients_data(patient_id)
          hcc = process_hiv_clinic_consultation_encounter(1, 1) if hcc.empty?
          hiv_reception = process_hiv_reception_encounter(1, 1) if hiv_reception.empty?
          patient_adh = process_adherence_encounter(1, visit,1) if patient_adh.empty?
-    
-         table_2_sql_statement = initial_string + "(" + patient_details[0] + "," + patient_state[0] + "," + vitals[0] + "," + hcc[0] + "," + hiv_reception[0] + "," + patient_orders[0] + "," + patient_adh[0] + "," + patient_reg_category[0] + ")" + \
-           " VALUES (" + patient_details[1] + "," + patient_state[1]  + "," + vitals[1] + "," + hcc[1] + "," + hiv_reception[1] + "," + patient_orders[1] + "," + patient_adh[1] + "," + patient_reg_category[1] + ");"
+         treatment_obs = process_treatment_obs(1, 1) if treatment_obs.empty?
+
+         table_2_sql_statement = initial_string + "(" + patient_details[0] + "," + patient_state[0] + "," + vitals[0] + "," + hcc[0] + "," + hiv_reception[0] + "," + patient_orders[0] + "," + patient_adh[0] + "," + patient_reg_category[0] + "," + treatment_obs[0] + ")" + \
+           " VALUES (" + patient_details[1] + "," + patient_state[1]  + "," + vitals[1] + "," + hcc[1] + "," + hiv_reception[1] + "," + patient_orders[1] + "," + patient_adh[1] + "," + patient_reg_category[1] + "," + treatment_obs[1] + ");"
 
       table2_sql_batch += table_2_sql_statement 
 
@@ -358,14 +605,18 @@ def get_patient_demographics(patient_id)
   pat = Patient.find(patient_id)
   patient_obj = PatientService.get_patient(pat.person) rescue nil
 
-  earliest_start_date = PatientProgram.find_by_sql("SELECT earliest_start_date
-                                           FROM #{@source_db}.earliest_start_date
-                                           WHERE patient_id = #{patient_id}").map(&:earliest_start_date).first
+  current_location = Location.find(GlobalProperty.find_by_property("current_health_center_id").property_value).name
 
-  age_at_initiation = PatientProgram.find_by_sql("SELECT age_at_initiation
-                                           FROM #{@source_db}.earliest_start_date
-                                           WHERE patient_id = #{patient_id}").map(&:age_at_initiation).first
-  
+  patient_details = []
+  PatientProgram.find_by_sql("SELECT *
+                              FROM #{@source_db}.earliest_start_date
+                              WHERE patient_id = #{patient_id}").each do |patient| 
+                                @earliest_start_date = patient.earliest_start_date
+                                @age_at_initiation = patient.age_at_initiation
+                                @age_in_days = patient.age_in_days
+                                @death_date = patient.death_date
+                              end
+ 
   a_hash = {:legacy_id2 => 'NULL'}
 
   pat_attributes = {}; pat_identifier = {}
@@ -378,13 +629,21 @@ def get_patient_demographics(patient_id)
     pat_identifier[identifier.identifier_type] = identifier.identifier
   end
 
+  gender = pat.person.gender
+  if gender == 'M'
+    gender = 'Male'
+  elsif gender == 'F'
+    gender = 'Female'
+  end
+
   a_hash[:patient_id] = patient_id rescue nil
   a_hash[:given_name] = pat.person.names.first.given_name  rescue nil
   a_hash[:middle_name] = pat.person.names.first.middle_name  rescue nil
   a_hash[:family_name] = pat.person.names.first.family_name  rescue nil
-  a_hash[:gender] = patient_obj.sex  rescue nil
+  a_hash[:gender] = gender rescue nil#patient_obj.sex  rescue nil
   a_hash[:dob] = pat.person.birthdate  rescue nil
   a_hash[:dob_estimated] = patient_obj.birthdate_estimated  rescue nil
+  a_hash[:death_date] =  @death_date
   a_hash[:ta] = pat.person.addresses.first.county_district  rescue nil
   a_hash[:current_address] = pat.person.addresses.first.city_village  rescue nil
   a_hash[:home_district] = pat.person.addresses.first.address2  rescue nil
@@ -401,8 +660,10 @@ def get_patient_demographics(patient_id)
   a_hash[:prev_art_number]  = pat_identifier[5]  rescue nil #prev_arv_number
   a_hash[:filing_number]  = pat_identifier[17]  rescue nil #filing_number
   a_hash[:archived_filing_number]  = pat_identifier[18]  rescue nil #archived_filing_number
-  a_hash[:earliest_start_date]  = earliest_start_date  rescue nil
-  a_hash[:age_at_initiation] = age_at_initiation rescue nil
+  a_hash[:earliest_start_date]  = @earliest_start_date  rescue nil
+  a_hash[:age_at_initiation] = @age_at_initiation rescue nil
+  a_hash[:age_in_days] = @age_in_days rescue nil  
+  a_hash[:current_location] = current_location rescue nil
 
   return generate_sql_string(a_hash)
 end
@@ -486,6 +747,43 @@ def process_hiv_reception_encounter(encounter, type = 0) #type 0 normal encounte
     return generate_sql_string(a_hash)
 end
 
+def process_treatment_obs(encounter, type = 0) #type 0 normal encounter, 1 generate_template only 
+
+    #initialize field and values variables
+    fields = ""
+    values = ""
+
+    #create vitals field list hash template
+    a_hash =	  {:arv_regimen_type_d4T_3TC_NVP_enc_id => 'NULL'}
+
+    return generate_sql_string(a_hash) if type == 1
+
+    encounter.observations.each do |obs|
+      if obs.concept_id == 656 #IPT given
+    		if obs.value_coded == 1065 #&& obs.value_coded_name_id == 1102
+    			a_hash[:ipt_given_yes] = 'Yes'
+    			a_hash[:ipt_given_yes_enc_id] = encounter.encounter_id
+    		elsif obs.value_coded == 1066 #&& obs.value_coded_name_id == 1103
+    			a_hash[:ipt_given_no] = 'No'
+    			a_hash[:ipt_given_no_enc_id] = encounter.encounter_id
+    		end		
+      elsif obs.concept_id == 7024 #CPT given
+        if obs.value_coded == 1065 #&& obs.value_coded_name_id == 1102
+          a_hash[:cpt_given_yes] = 'Yes'           
+          a_hash[:cpt_given_yes_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 1066 #&& obs.value_coded_name_id == 1103
+          a_hash[:cpt_given_no] = 'No'             
+          a_hash[:cpt_given_no_enc_id] = encounter.encounter_id
+        end
+      elsif obs.concept_id == 190 #condoms_given
+        a_hash[:condoms_given] = obs.value_numeric
+        a_hash[:condoms_given_enc_id] = encounter.encounter_id
+      end
+    end
+
+    return generate_sql_string(a_hash)
+end
+
 def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 normal encounter, 1 generate_template only 
 
     #initialize field and values variables
@@ -508,7 +806,11 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:pregnant_no] = 'No'
           a_hash[:pregnant_no_enc_id] = encounter.encounter_id
-          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date                    
+          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date
+        elsif obs.value_coded == 1067 && obs.value_coded_name_id == 1104
+          a_hash[:pregnant_unknown] = 'Unknown'
+          a_hash[:pregnant_unknown_enc_id] = encounter.encounter_id
+          a_hash[:pregnant_unknown_v_date] = obs.obs_datetime.to_date                                                 
         end
       elsif obs.concept_id == 1755 #Patient Pregnant
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
@@ -518,7 +820,11 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103        
           a_hash[:pregnant_no] = 'No'
           a_hash[:pregnant_no_enc_id] = encounter.encounter_id
-          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date          
+          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date
+        elsif obs.value_coded == 1067 && obs.value_coded_name_id == 1104
+          a_hash[:pregnant_unknown] = 'Unknown'
+          a_hash[:pregnant_unknown_enc_id] = encounter.encounter_id
+          a_hash[:pregnant_unknown_v_date] = obs.obs_datetime.to_date              
         end
       elsif obs.concept_id == 7965 #breastfeeding
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
@@ -528,7 +834,11 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:breastfeeding_no] = 'No'
           a_hash[:breastfeeding_no_enc_id] = encounter.encounter_id
-          a_hash[:breastfeeding_no_v_date] = obs.obs_datetime.to_date          
+          a_hash[:breastfeeding_no_v_date] = obs.obs_datetime.to_date
+        elsif obs.value_coded == 1067 && obs.value_coded_name_id == 1104
+          a_hash[:breastfeeding_unknown] = 'Unknown'
+          a_hash[:breastfeeding_unknown_enc_id] = encounter.encounter_id
+          a_hash[:breastfeeding_unknown_v_date] = obs.obs_datetime.to_date                    
         end
     	elsif obs.concept_id == 7459 #tb status
     		if obs.value_coded == 7454 && obs.value_coded_name_id == 10270
@@ -648,13 +958,21 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
           a_hash[:allergic_to_sulphur_no] = 'No'
           a_hash[:allergic_to_sulphur_no_enc_id] = encounter.encounter_id
         end
-      elsif obs.concept_id == 7874 #prescribe drugs
+      elsif obs.concept_id == 7874 #prescribe arvs
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
           a_hash[:prescribe_arvs_yes] = 'Yes'
           a_hash[:prescribe_arvs_yes_enc_id] = encounter.encounter_id
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:prescribe_arvs_no] = 'No'
           a_hash[:prescribe_arvs_no_enc_id] = encounter.encounter_id
+        end
+      elsif obs.concept_id == 656 #prescribe ipt
+        if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
+          a_hash[:prescribe_ipt_yes] = 'Yes'
+          a_hash[:prescribe_ipt_yes_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
+          a_hash[:prescribe_ipt_no] = 'No'
+          a_hash[:prescribe_ipt_no_enc_id] = encounter.encounter_id
         end
       elsif obs.concept_id == 8259 #routine tb screening
 	      if obs.value_coded == 5945 && obs.value_coded_name_id == 4315
@@ -807,6 +1125,10 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
           a_hash[:pregnant_no] = 'No'
           a_hash[:pregnant_no_enc_id] = obs.encounter_id
           a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date
+        elsif obs.value_coded == 1067 && obs.value_coded_name_id == 1104
+          a_hash[:pregnant_unknown] = 'Unknown'
+          a_hash[:pregnant_unknown_enc_id] = obs.encounter_id
+          a_hash[:pregnant_unknown_v_date] = obs.obs_datetime.to_date          
         end
     elsif obs.concept_id == 1755 #Patient Pregnant
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
@@ -816,7 +1138,11 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:pregnant_no] = 'No'
           a_hash[:pregnant_no_enc_id] = obs.encounter_id
-          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date          
+          a_hash[:pregnant_no_v_date] = obs.obs_datetime.to_date
+        elsif obs.value_coded == 1067 && obs.value_coded_name_id == 1104
+          a_hash[:pregnant_unknown] = 'Unknown'
+          a_hash[:pregnant_unknown_enc_id] = obs.encounter_id
+          a_hash[:pregnant_unknown_v_date] = obs.obs_datetime.to_date               
         end
     elsif obs.concept_id == 7965 #breastfeeding
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
@@ -826,7 +1152,11 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
         elsif obs.value_coded == 1066 && obs.value_coded_name_id == 1103
           a_hash[:breastfeeding_no] = 'No'
           a_hash[:breastfeeding_no_enc_id] = obs.encounter_id
-          a_hash[:breastfeeding_no_v_date]  = obs.obs_datetime.to_date                    
+          a_hash[:breastfeeding_no_v_date]  = obs.obs_datetime.to_date
+        elsif obs.value_coded == 1067 && obs.value_coded_name_id == 1104
+          a_hash[:breastfeeding_unknown] = 'Unknown'
+          a_hash[:breastfeeding_unknown_enc_id] = obs.encounter_id
+          a_hash[:breastfeeding_unknown_v_date]  = obs.obs_datetime.to_date                             
         end
     elsif obs.concept_id == 9099 #cd4 count location
       a_hash[:cd4_count_location] = obs.to_s.split(':')[1].strip rescue nil
@@ -949,6 +1279,7 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
     elsif obs.concept_id == 7563 #reason_for_starting_art
       a_hash[:reason_for_eligibility] = obs.to_s.split(':')[1].strip rescue nil
       a_hash[:reason_for_starting_v_date] = obs.obs_datetime.to_date rescue nil
+      a_hash[:reason_for_eligibility_enc_id] = obs.encounter_id rescue nil
     elsif obs.concept_id == 7562 #who_stage
       a_hash[:who_stage] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 2743 #who_stage_criteria_present
@@ -966,9 +1297,10 @@ def process_pat_regimen_category(reg_category, visit, type = 0)
   a_hash = {:transfer_within_responsibility_no => 'NULL'}
 
   if reg_category
-    (reg_category || []).each do |regimen|
-      a_hash[:regimen_category] = regimen.value_text
-      a_hash[:regimen_category_enc_id] = regimen.encounter_id
+    (reg_category || []).each do |patient|
+
+      a_hash[:regimen_category] = patient.regimen_category
+      a_hash[:regimen_category_enc_id] = patient.encounter_id
     end
    
     return generate_sql_string(a_hash)
@@ -1118,25 +1450,28 @@ def process_patient_state(patient_id,visit, defaulted_dates)
     state_name = 'Defaulter'
   else
     patient_state = PatientProgram.find_by_sql("SELECT 
-	                        #{@source_db}.current_state_for_program(#{patient_id},1,'#{visit} 23:59:59') AS state").first.state  
+	                        IFNULL(#{@source_db}.current_state_for_program(#{patient_id},1,'#{visit} 23:59:59'), 'Unknown') AS state").first.state  
 	  
 	   if !patient_state.blank?
-      state_name = ProgramWorkflowState.find_by_sql("SELECT 
-                                             c.name AS name
-                                           FROM
-                                               #{@source_db}. program_workflow_state pws
-                                                    INNER JOIN
-                                                #{@source_db}.concept_name c ON c.concept_id = pws.concept_id
-                                                    AND c.voided = 0
-                                                    AND pws.retired = 0
-                                           WHERE
-                                                program_workflow_state_id = #{patient_state}
-                                                    and program_workflow_id = 1
-                                            LIMIT 1").map(&:name) #rescue nil
+	    if patient_state == 'Unknown'
+	      state_name = 'Unknown'
+	    else
+        state_name = ProgramWorkflowState.find_by_sql("SELECT 
+                                               c.name AS name
+                                             FROM
+                                                 #{@source_db}. program_workflow_state pws
+                                                      INNER JOIN
+                                                  #{@source_db}.concept_name c ON c.concept_id = pws.concept_id
+                                                      AND c.voided = 0
+                                                      AND pws.retired = 0
+                                             WHERE
+                                                  program_workflow_state_id = #{patient_state}
+                                                      and program_workflow_id = 1
+                                              LIMIT 1").map(&:name) #rescue nil
+      end
     end
   end
 
-  
  
   a_hash[:current_hiv_program_state] = state_name
 	a_hash[:current_hiv_program_start_date] = visit
@@ -1169,7 +1504,7 @@ if encounter != 1
         elsif adh.concept_id == 2667 #missed hiv drug
           missed_hiv_drug_const_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
         elsif adh.concept_id == 6987 #patient adherence
-          patient_adherence_hash[visit] = adh.value_text rescue nil
+          patient_adherence_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
           patient_adherence_enc_ids[visit] = adh.encounter_id rescue nil
         elsif adh.concept_id == 6781 #amount remaining
           amount_of_drug_remaining_at_home_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
@@ -1181,7 +1516,7 @@ if encounter != 1
         elsif adh.concept_id == 2667 #missed hiv drug
           missed_hiv_drug_const_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
         elsif adh.concept_id == 6987 #patient adherence
-          patient_adherence_hash[visit] = adh.value_text rescue nil
+          patient_adherence_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
           patient_adherence_enc_ids[visit] = adh.encounter_id rescue nil
         elsif adh.concept_id == 6781 #amount remaining
           amount_of_drug_remaining_at_home_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
@@ -1235,9 +1570,9 @@ end
   return generate_sql_string(a_hash)
 end
 
-def patient_defaulted_dates(patient_obj, session_date)
-    #getting all patient's dispensations encounters
-    
+def patient_defaulted_dates(patient_obj, session_date, visits)
+     #getting all patient's dispensations encounters
+
     all_dispensations = Observation.find_by_sql("SELECT obs.person_id, obs.obs_datetime AS obs_datetime, d.order_id
                             FROM #{@source_db}.drug_order d 
                               LEFT JOIN #{@source_db}.orders o ON d.order_id = o.order_id
@@ -1251,7 +1586,7 @@ def patient_defaulted_dates(patient_obj, session_date)
                                                           AND o.voided = 0
                                                           and obs.person_id = #{patient_obj.patient_id}
                                                           GROUP BY DATE(obs_datetime) order by obs_datetime")
-    
+
     outcome_dates = []
     dates = 0
     total_dispensations = all_dispensations.length
@@ -1289,7 +1624,29 @@ def patient_defaulted_dates(patient_obj, session_date)
       end
     end
 
-    return outcome_dates
+=begin
+    max_def_date = defaulted_dates.sort.last.to_date rescue ""
+    max_out_date = outcome_dates.sort.last.to_date rescue ""
+
+    if max_def_date != "" && max_out_date != ""
+      ref_dates = [max_def_date, max_out_date]
+    else
+      ref_dates = []
+    end
+=end
+#    if visits.length != 0 && ref_dates.length != 0
+
+      (visits || []).each do |visit|
+#          if visit.to_date > ref_dates[0] && visit.to_date > ref_dates[1] # or ref_dates[1] < ref_dates[0] && visit.to_date >= ref_dates[1]
+            pat_def = ActiveRecord::Base.connection.select_value "
+              SELECT #{@source_db}.current_defaulter(#{patient_obj.patient_id}, '#{visit} 23:59')"
+            if pat_def == "1"
+              outcome_dates << visit
+            end
+#          end 
+      end
+#    end
+    return outcome_dates          
 end
 
 def generate_sql_string(a_hash)
@@ -1308,7 +1665,14 @@ end
 def start
  initialize_variables
  #get_all_patients
- initiate_script
+ #specify patients_list, if you want to debug a list of patients
+	patients_list = []
+
+	if patients_list.length != 0
+	     initiate_special_script(patients_list)
+	else
+	     initiate_script
+	end
 end
 
 def get_drug_list
@@ -1320,4 +1684,4 @@ def get_drug_list
   return drug_hash
 end
 
-start 
+start

@@ -4,7 +4,7 @@ class Drug < ActiveRecord::Base
   include Openmrs
   belongs_to :concept, :conditions => {:retired => 0}
   belongs_to :form, :foreign_key => 'dosage_form', :class_name => 'Concept', :conditions => {:retired => 0}
-
+  has_many :drug_order_barcodes
 =begin
   # Need to make this a lot more generic	
   # This method gets all generic drugs in the database
