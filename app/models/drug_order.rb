@@ -152,11 +152,13 @@ class DrugOrder < ActiveRecord::Base
   end
   
   def amount_needed
-    (duration * equivalent_daily_dose) - (quantity || 0)
+    needed = (duration * equivalent_daily_dose)
+    DrugOrder.calculate_complete_pack(self.drug, needed) - (quantity || 0)
   end
 
   def total_required
-    (duration * equivalent_daily_dose)
+    required = (duration * equivalent_daily_dose)
+    DrugOrder.calculate_complete_pack(self.drug, required)
   end
 
   def self.prescription_dates(patient,date)
@@ -200,6 +202,16 @@ class DrugOrder < ActiveRecord::Base
       break if complete == false                                              
     end                                                                       
     return complete                                                           
+  end
+
+  def self.calculate_complete_pack(drug, units)
+    return units if drug.drug_order_barcodes.blank?
+    (drug.drug_order_barcodes).sort_by{|d| d.tabs }.each do |barcode|
+      if barcode.tabs >= units.to_i
+        return barcode.tabs
+      end
+    end
+    return units
   end
 
 end
