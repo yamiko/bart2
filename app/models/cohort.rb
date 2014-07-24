@@ -63,6 +63,7 @@ class Cohort
               
 							patient_object = Patient.find(collection_reason.patient_id)
 							reason = PatientService.reason_for_art_eligibility(patient_object)
+              next if reason.nil?
 
 							if reason.match(/WHO stage III/i)
 								cohort_report['Total WHO stage 3'] << collection_reason.patient_id
