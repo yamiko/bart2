@@ -74,3 +74,4 @@ Version (1.0.0)
     - Resolved issues on missed appointments pulling visit dates instead of appointment dates
 ----
     - Ensured that the nil start reasons when pulling cohort report are handled effectively so that the should not cause the thread to abort
+    - Defaulted patient state to Unknown, for patients having no program id (HIV Program)

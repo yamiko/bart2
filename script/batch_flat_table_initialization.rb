@@ -1444,38 +1444,42 @@ def process_patient_state(patient_id,visit, defaulted_dates)
 				FROM #{@source_db}.patient_program 
 				WHERE patient_id = #{patient_id} 
 				AND program_id = 1 AND voided = 0 
-				ORDER BY patient_program_id DESC LIMIT 1").first.patient_program_id
-
-  if defaulted_dates.include?(visit)
-    state_name = 'Defaulter'
-  else
-    patient_state = PatientProgram.find_by_sql("SELECT 
-	                        IFNULL(#{@source_db}.current_state_for_program(#{patient_id},1,'#{visit} 23:59:59'), 'Unknown') AS state").first.state  
-	  
-	   if !patient_state.blank?
-	    if patient_state == 'Unknown'
-	      state_name = 'Unknown'
-	    else
-        state_name = ProgramWorkflowState.find_by_sql("SELECT 
-                                               c.name AS name
-                                             FROM
-                                                 #{@source_db}. program_workflow_state pws
-                                                      INNER JOIN
-                                                  #{@source_db}.concept_name c ON c.concept_id = pws.concept_id
-                                                      AND c.voided = 0
-                                                      AND pws.retired = 0
-                                             WHERE
-                                                  program_workflow_state_id = #{patient_state}
-                                                      and program_workflow_id = 1
-                                              LIMIT 1").map(&:name) #rescue nil
+				ORDER BY patient_program_id DESC LIMIT 1").first.patient_program_id rescue nil
+				
+  if ! program_id.nil?
+    if defaulted_dates.include?(visit)
+      state_name = 'Defaulter'
+    else
+      patient_state = PatientProgram.find_by_sql("SELECT 
+  	                        IFNULL(#{@source_db}.current_state_for_program(#{patient_id},1,'#{visit} 23:59:59'), 'Unknown') AS state").first.state  
+  	  
+  	   if !patient_state.blank?
+  	    if patient_state == 'Unknown'
+  	      state_name = 'Unknown'
+  	    else
+          state_name = ProgramWorkflowState.find_by_sql("SELECT 
+                                                 c.name AS name
+                                               FROM
+                                                   #{@source_db}. program_workflow_state pws
+                                                        INNER JOIN
+                                                    #{@source_db}.concept_name c ON c.concept_id = pws.concept_id
+                                                        AND c.voided = 0
+                                                        AND pws.retired = 0
+                                               WHERE
+                                                    program_workflow_state_id = #{patient_state}
+                                                        and program_workflow_id = 1
+                                                LIMIT 1").map(&:name) #rescue nil
+        end
       end
     end
+  
+   
+    a_hash[:current_hiv_program_state] = state_name
+  	a_hash[:current_hiv_program_start_date] = visit
+  else
+    a_hash[:current_hiv_program_state] = "Unknown"
+    a_hash[:current_hiv_program_start_date] = visit
   end
-
- 
-  a_hash[:current_hiv_program_state] = state_name
-	a_hash[:current_hiv_program_start_date] = visit
-
 	return generate_sql_string(a_hash)
 end
 
