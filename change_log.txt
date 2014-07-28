@@ -75,3 +75,6 @@ Version (1.0.0)
 ----
     - Ensured that the nil start reasons when pulling cohort report are handled effectively so that the should not cause the thread to abort
     - Defaulted patient state to Unknown, for patients having no program id (HIV Program)
+---
+   - added a patient_defaulted_dates model
+   - added 'age_in_days' field in batch_flat_cohort_table_initiliazation script
