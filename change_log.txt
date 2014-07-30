@@ -89,3 +89,5 @@ Version (1.0.0)
    - added flat_tables models
    - modified applications_controller to accomodate the addition of flat tables cohort report
    - updated routes.rb to accommodate the additions of flat_tables routes
+--- 
+   - intergrated flat tables reports with bart2
