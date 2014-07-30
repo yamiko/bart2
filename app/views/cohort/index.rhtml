@@ -1,0 +1,433 @@
+<html>
+  <head>
+    <title>Cohort Report</title>
+    <style type="text/css">
+      body {
+        font-family: verdana;
+        -moz-user-select: none;
+      }
+      .normalcell {
+        border: 1px solid #ccc;
+      }
+      .header {
+        font-size: 28px;
+      }
+      .heading {
+        border: 1px solid #ccc;
+        font-weight: bold;
+        font-size: 18px;
+        color: #6281A7;
+      }
+      .num {
+        text-align: center;
+        min-width: 70px;
+      }
+    </style>
+  </head>
+  <body>
+    <table id="report" width="100%" cellspacing="2" cellpadding="5">
+      <tr>
+        <th style="background-color: #ccc;">
+          &nbsp;
+        </th>
+        <th colspan="4" class="header" style="background-color: #6281A7;
+            padding: 10px; color: #fff; font-weight: normal;">
+          <span id="qtr">{quarter}</span> Cohort Report
+        </th>
+      </tr>
+      <tr>
+        <th style="background-color: #ccc;">
+          &nbsp;
+        </th>
+        <td id="site" class="normalcell header" style="color: #6281A7;">
+          {site}
+        </td>
+        <td class="heading" style="color: #6281A7;">
+          Newly Registered in Quarter
+        </td>
+        <td class="heading" colspan="2" style="color: #6281A7;">
+          Cumulative Ever Registered
+        </td>
+      </tr>
+      <tr>
+        <th style="background-color: #ccc;">
+          &nbsp;
+        </th>
+        <td class="heading" style="color: #6281A7;">
+          Patient Registration Details
+        </td>
+        <th class="normalcell">
+          &nbsp;
+        </th>
+        <th class="normalcell" colspan="2">
+          &nbsp;
+        </th>
+      </tr>
+      <tr>
+        <td style="background-color: #ccc;">
+          &nbsp;
+        </td>
+        <td class="normalcell">
+          &nbsp;
+        </td>
+        <td class="normalcell">
+          &nbsp;
+        </td>
+        <td class="normalcell" colspan="2">
+          &nbsp;
+        </td>
+      </tr>
+    </table>
+
+    <script type="text/javascript">
+      <!--
+            
+      // [
+      //   0:   position label (col #0),
+      //   1:   label col 1 (col #1),
+      //   2:   column count,
+      //   3:   for 2 columns cases, second column label: heading type (col #2),
+      //   4:   for regular columns, col 2 label (col #2),
+      //   5:   col 3 label (col #3),
+      //   6:   col 4 label/value (col #4),
+      //   7:   rowspan,
+      //   8:   field id for col #2,
+      //   9:   ajaxUrl link for col #2,
+      //   10:  field id for col #3,
+      //   11:  ajaxUrl link for col #3,
+      //   12:  field id for col #4,
+      //   13:  ajaxUrl link for col #4
+      // ]
+      var fields = [
+        [6, "Total registered", 3,,,,,,"new_total_reg", "/field?field=new_total_reg",
+          "cum_total_reg", "/field?field=cum_total_reg"],
+        ["&nbsp;", "&nbsp;", 3],
+        [7, "FT: Patients initiated on ART first time", 3,,,,,,"new_ft", "/field?field=new_ft",
+          "cum_ft", "/field?field=cum_ft"],
+        [8, "Re: Patients re-initiated on ART", 3,,,,,,"new_re", "/field?field=new_re",
+          "cum_re", "/field?field=cum_re"],
+        [9, "TI: Patients transfered in on ART", 3,,,,,,"new_ti", "/field?field=new_ti",
+          "cum_ti", "/field?field=cum_ti"],
+        ["&nbsp;", "&nbsp;", 3],
+        [10, "Males (all ages)", 3,,,,,,"new_males", "/field?field=new_males",
+          "cum_males", "/field?field=cum_males"],
+        [11, "Non-pregnant Females (all ages)", 3,,,,,,"new_non_preg", "/field?field=new_non_preg",
+          "cum_non_preg", "/field?field=cum_non_preg"],
+        [12, "Pregnant Females (all ages)", 3,,,,,,"new_preg_all_age", "/field?field=new_preg_all_age",
+          "cum_preg_all_age", "/field?field=cum_preg_all_age"],
+        ["&nbsp;", "&nbsp;", 3],
+        [13, "A: Infants (0<24 months at ART initiation)", 3,,,,,,"new_a", "/field?field=new_a",
+          "cum_a", "/field?field=cum_a"],
+        [14, "B: Children (24 mths -14 yrs at ART initiation)", 3,,,,,,"new_b", "/field?field=new_b",
+          "cum_b", "/field?field=cum_b"],
+        [15, "C: Adults (15 years or older at ART initiation)", 3,,,,,,"new_c", "/field?field=new_c",
+          "cum_c", "/field?field=cum_c"],
+        ["&nbsp;", "Unknown age", 3,,,,,,"new_unk_age", "/field?field=new_unk_age",
+          "cum_unk_age", "/field?field=cum_unk_age"],
+        ["&nbsp;", "Reason for starting ART", 3, "&nbsp;"],
+        [16, "Presumed severe HIV disease in infants", 3,,,,,,"new_pres_hiv", "/field?field=new_pres_hiv",
+          "cum_pres_hiv", "/field?field=cum_pres_hiv"],
+        [17, "Confirmed HIV infection in infants (PCR)", 3,,,,,,"new_conf_hiv", "/field?field=new_conf_hiv",
+          "cum_conf_hiv", "/field?field=cum_conf_hiv"],
+        [18, "WHO stage 1 or 2, CD4 below threshold", 3,,,,,,"new_who_1_2", "/field?field=new_who_1_2",
+          "cum_who_1_2", "/field?field=cum_who_1_2"],
+        [19, "WHO stage 2, total lymphocytes <1,200/mm<sup>3</sup>", 3,,,,,,"new_who_2", "/field?field=new_who_2",
+          "cum_who_2", "/field?field=cum_who_2"],
+        [52, "Children 12-23 mths", 3,,,,,,"new_children", "/field?field=new_children",
+          "cum_children", "/field?field=cum_children"],
+        [53, "Breastfeeding mothers", 3,,,,,,"new_breastfeed", "/field?field=new_breastfeed",
+          "cum_breastfeed", "/field?field=cum_breastfeed"],
+        [54, "Pregnant women", 3,,,,,,"new_preg", "/field?field=new_preg",
+          "cum_preg", "/field?field=cum_preg"],
+        [20, "WHO stage 3", 3,,,,,,"new_who_3", "/field?field=new_who_3",
+          "cum_who_3", "/field?field=cum_who_3"],
+        [21, "WHO stage 4", 3,,,,,,"new_who_4", "/field?field=new_who_4",
+          "cum_who_4", "/field?field=cum_who_4"],
+        [22, "Unknown/other reason outside guidelines", 3,,,,,,"new_other_reason", "/field?field=new_other_reason",
+          "cum_other_reason", "/field?field=cum_other_reason"],
+        ["&nbsp;", "Stage defining conditions at ART initiation", 3, "&nbsp;"],
+        [23, "No TB", 3,,,,,,"new_no_tb", "/field?field=new_no_tb",
+          "cum_no_tb", "/field?field=cum_no_tb"],
+        [24, "TB within the last 2 years", 3,,,,,,"new_tb_w2yrs", "/field?field=new_tb_w2yrs",
+          "cum_tb_w2yrs", "/field?field=cum_tb_w2yrs"],
+        [25, "Current episode of TB", 3,,,,,,"new_current_tb", "/field?field=new_current_tb",
+          "cum_current_tb", "/field?field=cum_current_tb"],
+        [26, "Kaposis Sarcoma", 3,,,,,,"new_ks", "/field?field=new_ks",
+          "cum_ks", "/field?field=cum_ks"],
+        ["&nbsp;", "Primary outcomes as of the end of the quarter evaluated (only cumulative)", 2,
+          "Cumulative ever registered"],
+        [27, "Total alive and on ART", 2,,,,,,"total_on_art", "/field?field=total_on_art"],
+        ["&nbsp;", "&nbsp;", 2],
+        [28, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Died within the 1st month after ART initiation", 2,,,,,,"died_1st_month",
+          "/field?field=died_1st_month"],
+        [29, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Died within the 2nd month after ART initiation", 2,,,,,,
+          "died_2nd_month", "/field?field=died_2nd_month"],
+        [30, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Died within the 3rd month after ART initiation", 2,,,,,,
+          "died_3rd_month", "/field?field=died_3rd_month"],
+        [31, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Died after the end of the 3rd month after ART initiation", 2,,,,,,
+          "died_after_3rd_month", "/field?field=died_after_3rd_month"],
+        [32, "Died total", 2,,,,,,"died_total", "/field?field=died_total"],
+        [33, "Defaulted (more than 2 months overdue after expected to have run out of ARVs)", 2,,,,,,
+          "defaulted", "/field?field=defaulted"],
+        [34, "Stopped taking ARVs (clinician or patient own decision, last known alive)", 2,,,,,,"stopped",
+          "/field?field=stopped"],
+        [35, "Transfered out", 2,,,,,,"transfered", "/field?field=transfered"],
+        ["&nbsp;", "Unknown outcome", 2,,,,,,"unknown_outcome", "/field?field=unknown_outcome"],
+        ["&nbsp;", "Secondary outcomes of those alive on ART as of last visit before end of quarter", 1, "&nbsp;"],
+        [38, "ARV regimens", 4, null, "1A (D4T+3TC+NVP)", "&nbsp;", "&nbsp;", 2,,,,,"n1a", "/field?field=n1a"],
+        ["&nbsp;", "&nbsp;", 4, null, "1P (D4T+3TC+NVP)", "&nbsp;", "&nbsp;", 0,,,,,"n1p", "/field?field=n1p"],
+        [38, "&nbsp;", 4, null, "2A (AZT+3TC+NVP)", "&nbsp;", "&nbsp;", 2,,,,,"n2a", "/field?field=n2a"],
+        ["&nbsp;", "&nbsp;", 4, null, "2P (AZT+3TC+NVP)", "&nbsp;", "&nbsp;", 0,,,,, "n2p", "/field?field=n2p"],
+        [38, "&nbsp;", 4, null, "3A (D4T+3TC+EFV)", "&nbsp;", "&nbsp;", 2,,,,, "n3a", "/field?field=n3a"],
+        ["&nbsp;", "&nbsp;", 4, null, "3P (D4T+3TC+EFV)", "&nbsp;", "&nbsp;", 0,,,,, "n3p", "/field?field=n3p"],
+        [38, "&nbsp;", 4, null, "4A (AZT+3TC+EFV)", "&nbsp;", "&nbsp;", 2,,,,, "n4a", "/field?field=n4a"],
+        ["&nbsp;", "&nbsp;", 4, null, "4P (AZT+3TC+EFV)", "&nbsp;", "&nbsp;", 0,,,,, "n4p", "/field?field=n4p"],
+        [38, "&nbsp;", 4, null, "5A (TDF+3TC+EFV)", "&nbsp;", "&nbsp;", 1,,,,, "n5a", "/field?field=n5a"],
+        [38, "&nbsp;", 4, null, "6A (TDF+3TC+NVP)", "&nbsp;", "&nbsp;", 1,,,,, "n6a", "/field?field=n6a"],
+        [38, "&nbsp;", 4, null, "7A (TDF+3TC+LPV/r)", "&nbsp;", "&nbsp;", 1,,,,, "n7a", "/field?field=n7a"],
+        [38, "&nbsp;", 4, null, "8A (AZT+3TC+LPV/r)", "&nbsp;", "&nbsp;", 1,,,,, "n8a", "/field?field=n8a"],
+        [38, "&nbsp;", 4, null, "9P (ABC+3TC+LPV/r)", "&nbsp;", "&nbsp;", 1,,,,, "n9p", "/field?field=n9p"],
+        [44, "&nbsp;", 4, null, "Non-standard", "(Patients on any other regimens)", "&nbsp;", 1,,,,, "non_std",
+          "/field?field=non_std"],
+        ["&nbsp;", "&nbsp;", 3],
+        ["45", "Total patients with side effects", 2,,,,,,"side_effects","/field?field=side_effects"],
+        ["46", "Patients with 0-6 doses missed at their last visit(before end of quarter evaluated)", 2,,,,,,
+          "missed_0_6","/field?field=missed_0_6"],
+        ["47", "Patients with 7+ doses missed at their last visit(before end of quarter evaluated)", 2,,,,,,
+          "missed_7plus","/field?field=missed_7plus"],
+        ["&nbsp;", "Current TB status, any form of TB", 1, "&nbsp;"],
+        [48, "&nbsp;", 3, null, "TB not suspected",,,,,,"tb_no_suspect",
+          "/field?field=tb_no_suspect"],
+        [49, "&nbsp;", 3, null, "TB suspected",,,,,,"tb_suspected", "/field?field=tb_suspected"],
+        [50, "&nbsp;", 3, null, "TB confirmed, not yet/currently not on TB treatment",,,,,,
+          "tb_confirm_not_treat", "/field?field=tb_confirm_not_treat"],
+        [51, "&nbsp;", 3, null, "TB confirmed, on TB treatment",,,,,,"tb_confirmed",
+          "/field?field=tb_confirmed"],
+        [52, "&nbsp;", 3, null, "Unknown TB status",,,,,,"unknown_tb", "/field?field=unknown_tb"],
+        ["&nbsp;", "&nbsp;", 3, null, "&nbsp;"]
+      ];
+            
+      function __$(id){
+        return document.getElementById(id);
+      }
+            
+      function createTable(){
+        for(var i = 0; i < fields.length; i++){
+          var row = document.createElement("tr");
+                        
+          __$("report").getElementsByTagName("tbody")[0].appendChild(row);
+                                               
+          var cell0 = document.createElement("td");
+          cell0.innerHTML = fields[i][0];
+          cell0.style.textAlign = "right";
+          cell0.style.color = "#fff";
+          cell0.style.backgroundColor = (String(fields[i][0]).trim() != "&nbsp;" ? "#6281A7" : "#ccc");
+          cell0.rowSpan = (fields[i][7] != "undefined" && fields[i][7] != 0 ? fields[i][7] : 1);
+                        
+          if(typeof(fields[i][7]) != "undefined" && fields[i][7] != 0){
+            row.appendChild(cell0);
+          } else if(typeof(fields[i][7]) == "undefined"){
+            row.appendChild(cell0);
+          }
+                    
+          var cell1 = document.createElement("td");
+          cell1.innerHTML = fields[i][1];
+          cell1.className = (typeof(fields[i][3]) != "undefined" && fields[i][3] != null ?
+            "heading" : "normalcell");
+          cell1.colSpan = (fields[i][2] == 1 ? 4 : (fields[i][2] == 2 ? 2 : 1));
+          cell1.rowSpan = (fields[i][7] != "undefined" && fields[i][7] != 0 ? fields[i][7] : 1);
+                    
+          if(typeof(fields[i][7]) != "undefined" && fields[i][7] != 0){
+            row.appendChild(cell1);
+          } else if(typeof(fields[i][7]) == "undefined"){
+            row.appendChild(cell1);
+          }
+                    
+          if(fields[i][2] == 1){
+            continue;
+          }
+                    
+          var cell2 = document.createElement("td");
+          cell2.innerHTML = (fields[i][2] == 2 ? (typeof(fields[i][3]) != "undefined" && fields[i][3] != null ?
+            fields[i][3] : "&nbsp;") : (typeof(fields[i][4]) != "undefined" ? fields[i][4] : "&nbsp;"));
+                    
+          cell2.className = (typeof(fields[i][3]) != "undefined" && fields[i][3] != null ?
+            "heading" : "normalcell");
+          cell2.colSpan = (fields[i][2] == 2 ? 2 : 1);
+                    
+          if(typeof(fields[i][8]) != "undefined"){
+            cell2.id = fields[i][8];
+            cell2.className = "num normalcell";
+          }
+                    
+          row.appendChild(cell2);
+                    
+          if(fields[i][2] == 2){
+            continue;
+          }
+                    
+          var cell3 = document.createElement("td");
+          cell3.innerHTML = (typeof(fields[i][5]) != "undefined" ? fields[i][5] : "&nbsp;");
+          cell3.className = "normalcell";
+          cell3.colSpan = (fields[i][2] == 3 ? 2 : 1);
+                    
+          if(typeof(fields[i][10]) != "undefined"){
+            cell3.id = fields[i][10];
+            cell3.className = "num normalcell";
+          }
+                    
+          row.appendChild(cell3);
+                    
+          if(fields[i][2] == 3){
+            continue;
+          }
+                    
+          var cell4 = document.createElement("td");
+          cell4.innerHTML = (typeof(fields[i][6]) != "undefined" ? fields[i][6] : "&nbsp;");
+          cell4.className = "normalcell";
+                    
+          if(typeof(fields[i][12]) != "undefined"){
+            cell4.id = fields[i][12];
+            cell4.className = "num normalcell";
+          }
+                    
+          row.appendChild(cell4);
+                    
+        }
+      }
+            
+            
+      function ajaxRequest(aElement, aUrl) {
+        var httpRequest = new XMLHttpRequest();
+        httpRequest.onreadystatechange = function() {
+          handleResult(aElement, httpRequest);
+        };
+        try {
+          httpRequest.open('GET', aUrl, true);
+          httpRequest.send(null);
+        } catch(e){
+        }
+      }
+
+      function handleResult(element, aXMLHttpRequest) {
+        if (!aXMLHttpRequest) return;
+
+        if (!element) return;
+
+        if (aXMLHttpRequest.readyState == 4 && aXMLHttpRequest.status == 200) {
+          var result = aXMLHttpRequest.responseText;
+        
+          if(__$(element)){
+
+            if(result.match(/\[/)){
+              var json = JSON.parse(result);
+                      
+              __$(element).innerHTML = "";
+              __$(element).style.padding = "0px";
+
+              if(json.length > 0){
+                __$(element).style.verticalAlign = "middle";
+                
+                var frm = document.createElement("form");
+                frm.setAttribute("action", "/cohort/drill_down");
+                frm.setAttribute("method", "post");
+                frm.setAttribute("target", "_parent");
+                frm.style.padding = "0px";
+                frm.style.margin = "0px";
+
+                __$(element).appendChild(frm);
+
+                var startdate = document.createElement("input");
+                startdate.name = "start_date";
+                startdate.type = "hidden";
+                startdate.value = "<%= params[:start_date] %>"
+
+                frm.appendChild(startdate);
+
+                var enddate = document.createElement("input");
+                enddate.name = "end_date";
+                enddate.type = "hidden";
+                enddate.value = "<%= params[:end_date] %>"
+
+                frm.appendChild(enddate);
+
+                var textarea = document.createElement("textarea");
+                textarea.name = "field";
+                textarea.style.display = "none";
+                textarea.innerHTML = "";
+                textarea.style.margin = "0px";
+
+                for(var j = 0; j < json.length; j++){
+                  textarea.innerHTML += json[j] + ","
+                }
+
+                textarea.innerHTML = textarea.innerHTML.trim().substr(0, (textarea.innerHTML.trim().length - 1));
+
+                frm.appendChild(textarea);
+
+                var button = document.createElement("input");
+                button.type = "submit";
+                button.value = json.length;
+                button.style.margin = "0px";
+                button.style.color = "#000";
+                button.style.width = "100%";
+                button.style.border = "0px solid #fff";
+                button.style.backgroundColor = "#fff";
+                button.style.cursor = "pointer";
+
+                frm.appendChild(button);
+              
+              } else {
+                __$(element).innerHTML = json.length;
+              }
+            } else {
+              __$(element).innerHTML = result;
+            }
+          }
+        }
+      }
+            
+      function loadFields(){
+        ajaxRequest("site", "/field?field=current_site");
+                
+        var start_date = null, end_date = null;
+                
+        var path = window.location.href.match(/\?(.+)$/);
+
+        var start = path[1].match(/start_date=\d{4}-\d{2}-\d{2}/);
+
+        var end = path[1].match(/end_date=\d{4}-\d{2}-\d{2}/);
+                
+        if(start != null){
+          start_date = start[0].split("=")[1];
+        }
+                
+        if(end != null){
+          end_date = end[0].split("=")[1];
+        }
+                
+        ajaxRequest("qtr", "/field?field=quarter&start_date=" +
+          start_date + "&end_date=" + end_date);
+                
+        for(var i = 0; i < fields.length; i++){
+          if(typeof(fields[i][8]) != "undefined"){
+            ajaxRequest(fields[i][8], fields[i][9] + "&start_date=" +
+              start_date + "&end_date=" + end_date);
+          }
+          if(typeof(fields[i][10]) != "undefined"){
+            ajaxRequest(fields[i][10], fields[i][11] + "&start_date=" +
+              start_date + "&end_date=" + end_date);
+          }
+          if(typeof(fields[i][12]) != "undefined"){
+            ajaxRequest(fields[i][12], fields[i][13] + "&start_date=" +
+              start_date + "&end_date=" + end_date);
+          }
+        }
+      }
+            
+      createTable();
+      loadFields();
+      //-->
+    </script>
+  </body>
+</html>
