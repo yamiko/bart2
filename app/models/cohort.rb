@@ -63,43 +63,46 @@ class Cohort
               
 							patient_object = Patient.find(collection_reason.patient_id)
 							reason = PatientService.reason_for_art_eligibility(patient_object)
-              next if reason.nil?
-
-							if reason.match(/WHO stage III/i)
-								cohort_report['Total WHO stage 3'] << collection_reason.patient_id
-							elsif reason.match(/WHO stage IV/i)
-								cohort_report['Total WHO stage 4'] << collection_reason.patient_id
-							elsif reason.match(/Confirmed/i)
-								cohort_report['Total Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
-							elsif reason.match(/HIV DNA polymerase chain reaction/i)
-								cohort_report['Total Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
-              elsif reason.match(/Lymphocyte count below threshold with who stage 2/i)
-								cohort_report['Total WHO stage 2, total lymphocytes'] << collection_reason.patient_id
-							elsif reason.match(/WHO stage II adult/i)
-								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
-							elsif reason.match(/WHO stage II ped/i)
-								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
-
-              elsif reason.match(/WHO stage I adult/i)
-								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
-							elsif reason.match(/WHO stage I ped/i)
-								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
-
-							elsif reason.match(/CD4 COUNT LESS/i)
-								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
-						 elsif reason.upcase.match(/CD4 COUNT <=/i)
-								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
-							elsif reason.match(/Presumed/i)
-								cohort_report['Total Presumed severe HIV disease in infants'] << collection_reason.patient_id
-							elsif reason.strip.humanize == 'Patient pregnant'
-								cohort_report['Total Patient pregnant'] << collection_reason.patient_id
-							elsif reason.match(/Breastfeeding/i)
-								cohort_report['Total Patient breastfeeding'] << collection_reason.patient_id
-							elsif reason.strip.upcase == 'HIV INFECTED'
-								cohort_report['Total HIV infected'] << collection_reason.patient_id
-							else
-								cohort_report['Total Unknown reason'] << collection_reason.patient_id
-							end
+							
+              if reason.nil?
+                  cohort_report['Total Unknown reason'] << collection_reason.patient_id
+              else
+  							if reason.match(/WHO stage III/i)
+  								cohort_report['Total WHO stage 3'] << collection_reason.patient_id
+  							elsif reason.match(/WHO stage IV/i)
+  								cohort_report['Total WHO stage 4'] << collection_reason.patient_id
+  							elsif reason.match(/Confirmed/i)
+  								cohort_report['Total Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
+  							elsif reason.match(/HIV DNA polymerase chain reaction/i)
+  								cohort_report['Total Confirmed HIV infection in infants (PCR)'] << collection_reason.patient_id
+                elsif reason.match(/Lymphocyte count below threshold with who stage 2/i)
+  								cohort_report['Total WHO stage 2, total lymphocytes'] << collection_reason.patient_id
+  							elsif reason.match(/WHO stage II adult/i)
+  								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+  							elsif reason.match(/WHO stage II ped/i)
+  								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+  
+                elsif reason.match(/WHO stage I adult/i)
+  								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+  							elsif reason.match(/WHO stage I ped/i)
+  								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+  
+  							elsif reason.match(/CD4 COUNT LESS/i)
+  								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+  						 elsif reason.upcase.match(/CD4 COUNT <=/i)
+  								cohort_report['Total WHO stage 1 or 2, CD4 below threshold'] << collection_reason.patient_id
+  							elsif reason.match(/Presumed/i)
+  								cohort_report['Total Presumed severe HIV disease in infants'] << collection_reason.patient_id
+  							elsif reason.strip.humanize == 'Patient pregnant'
+  								cohort_report['Total Patient pregnant'] << collection_reason.patient_id
+  							elsif reason.match(/Breastfeeding/i)
+  								cohort_report['Total Patient breastfeeding'] << collection_reason.patient_id
+  							elsif reason.strip.upcase == 'HIV INFECTED'
+  								cohort_report['Total HIV infected'] << collection_reason.patient_id
+  							else
+  								cohort_report['Total Unknown reason'] << collection_reason.patient_id
+  							end
+  					end
 					end
 				end
 			rescue Exception => e

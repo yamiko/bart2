@@ -91,3 +91,4 @@ Version (1.0.0)
    - updated routes.rb to accommodate the additions of flat_tables routes
 --- 
    - intergrated flat tables reports with bart2
+   - modified cohort.rb in model to categorise patients without start reason in unknown reason group
