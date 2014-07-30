@@ -980,7 +980,7 @@ BEGIN
 
 DECLARE my_defaulted_date DATETIME;
 
-set my_defaulted_date = (SELECT MAX(defaulted_date) FROM patient_defaulted_dates WHERE patient_id = m_patient_id AND defaulted_date <= my_end_date);
+set my_defaulted_date = (SELECT MAX(defaulted_date) FROM patient_defaulted_dates WHERE patient_id = m_patient_id AND start_date <= my_end_date);
 
 RETURN my_defaulted_date;
 END */;;
