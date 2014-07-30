@@ -24,6 +24,8 @@ class CohortController < ActionController::Base
   end
 
   def select_date
+
+    render :layout => false
   end
 
   def cohort 
