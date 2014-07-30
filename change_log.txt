@@ -78,3 +78,6 @@ Version (1.0.0)
 ---
    - added a patient_defaulted_dates model
    - added 'age_in_days' field in batch_flat_cohort_table_initiliazation script
+---
+   - updated patient_defaulted_dates model
+   - added patient_max_defaulted_date function in bart2_views_schema_additions
