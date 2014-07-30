@@ -7,12 +7,8 @@ ActiveRecord::Base.connection.execute <<EOF
     DELETE FROM patient_defaulted_dates;
 EOF
 
-ActiveRecord::Base.connection.execute <<EOF
-    DELETE FROM patient_max_defaulted_dates;
-EOF
-
     start_time = Time.now.to_s
-    patients = Patient.find_by_sql("SELECT patient_id FROM earliest_start_date WHERE patient_id IN (2993, 4215, 4346, 4598,438, 1248, 1609, 2353, 2439, 3273, 3361, 3700, 4463, 5115, 5119, 5902, 6062, 6487, 6578, 6724, 6941, 7118, 7855, 7874, 7973, 8296, 8420)")
+    patients = Patient.find_by_sql("SELECT patient_id FROM earliest_start_date")
 
     patients.each do |patient|
       puts ">>>>>>>> working on patient_id: #{patient.patient_id} >>>>>>>>>>"
