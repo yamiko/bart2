@@ -50,6 +50,8 @@ class CohortController < ActionController::Base
       [p.person_id, (p.names.first.given_name rescue "&nbsp;"),
         (p.names.first.family_name rescue "&nbsp;"), (p.birthdate rescue "&nbsp;"), p.gender]
     }
+
+    render :layout => false
   end
 
   def current_site
