@@ -84,3 +84,4 @@ Version (1.0.0)
    - replaced 'defaulted_date' with 'start_date' in patient_max_defaulted_date
 ---
    - added cohort controller as part of integrating bart2_cohort with bart2 
+   - updated patient_defaulted_dates model   
