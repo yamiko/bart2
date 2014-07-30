@@ -21,6 +21,7 @@ class CohortController < ActionController::Base
 
   def index
 
+    render :layout => false
   end
 
   def select_date
@@ -32,8 +33,12 @@ class CohortController < ActionController::Base
    
     if params[:cohort_type] == "Survival Analysis"
      
-      render :template => "/cohort/survival_analysis"
+      render :template => "/cohort/survival_analysis", :layout => false
+    else
+      
+      render :layout => false
     end
+
   end
 
   def mastercard
@@ -2991,6 +2996,8 @@ class CohortController < ActionController::Base
         }
       end
     end
+
+    render :layout => false
   end
   
 end
