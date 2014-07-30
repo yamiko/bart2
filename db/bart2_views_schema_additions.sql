@@ -106,9 +106,6 @@ RETURN date_started;
 END$$                                                                           
 DELIMITER ;
 
-
-
-
 -- The date of the first On ARVs state for each patient
 CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
   VIEW `earliest_start_date` AS
@@ -293,6 +290,48 @@ CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER
   FROM `obs` 
   WHERE ((`obs`.`concept_id` = 7459) and (`obs`.`voided` = 0));
 
+-- The following 2 views will be used in calculation of defaulted dates
+CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER 
+  VIEW `amount_dispensed_obs` AS 
+  SELECT
+    `o`.`person_id`,
+    `o`.`encounter_id`,
+    `o`.`order_id`,
+    `o`.`obs_datetime`,
+    `do`.`drug_inventory_id`,
+    `do`.`equivalent_daily_dose`,
+    `ord`.`start_date`,
+    `o`.`value_numeric`
+FROM
+    `obs` `o`
+        INNER JOIN
+    `orders` `ord` ON `o`.`order_id` = `ord`.`order_id` and `ord`.`voided` = 0
+        INNER JOIN
+    `drug_order` `do` ON `ord`.`order_id` = `do`.`order_id`
+        INNER JOIN
+    `arv_drug` `ad` ON `do`.`drug_inventory_id` = `ad`.`drug_id`
+WHERE
+    `o`.`concept_id` = 2834 AND `o`.`voided` = 0;
+
+CREATE OR REPLACE ALGORITHM=UNDEFINED  SQL SECURITY INVOKER 
+  VIEW `amount_brought_back_obs` AS 
+SELECT 
+    `o`.`person_id`,
+    `o`.`encounter_id`,
+    `o`.`order_id`,
+    `o`.`obs_datetime`,
+    `do`.`drug_inventory_id`,
+    `do`.`equivalent_daily_dose`,
+    `o`.`value_numeric`,
+    `do`.`quantity`
+FROM
+    `obs` `o`
+        INNER JOIN
+    `drug_order` `do` ON `o`.`order_id` = `do`.`order_id`
+        INNER JOIN
+    `arv_drug` `ad` ON `do`.`drug_inventory_id` = `ad`.`drug_id`
+WHERE
+    `o`.`concept_id` = 2540 AND `o`.`voided` = 0;
 
 DROP FUNCTION IF EXISTS earliest_start_date_at_clinic;                                          
                                                                                 
@@ -920,6 +959,31 @@ BEGIN
 	RETURN my_defaulted_date;
 END */;;
 DELIMITER ;
+
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+
+DROP FUNCTION IF EXISTS `patient_max_defaulted_date`;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 */ /*!50003 FUNCTION `patient_max_defaulted_date`(m_patient_id int, my_end_date DATETIME) RETURNS DATE
+BEGIN
+
+DECLARE my_defaulted_date DATETIME;
+
+set my_defaulted_date = (SELECT MAX(defaulted_date) FROM patient_defaulted_dates WHERE patient_id = m_patient_id AND start_date <= my_end_date);
+
+RETURN my_defaulted_date;
+END */;;
 
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
