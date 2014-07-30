@@ -92,3 +92,5 @@ Version (1.0.0)
 --- 
    - intergrated flat tables reports with bart2
    - modified cohort.rb in model to categorise patients without start reason in unknown reason group
+---
+   - changed defaulted query in flat_tables

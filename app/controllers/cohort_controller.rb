@@ -98,13 +98,19 @@ class CohortController < ActionController::Base
     @defaulters = []
   
     if @defaulters.blank?
-
+=begin
       patients = FlatCohortTable.find_by_sql("SELECT patient_id
                                             FROM flat_cohort_table
                                             WHERE hiv_program_state = 'Defaulter'
                                             AND hiv_program_start_date <= '#{end_date}'
                                             AND current_state_for_program(patient_id, 1, '#{end_date}') NOT IN (6, 2, 3)").map(&:patient_id)
-
+=end
+      patients = FlatCohortTable.find_by_sql("SELECT fct.patient_id
+                                        FROM flat_cohort_table fct
+                                        WHERE fct.earliest_start_date <= '#{end_date}'
+                                        AND current_state_for_program(fct.patient_id, 1, '#{end_date}') NOT IN (6, 2, 3)
+                                        AND patient_max_defaulted_date(fct.patient_id, '#{end_date}') <= '#{end_date}'
+                                        GROUP BY fct.patient_id").map(&:patient_id)
       @defaulters = patients
     else
       patients = @defaulters
