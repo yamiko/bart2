@@ -87,3 +87,4 @@ Version (1.0.0)
    - updated patient_defaulted_dates model
 ---
    - added flat_tables models
+   - modified applications_controller to accomodate the addition of flat tables cohort report

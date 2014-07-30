@@ -1,4 +1,5 @@
 class ApplicationController < GenericApplicationController
+  $survival_logger = {}
 
   def next_task(patient)
     session_date = session[:datetime].to_date rescue Date.today
