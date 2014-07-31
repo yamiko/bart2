@@ -94,3 +94,6 @@ Version (1.0.0)
    - modified cohort.rb in model to categorise patients without start reason in unknown reason group
 ---
    - changed defaulted query in flat_tables
+-------
+31/07/2014
+   - removed defaulted query in batch_flat_table_initialization script   

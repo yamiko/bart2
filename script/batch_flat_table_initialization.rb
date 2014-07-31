@@ -419,8 +419,6 @@ def get_specific_patients(patients_list, thread)
 
 end
 
-
-
 def get_patients_data(patient_id)
  #flat_table1 will contain hiv_staging, hiv clinic regitsrtaion observations
  #and patient demographics
@@ -476,7 +474,7 @@ def get_patients_data(patient_id)
   	 " VALUES (" + demographics[1] + "," + hiv_clinic_registration[1] + "," + hiv_staging[1] + ");"
   
   visits = []
-  defaulted_dates = []
+
   patient_obj = Patient.find_by_patient_id(patient_id)
  
   visits = Encounter.find_by_sql("SELECT date(encounter_datetime) AS visit_date FROM #{@source_db}.encounter
@@ -485,16 +483,6 @@ def get_patients_data(patient_id)
 			group by date(encounter_datetime)").map(&:visit_date)
   
   session_date = @max_dispensing_enc_date #date for calculating defaulters 
-
-  defaulted_dates = patient_defaulted_dates(patient_obj, session_date, visits) 
-
-  if !defaulted_dates.blank?
-    defaulted_dates.each do |date|
-      if !date.blank?
-        visits << date
-      end
-    end
-  end
 
  states_dates  = PatientProgram.find_by_sql("SELECT 
                                                   ps.start_date
@@ -583,7 +571,7 @@ def get_patients_data(patient_id)
       		end
       	end
 
-      	patient_state = process_patient_state(patient_id, visit, defaulted_dates)
+      	patient_state = process_patient_state(patient_id, visit)
       	
       	#if some encounters are missing, create a skeleton with defaults
       	 vitals = process_vitals_encounter(1, 1) if vitals.empty?
@@ -1433,10 +1421,10 @@ def process_patient_orders(orders, visit, type = 0)
   return generate_sql_string(a_hash)
 end
 
-def process_patient_state(patient_id,visit, defaulted_dates)
+def process_patient_state(patient_id,visit)
 	#initialize field and values variables
-  	fields = ""
-  	values = ""
+  fields = ""
+  values = ""
 
 	a_hash = {:current_hiv_program_start_date => 'NULL'}
 
@@ -1446,10 +1434,7 @@ def process_patient_state(patient_id,visit, defaulted_dates)
 				AND program_id = 1 AND voided = 0 
 				ORDER BY patient_program_id DESC LIMIT 1").first.patient_program_id rescue nil
 				
-  if ! program_id.nil?
-    if defaulted_dates.include?(visit)
-      state_name = 'Defaulter'
-    else
+  if ! program_id.nil?   
       patient_state = PatientProgram.find_by_sql("SELECT 
   	                        IFNULL(#{@source_db}.current_state_for_program(#{patient_id},1,'#{visit} 23:59:59'), 'Unknown') AS state").first.state  
   	  
@@ -1471,9 +1456,7 @@ def process_patient_state(patient_id,visit, defaulted_dates)
                                                 LIMIT 1").map(&:name) #rescue nil
         end
       end
-    end
-  
-   
+
     a_hash[:current_hiv_program_state] = state_name
   	a_hash[:current_hiv_program_start_date] = visit
   else
@@ -1499,35 +1482,34 @@ def process_adherence_encounter(encounter, visit, type = 0) #type 0 normal encou
     a_hash = {:missed_hiv_drug_construct1 => 'NULL'}
 
     return generate_sql_string(a_hash) if type == 1
-if encounter != 1
-    (encounter.observations || []).each do |adh|
-      if patient_adh[visit].blank?
-        patient_adh[visit] = visit
-        if adh.concept_id == 2540 #amount brought
-          amount_of_drug_brought_to_clinic_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
-        elsif adh.concept_id == 2667 #missed hiv drug
-          missed_hiv_drug_const_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
-        elsif adh.concept_id == 6987 #patient adherence
-          patient_adherence_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
-          patient_adherence_enc_ids[visit] = adh.encounter_id rescue nil
-        elsif adh.concept_id == 6781 #amount remaining
-          amount_of_drug_remaining_at_home_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
+    if encounter != 1
+      (encounter.observations || []).each do |adh|
+        if patient_adh[visit].blank?
+          patient_adh[visit] = visit
+          if adh.concept_id == 2540 #amount brought
+            amount_of_drug_brought_to_clinic_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
+          elsif adh.concept_id == 2667 #missed hiv drug
+            missed_hiv_drug_const_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
+          elsif adh.concept_id == 6987 #patient adherence
+            patient_adherence_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
+            patient_adherence_enc_ids[visit] = adh.encounter_id rescue nil
+          elsif adh.concept_id == 6781 #amount remaining
+            amount_of_drug_remaining_at_home_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
+          end
+        else
+          patient_adh[visit] += visit
+          if adh.concept_id == 2540 #amount brought
+            amount_of_drug_brought_to_clinic_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
+          elsif adh.concept_id == 2667 #missed hiv drug
+            missed_hiv_drug_const_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
+          elsif adh.concept_id == 6987 #patient adherence
+            patient_adherence_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
+            patient_adherence_enc_ids[visit] = adh.encounter_id rescue nil
+          elsif adh.concept_id == 6781 #amount remaining
+            amount_of_drug_remaining_at_home_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
+          end
         end
-      else
-        patient_adh[visit] += visit
-        if adh.concept_id == 2540 #amount brought
-          amount_of_drug_brought_to_clinic_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
-        elsif adh.concept_id == 2667 #missed hiv drug
-          missed_hiv_drug_const_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
-        elsif adh.concept_id == 6987 #patient adherence
-          patient_adherence_hash[visit] = adh.to_s.split(':')[1].strip rescue nil
-          patient_adherence_enc_ids[visit] = adh.encounter_id rescue nil
-        elsif adh.concept_id == 6781 #amount remaining
-          amount_of_drug_remaining_at_home_hash[visit] += adh.to_s.split(':')[1].strip rescue nil
-        end
-      end
     end
-#raise patient_adh.to_yaml
 end
     count = 1
     (patient_adh || []).each do |visit, data|
@@ -1572,85 +1554,6 @@ end
     end
 
   return generate_sql_string(a_hash)
-end
-
-def patient_defaulted_dates(patient_obj, session_date, visits)
-     #getting all patient's dispensations encounters
-
-    all_dispensations = Observation.find_by_sql("SELECT obs.person_id, obs.obs_datetime AS obs_datetime, d.order_id
-                            FROM #{@source_db}.drug_order d 
-                              LEFT JOIN #{@source_db}.orders o ON d.order_id = o.order_id
-                              LEFT JOIN #{@source_db}.obs ON d.order_id = obs.order_id
-                            WHERE d.drug_inventory_id IN (SELECT drug_id FROM #{@source_db}.drug
-                                                          WHERE concept_id IN (SELECT concept_id 
-                                                                               FROM #{@source_db}.concept_set
-                                                                               WHERE concept_set = 1085))
-                                                          AND quantity > 0
-                                                          AND obs.voided = 0
-                                                          AND o.voided = 0
-                                                          and obs.person_id = #{patient_obj.patient_id}
-                                                          GROUP BY DATE(obs_datetime) order by obs_datetime")
-
-    outcome_dates = []
-    dates = 0
-    total_dispensations = all_dispensations.length
-    defaulted_dates = all_dispensations.map(&:obs_datetime)
-    test = []
-
-    all_dispensations.each do |disp_date|
-      d = ((dates - total_dispensations) + 1)
-
-      prev_dispenation_date = all_dispensations[d].obs_datetime.to_date
-
-      if (d == 0 && dates ==0) or (d != 0)
-        if d == 0
-          previous_date = session_date
-          defaulted_date = ActiveRecord::Base.connection.select_value "                   
-          SELECT #{@source_db}.current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
-          
-          if !defaulted_date.blank?
-            outcome_dates << defaulted_date if !outcome_dates.include?(defaulted_date)
-          end
-        else
-          if d == -1
-            previous_date = session_date
-          else
-            previous_date = prev_dispenation_date
-          end          
-          defaulted_date = ActiveRecord::Base.connection.select_value "
-              SELECT #{@source_db}.current_defaulter_date(#{disp_date.person_id}, '#{previous_date}')"
-              
-          if !defaulted_date.blank? 
-            outcome_dates << defaulted_date if !outcome_dates.include?(defaulted_date)
-          end
-        end
-        dates += 1
-      end
-    end
-
-=begin
-    max_def_date = defaulted_dates.sort.last.to_date rescue ""
-    max_out_date = outcome_dates.sort.last.to_date rescue ""
-
-    if max_def_date != "" && max_out_date != ""
-      ref_dates = [max_def_date, max_out_date]
-    else
-      ref_dates = []
-    end
-=end
-#    if visits.length != 0 && ref_dates.length != 0
-
-      (visits || []).each do |visit|
-#          if visit.to_date > ref_dates[0] && visit.to_date > ref_dates[1] # or ref_dates[1] < ref_dates[0] && visit.to_date >= ref_dates[1]
-            pat_def = ActiveRecord::Base.connection.select_value "
-              SELECT #{@source_db}.current_defaulter(#{patient_obj.patient_id}, '#{visit} 23:59')"
-            if pat_def == "1"
-              outcome_dates << visit
-            end
-#          end 
-      end
-#    end
-    return outcome_dates          
 end
 
 def generate_sql_string(a_hash)
