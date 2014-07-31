@@ -333,7 +333,21 @@ EOF
     encounter.save
   end
 
+  def self.current_stock_after_dispensation(drug_id, start_date, end_date = Date.today)
+    total_physical_count = self.total_physically_counted(drug_id, start_date, end_date)
+    total_dispensed = self.dispensed_drugs_since(drug_id, start_date, end_date)
+    total_removed = self.total_removed(drug_id, start_date, end_date)
+    (total_physical_count - (total_dispensed + total_removed))
+  end
 
+  def self.total_physically_counted(drug_id, start_date ,end_date = Date.today)
+    pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
 
+    self.active.find(:first,:select => "SUM(value_numeric) total_physical_count",
+      :conditions => ["pharmacy_encounter_type = ? AND drug_id = ?
+                      AND encounter_date >= ? AND encounter_date <= ?",
+        pharmacy_encounter_type.id , drug_id , start_date , end_date],
+      :group => "drug_id").total_physical_count.to_f rescue 0
+  end
 
 end

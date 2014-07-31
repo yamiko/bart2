@@ -33,6 +33,35 @@ class GenericSessionsController < ApplicationController
 		if (CoreService.get_global_property_value('select_login_location').to_s == "true" rescue false)
 			render :template => 'sessions/select_location'
 		end
+    #Testing testing
+    @stock = {}
+    drugs = Drug.find_by_sql("
+            SELECT * FROM drug d INNER JOIN pharmacy_obs po ON d.drug_id=po.drug_id WHERE d.retired=0
+          ")
+    pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
+    drugs.each do |drug|
+=begin
+      last_physical_count_enc = Pharmacy.find(:last, :order => "DATE(encounter_date) ASC",
+              :conditions => ["pharmacy_encounter_type = ? AND drug_id = ?",
+          pharmacy_encounter_type.id, drug.id])
+=end
+      last_physical_count_enc = Pharmacy.find_by_sql(
+          "SELECT * from pharmacy_obs WHERE
+           drug_id = #{drug.id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id} AND
+           DATE(encounter_date) = (
+            SELECT MAX(DATE(encounter_date)) FROM pharmacy_obs
+            WHERE drug_id =#{drug.id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id}
+          ) LIMIT 1;"
+      ).last
+
+      last_physical_count_date = last_physical_count_enc.encounter_date.to_date
+      current_stock = Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)
+
+      @stock[drug.id] = {}
+      @stock[drug.id]["drug_name"] = drug.name
+      @stock[drug.id]["current_stock"] = current_stock
+    end
+
 	end
 
 	# Update the session with the location information
