@@ -100,3 +100,4 @@ Version (1.0.0)
    DN- removed defaulted query in batch_flat_table_initialization script   
    PB-*** testing email service for QA ****-
    DN- updated the way death_date is being exported in batch_flat_table_initialization script
+   DN- replaced 'age_at_initiation' with 'age_in_days' when pulling age groups in flat_table cohort
