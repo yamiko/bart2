@@ -98,4 +98,4 @@ Version (1.0.0)
    - removed a logger for survival analysis values
 ---
    - removed defaulted query in batch_flat_table_initialization script   
-
+   -*** testing email service for QA ****-
