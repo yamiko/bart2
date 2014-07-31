@@ -2651,10 +2651,7 @@ class CohortController < ActionController::Base
       
       @data       =   eval("#{params[:field].strip}_#{params[:cat].strip}("+
           "'#{params[:start].to_date.to_s} 00:00:00', "+
-          " '#{params[:end].to_date.to_s} 23:59:59')")
-      
-      $survival_logger["#{params[:field].strip}_#{params[:cat].strip}" +
-          "_#{params[:start].to_date.to_s}_#{params[:end].to_date.to_s}"] = @data     
+          " '#{params[:end].to_date.to_s} 23:59:59')")      
     end
     
     render :text => @data.to_json
@@ -2662,9 +2659,6 @@ class CohortController < ActionController::Base
 
   def new_reg_generic(start_date, end_date, join_string = "")
 
-    key = "new_reg_generic_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    return $survival_logger[key] if !$survival_logger[key].blank? and join_string.blank?
-    
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc
                                             WHERE ftc.earliest_start_date >= '#{start_date}'
                                             #{join_string}
@@ -2675,9 +2669,6 @@ class CohortController < ActionController::Base
 
   def on_art_generic(start_date, end_date, join_string = "")
 
-    key = "on_art_generic_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    return $survival_logger[key] if !$survival_logger[key].blank? and join_string.blank?
-    
     defaulters = ([-1] + defaulter_generic(start_date, end_date, join_string)).join(",")
     patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id,
                       ft2.current_hiv_program_start_date, ft2.current_hiv_program_state
@@ -2698,9 +2689,6 @@ class CohortController < ActionController::Base
 
   def dead_generic(start_date, end_date, join_string = "")
 
-    key = "dead_generic_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    return $survival_logger[key] if !$survival_logger[key].blank? and join_string.blank?
-    
     patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id,
                        ft2.current_hiv_program_start_date,
                        ft2.current_hiv_program_state                       
@@ -2719,9 +2707,6 @@ class CohortController < ActionController::Base
   end
   
   def defaulter_generic(start_date, end_date, join_string = "")
-
-    key = "defaulter_generic_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    return $survival_logger[key] if !$survival_logger[key].blank? and join_string.blank?
     
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id
                                       FROM flat_cohort_table ftc
@@ -2735,9 +2720,6 @@ class CohortController < ActionController::Base
   end
 
   def art_stop_generic(start_date, end_date, join_string = "")
-
-    key = "art_stop_generic_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    return $survival_logger[key] if !$survival_logger[key].blank? and join_string.blank?
     
     patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id                                        
                                     FROM flat_table2 ft2
@@ -2754,9 +2736,6 @@ class CohortController < ActionController::Base
   end
 
   def transfer_out_generic(start_date, end_date, join_string = "")
-
-    key = "transfer_out_generic_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    return $survival_logger[key] if !$survival_logger[key].blank? and join_string.blank?
     
     patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id
                 FROM flat_table2 ft2
@@ -2783,43 +2762,37 @@ class CohortController < ActionController::Base
 
   def new_reg_children(start_date, end_date)
 
-    key = "new_reg_children_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    patients = $survival_logger[key].blank? ? new_reg_generic(start_date, end_date, @@children_join) : $survival_logger[key]
+    patients = new_reg_generic(start_date, end_date, @@children_join)
     return patients
   end
 
   def on_art_children(start_date, end_date)
 
-    key = "on_art_children_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    patients = $survival_logger[key].blank? ? on_art_generic(start_date, end_date, @@children_join) : $survival_logger[key]
+    patients = on_art_generic(start_date, end_date, @@children_join)
     return patients
   end
 
   def dead_children(start_date, end_date)
 
-    key = "dead_children_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    patients = $survival_logger[key].blank? ? dead_generic(start_date, end_date, @@children_join) : $survival_logger[key]
+    patients = dead_generic(start_date, end_date, @@children_join)
     return patients
   end
 
   def defaulter_children(start_date, end_date)
 
-    key = "defaulter_children_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    patients = $survival_logger[key].blank? ? defaulter_generic(start_date, end_date, @@children_join) : $survival_logger[key]
+    patients = defaulter_generic(start_date, end_date, @@children_join)
     return patients
   end
 
   def art_stop_children(start_date, end_date)
 
-    key = "art_stop_children_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    patients = $survival_logger[key].blank? ? art_stop_generic(start_date, end_date, @@children_join) : $survival_logger[key]
+    patients = art_stop_generic(start_date, end_date, @@children_join)
     return patients
   end
 
   def transfer_out_children(start_date, end_date)
 
-    key = "transfer_out_children_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    patients = $survival_logger[key].blank? ? transfer_out_generic(start_date, end_date, @@children_join) : $survival_logger[key]
+    patients = transfer_out_generic(start_date, end_date, @@children_join)
     return patients
   end
 
@@ -2889,55 +2862,45 @@ class CohortController < ActionController::Base
 
   def on_art_pmtct(start_date, end_date)
 
-    key_a = "on_art_pmtct_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    on_art = $survival_logger[key_a].blank? ? on_art_generic(start_date, end_date, @@female_join) : $survival_logger[key_a]
-    
-    key_b = "new_reg_pmtct_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    all_pb = $survival_logger[key_b].blank? ? new_reg_pmtct(start_date, end_date) : $survival_logger[key_b]
+    on_art = on_art_generic(start_date, end_date, @@female_join)
+  
+    all_pb = new_reg_pmtct(start_date, end_date)
     
     return(on_art & all_pb)
   end
 
   def dead_pmtct(start_date, end_date)
 
-    key_a = "dead_pmtct_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    dead = $survival_logger[key_a].blank? ? dead_generic(start_date, end_date, @@female_join) : $survival_logger[key_a]
+    dead = dead_generic(start_date, end_date, @@female_join)
 
-    key_b = "new_reg_pmtct_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    all_pb = $survival_logger[key_b].blank? ? new_reg_pmtct(start_date, end_date) : $survival_logger[key_b]
+    all_pb = new_reg_pmtct(start_date, end_date)
   
     return (dead & all_pb)
   end
 
   def defaulter_pmtct(start_date, end_date)
 
-    key_a = "defaulter_pmtct_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    deft = $survival_logger[key_a].blank? ? defaulter_generic(start_date, end_date, @@female_join) : $survival_logger[key_a]
+    deft = defaulter_generic(start_date, end_date, @@female_join)
 
-    key_b = "new_reg_pmtct_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    all_pb = $survival_logger[key_b].blank? ? new_reg_pmtct(start_date, end_date) : $survival_logger[key_b]
+    all_pb = new_reg_pmtct(start_date, end_date)
     
     return (deft & all_pb)
   end
 
   def art_stop_pmtct(start_date, end_date)
 
-    key_a = "art_stop_pmtct_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    art_stop = $survival_logger[key_a].blank? ? art_stop_generic(start_date, end_date, @@female_join) : $survival_logger[key_a]
+    art_stop = art_stop_generic(start_date, end_date, @@female_join)
 
-    key_b = "new_reg_pmtct_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    all_pb = $survival_logger[key_b].blank? ? new_reg_pmtct(start_date, end_date) : $survival_logger[key_b]
+    all_pb = new_reg_pmtct(start_date, end_date)
 
     return (art_stop & all_pb)
   end
 
   def transfer_out_pmtct(start_date, end_date)
 
-    key_a = "transfer_out_pmtct_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    t_out = $survival_logger[key_a].blank? ? transfer_out_generic(start_date, end_date, @@female_join) : $survival_logger[key_a]
+    t_out = transfer_out_generic(start_date, end_date, @@female_join)
 
-    key_b = "new_reg_pmtct_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
-    all_pb = $survival_logger[key_b].blank? ? new_reg_pmtct(start_date, end_date) : $survival_logger[key_b]
+    all_pb = new_reg_pmtct(start_date, end_date)
     
     return (t_out & all_pb)
   end
@@ -2959,9 +2922,7 @@ class CohortController < ActionController::Base
     @children_date_ranges = Array.new
     @pregnant_and_breastfeeding_date_ranges = Array.new
     first_registration_date = @@first_registration_date
-   
-    $survival_logger = {}
- 
+    
     if first_registration_date.present?
       while (survival_start_date -= 1.year) >= first_registration_date
 
