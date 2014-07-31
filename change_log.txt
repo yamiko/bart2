@@ -94,3 +94,7 @@ Version (1.0.0)
    - modified cohort.rb in model to categorise patients without start reason in unknown reason group
 ---
    - changed defaulted query in flat_tables
+
+---
+   - removed a logger for survival analysis values
+
