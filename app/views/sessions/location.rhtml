@@ -21,11 +21,8 @@
       $('infoBar'+tstCurrentPage).innerHTML = "<%= welcome_message %>";  
     }
 
-    function loadStocks(){
-
-      <% @stock.each do |drug_id, values| %>
-          
-      <% end %>
+    function displayStocks(){
+      document.getElementById('stock').style.display='inline'
     }
 
   </script>
@@ -59,19 +56,37 @@
       font-family: "Rockwell Extra Bold", "Rockwell Bold", monospace;
       font-weight: bold;
     }
-    
+
+    .scrollit{
+      overflow:auto;
+      height:377px;
+    }
+
+    .current_stock{
+      float: right;
+      padding: 0px 93px 0px 0px;
+    }
+
+    .stock_header_right{
+      float: right;
+      padding: 0px 60px 0px 0px;
+    }
+
+    .drug_name{
+      margin-left: 2%;
+    }
   </style>
 
 <form id='sessions' action="/sessions/update" method='post'>
     <label for="location">Location</label>
     <%= text_field_tag(:location, nil, :helpText => "Workstation location", 
         :field_type => "number", 
-        :tt_onLoad => "inform();__$('keyboard').style.display = 'none';") %><br>
+        :tt_onLoad => "inform();__$('keyboard').style.display = 'none'; displayStocks();") %><br>
     <%= submit_tag :value => "Submit" %>
 </form>
 
 <div id="stock" style="display:none;">
-      <div style="position: absolute; height: 98%; width:100%; overflow: auto;">
+      <div style="position: absolute; width:100%;">
           <table cellspacing='0' style="position:absolute; width:100%; left: 0%;">
             <tr>           
               <td class="table_header" colspan="2" style="">
@@ -80,16 +95,24 @@
             </tr>
             <tr style="background-color: #A2CD5A; line-height: 2em; font-size: 18px;">
               <td style="min-width: 130px;"><span>Drug Name</span></td>
-              <td style="min-width: 120px;"><span>Available Stock</span></td>
+              <td style="min-width: 120px;"><span class="stock_header_right">Available Stock</span></td>
             </tr>
 
             <tbody>
-              <% @stock.each do |drug_id, values| %>
-                <tr style="line-height: 3em;">
-                  <td style="border-bottom: 1px solid black;"><span><%= values["drug_name"] %></span></td>
-                  <td style="border-bottom: 1px solid black;"><span><%= values["current_stock"] %></span></td>
+              <tr>
+                <td colspan="2">
+                <div class="scrollit">
+                   <table cellspacing='0' style="width:100%; left: 0%;">
+                      <% @stock.each do |drug_id, values| %>
+                        <tr style="line-height: 3em;">
+                          <td style="border-bottom: 1px solid black;"><span class="drug_name"><%= values["drug_name"] %></span></td>
+                          <td style="min-width:200px !important; border-bottom: 1px solid black;"><span class="current_stock"><%= values["current_stock"].to_i %></span></td>
+                        </tr>
+                      <% end %>
+                   </table>
+                </div>
+                </td>
                 </tr>
-              <% end %>
             </tbody>
             
           </table>
