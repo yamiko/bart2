@@ -56,10 +56,14 @@ class GenericSessionsController < ApplicationController
 
       last_physical_count_date = last_physical_count_enc.encounter_date.to_date
       current_stock = Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)
-
+      total_drug_dispensations = Pharmacy.dispensed_drugs_since(drug.id, last_physical_count_date)
+      total_days = (Date.today - last_physical_count_date).to_i #Difference in days between two dates.
+      total_days = 1 if (total_days == 0) #We are trying to avoid division by zero error
+      consumption_rate = (total_drug_dispensations/total_days)
       @stock[drug.id] = {}
       @stock[drug.id]["drug_name"] = drug.name
       @stock[drug.id]["current_stock"] = current_stock
+      @stock[drug.id]["consumption_rate"] = consumption_rate
     end
 
 	end
