@@ -93,8 +93,8 @@
                         %>
                         <td style="color:<%=color%>;"><%="#{total_required} #{drug_unit}"%></td>
                         <td><%=order.drug_order.drug.name%></td>
-                        <td id = "<%=order.id%>"><span style="float:right; margin-right: 46%;"><%= total_dispensed %></span></td>
-                        <td id = "<%=order.id%>"><span style="float:right; margin-right: 46%;"><%= Pharmacy.current_drug_stock(order.drug_order.drug.id) %></span></td>
+                        <td><span style="float:right;"><%= total_dispensed %></span></td>
+                        <td><span style="float:right;"><%= Pharmacy.current_drug_stock(order.drug_order.drug.id) %></span></td>
                       </tr>
                 <% end %>
                 </table>
