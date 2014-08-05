@@ -70,7 +70,8 @@
                   <th>&nbsp;</th>
                   <th>Amount needed</th>
                   <th>Drug</th>
-                  <th style="text-align:right;">Amount dispensed</th>
+                  <th><center>Amount dispensed</center></th>
+                  <th><center>Available Stock</center></th>
                 </tr>
                 <% @prescriptions.each do |order| %>
                     <!--div class="void"><img src="/images/cancel_flat_small.png"/></div-->
@@ -92,7 +93,8 @@
                         %>
                         <td style="color:<%=color%>;"><%="#{total_required} #{drug_unit}"%></td>
                         <td><%=order.drug_order.drug.name%></td>
-                        <td style="text-align:right;"><%= total_dispensed %></td>
+                        <td id = "<%=order.id%>"><span style="float:right; margin-right: 46%;"><%= total_dispensed %></span></td>
+                        <td id = "<%=order.id%>"><span style="float:right; margin-right: 46%;"><%= Pharmacy.current_drug_stock(order.drug_order.drug.id) %></span></td>
                       </tr>
                 <% end %>
                 </table>

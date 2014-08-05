@@ -41,8 +41,8 @@ class Pharmacy < ActiveRecord::Base
     return 0 if start_date.blank? or end_date.blank?
     dispensed_encounter = EncounterType.find_by_name('DISPENSING')
     amount_dispensed_concept_id = ConceptName.find_by_name('AMOUNT DISPENSED').concept_id
-    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
-    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00') rescue nil
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59') rescue nil
 
     Encounter.find(:first,:joins => "INNER JOIN obs USING(encounter_id)",
       :select => "SUM(value_numeric) total_dispensed" ,
@@ -350,4 +350,24 @@ EOF
       :group => "drug_id").total_physical_count.to_f rescue 0
   end
 
+  def self.current_drug_stock(drug_id)
+    #This method gives the current drug stock after latest date of physical count
+    # and all dispensation of that particular drug from the latest date of physical count
+
+    pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
+
+    last_physical_count_enc_date = Pharmacy.find_by_sql(
+          "SELECT * from pharmacy_obs WHERE
+           drug_id = #{drug_id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id} AND
+           DATE(encounter_date) = (
+            SELECT MAX(DATE(encounter_date)) FROM pharmacy_obs
+            WHERE drug_id =#{drug_id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id}
+          ) LIMIT 1;"
+      ).last.encounter_date rescue nil
+
+    total_physical_count = self.total_physically_counted(drug_id, last_physical_count_enc_date)
+    total_dispensed = self.dispensed_drugs_since(drug_id, last_physical_count_enc_date)
+    total_removed = self.total_removed(drug_id, last_physical_count_enc_date)
+    (total_physical_count - (total_dispensed + total_removed))
+  end
 end
