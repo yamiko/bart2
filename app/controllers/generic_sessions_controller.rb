@@ -63,7 +63,7 @@ class GenericSessionsController < ApplicationController
       @stock[drug.id] = {}
       @stock[drug.id]["drug_name"] = drug.name
       @stock[drug.id]["current_stock"] = current_stock
-      @stock[drug.id]["consumption_rate"] = consumption_rate
+      @stock[drug.id]["consumption_rate"] = consumption_rate.to_f.round(1)
     end
 
 	end

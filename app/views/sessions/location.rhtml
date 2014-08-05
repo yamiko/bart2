@@ -63,13 +63,15 @@
     }
 
     .current_stock{
+      position: relative;
       float: right;
-      padding: 0px 93px 0px 0px;
+      padding: 0px 76% 0px 0px;
     }
 
     .stock_header_right{
+      position: relative;
       float: right;
-      padding: 0px 60px 0px 0px;
+      padding: 0px 0px 0px 0px;
       font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
       font-weight: bold;
     }
@@ -79,21 +81,37 @@
     }
 
     .stock_header_left{
+      position: relative;
       margin-left: 4%;
       font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
       font-weight: bold;
     }
 
     .consumption_rate{
+      position: relative;
       float: right;
-      padding: 0px 350px 0px 0px;
+      padding: 0px 90% 0px 0px;
     }
 
     .consumption_rate_header{
-      float: right;
-      padding: 0px 60px 0px 0px;
+      position: relative;
+      float: left;
+      margin-left: 50%;
       font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
       font-weight: bold;
+    }
+    .estimated_stock_out_date_header{
+      position: relative;
+      float: right;
+      padding: 0px 10% 0px 0px;
+      font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+      font-weight: bold;
+    }
+    
+    .estimated_stock_out_date{
+      position: relative;
+      float: right;
+      padding: 0px 45% 0px 0px;
     }
   </style>
 
@@ -109,7 +127,7 @@
       <div style="position: absolute; width:100%;">
           <table cellspacing='0' style="position:absolute; width:100%; left: 0%;">
             <tr>           
-              <td class="table_header" colspan="3" style="">
+              <td class="table_header" colspan="4" style="">
                 <center><span>Drug Stock Availability</span></center>
               </td>
             </tr>
@@ -117,11 +135,12 @@
               <td style="min-width: 130px;"><span class="stock_header_left">Drug Name</span></td>
               <td style="min-width: 130px;"><span class="consumption_rate_header">Consumption Rate</span></td>
               <td style="min-width: 100px;"><span class="stock_header_right">Available Stock</span></td>
+              <td style="min-width: 100px;"><span class="estimated_stock_out_date_header">Estimated stock out date</span></td>
             </tr>
 
             <tbody>
               <tr>
-                <td colspan="3">
+                <td colspan="4">
                 <div class="scrollit">
                    <table cellspacing='0' style="width:100%; left: 0%;">
                       <% @stock.each do |drug_id, values| %>
@@ -129,6 +148,7 @@
                           <td style="border-bottom: 1px solid black;"><span class="drug_name"><%= values["drug_name"] %></span></td>
                           <td style="border-bottom: 1px solid black;"><span class="consumption_rate"><%= values["consumption_rate"] %></span></td>
                           <td style="min-width:200px !important; border-bottom: 1px solid black;"><span class="current_stock"><%= values["current_stock"].to_i %></span></td>
+                          <td style="min-width:200px !important; border-bottom: 1px solid black;"><span class="estimated_stock_out_date">value</span></td>
                         </tr>
                       <% end %>
                    </table>
