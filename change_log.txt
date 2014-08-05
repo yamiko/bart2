@@ -103,4 +103,6 @@ Version (1.0.0)
    DN- replaced 'age_at_initiation' with 'age_in_days' when pulling age groups in flat_table cohort
 2014-08-04
    PB - Added a how to document for initializing flat tables in doc folder
-   PB - Updated, rather rearranged the steps for initializing flat tables in the document provided 
+   PB - Updated, rather rearranged the steps for initializing flat tables in the document provided i
+2014-08-05
+   PB - Added a script to fix reason for starting issues for Thyolo
