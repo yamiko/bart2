@@ -822,6 +822,40 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 
   }
 
+  function showDrugStockAvailability(reg_id){
+    jQuery.ajax({
+      type: "POST",
+      url: "/regimens/drug_stock_availability",
+      data: "concept_id=" + reg_id,
+      success: function(result){
+        stock_hash = result;
+        html = "<div id='stock'>";
+        html += "<div style='position: absolute; width:100%;'>";
+        html += "<table cellspacing='0' style='position:absolute; width:100%; left: 0%;'>";
+        html += "<tr>";
+        html += "<td class='table_header' colspan='4'><center><span>Drug Stock Availability</span></center></td>";
+        html += "</tr>";
+
+        html += "<tr style='background-color: #CDC8B1; line-height: 2em; font-size: 18px;'>";
+        html += "<td style='min-width: 130px;'><span class='stock_header_left'>Drug Name</span></td>";
+        html += "<td style='min-width: 130px;'><span class='consumption_rate_header'>Consumption Rate</span></td>";
+        html += "<td style='min-width: 100px;'><span class='stock_header_right'>Available Stock</span></td>";
+        html += "<td style='min-width: 100px;'><span class='estimated_stock_out_date_header'>Estimated stock out date</span></td>";
+        html += "</tr>";
+        
+        for (var drug_id in stock_hash){
+          drug_name = stock_hash[drug_id]["drug_name"];
+          current_stock = stock_hash[drug_id]["current_stock"];
+          consumption_rate = stock_hash[drug_id]["consumption_rate"];
+        }
+        html += "</table>";
+        html += "</div>";
+        html += "</div>";
+
+      }
+    });
+  }
+  
   function buildPrescriptionPage(continueExistingRegimen, patientProgram, regimenConceptId, prescriptionContainer) {
 	$('touchscreenInput'+tstCurrentPage).setAttribute('type','hidden');
 	$('clearButton').style.display = 'none';

@@ -818,6 +818,37 @@ class GenericRegimensController < ApplicationController
     render :text => @options.to_json
 	end
 
+  def drug_stock_availability
+    regimens = Regimen.find(:all,:order => 'regimen_index',:conditions => ['concept_id =?',params[:concept_id]],:include => :regimen_drug_orders)
+    pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
+    stock = {}
+    
+    regimens.each do | r |
+      r.regimen_drug_orders.each do | order |
+        drug = order.drug
+        last_physical_count_enc = Pharmacy.find_by_sql(
+              "SELECT * from pharmacy_obs WHERE
+               drug_id = #{drug.id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id} AND
+               DATE(encounter_date) = (
+                SELECT MAX(DATE(encounter_date)) FROM pharmacy_obs
+                WHERE drug_id =#{drug.id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id}
+              ) LIMIT 1;"
+          ).last
+
+        last_physical_count_date = last_physical_count_enc.encounter_date.to_date rescue nil
+        current_stock = Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)
+        total_drug_dispensations = Pharmacy.dispensed_drugs_since(drug.id, last_physical_count_date)
+        total_days = (Date.today - last_physical_count_date).to_i #Difference in days between two dates.
+        total_days = 1 if (total_days == 0) #We are trying to avoid division by zero error
+        consumption_rate = (total_drug_dispensations/total_days)
+        stock[drug.id] = {}
+        stock[drug.id]["drug_name"] = drug.name
+        stock[drug.id]["current_stock"] = current_stock
+        stock[drug.id]["consumption_rate"] = consumption_rate.to_f.round(1)
+      end
+    end
+    render :json => stock and return
+  end
 	# Look up likely durations for the regimen
 	def durations
 		@regimen = Regimen.find_by_concept_id(params[:id], :include => :regimen_drug_orders)
