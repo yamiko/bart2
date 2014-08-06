@@ -380,6 +380,59 @@
         border-bottom: 1px solid black;
         border-right: 1px solid black;
       }
+
+     /*******************Drug Stock Availability*******************************/
+     #stock{
+      position: absolute;
+      width: 94%;
+      height: 25%;
+      top: 61%;
+      z-index: 991;
+      left: 1.5%;
+      border: 1px solid black;
+      background-color: #FEE0C6;
+      border-radius: 15px;
+    }
+
+    .table_header{
+      border-radius: 15px 15px 0px 0px;
+      background-color: white;
+      font-size: 18px;
+      font-family: "Rockwell Extra Bold", "Rockwell Bold", monospace;
+      font-weight: bold;
+    }
+
+    .stock_header_right{
+      position: relative;
+      float: right;
+      padding: 0px 0px 0px 0px;
+      font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+      font-weight: bold;
+    }
+
+    .stock_header_left{
+      position: relative;
+      margin-left: 4%;
+      font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+      font-weight: bold;
+    }
+
+    .consumption_rate_header{
+      position: relative;
+      float: left;
+      margin-left: 50%;
+      font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+      font-weight: bold;
+    }
+    .estimated_stock_out_date_header{
+      position: relative;
+      float: right;
+      padding: 0px 10% 0px 0px;
+      font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+      font-weight: bold;
+    }
+
+     /***********************************************************************/
 </style>
 
 <%= javascript_include_tag "prototype"%>
@@ -1373,7 +1426,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	:ajaxUrl => "",
 	:tt_onUnLoad => "setRegimenId('ART');" ,
 	:allowFreeText => true ,
-	:tt_onLoad => "set_regimen_concept_id_for_regimen($('patient_program').value, $('regimen_concept_id').value);buildPrescriptionPage($('continue_existing_regimen').value,$('patient_program').value,$('regimen_concept_id').value,'prescription_container');showCategory('Regimen');",
+	:tt_onLoad => "set_regimen_concept_id_for_regimen($('patient_program').value, $('regimen_concept_id').value);buildPrescriptionPage($('continue_existing_regimen').value,$('patient_program').value,$('regimen_concept_id').value,'prescription_container');showCategory('Regimen'); showDrugStockAvailability($('regimen_concept_id').value)",
 	:condition => 'other_regimen != "yes" && hasReasonForART() == true && $("prescribe_arvs").value == "YES" && $("continue_existing_regimen").value !="YES"',
 	:helpText => "Select formulations and doses"}%>
 
