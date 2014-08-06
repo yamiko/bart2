@@ -828,6 +828,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
       url: "/regimens/drug_stock_availability",
       data: "concept_id=" + reg_id,
       success: function(result){
+        drug_stock = document.getElementById('drug_stock');
         stock_hash = result;
         html = "<div id='stock'>";
         html += "<div style='position: absolute; width:100%;'>";
@@ -860,7 +861,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
         html += "</table>";
         html += "</div>";
         html += "</div>";
-
+        drug_stock.innerHTML = html;
       }
     });
   }
@@ -1632,6 +1633,9 @@ element.setAttribute("onmousedown", "gotoNextPage()")
     </div>
 </div>
 <% end %>
+
+  <div id="drug_stock">
+  </div>
 </body>
 <script>
 
