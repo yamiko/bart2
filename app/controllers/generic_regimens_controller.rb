@@ -835,7 +835,7 @@ class GenericRegimensController < ApplicationController
               ) LIMIT 1;"
           ).last
 
-        last_physical_count_date = last_physical_count_enc.encounter_date.to_date rescue nil
+        last_physical_count_date = last_physical_count_enc.encounter_date.to_date rescue Date.today
         current_stock = Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)
         total_drug_dispensations = Pharmacy.dispensed_drugs_since(drug.id, last_physical_count_date)
         total_days = (Date.today - last_physical_count_date).to_i #Difference in days between two dates.

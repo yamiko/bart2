@@ -914,9 +914,14 @@ element.setAttribute("onmousedown", "gotoNextPage()")
         html += "</table>";
         html += "</div>";
         html += "</div>";
+        drug_stock.style.display='inline';
         drug_stock.innerHTML = html;
       }
     });
+  }
+
+  function hideStock(){
+     if ($('drug_stock')){$('drug_stock').style.display= 'none'};
   }
   
   function buildPrescriptionPage(continueExistingRegimen, patientProgram, regimenConceptId, prescriptionContainer) {
@@ -1424,7 +1429,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 
   <%= text_field_tag :regimen, nil, {
 	:ajaxUrl => "",
-	:tt_onUnLoad => "setRegimenId('ART');" ,
+	:tt_onUnLoad => "setRegimenId('ART'); hideStock();" ,
 	:allowFreeText => true ,
 	:tt_onLoad => "set_regimen_concept_id_for_regimen($('patient_program').value, $('regimen_concept_id').value);buildPrescriptionPage($('continue_existing_regimen').value,$('patient_program').value,$('regimen_concept_id').value,'prescription_container');showCategory('Regimen'); showDrugStockAvailability($('regimen_concept_id').value)",
 	:condition => 'other_regimen != "yes" && hasReasonForART() == true && $("prescribe_arvs").value == "YES" && $("continue_existing_regimen").value !="YES"',
