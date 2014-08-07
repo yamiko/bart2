@@ -879,7 +879,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
     jQuery.ajax({
       type: "POST",
       url: "/regimens/drug_stock_availability",
-      data: "concept_id=" + reg_id,
+      data: "concept_id=" + reg_id + "&patient_id=<%= @patient.id %>",
       success: function(result){
         drug_stock = document.getElementById('drug_stock');
         stock_hash = result;
