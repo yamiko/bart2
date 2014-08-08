@@ -602,7 +602,6 @@ def get_patient_demographics(patient_id)
                                 @earliest_start_date = patient.earliest_start_date
                                 @age_at_initiation = patient.age_at_initiation
                                 @age_in_days = patient.age_in_days
-                                @death_date = patient.death_date
                               end
  
   a_hash = {:legacy_id2 => 'NULL'}
@@ -616,6 +615,8 @@ def get_patient_demographics(patient_id)
   PatientIdentifier.find(:all, :conditions => ['patient_id = ?', patient_id]).each do |identifier|
     pat_identifier[identifier.identifier_type] = identifier.identifier
   end
+
+  @death_date = Person.find(:all, :conditions => ['person_id = ?', patient_id])#.map(&:death_date)
 
   gender = pat.person.gender
   if gender == 'M'
@@ -631,7 +632,7 @@ def get_patient_demographics(patient_id)
   a_hash[:gender] = gender rescue nil#patient_obj.sex  rescue nil
   a_hash[:dob] = pat.person.birthdate  rescue nil
   a_hash[:dob_estimated] = patient_obj.birthdate_estimated  rescue nil
-  a_hash[:death_date] =  @death_date
+  a_hash[:death_date] =  pat.person.death_date.strftime('%Y-%m-%d') rescue nil
   a_hash[:ta] = pat.person.addresses.first.county_district  rescue nil
   a_hash[:current_address] = pat.person.addresses.first.city_village  rescue nil
   a_hash[:home_district] = pat.person.addresses.first.address2  rescue nil

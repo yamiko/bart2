@@ -96,6 +96,13 @@ Version (1.0.0)
    - changed defaulted query in flat_tables
 ---
    - removed a logger for survival analysis values
----
-   - removed defaulted query in batch_flat_table_initialization script   
-
+2014/07/31
+   DN- removed defaulted query in batch_flat_table_initialization script   
+   PB-*** testing email service for QA ****-
+   DN- updated the way death_date is being exported in batch_flat_table_initialization script
+   DN- replaced 'age_at_initiation' with 'age_in_days' when pulling age groups in flat_table cohort
+2014-08-04
+   PB - Added a how to document for initializing flat tables in doc folder
+   PB - Updated, rather rearranged the steps for initializing flat tables in the document provided i
+2014-08-05
+   PB - Added a script to fix reason for starting issues for Thyolo

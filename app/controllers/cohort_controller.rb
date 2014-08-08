@@ -659,12 +659,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_at_initiation
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_in_days
                 FROM flat_cohort_table ftc 
                 WHERE ftc.earliest_start_date >= '#{start_date}' 
                 AND ftc.earliest_start_date <= '#{end_date}'
-                AND ftc.age_at_initiation >= 0
-				        AND ftc.age_at_initiation < 2
+                AND ftc.age_in_days >= 0
+				        AND ftc.age_in_days < 731
                 GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -675,11 +675,11 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_at_initiation
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_in_days
                 FROM flat_cohort_table ftc 
                 WHERE ftc.earliest_start_date <= '#{end_date}'
-                AND ftc.age_at_initiation >= 0
-				        AND ftc.age_at_initiation < 2
+                AND ftc.age_in_days >= 0
+				        AND ftc.age_in_days < 731
                 GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -714,12 +714,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_at_initiation
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_in_days
                 FROM flat_cohort_table ftc 
                 WHERE ftc.earliest_start_date >= '#{start_date}' 
                 AND ftc.earliest_start_date <= '#{end_date}'
-                AND ftc.age_at_initiation >= 2
-				        AND ftc.age_at_initiation < 15
+                AND ftc.age_in_days >= 731
+				        AND ftc.age_in_days < 5479
                 GROUP BY ftc.patient_id").collect{|p| p.patient_id}
     value = patients unless patients.blank?
   end
@@ -729,11 +729,11 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_at_initiation
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_in_days
                 FROM flat_cohort_table ftc 
                 WHERE ftc.earliest_start_date <= '#{end_date}'
-                AND ftc.age_at_initiation >= 2
-				        AND ftc.age_at_initiation < 15
+                AND ftc.age_in_days >= 731
+				        AND ftc.age_in_days < 5479
                 GROUP BY ftc.patient_id").collect{|p| p.patient_id}   
 
     value = patients unless patients.blank?
@@ -768,12 +768,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_at_initiation
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_in_days
                 FROM flat_cohort_table ftc 
                 WHERE ftc.earliest_start_date >= '#{start_date}' 
                 AND ftc.earliest_start_date <= '#{end_date}'
-                AND ftc.age_at_initiation >= 15
-				        AND ftc.age_at_initiation < 1000
+                AND ftc.age_in_days >= 5479
+				        AND ftc.age_in_days < 109500
                 GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -784,11 +784,11 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_at_initiation
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_in_days
                 FROM flat_cohort_table ftc 
                 WHERE ftc.earliest_start_date <= '#{end_date}'
-                AND ftc.age_at_initiation >= 15
-				        AND ftc.age_at_initiation < 1000
+                AND ftc.age_in_days >= 5479
+				        AND ftc.age_in_days < 109500
                 GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
