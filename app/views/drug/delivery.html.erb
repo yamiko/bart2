@@ -266,6 +266,16 @@
            <option value='Supervision'>Supervision</option>
            </select>
 
+        <%= select_tag "drug_name", options,
+		{
+                :id => "select_drugs",
+                :field_type => 'alpha',
+		:multiple => true,
+		:optional => true,
+		:tt_onUnLoad => 'selectedDrugs()',
+		:helpText => "Select Drugs To Verify",
+		:tt_pageStyleClass => "NoKeyboard NoInput small" } %>
+
     <%end%>
     <%unless params[:id] == 'verification' %>
     <%= text_field_tag "number_of_tins", nil, {:helpText => 'Number of tins',
