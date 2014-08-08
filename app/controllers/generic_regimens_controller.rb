@@ -841,10 +841,15 @@ class GenericRegimensController < ApplicationController
         total_days = (Date.today - last_physical_count_date).to_i #Difference in days between two dates.
         total_days = 1 if (total_days == 0) #We are trying to avoid division by zero error
         consumption_rate = (total_drug_dispensations/total_days)
+        stock_out_days = (current_stock/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
+        estimated_stock_out_date = (Date.today + stock_out_days).strftime('%d-%b-%Y')
+        estimated_stock_out_date = "No Stock" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
+
         stock[drug.id] = {}
         stock[drug.id]["drug_name"] = drug.name
         stock[drug.id]["current_stock"] = current_stock
         stock[drug.id]["consumption_rate"] = consumption_rate.to_f.round(1)
+        stock[drug.id]["estimated_stock_out_date"] = estimated_stock_out_date
       end
     end
     stock
@@ -875,10 +880,15 @@ class GenericRegimensController < ApplicationController
         total_days = (Date.today - last_physical_count_date).to_i #Difference in days between two dates.
         total_days = 1 if (total_days == 0) #We are trying to avoid division by zero error
         consumption_rate = (total_drug_dispensations/total_days)
+        stock_out_days = (current_stock/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
+        estimated_stock_out_date = (Date.today + stock_out_days).strftime('%d-%b-%Y')
+        estimated_stock_out_date = "No Stock" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
+
         stock[drug.id] = {}
         stock[drug.id]["drug_name"] = drug.name
         stock[drug.id]["current_stock"] = current_stock
         stock[drug.id]["consumption_rate"] = consumption_rate.to_f.round(1)
+        stock[drug.id]["estimated_stock_out_date"] = estimated_stock_out_date
       end
     end
     render :json => stock and return

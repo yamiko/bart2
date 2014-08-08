@@ -420,7 +420,7 @@
     .consumption_rate_header{
       position: relative;
       float: left;
-      margin-left: 50%;
+      margin-left: 0%;
       font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
       font-weight: bold;
     }
@@ -432,6 +432,20 @@
       font-weight: bold;
     }
 
+    .consumption_rate{
+      float: right;
+      margin-right: 66%;
+    }
+
+    .current_stock{
+      float: right;
+      margin-right: 21%;
+    }
+
+    .estimated_stock_out_date{
+      float: left;
+      margin-left: 48%;
+    }
      /***********************************************************************/
 </style>
 
@@ -902,11 +916,13 @@ element.setAttribute("onmousedown", "gotoNextPage()")
           drug_name = stock_hash[drug_id]["drug_name"];
           current_stock = stock_hash[drug_id]["current_stock"];
           consumption_rate = stock_hash[drug_id]["consumption_rate"];
+          estimated_stock_out_date = stock_hash[drug_id]["estimated_stock_out_date"];
+
           html += "<tr>";
-          html += "<td>" + drug_name + "</td>";
-          html += "<td>" + consumption_rate + "</td>";
-          html += "<td>" + current_stock + "</td>";
-          html += "<td>Here</td>";
+          html += "<td><span class='drug_name'>" + drug_name + "</span></td>";
+          html += "<td><span class='consumption_rate'>" + consumption_rate + "</span></td>";
+          html += "<td><span class='current_stock'>" + current_stock + "</span></td>";
+          html += "<td><span class='estimated_stock_out_date'>" + estimated_stock_out_date + "</span></td>";
           html += "</tr>";
         }
         
@@ -943,12 +959,13 @@ element.setAttribute("onmousedown", "gotoNextPage()")
           drug_name = values["drug_name"]
           current_stock = values["current_stock"]
           consumption_rate = values["consumption_rate"]
+          estimated_stock_out_date = values["estimated_stock_out_date"]
          %>
           html += "<tr>";
-          html += "<td><%= drug_name %></td>";
-          html += "<td><%= consumption_rate %></td>";
-          html += "<td><%= current_stock %></td>";
-          html += "<td>Here</td>";
+          html += "<td><span class='drug_name'><%= drug_name %></span></td>";
+          html += "<td><span class='consumption_rate'><%= consumption_rate %></span></td>";
+          html += "<td><span class='current_stock'><%= current_stock %></span></td>";
+          html += "<td><span class='estimated_stock_out_date'><%= estimated_stock_out_date %></span></td>";
           html += "</tr>";
         <% end  %>
 
