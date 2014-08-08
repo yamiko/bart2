@@ -40,11 +40,7 @@ class GenericSessionsController < ApplicationController
           ")
     pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
     drugs.each do |drug|
-=begin
-      last_physical_count_enc = Pharmacy.find(:last, :order => "DATE(encounter_date) ASC",
-              :conditions => ["pharmacy_encounter_type = ? AND drug_id = ?",
-          pharmacy_encounter_type.id, drug.id])
-=end
+
       last_physical_count_enc = Pharmacy.find_by_sql(
           "SELECT * from pharmacy_obs WHERE
            drug_id = #{drug.id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id} AND
@@ -60,10 +56,15 @@ class GenericSessionsController < ApplicationController
       total_days = (Date.today - last_physical_count_date).to_i #Difference in days between two dates.
       total_days = 1 if (total_days == 0) #We are trying to avoid division by zero error
       consumption_rate = (total_drug_dispensations/total_days)
+      stock_out_days = (current_stock/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
+      estimated_stock_out_date = (Date.today + stock_out_days).strftime('%d-%b-%Y')
+      estimated_stock_out_date = "No Stock" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
+
       @stock[drug.id] = {}
       @stock[drug.id]["drug_name"] = drug.name
       @stock[drug.id]["current_stock"] = current_stock
       @stock[drug.id]["consumption_rate"] = consumption_rate.to_f.round(1)
+      @stock[drug.id]["estimated_stock_out_date"] = estimated_stock_out_date
     end
 
 	end

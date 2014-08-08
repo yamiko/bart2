@@ -90,7 +90,7 @@
     .consumption_rate{
       position: relative;
       float: right;
-      padding: 0px 90% 0px 0px;
+      padding: 0px 84% 0px 0px;
     }
 
     .consumption_rate_header{
@@ -110,8 +110,8 @@
     
     .estimated_stock_out_date{
       position: relative;
-      float: right;
-      padding: 0px 45% 0px 0px;
+      float: left;
+      margin-left: 20%;
     }
   </style>
 
@@ -148,7 +148,7 @@
                           <td style="border-bottom: 1px solid black;"><span class="drug_name"><%= values["drug_name"] %></span></td>
                           <td style="border-bottom: 1px solid black;"><span class="consumption_rate"><%= values["consumption_rate"] %></span></td>
                           <td style="min-width:200px !important; border-bottom: 1px solid black;"><span class="current_stock"><%= values["current_stock"].to_i %></span></td>
-                          <td style="min-width:200px !important; border-bottom: 1px solid black;"><span class="estimated_stock_out_date">value</span></td>
+                          <td style="min-width:200px !important; border-bottom: 1px solid black;"><span class="estimated_stock_out_date"><%= values["estimated_stock_out_date"] %></span></td>
                         </tr>
                       <% end %>
                    </table>
