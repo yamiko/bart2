@@ -33,14 +33,12 @@ class GenericSessionsController < ApplicationController
 		if (CoreService.get_global_property_value('select_login_location').to_s == "true" rescue false)
 			render :template => 'sessions/select_location'
 		end
-    #Testing testing
-    @stock = {}
-    drugs = Drug.find_by_sql("
-            SELECT * FROM drug d INNER JOIN pharmacy_obs po ON d.drug_id=po.drug_id WHERE d.retired=0
-          ")
-    pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
-    drugs.each do |drug|
 
+    @stock = {}
+    drug_names = GenericDrugController.new.preformat_regimen
+    pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
+    drug_names.each do |drug_name|
+     drug = Drug.find_by_name(drug_name)
       last_physical_count_enc = Pharmacy.find_by_sql(
           "SELECT * from pharmacy_obs WHERE
            drug_id = #{drug.id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id} AND
@@ -58,7 +56,7 @@ class GenericSessionsController < ApplicationController
       consumption_rate = (total_drug_dispensations/total_days)
       stock_out_days = (current_stock/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
       estimated_stock_out_date = (Date.today + stock_out_days).strftime('%d-%b-%Y')
-      estimated_stock_out_date = "No Stock" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
+      estimated_stock_out_date = "Stocked out" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
 
       @stock[drug.id] = {}
       @stock[drug.id]["drug_name"] = drug.name
@@ -66,7 +64,7 @@ class GenericSessionsController < ApplicationController
       @stock[drug.id]["consumption_rate"] = consumption_rate.to_f.round(1)
       @stock[drug.id]["estimated_stock_out_date"] = estimated_stock_out_date
     end
-
+    @stock = @stock.sort_by{|drug_id, values|values["drug_name"]}
 	end
 
 	# Update the session with the location information

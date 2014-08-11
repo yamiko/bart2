@@ -843,7 +843,7 @@ class GenericRegimensController < ApplicationController
         consumption_rate = (total_drug_dispensations/total_days)
         stock_out_days = (current_stock/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
         estimated_stock_out_date = (Date.today + stock_out_days).strftime('%d-%b-%Y')
-        estimated_stock_out_date = "No Stock" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
+        estimated_stock_out_date = "Stocked out" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
 
         stock[drug.id] = {}
         stock[drug.id]["drug_name"] = drug.name
@@ -882,7 +882,7 @@ class GenericRegimensController < ApplicationController
         consumption_rate = (total_drug_dispensations/total_days)
         stock_out_days = (current_stock/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
         estimated_stock_out_date = (Date.today + stock_out_days).strftime('%d-%b-%Y')
-        estimated_stock_out_date = "No Stock" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
+        estimated_stock_out_date = "Stocked out" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
 
         stock[drug.id] = {}
         stock[drug.id]["drug_name"] = drug.name
