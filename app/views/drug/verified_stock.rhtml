@@ -427,8 +427,7 @@ var imgUnTick = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDP
           tdLabel.className = "td";
           tdLabel.style.paddingTop = "15px";
           tdLabel.style.height = "55px";
-          tdLabel.style.display = "table-cell";
-          tdLabel.style.width = "55%";         
+          tdLabel.style.display = "table-cell";               
           tdLabel.appendChild(label);
           row.appendChild(tdLabel);
 
@@ -437,7 +436,7 @@ var imgUnTick = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDP
           input.style.display = "table-cell";
           node.style.fontSize = "26px";
           node.style.textAlign = "center";
-          input.style.width = "30%";          
+          node.style.width = "275px";          
           node.style.height = "35px";
           input.appendChild(node);
           row.appendChild(input);
@@ -447,10 +446,9 @@ var imgUnTick = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDP
 	  img.src = imgUnTick;
 	  var clear = document.createElement("div");
           clear.className = "td";
-	  clear.style.minWidth = "42px";
-	  clear.style.marginLeft = "20px";
- 	  clear.style.padding = "5px 5px 5px 5px";
-          clear.style.fontSize = "22px";
+	  clear.style.width = "42px";
+	  clear.style.paddingRight = "20px";	
+	  clear.style.cursor = "pointer";    
           clear.style.display = "table-cell";  
           clear.setAttribute("target", node.id)
 	  clear.appendChild(img);
