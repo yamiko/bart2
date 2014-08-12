@@ -15,9 +15,20 @@ class GenericPrescriptionsController < ApplicationController
 		@current_height = PatientService.get_patient_attribute_value(@patient, "current_height")
   end
   
-  def void	
-    @order = Order.find(params[:order_id])
+  def void
+    order_id = params[:order_id]
+    @order = Order.find(order_id)
     @order.void
+    #Observation.find_by_order_id(params[:order_id])
+    amount_dispensed_concept = ConceptName.find_by_name("AMOUNT DISPENSED").concept_id
+    dispensed_observations = Observation.all(:conditions => ['concept_id = ? AND
+          order_id = ?',amount_dispensed_concept , order_id])
+    unless dispensed_observations.blank?
+      dispensed_observations.each do |obs|
+        obs.void
+      end
+    end
+    
     flash.now[:notice] = "Order was successfully voided"
     if !params[:source].blank? && params[:source].to_s == 'advanced'
 		redirect_to "/prescriptions/advanced_prescription?patient_id=#{params[:patient_id]}" and return

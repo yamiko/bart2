@@ -47,7 +47,7 @@ class Pharmacy < ActiveRecord::Base
     Encounter.find(:first,:joins => "INNER JOIN obs USING(encounter_id)",
       :select => "SUM(value_numeric) total_dispensed" ,
       :conditions => ["concept_id = ? AND encounter_type = ?
-                   AND obs_datetime >= ? AND obs_datetime <= ? AND value_drug = ?",
+                   AND obs_datetime >= ? AND obs_datetime <= ? AND value_drug = ? AND obs.voided=0",
         amount_dispensed_concept_id,dispensed_encounter.id,
         start_date,end_date,drug_id],
       :group => "value_drug").total_dispensed.to_f rescue 0
@@ -59,7 +59,7 @@ class Pharmacy < ActiveRecord::Base
 
     Encounter.find(:first,:joins => "INNER JOIN obs USING(encounter_id)",
       :select => "SUM(value_numeric) total_dispensed" ,
-      :conditions => ["concept_id = ? AND encounter_type = ? AND value_drug = ?",
+      :conditions => ["concept_id = ? AND encounter_type = ? AND value_drug = ? AND obs.voided=0",
         amount_dispensed_concept_id,dispensed_encounter.id,drug_id],
       :group => "value_drug").total_dispensed.to_f rescue 0
   end
