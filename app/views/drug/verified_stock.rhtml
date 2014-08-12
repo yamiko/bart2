@@ -223,31 +223,58 @@ var imgUnTick = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDP
           __$("data-pane").appendChild(header);
           __$("data-pane").appendChild(table);
 
-          var textField1 = document.createElement("input");
-          textField1.id = "Number of tins";
-          textField1.className = "input-field input-field-active";
-          textField1.value = __$(item.getAttribute("value") + "_amount").value;
-          textField1.onmousedown = function(){        
-			target = this;
-			jQ(".input-field").attr("class", "input-field");
-			this.className += " input-field-active";
+	  if (!drug_short_names[item.getAttribute("value")].match(/nvp/i)){
+		  var textField1 = document.createElement("input");
+		  textField1.id = "Number of tins";
+		  textField1.className = "input-field input-field-active";
+		  textField1.value = __$(item.getAttribute("value") + "_amount").value;
+		  textField1.onmousedown = function(){        
+				target = this;
+				jQ(".input-field").attr("class", "input-field");
+				this.className += " input-field-active";
+			
+				if (__$('popupkeyboard'))
+				__$('data-pane').removeChild(__$('popupkeyboard'));
+				showKeyboard(this);
+		  }
+		           
+		  table.appendChild(wrap(textField1));
+          }else{
+		var textField1 = document.createElement("select");
+		  textField1.id = "Number of tins";
+		  textField1.setAttribute("label", "Pack size");
+		  textField1.innerHTML = "<option style='display:none'></option><option>30</option><option>60</option><option>90</option><option>100</option><option>1000</option>";
+		  textField1.style.background = "white";	 
+		  textField1.className = "input-field input-field-active";
+		  textField1.value = __$(item.getAttribute("value") + "_amount").value;
+		  textField1.onmousedown = function(){        
+				target = this;
+				jQ(".input-field").attr("class", "input-field");
+				this.className += " input-field-active";
+				if (__$('popupkeyboard'))
+					__$('data-pane').removeChild(__$('popupkeyboard'));
+			}
+		           
+		  table.appendChild(wrap(textField1));
+	  }
+		 
+  	 var textField2 = document.createElement("input");
+  	 textField2.id = "Number of expiring tins";
+	 if (drug_short_names[item.getAttribute("value")].match(/nvp/i)){
+		textField2.setAttribute("label", "Number of units");
+	  }
+  	 textField2.className = "input-field";
+  	 textField2.value = __$(item.getAttribute("value") + "_expire_amount").value;
+  	 textField2.onmousedown = function(){        
+		target = this;
+		jQ(".input-field").attr("class", "input-field");
+		this.className += " input-field-active";
+		
+		if (__$('popupkeyboard'))
 			__$('data-pane').removeChild(__$('popupkeyboard'));
-			showKeyboard(this);
-          }
-                   
-          table.appendChild(wrap(textField1));
-          
-          var textField2 = document.createElement("input");
-          textField2.id = "Number of expiring tins";
-          textField2.className = "input-field";
-          textField2.value = __$(item.getAttribute("value") + "_expire_amount").value;
-          textField2.onmousedown = function(){        
-			target = this;
-			jQ(".input-field").attr("class", "input-field");
-			this.className += " input-field-active";
-			__$('data-pane').removeChild(__$('popupkeyboard'));
-			showKeyboard(this);
-          }
+		showKeyboard(this);
+  	 }
+	
           table.appendChild(wrap(textField2));
 
           var textField3 = document.createElement("input");
@@ -258,13 +285,15 @@ var imgUnTick = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDP
           
 			jQ(".input-field").attr("class", "input-field");
 			this.className += " input-field-active";
-            __$('data-pane').removeChild(__$('popupkeyboard'));
+			if (__$('popupkeyboard'))
+    				__$('data-pane').removeChild(__$('popupkeyboard'));
 			showDate(__$('data-pane'), this);
           }
 
           table.appendChild(wrap(textField3));
 
-          showKeyboard(textField1);          
+	  if (!drug_short_names[item.getAttribute("value")].match(/nvp/i))
+          	showKeyboard(textField1);          
         }
 
         function showDate(parent, target){
@@ -422,7 +451,7 @@ var imgUnTick = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDP
                     
           var label = document.createElement("label");
           label.className = "label";
-          label.innerHTML = node.id;
+          label.innerHTML = node.getAttribute("label") ? node.getAttribute("label") : node.id;
           var tdLabel = document.createElement("div");
           tdLabel.className = "td";
           tdLabel.style.paddingTop = "15px";
@@ -915,6 +944,18 @@ function checkDate(id){
         padding: 3px 0px 3px 3px;
         margin: 5px 1px 3px 0px;
         border: 1px solid rgba(81, 203, 238, 1);
+      }
+
+      option{
+	background:#E3E4FA;
+	padding-bottom: 10px;	
+	border-radius: 4px;
+	margin: 1px;
+	text-shadow:0 2px 0 rgba(0,0,0,0.4);
+      }
+
+      option[selected]{
+	background:red;	
       }
 
     </style>
