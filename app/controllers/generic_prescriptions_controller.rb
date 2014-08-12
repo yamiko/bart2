@@ -17,16 +17,24 @@ class GenericPrescriptionsController < ApplicationController
   
   def void
     order_id = params[:order_id]
-    @order = Order.find(order_id)
-    @order.void
-    #Observation.find_by_order_id(params[:order_id])
     amount_dispensed_concept = ConceptName.find_by_name("AMOUNT DISPENSED").concept_id
     dispensed_observations = Observation.all(:conditions => ['concept_id = ? AND
           order_id = ?',amount_dispensed_concept , order_id])
-    unless dispensed_observations.blank?
-      dispensed_observations.each do |obs|
+
+    ActiveRecord::Base.transaction do
+      order = Order.find(order_id)
+      cloned_order = order.clone
+      cloned_drug_order = order.drug_order.clone
+      order.void
+
+      (dispensed_observations || []).each do |obs|
         obs.void
       end
+      
+      cloned_order.save!
+      cloned_drug_order.order_id = cloned_order.id
+      cloned_drug_order.quantity = nil
+      cloned_drug_order.save!
     end
     
     flash.now[:notice] = "Order was successfully voided"
