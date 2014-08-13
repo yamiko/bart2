@@ -38,6 +38,7 @@
   .amount_dispensed{
     position: relative;
     text-align: right;
+    right: 5%;
   }
 
   .table_header{
@@ -114,9 +115,9 @@
                                 %>
                                 <tr class = 'dispensation_data' id = "<%=order.id%>">
                                   <td style="max-width:120px;"><%=order.drug_order.drug.name%></td>
-                                  <td><%= order.start_date.to_date rescue nil %></td>
-                                  <td><%= order.auto_expire_date.to_date rescue nil %></td>
-                                  <td style="text-align:right;"><%= total_dispensed %></td>
+                                  <td><span style="position: relative; float: right; right:33%;"><%= order.start_date.to_date.strftime("%d-%b-%Y") rescue nil %></span></td>
+                                  <td><span style="position: relative; float: right; right:38%;"><%= order.auto_expire_date.to_date.strftime("%d-%b-%Y") rescue nil %></span></td>
+                                  <td style="text-align:right; right: 10%;"><span style="position:relative; right:5%;"><%= total_dispensed %></span></td>
                                 </tr>
                             <% end %>
                           </table>
