@@ -87,9 +87,16 @@
                         total_dispensed += parseFloat("<%=total_dispensed%>");
                       </script>
                       <tr class = 'dispensation_data' id = "<%=order.id%>">
+                        <% unless order.drug_order.quantity.to_i == 0 %>
                         <td style="text-align:center;vertical-align: middle;" onmousedown = "voiding('<%=order.id%>');">
                           <img src="/images/cancel_flat_small.png"/>
                         </td>
+                        <% else %>
+                        <td style="text-align:center;vertical-align: middle; min-width: 20px;">
+                          &nbsp;
+                        </td>
+                        <% end %>
+
                         <% total_required = order.drug_order.total_required
                           drug_unit  =  order.drug_order.units
                           if total_required > total_dispensed then color = 'red' else color = '' end
