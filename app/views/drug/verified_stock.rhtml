@@ -1102,6 +1102,8 @@
 <div id="container">
   <form action="stock_report_edit" method="post">
 
+    <input type = "hidden" name = "delivery_date" value = "<%= @delivery_date%>">
+
     <%= text_field_tag :information, nil,
                        {
                                :tt_onLoad => "$('clearButton').style.display = 'none'; checkContainer(); ",
