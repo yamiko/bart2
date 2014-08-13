@@ -632,6 +632,7 @@ class GenericDrugController < ApplicationController
 
         params[:obs].each{|obs|
           drug_id = Drug.find_by_name(obs[0]).id rescue []
+
           next if drug_id.blank?
           tins = obs[1]["amount"].to_i
           expiry_date = nil
@@ -652,7 +653,7 @@ class GenericDrugController < ApplicationController
           end
           
           pills = tins * 60
-          
+
           Pharmacy.verified_stock(drug_id, params[:delivery_date],pills, expiry_date, expiring_units, params[:type])
           
         }
