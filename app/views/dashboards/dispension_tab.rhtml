@@ -18,8 +18,23 @@
 
  .scrollit{
       overflow:auto;
-      height:192px;
+      height:166px;
       border-bottom: 2px solid black;
+  }
+
+  .table_header{
+    font-size: 18px;
+    font-family: "Rockwell Extra Bold", "Rockwell Bold", monospace;
+    font-weight: bold;
+  }
+
+  .drug_name{
+    position: relative;
+    left: -48%;
+  }
+  .amount_dispensed{
+    position: relative;
+    left: 60%;
   }
   
 </style>
@@ -72,16 +87,18 @@
             <div style="display: table-cell; width: 50%;">
 
               <% current_day = session[:datetime].strftime('%Y-%m-%d') rescue 'Today'%>
-              <h2><%=current_day%>'s Treatment (possibly filtered)</h2>
               <div style="height:220px;">
               <% if not @prescriptions.blank? %>
               <table id = 'dispensation' cellspacing='0' style="width:100%; left: 0%;">
+                <tr>
+                  <td colspan="6"><span class="table_header"><center> <%=current_day%>'s Treatment (possibly filtered)</center></span></td>
+                </tr>
                 <tr style="text-align: left; background-color: #CDC8B1; line-height: 2em; font-size: 16px;">
-                  <th style="background-color: white; min-width: 29.5px;">&nbsp;</th>
-                  <th style="border-bottom: 2px solid black;">Amount needed</th>
-                  <th style="border-bottom: 2px solid black;">Drug</th>
-                  <th style="text-align:right; border-bottom: 2px solid black;">Amount dispensed</th>
-                  <th style="text-align:right; border-bottom: 2px solid black;">Available Stock (tins)</th>
+                  <th style="background-color: white; min-width: 28.5px;">&nbsp;</th>
+                  <th style="border-bottom: 2px solid black; max-width: 100px;"><span class="amount_needed">Amount needed</span></th>
+                  <th style="border-bottom: 2px solid black;"><span class="drug_name">Drug</span></th>
+                  <th style="text-align:right; border-bottom: 2px solid black;"><span class="amount_dispensed">Amount dispensed</span></th>
+                  <th style="text-align:right; border-bottom: 2px solid black;"><span class="available_stock">Available Stock (tins)</span></th>
                 </tr>
                 
                 <tbody>
