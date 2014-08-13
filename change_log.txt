@@ -106,3 +106,5 @@ Version (1.0.0)
    PB - Updated, rather rearranged the steps for initializing flat tables in the document provided i
 2014-08-05
    PB - Added a script to fix reason for starting issues for Thyolo
+2014-08-13 
+   KK - Added a new UI for entering verified drug values
