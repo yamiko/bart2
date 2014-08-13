@@ -627,14 +627,20 @@ class GenericDrugController < ApplicationController
   def stock_report_edit
 
     if request.post?
+
       unless params[:obs].blank?
-       
+
         params[:obs].each{|obs|
           drug_id = Drug.find_by_name(obs[0]).id rescue []
           next if drug_id.blank?
           tins = obs[1]["amount"].to_i
           expiry_date = nil
           if tins != 0
+
+            if ((obs[1]['date'].scan("/").length == 3) rescue false)
+              obs[1]['date'] = "#{obs[1]['date'].to_date.month}/#{obs[1]['date'].to_date.year}"
+            end
+
             date_value = obs[1]['date'].split("/")
             year = date_value[1]
             month = date_value[0]
