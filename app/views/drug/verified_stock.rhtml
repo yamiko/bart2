@@ -17,6 +17,7 @@
     <%= params[:drug_name].to_json %>
     var unfinished_drugs = [];
     var sieved = [];
+    var sievable = [];
 
     var imgBlank = 'data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHCAoICAgHBwcHCAoHBwcHCA8ICQcKFBEiIiAREx8YHCggGBolGxMfITEhJSkrLi4uFx8zODMsNygtLisBCgoKDQwMEg8PGisZFBkrKyssKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrK//AABEIAHAAcAMBIgACEQEDEQH/xAAWAAEBAQAAAAAAAAAAAAAAAAAAAQf/xAAWEAEBAQAAAAAAAAAAAAAAAAAAARH/xAAVAQEBAAAAAAAAAAAAAAAAAAAAAf/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/ANxAAAAAAEAUAAAAAAABKqUAAUAAVARQAAAAAEoAAoIqAAqAKgCgAJVTACCgAAmCgAAIKgCooAICiKAAAAAAACAoigIqUBUUBFQBUAURQEVAFSKAACCgIKAgoCCgIKAAA//Z'
     var imgTick = 'data:image/png;base64,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';
@@ -48,6 +49,52 @@
         "Nov": 10,
         "Dec": 11
     };
+
+    function filter_drugs(drugs, varr) {
+
+        var name;
+        var splitted;
+
+        for (var d = 0; d < formatted_drugs.length; d++) {
+
+            splitted = drug_short_names[formatted_drugs[d]].replace(/\(|\)/, "").split(" ");
+            var i = 1;
+            while (i < splitted.length) {
+
+                if (splitted[i].toUpperCase() != "ISONIAZID" && (splitted[i].toUpperCase() == "OR" ||
+                        splitted[i].toUpperCase() == "H"))
+                    splitted[0] = splitted[0] + " " + splitted[i];
+                i += 1;
+            }
+
+            if (drugs.indexOf(formatted_drugs[d]) > 0 && (splitted[0] == 'INH or H' ||
+                    splitted[0].trim() == "Cotrimoxazole")) {
+
+                if (varr){
+                    varr.push(formatted_drugs[d]);
+                }else {
+                    sieved.push(formatted_drugs[d]);
+                }
+            }
+        }
+
+        if (varr){
+            varr = varr.filter(function (elem, pos) {
+                return varr.indexOf(elem) == pos;
+            });
+            return varr;
+        }
+
+        var all = sieved.concat(drugs);
+        sieved = sieved.filter(function (elem, pos) {
+            return sieved.indexOf(elem) == pos;
+        });
+        var uniq = all.filter(function (elem, pos) {
+            return all.indexOf(elem) == pos;
+        });
+
+        return uniq;
+    }
 
     var Entries = (function (jQ, data) {
 
@@ -157,40 +204,6 @@
             })
         }
 
-        function filter_drugs(drugs) {
-
-            var name;
-            var splitted;
-
-            for (var d = 0; d < formatted_drugs.length; d++) {
-
-                splitted = drug_short_names[formatted_drugs[d]].replace(/\(|\)/, "").split(" ");
-                var i = 1;
-                while (i < splitted.length) {
-
-                    if (splitted[i].toUpperCase() != "ISONIAZID" && (splitted[i].toUpperCase() == "OR" ||
-                            splitted[i].toUpperCase() == "H"))
-                        splitted[0] = splitted[0] + " " + splitted[i];
-                    i += 1;
-                }
-
-                if (drugs.indexOf(formatted_drugs[d]) > 0 && (splitted[0] == 'INH or H' ||
-                        splitted[0].trim() == "Cotrimoxazole")) {
-                    sieved.push(formatted_drugs[d]);
-                }
-            }
-
-            var all = sieved.concat(drugs);
-            var uniq = all.filter(function (elem, pos) {
-                return all.indexOf(elem) == pos;
-            });
-
-            sieved = sieved.filter(function (elem, pos) {
-                return sieved.indexOf(elem) == pos;
-            });
-            return uniq;
-        }
-
         function loadDrugs() {
 
             var all_drugs = data["selected_drugs"];
@@ -293,23 +306,43 @@
                 table.appendChild(wrap(textField1));
             }
 
-            var textField2 = document.createElement("input");
-            textField2.id = "Number of expiring tins";
-            if (drug_short_names[item.getAttribute("value")].match(/nvp/i)) {
-                textField2.setAttribute("label", "Number of units");
-            }
-            textField2.className = "input-field";
-            textField2.value = __$(item.getAttribute("value") + "_expire_amount").value;
-            textField2.onmousedown = function () {
-                target = this;
-                jQ(".input-field").attr("class", "input-field");
-                this.className += " input-field-active";
+            if (!(sieved.indexOf(item.getAttribute("value")) >= 0)) {
+                var textField2 = document.createElement("input");
+                textField2.id = "Number of expiring tins";
+                if (drug_short_names[item.getAttribute("value")].match(/nvp/i)) {
+                    textField2.setAttribute("label", "Number of units");
+                }
+                textField2.className = "input-field";
+                textField2.value = __$(item.getAttribute("value") + "_expire_amount").value;
+                textField2.onmousedown = function () {
+                    target = this;
+                    jQ(".input-field").attr("class", "input-field");
+                    this.className += " input-field-active";
 
-                if (__$('popupkeyboard'))
-                    __$('data-pane').removeChild(__$('popupkeyboard'));
-                showKeyboard(this);
-            }
+                    if (__$('popupkeyboard'))
+                        __$('data-pane').removeChild(__$('popupkeyboard'));
+                    showKeyboard(this);
+                }
+            }else{
 
+                var textField2 = document.createElement("input");
+                textField2.id = "Total units";
+                if (drug_short_names[item.getAttribute("value")].match(/nvp/i)) {
+                    textField2.setAttribute("label", "Number of units");
+                }
+                textField2.className = "input-field";
+                textField2.value = __$(item.getAttribute("value") + "_expire_amount").value;
+                textField2.onmousedown = function () {
+                    target = this;
+                    jQ(".input-field").attr("class", "input-field");
+                    this.className += " input-field-active";
+
+                    if (__$('popupkeyboard'))
+                        __$('data-pane').removeChild(__$('popupkeyboard'));
+                    showKeyboard(this);
+                }
+
+            }
             table.appendChild(wrap(textField2));
 
             var textField3 = document.createElement("input");
@@ -927,7 +960,11 @@
 
         __$("inputFrame" + tstCurrentPage).appendChild(div);
 
-        for (i in drugs) {
+        sievable = filter_drugs(drugs, sievable);
+
+        for (var i in drugs) {
+
+            if(sievable.indexOf(drugs[i]) >= 0) continue;
 
             var amount_value = "";
             var expire_amount_value = "";
@@ -944,13 +981,98 @@
 
             var row = document.createElement("div");
             row.style.display = "table-row";
-            row.style.background = (i % 2 == 0) ? "white" : "rgb(240, 240, 250)";
+            row.style.background = (i % 2 == 0) ? "rgb(240, 240, 250)" : "white";
             table.appendChild(row);
 
             var label = document.createElement("div");
             label.className = "drug-label scell";
             label.style.display = "table-cell";
-            label.innerHTML = drugs[i];
+            label.innerHTML = drug_short_names[drugs[i]];
+            if (i == 0)
+                label.style.borderTop = "0.4px solid gray";
+            row.appendChild(label);
+
+            var amount = document.createElement("div");
+            amount.className = "drug-value scell";
+            amount.style.display = "table-cell";
+            amount.innerHTML = amount_value;
+            if (i == 0)
+                amount.style.borderTop = "0.4px solid gray";
+            row.appendChild(amount);
+
+            var expire_amount = document.createElement("div");
+            expire_amount.style.display = "table-cell";
+            expire_amount.className = "drug-value scell";
+            expire_amount.innerHTML = expire_amount_value;
+            if (i == 0)
+                expire_amount.style.borderTop = "0.4px solid gray";
+            row.appendChild(expire_amount);
+
+            var expire_date = document.createElement("div");
+            expire_date.style.display = "table-cell";
+            expire_date.className = "drug-label scell";
+            expire_date.innerHTML = date_value;
+            if (i == 0)
+                expire_date.style.borderTop = "0.4px solid gray";
+            row.appendChild(expire_date);
+        }
+
+        if (sievable.length > 0){
+
+            var header = document.createElement("div");
+            header.style.display = "table-row";
+            header.style.width = "100%";
+
+            var label = document.createElement("div");
+            label.className = "drug-label scell hvalue";
+            label.style.display = "table-cell";
+            label.innerHTML = "Drug";
+            header.appendChild(label);
+
+            var label = document.createElement("div");
+            label.className = "drug-value scell hvalue";
+            label.style.display = "table-cell";
+            label.innerHTML = "Pack Size";
+            header.appendChild(label);
+
+            var label = document.createElement("div");
+            label.className = "drug-value scell hvalue";
+            label.style.display = "table-cell";
+            label.innerHTML = "Total tins";
+            header.appendChild(label);
+
+            var label = document.createElement("div");
+            label.className = "drug-value scell hvalue";
+            label.style.display = "table-cell";
+            label.innerHTML = "Expiry date";
+            header.appendChild(label);
+            table.appendChild(header);
+        }
+
+        for (var i in sievable) {
+
+            var amount_value = "";
+            var expire_amount_value = "";
+            var date_value = "";
+
+            try {
+                if (__$(sievable[i] + "_amount")) {
+                    amount_value = __$(sievable[i] + "_amount").value;
+                    expire_amount_value = __$(sievable[i] + "_expire_amount").value;
+                    date_value = __$(sievable[i] + "_date").value;
+                }
+            } catch (e) {
+            }
+
+            var row = document.createElement("div");
+            row.style.display = "table-row";
+            row.style.background = (i % 2 == 0) ?  "rgb(240, 240, 250)" : "white";
+            table.appendChild(row);
+
+            var label = document.createElement("div");
+            label.className = "drug-label scell";
+            label.style.display = "table-cell";
+            label.innerHTML = drug_short_names[sievable[i]];
             if (i == 0)
                 label.style.borderTop = "0.4px solid gray";
             row.appendChild(label);
@@ -1118,14 +1240,16 @@
 
     .drug-value {
         min-width: 20%;
+        cursor: pointer;
     }
 
     .hvalue {
         border: hidden;
-        background: whitesmoke;
+        background: white;
         font-size: 24px;
         font-family: sans-serif;
         font-weight: bold;
+        cursor: auto;
         color: gray;
         text-align: left;
         padding-left: 15px;
