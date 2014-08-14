@@ -279,6 +279,7 @@
             if (!(sieved.indexOf(item.getAttribute("value")) >= 0)) {
                 var textField1 = document.createElement("input");
                 textField1.id = "Number of tins";
+                textField1.setAttribute("label", "Pills per tin");
                 textField1.className = "input-field input-field-active";
                 textField1.value = __$(item.getAttribute("value") + "_amount").value;
                 textField1.onmousedown = function () {
@@ -314,6 +315,7 @@
             if (!(sieved.indexOf(item.getAttribute("value")) >= 0)) {
                 var textField2 = document.createElement("input");
                 textField2.id = "Number of expiring tins";
+                textField2.setAttribute("label", "Total tins");
                 textField2.className = "input-field";
                 textField2.value = __$(item.getAttribute("value") + "_expire_amount").value;
                 textField2.onmousedown = function () {
