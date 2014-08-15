@@ -162,9 +162,9 @@
         function loadCSS() {
 
             jQ(".h-row").css({
-                background: "lightblue",
+                background: "#999",
                 "border-radius": "5px",
-                width: "100.5%"
+                width: "100%"
             })
 
             jQ("#drug-pane").css({
@@ -175,7 +175,7 @@
                 border: "1px solid lightgray",
                 "border-right": "2.25px solid lightblue",
                 "box-shadow": "inset 0 0 30px lightblue, 0 0 8px black",
-                width: (0.30 * window.innerWidth) + "px"
+                width: (0.33 * window.innerWidth) + "px"
             })
 
             jQ("#data-pane").css({
@@ -188,21 +188,18 @@
                 "overflow": "auto",
                 border: "1px solid lightgray",
                 "border-left": "2.25px solid lightblue",
-                width: (0.54 * window.innerWidth) + "px",
-                left: (0.336 * window.innerWidth) + "px"
+                width: (0.576 * window.innerWidth) + "px",
+                left: (0.372 * window.innerWidth) + "px"
             })
 
             jQ("#drug-pane, #ht1, #left").css({
-                width: (0.30 * window.innerWidth) + "px"
+                width: (0.33 * window.innerWidth) + "px"
             })
 
             var width = __$("c-row").offsetWidth + "px";
 
             __$("h-table").style.width = width;
 
-            jQ("#data-pane").css({
-                width: (__$('h-table').offsetWidth - __$("left").offsetWidth - 25) + "px"
-            })
         }
 
         function loadDrugs() {

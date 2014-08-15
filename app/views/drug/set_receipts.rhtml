@@ -177,7 +177,7 @@
                 border: "1px solid lightgray",
                 "border-right": "2.25px solid lightblue",
                 "box-shadow": "inset 0 0 30px lightblue, 0 0 8px black",
-                width: (0.30 * window.innerWidth) + "px"
+                width: (0.33 * window.innerWidth) + "px"
             })
 
             jQ("#data-pane").css({
@@ -190,21 +190,18 @@
                 "overflow": "auto",
                 border: "1px solid lightgray",
                 "border-left": "2.25px solid lightblue",
-                width: (0.54 * window.innerWidth) + "px",
-                left: (0.336 * window.innerWidth) + "px"
+                width: (0.576 * window.innerWidth) + "px",
+                left: (0.372 * window.innerWidth) + "px"
             })
 
             jQ("#drug-pane, #ht1, #left").css({
-                width: (0.30 * window.innerWidth) + "px"
+                width: (0.33 * window.innerWidth) + "px"
             })
 
             var width = __$("c-row").offsetWidth + "px";
 
             __$("h-table").style.width = width;
 
-            jQ("#data-pane").css({
-                width: (__$('h-table').offsetWidth - __$("left").offsetWidth - 25) + "px"
-            })
         }
 
         function loadDrugs() {
@@ -395,8 +392,10 @@
                     jQ("#data-pane").empty();
 
                     loadControls(__$(this.getAttribute("drug")), counts[this.getAttribute("drug")]);
-
+                    __$("add-button").style.display = "none";
                     jQ("#data-pane").slideToggle();
+                    __$("add-button").style.display = "block";
+
                 }
             }
             __$("data-pane").appendChild(button);
@@ -1439,8 +1438,8 @@
 
     #add-button {
         position: absolute;
-        bottom: 83px;
-        right: 75px;
+        bottom: 100px;
+        right: 25px;
         font-size: 2em;
         font-weight: bold;
         border-radius: 20px;
