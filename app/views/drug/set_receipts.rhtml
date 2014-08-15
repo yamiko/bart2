@@ -724,6 +724,11 @@
 
                 var dname = all_drugs[i];
 
+                if(counts[all_drugs[i]] > 1) {
+                    __$(all_drugs[i]).innerHTML = "(<span style='color: red'>"  +  counts[all_drugs[i]] + "</span>)" + all_drugs[i];
+
+                }
+
                 for (var pos = 1; pos <= counts[all_drugs[i]]; pos++) {
 
                     var amount = __$(dname + "_amount_" + pos).value.trim();
