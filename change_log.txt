@@ -108,3 +108,5 @@ Version (1.0.0)
    PB - Added a script to fix reason for starting issues for Thyolo
 2014-08-13 
    KK - Added a new UI for entering verified drug values
+2014-08--15
+   KK - Added new UI for entering drug deliveries/receipts
