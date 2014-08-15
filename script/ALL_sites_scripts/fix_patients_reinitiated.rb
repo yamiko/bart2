@@ -1,12 +1,7 @@
 =begin
 
-Creator : Precious Ulemu Bondwe
-Date    : 2013-08-28 
-Purpose : To add the pills brought back to the clinic to a particular drug order to 
-          help with the adherence calculation. This script has been developed for the 
-          data migration process. 
-Modifications:
-  initials - date - description
+Purpose : To void 'Taken ARVs in the past two months' observation when the patient
+         also have 'Date ART last taken' observation during the same visit.
 
 =end
 require 'yaml'

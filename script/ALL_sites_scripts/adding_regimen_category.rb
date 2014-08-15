@@ -1,3 +1,5 @@
+#this script will add regimen category observation linked to Dispensing encounter
+#where the obs is missing
 
 def regimens
   concept = ConceptName.find_by_name("Regimen Category").concept_id

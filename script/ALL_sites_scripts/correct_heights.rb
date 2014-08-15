@@ -1,4 +1,5 @@
-
+# Updating height observations from value_text to value_numeric
+#
 def correct_heights
   concept_id = ConceptName.find_by_name("height (cm)").concept_id
   #Move value_text to value_numeric

@@ -110,3 +110,4 @@ Version (1.0.0)
    KK - Added a new UI for entering verified drug values
 2014-08--15
    KK - Added new UI for entering drug deliveries/receipts
+   DN - Script management: organized and put scripts into appropriate folders

@@ -6,7 +6,4 @@ UPDATE obs
                                 END ,
     value_coded = value_text,
     value_text = NULL
-WHERE concept_id = 2552 AND value_text IS NOT NULL;
-
-
-
+WHERE concept_id = 2552 AND value_text IS NOT NULL
