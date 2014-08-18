@@ -1,3 +1,6 @@
+# updating Date antiretrovirals started obs which was saved as value_text 
+# to value_datetime.
+#
 puts "\nStart Time: #{Time.now}"
 
 failure = File.open("failure_id.DAT", 'w')

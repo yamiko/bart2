@@ -1,12 +1,13 @@
-
+# Fixing patients with visits after 'patient died' state
+#
 def patients_fix
 
    patients = Patient.find_by_sql("
                               SELECT DISTINCT p.patient_id, ps.start_date FROM patient p
-                              INNER join earliest_start_date e ON e.patient_id = p.patient_id
-                              INNER JOIN obs o ON o.person_id = e.patient_id
-                              INNER JOIN patient_program pp ON pp.patient_id = e.patient_id
-                              INNER JOIN patient_state ps ON ps.patient_program_id = pp.patient_program_id
+                                INNER join earliest_start_date e ON e.patient_id = p.patient_id
+                                INNER JOIN obs o ON o.person_id = e.patient_id
+                                INNER JOIN patient_program pp ON pp.patient_id = e.patient_id
+                                INNER JOIN patient_state ps ON ps.patient_program_id = pp.patient_program_id
                               WHERE o.voided = 0
                               AND e.death_date IS NULL
                               AND DATE(o.obs_datetime) > DATE(ps.start_date)
@@ -24,13 +25,13 @@ def patients_fix
     person.dead = 1
     person.death_date = death_date
     person.save
-
   
     encounters_after_death = Encounter.find_by_sql("
                             SELECT * FROM encounter
                             WHERE encounter_type IN (SELECT encounter_type_id
-                            FROM encounter_type
-                            WHERE name IN ('HIV CLINIC REGISTRATION','HIV STAGING','HIV CLINIC CONSULTATION','ART ADHERENCE','TREATMENT','DISPENSING'))
+                                                     FROM encounter_type
+                                                     WHERE name IN 
+                                                     ('HIV CLINIC REGISTRATION','HIV STAGING','HIV CLINIC CONSULTATION','ART ADHERENCE','TREATMENT','DISPENSING'))
                             AND patient_id = #{patient.patient_id}
                             AND DATE(encounter_datetime) > '#{death_date}'
                             AND voided = 0")

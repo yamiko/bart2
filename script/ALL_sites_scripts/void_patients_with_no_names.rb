@@ -1,6 +1,5 @@
-
-
-
+## This script voids all patients with no names and ARV numbers
+##
 def start
   User.current = User.find(1)
 
