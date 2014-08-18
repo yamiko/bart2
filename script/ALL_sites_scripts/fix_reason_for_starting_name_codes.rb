@@ -14,5 +14,3 @@ def start
   end
 
 end
-
-start
