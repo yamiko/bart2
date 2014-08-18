@@ -1496,13 +1496,13 @@ class EncountersController < GenericEncountersController
     else
       render :text => "Location not found or not valid"
     end
-  end 
+  end
 
   def export_on_art_patients
     @ids = params["ids"].split(",")
-		@id_string = "'" + @ids.join("','") + "'"
-		@end_date = params["end_date"]
-		@start_date = params["start_date"]
+    @id_string = "'" + @ids.join("','") + "'"
+    @end_date = params["end_date"]
+    @start_date = params["start_date"]
     anc_visit = Hash.new
     params["id_visit_map"].split(",").each do |map|
       anc_visit["#{map.split('|').first}"] = map.split('|').last
@@ -1510,6 +1510,7 @@ class EncountersController < GenericEncountersController
     result = Hash.new
     @patient_ids = []
     b4_visit_one = []
+    no_art = []
     PatientProgram.find_by_sql("SELECT e.patient_id, f.identifier, e.earliest_start_date, current_state_for_program(e.patient_id, 1, '#{@end_date}') AS state
 			FROM earliest_start_date e
 			JOIN person p ON p.person_id = e.patient_id
@@ -1523,21 +1524,26 @@ class EncountersController < GenericEncountersController
         b4_visit_one << idf
       end
     end
+    no_art = @ids - result.keys
+
     if @patient_ids.length > 0
-  		cpt_ids = Encounter.find_by_sql("SELECT e.patient_id, o.value_drug, e.encounter_type FROM encounter e
+      cpt_ids = Encounter.find_by_sql(["SELECT e.patient_id, o.value_drug, e.encounter_type FROM encounter e
 			INNER JOIN obs o ON e.encounter_id = o.encounter_id AND e.voided = 0
 			WHERE e.encounter_type = (SELECT encounter_type_id FROM encounter_type WHERE name = 'DISPENSING')
 			AND o.value_drug IN (SELECT drug_id FROM drug WHERE name regexp 'cotrimoxazole')
-			AND e.patient_id IN (#{@patient_ids.join(',')})").collect{|e| PatientIdentifier.find(:last, :conditions => ["patient_id = ? AND identifier_type = ? AND identifier IN (?)",
-            e.patient_id, PatientIdentifierType.find_by_name("National id").id, @ids]).identifier}.uniq rescue []
+			AND e.patient_id IN (#{@patient_ids.join(',')}) AND DATE(e.encounter_datetime) <= ?", @end_date.to_date]).collect{|e|
+        PatientIdentifier.find(:last,
+                               :conditions => ["patient_id = ? AND identifier_type = ? AND identifier IN (?)",
+                                               e.patient_id, PatientIdentifierType.find_by_name("National id").id,
+                                               @ids]).identifier}.uniq rescue []
     else
       cpt_ids = []
     end
 
-		result["on_cpt"] = cpt_ids.join(",")
+    result["on_cpt"] = cpt_ids.join(",")
     result["arv_before_visit_one"] = b4_visit_one.join(",")
-
-		render :text => result.to_json
+    result["no_art"] = no_art.join(",")
+    render :text => result.to_json
   end
 
   def art_summary
