@@ -48,10 +48,10 @@ class GenericSessionsController < ApplicationController
           ) LIMIT 1;"
       ).last
 
-      last_physical_count_date = last_physical_count_enc.encounter_date.to_date
+      last_physical_count_date = last_physical_count_enc.encounter_date.to_date rescue nil
       current_stock = Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)
       total_drug_dispensations = Pharmacy.dispensed_drugs_since(drug.id, last_physical_count_date)
-      total_days = (Date.today - last_physical_count_date).to_i #Difference in days between two dates.
+      total_days = (Date.today - last_physical_count_date).to_i rescue 0 #Difference in days between two dates.
       total_days = 1 if (total_days == 0) #We are trying to avoid division by zero error
       consumption_rate = (total_drug_dispensations/total_days)
       stock_out_days = (current_stock/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
