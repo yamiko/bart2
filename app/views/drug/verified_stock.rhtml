@@ -68,7 +68,7 @@
                 i += 1;
             }
 
-            if (drugs.indexOf(formatted_drugs[d]) > 0 && (splitted[0] == 'INH or H' ||
+            if (drugs.indexOf(formatted_drugs[d]) >= 0 && (splitted[0] == 'INH or H' ||
                     splitted[0].trim() == "Cotrimoxazole")) {
 
                 if (varr) {
