@@ -1,4 +1,5 @@
-
+# Mapping value_coded to their respective value_coded_name_id for reason for ART eligibility observations
+# 
 def start
 
   code_map = { 844 => 863, 1067 => 1104, 1755 => 1915, 5632 => 11442, 7047 => 9789,7048 => 9792, 7051 => 9798, 7052 => 9800, 8207 => 11264, 8262 => 11337 }

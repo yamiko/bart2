@@ -1,3 +1,6 @@
+## Cleaning patients with duplicate file numbers
+#
+
 def file_number
  puts "Search started at #{Time.now}"
  duplicate = PatientIdentifier.find_by_sql("SELECT DISTINCT(patient_id) FROM patient_identifier i

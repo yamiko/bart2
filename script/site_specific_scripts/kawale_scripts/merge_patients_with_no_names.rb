@@ -1,5 +1,6 @@
-
-
+## merging patients with no names
+##
+#
 
 def start
   User.current = User.find(1)

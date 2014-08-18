@@ -1,3 +1,4 @@
+#calculate patient art adherence
   AdherenceConcept = ConceptName.find_by_name("What was the patients adherence for this drug order").concept
   CurrentUser = User.find(1)
 
