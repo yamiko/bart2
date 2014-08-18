@@ -113,3 +113,4 @@ Version (1.0.0)
    DN - Script management: organized and put scripts into appropriate folders
 2014-08-18
    DN - Script management: organized and put scripts into appropriate folders
+   DN - Added a script to run all scripts that are needed to be run before pulling cohort.
