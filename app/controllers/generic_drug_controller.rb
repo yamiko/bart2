@@ -624,20 +624,26 @@ class GenericDrugController < ApplicationController
 
     if request.post?
 
+      @formatted = preformat_regimen
+      @drug_short_names = regimen_name_map
       unless params[:obs].blank?
-
-        params[:obs].each { |obs|
+        params[:obs].each{|obs|
           drug_id = Drug.find_by_name(obs[0]).id rescue []
-
           next if drug_id.blank?
           tins = obs[1]["amount"].to_i
+          pack_size = 60
+          expiring_units = obs[1]['expire_amount']
           expiry_date = nil
+
+          if (drug_comes_in_packs(obs[0],@formatted, @drug_short_names))
+            expiring_units = ((obs[1]['expire_amount'].to_i * obs[1]['amount'].to_i)/60).to_i
+            pack_size = obs[1]['expire_amount'].to_i
+          end
+
+          expiring_units = nil if (tins == 0)
+          expiry_date = nil if (tins == 0)
+
           if tins != 0
-
-            if ((obs[1]['date'].scan("/").length == 3) rescue false)
-              obs[1]['date'] = "#{obs[1]['date'].to_date.month}/#{obs[1]['date'].to_date.year}"
-            end
-
             date_value = obs[1]['date'].split("/")
             year = date_value[1]
             month = date_value[0]
@@ -645,12 +651,12 @@ class GenericDrugController < ApplicationController
             expiry_date = "#{current_century}#{year}-#{month}-#{01}".to_date
             expiry_date += 1.months
             expiry_date -= 1.days
-            expiring_units = obs[1]['expire_amount']
+            #expiring_units = obs[1]['expire_amount']
           end
 
-          pills = tins * 60
+          pills = tins * pack_size
 
-          Pharmacy.verified_stock(drug_id, params[:delivery_date], pills, expiry_date, expiring_units, params[:type])
+          Pharmacy.verified_stock(drug_id, params[:delivery_date],pills, expiry_date, expiring_units, params[:type])
 
         }
 
@@ -663,7 +669,7 @@ class GenericDrugController < ApplicationController
         date = encounter_datetime || Date.today
 
         unless edit_reason.blank?
-          Pharmacy.drug_dispensed_stock_adjustment(drug_id, pills, date, edit_reason)
+          Pharmacy.drug_dispensed_stock_adjustment(drug_id,pills,date,edit_reason)
         else
 
           pharmacy = Pharmacy.find(drug_id)
@@ -673,7 +679,7 @@ class GenericDrugController < ApplicationController
         end
       end
       redirect_to :action => 'stock_report', :start_date => params[:start_date],
-                  :end_date => params[:end_date], :delivery_date => params[:delivery_date]
+        :end_date => params[:end_date], :delivery_date => params[:delivery_date]
     else
       @edit_reason = params[:edit_reason]
       @drug_id = params[:drug_id]
