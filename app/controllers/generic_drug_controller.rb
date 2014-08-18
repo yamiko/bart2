@@ -620,6 +620,30 @@ class GenericDrugController < ApplicationController
     render :text => "<li>" + @names.map { |n| n }.join("</li><li>") + "</li>"
   end
 
+  def drug_comes_in_packs(drug, formatted, drug_short_names)
+    formatted.each {|drug|
+      name = drug_short_names[drug]
+      name = name.gsub("(", "") rescue ""
+      name = name.gsub(")", "") rescue ""
+      splitted = name.split(" ") rescue ""
+      i = 1
+      while (i < splitted.length) do
+        if splitted[i].upcase == "ISONIAZID"
+          i += 1
+          next
+        end
+
+        if splitted[i].upcase == "OR" or splitted[i].upcase == "H"
+          splitted[0] = "#{splitted[0]} #{splitted[i]}"
+        end
+
+        i += 1
+      end
+
+      return (splitted[0] == 'INH or H' || splitted[0] == 'Cotrimoxazole')?true:false
+    }
+  end
+  
   def stock_report_edit
 
     if request.post?
