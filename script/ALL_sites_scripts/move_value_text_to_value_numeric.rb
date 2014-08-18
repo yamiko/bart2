@@ -1,3 +1,8 @@
+# Moving value_text to value_coded for the following observations
+# Pulmonary tuberculosis, Kaposis Sarcoma, Extrapulmonary tuberculosis (EPTB),
+# Patient pregnant, Is patient pregnant?, PTB within the last two years,
+# Ever registered at ART clinic, Has the patient taken ART in the last two months
+
 print "\e[H\e[2J"
 puts "Start Time: #{Time.now}\n\n"
 

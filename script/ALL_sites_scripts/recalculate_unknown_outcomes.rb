@@ -1,3 +1,6 @@
+# this script updates patient's reason for elibility if the patient have 'Unknown'
+# reason for starting
+#
   User.current = User.find(1)
    
   YesConcept = ConceptName.find_by_name('Yes')

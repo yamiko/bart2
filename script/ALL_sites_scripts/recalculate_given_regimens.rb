@@ -1,3 +1,5 @@
+#Adding regimen category observation to all dispensing encounter
+
   User.current = User.find(1)
    
   DispensionEncounter = EncounterType.find_by_name('Dispensing')

@@ -1,3 +1,6 @@
+## Script is used to merge patients with two patient_ids.
+## The secondary patient_id (the one to be voided) and all encounters and associated observations 
+## will be voided.
 
 $user = User.find_by_username('admin')
 
