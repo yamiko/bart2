@@ -52,10 +52,6 @@ def start
                               (o.concept_id = 7751 AND o.voided = 0)")
 
   patients_re_initiated.each do |patient|
-        #obs = Observation.find(:all, :conditions => ["person_id = ? AND encounter_id = ? AND concept_id = ?", patient.patient_id, patient.encounter_id, 7752])
-        
-        #raise obs.to_yaml
-        
         ActiveRecord::Base.connection.execute <<EOF
 UPDATE #{@source_db}.obs
 SET voided = 1, voided_by = 1, date_voided = '#{Date.today.strftime("%Y-%m-%d %H:%M:%S")}'

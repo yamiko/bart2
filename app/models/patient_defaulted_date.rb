@@ -9,9 +9,10 @@ EOF
 
     start_time = Time.now.to_s
     patients = Patient.find_by_sql("SELECT patient_id FROM earliest_start_date")
-
+    i = 0
+    
     patients.each do |patient|
-      puts ">>>>>>>> working on patient_id: #{patient.patient_id} >>>>>>>>>>"
+      puts ">>>>>>>> working on patient_id: #{patient.patient_id} >>>>>>>>>>>>>> #{patients.length - i} records remaining"
 ActiveRecord::Base.connection.execute <<EOF
 INSERT INTO patient_defaulted_dates (patient_id, order_id, drug_id, equivalent_daily_dose, amount_dispensed, quantity_given, start_date, end_date, defaulted_date)
 SELECT 
@@ -42,6 +43,8 @@ WHERE
         AND o.voided = 0
 GROUP BY o.order_id, ad.drug_inventory_id;
 EOF
+
+      i += 1
     end
     end_time = Time.now.to_s
     puts ">>>>>> total_patients: #{patients.length}"

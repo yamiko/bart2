@@ -5,15 +5,19 @@ def regimens
   concept = ConceptName.find_by_name("Regimen Category").concept_id
   obs = Observation.find_by_sql("
                               SELECT person_id, order_id, DATE(obs_datetime) AS obs_datetime, o.encounter_id FROM obs o
-                              INNER JOIN encounter e USING (encounter_id)
-                              INNER JOIN encounter_type et ON e.encounter_type = et.encounter_type_id
-                              INNER JOIN earliest_start_date s ON o.person_id = s.patient_id
+                                INNER JOIN encounter e USING (encounter_id)
+                                INNER JOIN encounter_type et ON e.encounter_type = et.encounter_type_id
+                                INNER JOIN earliest_start_date s ON o.person_id = s.patient_id
                               WHERE e.encounter_id NOT IN
-                              (SELECT DISTINCT encounter_id FROM obs
-                              WHERE concept_id = #{concept}
-                              AND voided = 0
-                              AND encounter_id IN (SELECT encounter_id FROM encounter
-                              WHERE encounter_type = (SELECT encounter_type_id FROM encounter_type WHERE name = 'DISPENSING') AND voided = 0))
+                                        (SELECT DISTINCT encounter_id FROM obs
+                                         WHERE concept_id = #{concept}
+                                         AND voided = 0
+                                         AND encounter_id IN (SELECT encounter_id 
+                                                              FROM encounter
+                                                              WHERE encounter_type = (SELECT encounter_type_id 
+                                                                                     FROM encounter_type
+                                                                                     WHERE name = 'DISPENSING') 
+                                                              AND voided = 0))
                               AND et.name = 'DISPENSING'
                               AND e.voided = 0
                               AND o.voided = 0

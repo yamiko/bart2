@@ -1,4 +1,5 @@
-#Pulls out missing ARV numbers within a given range
+#Pulls out missing ARV numbers within a given range.
+#Saves the missing ARV numbers in a csv file in /tmp folder
 #
 require "csv"
 def start
