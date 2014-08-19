@@ -72,6 +72,7 @@ Version (1.0.0)
     - Adding mastercard list menu for TB and ART
     - Worked on  fonts for bart2 cohort printer version
     - Resolved issues on missed appointments pulling visit dates instead of appointment dates
+<<<<<<< HEAD
 ----
     - Ensured that the nil start reasons when pulling cohort report are handled effectively so that the should not cause the thread to abort
     - Defaulted patient state to Unknown, for patients having no program id (HIV Program)
@@ -114,3 +115,7 @@ Version (1.0.0)
 2014-08-18
    DN - Script management: organized and put scripts into appropriate folders
    DN - Added a script to run all scripts that are needed to be run before pulling cohort.
+2014-07-23
+   EM - Added migrations for drug_order_barcodes table
+   EM - Creating drug tins
+   EM - aking sure we prescribe and dispense complete available packs
