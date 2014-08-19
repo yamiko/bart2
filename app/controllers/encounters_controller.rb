@@ -1520,7 +1520,7 @@ class EncountersController < GenericEncountersController
       @patient_ids << patient.patient_id
       idf = patient.identifier
       result["#{idf}"] = patient.earliest_start_date
-      if ((patient.earliest_start_date.to_date <= anc_visit["#{idf}"].to_date) rescue false)
+      if ((patient.earliest_start_date.to_date < anc_visit["#{idf}"].to_date) rescue false)
         b4_visit_one << idf
       end
     end
