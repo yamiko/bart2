@@ -130,7 +130,18 @@
                         <td style="color:<%=color%>;"><%="#{total_required} #{drug_unit}"%></td>
                         <td style="max-width: 200px;"><%=order.drug_order.drug.name%></td>
                         <td style="min-width: 70px;"><span style="float:right;"><%= total_dispensed %></span></td>
-                        <td><span style="float:right;"><%= Pharmacy.current_drug_stock(order.drug_order.drug.id) %></span></td>
+                        <%
+                          preformat_regimens = GenericDrugController.new.preformat_regimen
+                          drug_name = order.drug_order.drug.name
+                        %>
+                        <td><span style="float:right;">
+                          <% if (preformat_regimens.include?(drug_name)) %>
+                              <%= Pharmacy.current_drug_stock(order.drug_order.drug.id) %>
+                          <% else %>
+                              <%= '(N/A)' %>
+                          <% end %>
+                            </span>
+                        </td>
                       </tr>
                 <% end %>
                   </table>
