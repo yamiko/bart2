@@ -50,12 +50,15 @@ class GenericSessionsController < ApplicationController
 
       last_physical_count_date = last_physical_count_enc.encounter_date.to_date rescue nil
       current_stock = Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)
-      total_drug_dispensations = Pharmacy.dispensed_drugs_since(drug.id, last_physical_count_date)
-      total_days = (Date.today - last_physical_count_date).to_i rescue 0 #Difference in days between two dates.
-      total_days = 1 if (total_days == 0) #We are trying to avoid division by zero error
-      consumption_rate = (total_drug_dispensations/total_days)
+
+      #total_drug_dispensations = Pharmacy.dispensed_drugs_since(drug.id, last_physical_count_date)
+      past_ninety_days_date = (Date.today - 90.days)
+      total_drug_dispensations_within_ninety_days = Pharmacy.dispensed_drugs_since(drug.id, past_ninety_days_date) #within 90 days
+      total_days = (Date.today - past_ninety_days_date).to_i #Difference in days between two dates.
+      consumption_rate = (total_drug_dispensations_within_ninety_days/total_days)
       stock_out_days = (current_stock/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
       estimated_stock_out_date = (Date.today + stock_out_days).strftime('%d-%b-%Y')
+      estimated_stock_out_date = "(N/A)" if (consumption_rate.to_i <= 0)
       estimated_stock_out_date = "Stocked out" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
 
       @stock[drug.id] = {}
