@@ -18,6 +18,22 @@ class GenericDispensationsController < ApplicationController
       params[:drug_id] = params[:identifier].match(/^\d+/).to_s
       params[:quantity] = params[:identifier].match(/\d+$/).to_s
     end
+
+    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      insufficient_stock = false
+      preformat_regimens = GenericDrugController.new.preformat_regimen
+      my_drug = Drug.find(params[:drug_id]) rescue nil
+
+     if (preformat_regimens.include?(my_drug.name))
+       current_stock = Pharmacy.current_drug_stock(my_drug.id).to_i
+       quantity = params[:quantity].to_i
+       if (quantity >= current_stock)
+         params[:quantity] = current_stock
+         insufficient_stock = true if (quantity > current_stock)
+       end
+     end
+    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
     @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
     unless params[:location]
       session_date = session[:datetime] || Time.now()
@@ -198,6 +214,7 @@ class GenericDispensationsController < ApplicationController
       end
     else
       unless params[:location]
+        (flash[:error] = "Insufficient stock for: #{@drug.name rescue nil}") if insufficient_stock
         redirect_to "/patients/treatment_dashboard?id=#{@patient.patient_id}&dispensed_order_id=#{@order_id}"
       else
         render :text => 'complete' and return
