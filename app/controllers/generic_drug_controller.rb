@@ -620,8 +620,8 @@ class GenericDrugController < ApplicationController
     render :text => "<li>" + @names.map { |n| n }.join("</li><li>") + "</li>"
   end
 
-  def drug_comes_in_packs(drug, formatted, drug_short_names)
-    formatted.each {|drug|
+  def drug_comes_in_packs(drug,  drug_short_names)
+   
       name = drug_short_names[drug]
       name = name.gsub("(", "") rescue ""
       name = name.gsub(")", "") rescue ""
@@ -629,8 +629,7 @@ class GenericDrugController < ApplicationController
       i = 1
       while (i < splitted.length) do
         if splitted[i].upcase == "ISONIAZID"
-          i += 1
-          next
+          i += 1; next
         end
 
         if splitted[i].upcase == "OR" or splitted[i].upcase == "H"
@@ -640,16 +639,13 @@ class GenericDrugController < ApplicationController
         i += 1
       end
 
-      return (splitted[0] == 'INH or H' || splitted[0] == 'Cotrimoxazole')?true:false
-    }
+      return (splitted[0] == 'INH or H' || splitted[0] == 'Cotrimoxazole')?true:false  
   end
   
   def stock_report_edit
 
     if request.post?
-
-      @formatted = preformat_regimen
-      @drug_short_names = regimen_name_map
+      drug_short_names = regimen_name_map
       unless params[:obs].blank?
         params[:obs].each{|obs|
           drug_id = Drug.find_by_name(obs[0]).id rescue []
@@ -659,7 +655,7 @@ class GenericDrugController < ApplicationController
           expiring_units = obs[1]['expire_amount']
           expiry_date = nil
 
-          if (drug_comes_in_packs(obs[0],@formatted, @drug_short_names))
+          if (drug_comes_in_packs(obs[0], drug_short_names))
             expiring_units = ((obs[1]['expire_amount'].to_i * obs[1]['amount'].to_i)/60).to_i
             pack_size = obs[1]['expire_amount'].to_i
           end
