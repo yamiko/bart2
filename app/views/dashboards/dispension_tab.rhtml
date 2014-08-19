@@ -55,7 +55,8 @@
       $.post('/prescriptions/void/?patient_id=<%= @patient.id -%>&order_id=' + order_id , {}, function(data, status) {
         if (status == 'success') {
           //row.style.display='none';
-           location.reload(); 
+          window.location = window.location.href
+           //location.reload();
         }
       })
     }, function() { hideConfirmation(); });
