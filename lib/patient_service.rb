@@ -1324,6 +1324,10 @@ EOF
 
         if patient_to_be_archived.blank?
           patient_to_be_archived = self.get_patient_to_be_archived_that_has_transfered_out(patient_ids)
+
+          if (!patient_to_be_archived.blank?)
+            patient_to_be_archived = Patient.find(patient_to_be_archived)
+          end
         end
 
         if patient_to_be_archived.blank?
