@@ -1,3 +1,4 @@
+--Updates Agrees to follow-up observations from value_text to value_coded
 UPDATE obs
     SET value_coded_name_id =   CASE value_text
                                 WHEN "1066" THEN 1103 -- No

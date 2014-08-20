@@ -306,7 +306,6 @@ def generate_sql_string(a_hash)
         fields += fields.empty? ? "`#{key}`" : ", `#{key}`"
 	      
 	      str = '"' + value.to_s + '"'
-#        values += values.empty? ? "'#{value}'" : ", '#{value}'"
         values += values.empty? ? "#{str}" : ", #{str}"
     end
 
