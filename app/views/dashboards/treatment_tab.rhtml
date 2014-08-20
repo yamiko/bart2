@@ -27,12 +27,12 @@
 
   .start_date{
     position: relative;
-    margin-left: 80%;
+    margin-left: 71%;
   }
 
   .end_date{
     position: relative;
-    margin-left: 60%;
+    margin-left: 47%;
   }
 
   .amount_dispensed{
@@ -117,7 +117,7 @@
                                   <td style="max-width:120px;"><%=order.drug_order.drug.name%></td>
                                   <td><span style="position: relative; float: right; right:33%;"><%= order.start_date.to_date.strftime("%d-%b-%Y") rescue nil %></span></td>
                                   <td><span style="position: relative; float: right; right:38%;"><%= order.auto_expire_date.to_date.strftime("%d-%b-%Y") rescue nil %></span></td>
-                                  <td style="text-align:right; right: 10%;"><span style="position:relative; right:5%;"><%= total_dispensed %></span></td>
+                                  <td style="min-width:14%; text-align:right; right: 10%;"><span style="position:relative; right:5%;"><%= total_dispensed %></span></td>
                                 </tr>
                             <% end %>
                           </table>
