@@ -37,14 +37,85 @@ Version (1.0.0)
 		added gems in vendor for local bundle installation
 		Updated cohort_regimen_fix script
 		Added Current_Location to void_adherence script to prevent openmrs model from crushing 
+		Managing display of TB and ART mastercard
 ------------------------------------------------------------------------------------------
 		updated the way defaulters are being exported in flat_tables
 ----
 		updated the way defaulted dates are being calculated
 		updated the way patients outcomes are being pulled
-
-    improved the way we search locations:  
-
- 		updated the way regimen_category and adherence are exported
-
-    new script to recalculate CD4 count reason for starting for all Unknown reasons
+    improved the way we search locations: 
+		updated the way regimen_category and adherence are exported
+----
+    - added a script to void 'Has the patient taken ARVs in the past 2 months' observation
+      if and only if the patient also have 'Date ART last taken' observation on the same visit.
+    - added chichewa translations for some questions in hiv_clinic_registration view
+    - added a condition in ever_registered_obs view to get the latest observation
+    - updated patients_reinitiated query
+----
+    - defaulted frequency to unknown for orders having no frequency in batch_flat_table_initialization
+    - added descriptive messages to indicate the progress of batch_flat_table_initialization script
+    - updated patients_reinitiated query
+    - changed the way gender is exported to mysql files
+---
+    - improved the query pulling all orders in batch_flat_table_initialization script
+    - Defaulted the current_state_for_program to 'Unknown' if patient has no state during that visit
+      in batch_flat_table_initialization
+---
+    - added death_date field in batch_flat_table_initialization script
+---
+    - added a age_in_days field in earliest_start_date view which will be used in pulling age_groups
+    - reverted patients_reinitiated query back to 56 days
+    - also reverted ever_registered_obs to get all patient's hiv_clinic_registration encounters
+---
+    - updated the way demographics are exported in batch_flat_table_initialization script
+.....
+    - Adding mastercard list menu for TB and ART
+    - Worked on  fonts for bart2 cohort printer version
+    - Resolved issues on missed appointments pulling visit dates instead of appointment dates
+<<<<<<< HEAD
+----
+    - Ensured that the nil start reasons when pulling cohort report are handled effectively so that the should not cause the thread to abort
+    - Defaulted patient state to Unknown, for patients having no program id (HIV Program)
+---
+   - added a patient_defaulted_dates model
+   - added 'age_in_days' field in batch_flat_cohort_table_initiliazation script
+---
+   - updated patient_defaulted_dates model
+   - added patient_max_defaulted_date function in bart2_views_schema_additions
+   - replaced 'defaulted_date' with 'start_date' in patient_max_defaulted_date
+---
+   - added cohort controller as part of integrating bart2_cohort with bart2 
+   - updated patient_defaulted_dates model
+---
+   - added flat_tables models
+   - modified applications_controller to accomodate the addition of flat tables cohort report
+   - updated routes.rb to accommodate the additions of flat_tables routes
+--- 
+   - intergrated flat tables reports with bart2
+   - modified cohort.rb in model to categorise patients without start reason in unknown reason group
+---
+   - changed defaulted query in flat_tables
+---
+   - removed a logger for survival analysis values
+2014/07/31
+   DN- removed defaulted query in batch_flat_table_initialization script   
+   PB-*** testing email service for QA ****-
+   DN- updated the way death_date is being exported in batch_flat_table_initialization script
+   DN- replaced 'age_at_initiation' with 'age_in_days' when pulling age groups in flat_table cohort
+2014-08-04
+   PB - Added a how to document for initializing flat tables in doc folder
+   PB - Updated, rather rearranged the steps for initializing flat tables in the document provided i
+2014-08-05
+   PB - Added a script to fix reason for starting issues for Thyolo
+2014-08-13 
+   KK - Added a new UI for entering verified drug values
+2014-08--15
+   KK - Added new UI for entering drug deliveries/receipts
+   DN - Script management: organized and put scripts into appropriate folders
+2014-08-18
+   DN - Script management: organized and put scripts into appropriate folders
+   DN - Added a script to run all scripts that are needed to be run before pulling cohort.
+2014-07-23
+   EM - Added migrations for drug_order_barcodes table
+   EM - Creating drug tins
+   EM - aking sure we prescribe and dispense complete available packs

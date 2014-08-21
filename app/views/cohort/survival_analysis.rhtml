@@ -1,0 +1,44 @@
+<html>
+  <head>
+    <title>Survival analysis</title>
+    <script language="javascript" type="text/javascript"
+    src="/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js" defer="true"></script>
+    <style type="text/css">
+      .navButton {
+        min-width: 150px;
+      }
+    </style>
+    <script type="text/javascript">
+      tstCurrentDate = "<%= Date.today.strftime("%Y-%m-%d") %>";
+
+      var currentYear = "<%= Date.today.year %>";
+      tt_cancel_show = "/";
+      tt_cancel_destination = "/";
+    </script>
+
+  </head>
+  <body id="mateme">
+    <div id="container">
+      <div id="content">
+        <div id="general-dashboard" style="height: 660px;">
+          <iframe id="main" src="/cohort/survival_analysis_index?start_date=<%= params[:start_date]
+                %>&end_date=<%= params[:end_date] %>"></iframe>
+
+          <div style="z-index:11;bottom:0px; height: 82px; width: 100%; left: 0px;
+               right: -66px; position: absolute; background-color: #333333; padding: 0px;">
+            <button onclick="window.location = '/';" class="button navButton red"
+                    id="cancelButton" style="position: absolute; z-index: 100; margin-top: 10px;"><span>Cancel</span>
+            </button>
+
+            <button onclick="window.location = '/';" class="button navButton green"
+                    id="nextButton" style="margin-top: 10px; margin-right: 20px;" ><span>Finish</span>
+            </button>
+            <button onclick="window.location = '/cohort/select_date';" class="button blue navButton"
+                    id="backButton" style="margin-top: 10px; width: 150px;" ><span>Back</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

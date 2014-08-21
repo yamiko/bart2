@@ -1,0 +1,67 @@
+<html>
+  <head>
+    <title>ART Cohort Report Drill-Down</title>
+    <script language="javascript" type="text/javascript"
+    src="/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js" defer="true"></script>
+    <style type="text/css">
+      .navButton {
+        min-width: 150px;
+      }
+    </style>
+  </head>
+  <body id="mateme">
+    <div id="container">
+      <div id="content">
+        <div id="general-dashboard" style="height: 660px;">
+          <div style="height: 664px; overflow: auto;">
+            <div style="height: 60px; border: solid 1px #6281A7;
+                 font-size: 2em; color: #fff; padding-top: 20px;
+                 background-color: #6281A7; text-align: center; vertical-align: middle;">
+              Cohort Drill-Down (<%= params[:start_date].to_date.strftime("%d/%b/%Y")
+            %> - <%= params[:end_date].to_date.strftime("%d/%b/%Y") %>)
+            </div>
+            <div style="height: 580px; overflow: auto; border: solid 1px #6281A7;">
+              <table width="100%" border="0" cellpadding="10">
+
+                <% @patients.each do |patient| %>
+
+                  <tr onmousedown="window.location = '/cohort/mastercard/<%= patient[0] %>'"
+                      style="cursor: pointer; background-color: <%= cycle("#eee", "#fff") %>">
+                    <td>
+                      <%= patient[0] %>&nbsp;
+                    </td>
+                    <td>
+                      <%= patient[1] %>&nbsp;
+                    </td>
+                    <td>
+                      <%= patient[2] %>&nbsp;
+                    </td>
+                    <td>
+                      <%= patient[3] %>&nbsp;
+                    </td>
+                    <td>
+                      <%= patient[4] %>&nbsp;
+                    </td>
+                  </tr>
+
+                <% end %>
+
+              </table>
+            </div>
+          </div>
+
+          <div style="z-index:11;bottom:0px; height: 82px; width: 100%; left: 0px;
+               right: -66px; position: absolute; background-color: #333333; padding: 0px;">
+            <!--button onclick="window.location = '/cohort';" class="button navButton red"
+                    id="cancelButton" style="position: absolute; z-index: 100; margin-top: 10px;"><span>Cancel</span>
+            </button-->
+
+            <button onclick="back()" class="button navButton green"
+                    id="nextButton" style="margin-top: 10px; margin-right: 20px;" ><span>Finish</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

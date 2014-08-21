@@ -1,0 +1,279 @@
+<html>
+  <head>
+    <title>Cohort Report</title>
+    <style type="text/css">
+      body {
+        font-family: verdana;
+        -moz-user-select: none;
+      }
+      .normalcell {
+        border: 1px solid #ccc;
+      }
+      .header {
+        font-size: 28px;
+      }
+      .heading {
+        border: 1px solid #ccc;
+        font-weight: bold;
+        font-size: 18px;
+        color: #6281A7;
+      }
+      .num {
+        text-align: center;
+        min-width: 70px;
+      }
+    </style>
+  </head>
+  <body>
+    <table id="report" width="100%" cellspacing="2" cellpadding="5">
+      <tr>
+        <th style="background-color: #ccc;">
+          &nbsp;
+        </th>
+        <th colspan="2" class="header" style="background-color: #6281A7;
+            padding: 10px; color: #fff; font-weight: normal;">
+
+          <span id="qtr"><%= params[:start_date].to_date.strftime("%Y")  + "&nbsp-&nbsp" + {1 => "1<sup>st</sup>",
+              4 => "2<sup>nd</sup>", 7 => "3<sup>rd</sup>", 10 => "4<sup>th</sup>"}[params[:start_date].to_date.month] + " Quarter"%></span> Survival Analysis
+        </th>
+      </tr>
+
+      <tr>
+        <th style="background-color: #ccc;">
+          &nbsp;
+        </th>
+        <td class="heading" style="border-right: hidden; color: #6281A7; width: 60%;">
+          &nbsp
+        </td>
+        <th class="normalcell" style="border-left: hidden;">
+          &nbsp;
+        </th>
+
+      </tr>
+
+    </table>
+
+    <script type="text/javascript">
+      <!--
+
+      // [
+      //   0:   position label (col #0),
+      //   1:   label col 1 (col #1),
+      //   2:   column count,
+      //   3:   for 2 columns cases, second column label: heading type (col #2),
+      //   4:   for regular columns, col 2 label (col #2),
+      //   5:   col 3 label (col #3),
+      //   6:   col 4 label/value (col #4),
+      //   7:   rowspan,
+      //   8:   field id for col #2,
+      //   9:   ajaxUrl link for col #2,
+      //   10:  field id for col #3,
+      //   11:  ajaxUrl link for col #3,
+      //   12:  field id for col #4,
+      //   13:  ajaxUrl link for col #4
+      // ]
+      var fields = [
+<% @date_ranges.each_with_index do |range, i| %>
+      ["&nbsp;", "<%= (i + 1)*12 %> month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
+      ["&nbsp;","New patients registered for ART between <%= range[:start_date].to_date.strftime("%B, %Y") %> and <%= range[:end_date].to_date.strftime("%B, %Y") %>", 3,,,,,,"new_reg", "/cohort/survival_analysis_field?field=new_reg&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
+      ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/cohort/survival_analysis_field?field=on_art&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
+      ["&nbsp;","Number Dead", 3,,,,,,"dead", "/cohort/survival_analysis_field?field=dead&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
+      ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/cohort/survival_analysis_field?field=defaulter&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
+      ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/cohort/survival_analysis_field?field=art_stop&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
+      ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/cohort/survival_analysis_field?field=transfer_out&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
+      ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/cohort/survival_analysis_field?field=unknown&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
+<%end%>
+               
+    ["&nbsp;", "&nbsp;", 1],
+    ["&nbsp;", "<span style='font-size: 26px;'>Children Survival Analysis</span>", 1, "&nbsp"],
+<% @children_date_ranges.each_with_index do |range, i| %>
+      ["&nbsp;", "<%= (i + 1)*12 %> month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
+      ["&nbsp;","New patients registered for ART between <%= range[:start_date].to_date.strftime("%B, %Y") %> and <%= range[:end_date].to_date.strftime("%B, %Y") %>", 3,,,,,,"new_reg", "/cohort/survival_analysis_field?field=new_reg&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
+      ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/cohort/survival_analysis_field?field=on_art&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
+      ["&nbsp;","Number Dead", 3,,,,,,"dead", "/cohort/survival_analysis_field?field=dead&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
+      ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/cohort/survival_analysis_field?field=defaulter&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
+      ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/cohort/survival_analysis_field?field=art_stop&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
+      ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/cohort/survival_analysis_field?field=transfer_out&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
+      ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/cohort/survival_analysis_field?field=unknown&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
+<%end%>
+  
+    ["&nbsp;", "&nbsp;", 1],
+    ["&nbsp;", "<span style='font-size: 26px;'>Pregnant and Breastfeeding Women Survival Analysis</span>", 1, "&nbsp"],
+<% @pregnant_and_breastfeeding_date_ranges.each_with_index do |range, i| %>
+      ["&nbsp;", "<%= i > 0 ? (i*12) : 6%> month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
+      ["&nbsp;","New patients registered for ART between <%= range[:start_date].to_date.strftime("%B, %Y") %> and <%= range[:end_date].to_date.strftime("%B, %Y") %>", 3,,,,,,"new_reg", "/cohort/survival_analysis_field?field=new_reg&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
+      ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/cohort/survival_analysis_field?field=on_art&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
+      ["&nbsp;","Number Dead", 3,,,,,,"dead", "/cohort/survival_analysis_field?field=dead&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
+      ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/cohort/survival_analysis_field?field=defaulter&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
+      ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/cohort/survival_analysis_field?field=art_stop&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
+      ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/cohort/survival_analysis_field?field=transfer_out&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
+      ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/cohort/survival_analysis_field?field=unknown&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
+<%end%>
+    ["&nbsp;", "&nbsp;", 1],
+  ];
+
+  function __$(id){
+    return document.getElementById(id);
+  }
+
+  function createTable(){
+    for(var i = 0; i < fields.length; i++){
+      var row = document.createElement("tr");
+
+      __$("report").getElementsByTagName("tbody")[0].appendChild(row);
+
+      var cell0 = document.createElement("td");
+      cell0.innerHTML = fields[i][0];
+      cell0.style.textAlign = "right";
+      cell0.style.color = "#fff";
+      cell0.style.backgroundColor = (String(fields[i][0]).trim() != "&nbsp;" ? "#6281A7" : "#ccc");
+      cell0.rowSpan = (fields[i][7] != "undefined" && fields[i][7] != 0 ? fields[i][7] : 1);
+
+      if(typeof(fields[i][7]) != "undefined" && fields[i][7] != 0){
+        row.appendChild(cell0);
+      } else if(typeof(fields[i][7]) == "undefined"){
+        row.appendChild(cell0);
+      }
+
+      var cell1 = document.createElement("td");
+      cell1.innerHTML = fields[i][1];
+      cell1.className = (typeof(fields[i][3]) != "undefined" && fields[i][3] != null ?
+        "heading" : "normalcell");
+      cell1.colSpan = (fields[i][2] == 1 ? 2 : (fields[i][2] == 2 ? 2 : 1));
+      cell1.rowSpan = (fields[i][7] != "undefined" && fields[i][7] != 0 ? fields[i][7] : 1);
+
+      if(typeof(fields[i][7]) != "undefined" && fields[i][7] != 0){
+        row.appendChild(cell1);
+      } else if(typeof(fields[i][7]) == "undefined"){
+        row.appendChild(cell1);
+      }
+
+      if(fields[i][2] == 1){
+        continue;
+      }
+
+      var cell2 = document.createElement("td");
+      cell2.innerHTML = (fields[i][2] == 2 ? (typeof(fields[i][3]) != "undefined" && fields[i][3] != null ?
+        fields[i][3] : "&nbsp;") : (typeof(fields[i][4]) != "undefined" ? fields[i][4] : "&nbsp;"));
+
+      cell2.className = (typeof(fields[i][3]) != "undefined" && fields[i][3] != null ?
+        "heading" : "normalcell");
+      cell2.colSpan = (fields[i][2] == 2 ? 2 : 1);
+
+      if(typeof(fields[i][8]) != "undefined"){
+        cell2.id = i + fields[i][8];
+        cell2.className = "num normalcell";
+      }
+
+      row.appendChild(cell2);
+
+      if(fields[i][2] == 2){
+        continue;
+      }
+
+    }
+  }
+
+
+  function ajaxRequest(aElement, aUrl) {
+    
+    var httpRequest = new XMLHttpRequest();
+    httpRequest.onreadystatechange = function() {
+      handleResult(aElement, httpRequest);
+    };
+    try {
+      httpRequest.open('GET', aUrl, true);
+      httpRequest.send(null);
+    } catch(e){
+    }
+  }
+
+  function handleResult(element, aXMLHttpRequest) {
+    if (!aXMLHttpRequest) return;
+
+    if (!element) return;
+
+    if (aXMLHttpRequest.readyState == 4 && aXMLHttpRequest.status == 200) {
+      var result = aXMLHttpRequest.responseText;
+
+      if(__$(element)){
+
+        var json = JSON.parse(result);
+        __$(element).innerHTML = "";
+        __$(element).style.padding = "0px";
+
+        if(json.length > 0){
+          __$(element).style.verticalAlign = "middle";
+          var frm = document.createElement("form");
+          frm.setAttribute("action", "/cohort/drill_down");
+          frm.setAttribute("method", "post");
+          frm.setAttribute("target", "_parent");
+          frm.style.padding = "0px";
+          frm.style.margin = "0px";
+
+          __$(element).appendChild(frm);
+
+          var startdate = document.createElement("input");
+          startdate.name = "start_date";
+          startdate.type = "hidden";
+          startdate.value = "<%= params[:start_date] %>"
+
+          frm.appendChild(startdate);
+
+          var enddate = document.createElement("input");
+          enddate.name = "end_date";
+          enddate.type = "hidden";
+          enddate.value = "<%= params[:end_date] %>"
+
+          frm.appendChild(enddate);
+
+          var textarea = document.createElement("textarea");
+          textarea.name = "field";
+          textarea.style.display = "none";
+          textarea.innerHTML = "00";
+          textarea.style.margin = "0px";
+
+          for(var j = 0; j < json.length; j++){
+            textarea.innerHTML += json[j] + ","
+          }
+
+          textarea.innerHTML = textarea.innerHTML.trim().substr(0, (textarea.innerHTML.trim().length - 1));
+
+          frm.appendChild(textarea);
+
+          var button = document.createElement("input");
+          button.type = "submit";
+          button.value = json.length;
+          button.style.margin = "0px";
+          button.style.color = "#000";
+          button.style.width = "100%";
+          button.style.border = "0px solid #fff";
+          button.style.backgroundColor = "#fff";
+          button.style.cursor = "pointer";
+
+          frm.appendChild(button);
+
+        } else {
+          __$(element).innerHTML = json.length;
+        }
+        
+      }
+    }
+  }
+
+  function loadFields(){
+   
+    for(var i = 0; i < fields.length; i++){
+      if(typeof(fields[i][8]) != "undefined"){
+       
+        ajaxRequest((i + fields[i][8]), fields[i][9]);
+      }
+    }
+  }
+
+  createTable();
+  loadFields();
+  //-->
+    </script>
+  </body>
+</html>
