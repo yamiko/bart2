@@ -119,3 +119,5 @@ Version (1.0.0)
    EM - Added migrations for drug_order_barcodes table
    EM - Creating drug tins
    EM - aking sure we prescribe and dispense complete available packs
+2014-08-21
+   PB - Merged with filling_number_fix branch. Has a fix to ensure that we re-assign filing numbers for patients that are not active
