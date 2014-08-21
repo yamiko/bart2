@@ -1420,7 +1420,7 @@ EOF
       SELECT patient_id FROM encounter
       INNER JOIN obs USING(encounter_id)
       WHERE value_datetime BETWEEN (?) AND (?)
-      AND encounter_type = ? GROUP BY patient_id",start_date,end_date,
+      AND encounter_type = ? AND obs.voided = 0 GROUP BY patient_id",start_date,end_date,
       appointment_encounter_type]).map{ |l| l.patient_id }
     patient_not_to_be_archived = [0] if patient_not_to_be_archived.blank?
 
@@ -1430,10 +1430,9 @@ EOF
       SELECT patient_id FROM encounter
       INNER JOIN obs USING(encounter_id)
       WHERE obs_datetime BETWEEN (?) AND (?)
-      AND encounter_type IN(?) GROUP BY patient_id",start_date,end_date,
-      appointment_encounter_type]).map{ |l| l.patient_id }
+      AND encounter_type IN(?) AND obs.voided = 0 
+      GROUP BY patient_id",start_date,end_date,encounter_type_ids]).map{ |l| l.patient_id }
     patient_not_to_be_archived_with_an_encounter = [0] if patient_not_to_be_archived_with_an_encounter.blank?
-
 
     patient_not_to_be_archived = patient_not_to_be_archived && patient_not_to_be_archived_with_an_encounter
 
