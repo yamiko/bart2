@@ -12,6 +12,16 @@ class SurvivalAnalysis
 
     date_ranges = []
 
+		if sex == "female"
+			start_of_6_months = survival_start_date - 6.months
+			end_of_6_months = survival_end_date.to_date - 6.months
+		
+			if end_of_6_months >= first_registration_date
+		    date_ranges << {:start_date => start_of_6_months.to_date,
+		                    :end_date   => end_of_6_months.to_date}
+			end
+		end
+
     while (survival_start_date -= 1.year) >= first_registration_date
       survival_end_date   -= 1.year
       date_ranges << {:start_date => survival_start_date,
@@ -19,7 +29,10 @@ class SurvivalAnalysis
       }
     end
 
-		survival_analysis_outcomes = {};  views = {};
+		survival_analysis_outcomes = {}
+		views = {}
+		key = ""
+		
 		date_ranges.sort_by {|x,i| x[:end_date] <=>  x[:start_date]}.each_with_index do |range, i|
 			program_id = Program.find_by_name('HIV PROGRAM').id
 			transferred = []; arvs =[]; stopped = []; defaulted=[]; dead=[]; unknown =[]; total = []
@@ -31,14 +44,25 @@ class SurvivalAnalysis
 					states = cohort.outcomes(range[:start_date], range[:end_date], cohort.end_date.to_date, program_id, states = nil, min_age, max_age)
 			end
 
-
-			 survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{(range[:end_date] + (i + 1).year).strftime('%B %Y')}"] = {
-
+			if sex == "female"
+				if i == 0
+					key = "#{(i + 1)*6} month survival: outcomes by end of #{(range[:end_date] + (i + 1).year).strftime('%B %Y')}"
+				else
+					x = i - 1
+					key = "#{(x + 1)*12} month survival: outcomes by end of #{(range[:end_date] + (x + 1).year).strftime('%B %Y')}"
+				end
+			else
+				key = "#{(i + 1)*12} month survival: outcomes by end of #{(range[:end_date] + (i + 1).year).strftime('%B %Y')}"
+			end
+			 
+			 survival_analysis_outcomes[key] = {
         'Number Alive and on ART' => 0,
         'Number Dead' => 0, 'Number Defaulted' => 0 ,
         'Number Stopped Treatment' => 0, 'Number Transferred out' => 0,
         "Section date range" => "#{range[:start_date].strftime('%B %Y')} to #{range[:end_date].strftime('%B %Y')}",
         'Unknown' => 0,'New patients registered for ART' => states.length}
+        
+        
       patient_state['Transferred out'] = [] if patient_state['Transferred out'].blank?
       patient_state['Stopped taking ARVs'] = [] if patient_state['Stopped taking ARVs'].blank?
       patient_state['Unknown outcomes'] = [] if  patient_state['Unknown outcomes'].blank?
@@ -50,27 +74,28 @@ class SurvivalAnalysis
 				total << patient_id.to_i
 				patient_id = patient_id.to_i
 						#raise patient_id.to_yaml if patient_state['Defaulted'].include?(patient_id.patient_id)
+						
          if patient_state['Defaulted'].include?(patient_id)
 						defaulted << patient_id
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{(range[:end_date] + (i + 1).year).strftime('%B %Y')}"]['Number Defaulted']+=1
+            survival_analysis_outcomes[key]['Number Defaulted']+=1
          elsif patient_state['Transferred out'].include?(patient_id) and !patient_state['Transferred out'].blank?
 						transferred << patient_id
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{(range[:end_date] + (i + 1).year).strftime('%B %Y')}"]['Number Transferred out']+=1
+            survival_analysis_outcomes[key]['Number Transferred out']+=1
          elsif patient_state['Died total'].include?(patient_id)
 						dead << patient_id
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{(range[:end_date] + (i + 1).year).strftime('%B %Y')}"]['Number Dead']+=1
+            survival_analysis_outcomes[key]['Number Dead']+=1
          elsif patient_state['Stopped taking ARVs'].include?(patient_id)
 						stopped << patient_id
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{(range[:end_date] + (i + 1).year).strftime('%B %Y')}"]['Number Stopped Treatment']+=1
+            survival_analysis_outcomes[key]['Number Stopped Treatment']+=1
 				elsif patient_state['Total alive and on ART'].include?(patient_id)
 						arvs << patient_id
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{(range[:end_date] + (i + 1).year).strftime('%B %Y')}"]['Number Alive and on ART']+=1
+            survival_analysis_outcomes[key]['Number Alive and on ART']+=1
       	elsif patient_state['Unknown outcomes'].include?(patient_id)
 						unknown << patient_id
-            survival_analysis_outcomes["#{(i + 1)*12} month survival: outcomes by end of #{(range[:end_date] + (i + 1).year).strftime('%B %Y')}"]['Unknown']+=1
+            survival_analysis_outcomes[key]['Unknown']+=1
 				end
       end
-    			views["#{(i + 1)*12} month survival: outcomes by end of #{(range[:end_date] + (i + 1).year).strftime('%B %Y')}"] = {
+    			views[key] = {
 
 				"total" => total,
 				"stopped" => stopped,
