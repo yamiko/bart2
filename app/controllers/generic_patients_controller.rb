@@ -477,6 +477,7 @@ The following block of code should be replaced by a more cleaner function
 
   def mastercard_printable
     #the parameter are used to re-construct the url when the mastercard is called from a Data cleaning report
+    @pdf = params[:pdf]
     @quarter = params[:quarter]
     @arv_start_number = params[:arv_start_number]
     @arv_end_number = params[:arv_end_number]
