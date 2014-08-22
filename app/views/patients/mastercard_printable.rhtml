@@ -65,7 +65,12 @@
   <table class="mastercard" id="demographics">
     <%= render(:partial => "mastercard_demographics", :object => @data) %>
   </table>
-  <%= render(:partial => "mastercard_visits", :object => @previous_visits) %>
+  
+  <% if @pdf.blank? %>
+  	<%= render(:partial => "mastercard_visits", :object => @previous_visits) %>
+  <% else %>
+  	<%= render(:partial => "mastercard_visits_pdf", :object => @previous_visits) %>
+  <% end %>
   </base>
 </body>
 </html>
