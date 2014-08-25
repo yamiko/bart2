@@ -1580,6 +1580,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	  :condition => "$('cpt_given').value == 'YES'",
 	  :helpText => "Prescribed cotrimoxazole milligrams",
           :tt_onLoad => "checkInput(); showCategory('Regimen'); setTextToAppear(); showCptDrugStock()",
+          :tt_onUnLoad => 'hideStock();',
           :tt_onmousedown => "show_confirm_cpt_mgs()"} %>
   <% end %>
  <% current = session[:datetime].to_date rescue Date.today
