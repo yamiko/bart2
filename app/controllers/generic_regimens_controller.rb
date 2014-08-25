@@ -830,11 +830,11 @@ class GenericRegimensController < ApplicationController
        drug_id = order.drug.id
        current_stock = Pharmacy.current_drug_stock(drug_id).to_i
        equivalent_daily_dose = order.equivalent_daily_dose.to_i
-       required = (equivalent_daily_dose * params[:duration].to_i)
+       required_amount = (equivalent_daily_dose * params[:duration].to_i)
        drug_details[drug_name] = {}
-       drug_details[drug_name]["required_amount"] = required
+       drug_details[drug_name]["required_amount"] = required_amount
        drug_details[drug_name]["current_stock"] = current_stock
-       drug_details[drug_name]["low_stock_warning"] = true if (required > current_stock)
+       drug_details[drug_name]["low_stock_warning"] = true if (required_amount > current_stock)
      end
      
      render :json => drug_details and return
