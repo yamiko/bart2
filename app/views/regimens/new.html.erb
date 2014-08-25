@@ -978,6 +978,49 @@ element.setAttribute("onmousedown", "gotoNextPage()")
         
 
   }
+
+  function showCptDrugStock(){
+        drug_stock = document.getElementById('drug_stock');
+        html = "<div id='stock'>";
+        html += "<div style='position: absolute; width:100%;'>";
+        html += "<table cellspacing='0' style='position:absolute; width:100%; left: 0%;'>";
+        html += "<tr>";
+        html += "<td class='table_header' colspan='4'><center><span>CPT Drug Stock Availability</span></center></td>";
+        html += "</tr>";
+
+        html += "<tr style='background-color: #CDC8B1; line-height: 2em; font-size: 18px;'>";
+        html += "<td style='min-width: 130px;'><span class='stock_header_left'>Drug Name</span></td>";
+        html += "<td style='min-width: 130px;'><span class='consumption_rate_header'>Consumption Rate</span></td>";
+        html += "<td style='min-width: 100px;'><span class='stock_header_right'>Available Stock</span></td>";
+        html += "<td style='min-width: 100px;'><span class='estimated_stock_out_date_header'>Estimated stock out date</span></td>";
+        html += "</tr>";
+
+        html += "<tbody>";
+
+        <% @cpt_drug_stock.each do |drug_id, values| %>
+         <%
+          drug_name = values["drug_name"]
+          current_stock = values["current_stock"]
+          consumption_rate = values["consumption_rate"]
+          estimated_stock_out_date = values["estimated_stock_out_date"]
+         %>
+          html += "<tr>";
+          html += "<td><span class='drug_name'><%= drug_name %></span></td>";
+          html += "<td><span class='consumption_rate'><%= consumption_rate %></span></td>";
+          html += "<td><span class='current_stock'><%= current_stock %></span></td>";
+          html += "<td><span class='estimated_stock_out_date'><%= estimated_stock_out_date %></span></td>";
+          html += "</tr>";
+        <% end  %>
+
+        html += "<tbody>";
+        html += "</table>";
+        html += "</div>";
+        html += "</div>";
+        drug_stock.style.display='inline';
+        drug_stock.innerHTML = html;
+
+
+  }
   
   function hideStock(){
      if ($('drug_stock')){$('drug_stock').style.display= 'none'};
