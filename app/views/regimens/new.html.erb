@@ -889,6 +889,28 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 
   }
 
+  function showDrugStockOnHelpText(reg_id){
+    jQuery.ajax({
+      type: "POST",
+      url: "/regimens/drug_stock_availability",
+      data: "concept_id=" + reg_id + "&patient_id=<%= @patient.id %>",
+      success: function(result){
+        stock_hash = result;
+        id = "helpText" + tstCurrentPage;
+        element = document.getElementById(id);
+        html = "<span class='stock_helptext'>"
+        for (var drug_id in stock_hash){
+          drug_name = stock_hash[drug_id]["drug_name"];
+          current_stock = stock_hash[drug_id]["current_stock"];
+          html+= drug_name + ':' + current_stock + ' ';
+          
+        }
+        html+="</span>"
+        element.innerHTML += html;
+      }
+    });
+  }
+  
   function showDrugStockAvailability(reg_id){
     jQuery.ajax({
       type: "POST",
@@ -1561,7 +1583,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 
   <%= select_tag :duration, optionsString, {
 	:condition => '$("prescribe_arvs").value == "YES" || $("cpt_given").value == "YES" || $("ipt_given").value == "YES"',
-	:tt_onLoad => "__$('keyboard').style.display = 'none';showCategory('Regimen');",
+	:tt_onLoad => "__$('keyboard').style.display = 'none';showCategory('Regimen'); showDrugStockOnHelpText($('regimen_concept_id').value);",
 	:helpText => 'Duration of prescribed drugs' } %>
 
   <!-- CPT & IPT-->
