@@ -446,6 +446,18 @@
       float: left;
       margin-left: 48%;
     }
+
+    .stock_helptext{
+      position: relative;
+      font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+      font-size: 14pt;
+      left: 5%;
+    }
+
+    .number{
+      color: green;
+      font-weight: bold;
+    }
      /***********************************************************************/
 </style>
 
@@ -889,6 +901,29 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 
   }
 
+  function showDrugStockOnHelpText(reg_id){
+    jQuery.ajax({
+      type: "POST",
+      url: "/regimens/drug_stock_availability",
+      data: "concept_id=" + reg_id + "&patient_id=<%= @patient.id %>",
+      success: function(result){
+        stock_hash = result;
+        id = "helpText" + tstCurrentPage;
+        element = document.getElementById(id);
+        html = "<span class='stock_helptext'><br />"
+        for (var drug_id in stock_hash){
+          drug_name = stock_hash[drug_id]["drug_name"];
+          current_stock = stock_hash[drug_id]["current_stock"];
+          html+= drug_name + ": <span class='number'>" + current_stock + '</span> tins in stock <br />';
+          
+        }
+        html+="</span>"
+        element.innerHTML += html;
+        console.log(html)
+      }
+    });
+  }
+  
   function showDrugStockAvailability(reg_id){
     jQuery.ajax({
       type: "POST",
@@ -976,6 +1011,49 @@ element.setAttribute("onmousedown", "gotoNextPage()")
         drug_stock.style.display='inline';
         drug_stock.innerHTML = html;
         
+
+  }
+
+  function showCptDrugStock(){
+        drug_stock = document.getElementById('drug_stock');
+        html = "<div id='stock'>";
+        html += "<div style='position: absolute; width:100%;'>";
+        html += "<table cellspacing='0' style='position:absolute; width:100%; left: 0%;'>";
+        html += "<tr>";
+        html += "<td class='table_header' colspan='4'><center><span>CPT Drug Stock Availability</span></center></td>";
+        html += "</tr>";
+
+        html += "<tr style='background-color: #CDC8B1; line-height: 2em; font-size: 18px;'>";
+        html += "<td style='min-width: 130px;'><span class='stock_header_left'>Drug Name</span></td>";
+        html += "<td style='min-width: 130px;'><span class='consumption_rate_header'>Consumption Rate</span></td>";
+        html += "<td style='min-width: 100px;'><span class='stock_header_right'>Available Stock</span></td>";
+        html += "<td style='min-width: 100px;'><span class='estimated_stock_out_date_header'>Estimated stock out date</span></td>";
+        html += "</tr>";
+
+        html += "<tbody>";
+
+        <% @cpt_drug_stock.each do |drug_id, values| %>
+         <%
+          drug_name = values["drug_name"]
+          current_stock = values["current_stock"]
+          consumption_rate = values["consumption_rate"]
+          estimated_stock_out_date = values["estimated_stock_out_date"]
+         %>
+          html += "<tr>";
+          html += "<td><span class='drug_name'><%= drug_name %></span></td>";
+          html += "<td><span class='consumption_rate'><%= consumption_rate %></span></td>";
+          html += "<td><span class='current_stock'><%= current_stock %></span></td>";
+          html += "<td><span class='estimated_stock_out_date'><%= estimated_stock_out_date %></span></td>";
+          html += "</tr>";
+        <% end  %>
+
+        html += "<tbody>";
+        html += "</table>";
+        html += "</div>";
+        html += "</div>";
+        drug_stock.style.display='inline';
+        drug_stock.innerHTML = html;
+
 
   }
   
@@ -1518,7 +1596,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 
   <%= select_tag :duration, optionsString, {
 	:condition => '$("prescribe_arvs").value == "YES" || $("cpt_given").value == "YES" || $("ipt_given").value == "YES"',
-	:tt_onLoad => "__$('keyboard').style.display = 'none';showCategory('Regimen');",
+	:tt_onLoad => "__$('keyboard').style.display = 'none';showCategory('Regimen'); showDrugStockOnHelpText($('regimen_concept_id').value);",
 	:helpText => 'Duration of prescribed drugs' } %>
 
   <!-- CPT & IPT-->
@@ -1536,7 +1614,8 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	  :allowFreeText => 'false',
 	  :condition => "$('cpt_given').value == 'YES'",
 	  :helpText => "Prescribed cotrimoxazole milligrams",
-          :tt_onLoad => "checkInput(); showCategory('Regimen'); setTextToAppear();",
+          :tt_onLoad => "checkInput(); showCategory('Regimen'); setTextToAppear(); showCptDrugStock()",
+          :tt_onUnLoad => 'hideStock();',
           :tt_onmousedown => "show_confirm_cpt_mgs()"} %>
   <% end %>
  <% current = session[:datetime].to_date rescue Date.today

@@ -180,6 +180,8 @@ class GenericRegimensController < ApplicationController
             end
         end
     @vl_result_hash = Patient.vl_result_hash(@patient) rescue nil
+    @cpt_drug_stock = cpt_drug_stock
+
 	end
 
   def check_current_regimen_index
@@ -819,6 +821,25 @@ class GenericRegimensController < ApplicationController
     render :text => @options.to_json
 	end
 
+  def check_stock_levels
+     orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:regimen]})
+     drug_details = {}
+
+     orders.each do |order|
+       drug_name = order.drug.name
+       drug_id = order.drug.id
+       current_stock = Pharmacy.current_drug_stock(drug_id).to_i
+       equivalent_daily_dose = order.equivalent_daily_dose.to_i
+       required_amount = (equivalent_daily_dose * params[:duration].to_i)
+       drug_details[drug_name] = {}
+       drug_details[drug_name]["required_amount"] = required_amount
+       drug_details[drug_name]["current_stock"] = current_stock
+       drug_details[drug_name]["low_stock_warning"] = true if (required_amount > current_stock)
+     end
+     
+     render :json => drug_details and return
+  end
+  
   def drug_stock(patient, concept_id)
     regimens = Regimen.criteria(PatientService.get_patient_attribute_value(patient, "current_weight")).all(:conditions => {:concept_id => concept_id}, :include => :regimen_drug_orders)
     pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
@@ -826,6 +847,44 @@ class GenericRegimensController < ApplicationController
     regimens.each do | r |
       r.regimen_drug_orders.each do | order |
         drug = order.drug
+        last_physical_count_enc = Pharmacy.find_by_sql(
+              "SELECT * from pharmacy_obs WHERE
+               drug_id = #{drug.id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id} AND
+               DATE(encounter_date) = (
+                SELECT MAX(DATE(encounter_date)) FROM pharmacy_obs
+                WHERE drug_id =#{drug.id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id}
+              ) LIMIT 1;"
+          ).last
+
+        last_physical_count_date = last_physical_count_enc.encounter_date.to_date rescue Date.today
+        current_stock = Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)
+
+        #total_drug_dispensations = Pharmacy.dispensed_drugs_since(drug.id, last_physical_count_date)
+        past_ninety_days_date = (Date.today - 90.days)
+        total_drug_dispensations_within_ninety_days = Pharmacy.dispensed_drugs_since(drug.id, past_ninety_days_date) #within 90 days
+        total_days = (Date.today - past_ninety_days_date).to_i #Difference in days between two dates.
+        consumption_rate = (total_drug_dispensations_within_ninety_days/total_days)
+        stock_out_days = (current_stock/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
+        estimated_stock_out_date = (Date.today + stock_out_days).strftime('%d-%b-%Y')
+        estimated_stock_out_date = "(N/A)" if (consumption_rate.to_i <= 0)
+        estimated_stock_out_date = "Stocked out" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
+
+        stock[drug.id] = {}
+        stock[drug.id]["drug_name"] = drug.name
+        stock[drug.id]["current_stock"] = current_stock
+        stock[drug.id]["consumption_rate"] = consumption_rate.to_f.round(1)
+        stock[drug.id]["estimated_stock_out_date"] = estimated_stock_out_date
+      end
+    end
+    stock
+  end
+  
+  def cpt_drug_stock
+    pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
+    stock = {}
+    required_cpt = ["Cotrimoxazole (480mg tablet)", "Cotrimoxazole (960mg)"]
+    required_cpt.each do | name |
+        drug = Drug.find_by_name(name)
         last_physical_count_enc = Pharmacy.find_by_sql(
               "SELECT * from pharmacy_obs WHERE
                drug_id = #{drug.id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id} AND
@@ -853,7 +912,6 @@ class GenericRegimensController < ApplicationController
         stock[drug.id]["current_stock"] = current_stock
         stock[drug.id]["consumption_rate"] = consumption_rate.to_f.round(1)
         stock[drug.id]["estimated_stock_out_date"] = estimated_stock_out_date
-      end
     end
     stock
   end
