@@ -821,6 +821,25 @@ class GenericRegimensController < ApplicationController
     render :text => @options.to_json
 	end
 
+  def check_stock_levels
+     orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:regimen]})
+     drug_details = {}
+
+     orders.each do |order|
+       drug_name = order.drug.name
+       drug_id = order.drug.id
+       current_stock = Pharmacy.current_drug_stock(drug_id).to_i
+       equivalent_daily_dose = order.equivalent_daily_dose.to_i
+       required = (equivalent_daily_dose * params[:duration].to_i)
+       drug_details[drug_name] = {}
+       drug_details[drug_name]["required_amount"] = required
+       drug_details[drug_name]["current_stock"] = current_stock
+       drug_details[drug_name]["low_stock_warning"] = true if (required > current_stock)
+     end
+     
+     render :json => drug_details and return
+  end
+  
   def drug_stock(patient, concept_id)
     regimens = Regimen.criteria(PatientService.get_patient_attribute_value(patient, "current_weight")).all(:conditions => {:concept_id => concept_id}, :include => :regimen_drug_orders)
     pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
