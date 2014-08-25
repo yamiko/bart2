@@ -446,6 +446,18 @@
       float: left;
       margin-left: 48%;
     }
+
+    .stock_helptext{
+      position: relative;
+      font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+      font-size: 14pt;
+      left: 5%;
+    }
+
+    .number{
+      color: green;
+      font-weight: bold;
+    }
      /***********************************************************************/
 </style>
 
@@ -898,15 +910,16 @@ element.setAttribute("onmousedown", "gotoNextPage()")
         stock_hash = result;
         id = "helpText" + tstCurrentPage;
         element = document.getElementById(id);
-        html = "<span class='stock_helptext'>"
+        html = "<span class='stock_helptext'><br />"
         for (var drug_id in stock_hash){
           drug_name = stock_hash[drug_id]["drug_name"];
           current_stock = stock_hash[drug_id]["current_stock"];
-          html+= drug_name + ':' + current_stock + ' ';
+          html+= drug_name + ": <span class='number'>" + current_stock + '</span> tins in stock <br />';
           
         }
         html+="</span>"
         element.innerHTML += html;
+        console.log(html)
       }
     });
   }
