@@ -932,26 +932,26 @@ element.setAttribute("onmousedown", "gotoNextPage()")
         element = document.getElementsByClassName("stock_level_details")[0];
         html = "<table cellspacing='0' style='width:100%; border-collapse: separate;'>";
         html+="<tr style='line-height: 2em;'>";
-        html+="<td style='background-color: #CDC8B1; border-top-left-radius: 15px; '><span class='theader'>Drug Name</span></td>";
-        html+="<td style='background-color: #CDC8B1;'><span class='theader'>Current Stock</span></td>";
-        html+="<td style='background-color: #CDC8B1;'><span class='theader'>Amount prescribed</span></td>";
-        html+="<td style='background-color: #CDC8B1; border-top-right-radius: 15px; min-width:10px;'> &nbsp;</td>";
+        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-left-radius: 15px; '><span class='theader'>Drug Name</span></td>";
+        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1;'><span class='theader'>Current Stock</span></td>";
+        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1;'><span class='theader'>Amount prescribed</span></td>";
+        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-right-radius: 15px; min-width:10px;'> &nbsp;</td>";
         html+="</tr>";
         for (var drug_id in stock_hash){
-          html+="<tr>";
+          html+="<tr style='line-height:1.8em;'>";
           drug_name = drug_id;
           current_stock = stock_hash[drug_id]["current_stock"];
           required_amount = stock_hash[drug_id]["required_amount"];
           low_stock_warning = stock_hash[drug_id]["low_stock_warning"];
-          html+="<td>" + drug_name + "</td>";
-          html+="<td>" + current_stock + "</td>";
-          html+="<td>" + required_amount + "</td>";
+          html+="<td style='border-bottom:1px solid;'><span style='position:relative;'>" + drug_name + "</span></td>";
+          html+="<td style='border-bottom:1px solid;'><span style='position:relative; left:30%;'>" + current_stock + "</span></td>";
+          html+="<td style='border-bottom:1px solid'><span style='position:relative; left:30%;'>" + required_amount + "</span></td>";
           
           if (low_stock_warning){
-            html+="<td><span class='low_stock'>Insufficient stock</span></td>";
+            html+="<td style='position:relative; border-bottom:1px solid'><span class='low_stock'>Insufficient stock</span></td>";
           }
           else {
-            html+="<td><span>&nbsp;</span></td>";
+            html+="<td style='position:relative; border-bottom:1px solid'><span>&nbsp;</span></td>";
           }
 
           html+="</tr>";
