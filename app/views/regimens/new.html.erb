@@ -922,6 +922,35 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 
   }
 
+  function showAvailableStock(reg_id){
+    jQuery.ajax({
+      type: "POST",
+      url: "/regimens/check_stock_levels",
+      data: "regimen=11&duration=30",
+      success: function(result){
+        stock_hash = result;
+        element = document.getElementsByClassName("stock_level_details")[0];
+        html = "<table cellspacing='0' style='width:100%; border-collapse: separate;'>";
+        html+="<tr style='line-height: 2em;'>";
+        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-left-radius: 15px; '><span class='theader'>Drug Name</span></td>";
+        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-right-radius: 15px;'><span class='theader'>Current Stock</span></td>";
+        html+="</tr>";
+        for (var drug_id in stock_hash){
+          html+="<tr style='line-height:1.8em;'>";
+          drug_name = drug_id;
+          current_stock = stock_hash[drug_id]["current_stock"];
+
+          html+="<td style='border-bottom:1px solid;'><span style='position:relative;'>" + drug_name + "</span></td>";
+          html+="<td style='border-bottom:1px solid;'><span style='position:relative; left:30%;'>" + current_stock + "</span></td>";
+          html+="</tr>";
+        }
+        html+="</table>";
+        element.style.display='inline';
+        element.innerHTML += html;
+      }
+    });
+  }
+  
   function showDrugStockOnHelpText(reg_id){
     jQuery.ajax({
       type: "POST",
