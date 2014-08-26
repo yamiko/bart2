@@ -473,6 +473,12 @@
       background-color: #FEE0C6;
       border-radius: 15px;
     }
+
+    .theader{
+      font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+      font-size: 12pt;
+      font-weight: bold;
+     }
      /***********************************************************************/
 </style>
 
@@ -924,12 +930,12 @@ element.setAttribute("onmousedown", "gotoNextPage()")
       success: function(result){
         stock_hash = result;
         element = document.getElementsByClassName("stock_level_details")[0];
-        html = "<table>";
-        html+="<tr>";
-        html+="<td><span>Drug Name</span></td>";
-        html+="<td><span>Current Stock</span></td>";
-        html+="<td><span>Amount prescribed</span></td>";
-        html+="<td> &nbsp;</td>";
+        html = "<table cellspacing='0' style='width:100%; border-collapse: separate;'>";
+        html+="<tr style='line-height: 2em;'>";
+        html+="<td style='background-color: #CDC8B1; border-top-left-radius: 15px; '><span class='theader'>Drug Name</span></td>";
+        html+="<td style='background-color: #CDC8B1;'><span class='theader'>Current Stock</span></td>";
+        html+="<td style='background-color: #CDC8B1;'><span class='theader'>Amount prescribed</span></td>";
+        html+="<td style='background-color: #CDC8B1; border-top-right-radius: 15px; min-width:10px;'> &nbsp;</td>";
         html+="</tr>";
         for (var drug_id in stock_hash){
           html+="<tr>";
