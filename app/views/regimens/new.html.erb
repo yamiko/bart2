@@ -142,7 +142,10 @@
 
   #tt_page_duration_of_prescribed_drugs .options {  height: 90%; }
 
-  #tt_page_duration_of_prescribed_drugs .inputFrameClass {  height: 86%; }
+  #tt_page_duration_of_prescribed_drugs .inputFrameClass {
+    height: 86%;
+    width: 45%;
+  }
 
 
   #tt_page_duration .options {  height: 90%; }
@@ -457,6 +460,18 @@
     .number{
       color: green;
       font-weight: bold;
+    }
+
+    .stock_level_details{
+      position: absolute;
+      width: 51%;
+      height: 25%;
+      top: 20%;
+      z-index: 499;
+      right: 1%;
+      border: 1px solid black;
+      background-color: #FEE0C6;
+      border-radius: 15px;
     }
      /***********************************************************************/
 </style>
@@ -904,22 +919,40 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   function showDrugStockOnHelpText(reg_id){
     jQuery.ajax({
       type: "POST",
-      url: "/regimens/drug_stock_availability",
-      data: "concept_id=" + reg_id + "&patient_id=<%= @patient.id %>",
+      url: "/regimens/check_stock_levels",
+      data: "regimen=11&duration=30",
       success: function(result){
         stock_hash = result;
-        id = "helpText" + tstCurrentPage;
-        element = document.getElementById(id);
-        html = "<span class='stock_helptext'><br />"
+        element = document.getElementsByClassName("stock_level_details")[0];
+        html = "<table>";
+        html+="<tr>";
+        html+="<td><span>Drug Name</span></td>";
+        html+="<td><span>Current Stock</span></td>";
+        html+="<td><span>Amount prescribed</span></td>";
+        html+="<td> &nbsp;</td>";
+        html+="</tr>";
         for (var drug_id in stock_hash){
-          drug_name = stock_hash[drug_id]["drug_name"];
+          html+="<tr>";
+          drug_name = drug_id;
           current_stock = stock_hash[drug_id]["current_stock"];
-          html+= drug_name + ": <span class='number'>" + current_stock + '</span> tins in stock <br />';
+          required_amount = stock_hash[drug_id]["required_amount"];
+          low_stock_warning = stock_hash[drug_id]["low_stock_warning"];
+          html+="<td>" + drug_name + "</td>";
+          html+="<td>" + current_stock + "</td>";
+          html+="<td>" + required_amount + "</td>";
           
+          if (low_stock_warning){
+            html+="<td><span class='low_stock'>Insufficient stock</span></td>";
+          }
+          else {
+            html+="<td><span>&nbsp;</span></td>";
+          }
+
+          html+="</tr>";
         }
-        html+="</span>"
+        html+="</table>";
+        element.style.display='inline';
         element.innerHTML += html;
-        console.log(html)
       }
     });
   }
@@ -1831,6 +1864,10 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 <% end %>
 
   <div id="drug_stock">
+  </div>
+
+  <div class="stock_level_details" style="display: none;">
+
   </div>
 </body>
 <script>
