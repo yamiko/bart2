@@ -479,6 +479,14 @@
       font-size: 12pt;
       font-weight: bold;
      }
+
+     .stock_loading_message{
+        position: relative;
+        left: 45%;
+        font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+        font-size: 16pt;
+        top:40%;
+      }
      /***********************************************************************/
 </style>
 
@@ -925,15 +933,15 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   function showAvailableStock(reg_id){
     available_options = document.getElementsByTagName('li');
     for(i=0; i<available_options.length; i++){
-      available_options[i].onmouseup = function(){
-        showDrugStockDetails(reg_id)
+      available_options[i].onclick = function(){
+        showDrugStockDetails(parseInt(this.getAttribute("tstvalue")));
       }
     }
 
     jQuery.ajax({
       type: "POST",
       url: "/regimens/check_stock_levels",
-      data: "regimen=11&duration=30",
+      data: "regimen=" + regimen_id + "&duration=30",
       success: function(result){
         stock_hash = result;
         element = document.getElementsByClassName("stock_level_details")[0];
@@ -958,11 +966,15 @@ element.setAttribute("onmousedown", "gotoNextPage()")
     });
   }
   
-  function showDrugStockDetails(reg_id){
+  function showDrugStockDetails(duration){
     jQuery.ajax({
       type: "POST",
       url: "/regimens/check_stock_levels",
-      data: "regimen=11&duration=2000",
+      data: "regimen=" + regimen_id + "&duration=" + duration,
+      beforeSend:function(){
+        data = "<span class='stock_loading_message'>Loading ...</span>"
+        document.getElementsByClassName('stock_level_details')[0].innerHTML=data;
+      },
       success: function(result){
         stock_hash = result;
         element = document.getElementsByClassName("stock_level_details")[0];
