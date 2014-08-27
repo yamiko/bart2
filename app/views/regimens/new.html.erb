@@ -930,12 +930,26 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 
   }
 
-  function showAvailableStock(reg_id){
+  function hideStockLevelDetails(){
+    document.getElementsByClassName("stock_level_details")[0].style.display='none';
+  }
+
+  function removeOnclickEvent(){
+    clearButton = document.getElementById('clearButton');
+    clearButton.onclick = null;
+  }
+
+  function showAvailableStock(){
     available_options = document.getElementsByTagName('li');
     for(i=0; i<available_options.length; i++){
       available_options[i].onclick = function(){
         showDrugStockDetails(parseInt(this.getAttribute("tstvalue")));
       }
+    }
+
+    clearButton = document.getElementById('clearButton');
+    clearButton.onclick = function(){
+      showAvailableStock();
     }
 
     jQuery.ajax({
@@ -1683,6 +1697,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   <%= select_tag :duration, optionsString, {
 	:condition => '$("prescribe_arvs").value == "YES" || $("cpt_given").value == "YES" || $("ipt_given").value == "YES"',
 	:tt_onLoad => "__$('keyboard').style.display = 'none';showCategory('Regimen'); showAvailableStock($('regimen_concept_id').value);",
+        :tt_onUnLoad => "hideStockLevelDetails(); removeOnclickEvent();",
 	:helpText => 'Duration of prescribed drugs' } %>
 
   <!-- CPT & IPT-->
