@@ -266,6 +266,7 @@
         function loadControls(item, pos) {
 
             __$("data-pane").setAttribute("pos", pos);
+            __$("data-pane").setAttribute("drug", item.getAttribute("value"));
 
             var table = document.createElement("div");
             table.style.paddingLeft = "25px";
@@ -775,7 +776,8 @@
                     dt1.style.display = "table-cell";
                     dt1.className = (i % 2 == 0) ? "even-small" : "odd-small";
                     dt1.setAttribute("drug-name", node.id);
-                    dt1.setAttribute("pos", 1);
+                    dt1.setAttribute("pos", i);
+                    dt1.id = i;
 
                     var amount = __$(node.id + "_amount_" + i).value;
                     var units = __$(node.id + "_expire_amount_" + i).value;
@@ -939,9 +941,45 @@
                 }
             }
 
+            updateCollapseList();
+
             setTimeout(function () {
                 checkValidations();
             }, 250);
+        }
+
+        function updateCollapseList(){
+
+            if (target){
+
+                var pos = __$("data-pane").getAttribute("pos");
+                var drug = __$("data-pane").getAttribute("drug");
+
+                if (counts[drug] > 1) {
+                    var id = "c_" + drug + pos;
+                    var node = __$(id);
+
+                    if (node) {
+                        var amount = __$(drug + "_amount_" + pos).value;
+                        var units = __$(drug + "_expire_amount_" + pos).value;
+                        var date = __$(drug + "_date_" + pos).value;
+
+                        if (amount.length == 0)
+                            amount = " ? ";
+                        if (units.length == 0)
+                            units = " ? ";
+                        if (date.length == 0)
+                            date = " ? ";
+
+                        if (sieved.indexOf(drug) >= 0) {
+
+                            node.innerHTML = amount + " units, " + units + " pills per tin, exp. " + date;
+                        } else {
+                            node.innerHTML = units + " units, " + amount + " pills per tin, exp. " + date;
+                        }
+                    }
+                }
+            }
         }
 
         function showKeyboard(ctrl) {
