@@ -1271,7 +1271,10 @@
         label.innerHTML = "Expiry date";
         r.appendChild(label);
 
-        __$("inputFrame" + tstCurrentPage).appendChild(header);
+            __$("inputFrame" + tstCurrentPage).appendChild(header);
+
+        if (sieved.length == drugs.length)
+            header.style.display = "none"
 
         var table = document.createElement("div");
         table.id = "summary";
