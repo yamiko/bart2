@@ -465,7 +465,7 @@
     .stock_level_details{
       position: absolute;
       width: 55%;
-      height: 25%;
+      height: 28%;
       top: 20%;
       z-index: 499;
       right: 1%;
@@ -999,6 +999,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
         html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-right-radius: 15px;'><span class='theader'>Current Stock</span></td>";
      
         html+="</tr>";
+        low_stock_drugs = []
         for (var drug_id in stock_hash){
           html+="<tr style='line-height:1.8em;'>";
           drug_name = drug_id;
@@ -1007,16 +1008,29 @@ element.setAttribute("onmousedown", "gotoNextPage()")
           low_stock_warning = stock_hash[drug_id]["low_stock_warning"];
           html+="<td style='border-bottom:1px solid;'><span style='position:relative;'>" + drug_name + "</span></td>";
           html+="<td style='border-bottom:1px solid'><span style='position:relative; left:30%;'>" + required_amount + "</span></td>";
+          html+="<td style='border-bottom:1px solid;'><span style='position:relative; left:30%;'>" + current_stock + "</span></td>";
 
+          low_stock_drugs.push(drug_name);//To be commented out later
           if (low_stock_warning){
-            html+="<td style='border-bottom:1px solid;'><span style='position:relative; left:2%;'>" + current_stock + " <i style='color:red; font-weight:bold;'>(Insufficient Stock)</i></span></td>";
+            low_stock_drugs.push(drug_name);
           }
-          else{
-            html+="<td style='border-bottom:1px solid;'><span style='position:relative; left:30%;'>" + current_stock + "</span></td>";
-          }
-
+          
           html+="</tr>";
         }
+
+        if (low_stock_drugs.length >= 1){
+          html+="<tr style='line-height:0.5em;'><td colspan='3'>&nbsp;</td></tr>";
+          html+="<tr><td colspan='3'><i style='color:green; font-weight:bold;'>Notes:</i></td></tr>";
+          for (i=0; i<low_stock_drugs.length; i++){
+            html+="<tr>";
+            html+="<td colspan='3' style='border-bottom:1px solid;'><span style='position:relative; left:2%;'>"
+            html+="<i>" + low_stock_drugs[i] + "</i> <i style='color:red; font-weight:bold;'>(No Stock)</i></span> "
+            html+="<sub style='color:green; font-weight:bold;'><%='&nbsp;' * 4 + ' '+ ' *' * 10; %></sub> <i style='font-weight:bold;'>Recommendation:</i>"
+            html+="</td>";
+            html+="</tr>";
+          }
+        }
+
         html+="</table>";
         element.style.display='inline';
         element.innerHTML = html;
