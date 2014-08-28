@@ -822,6 +822,7 @@ class GenericRegimensController < ApplicationController
 	end
 
   def recommend_duration(total_days, equivalent_daily_dose, current_stock)
+    current_stock = (current_stock * 60) #converting tins to tablets
     durations = ['4 days','1 week','2 weeks','1 month','2 months','3 months',
                   '4 months','5 months','6 months','7 months','8 months']
     hash = {}
@@ -855,20 +856,30 @@ class GenericRegimensController < ApplicationController
   def check_stock_levels
      orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:regimen]})
      drug_details = {}
+     arvs_buffer = 2
+     reduced = false
 
      orders.each do |order|
        drug_name = order.drug.name
        drug_id = order.drug.id
-       current_stock = Pharmacy.current_drug_stock(drug_id).to_i
+       current_stock = (Pharmacy.current_drug_stock(drug_id)/60).to_i #current stock in tins
        equivalent_daily_dose = order.equivalent_daily_dose.to_i
-       required_amount = (equivalent_daily_dose * params[:duration].to_i)
+       duration = (params[:duration].to_i + arvs_buffer)
+
+       if order.regimen.concept.shortname.upcase.match(/STARTER PACK/i) and !reduced
+					reduced = true
+					duration = (params[:duration].to_i + 1)
+       end
+
+       required_amount = (equivalent_daily_dose * duration)
+       required_amount = DrugOrder.calculate_complete_pack(order.drug, required_amount)
        drug_details[drug_name] = {}
-       drug_details[drug_name]["required_amount"] = required_amount
-       drug_details[drug_name]["current_stock"] = current_stock
+       drug_details[drug_name]["required_amount"] = required_amount #in tabs
+       drug_details[drug_name]["current_stock"] = current_stock # in tins
        
-       if (required_amount > current_stock)
+       if (required_amount > (current_stock * 60)) #comparing tabs to tabs
          drug_details[drug_name]["low_stock_warning"] = true
-         drug_details[drug_name]["recommended_duration"] = recommend_duration(params[:duration].to_i, equivalent_daily_dose, current_stock)
+         drug_details[drug_name]["recommended_duration"] = recommend_duration(duration, equivalent_daily_dose, current_stock)
        end
        
       end

@@ -141,7 +141,7 @@
                         %>
                         <td><span style="float:right;">
                           <% if (preformat_regimens.include?(drug_name)) %>
-                              <%= Pharmacy.current_drug_stock(order.drug_order.drug.id) %>
+                              <%= (Pharmacy.current_drug_stock(order.drug_order.drug.id)/60).to_i %>
                           <% else %>
                               <%= '(N/A)' %>
                           <% end %>
