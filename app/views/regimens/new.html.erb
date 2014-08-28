@@ -1006,7 +1006,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
           current_stock = stock_hash[drug_id]["current_stock"];
           required_amount = stock_hash[drug_id]["required_amount"];
           low_stock_warning = stock_hash[drug_id]["low_stock_warning"];
-          recommended_duration = stock_hash[drug_id]["recommended_duration"];
+          
           html+="<td style='border-bottom:1px solid;'><span style='position:relative;'>" + drug_name + "</span></td>";
           html+="<td style='border-bottom:1px solid'><span style='position:relative; left:30%;'>" + required_amount + "</span></td>";
           html+="<td style='border-bottom:1px solid;'><span style='position:relative; left:30%;'>" + current_stock + "</span></td>";
@@ -1022,7 +1022,9 @@ element.setAttribute("onmousedown", "gotoNextPage()")
           html+="<tr style='line-height:0.5em;'><td colspan='3'>&nbsp;</td></tr>";
           html+="<tr><td colspan='3'><i style='color:green; font-weight:bold;'>Notes:</i></td></tr>";
           for (i=0; i<low_stock_drugs.length; i++){
-            html+="<tr style='font-size:10pt;'>";
+            drug_id = low_stock_drugs[i];
+            recommended_duration = stock_hash[drug_id]["recommended_duration"];
+            html+="<tr>";
             html+="<td colspan='3' style='border-bottom:1px solid;'><span style='position:relative; left:2%;'>"
             html+="<i>" + low_stock_drugs[i] + "</i> <i style='color:red; font-weight:bold;'>(Low Stock)</i></span> "
             html+="<sub style='color:green; font-weight:bold;'><%='&nbsp;' * 6 + ' '+ ' *' * 5; %></sub> <i style='font-weight:bold;'>Recommendation:</i>"
