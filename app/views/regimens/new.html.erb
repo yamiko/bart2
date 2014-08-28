@@ -1006,11 +1006,11 @@ element.setAttribute("onmousedown", "gotoNextPage()")
           current_stock = stock_hash[drug_id]["current_stock"];
           required_amount = stock_hash[drug_id]["required_amount"];
           low_stock_warning = stock_hash[drug_id]["low_stock_warning"];
+          recommended_duration = stock_hash[drug_id]["recommended_duration"]
           html+="<td style='border-bottom:1px solid;'><span style='position:relative;'>" + drug_name + "</span></td>";
           html+="<td style='border-bottom:1px solid'><span style='position:relative; left:30%;'>" + required_amount + "</span></td>";
           html+="<td style='border-bottom:1px solid;'><span style='position:relative; left:30%;'>" + current_stock + "</span></td>";
 
-          low_stock_drugs.push(drug_name);//To be commented out later
           if (low_stock_warning){
             low_stock_drugs.push(drug_name);
           }
@@ -1026,7 +1026,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
             html+="<td colspan='3' style='border-bottom:1px solid;'><span style='position:relative; left:2%;'>"
             html+="<i>" + low_stock_drugs[i] + "</i> <i style='color:red; font-weight:bold;'>(No Stock)</i></span> "
             html+="<sub style='color:green; font-weight:bold;'><%='&nbsp;' * 4 + ' '+ ' *' * 10; %></sub> <i style='font-weight:bold;'>Recommendation:</i>"
-            html+="</td>";
+            html+= "<b style='color:green'>" + recommended_duration + "</b></td>";
             html+="</tr>";
           }
         }

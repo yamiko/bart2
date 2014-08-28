@@ -821,6 +821,37 @@ class GenericRegimensController < ApplicationController
     render :text => @options.to_json
 	end
 
+  def recommend_duration(total_days, equivalent_daily_dose, current_stock)
+    durations = ['4 days','1 week','2 weeks','1 month','2 months','3 months',
+                  '4 months','5 months','6 months','7 months','8 months']
+    hash = {}
+    durations.each do |duration|
+      days = (((duration.to_i) * 7)) if duration.match(/week/i)
+      days = 4 if duration.match(/days/i)
+      days = (((duration.to_i) * 28)) if duration.match(/month/i)
+      hash[days] = duration
+    end
+    
+    sorted_durations = hash.sort_by{|k, v| k } #sorting in ascending order by key
+    filtered_durations = []
+    sorted_durations.each do |k, v|
+      break if k > total_days
+      filtered_durations << [k, v]
+    end
+    filtered_durations = filtered_durations.reverse #sorting in descending order by key
+
+    insufficient_stock = true
+    filtered_durations.each do |k, v|
+      required_days = k
+      amount_prescribed = (required_days * equivalent_daily_dose)
+      next if (amount_prescribed > current_stock)
+      insufficient_stock = false
+      return v #days/weeks/months
+    end
+    
+    return 'No stock' if insufficient_stock
+  end
+    
   def check_stock_levels
      orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:regimen]})
      drug_details = {}
@@ -834,8 +865,13 @@ class GenericRegimensController < ApplicationController
        drug_details[drug_name] = {}
        drug_details[drug_name]["required_amount"] = required_amount
        drug_details[drug_name]["current_stock"] = current_stock
-       drug_details[drug_name]["low_stock_warning"] = true if (required_amount > current_stock)
-     end
+       
+       if (required_amount > current_stock)
+         drug_details[drug_name]["low_stock_warning"] = true
+         drug_details[drug_name]["recommended_duration"] = recommend_duration(params[:duration].to_i, equivalent_daily_dose, current_stock)
+       end
+       
+      end
      
      render :json => drug_details and return
   end
