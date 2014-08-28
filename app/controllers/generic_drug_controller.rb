@@ -121,6 +121,40 @@ class GenericDrugController < ApplicationController
 
   end
 
+  def  pull_receipt_drugs
+
+    data = {}
+
+    Pharmacy.active.find_all_by_value_text(params[:barcode]).each{|entry|
+
+      drug = Drug.find(entry.drug_id).name
+
+      if (data[drug].blank?)
+        data[drug] = (entry.value_numeric.to_i/60).round
+      else
+        data[drug] =  data[drug] + ((entry.value_numeric.to_i/60).round)
+      end
+    }
+
+    render :text => data.to_json
+  end
+
+  def void
+
+    user_id = current_user.user_id
+    drug = Drug.find_by_name(params[:id])
+
+    Pharmacy.active.find_all_by_value_text_and_drug_id(params[:barcode], drug.id).each{|delivery|
+
+      delivery.voided = 1
+      delivery.void_reason = params[:reason]
+      delivery.date_voided = (session[:datetime].to_date rescue Date.today)
+      delivery.changed_by = user_id
+      delivery.save
+    }
+    render :text => "Done".to_json
+  end
+
   def delivery
     @formatted = preformat_regimen
     @drugs = regimen_name_map
@@ -129,7 +163,6 @@ class GenericDrugController < ApplicationController
   def calculate_dispensed(drug_name, delivery_date)
 
     drug_id = Drug.find_by_name(drug_name).id
-    #raise params[:name].to_yaml
     current_stock = Pharmacy.current_stock_as_from(drug_id, Pharmacy.first_delivery_date(drug_id), delivery_date.to_date)
 
     expiry = 0
