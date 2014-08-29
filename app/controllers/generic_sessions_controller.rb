@@ -50,7 +50,7 @@ class GenericSessionsController < ApplicationController
 
       last_physical_count_date = last_physical_count_enc.encounter_date.to_date rescue nil
       current_stock = (Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)/60).to_i
-      #next unless (current_stock.to_i == 0)
+      next unless (current_stock.to_i == 0)
       #total_drug_dispensations = Pharmacy.dispensed_drugs_since(drug.id, last_physical_count_date)
       past_ninety_days_date = (Date.today - 90.days)
       total_drug_dispensations_within_ninety_days = Pharmacy.dispensed_drugs_since(drug.id, past_ninety_days_date) #within 90 days
