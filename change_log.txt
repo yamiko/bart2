@@ -118,4 +118,6 @@ Version (1.0.0)
 2014-07-23
    EM - Added migrations for drug_order_barcodes table
    EM - Creating drug tins
-   EM - aking sure we prescribe and dispense complete available packs
+   EM - Making sure we prescribe and dispense complete available packs
+2014-09-02
+	 TM - Changed validation rule checking whether each art patient < 18 has height and weight on each visit to work with flat tables 
