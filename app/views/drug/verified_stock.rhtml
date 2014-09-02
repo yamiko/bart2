@@ -1046,17 +1046,17 @@
         for (var i in drugs) {
 
             if (sievable.indexOf(drugs[i]) >= 0) continue;
-            var pills_per_tin = "";
-            var amount_value = "";
-            var expire_amount_value = "";
-            var date_value = "";
+            var pills_per_tin = 0;
+            var amount_value = 0;
+            var expire_amount_value = 0;
+            var date_value = "N/A";
 
             try {
                 if (__$(drugs[i] + "_amount")) {
-                    pills_per_tin = __$(drugs[i] + "_pills_per_tin").value
-                    amount_value = __$(drugs[i] + "_amount").value;
-                    expire_amount_value = __$(drugs[i] + "_expire_amount").value;
-                    date_value = __$(drugs[i] + "_date").value;
+                    pills_per_tin = (__$(drugs[i] + "_pills_per_tin").value || 0)
+                    amount_value = (__$(drugs[i] + "_amount").value || 0);
+                    expire_amount_value = (__$(drugs[i] + "_expire_amount").value || 0);
+                    date_value = (__$(drugs[i] + "_date").value || "N/A");
                 }
             } catch (e) {
             }
@@ -1167,15 +1167,15 @@
 
         for (var i in sievable) {
 
-            var amount_value = "";
-            var expire_amount_value = "";
-            var date_value = "";
+            var amount_value = 0;
+            var expire_amount_value = 0;
+            var date_value = "N/A";
 
             try {
                 if (__$(sievable[i] + "_amount")) {
-                    amount_value = __$(sievable[i] + "_amount").value;
-                    expire_amount_value = __$(sievable[i] + "_expire_amount").value;
-                    date_value = __$(sievable[i] + "_date").value;
+                    amount_value = (__$(sievable[i] + "_amount").value || 0);
+                    expire_amount_value = (__$(sievable[i] + "_expire_amount").value || 0);
+                    date_value = (__$(sievable[i] + "_date").value || "N/A");
                 }
             } catch (e) {
             }
@@ -1414,6 +1414,7 @@
   <form action="stock_report_edit" method="post">
 
     <input type="hidden" name="delivery_date" value="<%= @delivery_date %>">
+    <input type="hidden" name="type" value="<%= params['verification type'] %>">
 
     <%= text_field_tag :information, nil,
                        {

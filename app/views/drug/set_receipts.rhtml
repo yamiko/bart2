@@ -246,7 +246,7 @@
                 li.onmousedown = function () {
                     clickUpdate(this, "drug-list");
                     var n = this.getElementsByTagName("span")[0];
-                    if (n && n != undefined){
+                    if (n && n != undefined) {
                         n.onmousedown.apply(n);
                     }
                 }
@@ -800,14 +800,14 @@
                     var dt2 = document.createElement("div");
                     dt2.style.display = "table-cell";
                     dt2.style.width = "15%";
+                    dt2.id = "void_" + node.id + i;
                     dt2.setAttribute("drug-name", node.id);
                     dt2.setAttribute("pos", i);
                     dt2.innerHTML = "<img style='padding-left: 15px' height='29'></img>";
 
                     dt2.onmousedown = function () {
-                        var drug = this.getAttribute("drug-name")
-                        var pos = this.getAttribute("pos");
-                        removeParams(drug, pos);
+
+                        confirmDeletion('Do you really want to delete this batch?', this);
                     }
 
                     row.appendChild(dt1);
@@ -845,6 +845,44 @@
                     collapse(this.parentNode);
                 }
             }
+        }
+
+        function confirmDeletion(message, node) {
+
+            if (__$("bar")) {
+                jQuery("#bar").remove();
+            }
+            var bar = document.createElement("div");
+            bar.id = "bar";
+            bar.className = "bar";
+            bar.setAttribute("drug", node.getAttribute("drug-name"));
+            bar.setAttribute("iddd", node.id);
+            bar.setAttribute("pos", node.getAttribute("pos"));
+
+            bar.innerHTML = message + "<br/>" +
+                    "<button id = 'no'><span>No</span></button><button id = 'yes'><span>Yes</span></button>";
+
+            bar.style.display = "block";
+            __$("content").appendChild(bar);
+
+            __$('no').onmousedown = function () {
+                clearMessage();
+            }
+
+            __$('yes').onmousedown = function () {
+
+                var drug = __$("bar").getAttribute("drug");
+                var pos = __$("bar").getAttribute("pos");
+                removeParams(drug, pos);
+                clearMessage();
+            }
+        }
+
+        function clearMessage() {
+
+            __$("bar").style.display = "none";
+            jQuery("#bar").remove();
+            console.log("removed message bar");
         }
 
         function checkValidations() {
@@ -948,9 +986,9 @@
             }, 250);
         }
 
-        function updateCollapseList(){
+        function updateCollapseList() {
 
-            if (target){
+            if (target) {
 
                 var pos = __$("data-pane").getAttribute("pos");
                 var drug = __$("data-pane").getAttribute("drug");
@@ -1271,7 +1309,7 @@
         label.innerHTML = "Expiry date";
         r.appendChild(label);
 
-            __$("inputFrame" + tstCurrentPage).appendChild(header);
+        __$("inputFrame" + tstCurrentPage).appendChild(header);
 
         if (sieved.length == drugs.length)
             header.style.display = "none"
@@ -1692,6 +1730,25 @@
         -o-text-overflow: ellipsis;
     }
 
+    .bar {
+        left: 31%;
+        width: 450px;
+        position: absolute;
+        top: 23%;
+        font-size: 1.9em;
+        text-align: center;
+        background-color: tomato;
+        padding: 10px;
+        z-index: 999;
+        border: 5px outset tomato;
+        display: none;
+        border-radius: 15px;
+    }
+
+    .bar button {
+        font-size: 0.7em;
+        margin: 5px;
+    }
 </style>
 </head>
 <div id="container">

@@ -64,6 +64,7 @@ CREATE TABLE `pharmacy_obs` (
   `drug_id` int(11) NOT NULL DEFAULT '0',
   `value_numeric` double DEFAULT NULL,
   `expiring_units` double DEFAULT NULL,
+  `pack_size` int(11) DEFAULT NULL,
   `value_coded` int(11) DEFAULT NULL,
   `value_text` varchar(15) DEFAULT NULL,
   `expiry_date` date DEFAULT NULL,

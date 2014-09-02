@@ -100,14 +100,14 @@
     }
 
     .drug-label {
-        min-width: 40%;
+        min-width: 25%;
         text-align: left;
         padding-left: 2%;
         overflow-X: hidden;
     }
 
     .drug-value {
-        min-width: 20%;
+        min-width: 25%;
         cursor: pointer;
     }
 
@@ -176,6 +176,7 @@
             }
         });
     });
+    var returning = false;
 </script>
 <script language="javascript">
     var tt_cancel_destination = '/clinic';  // /management';
@@ -308,13 +309,20 @@
         label.className = "drug-label scell hvalue";
         label.style.display = "table-cell";
         label.style.paddingLeft = "35px";
+        label.style.minWidth = "40%";
         label.innerHTML = "Drug";
         r.appendChild(label);
 
         var label = document.createElement("div");
         label.className = "drug-value scell hvalue";
         label.style.display = "table-cell";
-        label.innerHTML = "Total tins (of 60)";
+        label.innerHTML = "Pack size";
+        r.appendChild(label);
+
+        var label = document.createElement("div");
+        label.className = "drug-value scell hvalue";
+        label.style.display = "table-cell";
+        label.innerHTML = "Total tins";
         r.appendChild(label);
 
         var label = document.createElement("div");
@@ -343,55 +351,70 @@
         var ii = 0;
         for (var i in drugs) {
 
-            var row = document.createElement("div");
-            row.style.display = "table-row";
-            row.id = drugs[i];
-            console.log("Success - row with id: " + row.id);
-            row.style.background = (ii % 2 == 0) ? "rgb(240, 240, 250)" : "white";
-            table.appendChild(row);
+            var pack_sizes = Object.keys(data[drugs[i]])
 
-            var label = document.createElement("div");
-            label.className = "drug-label scell";
-            label.style.display = "table-cell";
-            label.setAttribute("drug-name", drugs[i]);
-            label.innerHTML = drugs[i];
-            label.style.borderLeft = "0.4px solid gray";
-            if (i == 0)
-                label.style.borderTop = "0.4px solid gray";
+            for (var j = 0; j < pack_sizes.length; j++) {
+                var row = document.createElement("div");
+                row.style.display = "table-row";
+                row.id = drugs[i];
+                console.log("Success - row with id: " + row.id);
+                row.style.background = (ii % 2 == 0) ? "rgb(240, 240, 250)" : "white";
+                table.appendChild(row);
 
-            row.appendChild(label);
+                var label = document.createElement("div");
+                label.className = "drug-label scell";
+                label.style.display = "table-cell";
+                label.style.minWidth = "40%";
+                label.setAttribute("drug-name", drugs[i]);
+                label.innerHTML = drugs[i];
+                label.style.borderLeft = "0.4px solid gray";
+                if (i == 0)
+                    label.style.borderTop = "0.4px solid gray";
 
-            var label2 = document.createElement("div");
-            label2.className = "drug-label scell";
-            label2.style.display = "table-cell";
-            label2.style.textAlign = "center";
-            label2.innerHTML = data[drugs[i]];
-            if (i == 0)
-                label2.style.borderTop = "0.4px solid gray";
-            row.appendChild(label2);
+                row.appendChild(label);
 
-            var label2 = document.createElement("div");
-            label2.className = "img-holder";
-            label2.style.display = "table-cell";
-            var img = document.createElement("img");
-            img.className = "remove";
-            img.src = imgCancel;
-            img.height = "42";
-            img.width = img.height;
-            img.setAttribute("drug_name", drugs[i])
-            img.onmousedown = function () {
+                var label2 = document.createElement("div");
+                label2.className = "drug-label scell";
+                label2.style.display = "table-cell";
+                label2.style.textAlign = "center";
+                label2.innerHTML = pack_sizes[j];
+                if (i == 0)
+                    label2.style.borderTop = "0.4px solid gray";
+                row.appendChild(label2);
 
-                confirmDeletion('Do you really want to delete this delivery?', this.getAttribute("drug_name"));
+                var label2 = document.createElement("div");
+                label2.className = "drug-label scell";
+                label2.style.display = "table-cell";
+                label2.style.textAlign = "center";
+                label2.innerHTML = data[drugs[i]][pack_sizes[j]]["tins"];
+                if (i == 0)
+                    label2.style.borderTop = "0.4px solid gray";
+                row.appendChild(label2);
+
+                var label2 = document.createElement("div");
+                label2.className = "img-holder";
+                label2.style.display = "table-cell";
+                var img = document.createElement("img");
+                img.className = "remove";
+                img.src = imgCancel;
+                img.height = "42";
+                img.width = img.height;
+                img.setAttribute("drug_name", drugs[i]);
+                img.setAttribute("ob_id", data[drugs[i]][pack_sizes[j]]["id"])
+                img.onmousedown = function () {
+
+                    confirmDeletion('Do you really want to delete this delivery?', this.getAttribute("drug_name"), this.getAttribute("ob_id"));
+                }
+
+                label2.appendChild(img);
+                row.appendChild(label2);
+
+                table.appendChild(row);
             }
-
-            label2.appendChild(img);
-            row.appendChild(label2);
-
-            table.appendChild(row);
         }
     }
 
-    function confirmDeletion(message, id) {
+    function confirmDeletion(message, id, ob_id) {
 
         if (__$("bar")){
             jQuery("#bar").remove();
@@ -399,7 +422,8 @@
         var bar = document.createElement("div");
         bar.id = "bar";
         bar.className = "bar";
-        bar.setAttribute("idd", id);
+        bar.setAttribute("idd", ob_id);
+        bar.setAttribute("iddd", id);
 
         bar.innerHTML = message + "<br/>" +
                 "<button id = 'no'><span>No</span></button><button id = 'yes'><span>Yes</span></button>";
@@ -413,9 +437,10 @@
 
         __$('yes').onmousedown = function () {
 
-            var id = __$("bar").getAttribute("idd")
+            var id = __$("bar").getAttribute("idd");
+            var idd = __$("bar").getAttribute("iddd");
             clearMessage();
-            runCmd(id);
+            runCmd(idd, id);
         }
     }
 
@@ -426,15 +451,15 @@
         console.log("removed message bar");
     }
 
-    function runCmd(id) {
+    function runCmd(node_id, id) {
 
-        if (specialDrugs.indexOf(id) >= 0)
-            specialDrugs.splice(specialDrugs.indexOf(id), 1);
+        if (specialDrugs.indexOf(node_id) >= 0)
+            specialDrugs.splice(specialDrugs.indexOf(node_id), 1);
 
         ajaxCustomRequest('/drug/void?id=' + id + "&barcode=" + __$("barcode").value);
 
         try {
-            var node = __$(id);
+            var node = __$(node_id);
             jQuery(node).remove();
         } catch (x) {
         }
@@ -467,6 +492,7 @@
         var barcode = __$("barcode").value;
         __$("helpText" + tstCurrentPage).innerHTML += (" " + barcode);
         __$("touchscreenInput" + tstCurrentPage).style.display = "none";
+        __$("page" + tstCurrentPage).style.display = "none";
         __$("nextButton").innerHTML = "<span>Continue</span>";
 
         var aUrl = "/drug/pull_receipt_drugs?barcode=" + barcode;
@@ -478,10 +504,20 @@
 
                 var keys = Object.keys(response);
                 if (keys.length > 0) {
+                    __$("page" + tstCurrentPage).style.display = "block";
                     loadDrugs(response);
                 } else {
-                    __$("inputFrame" + tstCurrentPage).innerHTML = "<span class = 'custom-message'>No drug deliveries found for barcode" +
-                            barcode + "<br />Proceed to enter new delivery</span>";
+
+                    if(returning == false){
+                        returning = true;
+                        gotoPage(tstCurrentPage + 1);
+                    }else{
+                        returning = true;
+                        gotoPage(tstCurrentPage - 1);
+                    }
+
+                    //__$("inputFrame" + tstCurrentPage).innerHTML = "<span class = 'custom-message'>No drug deliveries found for barcode " +
+                    //        barcode + "<br />Proceed to enter new delivery</span>";
                 }
             }
 
@@ -523,7 +559,7 @@
     <% unless params[:id] == 'verification' %>
         <form id="create_stoke" name="create_stoke" action="set_receipts">
           <%= text_field_tag :identifier, '', {
-                  :tt_onLoad => "$('keyboard').style.display = 'none'; formatBarcodeSpace()",
+                  :tt_onLoad => "returning = false; $('keyboard').style.display = 'none'; formatBarcodeSpace()",
                   :id => 'barcode',
                   :class => 'touchscreenTextInput',
                   :helpText => 'Scan barcode on  delivery note',
@@ -546,7 +582,7 @@
                                  :optional => true,
                                  :tt_onUnLoad => 'selectedDrugs()',
                                  :helpText => "Select drugs received",
-                                 :tt_onLoad => "hidePreviousDrugs()",
+                                 :tt_onLoad => "returning = true; hidePreviousDrugs()",
                                  :tt_pageStyleClass => "NoKeyboard NoInput small"} %>
 
           <%= touch_date_tag "delivery_date", 'delivery_date', nil,
