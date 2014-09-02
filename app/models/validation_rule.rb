@@ -345,6 +345,14 @@ class ValidationRule < ActiveRecord::Base
 
 		date = date.to_date.strftime('%Y-%m-%d 23:59:59')
 
+    eligible_patients = Patient.find_by_sql("SELECT patient_id, FLOOR(DATEDIFF(DATE('#{date}'), birthdate)/365) AS age
+ FROM flat_cohort_table HAVING age < 18").collect { |x| x.patient_id }
+
+    return Patient.find_by_sql("SELECT patient_id FROM flat_table2 WHERE DATE(visit_date) = DATE('#{date}') AND
+                              patient_id in (#{eligible_patients.join(',')}) AND patient_present_yes = 'Yes'
+                              AND (Weight IS NULL OR Height IS NULL)").map(&:patient_id)
+
+=begin
 		encounter_type_id = EncounterType.find_by_name("VITALS").encounter_type_id
 		height_id = ConceptName.find_by_name("HT").concept_id
 		weight_id = ConceptName.find_by_name("WT").concept_id
@@ -365,6 +373,7 @@ class ValidationRule < ActiveRecord::Base
 					WHERE age < 18 AND e.encounter_type = #{encounter_type_id} AND concept_id IN (#{height_id}, #{weight_id})
 					GROUP BY visit.patient_id, visit.encounter_datetime) weight_and_height_check
 			WHERE Weight_and_Height < 2  AND encounter_datetime = DATE('#{date}')").map(&:patient_id)
+=end
 	end
 
 	def self.every_outcome_needs_a_date(date = Date.today)
