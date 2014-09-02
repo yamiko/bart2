@@ -144,7 +144,7 @@
 
   #tt_page_duration_of_prescribed_drugs .inputFrameClass {
     height: 86%;
-    width: 41%;
+    width: 35%;
   }
 
 
@@ -442,7 +442,7 @@
 
     .current_stock{
       float: right;
-      margin-right: 21%;
+      margin-right: 35%;
     }
 
     .estimated_stock_out_date{
@@ -464,8 +464,8 @@
 
     .stock_level_details{
       position: absolute;
-      width: 55%;
-      height: 25%;
+      width: 61%;
+      height: 28%;
       top: 20%;
       z-index: 499;
       right: 1%;
@@ -962,7 +962,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
         html = "<table cellspacing='0' style='width:100%; border-collapse: separate;'>";
         html+="<tr style='line-height: 2em;'>";
         html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-left-radius: 15px; '><span class='theader'>Drug Name</span></td>";
-        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-right-radius: 15px;'><span class='theader'>Current Stock</span></td>";
+        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-right-radius: 15px;'><span class='theader'>Current Stock(Tins of 60 pills)</span></td>";
         html+="</tr>";
         for (var drug_id in stock_hash){
           html+="<tr style='line-height:1.8em;'>";
@@ -996,27 +996,43 @@ element.setAttribute("onmousedown", "gotoNextPage()")
         html+="<tr style='line-height: 2em;'>";
         html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-left-radius: 15px; '><span class='theader'>Drug Name</span></td>";
         html+="<td style='border-bottom:1px solid; background-color: #CDC8B1;'><span class='theader'>Amount prescribed</span></td>";
-        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-right-radius: 15px;'><span class='theader'>Current Stock</span></td>";
+        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-right-radius: 15px;'><span class='theader'>Current Stock(Tins of 60 pills)</span></td>";
      
         html+="</tr>";
+        low_stock_drugs = []
         for (var drug_id in stock_hash){
           html+="<tr style='line-height:1.8em;'>";
           drug_name = drug_id;
           current_stock = stock_hash[drug_id]["current_stock"];
           required_amount = stock_hash[drug_id]["required_amount"];
           low_stock_warning = stock_hash[drug_id]["low_stock_warning"];
+          
           html+="<td style='border-bottom:1px solid;'><span style='position:relative;'>" + drug_name + "</span></td>";
-          html+="<td style='border-bottom:1px solid'><span style='position:relative; left:30%;'>" + required_amount + "</span></td>";
+          html+="<td style='text-align:right; border-bottom:1px solid'><span style='position:relative; right:46%;'>" + required_amount + "</span></td>";
+          html+="<td style='text-align:right; border-bottom:1px solid;'><span style='position:relative; right:46%;'>" + current_stock + "</span></td>";
 
           if (low_stock_warning){
-            html+="<td style='border-bottom:1px solid;'><span style='position:relative; left:2%;'>" + current_stock + " <i style='color:red; font-weight:bold;'>(Insufficient Stock)</i></span></td>";
+            low_stock_drugs.push(drug_name);
           }
-          else{
-            html+="<td style='border-bottom:1px solid;'><span style='position:relative; left:30%;'>" + current_stock + "</span></td>";
-          }
-
+          
           html+="</tr>";
         }
+
+        if (low_stock_drugs.length >= 1){
+          html+="<tr style='line-height:0.5em;'><td colspan='3'>&nbsp;</td></tr>";
+          html+="<tr><td colspan='3'><i style='color:green; font-weight:bold;'>Notes:</i></td></tr>";
+          for (i=0; i<low_stock_drugs.length; i++){
+            drug_id = low_stock_drugs[i];
+            recommended_duration = stock_hash[drug_id]["recommended_duration"];
+            html+="<tr>";
+            html+="<td colspan='3' style='border-bottom:1px solid;'><span style='position:relative; left:2%;'>"
+            html+="<i>" + low_stock_drugs[i] + "</i> <i style='color:red; font-weight:bold;'>(Low Stock)</i></span> "
+            html+="<sub style='color:green; font-weight:bold;'><%='&nbsp;' * 6 + ' '+ ' *' * 5; %></sub> <i style='font-weight:bold;'>Recommendation:</i>"
+            html+= "<sub style='color:green; font-weight:bold;'><%='&nbsp;' * 2 + ' '+ ' *' * 5 + '' + '&nbsp;' * 2; %></sub><b style='color:green;'>(<i>" + recommended_duration + "</i>)</b></td>";
+            html+="</tr>";
+          }
+        }
+
         html+="</table>";
         element.style.display='inline';
         element.innerHTML = html;
@@ -1042,7 +1058,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
         html += "<tr style='background-color: #CDC8B1; line-height: 2em; font-size: 18px;'>";
         html += "<td style='min-width: 130px;'><span class='stock_header_left'>Drug Name</span></td>";
         html += "<td style='min-width: 130px;'><span class='consumption_rate_header'>Consumption Rate</span></td>";
-        html += "<td style='min-width: 100px;'><span class='stock_header_right'>Available Stock</span></td>";
+        html += "<td style='min-width: 100px;'><span class='stock_header_right'>Available Stock(Tins of 60 pills)</span></td>";
         html += "<td style='min-width: 100px;'><span class='estimated_stock_out_date_header'>Estimated stock out date</span></td>";
         html += "</tr>";
 
@@ -1083,7 +1099,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
         html += "<tr style='background-color: #CDC8B1; line-height: 2em; font-size: 18px;'>";
         html += "<td style='min-width: 130px;'><span class='stock_header_left'>Drug Name</span></td>";
         html += "<td style='min-width: 130px;'><span class='consumption_rate_header'>Consumption Rate</span></td>";
-        html += "<td style='min-width: 100px;'><span class='stock_header_right'>Available Stock</span></td>";
+        html += "<td style='min-width: 100px;'><span class='stock_header_right'>Available Stock(Tins of 60 pills)</span></td>";
         html += "<td style='min-width: 100px;'><span class='estimated_stock_out_date_header'>Estimated stock out date</span></td>";
         html += "</tr>";
 
@@ -1126,7 +1142,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
         html += "<tr style='background-color: #CDC8B1; line-height: 2em; font-size: 18px;'>";
         html += "<td style='min-width: 130px;'><span class='stock_header_left'>Drug Name</span></td>";
         html += "<td style='min-width: 130px;'><span class='consumption_rate_header'>Consumption Rate</span></td>";
-        html += "<td style='min-width: 100px;'><span class='stock_header_right'>Available Stock</span></td>";
+        html += "<td style='min-width: 100px;'><span class='stock_header_right'>Available Stock(Tins of 60 pills)</span></td>";
         html += "<td style='min-width: 100px;'><span class='estimated_stock_out_date_header'>Estimated stock out date</span></td>";
         html += "</tr>";
 
