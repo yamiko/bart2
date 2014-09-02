@@ -1174,7 +1174,7 @@
                 month = 1;
             }
 
-            var date = new Date(__$("txtYearFor" + id).value.trim(), padZeros(month, 2), 0);
+            var date = new Date(__$("txtYearFor" + id).value.trim(), padZeros((month - 1), 2), 0);
 
             date.setDate(date.getDate());
 

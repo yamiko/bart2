@@ -698,6 +698,8 @@ class GenericDrugController < ApplicationController
           next if drug_id.blank?
           tins = obs[1]["amount"].to_i
           pack_size = 60
+          pack_size = obs[1]['pills_per_tin'].to_i if  ((obs[1]['pills_per_tin'].present?) rescue false)
+
           expiring_units = obs[1]['expire_amount']
           expiry_date = nil
 
@@ -710,14 +712,7 @@ class GenericDrugController < ApplicationController
           expiry_date = nil if (tins == 0)
 
           if tins != 0
-            date_value = obs[1]['date'].split("/")
-            year = date_value[1]
-            month = date_value[0]
-            current_century = Date.today.year.to_s.chars.each_slice(2).map(&:join)[0].to_i
-            expiry_date = "#{current_century}#{year}-#{month}-#{01}".to_date
-            expiry_date += 1.months
-            expiry_date -= 1.days
-            #expiring_units = obs[1]['expire_amount']
+            expiry_date = obs[1]['date'].to_date.end_of_month
           end
 
           pills = tins * pack_size
