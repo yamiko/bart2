@@ -150,22 +150,34 @@ class ValidationRule < ActiveRecord::Base
                                     AND o.voided = 0)").map(&:person_id)
     return no_appointment
   end
-  def self.validate_presence_of_vitals_without_weight(end_date)
-    # Developer   : Precious Bondwe
-    # Date        : 21/02/2014
+  def self.validate_presence_of_vitals_without_weight(date = Date.today)
+    # Developer   : Kenneth Kapundi
+    # Date        : 3/09/2014
     # Purpose     : Return Patient IDs for patients having Vitals encounters without weight 
     # Amendments  :
 
+    enc_ids = ["Height_enc_id", "height_for_age_enc_id",
+                   "weight_for_height_enc_id", "weight_for_age_enc_id",
+                   "Temperature_enc_id", "BMI_enc_id",
+                   "systolic_blood_pressure", "diastolic_blood_pressure",
+               ]
+    return FlatTable2.find_by_sql(["SELECT DISTINCT(ft2.patient_id) FROM flat_table2 ft2
+                  JOIN flat_cohort_table fct
+                    ON ft2.patient_id = fct.patient_id
+                  WHERE COALESCE(#{enc_ids.join(',')}) IS NOT NULL
+                    AND Weight_enc_id IS NULL AND DATE(ft2.visit_date) = ?", date.to_date]).map(&:patient_id)
+=begin
+
     weight_concept = ConceptName.find_by_name('weight').concept_id
     encounter_type = EncounterType.find_by_name('vitals').id
-    
+
     patient_ids = ValidationRule.find_by_sql("SELECT DISTINCT e.patient_id 
                           FROM encounter e 
                               LEFT JOIN obs o ON e.encounter_id = o.encounter_id AND o.concept_id = #{weight_concept} AND o.voided = 0
                                WHERE o.concept_id IS NULL AND e.voided = 0 AND e.encounter_type = #{encounter_type} 
                                AND e.encounter_datetime <= '#{end_date}'").map(&:patient_id) 
-    
-    return patient_ids
+=end
+
   end
 
   def self.death_date_less_than_last_encounter_date_and_less_than_date_of_birth(end_date = Date.today)
@@ -194,7 +206,7 @@ class ValidationRule < ActiveRecord::Base
 		
 		start_date = Encounter.find_by_sql("SELECT MIN(encounter_datetime) start_date FROM encounter")
 		start_date = start_date.blank? ? "1900-01-01 00:00:00" : start_date.first.start_date
-				
+
 		# Query for encounters without obs or orders ~ Kenneth
 		ValidationRule.find_by_sql(["
 			SELECT DISTINCT (enc.patient_id) FROM encounter enc
@@ -206,36 +218,45 @@ class ValidationRule < ActiveRecord::Base
 		
 	end
 	
-	def self.start_date_before_birth(end_date = Date.today)
-		
-		start_date = Encounter.find_by_sql("SELECT MIN(encounter_datetime) start_date FROM encounter")
-		start_date = start_date.blank? ? "1900-01-01 00:00:00" : start_date.first.start_date
-		
-		# Query for patients whose earliest start date is less that date of birth ~ Kenneth
-		ValidationRule.find_by_sql(["
-			SELECT DISTINCT (esd.patient_id) FROM earliest_start_date esd 
+	def self.start_date_before_birth(date = Date.today)
+
+    #begin Query for patients whose earliest start date is less that date of birth ~ Kenneth
+    return FlatTable2.find_by_sql(["
+			SELECT DISTINCT (ft2.patient_id) FROM flat_table2 ft2
+        INNER JOIN flat_cohort_table fct ON ft2.patient_id = fct.patient_id
+			WHERE DATEDIFF(fct.earliest_start_date, fct.birthdate) <= 0
+			  AND DATE(ft2.visit_date) = ?", date.to_date]).map(&:patient_id)
+
+=begin Query for patients whose earliest start date is less that date of birth ~ Kenneth
+		FlatTable1.find_by_sql(["
+			SELECT DISTINCT (esd.patient_id) FROM flat_table1 esd
    				INNER JOIN person p ON p.person_id = esd.patient_id AND voided = 0
    				INNER JOIN encounter enc ON enc.patient_id = esd.patient_id
 			WHERE DATEDIFF(esd.earliest_start_date, p.birthdate) <= 0
-			AND enc.encounter_datetime BETWEEN ? AND ?", start_date, end_date  
-			]).map(&:patient_id)		
-		
+			AND enc.encounter_datetime BETWEEN ? AND ?", start_date, end_date
+			]).map(&:patient_id)
+=end
+
 	end
 	
-	def self.visit_after_death(end_date = Date.today)
-	
-		start_date = Encounter.find_by_sql("SELECT MIN(encounter_datetime) start_date FROM encounter")
-		start_date = start_date.blank? ? "1900-01-01 00:00:00" : start_date.first.start_date
-		
+	def self.visit_after_death(date = Date.today)
+
 		#  Query for patients with followup visit after death ~ Kenneth
-		ValidationRule.find_by_sql(["
-		SELECT DISTINCT(enc.patient_id) FROM person p 
-    		INNER JOIN encounter enc ON enc.patient_id = p.person_id 
+    return FlatTable2.find_by_sql(["
+			SELECT DISTINCT (ft2.patient_id) FROM flat_table2 ft2
+        INNER JOIN flat_cohort_table fct ON ft2.patient_id = fct.patient_id
+			WHERE DATEDIFF(ft2.visit_date, fct.death_date) > 0
+			  AND DATE(ft2.visit_date) = ?", date.to_date]).map(&:patient_id)
+
+=begin	ValidationRule.find_by_sql(["
+		SELECT DISTINCT(enc.patient_id) FROM person p
+    		INNER JOIN encounter enc ON enc.patient_id = p.person_id
 				AND enc.voided = 0 AND enc.encounter_datetime > p.death_date
     	WHERE p.dead = 1
-			AND enc.encounter_datetime BETWEEN ? AND ?", start_date, end_date  
-			]).map(&:patient_id)		
-			
+			AND enc.encounter_datetime BETWEEN ? AND ?", start_date, end_date
+			]).map(&:patient_id)
+=end
+
 	end	
 
   def self.male_patients_with_pregnant_observation(end_date = Date.today)
