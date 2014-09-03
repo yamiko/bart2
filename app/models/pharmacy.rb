@@ -87,13 +87,14 @@ class Pharmacy < ActiveRecord::Base
       ]).collect{|del| [del.value_numeric, del.value_date, del.value_text]}
   end
 
-  def self.new_delivery(drug_id,pills,date = Date.today,encounter_type = nil,expiry_date = nil, barcode = nil, expiring_units = nil)
+  def self.new_delivery(drug_id,pills,date = Date.today,encounter_type = nil,expiry_date = nil, barcode = nil, expiring_units = nil, pack_size = 60)
     encounter_type = PharmacyEncounterType.find_by_name("New deliveries").id if encounter_type.blank?
     delivery =  self.new()
     delivery.pharmacy_encounter_type = encounter_type
     delivery.drug_id = drug_id
     delivery.encounter_date = date
     delivery.value_text = barcode
+    delivery.pack_size = pack_size
     delivery.expiry_date = expiry_date unless expiry_date.blank?
     delivery.value_numeric = pills.to_f
     if expiring_units
@@ -314,12 +315,13 @@ EOF
     #raise start_date.to_yaml
   end
 
-  def self.verified_stock(drug_id,date,pills, earliest_expiry=nil, units=nil, type=nil)
+  def self.verified_stock(drug_id,date,pills, earliest_expiry=nil, units=nil, type=nil, pack_size = nil)
     encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock').id
     encounter =  self.new()
     encounter.pharmacy_encounter_type = encounter_type
     encounter.drug_id = drug_id
     encounter.encounter_date = date
+    encounter.pack_size = pack_size
     encounter.value_numeric = pills.to_f
     if ! earliest_expiry.blank?
       encounter.expiry_date = earliest_expiry
