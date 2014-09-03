@@ -121,19 +121,20 @@ class GenericDrugController < ApplicationController
 
   end
 
-  def  pull_receipt_drugs
+  def pull_receipt_drugs
 
     data = {}
 
-    Pharmacy.active.find_all_by_value_text(params[:barcode]).each{|entry|
+    Pharmacy.active.find_all_by_value_text(params[:barcode]).each { |entry|
 
       drug = Drug.find(entry.drug_id).name
+      qty_size = entry.pack_size.blank? ? 60 : entry.pack_size.to_i
 
-      if (data[drug].blank?)
-        data[drug] = (entry.value_numeric.to_i/60).round
-      else
-        data[drug] =  data[drug] + ((entry.value_numeric.to_i/60).round)
-      end
+      data[drug] = {} if data[drug].blank?
+      data[drug][qty_size] = {} if data[drug][qty_size].blank?
+      data[drug][qty_size]["tins"] = (entry.value_numeric.to_i/qty_size).round
+      data[drug][qty_size]["pack_size"] = qty_size
+      data[drug][qty_size]["id"] = entry.id
     }
 
     render :text => data.to_json
@@ -142,16 +143,12 @@ class GenericDrugController < ApplicationController
   def void
 
     user_id = current_user.user_id
-    drug = Drug.find_by_name(params[:id])
-
-    Pharmacy.active.find_all_by_value_text_and_drug_id(params[:barcode], drug.id).each{|delivery|
-
-      delivery.voided = 1
-      delivery.void_reason = params[:reason]
-      delivery.date_voided = (session[:datetime].to_date rescue Date.today)
-      delivery.changed_by = user_id
-      delivery.save
-    }
+    delivery = Pharmacy.find(params[:id])
+    delivery.voided = 1
+    delivery.void_reason = params[:reason]
+    delivery.date_voided = (session[:datetime].to_date rescue Date.today)
+    delivery.changed_by = user_id
+    delivery.save
     render :text => "Done".to_json
   end
 
@@ -192,15 +189,22 @@ class GenericDrugController < ApplicationController
 
         delivery_date = params[:delivery_date].to_date
         barcode = params[:identifier]
+        drug_short_names = regimen_name_map
 
-        number_of_tins = delivered["amount"].to_f
-        number_of_pills_per_tin = delivered["expire_amount"].to_f
+        if (drug_comes_in_packs(ob_variations[0], drug_short_names))
+          number_of_tins = delivered["amount"].to_f
+          number_of_pills_per_tin = delivered["expire_amount"].to_f
+        else
+          number_of_tins = delivered["expire_amount"].to_f
+          number_of_pills_per_tin = delivered["amount"].to_f
+        end
 
         expiry_date = delivered["date"].sub(/^\d+/, "01").to_date.end_of_month rescue
             (raise "Invalid Date #{delivered["date"]}".to_s) rescue Date.today
         number_of_pills = (number_of_tins * number_of_pills_per_tin)
+        next if number_of_pills == 0
 
-        Pharmacy.new_delivery(drug_id, number_of_pills, delivery_date, nil, expiry_date, barcode)
+        Pharmacy.new_delivery(drug_id, number_of_pills, delivery_date, nil, expiry_date, barcode, nil, number_of_pills_per_tin)
       }
     }
 
@@ -630,18 +634,18 @@ class GenericDrugController < ApplicationController
     end
 
     create_drug_tins(params[:drug_id], params[:quantity])
-    send_data(label.print(1),:type=>"application/label; charset=utf-8", :stream=> false, :filename=>"#{drug_barcode}.lbl", :disposition => "inline")
+    send_data(label.print(1), :type => "application/label; charset=utf-8", :stream => false, :filename => "#{drug_barcode}.lbl", :disposition => "inline")
 
   end
 
   def create_drug_tins(drug_id, pill_count)
     drug_order_barcode = DrugOrderBarcode.find(:first, :conditions => ["drug_id =? AND tabs =?",
-                                          drug_id, pill_count])
+                                                                       drug_id, pill_count])
     DrugOrderBarcode.create(
-      :drug_id => drug_id,
-      :tabs => pill_count
+        :drug_id => drug_id,
+        :tabs => pill_count
     ) if drug_order_barcode.blank? #We don't want to create duplicates of drug vs tins
-    
+
   end
 
   def expiring
@@ -666,34 +670,34 @@ class GenericDrugController < ApplicationController
     render :text => "<li>" + @names.map { |n| n }.join("</li><li>") + "</li>"
   end
 
-  def drug_comes_in_packs(drug,  drug_short_names)
-   
-      name = drug_short_names[drug]
-      name = name.gsub("(", "") rescue ""
-      name = name.gsub(")", "") rescue ""
-      splitted = name.split(" ") rescue ""
-      i = 1
-      while (i < splitted.length) do
-        if splitted[i].upcase == "ISONIAZID"
-          i += 1; next
-        end
+  def drug_comes_in_packs(drug, drug_short_names)
 
-        if splitted[i].upcase == "OR" or splitted[i].upcase == "H"
-          splitted[0] = "#{splitted[0]} #{splitted[i]}"
-        end
-
-        i += 1
+    name = drug_short_names[drug]
+    name = name.gsub("(", "") rescue ""
+    name = name.gsub(")", "") rescue ""
+    splitted = name.split(" ") rescue ""
+    i = 1
+    while (i < splitted.length) do
+      if splitted[i].upcase == "ISONIAZID"
+        i += 1; next
       end
 
-      return (splitted[0] == 'INH or H' || splitted[0] == 'Cotrimoxazole')?true:false  
+      if splitted[i].upcase == "OR" or splitted[i].upcase == "H"
+        splitted[0] = "#{splitted[0]} #{splitted[i]}"
+      end
+
+      i += 1
+    end
+
+    return (splitted[0] == 'INH or H' || splitted[0] == 'Cotrimoxazole') ? true : false
   end
-  
+
   def stock_report_edit
 
     if request.post?
       drug_short_names = regimen_name_map
       unless params[:obs].blank?
-        params[:obs].each{|obs|
+        params[:obs].each { |obs|
           drug_id = Drug.find_by_name(obs[0]).id rescue []
           next if drug_id.blank?
           tins = obs[1]["amount"].to_i
@@ -715,9 +719,13 @@ class GenericDrugController < ApplicationController
             expiry_date = obs[1]['date'].to_date.end_of_month
           end
 
-          pills = tins * pack_size
+          if tins.to_i == 0 && expiring_units.to_i == 0
+            pack_size = nil
+          end
 
-          Pharmacy.verified_stock(drug_id, params[:delivery_date],pills, expiry_date, expiring_units, params[:type])
+          pills = tins * pack_size rescue nil
+
+          Pharmacy.verified_stock(drug_id, params[:delivery_date], pills, expiry_date, expiring_units, params[:type], pack_size)
 
         }
 
@@ -730,7 +738,7 @@ class GenericDrugController < ApplicationController
         date = encounter_datetime || Date.today
 
         unless edit_reason.blank?
-          Pharmacy.drug_dispensed_stock_adjustment(drug_id,pills,date,edit_reason)
+          Pharmacy.drug_dispensed_stock_adjustment(drug_id, pills, date, edit_reason)
         else
 
           pharmacy = Pharmacy.find(drug_id)
@@ -740,7 +748,7 @@ class GenericDrugController < ApplicationController
         end
       end
       redirect_to :action => 'stock_report', :start_date => params[:start_date],
-        :end_date => params[:end_date], :delivery_date => params[:delivery_date]
+                  :end_date => params[:end_date], :delivery_date => params[:delivery_date]
     else
       @edit_reason = params[:edit_reason]
       @drug_id = params[:drug_id]

@@ -852,7 +852,13 @@ class GenericRegimensController < ApplicationController
     
     return 'No stock' if insufficient_stock
   end
-    
+
+  def check_drug_stock_levels
+    drug_id = params[:drug_id]
+    current_stock = Pharmacy.current_drug_stock(drug_id).to_i
+    render :text => current_stock and return
+  end
+
   def check_stock_levels
      orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:regimen]})
      drug_details = {}
