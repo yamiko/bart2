@@ -102,8 +102,13 @@ class ValidationRule < ActiveRecord::Base
   end
   
   def self.validate_presence_of_start_reason(end_date = Date.today)
-    #This function checks for patients who do not have a reason for starting ART
+    #This function checks for patients who do not have a reason for starting ART in flat tables
 
+    patients = Patient.find_by_sql("SELECT patient_id FROM flat_cohort_table WHERE earliest_start_date <= '#{end_date}'
+                                    AND COALESCE(TRIM(reason_for_starting), '') = ''").collect{|x| x.patient_id}
+
+=begin
+    #This part was commented out because it deals with the validation in the main db
     start_reason_concept = Concept.find_by_name("Reason for art eligibility").id
 
     patient_ids = PatientProgram.find_by_sql("SELECT patient_id FROM earliest_start_date
@@ -111,7 +116,7 @@ class ValidationRule < ActiveRecord::Base
                 (SELECT distinct person_id from obs where concept_id = #{start_reason_concept} and voided = 0)").map(&:patient_id)
 
     return patient_ids
-
+=end
   end
 
   def self.dispensation_without_prescription(end_date = Date.today)
