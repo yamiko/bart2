@@ -703,17 +703,6 @@
                 var expire_amount = __$(dname + "_expire_amount").value.trim();
                 var date = __$(dname + "_date").value.trim();
 
-                if (!(sieved.indexOf(dname) >= 0)) {
-                    if ((amount.length > 0 && expire_amount.length == 0 && date.length == 0) ||
-                            (amount.length > 0 && expire_amount.length > 0 && date.length > 0)
-                            ) {
-                        __$(dname + "_img").src = imgTick;
-                    } else {
-                        __$(dname + "_img").src = imgBlank;
-                        if (unfinished_drugs.indexOf(dname) < 0)
-                            unfinished_drugs.push(dname);
-                    }
-                } else {
                     if (amount.length > 0 && expire_amount.length > 0 && date.length > 0) {
                         __$(dname + "_img").src = imgTick;
                     } else {
@@ -721,7 +710,7 @@
                         if (unfinished_drugs.indexOf(dname) < 0)
                             unfinished_drugs.push(dname);
                     }
-                }
+
             }
 
             setTimeout(function () {

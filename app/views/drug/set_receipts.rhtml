@@ -951,24 +951,11 @@
                     var expire_amount = __$(dname + "_expire_amount_" + pos).value.trim();
                     var date = __$(dname + "_date_" + pos).value.trim();
 
-                    if (!(sieved.indexOf(dname) >= 0)) {
-                        if ((amount.length > 0 && expire_amount.length == 0 && date.length == 0) ||
-                                (amount.length > 0 && expire_amount.length > 0 && date.length > 0)
-                                ) {
+                    if (amount.length > 0 && expire_amount.length > 0 && date.length > 0) {
 
-                        } else {
-
-                            if (unfinished_drugs.indexOf(dname) < 0)
-                                unfinished_drugs.push(dname);
-                        }
                     } else {
-                        if (amount.length > 0 && expire_amount.length > 0 && date.length > 0) {
-
-                        } else {
-
-                            if (unfinished_drugs.indexOf(dname) < 0)
-                                unfinished_drugs.push(dname);
-                        }
+                        if (unfinished_drugs.indexOf(dname) < 0)
+                            unfinished_drugs.push(dname);
                     }
                 }
 
