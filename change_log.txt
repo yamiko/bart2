@@ -120,4 +120,5 @@ Version (1.0.0)
    EM - Creating drug tins
    EM - aking sure we prescribe and dispense complete available packs
 2014-09-03
-   KK - Resolved changes observed by QA =~ recepits and verification of drugs, also added a new table to pharmacy table 
+   KK - Resolved changes observed by QA =~ recepits and verification of drugs, also added a new table to pharmacy table
+   DN - Updated the flat_table initialization document
