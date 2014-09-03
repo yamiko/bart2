@@ -17,14 +17,14 @@
     z-index: 991;
     left: 25.5%;
     border: 1px solid black;
-    background-color: #FEE0C6;
+    background-color: white;
     border-radius: 15px;
   }
 
   .stock_level_message_header{
     height: 18%;
     color:white;
-    background-color: black;
+    background-color: #53868b;
     border-radius: 15px 15px 0px 0px;
     font-size: 14pt;
     opacity: 0.8;
@@ -41,7 +41,7 @@
     width: 100%;
     height: 33%;
     color:white;
-    background-color: black;
+    background-color: #53868b;
     border-radius: 0px 0px 15px 15px;
     font-size: 14pt;
     opacity: 0.8;
@@ -123,7 +123,7 @@
           if (quantity > current_stock){
             html="<div id='cover'></div>";
             html+= "<div class='stock_level_message'>";
-            html+="<div class='stock_level_message_header'><span style='margin-left:9.5%; font-weight:bold; color:red;'>Low stock</span></div>"
+            html+="<div class='stock_level_message_header'><span style='margin-left:9.5%; font-weight:bold; color:white;'>Low stock</span></div>"
 
             html+="<div class='stock_level_message_content'>"
             html+="<span>Insufficient stock available. Only <b><i>" + current_stock + "</i></b> will be dispensed. <br />Continue?<br /></span>"
