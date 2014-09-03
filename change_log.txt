@@ -123,3 +123,4 @@ Version (1.0.0)
 	 TM - Changed validation rule checking whether each art patient < 18 has height and weight on each visit to work with flat tables 
 2014-09-03
 	 TM - Changed validation rule for checking whether patients have reason for starting to work with flat tables
+	 TM - Changed validation rule checking tha each outcome is tied to a date to work on flat tables
