@@ -386,6 +386,12 @@ class ValidationRule < ActiveRecord::Base
 		#Task 40
 		#Every outcome needs a date
 
+    date = date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    FlatTable2.find_by_sql("SELECT patient_id FROM flat_table2 WHERE COALESCE(TRIM(current_hiv_program_state),'') != ''
+                            AND DATE(current_hiv_program_start_date) IS NULL AND DATE(visit_date) <= DATE('#{date}')
+                            AND patient_id in (SELECT patient_id FROM flat_cohort_table)").map(&:patient_id)
+=begin
 		date = date.to_date.strftime('%Y-%m-%d 23:59:59')
 
 		PatientState.find_by_sql("
@@ -393,6 +399,7 @@ class ValidationRule < ActiveRecord::Base
 			FROM patient_state p LEFT JOIN patient_program pp
 					ON p.patient_program_id = pp.patient_program_id
 			WHERE start_date IS NULL AND p.date_created <= '#{date}'").map(&:patient_id)
-	end
+=end
+  end
 
 end
