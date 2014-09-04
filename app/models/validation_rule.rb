@@ -401,6 +401,8 @@ class ValidationRule < ActiveRecord::Base
     eligible_patients = Patient.find_by_sql("SELECT patient_id, FLOOR(DATEDIFF(DATE('#{date}'), birthdate)/365) AS age
  FROM flat_cohort_table HAVING age < 18").collect { |x| x.patient_id }
 
+    eligible_patients = [-10] if eligible_patients.blank? #to avoid mysql crash
+
     return Patient.find_by_sql("SELECT patient_id FROM flat_table2 WHERE DATE(visit_date) = DATE('#{date}') AND
                               patient_id in (#{eligible_patients.join(',')}) AND patient_present_yes = 'Yes'
                               AND (Weight IS NULL OR Height IS NULL)").map(&:patient_id)
