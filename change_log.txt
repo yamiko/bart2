@@ -125,5 +125,14 @@ Version (1.0.0)
 2014-09-02
 	 TM - Changed validation rule checking whether each art patient < 18 has height and weight on each visit to work with flat tables 
 2014-09-03
+<<<<<<< HEAD
 	 TM - Changed validation rule for checking whether patients have reason for starting to work with flat tables
+	 TM - Changed validation rule checking tha each outcome is tied to a date to work on flat tables
+2014-09-04
+	 TM - Changed validation rule requiring that each art patient has a clinic registration encounter to use flat tables
+=======
+   KK - Rewrote validation rule queries to suite flat tables for checking age against birth date and death date; and for checking vitals enc without weight
+   TM - Changed validation rule for checking whether patients have reason for starting to work with flat tables
+   TM - Changed validation rule checking tha each outcome is tied to a date to work on flat tables
 
+>>>>>>> 0d7449924ebfc84808b62608c88c5ccf549bbdc7
