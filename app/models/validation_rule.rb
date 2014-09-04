@@ -59,6 +59,18 @@ class ValidationRule < ActiveRecord::Base
   end
 
   def self.patients_without_outcomes(visit_date)
+
+    visit_date = visit_date.to_date
+    connection = ActiveRecord::Base.connection
+    art_patient_ids = connection.select_all("SELECT patient_id FROM flat_cohort_table
+      WHERE DATE(earliest_start_date) <= '#{visit_date}'").collect{|p|p["patient_id"]}
+
+    patient_ids = connection.select_all("SELECT patient_id FROM flat_table2 WHERE
+      DATE(visit_date) <= '#{visit_date}' AND patient_id in (#{art_patient_ids.join(',')})
+      AND hiv_program_state IS NULL").collect{|p|p["patient_id"]}
+    
+   return patient_ids
+=begin
     visit_date = visit_date.to_date rescue Date.today
     connection = ActiveRecord::Base.connection
     patient_ids = []
@@ -76,10 +88,71 @@ class ValidationRule < ActiveRecord::Base
       patient_ids << pid["patient_id"]
     end
     return patient_ids
-
+=end
   end
 
   def self.pills_remaining_over_dispensed(visit_date)
+    visit_date = visit_date.to_date
+    connection = ActiveRecord::Base.connection
+    art_patient_ids = connection.select_all("SELECT patient_id FROM flat_cohort_table
+      WHERE DATE(earliest_start_date) <= '#{visit_date}'").collect{|p|p["patient_id"]}
+
+    amount_of_drug_one_dispensed_query = "SELECT COALESCE(
+        (SELECT COALESCE(drug_quantity1, 0) FROM flat_table2 WHERE
+        patient_id = patientID AND amount_of_drug1_brought_to_clinic IS NOT NULL AND
+        DATE(visit_date) < DATE(visitDate)
+        ORDER BY DATE(visit_date) DESC LIMIT 1), 0)"
+
+    amount_of_drug_two_dispensed_query = "SELECT COALESCE(
+        (SELECT COALESCE(drug_quantity2, 0) FROM flat_table2 WHERE
+        patient_id = patientID AND amount_of_drug2_brought_to_clinic IS NOT NULL AND
+        DATE(visit_date) < DATE(visitDate)
+        ORDER BY DATE(visit_date) DESC LIMIT 1), 0)"
+
+    amount_of_drug_three_dispensed_query = "SELECT COALESCE(
+        (SELECT COALESCE(drug_quantity3, 0) FROM flat_table2 WHERE
+        patient_id = patientID AND amount_of_drug3_brought_to_clinic IS NOT NULL AND
+        DATE(visit_date) < DATE(visitDate)
+        ORDER BY DATE(visit_date) DESC LIMIT 1), 0)"
+
+    amount_of_drug_four_dispensed_query = "SELECT COALESCE(
+        (SELECT COALESCE(drug_quantity4, 0) FROM flat_table2 WHERE
+        patient_id = patientID AND amount_of_drug4_brought_to_clinic IS NOT NULL AND
+        DATE(visit_date) < DATE(visitDate)
+        ORDER BY DATE(visit_date) DESC LIMIT 1), 0)"
+
+    amount_of_drug_five_dispensed_query = "SELECT COALESCE(
+        (SELECT COALESCE(drug_quantity5, 0) FROM flat_table2 WHERE
+        patient_id = patientID AND amount_of_drug5_brought_to_clinic IS NOT NULL AND
+        DATE(visit_date) < DATE(visitDate)
+        ORDER BY DATE(visit_date) DESC LIMIT 1), 0)"
+
+    patient_ids = connection.select_all("SELECT patient_id as patientID,
+      COALESCE(amount_of_drug1_brought_to_clinic,0) as amount_of_drug_one_brought,
+      COALESCE(amount_of_drug2_brought_to_clinic,0) as amount_of_drug_two_brought,
+      COALESCE(amount_of_drug3_brought_to_clinic,0) as amount_of_drug_three_brought,
+      COALESCE(amount_of_drug4_brought_to_clinic,0) as amount_of_drug_four_brought,
+      COALESCE(amount_of_drug1_brought_to_clinic,0) as amount_of_drug_five_brought,
+      visit_date as visitDate FROM flat_table2 WHERE
+      DATE(visit_date) <= '#{visit_date}' AND patient_id in (#{art_patient_ids.join(',')})
+      AND (
+           amount_of_drug1_brought_to_clinic IS NOT NULL OR
+           amount_of_drug2_brought_to_clinic IS NOT NULL OR
+           amount_of_drug3_brought_to_clinic IS NOT NULL OR
+           amount_of_drug4_brought_to_clinic IS NOT NULL OR
+           amount_of_drug5_brought_to_clinic IS NOT NULL
+          )
+      HAVING (
+              (amount_of_drug_one_brought) > (#{amount_of_drug_one_dispensed_query}) OR
+              (amount_of_drug_two_brought) > (#{amount_of_drug_two_dispensed_query}) OR
+              (amount_of_drug_three_brought) > ( #{amount_of_drug_three_dispensed_query}) OR
+              (amount_of_drug_four_brought) > (#{amount_of_drug_four_dispensed_query}) OR
+              (amount_of_drug_five_brought) > (#{amount_of_drug_five_dispensed_query})
+             )
+      ORDER BY (DATE(visit_date)) DESC").collect{|p|p["patient_id"]}
+
+     return patient_ids
+=begin
     visit_date = visit_date.to_date rescue Date.today
     patient_ids = []
     #art_adherence_enc = EncounterType.find_by_name('ART ADHERENCE').id
@@ -99,6 +172,7 @@ class ValidationRule < ActiveRecord::Base
     patient_ids = patients.collect{|patient|patient["patient_ID"]}
 
     return patient_ids
+=end
   end
   
   def self.validate_presence_of_start_reason(end_date = Date.today)
@@ -120,6 +194,25 @@ class ValidationRule < ActiveRecord::Base
   end
 
   def self.dispensation_without_prescription(end_date = Date.today)
+
+    visit_date = end_date.to_date
+    connection = ActiveRecord::Base.connection
+    art_patient_ids = connection.select_all("SELECT patient_id FROM flat_cohort_table
+      WHERE DATE(earliest_start_date) <= '#{visit_date}'").collect{|p|p["patient_id"]}
+
+    patient_ids = connection.select_all("SELECT patient_id FROM flat_table2 WHERE
+      DATE(visit_date) <= '#{visit_date}' AND patient_id in (#{art_patient_ids.join(',')})
+      AND (
+            ((COALESCE(drug_quantity1,0) > 0) AND drug_encounter_id1 IS NULL) OR
+            ((COALESCE(drug_quantity2,0) > 0) AND drug_encounter_id2 IS NULL) OR
+            ((COALESCE(drug_quantity3,0) > 0) AND drug_encounter_id3 IS NULL) OR
+            ((COALESCE(drug_quantity4,0) > 0) AND drug_encounter_id4 IS NULL) OR
+            ((COALESCE(drug_quantity5,0) > 0) AND drug_encounter_id5 IS NULL)
+          )"
+    ).collect{|p|p["patient_id"]}
+
+    return patient_ids
+=begin
     unprescribed = Observation.find_by_sql("
                                   SELECT DISTINCT(person_id)  FROM obs
                                   WHERE (order_id <=> NULL)
@@ -127,9 +220,30 @@ class ValidationRule < ActiveRecord::Base
                                   AND DATE(obs_datetime) <= '#{end_date}'
                                   AND voided = 0").map(&:patient_id)
     return unprescribed
+=end
+
   end
 
   def self.prescrition_without_dispensation(end_date = Date.today)
+    visit_date = end_date.to_date
+    connection = ActiveRecord::Base.connection
+    art_patient_ids = connection.select_all("SELECT patient_id FROM flat_cohort_table
+      WHERE DATE(earliest_start_date) <= '#{visit_date}'").collect{|p|p["patient_id"]}
+
+    patient_ids = connection.select_all("SELECT patient_id FROM flat_table2 WHERE
+      DATE(visit_date) <= '#{visit_date}' AND patient_id in (#{art_patient_ids.join(',')})
+      AND (
+            (drug_encounter_id1 IS NOT NULL AND (COALESCE(drug_quantity1,0) = 0)) OR
+            (drug_encounter_id2 IS NOT NULL AND (COALESCE(drug_quantity2,0) = 0)) OR
+            (drug_encounter_id3 IS NOT NULL AND (COALESCE(drug_quantity3,0) = 0)) OR
+            (drug_encounter_id4 IS NOT NULL AND (COALESCE(drug_quantity4,0) = 0)) OR
+            (drug_encounter_id5 IS NOT NULL AND (COALESCE(drug_quantity5,0) = 0))
+          )"
+    ).collect{|p|p["patient_id"]}
+
+    return patient_ids
+
+=begin
     undispensed = Order.find_by_sql("
                                     SELECT DISTINCT(patient_id) FROM orders
                                     WHERE NOT EXISTS (SELECT order_id FROM obs WHERE order_id = orders.order_id
@@ -137,9 +251,29 @@ class ValidationRule < ActiveRecord::Base
                                     AND DATE(start_date)  <= '#{end_date}'
                                     AND orders.voided = 0").map(&:patient_id)
     return undispensed
+=end
   end
 
   def self.dispensation_without_appointment(end_date = Date.today)
+
+    visit_date = end_date.to_date
+    connection = ActiveRecord::Base.connection
+    art_patient_ids = connection.select_all("SELECT patient_id FROM flat_cohort_table
+      WHERE DATE(earliest_start_date) <= '#{visit_date}'").collect{|p|p["patient_id"]}
+
+    patient_ids = connection.select_all("SELECT patient_id FROM flat_table2 WHERE
+      DATE(visit_date) <= '#{visit_date}' AND patient_id in (#{art_patient_ids.join(',')})
+      AND (
+            (drug_encounter_id1 IS NOT NULL AND (COALESCE(drug_quantity1,0) > 0) AND appointment_date IS NULL) OR
+            (drug_encounter_id2 IS NOT NULL AND (COALESCE(drug_quantity2,0) > 0) AND appointment_date IS NULL) OR
+            (drug_encounter_id3 IS NOT NULL AND (COALESCE(drug_quantity3,0) > 0) AND appointment_date IS NULL) OR
+            (drug_encounter_id4 IS NOT NULL AND (COALESCE(drug_quantity4,0) > 0) AND appointment_date IS NULL) OR
+            (drug_encounter_id5 IS NOT NULL AND (COALESCE(drug_quantity5,0) > 0) AND appointment_date IS NULL)
+          )"
+    ).collect{|p|p["patient_id"]}
+
+  return patient_ids
+=begin
     no_appointment = Observation.find_by_sql("
                                     SELECT DISTINCT(person_id) FROM obs
                                     WHERE concept_id = #{@dispensed_id}
@@ -154,6 +288,8 @@ class ValidationRule < ActiveRecord::Base
                                     AND o.person_id = person_id
                                     AND o.voided = 0)").map(&:person_id)
     return no_appointment
+=end
+
   end
   def self.validate_presence_of_vitals_without_weight(end_date)
     # Developer   : Precious Bondwe
@@ -174,6 +310,23 @@ class ValidationRule < ActiveRecord::Base
   end
 
   def self.death_date_less_than_last_encounter_date_and_less_than_date_of_birth(end_date = Date.today)
+    visit_date = end_date.to_date
+    connection = ActiveRecord::Base.connection
+    art_patient_ids = connection.select_all("SELECT patient_id FROM flat_cohort_table
+      WHERE DATE(earliest_start_date) <= '#{visit_date}'").collect{|p|p["patient_id"]}
+    patient_ids = connection.select_all("SELECT ft1.patient_id FROM flat_table1 ft1 WHERE ft1.patient_id in (#{art_patient_ids.join(',')})
+        AND ft1.dealth_date IS NOT NULL AND ft1.dob IS NOT NULL AND
+        (
+          ft1.dealth_date < (
+            SELECT MAX(visit_date) FROM flat_table2 ft2 WHERE ft2.patient_id=ft1.patient_id
+          ) OR
+          (SELECT MAX(visit_date) FROM flat_table2 ft2 WHERE ft2.patient_id=ft1.patient_id) < ft1.dob
+        )
+      ").collect{|p|p["patient_id"]}
+
+    return patient_ids
+
+=begin
     #Task 41
     patient_ids =  ValidationRule.find_by_sql("SELECT DISTINCT(esd.patient_id)
 																FROM earliest_start_date esd
@@ -190,7 +343,8 @@ class ValidationRule < ActiveRecord::Base
                        							 WHERE e.patient_id = esd.patient_id 
 																		 AND e.voided = 0) < p.birthdate;").map(&:patient_id)
     return patient_ids
-    
+
+=end
   end
 
   
