@@ -320,6 +320,15 @@ class ValidationRule < ActiveRecord::Base
 			#SQL to check for every ART patient should have a HIV Clinical Registration
 			date = date.to_date.strftime('%Y-%m-%d 23:59:59')
 
+      eligible_patients = Patient.find_by_sql("SELECT patient_id FROM flat_cohort_table").collect { |x| x.patient_id }
+
+      return FlatTable1.find_by_sql("SELECT patient_id from flat_table1 WHERE patient_id in (#{eligible_patients.join(',')})
+                                    AND (type_of_confirmatory_hiv_test IS NULL OR confirmatory_hiv_test_location IS NULL
+                                    OR ever_received_art IS NULL OR agrees_to_followup IS NULL)
+                                    AND earliest_start_date <= DATE('#{date}')").map(&:patient_id)
+
+
+=begin
 			encounter_type_id = EncounterType.find_by_name("HIV CLINIC REGISTRATION").encounter_type_id
 
 			Patient.find_by_sql("
@@ -328,6 +337,7 @@ class ValidationRule < ActiveRecord::Base
 						ON p.patient_id = e.patient_id
 				WHERE e.encounter_type IS NULL AND p.earliest_start_date <= DATE('#{date}');
 			").map(&:patient_id)
+=end
 	end
 
 
@@ -353,7 +363,7 @@ class ValidationRule < ActiveRecord::Base
     eligible_patients = Patient.find_by_sql("SELECT patient_id, FLOOR(DATEDIFF(DATE('#{date}'), birthdate)/365) AS age
  FROM flat_cohort_table HAVING age < 18").collect { |x| x.patient_id }
 
-    return Patient.find_by_sql("SELECT patient_id FROM flat_table2 WHERE DATE(visit_date) = DATE('#{date}') AND
+    return Patient.find_by_sql("SELECT patient_id FROM flat_table2 WHERE DATE(visit_date) <= DATE('#{date}') AND
                               patient_id in (#{eligible_patients.join(',')}) AND patient_present_yes = 'Yes'
                               AND (Weight IS NULL OR Height IS NULL)").map(&:patient_id)
 
