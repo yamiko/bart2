@@ -155,13 +155,14 @@ class ValidationRule < ActiveRecord::Base
                                     AND o.voided = 0)").map(&:person_id)
     return no_appointment
   end
+
   def self.validate_presence_of_vitals_without_weight(date = Date.today)
     # Developer   : Kenneth Kapundi
     # Date        : 3/09/2014
     # Purpose     : Return Patient IDs for patients having Vitals encounters without weight 
     # Amendments  :
 
-    enc_ids = ["Height_enc_id", "height_for_age_enc_id",
+    enc_ids = ["Height_enc_id", "height_for_age_enc_id", "Height",
                    "weight_for_height_enc_id", "weight_for_age_enc_id",
                    "Temperature_enc_id", "BMI_enc_id",
                    "systolic_blood_pressure", "diastolic_blood_pressure",
@@ -170,7 +171,7 @@ class ValidationRule < ActiveRecord::Base
                   JOIN flat_cohort_table fct
                     ON ft2.patient_id = fct.patient_id
                   WHERE COALESCE(#{enc_ids.join(',')}) IS NOT NULL
-                    AND Weight_enc_id IS NULL AND DATE(ft2.visit_date) = ?", date.to_date]).map(&:patient_id)
+                    AND Weight IS NULL AND DATE(ft2.visit_date) = ?", date.to_date]).map(&:patient_id)
 =begin
 
     weight_concept = ConceptName.find_by_name('weight').concept_id
@@ -208,9 +209,6 @@ class ValidationRule < ActiveRecord::Base
   
   
   def self.encounters_without_obs_or_orders(end_date = Date.today)
-		
-		start_date = Encounter.find_by_sql("SELECT MIN(encounter_datetime) start_date FROM encounter")
-		start_date = start_date.blank? ? "1900-01-01 00:00:00" : start_date.first.start_date
 
 		# Query for encounters without obs or orders ~ Kenneth
 		ValidationRule.find_by_sql(["
@@ -218,7 +216,7 @@ class ValidationRule < ActiveRecord::Base
     			LEFT JOIN obs o ON o.encounter_id = enc.encounter_id
     			LEFT JOIN orders od ON od.encounter_id = enc.encounter_id
 			WHERE enc.voided = 0 AND o.encounter_id IS NULL AND od.encounter_id IS NULL
-			AND enc.encounter_datetime BETWEEN ? AND ?", start_date, end_date  
+			AND DATE(enc.encounter_datetime) <= ?", end_date.to_date
 			]).map(&:patient_id)		
 		
 	end
@@ -230,7 +228,7 @@ class ValidationRule < ActiveRecord::Base
 			SELECT DISTINCT (ft2.patient_id) FROM flat_table2 ft2
         INNER JOIN flat_cohort_table fct ON ft2.patient_id = fct.patient_id
 			WHERE DATEDIFF(fct.earliest_start_date, fct.birthdate) <= 0
-			  AND DATE(ft2.visit_date) = ?", date.to_date]).map(&:patient_id)
+			  AND DATE(ft2.visit_date) <= ?", date.to_date]).map(&:patient_id)
 
 =begin Query for patients whose earliest start date is less that date of birth ~ Kenneth
 		FlatTable1.find_by_sql(["
@@ -251,7 +249,7 @@ class ValidationRule < ActiveRecord::Base
 			SELECT DISTINCT (ft2.patient_id) FROM flat_table2 ft2
         INNER JOIN flat_cohort_table fct ON ft2.patient_id = fct.patient_id
 			WHERE DATEDIFF(ft2.visit_date, fct.death_date) > 0
-			  AND DATE(ft2.visit_date) = ?", date.to_date]).map(&:patient_id)
+			  AND DATE(ft2.visit_date) <= ?", date.to_date]).map(&:patient_id)
 
 =begin	ValidationRule.find_by_sql(["
 		SELECT DISTINCT(enc.patient_id) FROM person p
@@ -264,13 +262,22 @@ class ValidationRule < ActiveRecord::Base
 
 	end	
 
-  def self.male_patients_with_pregnant_observation(end_date = Date.today)
-    @end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+  def self.male_patients_with_pregnant_observation(date = Date.today)
 
-    pregnant_ids = [ConceptName.find_by_name('PATIENT PREGNANT').concept_id,
-                    ConceptName.find_by_name("IS PATIENT PREGNANT?").concept_id]
+    pregnant_fields = [
+                        "ft2.pregnant_yes", "ft2.pregnant_no", "ft2.pregnant_unknown",
+                        "ft2.pregnant_yes_enc_id", "ft2.pregnant_no_enc_id", "ft2.pregnant_unknown_enc_id",
+                        "ft2.pregnant_yes_v_date", "ft2.pregnant_no_v_date", "ft2.pregnant_unknown_v_date"
+                      ]
 
     #Query pulling all male patients with pregnant observations
+
+    male_pats_with_preg_obs = FlatTable2.find_by_sql(["SELECT ft2.patient_id FROM flat_table2 ft2
+                                  INNER JOIN flat_cohort_table fct ON fct.patient_id = ft2.patient_id
+                                  WHERE fct.gender = 'M' AND COALESCE(#{pregnant_fields.join(',')}) IS NOT NULL
+                                  AND DATE(ft2.visit_date) <= ?", date.to_date]).map(&:patient_id)
+
+=begin
     male_pats_with_preg_obs = PatientProgram.find_by_sql("
                                 SELECT esd.patient_id, p.gender,
                                        esd.earliest_start_date, o.concept_id,
@@ -285,16 +292,28 @@ class ValidationRule < ActiveRecord::Base
                                   OR o.value_coded IN (#{pregnant_ids.join(',')}))
                                 AND o.obs_datetime <= '#{@end_date}'
                                 GROUP BY esd.patient_id").collect{|p| p.patient_id}
+=end
+
+
+
     return male_pats_with_preg_obs
   end
 
-  def self.male_patients_with_breastfeeding_obs(end_date = Date.today)
-    @end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+  def self.male_patients_with_breastfeeding_obs(date = Date.today)
 
-    breastfeeding_ids = [ConceptName.find_by_name("BREASTFEEDING").concept_id,
-                         ConceptName.find_by_name("Currently breastfeeding child").concept_id]
+
+    breastfeeding_fields = [
+        "ft2.breastfeeding_yes", "ft2.breastfeeding_no", "ft2.breastfeeding_unknown",
+        "ft2.breastfeeding_yes_enc_id", "ft2.breastfeeding_no_enc_id", "ft2.breastfeeding_unknown_enc_id",
+        "ft2.breastfeeding_yes_v_date", "ft2.breastfeeding_no_v_date", "ft2.breastfeeding_unknown_v_date"
+    ]
 
     #Query pulling all male patients with breastfeeding observations
+    male_pats_with_breastfeed_obs = FlatTable2.find_by_sql(["SELECT ft2.patient_id FROM flat_table2 ft2
+                                  INNER JOIN flat_cohort_table fct ON fct.patient_id = ft2.patient_id
+                                  WHERE fct.gender = 'M' AND COALESCE(#{breastfeeding_fields.join(',')}) IS NOT NULL
+                                  AND DATE(ft2.visit_date) <= ?", date.to_date]).map(&:patient_id)
+=begin
     male_pats_with_breastfeed_obs = PatientProgram.find_by_sql("
                                       SELECT esd.patient_id, p.gender,
                                              esd.earliest_start_date, o.concept_id,
@@ -309,16 +328,22 @@ class ValidationRule < ActiveRecord::Base
                                         OR o.value_coded IN (#{breastfeeding_ids.join(',')}))
                                       AND o.obs_datetime <= '#{@end_date}'
                                       GROUP BY esd.patient_id").collect{|p| p.patient_id}
+=end
+
     return male_pats_with_breastfeed_obs
   end
 
-  def self.male_patients_with_family_planning_methods_obs(end_date = Date.today)
-    @end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+  def self.male_patients_with_family_planning_methods_obs(date = Date.today)
 
-    family_planing_ids = [ConceptName.find_by_name("FAMILY PLANNING METHOD").concept_id,
-                         ConceptName.find_by_name("CURRENTLY USING FAMILY PLANNING METHOD").concept_id]
+    family_planning_fields = FlatTable2.find_by_sql("SHOW COLUMNS FROM flat_table2 LIKE '%family_planning%'").map(&:Field)
 
     #Query pulling all male patients with family planning methods observations
+    male_pats_with_family_planning_obs = FlatTable2.find_by_sql(["SELECT ft2.patient_id FROM flat_table2 ft2
+                              INNER JOIN flat_cohort_table fct ON fct.patient_id = ft2.patient_id
+                              WHERE fct.gender = 'M' AND COALESCE(#{family_planning_fields.join(',')})
+                              AND DATE(ft2.visit_date) <= ?", date.to_date]).map(&:patient_id)
+
+=begin
     male_pats_with_family_planning_obs = PatientProgram.find_by_sql("
                                           SELECT esd.patient_id, p.gender,
                                                  esd.earliest_start_date, o.concept_id,
@@ -333,6 +358,8 @@ class ValidationRule < ActiveRecord::Base
                                             OR o.value_coded IN (#{family_planing_ids.join(',')}))
                                           AND o.obs_datetime <= '#{@end_date}'
                                           GROUP BY esd.patient_id").collect{|p| p.patient_id}
+=end
+
     return male_pats_with_family_planning_obs
   end
 
