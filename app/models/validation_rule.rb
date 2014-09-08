@@ -67,7 +67,7 @@ class ValidationRule < ActiveRecord::Base
 
     patient_ids = connection.select_all("SELECT patient_id FROM flat_table2 WHERE
       DATE(visit_date) <= '#{visit_date}' AND patient_id in (#{art_patient_ids.join(',')})
-      AND hiv_program_state IS NULL").collect{|p|p["patient_id"]}
+      AND current_hiv_program_state IS NULL").collect{|p|p["patient_id"]}
     
    return patient_ids
 =begin
@@ -351,9 +351,9 @@ class ValidationRule < ActiveRecord::Base
     art_patient_ids = connection.select_all("SELECT patient_id FROM flat_cohort_table
       WHERE DATE(earliest_start_date) <= '#{visit_date}'").collect{|p|p["patient_id"]}
     patient_ids = connection.select_all("SELECT ft1.patient_id FROM flat_table1 ft1 WHERE ft1.patient_id in (#{art_patient_ids.join(',')})
-        AND ft1.dealth_date IS NOT NULL AND ft1.dob IS NOT NULL AND
+        AND ft1.death_date IS NOT NULL AND ft1.dob IS NOT NULL AND
         (
-          ft1.dealth_date < (
+          ft1.death_date < (
             SELECT MAX(visit_date) FROM flat_table2 ft2 WHERE ft2.patient_id=ft1.patient_id
           ) OR
           (SELECT MAX(visit_date) FROM flat_table2 ft2 WHERE ft2.patient_id=ft1.patient_id) < ft1.dob
