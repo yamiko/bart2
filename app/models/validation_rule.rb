@@ -91,7 +91,7 @@ class ValidationRule < ActiveRecord::Base
 =end
   end
 
-  def self.pills_remaining_over_dispensed(visit_date)
+  def self.pills_remaining_over_dispensed(visit_date=Date.today)
     visit_date = visit_date.to_date
     connection = ActiveRecord::Base.connection
     art_patient_ids = connection.select_all("SELECT patient_id FROM flat_cohort_table
@@ -99,42 +99,48 @@ class ValidationRule < ActiveRecord::Base
 
     amount_of_drug_one_dispensed_query = "SELECT COALESCE(
         (SELECT COALESCE(drug_quantity1, 0) FROM flat_table2 WHERE
-        patient_id = patientID AND amount_of_drug1_brought_to_clinic IS NOT NULL AND
+        patient_id = patientID AND drug_quantity1 IS NOT NULL AND
         DATE(visit_date) < DATE(visitDate)
         ORDER BY DATE(visit_date) DESC LIMIT 1), 0)"
 
     amount_of_drug_two_dispensed_query = "SELECT COALESCE(
         (SELECT COALESCE(drug_quantity2, 0) FROM flat_table2 WHERE
-        patient_id = patientID AND amount_of_drug2_brought_to_clinic IS NOT NULL AND
+        patient_id = patientID AND drug_quantity2 IS NOT NULL AND
         DATE(visit_date) < DATE(visitDate)
         ORDER BY DATE(visit_date) DESC LIMIT 1), 0)"
 
     amount_of_drug_three_dispensed_query = "SELECT COALESCE(
         (SELECT COALESCE(drug_quantity3, 0) FROM flat_table2 WHERE
-        patient_id = patientID AND amount_of_drug3_brought_to_clinic IS NOT NULL AND
+        patient_id = patientID AND drug_quantity3 IS NOT NULL AND
         DATE(visit_date) < DATE(visitDate)
         ORDER BY DATE(visit_date) DESC LIMIT 1), 0)"
 
     amount_of_drug_four_dispensed_query = "SELECT COALESCE(
         (SELECT COALESCE(drug_quantity4, 0) FROM flat_table2 WHERE
-        patient_id = patientID AND amount_of_drug4_brought_to_clinic IS NOT NULL AND
+        patient_id = patientID AND drug_quantity4 IS NOT NULL AND
         DATE(visit_date) < DATE(visitDate)
         ORDER BY DATE(visit_date) DESC LIMIT 1), 0)"
 
     amount_of_drug_five_dispensed_query = "SELECT COALESCE(
         (SELECT COALESCE(drug_quantity5, 0) FROM flat_table2 WHERE
-        patient_id = patientID AND amount_of_drug5_brought_to_clinic IS NOT NULL AND
+        patient_id = patientID AND drug_quantity5 IS NOT NULL AND
         DATE(visit_date) < DATE(visitDate)
         ORDER BY DATE(visit_date) DESC LIMIT 1), 0)"
 
-    patient_ids = connection.select_all("SELECT patient_id as patientID,
+    patient_drug_details = connection.select_all("SELECT patient_id as patientID,
+      visit_date as visitDate,
+      (#{amount_of_drug_one_dispensed_query}) as amount_of_drug_one_dispensed,
+      (#{amount_of_drug_two_dispensed_query}) as amount_of_drug_two_dispensed,
+      (#{amount_of_drug_three_dispensed_query}) as amount_of_drug_three_dispensed,
+      (#{amount_of_drug_four_dispensed_query}) as amount_of_drug_four_dispensed,
+      (#{amount_of_drug_five_dispensed_query}) as amount_of_drug_five_dispensed,
       COALESCE(amount_of_drug1_brought_to_clinic,0) as amount_of_drug_one_brought,
       COALESCE(amount_of_drug2_brought_to_clinic,0) as amount_of_drug_two_brought,
       COALESCE(amount_of_drug3_brought_to_clinic,0) as amount_of_drug_three_brought,
       COALESCE(amount_of_drug4_brought_to_clinic,0) as amount_of_drug_four_brought,
-      COALESCE(amount_of_drug1_brought_to_clinic,0) as amount_of_drug_five_brought,
-      visit_date as visitDate FROM flat_table2 WHERE
-      DATE(visit_date) <= '#{visit_date}' AND patient_id in (#{art_patient_ids.join(',')})
+      COALESCE(amount_of_drug5_brought_to_clinic,0) as amount_of_drug_five_brought
+      FROM flat_table2 WHERE DATE(visit_date) <= '#{visit_date}' AND
+      patient_id in (#{art_patient_ids.join(',')})
       AND (
            amount_of_drug1_brought_to_clinic IS NOT NULL OR
            amount_of_drug2_brought_to_clinic IS NOT NULL OR
@@ -142,16 +148,33 @@ class ValidationRule < ActiveRecord::Base
            amount_of_drug4_brought_to_clinic IS NOT NULL OR
            amount_of_drug5_brought_to_clinic IS NOT NULL
           )
-      HAVING (
-              (amount_of_drug_one_brought) > (#{amount_of_drug_one_dispensed_query}) OR
-              (amount_of_drug_two_brought) > (#{amount_of_drug_two_dispensed_query}) OR
-              (amount_of_drug_three_brought) > ( #{amount_of_drug_three_dispensed_query}) OR
-              (amount_of_drug_four_brought) > (#{amount_of_drug_four_dispensed_query}) OR
-              (amount_of_drug_five_brought) > (#{amount_of_drug_five_dispensed_query})
-             )
-      ORDER BY (DATE(visit_date)) DESC").collect{|p|p["patient_id"]}
+      ORDER BY (DATE(visit_date)) DESC")
+    patient_ids = []
+    patient_drug_details.each do |data|
+      amount_of_drug_one_dispensed = data["amount_of_drug_one_dispensed"].to_i
+      amount_of_drug_two_dispensed = data["amount_of_drug_two_dispensed"].to_i
+      amount_of_drug_three_dispensed = data["amount_of_drug_three_dispensed"].to_i
+      amount_of_drug_four_dispensed = data["amount_of_drug_four_dispensed"].to_i
+      amount_of_drug_five_dispensed = data["amount_of_drug_one_dispensed"].to_i
 
-     return patient_ids
+      amount_of_drug_one_brought = data["amount_of_drug_one_brought"].to_i
+      amount_of_drug_two_brought = data["amount_of_drug_two_brought"].to_i
+      amount_of_drug_three_brought = data["amount_of_drug_three_brought"].to_i
+      amount_of_drug_four_brought = data["amount_of_drug_four_brought"].to_i
+      amount_of_drug_five_brought = data["amount_of_drug_five_brought"].to_i
+      if (
+          (amount_of_drug_one_brought > amount_of_drug_one_dispensed) ||
+          (amount_of_drug_two_brought > amount_of_drug_two_dispensed) ||
+          (amount_of_drug_three_brought > amount_of_drug_three_dispensed) ||
+          (amount_of_drug_four_brought > amount_of_drug_four_dispensed) ||
+          (amount_of_drug_five_brought > amount_of_drug_five_dispensed)
+         )
+         patient_ids << data["patientID"]
+      end
+      
+    end
+    
+    return patient_ids
 =begin
     visit_date = visit_date.to_date rescue Date.today
     patient_ids = []
