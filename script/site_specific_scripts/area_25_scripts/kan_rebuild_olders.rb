@@ -1,20 +1,21 @@
 
 def init
-  if ARGV[0].blank? 
+  if ARGV[0].blank? or ARGV[1].blank? 
      puts "Usage: "
-     puts 'script/runner script/rebuild_olders.rb date'
+     puts 'script/runner script start_date end_date'
      puts 'Rebuld terminated  .........'
      return
   end
-  get_orders(ARGV[0])
+  get_orders(ARGV[0], ARGV[1])
 end
 
-def get_orders(date)
-   date = date.to_date.strftime('%Y-%m-%d')
+def get_orders(start_date, end_date)
+  # date = date.to_date.strftime('%Y-%m-%d')
    ordered = Observation.find_by_sql("SELECT * FROM obs
-                    where order_id IS NOT NULL AND DATE(obs_datetime) > '#{date}'
+                    WHERE order_id IS NOT NULL AND DATE(obs_datetime) >= '#{start_date.to_date}'
+                     AND DATE(obs_datetime) <= '#{end_date.to_date}'
                     AND voided = 0 ORDER BY order_id ASC")
-   puts "Orders will be built from #{date} to #{ordered.last.obs_datetime.strftime('%Y-%m-%d')}"
+   puts "Orders will be built from #{start_date} to #{ordered.last.obs_datetime.strftime('%Y-%m-%d')}"
    x = 0
    ordered.each{|order|
   
