@@ -126,3 +126,5 @@ Version (1.0.0)
 2014-09-05
    PB - moved initial setup db scripts to initial_setup older within db folder
       - changed the script/initial_database_setup.sh to point to the initial_setup folder
+2014-09-08
+   KK - Fixed demographics mapping on creating patient as remote app
