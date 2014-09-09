@@ -1150,9 +1150,16 @@ def process_hiv_staging_encounter(encounter, type = 0) #type 0 normal encounter,
     elsif obs.concept_id == 9099 #cd4 count location
       a_hash[:cd4_count_location] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 5497 #cd4_count
-      a_hash[:cd4_count] = obs.to_s.split(':')[1].strip rescue nil
+      if !obs.value_numeric.blank?
+        a_hash[:cd4_count] = obs.value_numeric rescue nil
+        a_hash[:cd4_count_modifier] = obs.value_modifier rescue nil
+      else
+        a_hash[:cd4_count] = obs.value_text rescue nil
+        a_hash[:cd4_count_modifier] = obs.value_modifier rescue nil
+      end
+
     elsif obs.concept_id == 9098 #cd4_count_modifier
-      a_hash[:cd4_count_modifier] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:cd4_count_modifier] = obs.value_text rescue nil
     elsif obs.concept_id == 730 #cd4_count_percent
       a_hash[:cd4_count_percent] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 6831 #cd4_count_datetime
@@ -1575,7 +1582,7 @@ def start
  #get_all_patients
  #specify patients_list, if you want to debug a list of patients
 	patients_list = []
-
+ 
 	if patients_list.length != 0
 	     initiate_special_script(patients_list)
 	else
