@@ -1,8 +1,11 @@
+#script to rebuild the obs table
 
 def init
   if ARGV[0].blank? or ARGV[1].blank? 
      puts "Usage: "
      puts 'script/runner script start_date end_date'
+     puts 'start date format : "YYYY-mm-dd"'
+     puts 'end date format   : "YYYY-mm-dd"'
      puts 'Rebuld terminated  .........'
      return
   end
