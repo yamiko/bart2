@@ -708,7 +708,7 @@ class GenericDrugController < ApplicationController
           expiry_date = nil
 
           if (drug_comes_in_packs(obs[0], drug_short_names))
-            expiring_units = ((obs[1]['expire_amount'].to_i * obs[1]['amount'].to_i)/60).to_i
+            expiring_units = obs[1]['amount'].to_i
             pack_size = obs[1]['expire_amount'].to_i
           end
 
