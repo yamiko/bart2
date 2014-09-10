@@ -1065,9 +1065,9 @@ def process_hiv_clinic_registration_encounter(encounter, type = 0) #type 0 norma
     elsif obs.concept_id == 7882 #CONFIRMATORY HIV TEST DATE
       a_hash[:confirmatory_hiv_test_date] = obs.value_datetime.to_date rescue nil
     elsif obs.concept_id == 7881 #CONFIRMATORY HIV TEST LOCATION
-      a_hash[:confirmatory_hiv_test_location] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:confirmatory_hiv_test_location] = obs.value_text rescue nil
     elsif obs.concept_id == 7750 #LOCATION OF ART INITIATION
-      a_hash[:location_of_art_initialization] = obs.to_s.split(':')[1].strip rescue nil
+      a_hash[:location_of_art_initialization] = obs.value_text rescue nil
     elsif obs.concept_id == 7752 #HAS THE PATIENT TAKEN ART IN THE LAST TWO MONTHS
       a_hash[:taken_art_in_last_two_months] = obs.to_s.split(':')[1].strip rescue nil
     elsif obs.concept_id == 6394 #HAS THE PATIENT TAKEN ART IN THE LAST TWO WEEKS

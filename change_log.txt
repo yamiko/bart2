@@ -122,3 +122,5 @@ Version (1.0.0)
 2014-09-03
    KK - Resolved changes observed by QA =~ recepits and verification of drugs, also added a new table to pharmacy table
    DN - Updated the flat_table initialization document
+2014-09-09
+   DN - updated cd4_count and cd4_count_modifier fields to get the correct values from obs in batch_flat_table_initialization script
