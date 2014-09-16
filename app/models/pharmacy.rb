@@ -372,4 +372,19 @@ EOF
     total_removed = self.total_removed(drug_id, last_physical_count_enc_date)
     (total_physical_count - (total_dispensed + total_removed))
   end
+
+  def self.pack_size(drug_id)
+      pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
+      drug_pack_size = Pharmacy.find_by_sql(
+          "SELECT * from pharmacy_obs WHERE drug_id = #{drug_id} AND
+          pharmacy_encounter_type = #{pharmacy_encounter_type.id} AND
+           DATE(encounter_date) = (
+            SELECT MAX(DATE(encounter_date)) FROM pharmacy_obs
+            WHERE drug_id =#{drug_id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id}
+          ) LIMIT 1;"
+      ).last.pack_size rescue 60 #if the pack size is not recorded then assume 60 is the pack size. Most drugs come in 60s
+      
+      return drug_pack_size
+  end
+  
 end

@@ -821,8 +821,8 @@ class GenericRegimensController < ApplicationController
     render :text => @options.to_json
 	end
 
-  def recommend_duration(total_days, equivalent_daily_dose, current_stock)
-    current_stock = (current_stock * 60) #converting tins to tablets
+  def recommend_duration(total_days, equivalent_daily_dose, current_stock, drug_pack_size)
+    current_stock = (current_stock * drug_pack_size) #converting tins to tablets
     durations = ['4 days','1 week','2 weeks','1 month','2 months','3 months',
                   '4 months','5 months','6 months','7 months','8 months']
     hash = {}
@@ -872,7 +872,8 @@ class GenericRegimensController < ApplicationController
      orders.each do |order|
        drug_name = order.drug.name
        drug_id = order.drug.id
-       current_stock = (Pharmacy.current_drug_stock(drug_id)/60).to_i #current stock in tins
+       drug_pack_size = Pharmacy.pack_size(drug_id)
+       current_stock = (Pharmacy.current_drug_stock(drug_id)/drug_pack_size).to_i #current stock in tins
        equivalent_daily_dose = order.equivalent_daily_dose.to_i
        duration = (params[:duration].to_i + arvs_buffer)
 
@@ -887,9 +888,9 @@ class GenericRegimensController < ApplicationController
        drug_details[drug_name]["required_amount"] = required_amount #in tabs
        drug_details[drug_name]["current_stock"] = current_stock # in tins
        
-       if (required_amount > (current_stock * 60)) #comparing tabs to tabs
+       if (required_amount > (current_stock * drug_pack_size)) #comparing tabs to tabs
          drug_details[drug_name]["low_stock_warning"] = true
-         drug_details[drug_name]["recommended_duration"] = recommend_duration(duration, equivalent_daily_dose, current_stock)
+         drug_details[drug_name]["recommended_duration"] = recommend_duration(duration, equivalent_daily_dose, current_stock, drug_pack_size)
        end
        
       end
@@ -914,14 +915,15 @@ class GenericRegimensController < ApplicationController
           ).last
 
         last_physical_count_date = last_physical_count_enc.encounter_date.to_date rescue Date.today
-        current_stock = (Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)/60).to_i
+        drug_pack_size = Pharmacy.pack_size(drug.id)
+        current_stock = (Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)/drug_pack_size).to_i
 
         #total_drug_dispensations = Pharmacy.dispensed_drugs_since(drug.id, last_physical_count_date)
         past_ninety_days_date = (Date.today - 90.days)
         total_drug_dispensations_within_ninety_days = Pharmacy.dispensed_drugs_since(drug.id, past_ninety_days_date) #within 90 days
         total_days = (Date.today - past_ninety_days_date).to_i #Difference in days between two dates.
         consumption_rate = (total_drug_dispensations_within_ninety_days/total_days)
-        stock_out_days = ((current_stock * 60)/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
+        stock_out_days = ((current_stock * drug_pack_size)/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
         estimated_stock_out_date = (Date.today + stock_out_days).strftime('%d-%b-%Y')
         estimated_stock_out_date = "(N/A)" if (consumption_rate.to_i <= 0)
         estimated_stock_out_date = "Stocked out" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
@@ -952,14 +954,15 @@ class GenericRegimensController < ApplicationController
           ).last
 
         last_physical_count_date = last_physical_count_enc.encounter_date.to_date rescue Date.today
-        current_stock = (Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)/60).to_i
+        drug_pack_size = Pharmacy.pack_size(drug.id)
+        current_stock = (Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)/drug_pack_size).to_i
               
         #total_drug_dispensations = Pharmacy.dispensed_drugs_since(drug.id, last_physical_count_date)
         past_ninety_days_date = (Date.today - 90.days)
         total_drug_dispensations_within_ninety_days = Pharmacy.dispensed_drugs_since(drug.id, past_ninety_days_date) #within 90 days
         total_days = (Date.today - past_ninety_days_date).to_i #Difference in days between two dates.
         consumption_rate = (total_drug_dispensations_within_ninety_days/total_days)
-        stock_out_days = ((current_stock * 60)/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
+        stock_out_days = ((current_stock * drug_pack_size)/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
         estimated_stock_out_date = (Date.today + stock_out_days).strftime('%d-%b-%Y')
         estimated_stock_out_date = "(N/A)" if (consumption_rate.to_i <= 0)
         estimated_stock_out_date = "Stocked out" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
@@ -993,14 +996,15 @@ class GenericRegimensController < ApplicationController
           ).last
 
         last_physical_count_date = last_physical_count_enc.encounter_date.to_date rescue Date.today
-        current_stock = (Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)/60).to_i
+        drug_pack_size = Pharmacy.pack_size(drug.id)
+        current_stock = (Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)/drug_pack_size).to_i
 
         #total_drug_dispensations = Pharmacy.dispensed_drugs_since(drug.id, last_physical_count_date)
         past_ninety_days_date = (Date.today - 90.days)
         total_drug_dispensations_within_ninety_days = Pharmacy.dispensed_drugs_since(drug.id, past_ninety_days_date) #within 90 days
         total_days = (Date.today - past_ninety_days_date).to_i #Difference in days between two dates.
         consumption_rate = (total_drug_dispensations_within_ninety_days/total_days)
-        stock_out_days = ((current_stock * 60)/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
+        stock_out_days = ((current_stock * drug_pack_size)/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
         estimated_stock_out_date = (Date.today + stock_out_days).strftime('%d-%b-%Y')
         estimated_stock_out_date = "(N/A)" if (consumption_rate.to_i <= 0)
         estimated_stock_out_date = "Stocked out" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
