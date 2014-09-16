@@ -128,3 +128,5 @@ Version (1.0.0)
       - changed the script/initial_database_setup.sh to point to the initial_setup folder
 2014-09-08
    KK - Fixed demographics mapping on creating patient as remote app
+2014-09-16
+   DN - Updated flat_table_initialization script
