@@ -855,8 +855,12 @@ class GenericRegimensController < ApplicationController
 
   def check_drug_stock_levels
     drug_id = params[:drug_id]
+    data = {}
     current_stock = Pharmacy.current_drug_stock(drug_id).to_i
-    render :text => current_stock and return
+    drug_units = Drug.find(drug_id).units
+    data["current_stock"] = current_stock
+    data["drug_units"] = drug_units
+    render :json => data and return
   end
 
   def check_stock_levels
