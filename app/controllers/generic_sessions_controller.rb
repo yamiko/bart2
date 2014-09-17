@@ -67,6 +67,7 @@ class GenericSessionsController < ApplicationController
       @stock[drug.id]["current_stock"] = current_stock
       @stock[drug.id]["consumption_rate"] = consumption_rate.to_f.round(1)
       @stock[drug.id]["estimated_stock_out_date"] = estimated_stock_out_date
+      @stock[drug.id]["drug_pack_size"] = drug_pack_size
     end
     @stock = @stock.sort_by{|drug_id, values|values["drug_name"]}
 	end
