@@ -887,7 +887,7 @@ class GenericRegimensController < ApplicationController
        drug_details[drug_name] = {}
        drug_details[drug_name]["required_amount"] = required_amount #in tabs
        drug_details[drug_name]["current_stock"] = current_stock # in tins
-       
+       drug_details[drug_name]["drug_pack_size"] = drug_pack_size
        if (required_amount > (current_stock * drug_pack_size)) #comparing tabs to tabs
          drug_details[drug_name]["low_stock_warning"] = true
          drug_details[drug_name]["recommended_duration"] = recommend_duration(duration, equivalent_daily_dose, current_stock, drug_pack_size)
@@ -933,6 +933,7 @@ class GenericRegimensController < ApplicationController
         stock[drug.id]["current_stock"] = current_stock
         stock[drug.id]["consumption_rate"] = consumption_rate.to_f.round(1)
         stock[drug.id]["estimated_stock_out_date"] = estimated_stock_out_date
+        stock[drug.id]["drug_pack_size"] = drug_pack_size
       end
     end
     stock
@@ -972,6 +973,7 @@ class GenericRegimensController < ApplicationController
         stock[drug.id]["current_stock"] = current_stock
         stock[drug.id]["consumption_rate"] = consumption_rate.to_f.round(1)
         stock[drug.id]["estimated_stock_out_date"] = estimated_stock_out_date
+        stock[drug.id]["drug_pack_size"] = drug_pack_size
     end
     stock
   end
@@ -1014,6 +1016,7 @@ class GenericRegimensController < ApplicationController
         stock[drug.id]["current_stock"] = current_stock
         stock[drug.id]["consumption_rate"] = consumption_rate.to_f.round(1)
         stock[drug.id]["estimated_stock_out_date"] = estimated_stock_out_date
+        stock[drug.id]["drug_pack_size"] = drug_pack_size
       end
     end
     render :json => stock and return
