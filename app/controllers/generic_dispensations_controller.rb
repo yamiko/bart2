@@ -215,7 +215,7 @@ class GenericDispensationsController < ApplicationController
       end
     else
       unless params[:location]
-        (flash[:error] = "Insufficient stock for: #{@drug.name rescue nil} by #{missing_quantity} #{@drug.units}" ) if insufficient_stock
+        #(flash[:error] = "Insufficient stock for: #{@drug.name rescue nil} by #{missing_quantity} #{@drug.units}" ) if insufficient_stock
         redirect_to "/patients/treatment_dashboard?id=#{@patient.patient_id}&dispensed_order_id=#{@order_id}"
       else
         render :text => 'complete' and return
