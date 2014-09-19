@@ -14,16 +14,17 @@ class ValidationResultController < ActionController::Base
   def list
     start_date = params[:start_date]
     end_date = params[:end_date]
-    results = ValidationResult.find(
-      :all, #:include => :validation_rules,
-      :select => 'rule_id, failures, date_checked',
-      :conditions => ['date_checked >= ? AND date_checked <= ?',
-                      start_date.to_date, end_date.to_date])
-    
-    resp = results.map { |r| {:rule_id => r.rule_id,:rule_desc => r.validation_rule.desc ,
-                              :date_checked => r.date_checked.strftime("%Y-%m-%d"),
-                              :failures => r.failures}
-                       }
+    resp = []
+    (start_date..end_date).each do |date|
+      resp << ValidationRule.find_by_sql("SELECT validation_rules.id as rule_id, `desc` as description,
+                                  COALESCE((SELECT failures FROM validation_results WHERE rule_id = validation_rules.id
+                                  AND date_checked = '#{date}') ,0) AS failures, '#{date}' as date_checked from
+                                  validation_rules where validation_rules.type_id = 2").map { |r| {:rule_id => r.rule_id,
+                                                                                                   :rule_desc => r.description ,
+                                                                                                   :date_checked => r.date_checked,
+                                                                                                   :failures => r.failures}}
+    end
+
     respond_to do |format|
       format.json { render :json => resp }
       format.html { render :text => resp.to_yaml }
