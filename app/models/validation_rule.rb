@@ -346,22 +346,22 @@ class ValidationRule < ActiveRecord::Base
 
   end
 
-  def self.death_date_less_than_last_encounter_date_and_less_than_date_of_birth(end_date = Date.today)
-    visit_date = end_date.to_date
-    connection = ActiveRecord::Base.connection
-    art_patient_ids = connection.select_all("SELECT patient_id FROM flat_cohort_table
-      WHERE DATE(earliest_start_date) <= '#{visit_date}'").collect{|p|p["patient_id"]}
-    patient_ids = connection.select_all("SELECT ft1.patient_id FROM flat_table1 ft1 WHERE ft1.patient_id in (#{art_patient_ids.join(',')})
-        AND ft1.death_date IS NOT NULL AND ft1.dob IS NOT NULL AND
-        (
-          ft1.death_date < (
-            SELECT MAX(visit_date) FROM flat_table2 ft2 WHERE ft2.patient_id=ft1.patient_id
-          ) OR
-          (SELECT MAX(visit_date) FROM flat_table2 ft2 WHERE ft2.patient_id=ft1.patient_id) < ft1.dob
-        )
-      ").collect{|p|p["patient_id"]}
+  def self.death_date_less_than_last_encounter_date_and_less_than_date_of_birth(date = Date.today)
 
-    return patient_ids
+
+    return FlatTable2.find_by_sql(["
+			(SELECT DISTINCT (ft2.patient_id) FROM flat_table2 ft2
+        INNER JOIN flat_cohort_table fct ON ft2.patient_id = fct.patient_id
+			WHERE DATEDIFF(ft2.visit_date, fct.death_date) > 0
+			  AND DATE(ft2.visit_date) <= ?)
+
+       UNION
+      (SELECT DISTINCT (ft2.patient_id) FROM flat_table2 ft2
+        INNER JOIN flat_cohort_table fct ON ft2.patient_id = fct.patient_id
+			WHERE DATEDIFF(fct.birthdate, ft2.visit_date) > 0
+			  AND DATE(ft2.visit_date) <= ?)
+    ", date.to_date, date.to_date]).map(&:patient_id).uniq
+
 
 =begin
     #Task 41
