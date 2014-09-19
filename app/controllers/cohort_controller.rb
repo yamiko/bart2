@@ -1857,6 +1857,54 @@ class CohortController < ActionController::Base
     render :text => value.to_json
   end
 
+    def n0a(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    $total_alive_and_on_art ||= total_alive_and_on_art(defaulted_patients = art_defaulters)
+
+    patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id, ft2.regimen_category AS regimen_category
+                    FROM flat_table2 ft2
+	                    INNER JOIN encounter enc on enc.encounter_id = ft2.regimen_category_enc_id AND enc.encounter_type = 54
+                    WHERE ft2.patient_id IN (#{$total_alive_and_on_art.join(',')})
+                    AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
+			                                            WHERE e1.patient_id = enc.patient_id
+                                                  AND e1.encounter_type = enc.encounter_type
+			                                            AND e1.encounter_datetime <= '#{end_date}'
+                                                  AND e1.voided = 0)
+                    AND ft2.regimen_category = '0A'
+                    GROUP BY ft2.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
+  end
+
+  def n0p(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    $total_alive_and_on_art ||= total_alive_and_on_art(defaulted_patients = art_defaulters)
+
+    patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id, ft2.regimen_category AS regimen_category
+                    FROM flat_table2 ft2
+	                    INNER JOIN encounter enc on enc.encounter_id = ft2.regimen_category_enc_id AND enc.encounter_type = 54
+                    WHERE ft2.patient_id IN (#{$total_alive_and_on_art.join(',')})
+                    AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
+			                                            WHERE e1.patient_id = enc.patient_id
+                                                  AND e1.encounter_type = enc.encounter_type
+			                                            AND e1.encounter_datetime <= '#{end_date}'
+                                                  AND e1.voided = 0)
+                    AND ft2.regimen_category = '0P'
+                    GROUP BY ft2.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
+  end
+
   def n9p(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
@@ -2565,6 +2613,10 @@ class CohortController < ActionController::Base
         unknown_outcome(start_date, end_date, params["field"])
       when "n1a"
         n1a(start_date, end_date, params["field"])
+      when "n0a"
+        n0a(start_date, end_date, params["field"])
+      when "n0p"
+        n0p(start_date, end_date, params["field"])
       when "n1p"
         n1p(start_date, end_date, params["field"])
       when "n2a"
