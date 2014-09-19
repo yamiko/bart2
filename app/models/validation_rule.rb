@@ -92,6 +92,7 @@ class ValidationRule < ActiveRecord::Base
   end
 
   def self.pills_remaining_over_dispensed(visit_date=Date.today)
+=begin
     visit_date = visit_date.to_date
     connection = ActiveRecord::Base.connection
     art_patient_ids = connection.select_all("SELECT patient_id FROM flat_cohort_table
@@ -175,7 +176,8 @@ class ValidationRule < ActiveRecord::Base
     end
     
     return patient_ids
-=begin
+=end
+
     visit_date = visit_date.to_date rescue Date.today
     patient_ids = []
     #art_adherence_enc = EncounterType.find_by_name('ART ADHERENCE').id
@@ -195,7 +197,6 @@ class ValidationRule < ActiveRecord::Base
     patient_ids = patients.collect{|patient|patient["patient_ID"]}
 
     return patient_ids
-=end
   end
   
   def self.validate_presence_of_start_reason(end_date = Date.today)
