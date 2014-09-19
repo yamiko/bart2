@@ -362,7 +362,6 @@ class ValidationRule < ActiveRecord::Base
 			  AND DATE(ft2.visit_date) <= ?)
     ", date.to_date, date.to_date]).map(&:patient_id).uniq
 
-    return patient_ids
 
 =begin
     #Task 41
