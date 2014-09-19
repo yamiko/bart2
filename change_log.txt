@@ -132,3 +132,4 @@ Version (1.0.0)
    DN - Updated flat_table_initialization script
 2014-09-17
 	 FC	-	Enabled email configuration
+   DN - added guardian_present_unknown field 
