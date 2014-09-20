@@ -361,6 +361,8 @@ class Cohort
 				#logger.info("regimens " + Time.now.to_s)
 				cohort_report['Regimens'] = self.regimens_all(@@first_registration_date)
 				regimens = self.regimens_all(@@first_registration_date)
+        cohort_report['0A'] = regimens['0A']
+				cohort_report['0P'] = regimens['0P']
 				cohort_report['1A'] = regimens['1A']
 				cohort_report['1P'] = regimens['1P']
 				cohort_report['2A'] = regimens['2A']
@@ -375,7 +377,9 @@ class Cohort
 				cohort_report['8A'] = regimens['8A']
 				cohort_report['9P'] = regimens['9P']
 				cohort_report['non-standard'] = cohort_report['Total alive and on ART'] -
-				                                  ((cohort_report['1A'] || []) +
+				                                  ((cohort_report['0A'] || []) +
+  				                                 (cohort_report['0P'] || []) +
+                                           (cohort_report['1A'] || []) +
   				                                 (cohort_report['1P'] || []) +
   				                                 (cohort_report['2A'] || []) +
   				                                 (cohort_report['2P'] || []) +
