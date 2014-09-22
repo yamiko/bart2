@@ -2303,6 +2303,15 @@ class CohortController < ActionController::Base
     value = patients unless patients.blank?
   end
 
+
+  def unknown_adherence(start_date=Time.now, end_date=Time.now, section=nil)
+
+    $total_alive_and_on_art ||= total_alive_and_on_art(defaulted_patients = art_defaulters)
+
+    value = $total_alive_and_on_art - (missed_0_6(start_date, end_date, section, false) + missed_7plus(start_date, end_date, section, false))
+    render :text => value.to_json
+  end
+
   def missed_7plus_three(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
@@ -2378,7 +2387,7 @@ class CohortController < ActionController::Base
     value = patients unless patients.blank?
   end
 
-  def missed_7plus(start_date=Time.now, end_date=Time.now, section=nil)
+  def missed_7plus(start_date=Time.now, end_date=Time.now, section=nil, json=true)
     value = []
     patients = []
     
@@ -2415,10 +2424,15 @@ class CohortController < ActionController::Base
     end
 
     value = patients unless patients.blank?
-    render :text => value.to_json
+
+    if json == true
+      render :text => value.to_json
+    else
+      return value
+    end
   end
 
-  def missed_0_6(start_date=Time.now, end_date=Time.now, section=nil)
+  def missed_0_6(start_date=Time.now, end_date=Time.now, section=nil, json=true)
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
@@ -2464,7 +2478,12 @@ class CohortController < ActionController::Base
     value = (total_alive  - patients)
 
     value =  value unless value.blank?
-    render :text => value.to_json
+
+    if json == true
+      render :text => value.to_json
+    else
+      return value
+    end
   end
 
   def cohort_field
@@ -2671,6 +2690,8 @@ class CohortController < ActionController::Base
         missed_7plus_three(start_date, end_date, params["field"])
       when "missed_7plus_four"
         missed_7plus_four(start_date, end_date, params["field"])
+      when "unknown_adherence"
+        unknown_adherence(start_date, end_date, params["field"])
       when "missed_7plus_five"
         missed_7plus_five(start_date, end_date, params["field"])
       when "drug_induced_p_neu"
