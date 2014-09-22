@@ -1382,32 +1382,6 @@ class Cohort
 												WHERE earliest_start_date <= '#{end_date}'")
   end
 
-  def side_effect_patients(start_date = @start_date, end_date = @end_date)
-    side_effect_concept_ids =[ConceptName.find_by_name('PERIPHERAL NEUROPATHY').concept_id,
-			ConceptName.find_by_name('LEG PAIN / NUMBNESS').concept_id,
-			ConceptName.find_by_name('HEPATITIS').concept_id,
-			ConceptName.find_by_name('SKIN RASH').concept_id,
-			ConceptName.find_by_name('JAUNDICE').concept_id]
-
-    encounter_type = EncounterType.find_by_name('HIV CLINIC CONSULTATION')
-    concept_ids = [ConceptName.find_by_name('SYMPTOM PRESENT').concept_id,
-			ConceptName.find_by_name('DRUG INDUCED').concept_id]
-
-    encounter_ids = Encounter.find(:all,:conditions => ["encounter_type = ? 
-                    AND (patient_start_date(patient_id) >= '#{start_date}'
-                    AND patient_start_date(patient_id) <= '#{end_date}')
-                    AND (encounter_datetime >= '#{start_date}'
-                    AND encounter_datetime <= '#{end_date}')",
-				encounter_type.id],:group => 'patient_id',:order => 'encounter_datetime DESC').map{| e | e.encounter_id }
-
-    Observation.find(:all,
-			:conditions => ["encounter_id IN (#{encounter_ids.join(',')})
-                     AND concept_id IN (?)
-                     AND value_coded IN (#{side_effect_concept_ids.join(',')})",
-				concept_ids],
-			:group =>'person_id')
-  end
-
   def patients_with_side_effects(start_date = @start_date, end_date = @end_date)
 		side_effect_concept_ids =[ConceptName.find_by_name('PERIPHERAL NEUROPATHY').concept_id,
 			ConceptName.find_by_name('LEG PAIN / NUMBNESS').concept_id,
