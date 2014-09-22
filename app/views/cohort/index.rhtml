@@ -256,21 +256,21 @@
         ["", "", 2,,,,,0,"any_effects","/field?field=side_effects"],
         ["", "", 2,,,,,0,"unk_effects","/field?field=unk_effects"],
         ["&nbsp;", "&nbsp;", 3],
-        ["78", "<b>0 - 3</b> doses missed", 2,,,,,, "missed_0_6","/field?field=missed_0_6"],
-        ["79", "<b>4+</b> doses missed", 2,,,,,,
+        ["78", "<b>0 - 3</b> doses missed<br><br><b>4+</b> doses missed<br><br><b>Unk</b>nown (not circled)", 2,,,,,3, "missed_0_6","/field?field=missed_0_6"],
+        ["79", "", 2,,,,,0,
           "missed_7plus","/field?field=missed_7plus"],
-        ["80", "<b>Unk</b>nown (not circled)", 2,,,,,,"unknown_adherence","/field?field=unknown_adherence"],
+        ["80", "", 2,,,,,0,"unknown_adherence","/field?field=unknown_adherence"],
         ["&nbsp;", "&nbsp;", 3],        
         ["&nbsp;", "Current TB status, any form of TB", 1, "&nbsp;"],
-        [81, "&nbsp;", 4, null, "TB <b>not</b> suspected",,,,,,"tb_no_suspect",
+        ["81<br><br>82<br><br>83<br><br>84<br><br>85", "TB <b>not</b> suspected<br><br>TB <b>suspected</b><br><br>TB conf., <b>not</b> Rx<br><br>TB conf., <b>on TB Rx</b><br><br>Unknown (not circled)", 2, null, "",,,5,"tb_no_suspect",,"tb_no_suspect",
           "/field?field=tb_no_suspect"],
-        [82, "&nbsp;", 4, null, "TB <b>suspected</b>",,,,,,"tb_suspected", "/field?field=tb_suspected"],
-        [83, "&nbsp;", 4, null, "TB conf., <b>not</b> Rx",,,,,,
+        ["", "&nbsp;", 2, null, "",,,0,"tb_suspected",,"tb_suspected", "/field?field=tb_suspected"],
+        ["", "&nbsp;", 2, null, "",,,0,"tb_confirm_not_treat",,
           "tb_confirm_not_treat", "/field?field=tb_confirm_not_treat"],
-        [84, "&nbsp;", 4, null, "TB conf., <b>on TB Rx</b>",,,,,,"tb_confirmed",
+        ["", "&nbsp;", 2, null, "",,,0,"tb_confirmed",,"tb_confirmed",
           "/field?field=tb_confirmed"],
-        [85, "&nbsp;", 4, null, "Unknown (not circled)",,,,,,"unknown_tb", "/field?field=unknown_tb"],
-        ["&nbsp;", "&nbsp;", 4, null, "&nbsp;"]
+        ["", "&nbsp;", 2, null, "",,,0,"unknown_tb",,"unknown_tb", "/field?field=unknown_tb"],
+        ["&nbsp;", "&nbsp;", 2, null, "&nbsp;"]
       ];
             
       function __$(id){
