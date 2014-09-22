@@ -414,7 +414,7 @@ class EncountersController < GenericEncountersController
 				@severe_wasting = []
 				if @patient_bean.age < 15
 					median_weight_height = WeightHeightForAge.median_weight_height(@patient_bean.age_in_months, @patient.person.gender) rescue []
-					current_weight_percentile = (@current_weight/(median_weight_height[0])*100)
+					current_weight_percentile = (@current_weight/(median_weight_height[0])*100) rescue 0
 
 					if current_weight_percentile >= 70 && current_weight_percentile <= 79
 						@moderate_wasting = ["Moderate unexplained wasting/malnutrition not responding to treatment (weight-for-height/ -age 70-79% or muac 11-12 cm)"]

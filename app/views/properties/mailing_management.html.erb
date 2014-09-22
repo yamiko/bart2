@@ -131,6 +131,16 @@
             Finish
           </span>
         </button>
+          <button class="red" style="float: left; margin: 8px; width: 150px; margin-right: 20px;"
+                onclick="window.location='/properties/disable_mail?user_id=<%= params[:user_id] %>'">
+          <span>
+            <% if @enable == "true" %>
+            Disable
+            <% else %>
+            Enable
+            <% end %>
+          </span>
+        </button>
         <button class="blue" style="float: right; margin: 8px; width: 150px; margin-right: 20px;"
                 onclick="window.location='/properties/new_mail?user_id=<%= params[:user_id] %>'">
           <span>

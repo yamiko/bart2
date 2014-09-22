@@ -183,6 +183,13 @@
           <%end%>
         <% end %>
     
+        <button class="button navButton blue" style="float: left;"
+                onmousedown="window.location = '/patients/print_mastercard_pdf/<%=@patient.id -%>'">
+          <span>
+            Print PDF
+          </span>
+        </button>
+    
         <% if show_lab_results %>                                     
           <button class="button navButton blue" style="float: left;"
                   onmousedown="window.location = '/lab/results/<%=@patient.id -%>'">
@@ -190,8 +197,8 @@
               Lab trail
             </span>
           </button>
-        <%end%> 
-
+        <%end%>
+          
       </div>
 
       <div id="msgBox">

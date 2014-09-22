@@ -1209,7 +1209,10 @@ class CohortToolController < GenericCohortToolController
 		#validate Cohort report
 		validation = CohortValidation.new(@cohort)
 		@cohort_validation = validation.get_all_differences
-		print_rules rescue ""
+    enable = GlobalProperty.find_by_property("enable.mailing").property_value rescue "true"
+    unless enable == "false"
+      print_rules rescue ""
+    end
 		session[:views]=nil; session[:chidren]; session[:nil]
     render :layout => 'cohort'
   end

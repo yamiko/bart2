@@ -72,6 +72,7 @@ class GenericPropertiesController < ApplicationController
 
   def mailing_management
     @members = GlobalProperty.find_by_property("mailing.members").property_value.split(";") rescue []
+    @enable = GlobalProperty.find_by_property("enable.mailing").property_value rescue "true"
   end
 
   def edit_members
@@ -83,6 +84,24 @@ class GenericPropertiesController < ApplicationController
         all_members.save
     end
     redirect_to "/properties/mailing_management" and return
+  end
+
+  def disable_mail
+   enable = GlobalProperty.find_by_property("enable.mailing") rescue nil
+   if enable.blank?
+     nabled = GlobalProperty.new()
+     nabled.property = "enable.mailing"
+     nabled.property_value = "false"
+     nabled.save
+   else
+     if enable.property_value == "true"
+       enable.property_value = "false"
+     else
+       enable.property_value = "true"
+     end
+     enable.save
+   end
+   redirect_to "/properties/mailing_management" and return
   end
 
   def new_mail

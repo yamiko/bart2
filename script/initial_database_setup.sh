@@ -31,26 +31,26 @@ echo "DROP DATABASE $DATABASE;" | mysql --host=$HOST --user=$USERNAME --password
 echo "CREATE DATABASE $DATABASE;" | mysql --host=$HOST --user=$USERNAME --password=$PASSWORD
 
 
-mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/openmrs_1_7_2_concept_server_full_db.sql
+mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/initial_setup/openmrs_1_7_2_concept_server_full_db.sql
 #echo "schema additions"
-mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/schema_bart2_additions.sql
+mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/initial_setup/schema_bart2_additions.sql
 mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/bart2_views_schema_additions.sql
 #echo "defaults"
-mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/defaults.sql
+mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/initial_setup/defaults.sql
 #echo "user schema modifications"
 #mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/user_schema_modifications.sql
-mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/malawi_regions.sql
-mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/mysql_functions.sql
-mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/drug_ingredient.sql
-mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/pharmacy.sql
-mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/national_id.sql
-mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/weight_for_heights.sql
+mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/initial_setup/malawi_regions.sql
+mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/initial_setup/mysql_functions.sql
+mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/initial_setup/drug_ingredient.sql
+mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/initial_setup/pharmacy.sql
+mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/initial_setup/national_id.sql
+mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/initial_setup/weight_for_heights.sql
 mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/data/${SITE}/${SITE}.sql
 mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/data/${SITE}/tasks.sql
-mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/moh_regimens_only.sql
+mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/initial_setup/moh_regimens_only.sql
 #mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/regimen_indexes.sql
-mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/retrospective_station_entries.sql
-mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/create_dde_server_connection.sql
+mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/initial_setup/retrospective_station_entries.sql
+mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/initial_setup/create_dde_server_connection.sql
 
 #mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/privilege.sql
 #mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/bart2_role_privileges.sql
@@ -58,9 +58,9 @@ mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/migrate/
 mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/migrate/insert_weight_for_ages.sql
 #mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/openmrs_metadata_1_7.sql
 #mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/bart2_views_schema_additions.sql
-mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/regimens.sql
+mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/initial_setup/regimens.sql
 
-mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/modular_tables.sql
+mysql --host=$HOST --user=$USERNAME --password=$PASSWORD $DATABASE < db/initial_setup/modular_tables.sql
 
 #rake openmrs:bootstrap:load:defaults RAILS_ENV=$ENV
 #rake openmrs:bootstrap:load:site SITE=$SITE RAILS_ENV=production#
