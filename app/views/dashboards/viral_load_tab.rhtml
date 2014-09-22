@@ -1,17 +1,19 @@
 <script>
+
   function updateVl(){
-    content = document.getElementById('content');
+    content = window.parent.document.getElementById('content');
     vl_menu = document.getElementById('new_vl_menu');
-    //content.appendChild(vl_menu);
+    content.appendChild(vl_menu);
     vl_menu.style.display = 'inline';
-    document.getElementById('vl_lab_trail_cover').style.display='inline';
-    //document.getElementById('cover').style.display='inline'
+    vl_lab_trail_cover = document.getElementById('vl_lab_trail_cover');
+    vl_lab_trail_cover.style.display='inline';
+    content.appendChild(vl_lab_trail_cover);
   }
 
   function showVlLabTrail(){
-    c = document.getElementById('content');
+    c = window.parent.document.getElementById('content');
     v = document.getElementById('vl_lab_trail');
-    //c.appendChild(v);
+    c.appendChild(v);
     document.getElementById('vl_lab_trail_cover').style.display='inline';
     document.getElementById('vl_lab_trail').style.display='inline';
   }
@@ -388,42 +390,41 @@
 <div id="vl_lab_trail_cover" style="display:none;">
 </div>
 
-      <div id="new_vl_menu" style="display: none; width:40%; height: 56%; left:30%;">
-          <div id="new_vl_menu_header">
-            <span style="font-size: 15pt;">Select action</span>
-          </div>
-          <div id="new_vl_menu_content">
-            <table cellspacing="0" style="position:absolute; width: 100%; height:75%;">
-              <% unless @latest_result.blank?%>
-                <tr onclick="giveResultPath();" style="line-height: 3em;"><td><span>Result given to patient</span></td></tr>
-              <% else %>
-                <tr onclick="" style="line-height: 3em; background-color: #FEE0C6;"><td><span style="color:gray;">Result given to patient</span></td></tr>
-              <% end %>
-              <tr onclick="newVlResultPath();" style="line-height: 3em;"><td><span>Enter new VL result</span></td></tr>
-              <!--<tr onclick="secondlineSwitchPath();" style="line-height: 3em;"><td><span>Patient switched to second line</span></td></tr>
-              <tr onclick="removeUpdateVlMenu();" style="line-height: 3em;"><td><span>Back to milestone screening</span></td></tr>-->
-              <tr onclick="repeat_vl_requested();" style="line-height: 3em;"><td><span>Request VL today</span></td></tr>
-            </table>
-          </div>
-          <div id="new_vl_menu_footer">
-            <span onclick="removeUpdateVlMenu();"><b style="margin-left: 45%;">Cancel</b></span>
-          </div>
-      </div>
+<div id="new_vl_menu" style="display: none; width:40%; height: 56%; left:30%; position: absolute;">
+    <div id="new_vl_menu_header">
+      <span style="font-size: 15pt;">Select action</span>
+    </div>
+    <div id="new_vl_menu_content">
+      <table cellspacing="0" style="position:absolute; width: 100%; height:75%;">
+        <% unless @latest_result.blank?%>
+          <tr onclick="giveResultPath();" style="line-height: 3em;"><td><span>Result given to patient</span></td></tr>
+        <% else %>
+          <tr onclick="" style="line-height: 3em; background-color: #FEE0C6;"><td><span style="color:gray;">Result given to patient</span></td></tr>
+        <% end %>
+        <tr onclick="newVlResultPath();" style="line-height: 3em;"><td><span>Enter new VL result</span></td></tr>
+        <!--<tr onclick="secondlineSwitchPath();" style="line-height: 3em;"><td><span>Patient switched to second line</span></td></tr>
+        <tr onclick="removeUpdateVlMenu();" style="line-height: 3em;"><td><span>Back to milestone screening</span></td></tr>-->
+        <tr onclick="repeat_vl_requested();" style="line-height: 3em;"><td><span>Request VL today</span></td></tr>
+      </table>
+    </div>
+    <div id="new_vl_menu_footer">
+      <span onclick="removeUpdateVlMenu();"><b style="margin-left: 45%;">Cancel</b></span>
+    </div>
+</div>
 
-      <div id="vl_repeat_popup" style="display: none;">
-        <div class="new_vl_menu" style="position:fixed; width:40%; height: 45%; left:30%;">
-              <div class="new_vl_menu_header">
-                <span style="font-size: 15pt;"><center>Repeat viral load was requested<br/>
-                Viral load result available?</center></span>
-              </div>
-              <div class="new_vl_menu_content">
-                <table cellspacing="0" style="position:absolute; width: 100%; height:75%;">
-                  <tr onclick="newVlResultPathWithParam();" style="line-height: 3em;"><td><span>Enter VL result</span></td></tr>
-                  <tr onclick="hidePopup();" style="line-height: 3em;"><td><span>No VL result available</span></td></tr>
-                </table>
-              </div>
-              <div class="new_vl_menu_footer" style="height: 0px;">
-
-              </div>
-        </div>
+<div id="vl_repeat_popup" style="display: none;">
+  <div class="new_vl_menu" style="position:fixed; width:40%; height: 45%; left:30%;">
+      <div class="new_vl_menu_header">
+        <span style="font-size: 15pt;"><center>Repeat viral load was requested<br/>
+        Viral load result available?</center></span>
       </div>
+      <div class="new_vl_menu_content">
+        <table cellspacing="0" style="position:absolute; width: 100%; height:75%;">
+          <tr onclick="newVlResultPathWithParam();" style="line-height: 3em;"><td><span>Enter VL result</span></td></tr>
+          <tr onclick="hidePopup();" style="line-height: 3em;"><td><span>No VL result available</span></td></tr>
+        </table>
+      </div>
+      <div class="new_vl_menu_footer" style="height: 0px;">
+      </div>
+  </div>
+</div>
