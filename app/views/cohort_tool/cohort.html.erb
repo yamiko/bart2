@@ -920,7 +920,7 @@
             <td style="text-align:left;border-width:1px 0px 0px 1px;"><span style='font-weight:bold'>Side effects</span></td>
             <td style="border-width:1px 0px 0px 0px;">(as of the last visit before end of quarter)</td>
             <td style="border-width:1px 0px 0px 0px;"><span style='font-weight:bold'>None</span></td>
-            <td class="left_top_right_bottom create_button"><%= link_to "<span class=''>#{@cohort['Total patients with side effects'].length rescue 0}", "/cohort_tool/list_patients_details?field=total_patients_with_side_effects&quarter=#{@quarter}"%></span></td>
+            <td class="left_top_right_bottom create_button"><%= link_to "<span class=''>#{@cohort['Total patients without side effects'].length rescue 0}", "/cohort_tool/list_patients_details?field=total_patients_without_side_effects&quarter=#{@quarter}"%></span></td>
           </tr>
 
 					<tr class = 'row_break'>
@@ -936,7 +936,7 @@
             <td style="text-align:left;border-width:0px 0px 1px 1px;">&nbsp;</td>
             <td style="border-width:0px 0px 1px 0px;">&nbsp;</td>
             <td style="border-width:0px 0px 1px 0px;"><span style='font-weight:bold'>Unk</span>nown (not circled)</td>
-            <td class="left_top_right_bottom create_button"><%= link_to "<span class=''>#{@cohort['Total patients with side effects'].length rescue 0}", "/cohort_tool/list_patients_details?field=total_patients_with_side_effects&quarter=#{@quarter}"%></span></td>
+            <td class="left_top_right_bottom create_button"><%= link_to "<span class=''>#{@cohort['Total patients with unknown side effects'].length rescue 0}", "/cohort_tool/list_patients_details?field=total_patients_with_unknown_side_effects&quarter=#{@quarter}"%></span></td>
           </tr>
 
           <tr class = 'row_break'>
