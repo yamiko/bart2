@@ -74,8 +74,9 @@
       }
 
       .pass-rows {
-          background-color: black;
-          color: green;
+          background-color: green;
+          color: black;
+          border: 1px solid #000000;
       }
 
       .err-num {
@@ -489,7 +490,7 @@
           start_date + "&end_date=" + end_date);
                 
         for(var i = 0; i < fields.length; i++){
-        
+
           if(typeof(fields[i][8]) != "undefined"){
             ajaxRequest(fields[i][8], fields[i][9] + "&start_date=" +
               start_date + "&end_date=" + end_date);
