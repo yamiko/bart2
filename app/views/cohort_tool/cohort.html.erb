@@ -712,11 +712,10 @@
           <tr class = 'row_break'>
             <td>59</td>
             <td style="text-align:left;border-width:1px 0px 0px 1px">ARV regimens</td>
-            <td style="border-width:1px 0px 0px 0px;"><b>Paediatric</b> formulations (blue card)</td>
+            <td style="border-width:1px 0px 0px 0px;"><span style="font-weight:bold;">Paediatric</span> formulations (blue card)</td>
             <td class="regimen_name_top">Regimen 0P</td>
             <td class="left_top_right">
-              <span class="clinic_data_value" >
-                <span class="regimen">0P</span><br />
+              <span class="clinic_data_value" style="width:83%;" >
                 <%= link_to "#{@cohort['Regimens']['0P'].length rescue '0'}", "/cohort_tool/list_patients_details?field=regimens&type=0P&quarter=#{@quarter}" -%>
               </span>
 					  </td>
@@ -729,8 +728,7 @@
             <td style="border-width:0px;">&nbsp;</td>
             <td class="regimen_name">Regimen 1P</td>
             <td class="left_right">
-              <span class="clinic_data_value" >
-                <span class="regimen">1P</span><br />
+              <span class="clinic_data_value" style="width:83%;" >
                 <%= link_to "#{@cohort['Regimens']['1P'].length rescue '0'}", "/cohort_tool/list_patients_details?field=regimens&type=1P&quarter=#{@quarter}" -%>
               </span>
             </td>
@@ -743,8 +741,7 @@
             <td style="border-width:0px;">&nbsp;</td>
             <td class="regimen_name">Regimen 2P</td>
             <td class="left_right">
-              <span class="clinic_data_value" >
-                <span class="regimen">2P</span><br />
+              <span class="clinic_data_value" style="width:83%;" >
                 <%= link_to "#{@cohort['Regimens']['2P'].length rescue '0'}", "/cohort_tool/list_patients_details?field=regimens&type=2P&quarter=#{@quarter}" -%>
               </span>
             </td>
@@ -757,8 +754,7 @@
             <td style="border-width:0px;">&nbsp;</td>
             <td class="regimen_name">Regimen 3P</td>
             <td class="left_right" >
-              <span class="clinic_data_value" >
-                <span class="regimen">3P</span><br />
+              <span class="clinic_data_value" style="width:83%;" >
                 <%= link_to "#{@cohort['Regimens']['3P'].length rescue '0'}", "/cohort_tool/list_patients_details?field=regimens&type=3P&quarter=#{@quarter}" -%>
               </span>
             </td>
@@ -770,8 +766,7 @@
             
             <td style="border-width:0px;">&nbsp;</td>
             <td class="regimen_name">Regimen 4P</td>
-            <td class="left_right" ><span class="clinic_data_value" >
-                <span class="regimen">4P</span><br />
+            <td class="left_right" ><span class="clinic_data_value" style="width:83%;" >
                 <%= link_to "#{@cohort['Regimens']['4P'].length rescue '0'}", "/cohort_tool/list_patients_details?field=regimens&type=4P&quarter=#{@quarter}" -%>
               </span>
             </td>
@@ -784,8 +779,7 @@
             <td style="border-width:0px;">&nbsp;</td>
             <td class="regimen_name">Regimen 9P</td>
             <td class="left_right" >
-              <span class="clinic_data_value">
-                <span class="regimen">9P</span><br />
+              <span class="clinic_data_value" style="width:83%;">
                 <%= link_to "#{@cohort['Regimens']['9P'].length rescue '0'}", "/cohort_tool/list_patients_details?field=regimens&type=9P&quarter=#{@quarter}" -%>
               </span>
             </td>
@@ -795,11 +789,10 @@
             <td>65</td>
             <td style="border-width:0px 0px 0px 1px;"></td>
             
-            <td style="border-width:1px 0px 0px 0px;">Adult formulations (Yellow Card)</td>
+            <td style="border-width:1px 0px 0px 0px;"><span style="font-weight:bold;">Adult</span> formulations (Yellow Card)</td>
             <td class="regimen_name"  style="border-width:1px 0px 0px 0px;">Regimen 0A</td>
             <td class="left_right" >
-              <span class="clinic_data_value">
-                <span class="regimen">0A</span><br />
+              <span class="clinic_data_value" style="width:83%;">
                 <%= link_to "#{ @cohort['Regimens']['0A'].length rescue '0' }", "/cohort_tool/list_patients_details?field=regimens&type=0A&quarter=#{@quarter}" -%>
               </span>
             </td>
@@ -811,8 +804,7 @@
             <td style="border-width:0px;">&nbsp;</td>
             <td class="regimen_name">Regimen 1A</td>
             <td class="left_right" >
-              <span class="clinic_data_value">
-                <span class="regimen">1A</span><br />
+              <span class="clinic_data_value" style="width:83%;">
                 <%= link_to "#{ @cohort['Regimens']['1A'].length rescue '0' }", "/cohort_tool/list_patients_details?field=regimens&type=1A&quarter=#{@quarter}" -%>
               </span>
             </td>
@@ -825,8 +817,7 @@
             <td class="regimen_name">Regimen 2A</td>
             <td class="left_right" >
               
-              <span class="clinic_data_value">
-                <span class="regimen">2A</span><br />
+              <span class="clinic_data_value" style="width:83%;">
                 <%= link_to "#{ @cohort['Regimens']['2A'].length rescue '0'}", "/cohort_tool/list_patients_details?field=regimens&type=2A&quarter=#{@quarter}" -%>
               </span>
             </td>
@@ -837,8 +828,7 @@
             <td style="border-width:0px 0px 0px 1px;"></td>
             <td style="border-width:0px;">&nbsp;</td>
             <td class="regimen_name" >Regimen 3A</td>
-            <td class="left_right" ><span class="clinic_data_value" >
-                <span class="regimen">3A</span></br >
+            <td class="left_right" ><span class="clinic_data_value" style="width:83%;" >
                 <%= link_to "#{ @cohort['Regimens']['3A'].length rescue '0' }", "/cohort_tool/list_patients_details?field=regimens&type=3A&quarter=#{@quarter}" -%>
               </span>
               
@@ -850,8 +840,7 @@
             <td style="border-width:0px 0px 0px 1px;"></td>
             <td style="border-width:0px;">&nbsp;</td>
             <td class="regimen_name" >Regimen 4A</td>
-            <td class="left_right" ><span class="clinic_data_value" >
-                <span class="regimen">4A</span></br >
+            <td class="left_right" ><span class="clinic_data_value" style="width:83%;" >
                 <%= link_to "#{ @cohort['Regimens']['4A'].length rescue '0' }", "/cohort_tool/list_patients_details?field=regimens&type=4A&quarter=#{@quarter}" -%>
               </span>
               
@@ -863,8 +852,7 @@
             <td style="border-width:0px 0px 0px 1px;"></td>
             <td style="border-width:0px;">&nbsp;</td>
             <td class="regimen_name" >Regimen 5A</td>
-            <td class="left_right" ><span class="clinic_data_value" >
-                <span class="regimen">5A</span></br >
+            <td class="left_right" ><span class="clinic_data_value" style="width:83%;" >
                 <%= link_to "#{ @cohort['Regimens']['5A'].length rescue '0' }", "/cohort_tool/list_patients_details?field=regimens&type=5A&quarter=#{@quarter}" -%>
               </span>
               
@@ -875,8 +863,7 @@
             <td style="border-width:0px 0px 0px 1px;"></td>
             <td style="border-width:0px;">&nbsp;</td>
             <td class="regimen_name" >Regimen 6A</td>
-            <td class="left_right" ><span class="clinic_data_value" >
-                <span class="regimen">6A</span></br >
+            <td class="left_right" ><span class="clinic_data_value" style="width:83%;" >
                 <%= link_to "#{ @cohort['Regimens']['6A'].length rescue '0' }", "/cohort_tool/list_patients_details?field=regimens&type=6A&quarter=#{@quarter}" -%>
               </span>
               
@@ -888,8 +875,7 @@
             <td style="border-width:0px 0px 0px 1px;"></td>
             <td style="border-width:0px;">&nbsp;</td>
             <td class="regimen_name" >Regimen 7A</td>
-            <td class="left_right" ><span class="clinic_data_value" >
-                <span class="regimen">7A</span></br >
+            <td class="left_right" ><span class="clinic_data_value" style="width:83%;" >
                 <%= link_to "#{ @cohort['Regimens']['7A'].length rescue '0' }", "/cohort_tool/list_patients_details?field=regimens&type=7A&quarter=#{@quarter}" -%>
               </span>
               
@@ -901,8 +887,7 @@
             <td style="border-width:0px 0px 0px 1px;"></td>
             <td style="border-width:0px;">&nbsp;</td>
             <td class="regimen_name" >Regimen 8A</td>
-            <td class="left_right" ><span class="clinic_data_value" >
-                <span class="regimen">8A</span></br >
+            <td class="left_right" ><span class="clinic_data_value" style="width:83%;" >
                 <%= link_to "#{ @cohort['Regimens']['8A'].length rescue '0' }", "/cohort_tool/list_patients_details?field=regimens&type=8A&quarter=#{@quarter}" -%>
               </span>
               
@@ -917,7 +902,6 @@
             <td class="regimen_name_bottom">Other(paed./ adult)</td>
             <td class="right_bottom_left">
               <span class="clinic_data_value" style="width:83%;">
-                <span class="regimen">Other P/A</span></br >
                 <%= link_to "#{@cohort['Regimens']['UNKNOWN ANTIRETROVIRAL DRUG'].length rescue '0'}", "/cohort_tool/list_patients_details?field=regimens&type=unknown_antiretroviral_drug&quarter=#{@quarter}" -%>
               </span>
             </td>
