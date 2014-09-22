@@ -463,7 +463,8 @@ class CohortController < ActionController::Base
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date >= '#{start_date}'
                                             AND ftc.earliest_start_date <= '#{end_date}'
-                                            AND ftc.gender = 'Male'
+                                            AND (ftc.gender = 'Male'
+                                            OR ftc.gender = 'M')
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -476,7 +477,8 @@ class CohortController < ActionController::Base
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
-                                            AND ftc.gender = 'Male'
+                                            AND ( ftc.gender = 'Male'
+                                             OR ftc.gender = 'M' )
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -2231,28 +2233,25 @@ class CohortController < ActionController::Base
   end
 
   def check_no_effects(start_date=Time.now, end_date=Time.now, section=nil)
-      side_effect_concept_ids =[ConceptName.find_by_name('PERIPHERAL NEUROPATHY').concept_id,
-			ConceptName.find_by_name('LEG PAIN / NUMBNESS').concept_id,
-			ConceptName.find_by_name('HEPATITIS').concept_id,
-			ConceptName.find_by_name('SKIN RASH').concept_id,
-			ConceptName.find_by_name('JAUNDICE').concept_id]
+   patient_with_effect = check_all_effects(start_date, end_date)#.collect{|p| p.patient_id}
+     
 
     hiv_clinic_consultation_encounter_id = EncounterType.find_by_name("HIV CLINIC CONSULTATION").id
 
-    drug_induced_side_effect_id = ConceptName.find_by_name('DRUG INDUCED').concept_id
+    drug_induced_side_effect_id = ConceptName.find_by_name('SYMPTOM PRESENT').concept_id
     $total_alive_and_on_art ||= total_alive_and_on_art(defaulted_patients = art_defaulters)
 
-       patients = Encounter.find_by_sql("SELECT e.patient_id FROM encounter e
+    patients = Encounter.find_by_sql("SELECT e.patient_id FROM encounter e
                                                     INNER JOIN obs o ON o.encounter_id = e.encounter_id
                                                     WHERE e.encounter_type = #{hiv_clinic_consultation_encounter_id}
                                                     AND e.patient_id IN (#{$total_alive_and_on_art.join(',')})
-                                                    AND o.value_coded NOT IN (#{side_effect_concept_ids.join(',')})
+                                                    AND e.patient_id NOT IN (#{patient_with_effect.join(',')})
                                                     AND o.concept_id = #{drug_induced_side_effect_id}
                                                     AND o.voided = 0
                                                     AND e.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
                                                                                   WHERE e1.patient_id = e.patient_id
                                                                                   AND e1.encounter_type = e.encounter_type
-                                                                                  AND e1.encounter_datetime BETWEEN '#{start_date}' AND '#{end_date}'
+                                                                                  AND e1.encounter_datetime BETWEEN '#{start_date.to_date}' AND '#{end_date.to_date}'
                                                                                   AND e1.voided = 0)
                                                     GROUP BY e.patient_id"
 		).collect{|p| p.patient_id}
