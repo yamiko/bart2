@@ -59,6 +59,14 @@
       	float:left;
       	background-color:#CCCCCC;
       }
+      
+      #adult {
+      	position:relative;
+      	top:-48%;
+      	left:0px;
+      	display:block;
+      	
+      }
     </style>
   </head>
   <body>
@@ -212,40 +220,45 @@
         [56, "<b>T</b>ransfered <b>O</b>ut", 2,,,,,,"transfered", "/field?field=transfered"],
         ["&nbsp;", "Unknown outcome", 2,,,,,,"unknown_outcome", "/field?field=unknown_outcome"],
         ["&nbsp;", "Secondary outcomes of those alive on ART as of last visit before end of quarter", 1, "&nbsp;"],
-         [38, "ARV regimens", 4, null, "0P (ABC/3TC + NVP)", "&nbsp;", "&nbsp;", 2,,,,,"n0p", "/field?field=n0p"],
-        [ "&nbsp;", "&nbsp;", 4, null, "0A (ABC/3TC + NVP)", "&nbsp;", "&nbsp;", 0,,,,,"n0a", "/field?field=n0a"],
-        [38, "&nbsp;", 4, null, "1A (D4T+3TC+NVP)", "&nbsp;", "&nbsp;", 2,,,,,"n1a", "/field?field=n1a"],
-        ["&nbsp;", "&nbsp;", 4, null, "1P (D4T+3TC+NVP)", "&nbsp;", "&nbsp;", 0,,,,,"n1p", "/field?field=n1p"],
-        [38, "&nbsp;", 4, null, "2A (AZT+3TC+NVP)", "&nbsp;", "&nbsp;", 2,,,,,"n2a", "/field?field=n2a"],
-        ["&nbsp;", "&nbsp;", 4, null, "2P (AZT+3TC+NVP)", "&nbsp;", "&nbsp;", 0,,,,, "n2p", "/field?field=n2p"],
-        [38, "&nbsp;", 4, null, "3A (D4T+3TC+EFV)", "&nbsp;", "&nbsp;", 2,,,,, "n3a", "/field?field=n3a"],
-        ["&nbsp;", "&nbsp;", 4, null, "3P (D4T+3TC+EFV)", "&nbsp;", "&nbsp;", 0,,,,, "n3p", "/field?field=n3p"],
-        [38, "&nbsp;", 4, null, "4A (AZT+3TC+EFV)", "&nbsp;", "&nbsp;", 2,,,,, "n4a", "/field?field=n4a"],
-        ["&nbsp;", "&nbsp;", 4, null, "4P (AZT+3TC+EFV)", "&nbsp;", "&nbsp;", 0,,,,, "n4p", "/field?field=n4p"],
-        [38, "&nbsp;", 4, null, "5A (TDF+3TC+EFV)", "&nbsp;", "&nbsp;", 1,,,,, "n5a", "/field?field=n5a"],
-        [38, "&nbsp;", 4, null, "6A (TDF+3TC+NVP)", "&nbsp;", "&nbsp;", 1,,,,, "n6a", "/field?field=n6a"],
-        [38, "&nbsp;", 4, null, "7A (TDF+3TC+LPV/r)", "&nbsp;", "&nbsp;", 1,,,,, "n7a", "/field?field=n7a"],
-        [38, "&nbsp;", 4, null, "8A (AZT+3TC+LPV/r)", "&nbsp;", "&nbsp;", 1,,,,, "n8a", "/field?field=n8a"],
-        [38, "&nbsp;", 4, null, "9P (ABC+3TC+LPV/r)", "&nbsp;", "&nbsp;", 1,,,,, "n9p", "/field?field=n9p"],
-        [44, "&nbsp;", 4, null, "Non-standard", "(Patients on any other regimens)", "&nbsp;", 1,,,,, "non_std",
+        ["&nbsp;<br><br>59<br><br>60<br><br>61<br><br>62<br><br>63<br><br>64", "ARV regimens", 3, null, "<span id='paed'><b>Paediatric</b> formulations (blue card)</span>", "&nbsp;", "&nbsp;", 7,,,,, null, null],
+        ["59<br><br>60", "", 3, null, "0P (ABC/3TC + NVP)", "&nbsp;", "&nbsp;", 0,,,"n0p",,"n0p", "/field?field=n0p"],
+        ["&nbsp;", "&nbsp;", 3, null, "1P (D4T+3TC+NVP)", "&nbsp;", "&nbsp;", 0,,,"n1p",,"n1p", "/field?field=n1p"],
+				["61<br><br>62", "&nbsp;", 3, null, "2P (AZT+3TC+NVP)", "&nbsp;", "&nbsp;", 0,,,"n2p",,"n2p", "/field?field=n2p"],
+        ["&nbsp;", "&nbsp;", 3, null, "3P (D4T+3TC+EFV)", "&nbsp;", "&nbsp;", 0,,,"n3p",, "n3p", "/field?field=n3p"],
+        ["63<br><br>64", "&nbsp;", 3, null, "4P (AZT+3TC+EFV)", "&nbsp;", "&nbsp;", 0,,,"n4p",, "n4p", "/field?field=n4p"],
+        ["&nbsp;", "&nbsp;", 3, null, "9P (ABC+3TC+LPV/r)", "&nbsp;", "&nbsp;", 0,,,"n9p",, "n9p", "/field?field=n9p"],
+        ["&nbsp;<br><br>65<br><br>66<br><br>67<br><br>68<br><br>69<br><br>70<br><br>71<br><br>72<br><br>73<br><br>74", "ARV regimens", 3, null, "<span id='adult'><b>Adult</b> formulations (yellow card)</span>", "&nbsp;", "&nbsp;", 11,,,,, null, null],   
+        ["&nbsp;", "&nbsp;", 3, null, "0A (ABC/3TC + NVP)", "&nbsp;", "&nbsp;", 0,,,"n0a",,"n0a", "/field?field=n0a"],
+        ["&nbsp;", "&nbsp;", 3, null,"1A (D4T+3TC+NVP)", "&nbsp;", "&nbsp;", 0,,,"n1a",,"n1a", "/field?field=n1a"],
+        ["&nbsp;", "&nbsp;", 3, null, "2A (AZT+3TC+NVP)", "&nbsp;", "&nbsp;", 0,,,"n2a",, "n2a", "/field?field=n2a"],
+				["&nbsp;", "&nbsp;", 3, null,"3A (D4T+3TC+EFV)", "&nbsp;", "&nbsp;", 0,,,"n3a",,"n3a", "/field?field=n3a"],
+        ["&nbsp;", "&nbsp;", 3, null, "4A (AZT+3TC+EFV)", "&nbsp;", "&nbsp;", 0,,,"n4a",, "n4a", "/field?field=n4a"],
+        ["&nbsp;", "&nbsp;", 3, null, "5A (TDF+3TC+EFV)", "&nbsp;", "&nbsp;", 0,,,"n5a",, "n5a", "/field?field=n5a"],
+        ["&nbsp;", "&nbsp;", 3, null, "6A (TDF+3TC+NVP)", "&nbsp;", "&nbsp;", 0,,,"n6a",, "n6a", "/field?field=n6a"],
+        ["&nbsp;", "&nbsp;", 3, null, "7A (TDF+3TC+LPV/r)", "&nbsp;", "&nbsp;", 0,,,"n7a",, "n7a", "/field?field=n7a"],
+        ["&nbsp;", "&nbsp;", 3, null, "8A (AZT+3TC+LPV/r)", "&nbsp;", "&nbsp;", 0,,, "n8a",, "n8a", "/field?field=n8a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Other (paed. /adult)", "&nbsp;", "&nbsp;", 0,,,"non_std",, "non_std",
           "/field?field=non_std"],
+        ["&nbsp;", "<b>Side effects</b> (as of the last visit end of qurter)", 3],
+        ["75", "<b>None</b>", 2,,,,,,"side_effects","/field?field=side_effects"],
+        ["76", "<b>Any</b> side effects", 2,,,,,,"any_effects","/field?field=side_effects"],
+        ["77", "<b>Unk</b>nown (not circled)", 2,,,,,,"unk_effects","/field?field=side_effects"],
         ["&nbsp;", "&nbsp;", 3],
-        ["45", "Total patients with side effects", 2,,,,,,"side_effects","/field?field=side_effects"],
-        ["46", "Patients with 0 - 3 doses missed at their last visit(before end of quarter evaluated)", 2,,,,,,
-          "missed_0_6","/field?field=missed_0_6"],
-        ["47", "Patients with 4+ doses missed at their last visit(before end of quarter evaluated)", 2,,,,,,
+        ["78", "<b>0 - 3</b> doses missed", 2,,,,,, "missed_0_6","/field?field=missed_0_6"],
+        ["79", "<b>4+</b> doses missed", 2,,,,,,
           "missed_7plus","/field?field=missed_7plus"],
-        ["48", "Unknown adherence", 2,,,,,,"unknown_adherence","/field?field=unknown_adherence"],
+        ["80", "<b>Unk</b>nown (not circled)", 2,,,,,,"unknown_adherence","/field?field=unknown_adherence"],
+        ["&nbsp;", "&nbsp;", 3],        
         ["&nbsp;", "Current TB status, any form of TB", 1, "&nbsp;"],
-        [49, "&nbsp;", 3, null, "TB not suspected",,,,,,"tb_no_suspect",
+        [81, "&nbsp;", 4, null, "TB <b>not</b> suspected",,,,,,"tb_no_suspect",
           "/field?field=tb_no_suspect"],
-        [50, "&nbsp;", 3, null, "TB suspected",,,,,,"tb_suspected", "/field?field=tb_suspected"],
-        [51, "&nbsp;", 3, null, "TB confirmed, not yet/currently not on TB treatment",,,,,,
+        [82, "&nbsp;", 4, null, "TB <b>suspected</b>",,,,,,"tb_suspected", "/field?field=tb_suspected"],
+        [83, "&nbsp;", 4, null, "TB conf., <b>not</b> Rx",,,,,,
           "tb_confirm_not_treat", "/field?field=tb_confirm_not_treat"],
-        [52, "&nbsp;", 3, null, "TB confirmed, on TB treatment",,,,,,"tb_confirmed",
+        [84, "&nbsp;", 4, null, "TB conf., <b>on TB Rx</b>",,,,,,"tb_confirmed",
           "/field?field=tb_confirmed"],
-        [53, "&nbsp;", 3, null, "Unknown TB status",,,,,,"unknown_tb", "/field?field=unknown_tb"],
-        ["&nbsp;", "&nbsp;", 3, null, "&nbsp;"]
+        [85, "&nbsp;", 4, null, "Unknown (not circled)",,,,,,"unknown_tb", "/field?field=unknown_tb"],
+        ["&nbsp;", "&nbsp;", 4, null, "&nbsp;"]
       ];
             
       function __$(id){
@@ -340,7 +353,7 @@
             
       function ajaxRequest(aElement, aUrl, showLine=true) {
         var httpRequest = new XMLHttpRequest();
-        httpRequest.onreadystatechange = function() {
+        	httpRequest.onreadystatechange = function() {
           handleResult(aElement, httpRequest, showLine);
         };
         try {
