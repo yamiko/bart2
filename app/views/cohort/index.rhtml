@@ -67,6 +67,21 @@
       	display:block;
       	
       }
+
+      .err-rows {
+          background-color: red;
+          color: white;
+      }
+
+      .pass-rows {
+          background-color: black;
+          color: green;
+      }
+
+      .err-num {
+          width: 3%;
+      }
+
     </style>
   </head>
   <body>
@@ -78,6 +93,7 @@
         <th colspan="4" class="header" style="background-color: #6281A7;
             padding: 10px; color: #fff; font-weight: normal;">
           <span id="qtr">{quarter}</span> Cohort Report
+          <br /><table style="width: 100%;" class="consistency-section"></table>
         </th>
       </tr>
       <tr>
@@ -488,9 +504,126 @@
           }
         }
       }
-      
+
+      /*
+       We are currently hard-coding this rules but soon will be pulling from the
+       database
+       */
+      var rules =
+              ["new_total_reg","cum_total_reg","new_ft","cum_ft","new_re","cum_re",
+                  "new_ti","cum_ti","new_males","cum_males","new_non_preg","cum_non_preg",
+                  "new_preg_all_age","cum_preg_all_age","new_a","cum_a","new_b","cum_b",
+                  "new_c","cum_c","new_unk_age","cum_unk_age","new_pres_hiv","cum_pres_hiv",
+                  "new_conf_hiv","cum_conf_hiv","new_who_1_2","cum_who_1_2","new_who_2",
+                  "cum_who_2","new_children","cum_children","new_breastfeed","cum_breastfeed",
+                  "new_preg","cum_preg","new_who_3","cum_who_3","new_who_4","cum_who_4",
+                  "new_other_reason","cum_other_reason","new_no_tb","cum_no_tb",
+                  "new_tb_w2yrs","cum_tb_w2yrs","new_current_tb","cum_current_tb","new_ks",
+                  "cum_ks","total_on_art","died_1st_month","died_2nd_month","died_3rd_month",
+                  "died_after_3rd_month","died_total","defaulted","stopped","transfered",
+                  "unknown_outcome","n1a","n1p","n2a","n2p","n3a","n3p","n4a","n4p","n5a",
+                  "n6a","n7a","n8a","n9p","non_std","side_effects","missed_0_6","missed_7plus",
+                  "tb_no_suspect","tb_suspected","tb_confirm_not_treat",
+                  "tb_confirmed","unknown_tb"
+              ];
+
+      var set_rules = [];
+      var set_rules_descriptions = [];
+
+      /*assigning rules and rule descriptions from the ValidationRule table*/
+      function initSetRulesDescriptions() {
+          <%ValidationRule.find(:all,:conditions =>['type_id = 1']).each do |r| %>
+          set_rules.push("<%=r.expr%>");
+          set_rules_descriptions.push('Failed: ' + "<%=r.desc%>");
+          <%end%>
+      }
+
+      /*This block is initializing the cohort_values hash to zero*/
+      var cohort_values = {};
+      function initCohortValues() {
+          for(var i = 0; i < rules.length; i++) {
+              cohort_values[rules[i]] = 0;
+          }
+          initSetRulesDescriptions();
+      }
+
+      /* This block of code is assigning cohort numbers(results) to their approiate
+       fields: the global val setCohortValues will hold the result against its field name.
+       */
+      function checkForConsistency() {
+          table = window.frames.document.body.getElementsByTagName('table')[0];
+          tdata = table.getElementsByTagName("td");
+          for(var i = 0; i < tdata.length; i++) {
+              for(var j = 0; j < rules.length; j++) {
+                  if (tdata[i].id == rules[j]){
+                      if(tdata[i].getElementsByTagName('form')){
+                          e = tdata[i].getElementsByTagName('form')[0];
+                          if (e) {
+                              for (var k = 0; k < e.length; k++) {
+                                  if(e[k].type == 'submit') {
+                                      setCohortValues(rules[j] , e[k].value);
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+          showConsistencyCheckResults();
+      }
+
+      /*assigning cohort values (results) to the hash cohort_values*/
+      function setCohortValues(rule, value) {
+          cohort_values[rule] = value;
+      }
+
+
+      /*This block is replacing the Text validation rules from the database with
+       the actual values of the cohort report
+       */
+      function showConsistencyCheckResults() {
+          for (var i = 0; i < rules.length; i++) {
+              rule = "{" + rules[i] + "}";
+              rule_value = cohort_values[rules[i]];
+              for (var x = 0; x < set_rules.length; x++) {
+                  set_rules[x] = set_rules[x].replace(rule,rule_value);
+              }
+          }
+          buildConsistencyTable();
+      }
+
+
+      function buildConsistencyTable() {
+          t = window.frames.document.body.getElementsByTagName('table')[0];
+          cTable = t.getElementsByClassName("consistency-section")[0];
+          tableRows = [];
+          cTable.innerHTML = null;
+
+          /*this block is where the rules are executed to determine those that have
+           failed or passed*/
+          for(var i = 0; i < set_rules.length; i++) {
+              if(!(eval(set_rules[i]))){
+                  tableRows.push(set_rules_descriptions[i]);
+              }
+          }
+          /* ..................................................................*/
+
+          var tRows = "";
+          if(tableRows.length < 1) {
+              tRows += "<tr><td class='pass-rows'>The report has passed all external consistency checks</td></tr>";
+          }else{
+              for(var i = 0; i < tableRows.length; i++) {
+                  tRows += "<tr><td class='err-rows err-num'>" + (i + 1) + "</td>";
+                  tRows += "<td class='err-rows'>" + tableRows[i] + "</td></tr>";
+              }
+          }
+          cTable.innerHTML = tRows;
+      }
+
       createTable();
       loadFields();
+      initCohortValues();
+      setTimeout(checkForConsistency,5000);
       //-->
     </script>
   </body>
