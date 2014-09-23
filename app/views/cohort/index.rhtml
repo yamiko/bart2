@@ -67,9 +67,14 @@
       
       #adult {
       	position:relative;
-      	top:-48%;
-      	left:0px;
+      	left:150px;
       	display:block;
+      }
+      
+      #paed {
+       	position:relative;
+      	left:150px;
+      	display:block;    
       }
       
       .textpos {
@@ -272,15 +277,14 @@
         ["", "", 2,,,,,0,"transfered", "/field?field=transfered"],
         ["&nbsp;", "Unknown outcome", 2,,,,,,"unknown_outcome", "/field?field=unknown_outcome"],
         ["&nbsp;", "Secondary outcomes of those alive on ART as of last visit before end of quarter", 1, "&nbsp;"],
-        ["&nbsp;<br><br>59<br><br>60<br><br>61<br><br>62<br><br>63<br><br>64", "ARV regimens", 3, null, "<span id='paed'><b>Paediatric</b> formulations (blue card)</span>", "&nbsp;", "&nbsp;", 7,,,,, null, null],
+        ["&nbsp;<br><br>59<br><br>60<br><br>61<br><br>62<br><br>63<br><br>64", "ARV regimens <span id='paed'><b>Paediatric</b> formulations (blue card)</span>", 3, null, "&nbsp;", "&nbsp;", "&nbsp;", 7,,,,, null, null],
         ["59<br><br>60", "", 3, null, "Regimen <b>0P</b>", "&nbsp;", "&nbsp;", 0,,,"n0p",,"n0p", "/field?field=n0p"],
         ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>1P</b>", "&nbsp;", "&nbsp;", 0,,,"n1p",,"n1p", "/field?field=n1p"],
 				["61<br><br>62", "&nbsp;", 3, null, "Regimen <b>2P</b>", "&nbsp;", "&nbsp;", 0,,,"n2p",,"n2p", "/field?field=n2p"],
         ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>3P</b>", "&nbsp;", "&nbsp;", 0,,,"n3p",, "n3p", "/field?field=n3p"],
         ["63<br><br>64", "&nbsp;", 3, null, "Regimen <b>4P</b>", "&nbsp;", "&nbsp;", 0,,,"n4p",, "n4p", "/field?field=n4p"],
-        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>9P</b>", "&nbsp;", "&nbsp;", 0,,,"n9p",, "n9p", "/field?field=n9p"],
-        ["&nbsp;<br><br>65<br><br>66<br><br>67<br><br>68<br><br>69<br><br>70<br><br>71<br><br>72<br><br>73<br><br>74", "<span class='textpos'>ARV regimens</span>", 3, null, "<span id='adult'><b>Adult</b> formulations (yellow card)</span>", "&nbsp;", "&nbsp;", 11,,,,, null, null],   
-        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>0A</b>", "&nbsp;", "&nbsp;", 0,,,"n0a",,"n0a", "/field?field=n0a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>9P</b>", "&nbsp;", "&nbsp;", 0,,,"n9p",, "n9p", "/field?field=n9p"], 
+        ["65<br><br>66<br><br>67<br><br>68<br><br>69<br><br>70<br><br>71<br><br>72<br><br>73<br><br>74", "<span id='adult'><b>Adult</b> formulations (yellow card)</span>", 3, null, "Regimen <b>0A</b>", "&nbsp;", "&nbsp;",10,,,"n0a",,"n0a", "/field?field=n0a"],
         ["&nbsp;", "&nbsp;", 3, null,"Regimen <b>1A</b>", "&nbsp;", "&nbsp;", 0,,,"n1a",,"n1a", "/field?field=n1a"],
         ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>2A</b>", "&nbsp;", "&nbsp;", 0,,,"n2a",, "n2a", "/field?field=n2a"],
 		["&nbsp;", "&nbsp;", 3, null,"Regimen <b>3A</b>", "&nbsp;", "&nbsp;", 0,,,"n3a",,"n3a", "/field?field=n3a"],
@@ -296,7 +300,7 @@
         ["", "", 2,,,,,0,"any_effects","/field?field=side_effects"],
         ["", "", 2,,,,,0,"unk_effects","/field?field=unk_effects"],
         ["&nbsp;", "&nbsp;", 3],
-        ["78", "<b>0 - 3</b> doses missed<br><br><b>4+</b> doses missed<br><br><b>Unk</b>nown (not circled)", 2,,,,,3, "missed_0_6","/field?field=missed_0_6"],
+        ["78<br><br>79<br><br>80", "<b>0 - 3</b> doses missed<br><br><b>4+</b> doses missed<br><br><b>Unk</b>nown (not circled)", 2,,,,,3, "missed_0_6","/field?field=missed_0_6"],
         ["79", "", 2,,,,,0,
           "missed_7plus","/field?field=missed_7plus"],
         ["80", "", 2,,,,,0,"unknown_adherence","/field?field=unknown_adherence"],
