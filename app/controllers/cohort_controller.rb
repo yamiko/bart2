@@ -1398,8 +1398,8 @@ class CohortController < ActionController::Base
                                     FROM
                                         flat_cohort_table fct
                                     WHERE
-                                        fct.earliest_start_date <= '2014-06-30 23:59:59'
-                                            AND current_state_for_program(fct.patient_id, 1, '2014-06-30 23:59:59') = 3").collect{|p| p.patient_id}
+                                        fct.earliest_start_date <= '#{end_date}'
+                                            AND current_state_for_program(fct.patient_id, 1, '#{end_date}') = 3").collect{|p| p.patient_id}
                                                
     value = patients unless patients.blank?
   end

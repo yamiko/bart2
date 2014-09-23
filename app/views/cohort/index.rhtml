@@ -260,7 +260,7 @@
         ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>0A</b>", "&nbsp;", "&nbsp;", 0,,,"n0a",,"n0a", "/field?field=n0a"],
         ["&nbsp;", "&nbsp;", 3, null,"Regimen <b>1A</b>", "&nbsp;", "&nbsp;", 0,,,"n1a",,"n1a", "/field?field=n1a"],
         ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>2A</b>", "&nbsp;", "&nbsp;", 0,,,"n2a",, "n2a", "/field?field=n2a"],
-				["&nbsp;", "&nbsp;", 3, null,"Regimen <b>3A</b>", "&nbsp;", "&nbsp;", 0,,,"n3a",,"n3a", "/field?field=n3a"],
+		["&nbsp;", "&nbsp;", 3, null,"Regimen <b>3A</b>", "&nbsp;", "&nbsp;", 0,,,"n3a",,"n3a", "/field?field=n3a"],
         ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>4A</b>", "&nbsp;", "&nbsp;", 0,,,"n4a",, "n4a", "/field?field=n4a"],
         ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>5A</b>", "&nbsp;", "&nbsp;", 0,,,"n5a",, "n5a", "/field?field=n5a"],
         ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>6A</b>", "&nbsp;", "&nbsp;", 0,,,"n6a",, "n6a", "/field?field=n6a"],
@@ -381,6 +381,12 @@
             
             
       function ajaxRequest(aElement, aUrl, showLine=true) {
+
+          if (aUrl.match("undefined")){
+
+              console.log(aUrl + ":::" + aElement)
+          }
+
         var httpRequest = new XMLHttpRequest();
         	httpRequest.onreadystatechange = function() {
           handleResult(aElement, httpRequest, showLine);
@@ -401,13 +407,12 @@
           var result = aXMLHttpRequest.responseText;
         
           if(__$(element)){
-
+              __$(element).className += " success";
             if(result.match(/\[/)){
               var json = JSON.parse(result);
                       
               __$(element).innerHTML = "";
               __$(element).style.padding = "0px";
-              __$(element).className += " success";
 
               if(json.length > 0){
                 __$(element).style.verticalAlign = "middle";
@@ -503,21 +508,30 @@
           start_date + "&end_date=" + end_date);
                 
         for(var i = 0; i < fields.length; i++){
-
+          console.log(fields[i])
           if(typeof(fields[i][8]) != "undefined"){
-            ajaxRequest(fields[i][8], fields[i][9] + "&start_date=" +
-              start_date + "&end_date=" + end_date);
+            if (fields[i][9] != null && fields[i][9] != undefined)
+            {
+                var link =  fields[i][9] + "&start_date=" + start_date + "&end_date=" + end_date
+                ajaxRequest(fields[i][8],link);
+            }
           }
           if(typeof(fields[i][10]) != "undefined"){
-            ajaxRequest(fields[i][10], fields[i][11] + "&start_date=" +
-              start_date + "&end_date=" + end_date);
+              if (fields[i][11] != null && fields[i][11] != undefined)
+              {
+                  var link = fields[i][11] + "&start_date=" + start_date + "&end_date=" + end_date;
+                  ajaxRequest(fields[i][10], link);
+              }
           }
           if(typeof(fields[i][12]) != "undefined"){
-            ajaxRequest(fields[i][12], fields[i][13] + "&start_date=" +
-              start_date + "&end_date=" + end_date,false);
+              if (fields[i][13] != null && fields[i][13] != undefined)
+              {
+                  var link = fields[i][13] + "&start_date=" + start_date + "&end_date=" + end_date;
+                  ajaxRequest(fields[i][12], link, false);
+              }
           }
         }
-          setTimeout("checkAjaxCompleteness()",1000);
+          setTimeout("checkAjaxCompleteness()",2000);
       }
 
       /*
