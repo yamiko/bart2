@@ -283,7 +283,7 @@
         ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>0A</b>", "&nbsp;", "&nbsp;", 0,,,"n0a",,"n0a", "/field?field=n0a"],
         ["&nbsp;", "&nbsp;", 3, null,"Regimen <b>1A</b>", "&nbsp;", "&nbsp;", 0,,,"n1a",,"n1a", "/field?field=n1a"],
         ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>2A</b>", "&nbsp;", "&nbsp;", 0,,,"n2a",, "n2a", "/field?field=n2a"],
-				["&nbsp;", "&nbsp;", 3, null,"Regimen <b>3A</b>", "&nbsp;", "&nbsp;", 0,,,"n3a",,"n3a", "/field?field=n3a"],
+		["&nbsp;", "&nbsp;", 3, null,"Regimen <b>3A</b>", "&nbsp;", "&nbsp;", 0,,,"n3a",,"n3a", "/field?field=n3a"],
         ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>4A</b>", "&nbsp;", "&nbsp;", 0,,,"n4a",, "n4a", "/field?field=n4a"],
         ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>5A</b>", "&nbsp;", "&nbsp;", 0,,,"n5a",, "n5a", "/field?field=n5a"],
         ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>6A</b>", "&nbsp;", "&nbsp;", 0,,,"n6a",, "n6a", "/field?field=n6a"],
@@ -404,6 +404,12 @@
             
             
       function ajaxRequest(aElement, aUrl, showLine=true) {
+
+          if (aUrl.match("undefined")){
+
+              console.log(aUrl + ":::" + aElement)
+          }
+
         var httpRequest = new XMLHttpRequest();
         	httpRequest.onreadystatechange = function() {
           handleResult(aElement, httpRequest, showLine);
@@ -424,7 +430,7 @@
           var result = aXMLHttpRequest.responseText;
         
           if(__$(element)){
-
+              __$(element).className += " success";
             if(result.match(/\[/)){
               var json = JSON.parse(result);
                       
@@ -525,52 +531,45 @@
           start_date + "&end_date=" + end_date);
                 
         for(var i = 0; i < fields.length; i++){
-
+          console.log(fields[i])
           if(typeof(fields[i][8]) != "undefined"){
-            ajaxRequest(fields[i][8], fields[i][9] + "&start_date=" +
-              start_date + "&end_date=" + end_date);
+            if (fields[i][9] != null && fields[i][9] != undefined)
+            {
+                var link =  fields[i][9] + "&start_date=" + start_date + "&end_date=" + end_date
+                ajaxRequest(fields[i][8],link);
+            }
           }
           if(typeof(fields[i][10]) != "undefined"){
-            ajaxRequest(fields[i][10], fields[i][11] + "&start_date=" +
-              start_date + "&end_date=" + end_date);
+              if (fields[i][11] != null && fields[i][11] != undefined)
+              {
+                  var link = fields[i][11] + "&start_date=" + start_date + "&end_date=" + end_date;
+                  ajaxRequest(fields[i][10], link);
+              }
           }
           if(typeof(fields[i][12]) != "undefined"){
-            ajaxRequest(fields[i][12], fields[i][13] + "&start_date=" +
-              start_date + "&end_date=" + end_date,false);
+              if (fields[i][13] != null && fields[i][13] != undefined)
+              {
+                  var link = fields[i][13] + "&start_date=" + start_date + "&end_date=" + end_date;
+                  ajaxRequest(fields[i][12], link, false);
+              }
           }
         }
+          setTimeout("checkAjaxCompleteness()",2000);
       }
 
       /*
        We are currently hard-coding this rules but soon will be pulling from the
        database
        */
-      var rules =
-              ["new_total_reg","cum_total_reg","new_ft","cum_ft","new_re","cum_re",
-                  "new_ti","cum_ti","new_males","cum_males","new_non_preg","cum_non_preg",
-                  "new_preg_all_age","cum_preg_all_age","new_a","cum_a","new_b","cum_b",
-                  "new_c","cum_c","new_unk_age","cum_unk_age","new_pres_hiv","cum_pres_hiv",
-                  "new_conf_hiv","cum_conf_hiv","new_who_1_2","cum_who_1_2","new_who_2",
-                  "cum_who_2","new_children","cum_children","new_breastfeed","cum_breastfeed",
-                  "new_preg","cum_preg","new_who_3","cum_who_3","new_who_4","cum_who_4",
-                  "new_other_reason","cum_other_reason","new_no_tb","cum_no_tb",
-                  "new_tb_w2yrs","cum_tb_w2yrs","new_current_tb","cum_current_tb","new_ks",
-                  "cum_ks","total_on_art","died_1st_month","died_2nd_month","died_3rd_month",
-                  "died_after_3rd_month","died_total","defaulted","stopped","transfered",
-                  "unknown_outcome","n1a","n1p","n2a","n2p","n3a","n3p","n4a","n4p","n5a",
-                  "n6a","n7a","n8a","n9p","non_std","side_effects","missed_0_6","missed_7plus",
-                  "tb_no_suspect","tb_suspected","tb_confirm_not_treat",
-                  "tb_confirmed","unknown_tb"
-              ];
-
+      var rules = <%= @rules.to_json%>;
       var set_rules = [];
       var set_rules_descriptions = [];
 
       /*assigning rules and rule descriptions from the ValidationRule table*/
       function initSetRulesDescriptions() {
           <%ValidationRule.find(:all,:conditions =>['type_id = 1']).each do |r| %>
-          set_rules.push("<%=r.expr%>");
-          set_rules_descriptions.push('Failed: ' + "<%=r.desc%>");
+            set_rules.push("<%=r.expr%>");
+            set_rules_descriptions.push('Failed: ' + "<%=r.desc%>");
           <%end%>
       }
 
@@ -656,10 +655,24 @@
           cTable.innerHTML = tRows;
       }
 
+      function checkAjaxCompleteness(){
+
+          var forms = document.getElementsByClassName("success");
+          var nodes = document.getElementsByClassName("num")
+          console.log(forms.length + ":::::" + nodes.length);
+
+          if (forms.length == nodes.length){
+              console.log("Running data consistency checks");
+              checkForConsistency();
+          }else{
+              setTimeout("checkAjaxCompleteness()", 1500);
+          }
+      }
+
+
       createTable();
       loadFields();
       initCohortValues();
-      setTimeout(checkForConsistency,5000);
       //-->
     </script>
   </body>
