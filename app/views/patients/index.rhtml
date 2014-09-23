@@ -4,6 +4,7 @@
     <title>Patient Dashboard</title>
     <script type="text/javascript" language="javascript"
     src="/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js" defer  ></script>
+    <%= javascript_include_tag("jquery") %>
     <meta http-equiv='content-type' content='text/html;charset=UTF-8' />
     <script language="javascript">
       tstUsername = "";
@@ -49,6 +50,16 @@
         window.location = "/lab/give_result?patient_id=<%= @patient.id %>&go_to_patient_dashboard=true"
       }
 
+      function repeat_vl_requested(){
+          jQuery.ajax({
+          type: "POST",
+          url: "/patients/repeat_viral_load_request",
+          data: "patient_id=<%=@patient.id %>",
+          success: function(){
+            window.location="/patients/show/<%=@patient.id%>"
+          }
+        });
+      }
     </script>
     <style>
       #tab6 {
