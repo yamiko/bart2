@@ -3,21 +3,23 @@
   function updateVl(){
     content = window.parent.document.getElementById('content');
     vl_menu = document.getElementById('new_vl_menu');
+    vl_menu.style.display='inline'
     content.appendChild(vl_menu);
-    vl_menu.style.display = 'inline';
+    
     vl_lab_trail_cover = document.getElementById('vl_lab_trail_cover');
     vl_lab_trail_cover.style.display='inline';
     content.appendChild(vl_lab_trail_cover);
   }
 
   function showVlLabTrail(){
-    c = window.parent.document.getElementById('content');
-    v = document.getElementById('vl_lab_trail');
-    v.style.display='inline';
-    c.appendChild(v);
+    content = window.parent.document.getElementById('content');
+    vl_lab_trail = document.getElementById('vl_lab_trail');
+    vl_lab_trail.style.display='inline';
+    content.appendChild(vl_lab_trail);
+    
     vl_lab_trail_cover = document.getElementById('vl_lab_trail_cover');
     vl_lab_trail_cover.style.display='inline';
-    c.appendChild(vl_lab_trail_cover);
+    content.appendChild(vl_lab_trail_cover);
   }
   
 </script>
@@ -84,16 +86,6 @@
   border-top: 1px solid black;
 }
 
-#vl_lab_trail_cover{
-  position: absolute;
-  background-color: black;
-  width: 100%;
-  height: 102%;
-  left: 0%;
-  top: 0%;
-  z-index: 990;
-  opacity: 0.3;
-}
 
 #new_vl_menu_content table td, .new_vl_menu_content table td{
   border-bottom: 1px solid black;

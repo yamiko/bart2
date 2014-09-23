@@ -10,6 +10,45 @@
       tstCurrentDate = "<%= @date %>";
       //tt_cancel_destination = '/clinic';
       tt_cancel_show = '/clinic';
+      
+      function removeUpdateVlMenu(){
+        content = window.parent.document.getElementById('content');
+        vl_menu = document.getElementById('new_vl_menu');
+        vl_menu.style.display='none';
+        
+        viral_load_frame_body = window.frames['hiv_viral_load'].contentDocument.body;
+        viral_load_frame_body.appendChild(vl_menu);
+        
+        vl_lab_trail_cover = document.getElementById('vl_lab_trail_cover');
+        vl_lab_trail_cover.style.display='none';
+        viral_load_frame_body.appendChild(vl_lab_trail_cover);
+      }
+
+      function hideVlLabTrail(){
+        content = window.parent.document.getElementById('content');
+        vl_lab_trail = document.getElementById('vl_lab_trail')
+        vl_lab_trail.style.display='none';
+
+        viral_load_frame_body = window.frames['hiv_viral_load'].contentDocument.body;
+        viral_load_frame_body.appendChild(vl_lab_trail);
+
+        vl_lab_trail_cover = document.getElementById('vl_lab_trail_cover');
+        vl_lab_trail_cover.style.display='none';
+        viral_load_frame_body.appendChild(vl_lab_trail_cover);
+      }
+      
+      function newVlResultPath(){
+        window.location = "/lab/viral_load_result?patient_id=<%= @patient.id %>"
+      }
+
+      function newVlResultPathWithParam(){
+        window.location = "/lab/viral_load_result?patient_id=<%= @patient.id %>&go_to_next_task=true"
+      }
+
+      function giveResultPath(){
+        window.location = "/lab/give_result?patient_id=<%= @patient.id %>"
+      }
+
     </script>
     <style>
       #tab6 {
