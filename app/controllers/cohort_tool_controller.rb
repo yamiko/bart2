@@ -1060,12 +1060,6 @@ class CohortToolController < GenericCohortToolController
 				data <<  patient_id
 			end
 			session[:cohort]["sorted"]["#{params[:field].humanize}"] = true
-		elsif params[:field] == "total_patients_with_side_effects"
-			data = []
-			session[:cohort]["#{params[:field].humanize}"].map do |patient_id|
-				data <<  patient_id.patient_id
-			end
-			session[:cohort]["sorted"]["#{params[:field].humanize}"] = true
 		elsif params[:field] == "regimens"
 			type=params[:type].humanize.upcase
 			
