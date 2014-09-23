@@ -38,7 +38,7 @@
       }
       
       function newVlResultPath(){
-        window.location = "/lab/viral_load_result?patient_id=<%= @patient.id %>"
+        window.location = "/lab/viral_load_result?patient_id=<%= @patient.id %>&go_to_patient_dashboard=true"
       }
 
       function newVlResultPathWithParam(){
@@ -46,7 +46,7 @@
       }
 
       function giveResultPath(){
-        window.location = "/lab/give_result?patient_id=<%= @patient.id %>"
+        window.location = "/lab/give_result?patient_id=<%= @patient.id %>&go_to_patient_dashboard=true"
       }
 
     </script>
