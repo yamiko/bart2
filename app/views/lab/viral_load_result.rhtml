@@ -191,4 +191,8 @@ function resetPad() {
   <%= hidden_field_tag "go_to_next_task", "true" %>
 <% end  %>
 
+<% if params[:go_to_patient_dashboard] %>
+  <%= hidden_field_tag "go_to_patient_dashboard", "true" %>
+<% end  %>
+
 <%end%>
