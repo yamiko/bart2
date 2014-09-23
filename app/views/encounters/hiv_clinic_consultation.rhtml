@@ -317,7 +317,7 @@
 	<% end %>
 <%end%>
 
-  <% if ask_standard_art_side_effects %>
+  <% if ask_standard_art_side_effects == false %>
     <%= touch_select_tag "MALAWI ART SIDE EFFECTS", @patient, concept_set_options('MALAWI ART SIDE EFFECTS'),
       {:id => 'side_effects',
        :optional => true,

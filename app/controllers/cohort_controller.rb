@@ -2215,7 +2215,7 @@ class CohortController < ActionController::Base
     drug_induced_side_effect_id = ConceptName.find_by_name('SYMPTOM PRESENT').concept_id
     $total_alive_and_on_art ||= total_alive_and_on_art(defaulted_patients = art_defaulters)
 
-    patients = Encounter.find_by_sql("SELECT e.patient_id FROM encounter e
+    patients = Encounter.find_by_sql("SELECT DISTINCT(e.patient_id) FROM encounter e
                                                     INNER JOIN obs o ON o.encounter_id = e.encounter_id
                                                     WHERE e.encounter_type = #{hiv_clinic_consultation_encounter_id}
                                                     AND e.patient_id IN (#{$total_alive_and_on_art.join(',')})
@@ -2228,7 +2228,7 @@ class CohortController < ActionController::Base
                                                                                   AND e1.encounter_datetime BETWEEN '#{start_date.to_date}' AND '#{end_date.to_date}'
                                                                                   AND e1.voided = 0)
                                                     GROUP BY e.patient_id"
-		).collect{|p| p.patient_id}
+		).collect{|p| p.patient_id} rescue []
     return patients
   end
 
@@ -2268,7 +2268,7 @@ class CohortController < ActionController::Base
       end
     end
 
-    return patients
+    return patients.uniq
   end
 
   def missed_7plus_one(start_date=Time.now, end_date=Time.now, section=nil)
