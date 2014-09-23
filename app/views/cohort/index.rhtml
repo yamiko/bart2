@@ -31,6 +31,9 @@
       	display:inline-flex;
       }
       
+      .move_left {
+      	margin-left:-46%;
+      }
       .initial_ex {
       	width:96px;
       	font-weight:bold;
@@ -90,6 +93,26 @@
 
       .err-num {
           width: 3%;
+      }
+      
+      #who {
+      	display:block;
+				width:auto;
+				float:left;
+				margin-top:25%;
+      }
+      
+      #pshd {
+      	display:block;
+				float:left;
+      }
+      
+      .verticalLine {
+				-webkit-transform: rotate(270deg);
+				-moz-transform: rotate(270deg);
+				-o-transform: rotate(270deg);
+				-ms-transform: rotate(270deg);
+				transform: rotate(270deg);
       }
 
     </style>
@@ -196,7 +219,7 @@
         ["&nbsp;", "Unknown age", 3,,,,,,"new_unk_age", "/field?field=new_unk_age",
           "cum_unk_age", "/field?field=cum_unk_age"],
         ["&nbsp;", "Reason for starting ART", 3, "&nbsp;"],
-        ["34<br><br>35<br><br>36<br><br>37<br><br>38<br><br>39<br><br>40<br><br>41<br><br>42<br><br>43<br>","<span class='initial'>PSHD</span> Pres. Sev. HIV disease age <12 m <br><br><span class='initial'>PCR</span> Infants<12 mths PCR+<br><br><span class='initial'> U5 </span> Children 12-23 mths<br><br><span class='initial'> Preg </span> Pregnant women<br><br><span class='initial'>BF</span> Breastfeeding mothers<br><br><span class='initial'>CD4</span> CD4 below threshold<br><br><span class='initial'>TLC</span>  TLC<1,200/mm<sup>3</sup><br><br><span class='initial'>3</span> WHO stage 3<br><br><span class='initial'>4</span> WHO stage 4<br><br><span class='initial'>Unk</span>  Unknown/reason outside guidelines",
+        ["34<br><br>35<br><br>36<br><br>37<br><br>38<br><br>39<br><br>40<br><br>41<br><br>42<br><br>43<br>","<div id='who' class='verticalLine'>&nbsp;&nbsp;&nbsp;&nbsp;WHO stage 1 or 2 <hr width='150%'style='border-top: 2px dotted black;'></div><div id='pshd'><span class='initial move_left'>PSHD</span> Pres. Sev. HIV disease age <12 m <br><br><span class='initial'>PCR</span> Infants<12 mths PCR+<br><br><span class='initial'> U5 </span> Children 12-23 mths<br><br><span class='initial'> Preg </span> Pregnant women<br><br><span class='initial'>BF</span> Breastfeeding mothers<br><br><span class='initial'>CD4</span> CD4 below threshold<br><br><span class='initial'>TLC</span>  TLC<1,200/mm<sup>3</sup><br><br><span class='initial move_left'>3</span> WHO stage 3<br><br><span class='initial move_left'>4</span> WHO stage 4<br><br><span class='initial move_left'>Unk</span>  Unknown/reason outside guidelines</div>",
         	 3,,,,,10,"new_pres_hiv", "/field?field=new_pres_hiv",
           "cum_pres_hiv", "/field?field=cum_pres_hiv"],
         ["", "", 3,,,,,0,"new_conf_hiv", "/field?field=new_conf_hiv",
@@ -250,22 +273,22 @@
         ["&nbsp;", "Unknown outcome", 2,,,,,,"unknown_outcome", "/field?field=unknown_outcome"],
         ["&nbsp;", "Secondary outcomes of those alive on ART as of last visit before end of quarter", 1, "&nbsp;"],
         ["&nbsp;<br><br>59<br><br>60<br><br>61<br><br>62<br><br>63<br><br>64", "ARV regimens", 3, null, "<span id='paed'><b>Paediatric</b> formulations (blue card)</span>", "&nbsp;", "&nbsp;", 7,,,,, null, null],
-        ["59<br><br>60", "", 3, null, "0P (ABC/3TC + NVP)", "&nbsp;", "&nbsp;", 0,,,"n0p",,"n0p", "/field?field=n0p"],
-        ["&nbsp;", "&nbsp;", 3, null, "1P (D4T+3TC+NVP)", "&nbsp;", "&nbsp;", 0,,,"n1p",,"n1p", "/field?field=n1p"],
-				["61<br><br>62", "&nbsp;", 3, null, "2P (AZT+3TC+NVP)", "&nbsp;", "&nbsp;", 0,,,"n2p",,"n2p", "/field?field=n2p"],
-        ["&nbsp;", "&nbsp;", 3, null, "3P (D4T+3TC+EFV)", "&nbsp;", "&nbsp;", 0,,,"n3p",, "n3p", "/field?field=n3p"],
-        ["63<br><br>64", "&nbsp;", 3, null, "4P (AZT+3TC+EFV)", "&nbsp;", "&nbsp;", 0,,,"n4p",, "n4p", "/field?field=n4p"],
-        ["&nbsp;", "&nbsp;", 3, null, "9P (ABC+3TC+LPV/r)", "&nbsp;", "&nbsp;", 0,,,"n9p",, "n9p", "/field?field=n9p"],
+        ["59<br><br>60", "", 3, null, "Regimen <b>0P</b>", "&nbsp;", "&nbsp;", 0,,,"n0p",,"n0p", "/field?field=n0p"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>1P</b>", "&nbsp;", "&nbsp;", 0,,,"n1p",,"n1p", "/field?field=n1p"],
+				["61<br><br>62", "&nbsp;", 3, null, "Regimen <b>2P</b>", "&nbsp;", "&nbsp;", 0,,,"n2p",,"n2p", "/field?field=n2p"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>3P</b>", "&nbsp;", "&nbsp;", 0,,,"n3p",, "n3p", "/field?field=n3p"],
+        ["63<br><br>64", "&nbsp;", 3, null, "Regimen <b>4P</b>", "&nbsp;", "&nbsp;", 0,,,"n4p",, "n4p", "/field?field=n4p"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>9P</b>", "&nbsp;", "&nbsp;", 0,,,"n9p",, "n9p", "/field?field=n9p"],
         ["&nbsp;<br><br>65<br><br>66<br><br>67<br><br>68<br><br>69<br><br>70<br><br>71<br><br>72<br><br>73<br><br>74", "<span class='textpos'>ARV regimens</span>", 3, null, "<span id='adult'><b>Adult</b> formulations (yellow card)</span>", "&nbsp;", "&nbsp;", 11,,,,, null, null],   
-        ["&nbsp;", "&nbsp;", 3, null, "0A (ABC/3TC + NVP)", "&nbsp;", "&nbsp;", 0,,,"n0a",,"n0a", "/field?field=n0a"],
-        ["&nbsp;", "&nbsp;", 3, null,"1A (D4T+3TC+NVP)", "&nbsp;", "&nbsp;", 0,,,"n1a",,"n1a", "/field?field=n1a"],
-        ["&nbsp;", "&nbsp;", 3, null, "2A (AZT+3TC+NVP)", "&nbsp;", "&nbsp;", 0,,,"n2a",, "n2a", "/field?field=n2a"],
-				["&nbsp;", "&nbsp;", 3, null,"3A (D4T+3TC+EFV)", "&nbsp;", "&nbsp;", 0,,,"n3a",,"n3a", "/field?field=n3a"],
-        ["&nbsp;", "&nbsp;", 3, null, "4A (AZT+3TC+EFV)", "&nbsp;", "&nbsp;", 0,,,"n4a",, "n4a", "/field?field=n4a"],
-        ["&nbsp;", "&nbsp;", 3, null, "5A (TDF+3TC+EFV)", "&nbsp;", "&nbsp;", 0,,,"n5a",, "n5a", "/field?field=n5a"],
-        ["&nbsp;", "&nbsp;", 3, null, "6A (TDF+3TC+NVP)", "&nbsp;", "&nbsp;", 0,,,"n6a",, "n6a", "/field?field=n6a"],
-        ["&nbsp;", "&nbsp;", 3, null, "7A (TDF+3TC+LPV/r)", "&nbsp;", "&nbsp;", 0,,,"n7a",, "n7a", "/field?field=n7a"],
-        ["&nbsp;", "&nbsp;", 3, null, "8A (AZT+3TC+LPV/r)", "&nbsp;", "&nbsp;", 0,,, "n8a",, "n8a", "/field?field=n8a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>0A</b>", "&nbsp;", "&nbsp;", 0,,,"n0a",,"n0a", "/field?field=n0a"],
+        ["&nbsp;", "&nbsp;", 3, null,"Regimen <b>1A</b>", "&nbsp;", "&nbsp;", 0,,,"n1a",,"n1a", "/field?field=n1a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>2A</b>", "&nbsp;", "&nbsp;", 0,,,"n2a",, "n2a", "/field?field=n2a"],
+		["&nbsp;", "&nbsp;", 3, null,"Regimen <b>3A</b>", "&nbsp;", "&nbsp;", 0,,,"n3a",,"n3a", "/field?field=n3a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>4A</b>", "&nbsp;", "&nbsp;", 0,,,"n4a",, "n4a", "/field?field=n4a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>5A</b>", "&nbsp;", "&nbsp;", 0,,,"n5a",, "n5a", "/field?field=n5a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>6A</b>", "&nbsp;", "&nbsp;", 0,,,"n6a",, "n6a", "/field?field=n6a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>7A</b>", "&nbsp;", "&nbsp;", 0,,,"n7a",, "n7a", "/field?field=n7a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>8A</b>", "&nbsp;", "&nbsp;", 0,,, "n8a",, "n8a", "/field?field=n8a"],
         ["&nbsp;", "&nbsp;", 3, null, "Other (paed. /adult)", "&nbsp;", "&nbsp;", 0,,,"non_std",, "non_std",
           "/field?field=non_std"],
         ["&nbsp;", "<b>Side effects</b> (as of the last visit end of qurter)", 3],
@@ -273,21 +296,21 @@
         ["", "", 2,,,,,0,"any_effects","/field?field=side_effects"],
         ["", "", 2,,,,,0,"unk_effects","/field?field=unk_effects"],
         ["&nbsp;", "&nbsp;", 3],
-        ["78", "<b>0 - 3</b> doses missed", 2,,,,,, "missed_0_6","/field?field=missed_0_6"],
-        ["79", "<b>4+</b> doses missed", 2,,,,,,
+        ["78", "<b>0 - 3</b> doses missed<br><br><b>4+</b> doses missed<br><br><b>Unk</b>nown (not circled)", 2,,,,,3, "missed_0_6","/field?field=missed_0_6"],
+        ["79", "", 2,,,,,0,
           "missed_7plus","/field?field=missed_7plus"],
-        ["80", "<b>Unk</b>nown (not circled)", 2,,,,,,"unknown_adherence","/field?field=unknown_adherence"],
+        ["80", "", 2,,,,,0,"unknown_adherence","/field?field=unknown_adherence"],
         ["&nbsp;", "&nbsp;", 3],        
         ["&nbsp;", "Current TB status, any form of TB", 1, "&nbsp;"],
-        [81, "&nbsp;", 4, null, "TB <b>not</b> suspected",,,,,,"tb_no_suspect",
+        ["81<br><br>82<br><br>83<br><br>84<br><br>85", "TB <b>not</b> suspected<br><br>TB <b>suspected</b><br><br>TB conf., <b>not</b> Rx<br><br>TB conf., <b>on TB Rx</b><br><br>Unknown (not circled)", 2, null, "",,,5,"tb_no_suspect",,"tb_no_suspect",
           "/field?field=tb_no_suspect"],
-        [82, "&nbsp;", 4, null, "TB <b>suspected</b>",,,,,,"tb_suspected", "/field?field=tb_suspected"],
-        [83, "&nbsp;", 4, null, "TB conf., <b>not</b> Rx",,,,,,
+        ["", "&nbsp;", 2, null, "",,,0,"tb_suspected",,"tb_suspected", "/field?field=tb_suspected"],
+        ["", "&nbsp;", 2, null, "",,,0,"tb_confirm_not_treat",,
           "tb_confirm_not_treat", "/field?field=tb_confirm_not_treat"],
-        [84, "&nbsp;", 4, null, "TB conf., <b>on TB Rx</b>",,,,,,"tb_confirmed",
+        ["", "&nbsp;", 2, null, "",,,0,"tb_confirmed",,"tb_confirmed",
           "/field?field=tb_confirmed"],
-        [85, "&nbsp;", 4, null, "Unknown (not circled)",,,,,,"unknown_tb", "/field?field=unknown_tb"],
-        ["&nbsp;", "&nbsp;", 4, null, "&nbsp;"]
+        ["", "&nbsp;", 2, null, "",,,0,"unknown_tb",,"unknown_tb", "/field?field=unknown_tb"],
+        ["&nbsp;", "&nbsp;", 2, null, "&nbsp;"]
       ];
             
       function __$(id){
@@ -381,6 +404,12 @@
             
             
       function ajaxRequest(aElement, aUrl, showLine=true) {
+
+          if (aUrl.match("undefined")){
+
+              console.log(aUrl + ":::" + aElement)
+          }
+
         var httpRequest = new XMLHttpRequest();
         	httpRequest.onreadystatechange = function() {
           handleResult(aElement, httpRequest, showLine);
@@ -401,7 +430,7 @@
           var result = aXMLHttpRequest.responseText;
         
           if(__$(element)){
-
+              __$(element).className += " success";
             if(result.match(/\[/)){
               var json = JSON.parse(result);
                       
@@ -502,52 +531,45 @@
           start_date + "&end_date=" + end_date);
                 
         for(var i = 0; i < fields.length; i++){
-
+          console.log(fields[i])
           if(typeof(fields[i][8]) != "undefined"){
-            ajaxRequest(fields[i][8], fields[i][9] + "&start_date=" +
-              start_date + "&end_date=" + end_date);
+            if (fields[i][9] != null && fields[i][9] != undefined)
+            {
+                var link =  fields[i][9] + "&start_date=" + start_date + "&end_date=" + end_date
+                ajaxRequest(fields[i][8],link);
+            }
           }
           if(typeof(fields[i][10]) != "undefined"){
-            ajaxRequest(fields[i][10], fields[i][11] + "&start_date=" +
-              start_date + "&end_date=" + end_date);
+              if (fields[i][11] != null && fields[i][11] != undefined)
+              {
+                  var link = fields[i][11] + "&start_date=" + start_date + "&end_date=" + end_date;
+                  ajaxRequest(fields[i][10], link);
+              }
           }
           if(typeof(fields[i][12]) != "undefined"){
-            ajaxRequest(fields[i][12], fields[i][13] + "&start_date=" +
-              start_date + "&end_date=" + end_date,false);
+              if (fields[i][13] != null && fields[i][13] != undefined)
+              {
+                  var link = fields[i][13] + "&start_date=" + start_date + "&end_date=" + end_date;
+                  ajaxRequest(fields[i][12], link, false);
+              }
           }
         }
+          setTimeout("checkAjaxCompleteness()",2000);
       }
 
       /*
        We are currently hard-coding this rules but soon will be pulling from the
        database
        */
-      var rules =
-              ["new_total_reg","cum_total_reg","new_ft","cum_ft","new_re","cum_re",
-                  "new_ti","cum_ti","new_males","cum_males","new_non_preg","cum_non_preg",
-                  "new_preg_all_age","cum_preg_all_age","new_a","cum_a","new_b","cum_b",
-                  "new_c","cum_c","new_unk_age","cum_unk_age","new_pres_hiv","cum_pres_hiv",
-                  "new_conf_hiv","cum_conf_hiv","new_who_1_2","cum_who_1_2","new_who_2",
-                  "cum_who_2","new_children","cum_children","new_breastfeed","cum_breastfeed",
-                  "new_preg","cum_preg","new_who_3","cum_who_3","new_who_4","cum_who_4",
-                  "new_other_reason","cum_other_reason","new_no_tb","cum_no_tb",
-                  "new_tb_w2yrs","cum_tb_w2yrs","new_current_tb","cum_current_tb","new_ks",
-                  "cum_ks","total_on_art","died_1st_month","died_2nd_month","died_3rd_month",
-                  "died_after_3rd_month","died_total","defaulted","stopped","transfered",
-                  "unknown_outcome","n1a","n1p","n2a","n2p","n3a","n3p","n4a","n4p","n5a",
-                  "n6a","n7a","n8a","n9p","non_std","side_effects","missed_0_6","missed_7plus",
-                  "tb_no_suspect","tb_suspected","tb_confirm_not_treat",
-                  "tb_confirmed","unknown_tb"
-              ];
-
+      var rules = <%= @rules.to_json%>;
       var set_rules = [];
       var set_rules_descriptions = [];
 
       /*assigning rules and rule descriptions from the ValidationRule table*/
       function initSetRulesDescriptions() {
           <%ValidationRule.find(:all,:conditions =>['type_id = 1']).each do |r| %>
-          set_rules.push("<%=r.expr%>");
-          set_rules_descriptions.push('Failed: ' + "<%=r.desc%>");
+            set_rules.push("<%=r.expr%>");
+            set_rules_descriptions.push('Failed: ' + "<%=r.desc%>");
           <%end%>
       }
 
@@ -633,10 +655,24 @@
           cTable.innerHTML = tRows;
       }
 
+      function checkAjaxCompleteness(){
+
+          var forms = document.getElementsByClassName("success");
+          var nodes = document.getElementsByClassName("num")
+          console.log(forms.length + ":::::" + nodes.length);
+
+          if (forms.length == nodes.length){
+              console.log("Running data consistency checks");
+              checkForConsistency();
+          }else{
+              setTimeout("checkAjaxCompleteness()", 1500);
+          }
+      }
+
+
       createTable();
       loadFields();
       initCohortValues();
-      setTimeout(checkForConsistency,5000);
       //-->
     </script>
   </body>
