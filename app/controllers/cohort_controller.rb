@@ -21,6 +21,7 @@ class CohortController < ActionController::Base
 
   def index
 
+    @rules = ValidationRule.rules_xy
     render :layout => false
   end
 
