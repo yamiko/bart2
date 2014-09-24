@@ -41,13 +41,13 @@ class Pharmacy < ActiveRecord::Base
     return 0 if start_date.blank? or end_date.blank?
     dispensed_encounter = EncounterType.find_by_name('DISPENSING')
     amount_dispensed_concept_id = ConceptName.find_by_name('AMOUNT DISPENSED').concept_id
-    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
-    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00') rescue nil
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59') rescue nil
 
     Encounter.find(:first,:joins => "INNER JOIN obs USING(encounter_id)",
       :select => "SUM(value_numeric) total_dispensed" ,
       :conditions => ["concept_id = ? AND encounter_type = ?
-                   AND obs_datetime >= ? AND obs_datetime <= ? AND value_drug = ?",
+                   AND obs_datetime >= ? AND obs_datetime <= ? AND value_drug = ? AND obs.voided=0",
         amount_dispensed_concept_id,dispensed_encounter.id,
         start_date,end_date,drug_id],
       :group => "value_drug").total_dispensed.to_f rescue 0
@@ -59,7 +59,7 @@ class Pharmacy < ActiveRecord::Base
 
     Encounter.find(:first,:joins => "INNER JOIN obs USING(encounter_id)",
       :select => "SUM(value_numeric) total_dispensed" ,
-      :conditions => ["concept_id = ? AND encounter_type = ? AND value_drug = ?",
+      :conditions => ["concept_id = ? AND encounter_type = ? AND value_drug = ? AND obs.voided=0",
         amount_dispensed_concept_id,dispensed_encounter.id,drug_id],
       :group => "value_drug").total_dispensed.to_f rescue 0
   end
@@ -87,13 +87,14 @@ class Pharmacy < ActiveRecord::Base
       ]).collect{|del| [del.value_numeric, del.value_date, del.value_text]}
   end
 
-  def self.new_delivery(drug_id,pills,date = Date.today,encounter_type = nil,expiry_date = nil, barcode = nil, expiring_units = nil)
+  def self.new_delivery(drug_id,pills,date = Date.today,encounter_type = nil,expiry_date = nil, barcode = nil, expiring_units = nil, pack_size = 60)
     encounter_type = PharmacyEncounterType.find_by_name("New deliveries").id if encounter_type.blank?
     delivery =  self.new()
     delivery.pharmacy_encounter_type = encounter_type
     delivery.drug_id = drug_id
     delivery.encounter_date = date
     delivery.value_text = barcode
+    delivery.pack_size = pack_size
     delivery.expiry_date = expiry_date unless expiry_date.blank?
     delivery.value_numeric = pills.to_f
     if expiring_units
@@ -314,12 +315,13 @@ EOF
     #raise start_date.to_yaml
   end
 
-  def self.verified_stock(drug_id,date,pills, earliest_expiry=nil, units=nil, type=nil)
+  def self.verified_stock(drug_id,date,pills, earliest_expiry=nil, units=nil, type=nil, pack_size = nil)
     encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock').id
     encounter =  self.new()
     encounter.pharmacy_encounter_type = encounter_type
     encounter.drug_id = drug_id
     encounter.encounter_date = date
+    encounter.pack_size = pack_size
     encounter.value_numeric = pills.to_f
     if ! earliest_expiry.blank?
       encounter.expiry_date = earliest_expiry
@@ -333,7 +335,56 @@ EOF
     encounter.save
   end
 
+  def self.current_stock_after_dispensation(drug_id, start_date, end_date = Date.today)
+    total_physical_count = self.total_physically_counted(drug_id, start_date, end_date)
+    total_dispensed = self.dispensed_drugs_since(drug_id, start_date, end_date)
+    total_removed = self.total_removed(drug_id, start_date, end_date)
+    (total_physical_count - (total_dispensed + total_removed))
+  end
 
+  def self.total_physically_counted(drug_id, start_date ,end_date = Date.today)
+    pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
 
+    self.active.find(:first,:select => "SUM(value_numeric) total_physical_count",
+      :conditions => ["pharmacy_encounter_type = ? AND drug_id = ?
+                      AND encounter_date >= ? AND encounter_date <= ?",
+        pharmacy_encounter_type.id , drug_id , start_date , end_date],
+      :group => "drug_id").total_physical_count.to_f rescue 0
+  end
 
+  def self.current_drug_stock(drug_id)
+    #This method gives the current drug stock after latest date of physical count
+    # and all dispensation of that particular drug from the latest date of physical count
+
+    pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
+
+    last_physical_count_enc_date = Pharmacy.find_by_sql(
+          "SELECT * from pharmacy_obs WHERE
+           drug_id = #{drug_id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id} AND
+           DATE(encounter_date) = (
+            SELECT MAX(DATE(encounter_date)) FROM pharmacy_obs
+            WHERE drug_id =#{drug_id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id}
+          ) LIMIT 1;"
+      ).last.encounter_date rescue nil
+
+    total_physical_count = self.total_physically_counted(drug_id, last_physical_count_enc_date)
+    total_dispensed = self.dispensed_drugs_since(drug_id, last_physical_count_enc_date)
+    total_removed = self.total_removed(drug_id, last_physical_count_enc_date)
+    (total_physical_count - (total_dispensed + total_removed))
+  end
+
+  def self.pack_size(drug_id)
+      pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
+      drug_pack_size = Pharmacy.find_by_sql(
+          "SELECT * from pharmacy_obs WHERE drug_id = #{drug_id} AND
+          pharmacy_encounter_type = #{pharmacy_encounter_type.id} AND
+           DATE(encounter_date) = (
+            SELECT MAX(DATE(encounter_date)) FROM pharmacy_obs
+            WHERE drug_id =#{drug_id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id}
+          ) LIMIT 1;"
+      ).last.pack_size rescue 60 #if the pack size is not recorded then assume 60 is the pack size. Most drugs come in 60s
+      
+      return drug_pack_size
+  end
+  
 end

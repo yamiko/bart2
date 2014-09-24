@@ -142,7 +142,10 @@
 
   #tt_page_duration_of_prescribed_drugs .options {  height: 90%; }
 
-  #tt_page_duration_of_prescribed_drugs .inputFrameClass {  height: 86%; }
+  #tt_page_duration_of_prescribed_drugs .inputFrameClass {
+    height: 86%;
+    width: 35%;
+  }
 
 
   #tt_page_duration .options {  height: 90%; }
@@ -380,6 +383,124 @@
         border-bottom: 1px solid black;
         border-right: 1px solid black;
       }
+
+     /*******************Drug Stock Availability*******************************/
+     #stock{
+      position: absolute;
+      width: 95%;
+      height: 25%;
+      top: 61%;
+      z-index: 499;
+      left: 1.5%;
+      border: 1px solid black;
+      background-color: #FEE0C6;
+      border-radius: 15px;
+    }
+
+    .table_header{
+      border-radius: 15px 15px 0px 0px;
+      background-color: white;
+      font-size: 18px;
+      font-family: "Rockwell Extra Bold", "Rockwell Bold", monospace;
+      font-weight: bold;
+    }
+
+    .stock_header_right{
+      position: relative;
+      float: right;
+      padding: 0px 0px 0px 0px;
+      font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+      font-weight: bold;
+    }
+
+    .stock_header_left{
+      position: relative;
+      margin-left: 4%;
+      font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+      font-weight: bold;
+    }
+
+    .consumption_rate_header{
+      position: relative;
+      float: left;
+      margin-left: 0%;
+      font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+      font-weight: bold;
+    }
+    .estimated_stock_out_date_header{
+      position: relative;
+      float: right;
+      padding: 0px 10% 0px 0px;
+      font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+      font-weight: bold;
+    }
+
+    .consumption_rate{
+      float: right;
+      margin-right: 66%;
+    }
+
+    .current_stock{
+      float: right;
+      margin-right: 35%;
+    }
+
+    .estimated_stock_out_date{
+      float: left;
+      margin-left: 48%;
+    }
+
+    .stock_helptext{
+      position: relative;
+      font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+      font-size: 14pt;
+      left: 5%;
+    }
+
+    .number{
+      color: green;
+      font-weight: bold;
+    }
+
+    .stock_level_details{
+      position: absolute;
+      width: 61%;
+      height: 28%;
+      top: 20%;
+      z-index: 499;
+      right: 1%;
+      border: 1px solid black;
+      background-color: #FEE0C6;
+      border-radius: 15px;
+    }
+
+    .theader{
+      font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+      font-size: 12pt;
+      font-weight: bold;
+     }
+
+     .stock_loading_message{
+        position: relative;
+        left: 45%;
+        font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+        font-size: 16pt;
+        top:40%;
+      }
+
+      .drug_pack_size_header{
+        position: relative;
+        float: right;
+        padding: 0px 10% 0px 0px;
+        font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+        font-weight: bold;
+      }
+
+      .drug_pack_size{
+        float: right;
+        margin-right: 37%;
+      }
+     /***********************************************************************/
 </style>
 
 <%= javascript_include_tag "prototype"%>
@@ -822,6 +943,269 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 
   }
 
+  function hideStockLevelDetails(){
+    document.getElementsByClassName("stock_level_details")[0].style.display='none';
+  }
+
+  function removeOnclickEvent(){
+    clearButton = document.getElementById('clearButton');
+    clearButton.onclick = null;
+  }
+
+  function showAvailableStock(){
+    available_options = document.getElementsByTagName('li');
+    for(i=0; i<available_options.length; i++){
+      available_options[i].onclick = function(){
+        showDrugStockDetails(parseInt(this.getAttribute("tstvalue")));
+      }
+    }
+
+    clearButton = document.getElementById('clearButton');
+    clearButton.onclick = function(){
+      showAvailableStock();
+    }
+
+    jQuery.ajax({
+      type: "POST",
+      url: "/regimens/check_stock_levels",
+      data: "regimen=" + regimen_id + "&duration=30",
+      success: function(result){
+        stock_hash = result;
+        element = document.getElementsByClassName("stock_level_details")[0];
+        html = "<table cellspacing='0' style='width:100%; border-collapse: separate;'>";
+        html+="<tr style='line-height: 2em;'>";
+        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-left-radius: 15px; '><span class='theader'>Drug Name</span></td>";
+        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; '><span class='theader'>Current Stock</span></td>";
+        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-right-radius: 15px;'><span class='drug_pack_size_header'>Pack Size</span></td>";
+        html+="</tr>";
+        for (var drug_id in stock_hash){
+          html+="<tr style='line-height:1.8em;'>";
+          drug_name = drug_id;
+          current_stock = stock_hash[drug_id]["current_stock"];
+          drug_pack_size = stock_hash[drug_id]["drug_pack_size"];
+
+          html+="<td style='border-bottom:1px solid;'><span style='position:relative;'>" + drug_name + "</span></td>";
+          html+="<td style='border-bottom:1px solid;'><span style='position:relative; left:30%;'>" + current_stock + "</span></td>";
+          html+="<td style='border-bottom:1px solid;'><span style='position:relative; left:30%;'>" + drug_pack_size + "</span></td>";
+          html+="</tr>";
+        }
+        html+="</table>";
+        element.style.display='inline';
+        element.innerHTML = html;
+      }
+    });
+  }
+  
+  function showDrugStockDetails(duration){
+    jQuery.ajax({
+      type: "POST",
+      url: "/regimens/check_stock_levels",
+      data: "regimen=" + regimen_id + "&duration=" + duration,
+      beforeSend:function(){
+        data = "<span class='stock_loading_message'>Loading ...</span>"
+        document.getElementsByClassName('stock_level_details')[0].innerHTML=data;
+      },
+      success: function(result){
+        stock_hash = result;
+        element = document.getElementsByClassName("stock_level_details")[0];
+        html = "<table cellspacing='0' style='width:100%; border-collapse: separate;'>";
+        html+="<tr style='line-height: 2em;'>";
+        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-left-radius: 15px; '><span class='theader'>Drug Name</span></td>";
+        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1;'><span class='theader'>Amount prescribed</span></td>";
+        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1;'><span class='theader'>Current Stock</span></td>";
+        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-right-radius: 15px;'><span class='drug_pack_size_header'>Pack Size</span></td>";
+     
+        html+="</tr>";
+        low_stock_drugs = []
+        for (var drug_id in stock_hash){
+          html+="<tr style='line-height:1.8em;'>";
+          drug_name = drug_id;
+          current_stock = stock_hash[drug_id]["current_stock"];
+          required_amount = stock_hash[drug_id]["required_amount"];
+          drug_pack_size = stock_hash[drug_id]["drug_pack_size"];
+          low_stock_warning = stock_hash[drug_id]["low_stock_warning"];
+          
+          html+="<td style='border-bottom:1px solid;'><span style='position:relative;'>" + drug_name + "</span></td>";
+          html+="<td style='text-align:right; border-bottom:1px solid'><span style='position:relative; right:46%;'>" + required_amount + "</span></td>";
+          html+="<td style='text-align:right; border-bottom:1px solid;'><span style='position:relative; right:46%;'>" + current_stock + "</span></td>";
+          html+="<td style='text-align:right; border-bottom:1px solid;'><span style='position:relative; right:46%;'>" + drug_pack_size + "</span></td>";
+         
+          if (low_stock_warning){
+            low_stock_drugs.push(drug_name);
+          }
+          
+          html+="</tr>";
+        }
+
+        if (low_stock_drugs.length >= 1){
+          html+="<tr style='line-height:0.5em;'><td colspan='4'>&nbsp;</td></tr>";
+          html+="<tr><td colspan='4'><i style='color:green; font-weight:bold;'>Notes:</i></td></tr>";
+          for (i=0; i<low_stock_drugs.length; i++){
+            drug_id = low_stock_drugs[i];
+            recommended_duration = stock_hash[drug_id]["recommended_duration"];
+            html+="<tr>";
+            html+="<td colspan='4' style='border-bottom:1px solid;'><span style='position:relative; left:2%;'>"
+            html+="<i>" + low_stock_drugs[i] + "</i> <i style='color:red; font-weight:bold;'>(Low Stock)</i></span> "
+            html+="<sub style='color:green; font-weight:bold;'><%='&nbsp;' * 6 + ' '+ ' *' * 5; %></sub> <i style='font-weight:bold;'>Recommendation:</i>"
+            html+= "<sub style='color:green; font-weight:bold;'><%='&nbsp;' * 2 + ' '+ ' *' * 5 + '' + '&nbsp;' * 2; %></sub><b style='color:green;'>(<i>" + recommended_duration + "</i>)</b></td>";
+            html+="</tr>";
+          }
+        }
+
+        html+="</table>";
+        element.style.display='inline';
+        element.innerHTML = html;
+      }
+    });
+  }
+  
+  function showDrugStockAvailability(reg_id){
+    jQuery.ajax({
+      type: "POST",
+      url: "/regimens/drug_stock_availability",
+      data: "concept_id=" + reg_id + "&patient_id=<%= @patient.id %>",
+      success: function(result){
+        drug_stock = document.getElementById('drug_stock');
+        stock_hash = result;
+        html = "<div id='stock'>";
+        html += "<div style='position: absolute; width:100%;'>";
+        html += "<table cellspacing='0' style='position:absolute; width:100%; left: 0%;'>";
+        html += "<tr>";
+        html += "<td class='table_header' colspan='5'><center><span>Drug Stock Availability</span></center></td>";
+        html += "</tr>";
+
+        html += "<tr style='background-color: #CDC8B1; line-height: 2em; font-size: 18px;'>";
+        html += "<td style='min-width: 130px;'><span class='stock_header_left'>Drug Name</span></td>";
+        html += "<td style='min-width: 130px;'><span class='consumption_rate_header'>Consumption Rate</span></td>";
+        html += "<td style='min-width: 100px;'><span class='stock_header_right'>Available Stock</span></td>";
+        html += "<td style='min-width: 100px;'><span class='drug_pack_size_header'>Pack Size</span></td>";
+        
+        html += "<td style='min-width: 100px;'><span class='estimated_stock_out_date_header'>Estimated stock out date</span></td>";
+        html += "</tr>";
+
+        html += "<tbody>";
+        for (var drug_id in stock_hash){
+          drug_name = stock_hash[drug_id]["drug_name"];
+          current_stock = stock_hash[drug_id]["current_stock"];
+          consumption_rate = stock_hash[drug_id]["consumption_rate"];
+          estimated_stock_out_date = stock_hash[drug_id]["estimated_stock_out_date"];
+          drug_pack_size = stock_hash[drug_id]["drug_pack_size"];
+
+          html += "<tr>";
+          html += "<td><span class='drug_name'>" + drug_name + "</span></td>";
+          html += "<td><span class='consumption_rate'>" + consumption_rate + "</span></td>";
+          html += "<td><span class='current_stock'>" + current_stock + "</span></td>";
+          html += "<td><span class='drug_pack_size'>" + drug_pack_size + "</span></td>";
+          html += "<td><span class='estimated_stock_out_date'>" + estimated_stock_out_date + "</span></td>";
+          html += "</tr>";
+        }
+        
+        html += "<tbody>";
+        html += "</table>";
+        html += "</div>";
+        html += "</div>";
+        drug_stock.style.display='inline';
+        drug_stock.innerHTML = html;
+      }
+    });
+  }
+
+  function showDrugStock(){
+        drug_stock = document.getElementById('drug_stock');
+        html = "<div id='stock'>";
+        html += "<div style='position: absolute; width:100%;'>";
+        html += "<table cellspacing='0' style='position:absolute; width:100%; left: 0%;'>";
+        html += "<tr>";
+        html += "<td class='table_header' colspan='5'><center><span>Drug Stock Availability</span></center></td>";
+        html += "</tr>";
+
+        html += "<tr style='background-color: #CDC8B1; line-height: 2em; font-size: 18px;'>";
+        html += "<td style='min-width: 130px;'><span class='stock_header_left'>Drug Name</span></td>";
+        html += "<td style='min-width: 130px;'><span class='consumption_rate_header'>Consumption Rate</span></td>";
+        html += "<td style='min-width: 100px;'><span class='stock_header_right'>Available Stock</span></td>";
+        html += "<td style='min-width: 100px;'><span class='drug_pack_size_header'>Pack Size</span></td>";
+        html += "<td style='min-width: 100px;'><span class='estimated_stock_out_date_header'>Estimated stock out date</span></td>";
+        html += "</tr>";
+
+        html += "<tbody>";
+
+        <% @drug_stock.each do |drug_id, values| %>
+         <%
+          drug_name = values["drug_name"]
+          current_stock = values["current_stock"]
+          consumption_rate = values["consumption_rate"]
+          estimated_stock_out_date = values["estimated_stock_out_date"]
+          drug_pack_size = values["drug_pack_size"];
+         %>
+          html += "<tr>";
+          html += "<td><span class='drug_name'><%= drug_name %></span></td>";
+          html += "<td><span class='consumption_rate'><%= consumption_rate %></span></td>";
+          html += "<td><span class='current_stock'><%= current_stock %></span></td>";
+          html += "<td><span class='drug_pack_size'><%= drug_pack_size %></span></td>";
+          html += "<td><span class='estimated_stock_out_date'><%= estimated_stock_out_date %></span></td>";
+          html += "</tr>";
+        <% end  %>
+
+        html += "<tbody>";
+        html += "</table>";
+        html += "</div>";
+        html += "</div>";
+        drug_stock.style.display='inline';
+        drug_stock.innerHTML = html;
+        
+
+  }
+
+  function showCptDrugStock(){
+        drug_stock = document.getElementById('drug_stock');
+        html = "<div id='stock'>";
+        html += "<div style='position: absolute; width:100%;'>";
+        html += "<table cellspacing='0' style='position:absolute; width:100%; left: 0%;'>";
+        html += "<tr>";
+        html += "<td class='table_header' colspan='5'><center><span>CPT Drug Stock Availability</span></center></td>";
+        html += "</tr>";
+
+        html += "<tr style='background-color: #CDC8B1; line-height: 2em; font-size: 18px;'>";
+        html += "<td style='min-width: 130px;'><span class='stock_header_left'>Drug Name</span></td>";
+        html += "<td style='min-width: 130px;'><span class='consumption_rate_header'>Consumption Rate</span></td>";
+        html += "<td style='min-width: 100px;'><span class='stock_header_right'>Available Stock</span></td>";
+        html += "<td style='min-width: 100px;'><span class='drug_pack_size_header'>Pack Size</span></td>";
+        html += "<td style='min-width: 100px;'><span class='estimated_stock_out_date_header'>Estimated stock out date</span></td>";
+        html += "</tr>";
+
+        html += "<tbody>";
+
+        <% @cpt_drug_stock.each do |drug_id, values| %>
+         <%
+          drug_name = values["drug_name"]
+          current_stock = values["current_stock"]
+          consumption_rate = values["consumption_rate"]
+          drug_pack_size = values["drug_pack_size"]
+          estimated_stock_out_date = values["estimated_stock_out_date"]
+         %>
+          html += "<tr>";
+          html += "<td><span class='drug_name'><%= drug_name %></span></td>";
+          html += "<td><span class='consumption_rate'><%= consumption_rate %></span></td>";
+          html += "<td><span class='current_stock'><%= current_stock %></span></td>";
+          html += "<td><span class='drug_pack_size'><%= drug_pack_size %></span></td>";
+          html += "<td><span class='estimated_stock_out_date'><%= estimated_stock_out_date %></span></td>";
+          html += "</tr>";
+        <% end  %>
+
+        html += "<tbody>";
+        html += "</table>";
+        html += "</div>";
+        html += "</div>";
+        drug_stock.style.display='inline';
+        drug_stock.innerHTML = html;
+
+
+  }
+  
+  function hideStock(){
+     if ($('drug_stock')){$('drug_stock').style.display= 'none'};
+  }
+  
   function buildPrescriptionPage(continueExistingRegimen, patientProgram, regimenConceptId, prescriptionContainer) {
 	$('touchscreenInput'+tstCurrentPage).setAttribute('type','hidden');
 	$('clearButton').style.display = 'none';
@@ -1304,8 +1688,8 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	:textCase => "upper",
 	:allowFreeText => 'false',
 	:id => "continue_existing_regimen",
-	:tt_onLoad => 'showDrugs();setAttributes();changeButton();showCategory("Regimen");showRegimenChangeAlert(); showHighVlPopup()',
-	:tt_onUnLoad => 'resetAttributes();resetRegimen();',
+	:tt_onLoad => 'showDrugs();setAttributes();changeButton();showCategory("Regimen");showRegimenChangeAlert(); showHighVlPopup(); showDrugStock()',
+	:tt_onUnLoad => 'resetAttributes();resetRegimen();hideStock();',
 	:condition => 'existingRegimen();',
 	:helpText => "Continue current ARV drugs?"}%>
 
@@ -1327,9 +1711,9 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 
   <%= text_field_tag :regimen, nil, {
 	:ajaxUrl => "",
-	:tt_onUnLoad => "setRegimenId('ART');" ,
+	:tt_onUnLoad => "setRegimenId('ART'); hideStock();" ,
 	:allowFreeText => true ,
-	:tt_onLoad => "set_regimen_concept_id_for_regimen($('patient_program').value, $('regimen_concept_id').value);buildPrescriptionPage($('continue_existing_regimen').value,$('patient_program').value,$('regimen_concept_id').value,'prescription_container');showCategory('Regimen');",
+	:tt_onLoad => "set_regimen_concept_id_for_regimen($('patient_program').value, $('regimen_concept_id').value);buildPrescriptionPage($('continue_existing_regimen').value,$('patient_program').value,$('regimen_concept_id').value,'prescription_container');showCategory('Regimen'); showDrugStockAvailability($('regimen_concept_id').value)",
 	:condition => 'other_regimen != "yes" && hasReasonForART() == true && $("prescribe_arvs").value == "YES" && $("continue_existing_regimen").value !="YES"',
 	:helpText => "Select formulations and doses"}%>
 
@@ -1357,7 +1741,8 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 
   <%= select_tag :duration, optionsString, {
 	:condition => '$("prescribe_arvs").value == "YES" || $("cpt_given").value == "YES" || $("ipt_given").value == "YES"',
-	:tt_onLoad => "__$('keyboard').style.display = 'none';showCategory('Regimen');",
+	:tt_onLoad => "__$('keyboard').style.display = 'none';showCategory('Regimen'); showAvailableStock($('regimen_concept_id').value);",
+        :tt_onUnLoad => "hideStockLevelDetails(); removeOnclickEvent();",
 	:helpText => 'Duration of prescribed drugs' } %>
 
   <!-- CPT & IPT-->
@@ -1375,7 +1760,8 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	  :allowFreeText => 'false',
 	  :condition => "$('cpt_given').value == 'YES'",
 	  :helpText => "Prescribed cotrimoxazole milligrams",
-          :tt_onLoad => "checkInput(); showCategory('Regimen'); setTextToAppear();",
+          :tt_onLoad => "checkInput(); showCategory('Regimen'); setTextToAppear(); showCptDrugStock()",
+          :tt_onUnLoad => 'hideStock();',
           :tt_onmousedown => "show_confirm_cpt_mgs()"} %>
   <% end %>
  <% current = session[:datetime].to_date rescue Date.today
@@ -1589,6 +1975,13 @@ element.setAttribute("onmousedown", "gotoNextPage()")
     </div>
 </div>
 <% end %>
+
+  <div id="drug_stock">
+  </div>
+
+  <div class="stock_level_details" style="display: none;">
+
+  </div>
 </body>
 <script>
 
@@ -1634,4 +2027,10 @@ function hideHighVlPopup(){
   document.getElementById('protector').style.display='none';
   document.getElementById('vl_lab_trail').style.display='none';
 }
+
+window.setInterval(function(){
+  setTextToAppear(" (MoH Recommended)");
+  setTextToAppear();
+}, 100);
+
 </script>
