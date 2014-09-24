@@ -551,7 +551,8 @@ class CohortController < ActionController::Base
     all_women = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                               WHERE ftc.earliest_start_date >= '#{start_date}'
                                               AND ftc.earliest_start_date <= '#{end_date}'
-                                              AND ftc.gender = 'Female'
+                                              AND ( ftc.gender = 'Female'
+                                             OR ftc.gender = 'F' )
                                               GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     patients = (all_women || []) - (pregnant_women || [])
@@ -621,7 +622,8 @@ class CohortController < ActionController::Base
     
     all_women = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                               WHERE ftc.earliest_start_date <= '#{end_date}'
-                                              AND ftc.gender = 'Female'
+                                              AND ( ftc.gender = 'Female'
+                                             OR ftc.gender = 'F' )
                                               GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     patients = (all_women || []) - (pregnant_women || [])
@@ -924,7 +926,7 @@ class CohortController < ActionController::Base
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc
                                             WHERE ftc.earliest_start_date >= '#{start_date}' 
                                             AND ftc.earliest_start_date <= '#{end_date}'
-                                            AND (ft1.reason_for_eligibility LIKE '%CD4 COUNT LESS%'
+                                            AND (ftc.reason_for_starting LIKE '%CD4 COUNT LESS%'
                                                 OR ftc.reason_for_starting LIKE '%CD4 COUNT <=%'
                                                 OR ftc.reason_for_starting LIKE '%WHO stage II peds%'
                                                 OR ftc.reason_for_starting LIKE '%WHO stage I peds%'
@@ -1547,7 +1549,19 @@ class CohortController < ActionController::Base
 
   def n1a(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
-    patients = get_patients_on_regimen(start_date, end_date, '1A')
+    $total_alive_and_on_art ||= total_alive_and_on_art(defaulted_patients = art_defaulters)
+
+    patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id, ft2.regimen_category AS regimen_category
+                    FROM flat_table2 ft2
+	                    INNER JOIN encounter enc on enc.encounter_id = ft2.regimen_category_enc_id AND enc.encounter_type = 54
+                    WHERE ft2.patient_id IN (#{$total_alive_and_on_art.join(',')})
+                    AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
+			                                            WHERE e1.patient_id = enc.patient_id
+                                                  AND e1.encounter_type = enc.encounter_type
+			                                            AND e1.encounter_datetime <= '#{end_date}'
+                                                  AND e1.voided = 0)
+                    AND ft2.regimen_category = '1A'
+                    GROUP BY ft2.patient_id").collect{|p| p.patient_id}
     value = patients unless patients.blank?
 
     render :text => value.to_json
@@ -1555,7 +1569,19 @@ class CohortController < ActionController::Base
 
   def n1p(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
-    patients = get_patients_on_regimen(start_date, end_date, '1P')
+    $total_alive_and_on_art ||= total_alive_and_on_art(defaulted_patients = art_defaulters)
+
+    patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id, ft2.regimen_category AS regimen_category
+                    FROM flat_table2 ft2
+	                    INNER JOIN encounter enc on enc.encounter_id = ft2.regimen_category_enc_id AND enc.encounter_type = 54
+                    WHERE ft2.patient_id IN (#{$total_alive_and_on_art.join(',')})
+                    AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
+			                                            WHERE e1.patient_id = enc.patient_id
+                                                  AND e1.encounter_type = enc.encounter_type
+			                                            AND e1.encounter_datetime <= '#{end_date}'
+                                                  AND e1.voided = 0)
+                    AND ft2.regimen_category = '1P'
+                    GROUP BY ft2.patient_id").collect{|p| p.patient_id}
     value = patients unless patients.blank?
 
     value = patients unless patients.blank?
@@ -1564,7 +1590,19 @@ class CohortController < ActionController::Base
 
   def n2a(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
-    patients = get_patients_on_regimen(start_date, end_date, '2A')
+    $total_alive_and_on_art ||= total_alive_and_on_art(defaulted_patients = art_defaulters)
+
+    patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id, ft2.regimen_category AS regimen_category
+                    FROM flat_table2 ft2
+	                    INNER JOIN encounter enc on enc.encounter_id = ft2.regimen_category_enc_id AND enc.encounter_type = 54
+                    WHERE ft2.patient_id IN (#{$total_alive_and_on_art.join(',')})
+                    AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
+			                                            WHERE e1.patient_id = enc.patient_id
+                                                  AND e1.encounter_type = enc.encounter_type
+			                                            AND e1.encounter_datetime <= '#{end_date}'
+                                                  AND e1.voided = 0)
+                    AND ft2.regimen_category = '2A'
+                    GROUP BY ft2.patient_id").collect{|p| p.patient_id}
     value = patients unless patients.blank?
 
     render :text => value.to_json
@@ -1572,7 +1610,21 @@ class CohortController < ActionController::Base
 
   def n2p(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
-    patients = get_patients_on_regimen(start_date, end_date, '2P')
+
+    $total_alive_and_on_art ||= total_alive_and_on_art(defaulted_patients = art_defaulters)
+
+    patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id, ft2.regimen_category AS regimen_category
+                    FROM flat_table2 ft2
+	                    INNER JOIN encounter enc on enc.encounter_id = ft2.regimen_category_enc_id AND enc.encounter_type = 54
+                    WHERE ft2.patient_id IN (#{$total_alive_and_on_art.join(',')})
+                    AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
+			                                            WHERE e1.patient_id = enc.patient_id
+                                                  AND e1.encounter_type = enc.encounter_type
+			                                            AND e1.encounter_datetime <= '#{end_date}'
+                                                  AND e1.voided = 0)
+                    AND ft2.regimen_category = '2P'
+                    GROUP BY ft2.patient_id").collect{|p| p.patient_id}
+
     value = patients unless patients.blank?
 
     render :text => value.to_json
