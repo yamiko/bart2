@@ -540,7 +540,7 @@
           start_date + "&end_date=" + end_date);
                 
         for(var i = 0; i < fields.length; i++){
-
+          if(String(fields[i]).match(/field=/)){
           if(typeof(fields[i][8]) != "undefined"){
             if (fields[i][9] != null && fields[i][9] != undefined)
             {
@@ -561,6 +561,7 @@
                   var link = fields[i][13] + "&start_date=" + start_date + "&end_date=" + end_date;
                   ajaxRequest(fields[i][12], link, false);
               }
+          }
           }
         }
           setTimeout("checkAjaxCompleteness()",2000);
