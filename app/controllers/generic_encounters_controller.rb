@@ -691,9 +691,15 @@ class GenericEncountersController < ApplicationController
 
 	def void
 		@encounter = Encounter.find(params[:id])
+    encounter = @encounter
     tb_reg = EncounterType.find_by_name("TB registration").id.to_i
     patient_identifier_type_id = PatientIdentifierType.find_by_name("District TB Number").patient_identifier_type_id
     tb_prog = Program.find_by_name("TB PROGRAM").id
+
+    dispensing_enc_type =  EncounterType.find_by_name('DISPENSING').id
+    patient_id = @encounter.patient_id
+    current_day = session[:datetime].to_date rescue Date.today
+
     if tb_reg == @encounter.encounter_type.to_i
           void_prog = PatientProgram.find(:last, :conditions => ['DATE(date_enrolled) = ? AND patient_id = ? AND program_id = ?',
                                           @encounter.encounter_datetime.to_date, @encounter.patient_id, tb_prog])
@@ -742,7 +748,13 @@ class GenericEncountersController < ApplicationController
     end
 
 		@encounter.void
-  
+    if (encounter.type.name.match(/TREATMENT/i))
+      dispensing_enc = Encounter.find(:last, :conditions => ["patient_id =? AND encounter_type =?
+        AND DATE(encounter_datetime) =?", patient_id, dispensing_enc_type, current_day])
+      dispensing_enc.void unless dispensing_enc.blank?
+      #We don't want to have a dispensation encounter without treatment encounter
+      #Void dispensation encounter soon after voiding treatment
+    end
 		head :ok
 	end
 

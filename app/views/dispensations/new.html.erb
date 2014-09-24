@@ -1,3 +1,5 @@
+<script src="/javascripts/touchscreenYesNo.js" type="text/javascript"></script>
+<%= javascript_include_tag "Highcharts/js/jquery.min.js" %>
 <style type="text/css">
    .tt_controls_quantity #char {
     display: none;
@@ -7,16 +9,186 @@
     display: none;                                                              
   } 
 
+  .stock_level_message {
+    position: absolute;
+    width: 52%;
+    height: 24%;
+    top: 25%;
+    z-index: 991;
+    left: 25.5%;
+    border: 1px solid black;
+    background-color: #FFFFE0;
+    border-radius: 15px;
+  }
+
+  .stock_level_message_header{
+    height: 18%;
+    color:white;
+    background-color: tomato;
+    border-radius: 15px 15px 0px 0px;
+    font-size: 14pt;
+    opacity: 0.8;   
+  }
+  
+  .stock_level_message_content{
+    font-size: 14pt;
+    text-align: center;
+    opacity: 0.9;
+    color:black;
+  }
+
+  .stock_level_message_footer{
+    position: absolute;
+    width: 100%;
+    height: 33%;
+    color:white;
+    background-color: tomato;
+    border-radius: 0px 0px 15px 15px;
+    font-size: 14pt;
+    bottom: 0%;
+    opacity: 0.8;   
+  }
+  
+  .yes_button span{
+    background-color: #90EE90;
+    left: 2%;
+    padding: 1.5% 14%;
+    position: absolute;
+    top: 8%;
+    cursor: pointer;
+    border:1px solid white;
+    border-radius: 10px;
+    display:inline-block;
+    text-shadow: -1px -1px 0 rgba(0,0,0,0.3);
+    font-weight:bold;
+    color: #FFFFFF;
+    background-color: #3093c7; background-image: -webkit-gradient(linear, left top, left bottom, from(#3093c7), to(#1c5a85));
+    background-image: -webkit-linear-gradient(top, #3093c7, #1c5a85);
+    background-image: -moz-linear-gradient(top, #3093c7, #1c5a85);
+    background-image: -ms-linear-gradient(top, #3093c7, #1c5a85);
+    background-image: -o-linear-gradient(top, #3093c7, #1c5a85);
+    background-image: linear-gradient(to bottom, #3093c7, #1c5a85);filter:progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#3093c7, endColorstr=#1c5a85);
+  }
+
+  .cancel_button span{
+    background-color: lightblue;
+    border: 1px solid #EDEBEB;
+    right: 2%;
+    padding: 1.5% 14%;
+    position: absolute;
+    text-decoration: none;
+    top: 8%;
+    cursor: pointer;
+    border:1px solid white;
+    border-radius: 10px;
+    display:inline-block;
+    text-shadow: -1px -1px 0 rgba(0,0,0,0.3);
+    font-weight:bold;
+    color: #FFFFFF;
+    background-color: #3093c7; background-image: -webkit-gradient(linear, left top, left bottom, from(#3093c7), to(#1c5a85));
+    background-image: -webkit-linear-gradient(top, #3093c7, #1c5a85);
+    background-image: -moz-linear-gradient(top, #3093c7, #1c5a85);
+    background-image: -ms-linear-gradient(top, #3093c7, #1c5a85);
+    background-image: -o-linear-gradient(top, #3093c7, #1c5a85);
+    background-image: linear-gradient(to bottom, #3093c7, #1c5a85);filter:progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#3093c7, endColorstr=#1c5a85);
+
+  }
+
+  #cover{
+    position: absolute;
+    background-color: black;
+    width: 100%;
+    height: 100%;
+    left: 0%;
+    top: 0%;
+    z-index: 990;
+    opacity: 0.5;
+  }
+
+  #popupBox{
+     z-index: 993;
+     width: 533px;
+  }
+  
 </style>
 
 <script>
   var tt_cancel_destination = "/patients/treatment_dashboard/<%= @patient.patient_id %>"
-
+  var current_drug_id = null
   function set_drug_for_quantity() {
     var drug_id = encodeURIComponent($('drug_id').value); 
     $('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', "/dispensations/quantities?formulation=" + drug_id + "&search_string=");
     listSuggestions(tstCurrentPage); 
     //$('touchscreenInput'+tstCurrentPage).setAttribute('ajaxURL', '');
+  }
+
+  function gotoCancelDestination(){
+    window.location = tt_cancel_destination;
+  }
+
+  function continueToNextpage(){
+    document.getElementById("cover").style.display='none';
+    document.getElementsByClassName("stock_level_message")[0].style.display='none';
+    gotoNextPage();
+  }
+
+  function checkAvailableStock(){
+    element = 'touchscreenInput'+ tstCurrentPage;
+    quantity = parseInt($(element).value)
+    
+    jQuery.ajax({
+      type: "POST",
+      url: "/regimens/check_drug_stock_levels",
+      data: "drug_id=" + current_drug_id,
+      beforeSend:function(){
+        showStatus();
+        $('popupBox').innerHTML = "<p>Checking stock. Please Wait ...</p>"
+      },
+      success: function(result){
+          $('popupBox').style.display='none';
+          $('popupBox').innerHTML = "<p>Processing. Please Wait ...</p>" //Resetting the innerHTML
+          current_stock = parseInt(result["current_stock"]);
+          drug_units = result["drug_units"]
+          if (quantity > current_stock){
+            missing_quantity = quantity - current_stock
+            html="<div id='cover'></div>";
+            html+= "<div class='stock_level_message'>";
+            html+="<div class='stock_level_message_header'><span style='margin-left:9.5%; font-weight:bold; color:white;'>Low stock</span></div>"
+
+            html+="<div class='stock_level_message_content'>"
+            html+="<span>Insufficient stock by <b><i>" + missing_quantity + " "+  drug_units + "</i></b>. Only <b><i>" + current_stock + " " + drug_units + "</i></b> will be dispensed. <br />Continue?<br /></span>"
+            html+="</div>"
+
+            html+="<div class='stock_level_message_footer'>"
+            html+= "<span class='yes_button'><span onmousedown='continueToNextpage();'>Yes</span></span>"
+            html+= "<span class='cancel_button'><span onmousedown='gotoCancelDestination();'>Cancel</span></span>"
+            html+="</div>"
+
+            html+="</div>";
+            $('stock_popup').innerHTML=html;
+          }
+
+          else{
+            gotoNextPage();
+          }
+        }
+      });
+
+  }
+
+  function setCurrentDrugId(){
+    available_options = document.getElementsByTagName('li');
+    for(i=0; i<available_options.length; i++){
+      available_options[i].onmouseup = function(){
+        current_drug_id = parseInt(this.getAttribute("tstvalue"));
+      }
+    }
+  }
+
+  function setAvailableStockAttributes(){
+    document.getElementById('nextButton').onmousedown = function (){
+      checkAvailableStock();
+    }
   }
 </script>
 <form id='dispensation' action="/dispensations/create" method='post'>
@@ -24,7 +196,10 @@
   <%= hidden_field_tag :patient_id, @patient.id %>
 
   <%= select_tag :drug_id, options_for_select(@options), 
-    {:helpText => "Dispense which prescribed drug?"} %> 
+    {
+      :helpText => "Dispense which prescribed drug?",
+      :tt_onLoad => "setCurrentDrugId();"
+    } %>
 
   <% # Set ajaxURL in the script, but need to start it blank %>
   <%= text_field_tag :quantity, nil, { 
@@ -36,7 +211,9 @@
     :validationRule => "([0-9]+\\.?[0-9]*)|Unknown$",
     :validationMessage => "You must enter a number (for example: 5<b>.0</b>)",
     :allowFreeText => "true",
-    :tt_pageStyleClass => "NumbersOnlyWithDecimal"}%>
+    :tt_pageStyleClass => "NumbersOnlyWithDecimal",
+
+    :tt_onLoad => "setAvailableStockAttributes();"}%>
 
   <% session_date = session[:datetime].to_date rescue nil                       
     if session_date %>
@@ -48,3 +225,9 @@
 
     <%end%>
 </form>
+
+
+
+<div id="stock_popup">
+  
+</div>

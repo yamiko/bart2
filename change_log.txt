@@ -72,7 +72,6 @@ Version (1.0.0)
     - Adding mastercard list menu for TB and ART
     - Worked on  fonts for bart2 cohort printer version
     - Resolved issues on missed appointments pulling visit dates instead of appointment dates
-<<<<<<< HEAD
 ----
     - Ensured that the nil start reasons when pulling cohort report are handled effectively so that the should not cause the thread to abort
     - Defaulted patient state to Unknown, for patients having no program id (HIV Program)
@@ -118,7 +117,12 @@ Version (1.0.0)
 2014-07-23
    EM - Added migrations for drug_order_barcodes table
    EM - Creating drug tins
-   EM - aking sure we prescribe and dispense complete available packs
+   EM - Making sure we prescribe and dispense complete available packs
+2014-09-03
+   KK - Resolved changes observed by QA =~ recepits and verification of drugs, also added a new table to pharmacy table
+   DN - Updated the flat_table initialization document
+2014-09-09
+   DN - updated cd4_count and cd4_count_modifier fields to get the correct values from obs in batch_flat_table_initialization script
 2014-08-21
    PB - Merged with filling_number_fix branch. Has a fix to ensure that we 
 	re-assign filing numbers for patients that are not active

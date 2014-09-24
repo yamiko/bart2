@@ -38,6 +38,7 @@ class GenericRegimensController < ApplicationController
     (@current_regimens_for_programs || {}).each do |patient_program_id , regimen_id|
       @regimen_formulations = formulation(@patient,regimen_id) if PatientProgram.find(patient_program_id).program.name.match(/HIV PROGRAM/i)
 			@hiv_regimen_map = regimen_id if PatientProgram.find(patient_program_id).program.name.match(/HIV PROGRAM/i)
+      @drug_stock = drug_stock(@patient, regimen_id) if PatientProgram.find(patient_program_id).program.name.match(/HIV PROGRAM/i)
 			@tb_regimen_formulations = formulation(@patient,regimen_id) if PatientProgram.find(patient_program_id).program.name.match(/TB PROGRAM/i)
     end
 		@current_regimen_names_for_programs = current_regimen_names_for_programs
@@ -179,6 +180,8 @@ class GenericRegimensController < ApplicationController
             end
         end
     @vl_result_hash = Patient.vl_result_hash(@patient) rescue nil
+    @cpt_drug_stock = cpt_drug_stock
+
 	end
 
   def check_current_regimen_index
@@ -818,6 +821,206 @@ class GenericRegimensController < ApplicationController
     render :text => @options.to_json
 	end
 
+  def recommend_duration(total_days, equivalent_daily_dose, current_stock, drug_pack_size)
+    current_stock = (current_stock * drug_pack_size) #converting tins to tablets
+    durations = ['4 days','1 week','2 weeks','1 month','2 months','3 months',
+                  '4 months','5 months','6 months','7 months','8 months']
+    hash = {}
+    durations.each do |duration|
+      days = (((duration.to_i) * 7)) if duration.match(/week/i)
+      days = 4 if duration.match(/days/i)
+      days = (((duration.to_i) * 28)) if duration.match(/month/i)
+      hash[days] = duration
+    end
+    
+    sorted_durations = hash.sort_by{|k, v| k } #sorting in ascending order by key
+    filtered_durations = []
+    sorted_durations.each do |k, v|
+      break if k > total_days
+      filtered_durations << [k, v]
+    end
+    filtered_durations = filtered_durations.reverse #sorting in descending order by key
+
+    insufficient_stock = true
+    filtered_durations.each do |k, v|
+      required_days = k
+      amount_prescribed = (required_days * equivalent_daily_dose)
+      next if (amount_prescribed > current_stock)
+      insufficient_stock = false
+      return v #days/weeks/months
+    end
+    
+    return 'No stock' if insufficient_stock
+  end
+
+  def check_drug_stock_levels
+    drug_id = params[:drug_id]
+    data = {}
+    current_stock = Pharmacy.current_drug_stock(drug_id).to_i
+    drug_units = Drug.find(drug_id).units
+    data["current_stock"] = current_stock
+    data["drug_units"] = drug_units
+    render :json => data and return
+  end
+
+  def check_stock_levels
+     orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:regimen]})
+     drug_details = {}
+     arvs_buffer = 2
+     reduced = false
+
+     orders.each do |order|
+       drug_name = order.drug.name
+       drug_id = order.drug.id
+       drug_pack_size = Pharmacy.pack_size(drug_id)
+       current_stock = (Pharmacy.current_drug_stock(drug_id)/drug_pack_size).to_i #current stock in tins
+       equivalent_daily_dose = order.equivalent_daily_dose.to_i
+       duration = (params[:duration].to_i + arvs_buffer)
+
+       if order.regimen.concept.shortname.upcase.match(/STARTER PACK/i) and !reduced
+					reduced = true
+					duration = (params[:duration].to_i + 1)
+       end
+
+       required_amount = (equivalent_daily_dose * duration)
+       required_amount = DrugOrder.calculate_complete_pack(order.drug, required_amount)
+       drug_details[drug_name] = {}
+       drug_details[drug_name]["required_amount"] = required_amount #in tabs
+       drug_details[drug_name]["current_stock"] = current_stock # in tins
+       drug_details[drug_name]["drug_pack_size"] = drug_pack_size
+       if (required_amount > (current_stock * drug_pack_size)) #comparing tabs to tabs
+         drug_details[drug_name]["low_stock_warning"] = true
+         drug_details[drug_name]["recommended_duration"] = recommend_duration(duration, equivalent_daily_dose, current_stock, drug_pack_size)
+       end
+       
+      end
+     
+     render :json => drug_details and return
+  end
+  
+  def drug_stock(patient, concept_id)
+    regimens = Regimen.criteria(PatientService.get_patient_attribute_value(patient, "current_weight")).all(:conditions => {:concept_id => concept_id}, :include => :regimen_drug_orders)
+    pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
+    stock = {}
+    regimens.each do | r |
+      r.regimen_drug_orders.each do | order |
+        drug = order.drug
+        last_physical_count_enc = Pharmacy.find_by_sql(
+              "SELECT * from pharmacy_obs WHERE
+               drug_id = #{drug.id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id} AND
+               DATE(encounter_date) = (
+                SELECT MAX(DATE(encounter_date)) FROM pharmacy_obs
+                WHERE drug_id =#{drug.id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id}
+              ) LIMIT 1;"
+          ).last
+
+        last_physical_count_date = last_physical_count_enc.encounter_date.to_date rescue Date.today
+        drug_pack_size = Pharmacy.pack_size(drug.id)
+        current_stock = (Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)/drug_pack_size).to_i
+
+        #total_drug_dispensations = Pharmacy.dispensed_drugs_since(drug.id, last_physical_count_date)
+        past_ninety_days_date = (Date.today - 90.days)
+        total_drug_dispensations_within_ninety_days = Pharmacy.dispensed_drugs_since(drug.id, past_ninety_days_date) #within 90 days
+        total_days = (Date.today - past_ninety_days_date).to_i #Difference in days between two dates.
+        consumption_rate = (total_drug_dispensations_within_ninety_days/total_days)
+        stock_out_days = ((current_stock * drug_pack_size)/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
+        estimated_stock_out_date = (Date.today + stock_out_days).strftime('%d-%b-%Y')
+        estimated_stock_out_date = "(N/A)" if (consumption_rate.to_i <= 0)
+        estimated_stock_out_date = "Stocked out" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
+
+        stock[drug.id] = {}
+        stock[drug.id]["drug_name"] = drug.name
+        stock[drug.id]["current_stock"] = current_stock
+        stock[drug.id]["consumption_rate"] = consumption_rate.to_f.round(1)
+        stock[drug.id]["estimated_stock_out_date"] = estimated_stock_out_date
+        stock[drug.id]["drug_pack_size"] = drug_pack_size
+      end
+    end
+    stock
+  end
+  
+  def cpt_drug_stock
+    pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
+    stock = {}
+    required_cpt = ["Cotrimoxazole (480mg tablet)", "Cotrimoxazole (960mg)"]
+    required_cpt.each do | name |
+        drug = Drug.find_by_name(name)
+        last_physical_count_enc = Pharmacy.find_by_sql(
+              "SELECT * from pharmacy_obs WHERE
+               drug_id = #{drug.id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id} AND
+               DATE(encounter_date) = (
+                SELECT MAX(DATE(encounter_date)) FROM pharmacy_obs
+                WHERE drug_id =#{drug.id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id}
+              ) LIMIT 1;"
+          ).last
+
+        last_physical_count_date = last_physical_count_enc.encounter_date.to_date rescue Date.today
+        drug_pack_size = Pharmacy.pack_size(drug.id)
+        current_stock = (Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)/drug_pack_size).to_i
+              
+        #total_drug_dispensations = Pharmacy.dispensed_drugs_since(drug.id, last_physical_count_date)
+        past_ninety_days_date = (Date.today - 90.days)
+        total_drug_dispensations_within_ninety_days = Pharmacy.dispensed_drugs_since(drug.id, past_ninety_days_date) #within 90 days
+        total_days = (Date.today - past_ninety_days_date).to_i #Difference in days between two dates.
+        consumption_rate = (total_drug_dispensations_within_ninety_days/total_days)
+        stock_out_days = ((current_stock * drug_pack_size)/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
+        estimated_stock_out_date = (Date.today + stock_out_days).strftime('%d-%b-%Y')
+        estimated_stock_out_date = "(N/A)" if (consumption_rate.to_i <= 0)
+        estimated_stock_out_date = "Stocked out" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
+
+        stock[drug.id] = {}
+        stock[drug.id]["drug_name"] = drug.name
+        stock[drug.id]["current_stock"] = current_stock
+        stock[drug.id]["consumption_rate"] = consumption_rate.to_f.round(1)
+        stock[drug.id]["estimated_stock_out_date"] = estimated_stock_out_date
+        stock[drug.id]["drug_pack_size"] = drug_pack_size
+    end
+    stock
+  end
+  
+  def drug_stock_availability
+    patient = Patient.find(params[:patient_id])
+    #regimens = Regimen.find(:all,:order => 'regimen_index',:conditions => ['concept_id =?',params[:concept_id]],:include => :regimen_drug_orders)
+    regimens = Regimen.criteria(PatientService.get_patient_attribute_value(patient, "current_weight")).all(:conditions => {:concept_id => params[:concept_id]}, :include => :regimen_drug_orders)
+    pharmacy_encounter_type = PharmacyEncounterType.find_by_name('Tins currently in stock')
+    stock = {}
+    
+    regimens.each do | r |
+      r.regimen_drug_orders.each do | order |
+        drug = order.drug
+        last_physical_count_enc = Pharmacy.find_by_sql(
+              "SELECT * from pharmacy_obs WHERE
+               drug_id = #{drug.id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id} AND
+               DATE(encounter_date) = (
+                SELECT MAX(DATE(encounter_date)) FROM pharmacy_obs
+                WHERE drug_id =#{drug.id} AND pharmacy_encounter_type = #{pharmacy_encounter_type.id}
+              ) LIMIT 1;"
+          ).last
+
+        last_physical_count_date = last_physical_count_enc.encounter_date.to_date rescue Date.today
+        drug_pack_size = Pharmacy.pack_size(drug.id)
+        current_stock = (Pharmacy.current_stock_after_dispensation(drug.id, last_physical_count_date)/drug_pack_size).to_i
+
+        #total_drug_dispensations = Pharmacy.dispensed_drugs_since(drug.id, last_physical_count_date)
+        past_ninety_days_date = (Date.today - 90.days)
+        total_drug_dispensations_within_ninety_days = Pharmacy.dispensed_drugs_since(drug.id, past_ninety_days_date) #within 90 days
+        total_days = (Date.today - past_ninety_days_date).to_i #Difference in days between two dates.
+        consumption_rate = (total_drug_dispensations_within_ninety_days/total_days)
+        stock_out_days = ((current_stock * drug_pack_size)/consumption_rate).to_i rescue 0 #To avoid division by zero error when consumption_rate is zero
+        estimated_stock_out_date = (Date.today + stock_out_days).strftime('%d-%b-%Y')
+        estimated_stock_out_date = "(N/A)" if (consumption_rate.to_i <= 0)
+        estimated_stock_out_date = "Stocked out" if (current_stock <= 0) #We don't want to estimate the stock out date if there is no stock available
+
+        stock[drug.id] = {}
+        stock[drug.id]["drug_name"] = drug.name
+        stock[drug.id]["current_stock"] = current_stock
+        stock[drug.id]["consumption_rate"] = consumption_rate.to_f.round(1)
+        stock[drug.id]["estimated_stock_out_date"] = estimated_stock_out_date
+        stock[drug.id]["drug_pack_size"] = drug_pack_size
+      end
+    end
+    render :json => stock and return
+  end
 	# Look up likely durations for the regimen
 	def durations
 		@regimen = Regimen.find_by_concept_id(params[:id], :include => :regimen_drug_orders)

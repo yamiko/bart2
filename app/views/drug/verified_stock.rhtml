@@ -122,7 +122,7 @@
             headerTitle2.id = "ht2";
 
             headerTitle1.innerHTML = "Drug";
-            headerTitle2.innerHTML = "Entry Fields";
+            headerTitle2.innerHTML = "Drug Stock Details";
 
             table.id = "table";
             contentRow.id = "c-row";
@@ -267,16 +267,40 @@
             header.id = "input-header";
             header.style.width = "98%";
             header.style.textAlign = "center";
-            header.style.height = "45px";
-            header.style.paddingTop = "15px";
+            header.style.height = "40px";
+            header.style.paddingTop = "10px";
             header.innerHTML = item.getAttribute("value");
             __$("data-pane").appendChild(header);
             __$("data-pane").appendChild(table);
 
             if (!(sieved.indexOf(item.getAttribute("value")) >= 0)) {
+
+                var textField = document.createElement("input");
+                textField.id = "Pills per tin";
+
+                textField.className = "input-field";
+
+                if (__$(item.getAttribute("value") + "_pills_per_tin") &&
+                        __$(item.getAttribute("value") + "_pills_per_tin").value.length > 0) {
+                    textField.value = __$(item.getAttribute("value") + "_pills_per_tin").value;
+                }else {
+                    textField.value = 60;
+                }
+                textField.onmousedown = function () {
+                    target = this;
+                    jQ(".input-field").attr("class", "input-field");
+                    this.className += " input-field-active";
+
+                    if (__$('popupkeyboard'))
+                        __$('data-pane').removeChild(__$('popupkeyboard'));
+                    showKeyboard(this);
+                }
+
+                table.appendChild(wrap(textField));
+
                 var textField1 = document.createElement("input");
                 textField1.id = "Number of tins";
-                textField1.className = "input-field input-field-active";
+                textField1.className = "input-field  input-field-active";
                 textField1.value = __$(item.getAttribute("value") + "_amount").value;
                 textField1.onmousedown = function () {
                     target = this;
@@ -525,7 +549,7 @@
             var tdLabel = document.createElement("div");
             tdLabel.className = "td";
             tdLabel.style.paddingTop = "15px";
-            tdLabel.style.height = "55px";
+            tdLabel.style.height = "45px";
             tdLabel.style.display = "table-cell";
             tdLabel.appendChild(label);
             row.appendChild(tdLabel);
@@ -533,7 +557,7 @@
             var input = document.createElement("div");
             input.className = "td";
             input.style.display = "table-cell";
-            node.style.fontSize = "26px";
+            node.style.fontSize = "24px";
             node.style.textAlign = "center";
             node.style.width = "275px";
             node.style.height = "35px";
@@ -541,7 +565,7 @@
             row.appendChild(input);
 
             var img = document.createElement("img");
-            img.style.height = "35px";
+            img.style.height = "28px";
             img.src = imgUnTick;
             var clear = document.createElement("div");
             clear.className = "td";
@@ -584,24 +608,39 @@
         function buildParams(drug) {
 
             if (!__$(drug + "_amount")) {
-                var input = document.createElement("input");
-                input.id = drug + "_amount";
-                input.setAttribute("type", "hidden");
-                input.setAttribute("name", "obs[" + drug + "][amount]");
+
+                var input0 = document.createElement("input");
+                input0.id = drug + "_pills_per_tin";
+                input0.setAttribute("type", "hidden");
+                input0.setAttribute("name", "obs[" + drug + "][pills_per_tin]");
+
+                var input1 = document.createElement("input");
+                input1.id = drug + "_amount";
+                input1.setAttribute("type", "hidden");
+                input1.setAttribute("name", "obs[" + drug + "][amount]");
+
                 var input2 = document.createElement("input");
                 input2.id = drug + "_expire_amount";
                 input2.setAttribute("name", "obs[" + drug + "][expire_amount]");
+
                 var input3 = document.createElement("input");
                 input3.id = drug + "_date";
                 input3.setAttribute("name", "obs[" + drug + "][date]");
+
                 var form = document.forms[0]
-                form.appendChild(input);
+                form.appendChild(input0);
+                form.appendChild(input1);
                 form.appendChild(input2);
                 form.appendChild(input3);
             }
         }
 
         function updateParams(drug_name) {
+
+            try {
+              __$(drug_name + "_pills_per_tin").value = __$("Pills per tin").value;
+            } catch (x) {
+            }
 
             try {
                 __$(drug_name + "_amount").value = __$("Number of tins").value;
@@ -664,17 +703,6 @@
                 var expire_amount = __$(dname + "_expire_amount").value.trim();
                 var date = __$(dname + "_date").value.trim();
 
-                if (!(sieved.indexOf(dname) >= 0)) {
-                    if ((amount.length > 0 && expire_amount.length == 0 && date.length == 0) ||
-                            (amount.length > 0 && expire_amount.length > 0 && date.length > 0)
-                            ) {
-                        __$(dname + "_img").src = imgTick;
-                    } else {
-                        __$(dname + "_img").src = imgBlank;
-                        if (unfinished_drugs.indexOf(dname) < 0)
-                            unfinished_drugs.push(dname);
-                    }
-                } else {
                     if (amount.length > 0 && expire_amount.length > 0 && date.length > 0) {
                         __$(dname + "_img").src = imgTick;
                     } else {
@@ -682,7 +710,7 @@
                         if (unfinished_drugs.indexOf(dname) < 0)
                             unfinished_drugs.push(dname);
                     }
-                }
+
             }
 
             setTimeout(function () {
@@ -880,7 +908,7 @@
                 month = 1;
             }
 
-            var date = new Date(__$("txtYearFor" + id).value.trim(), padZeros(month, 2), 0);
+            var date = new Date(__$("txtYearFor" + id).value.trim(), padZeros((month - 1), 2), 0);
 
             date.setDate(date.getDate());
 
@@ -957,6 +985,13 @@
         label.className = "drug-label scell hvalue";
         label.style.display = "table-cell";
         label.innerHTML = "Drug";
+        label.style.minWidth = "30%";
+        r.appendChild(label);
+
+        var label = document.createElement("div");
+        label.className = "drug-value scell hvalue";
+        label.style.display = "table-cell";
+        label.innerHTML = "Pills per tin";
         r.appendChild(label);
 
         var label = document.createElement("div");
@@ -964,6 +999,7 @@
         label.style.display = "table-cell";
         label.innerHTML = "Total units";
         r.appendChild(label);
+
 
         var label = document.createElement("div");
         label.className = "drug-value scell hvalue";
@@ -999,16 +1035,17 @@
         for (var i in drugs) {
 
             if (sievable.indexOf(drugs[i]) >= 0) continue;
-
-            var amount_value = "";
-            var expire_amount_value = "";
-            var date_value = "";
+            var pills_per_tin = 0;
+            var amount_value = 0;
+            var expire_amount_value = 0;
+            var date_value = "N/A";
 
             try {
                 if (__$(drugs[i] + "_amount")) {
-                    amount_value = __$(drugs[i] + "_amount").value;
-                    expire_amount_value = __$(drugs[i] + "_expire_amount").value;
-                    date_value = __$(drugs[i] + "_date").value;
+                    pills_per_tin = (__$(drugs[i] + "_pills_per_tin").value || 0)
+                    amount_value = (__$(drugs[i] + "_amount").value || 0);
+                    expire_amount_value = (__$(drugs[i] + "_expire_amount").value || 0);
+                    date_value = (__$(drugs[i] + "_date").value || "N/A");
                 }
             } catch (e) {
             }
@@ -1022,9 +1059,24 @@
             label.className = "drug-label scell";
             label.style.display = "table-cell";
             label.innerHTML = drug_short_names[drugs[i]];
+            label.style.minWidth = "30%";
             if (i == 0)
                 label.style.borderTop = "0.4px solid gray";
             row.appendChild(label);
+
+            var ptin = document.createElement("div");
+            ptin.className = "drug-value scell";
+            ptin.style.display = "table-cell";
+            ptin.innerHTML = pills_per_tin;
+            ptin.setAttribute("drug", drugs[i]);
+            ptin.onmousedown = function(){
+                if (this.innerHTML.length > 0){
+                    navigate(this.getAttribute("drug"), "Pills per tin");
+                }
+            }
+            if (i == 0)
+                ptin.style.borderTop = "0.4px solid gray";
+            row.appendChild(ptin);
 
             var amount = document.createElement("div");
             amount.className = "drug-value scell";
@@ -1104,15 +1156,15 @@
 
         for (var i in sievable) {
 
-            var amount_value = "";
-            var expire_amount_value = "";
-            var date_value = "";
+            var amount_value = 0;
+            var expire_amount_value = 0;
+            var date_value = "N/A";
 
             try {
                 if (__$(sievable[i] + "_amount")) {
-                    amount_value = __$(sievable[i] + "_amount").value;
-                    expire_amount_value = __$(sievable[i] + "_expire_amount").value;
-                    date_value = __$(sievable[i] + "_date").value;
+                    amount_value = (__$(sievable[i] + "_amount").value || 0);
+                    expire_amount_value = (__$(sievable[i] + "_expire_amount").value || 0);
+                    date_value = (__$(sievable[i] + "_date").value || "N/A");
                 }
             } catch (e) {
             }
@@ -1290,14 +1342,14 @@
         -o-transition: all 0.30s ease-in-out;
         outline: none;
         padding: 3px 0px 3px 3px;
-        margin: 5px 1px 3px 0px;
+        margin: 1px 1px 1px 0px;
         border: 1px solid #DDDDDD;
     }
 
     .input-field-active {
         box-shadow: 0 0 5px rgba(81, 203, 238, 1);
         padding: 3px 0px 3px 3px;
-        margin: 5px 1px 3px 0px;
+        margin: 1px 1px 1px 0px;
         border: 1px solid rgba(81, 203, 238, 1);
     }
 
@@ -1320,14 +1372,14 @@
     }
 
     .drug-label {
-        min-width: 40%;
+        min-width: 16%;
         text-align: left;
         padding-left: 2%;
         overflow-X: hidden;
     }
 
     .drug-value {
-        min-width: 20%;
+        min-width: 16%;
         cursor: pointer;
     }
 
@@ -1351,6 +1403,7 @@
   <form action="stock_report_edit" method="post">
 
     <input type="hidden" name="delivery_date" value="<%= @delivery_date %>">
+    <input type="hidden" name="type" value="<%= params['verification type'] %>">
 
     <%= text_field_tag :information, nil,
                        {
