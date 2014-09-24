@@ -340,4 +340,19 @@ class PatientsController < GenericPatientsController
     next_url = (next_task(patient))
     render :text => next_url and return
   end
+
+  def print_mastercard_pdf
+  
+      id = params[:id]
+      t1 = Thread.new{
+							Kernel.system "wkhtmltopdf --orientation landscape --margin-top 0 --margin-bottom 0 http://" +
+							request.env["HTTP_HOST"] + "\"/patients/mastercard_printable?patient_id=#{id}&pdf=true" +
+							"\" /tmp/patient-#{id}.pdf \n"
+						}
+ 
+		  redirect_to :controller => 'patients',
+		  						:action => 'mastercard',
+		  						:patient_id => id
+  end
+  
 end

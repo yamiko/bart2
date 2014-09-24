@@ -1324,6 +1324,10 @@ EOF
 
         if patient_to_be_archived.blank?
           patient_to_be_archived = self.get_patient_to_be_archived_that_has_transfered_out(patient_ids)
+
+          if (!patient_to_be_archived.blank?)
+            patient_to_be_archived = Patient.find(patient_to_be_archived)
+          end
         end
 
         if patient_to_be_archived.blank?
@@ -1409,18 +1413,29 @@ EOF
     #Patients with an appointment in the past month and the next 6 weeks from
     #current date
     appointment_encounter_type = EncounterType.find(:first,:conditions => ["name IN (?)",'APPOINTMENT'])
-    start_date = (Date.today - 1.month).strftime('%Y-%m-%d 00:00:00')
-    end_date = (Date.today + 7.month).strftime('%Y-%m-%d 23:59:59')
+    start_date = (Date.today - 7.month).strftime('%Y-%m-%d 00:00:00')
+    end_date = (Date.today + 5.year).strftime('%Y-%m-%d 23:59:59')
 
     patient_not_to_be_archived = Encounter.find_by_sql(["
       SELECT patient_id FROM encounter
       INNER JOIN obs USING(encounter_id)
       WHERE value_datetime BETWEEN (?) AND (?)
-      AND encounter_type = ? GROUP BY patient_id",start_date,end_date,
+      AND encounter_type = ? AND obs.voided = 0 GROUP BY patient_id",start_date,end_date,
       appointment_encounter_type]).map{ |l| l.patient_id }
     patient_not_to_be_archived = [0] if patient_not_to_be_archived.blank?
 
-    
+    #Patients with at least an encounter of type: encounter_type_name in the past 7 months 
+    #and the next 7 months from current date
+    patient_not_to_be_archived_with_an_encounter = Encounter.find_by_sql(["
+      SELECT patient_id FROM encounter
+      INNER JOIN obs USING(encounter_id)
+      WHERE obs_datetime BETWEEN (?) AND (?)
+      AND encounter_type IN(?) AND obs.voided = 0 
+      GROUP BY patient_id",start_date,end_date,encounter_type_ids]).map{ |l| l.patient_id }
+    patient_not_to_be_archived_with_an_encounter = [0] if patient_not_to_be_archived_with_an_encounter.blank?
+
+    patient_not_to_be_archived = patient_not_to_be_archived && patient_not_to_be_archived_with_an_encounter
+
     #The following block will pick a patient with the least encounter datetime
     #and passed to be archived minus those patients with an appointment in the next
     #eight months

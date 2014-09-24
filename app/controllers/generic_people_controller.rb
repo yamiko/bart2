@@ -87,7 +87,7 @@ class GenericPeopleController < ApplicationController
 			Location.current_location = Location.find(CoreService.get_global_property_value('current_health_center_id'))
 		end rescue []
     
-    
+    patient = nil
     if create_from_dde_server                                                
        
       passed_params = {"region" => "" ,
@@ -160,6 +160,11 @@ class GenericPeopleController < ApplicationController
         PatientService.patient_national_id_label(patient)
       end
     end
+
+    person["patient"] = {
+        "identifiers"=>
+                     {"National id"=> PatientService.get_national_id(patient) }
+    }  if !patient.blank?
 
 		render :text => PatientService.remote_demographics(person).to_json
 	end
