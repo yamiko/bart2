@@ -68,6 +68,7 @@
         color: black;
         font-weight: bold;
       }
+      <% if vl_routine_check_activated %>
       #tab5 {
         background-color: green;
         border: 0 none;
@@ -239,6 +240,14 @@
         border-radius: 10px;
         cursor: pointer;
       }
+      <%  else %>
+      #tab5 {
+        background-color: white;
+        border: 0 none;
+        color: black;
+        font-weight: bold;
+      }
+      <% end %>
     </style>
   </head>
   <body><div id='content'>
@@ -328,7 +337,11 @@
               <option value='/patients/visit_history?patient_id=<%= @patient.id %>'>Current Visit</option>
               <option value='/patients/past_visits_summary?patient_id=<%= @patient.id %>'>Past Visits</option>
               <option value='/patients/personal/<%= @patient.id -%>'>Printouts/Other</option>
-              <option onmousedown="alert('ccc')" value='/patients/viral_load_page?patient_id=<%= @patient.id %>'>HIV viral load</option>
+              
+              <% if vl_routine_check_activated %>
+                <option value='/patients/viral_load_page?patient_id=<%= @patient.id %>'>HIV viral load</option>
+              <% end %>
+
               <option value='/patients/next_task_description?task_id=<%= task.id -%>'>
                 NEXT TASK: <%= task_name.gsub('_',' ') %>
               </option>
