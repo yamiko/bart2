@@ -1,102 +1,107 @@
 <html>
-  <head>
-    <title>Cohort Report</title>
-    <script type="text/javascript" src="/javascripts/rainbow.min.js"></script>
-    <script type="text/javascript" src="/javascripts/jquery.min.js"></script>
-    <script type="text/javascript" src="/javascripts/jquery-asPieProgress.js"></script>
+<head>
+  <title>Cohort Report</title>
+  <script type="text/javascript" src="/javascripts/rainbow.min.js"></script>
+  <script type="text/javascript" src="/javascripts/jquery.min.js"></script>
+  <script type="text/javascript" src="/javascripts/jquery-asPieProgress.js"></script>
 
-    <link rel="stylesheet" href="/stylesheets/prelude.css">
-    <link rel="stylesheet" href="/stylesheets/rainbow.css">
-    <link rel="stylesheet" href="/stylesheets/css/progress.css">
+  <link rel="stylesheet" href="/stylesheets/prelude.css">
+  <link rel="stylesheet" href="/stylesheets/rainbow.css">
+  <link rel="stylesheet" href="/stylesheets/progress.css">
 
-    <style type="text/css">
+  <style type="text/css">
       body {
-        font-family: verdana;
-        -moz-user-select: none;
+          font-family: verdana;
+          -moz-user-select: none;
       }
+
       .normalcell {
-      	position:relative;
-      	vertical-align: top;
-        border: 1px solid #ccc;
+          position: relative;
+          vertical-align: top;
+          border: 1px solid #ccc;
       }
+
       .header {
-        font-size: 28px;
+          font-size: 28px;
       }
+
       .heading {
-        border: 1px solid #ccc;
-        font-weight: bold;
-        font-size: 18px;
-        color: #6281A7;
+          border: 1px solid #ccc;
+          font-weight: bold;
+          font-size: 18px;
+          color: #6281A7;
       }
+
       .num {
-        text-align: center;
-        min-width: 70px;
+          text-align: center;
+          min-width: 70px;
       }
-      
+
       .initial {
-      	width:60px;
-      	font-weight:bold;
-      	display:inline-flex;
+          width: 60px;
+          font-weight: bold;
+          display: inline-flex;
       }
-      
+
       .move_left {
-      	margin-left:-46%;
+          margin-left: -46%;
       }
+
       .initial_ex {
-      	width:96px;
-      	font-weight:bold;
-      	display:inline-flex;
+          width: 96px;
+          font-weight: bold;
+          display: inline-flex;
       }
-      
+
       .initial_d {
-				padding-left: 200px;
-				padding-right: 25px;
-				width: 40px;
-      	font-weight:bold;
-      	text-align:left;
-      	display:inline-flex;
+          padding-left: 200px;
+          padding-right: 25px;
+          width: 40px;
+          font-weight: bold;
+          text-align: left;
+          display: inline-flex;
       }
-      
+
       .dataE {
-      	display:block;
-      	float:left;
-      	text-align:center;
-      	margin-right:3px;
-      	margin-left:1px;
-      	width:48%;
+          display: block;
+          float: left;
+          text-align: center;
+          margin-right: 3px;
+          margin-left: 1px;
+          width: 48%;
       }
-      
+
       .line {
-      	display:block;
-      	width:2px;
-      	float:left;
-      	background-color:#CCCCCC;
+          display: block;
+          width: 2px;
+          float: left;
+          background-color: #CCCCCC;
       }
-      
-			.side {
-				position:relative;
-				float:left;
-				width:33%;
-			}
-			
+
+      .side {
+          position: relative;
+          float: left;
+          width: 33%;
+      }
+
       #adult {
-      	position:relative;
-      	left:150px;
-      	display:block;
+          position: relative;
+          left: 150px;
+          display: block;
       }
-      
+
       #paed {
-       	position:relative;
-      	left:150px;
-      	display:block;    
+          position: relative;
+          left: 150px;
+          display: block;
       }
-      
+
       .textpos {
-      	position:relative;
-      	top:-100%;
-      	left:0px;
-      	width:40%;
-      	display:block;      
+          position: relative;
+          top: -100%;
+          left: 0px;
+          width: 40%;
+          display: block;
       }
 
       .err-rows {
@@ -113,623 +118,616 @@
       .err-num {
           width: 3%;
       }
-      
+
       #who {
-      	display:block;
-				width:auto;
-				float:left;
-				margin-top:25%;
+          display: block;
+          width: auto;
+          float: left;
+          margin-top: 25%;
       }
-      
+
       #pshd {
-      	display:block;
-				float:left;
+          display: block;
+          float: left;
       }
-      
+
       .verticalLine {
-				-webkit-transform: rotate(270deg);
-				-moz-transform: rotate(270deg);
-				-o-transform: rotate(270deg);
-				-ms-transform: rotate(270deg);
-				transform: rotate(270deg);
+          -webkit-transform: rotate(270deg);
+          -moz-transform: rotate(270deg);
+          -o-transform: rotate(270deg);
+          -ms-transform: rotate(270deg);
+          transform: rotate(270deg);
       }
 
-    </style>
-  </head>
-  <body>
+  </style>
+</head>
+<body>
 
-  <div id="circle" style="position:absolute; top: 48%; left: 38%; max-width:40px;max-height:40px; z-index:100"
-       class="pie_progress" role="progressbar" data-goal="100" aria-valuemin="0" aria-valuemax="100">
-    <span class="pie_progress__number"></span>
-  </div>
+<div id="circle" style="position:absolute; top: 50%; left: 50%; z-index:100"
+     class="pie_progress" role="progressbar" data-goal="100" aria-valuemin="0" aria-valuemax="100">
+  <span class="pie_progress__number"></span>
+</div>
 
-    <table id="report" width="100%" cellspacing="2" cellpadding="5">
-      <tr>
-        <th style="background-color: #ccc;">
-          &nbsp;
-        </th>
-        <th colspan="4" class="header" style="background-color: #6281A7;
+<table id="report" width="100%" cellspacing="2" cellpadding="5">
+  <tr>
+    <th style="background-color: #ccc;">
+      &nbsp;
+    </th>
+    <th colspan="4" class="header" style="background-color: #6281A7;
             padding: 10px; color: #fff; font-weight: normal;">
-          <span id="qtr">{quarter}</span> Cohort Report
+      <span id="qtr">{quarter}</span> Cohort Report
 
-          <br /><table style="width: 100%;" class="consistency-section"></table>
-        </th>
-      </tr>
-      <tr>
-        <th style="background-color: #ccc;">
-          &nbsp;
-        </th>
-        <td id="site" class="normalcell header" style="color: #6281A7;">
-          {site}
-        </td>
-        <td class="heading" style="color: #6281A7;">
-          Newly Registered in Quarter
-        </td>
-        <td class="heading" colspan="2" style="color: #6281A7;">
-          Cumulative Ever Registered
-        </td>
-      </tr>
-      <tr>
-        <th style="background-color: #ccc;">
-          &nbsp;
-        </th>
-        <td class="heading" style="color: #6281A7;">
-          Patient Registration Details
-        </td>
-        <th class="normalcell">
-          <span class='dataE'> Clinic own data* </span> <span class='line'>&nbsp;</span><span class='dataE'> Checked data </span>
-        </th>
-        <th class="normalcell" colspan="2">
-          <span class='dataE'> Clinic own data* </span> <span class='line'>&nbsp;</span><span class='dataE'> Checked data </span>
-        </th>
-      </tr>
-      <tr>
-        <td style="background-color: #ccc;">
-          &nbsp;
-        </td>
-        <td class="normalcell">
-          &nbsp;
-        </td>
-        <td class="normalcell">
-          &nbsp;
-        </td>
-        <td class="normalcell" colspan="2">
-          &nbsp;
-        </td>
-      </tr>
-    </table>
+      <br/>
+      <table style="width: 100%;" class="consistency-section"></table>
+    </th>
+  </tr>
+  <tr>
+    <th style="background-color: #ccc;">
+      &nbsp;
+    </th>
+    <td id="site" class="normalcell header" style="color: #6281A7;">
+      {site}
+    </td>
+    <td class="heading" style="color: #6281A7;">
+      Newly Registered in Quarter
+    </td>
+    <td class="heading" colspan="2" style="color: #6281A7;">
+      Cumulative Ever Registered
+    </td>
+  </tr>
+  <tr>
+    <th style="background-color: #ccc;">
+      &nbsp;
+    </th>
+    <td class="heading" style="color: #6281A7;">
+      Patient Registration Details
+    </td>
+    <th class="normalcell">
+      <span class='dataE'> Clinic own data* </span>
+      <span class='line'>&nbsp;</span><span class='dataE'> Checked data </span>
+    </th>
+    <th class="normalcell" colspan="2">
+      <span class='dataE'> Clinic own data* </span>
+      <span class='line'>&nbsp;</span><span class='dataE'> Checked data </span>
+    </th>
+  </tr>
+  <tr>
+    <td style="background-color: #ccc;">
+      &nbsp;
+    </td>
+    <td class="normalcell">
+      &nbsp;
+    </td>
+    <td class="normalcell">
+      &nbsp;
+    </td>
+    <td class="normalcell" colspan="2">
+      &nbsp;
+    </td>
+  </tr>
+</table>
 
-    <script type="text/javascript">
-      <!--
-            
-      // [
-      //   0:   position label (col #0),
-      //   1:   label col 1 (col #1),
-      //   2:   column count,
-      //   3:   for 2 columns cases, second column label: heading type (col #2),
-      //   4:   for regular columns, col 2 label (col #2),
-      //   5:   col 3 label (col #3),
-      //   6:   col 4 label/value (col #4),
-      //   7:   rowspan,
-      //   8:   field id for col #2,
-      //   9:   ajaxUrl link for col #2,
-      //   10:  field id for col #3,
-      //   11:  ajaxUrl link for col #3,
-      //   12:  field id for col #4,
-      //   13:  ajaxUrl link for col #4
-      // ]
-      var fields = [
-        [24, "Total registered", 3,,,,,,"new_total_reg", "/field?field=new_total_reg",
-          "cum_total_reg", "/field?field=cum_total_reg"],
+<script type="text/javascript">
+    <!--
+
+    // [
+    //   0:   position label (col #0),
+    //   1:   label col 1 (col #1),
+    //   2:   column count,
+    //   3:   for 2 columns cases, second column label: heading type (col #2),
+    //   4:   for regular columns, col 2 label (col #2),
+    //   5:   col 3 label (col #3),
+    //   6:   col 4 label/value (col #4),
+    //   7:   rowspan,
+    //   8:   field id for col #2,
+    //   9:   ajaxUrl link for col #2,
+    //   10:  field id for col #3,
+    //   11:  ajaxUrl link for col #3,
+    //   12:  field id for col #4,
+    //   13:  ajaxUrl link for col #4
+    // ]
+    var fields = [
+        [24, "Total registered", 3, , , , , , "new_total_reg", "/field?field=new_total_reg",
+            "cum_total_reg", "/field?field=cum_total_reg"],
         ["&nbsp;", "&nbsp;", 1],
-        ["25<br><br>26<br><br>27", "<span class='initial'>FT</span> Patients initiated on ART first time <br><br><span class='initial'>Re</span> Patients re-initiated on ART<br><br><span class='initial'>TI</span> Patients transfered in on ART", 3,,,,,3,"new_ft", "/field?field=new_ft",
-          "cum_ft", "/field?field=cum_ft"],
-        ["", "", 3,,,,,0,"new_re", "/field?field=new_re",
-          "cum_re", "/field?field=cum_re"],
-        ["", "", 3,,,,,0,"new_ti", "/field?field=new_ti",
-          "cum_ti", "/field?field=cum_ti"],
+        ["25<br><br>26<br><br>27", "<span class='initial'>FT</span> Patients initiated on ART first time <br><br><span class='initial'>Re</span> Patients re-initiated on ART<br><br><span class='initial'>TI</span> Patients transfered in on ART", 3, , , , , 3, "new_ft", "/field?field=new_ft",
+            "cum_ft", "/field?field=cum_ft"],
+        ["", "", 3, , , , , 0, "new_re", "/field?field=new_re",
+            "cum_re", "/field?field=cum_re"],
+        ["", "", 3, , , , , 0, "new_ti", "/field?field=new_ti",
+            "cum_ti", "/field?field=cum_ti"],
         ["&nbsp;", "&nbsp;", 1],
-        ["28<br><br>29<br><br>30", "<span class='initial'>M</span> Males (all ages)<br><br><span class='initial'>FNP</span> Non-pregnant Females (all ages)<br><br><span class='initial'>FP</span> Pregnant Females (all ages)", 3,,,,,3,"new_males", "/field?field=new_males",
-          "cum_males", "/field?field=cum_males"],
-        ["", "", 3,,,,,0,"new_non_preg", "/field?field=new_non_preg",
-          "cum_non_preg", "/field?field=cum_non_preg"],
-        ["", "", 3,,,,,0,"new_preg_all_age", "/field?field=new_preg_all_age",
-          "cum_preg_all_age", "/field?field=cum_preg_all_age"],
+        ["28<br><br>29<br><br>30", "<span class='initial'>M</span> Males (all ages)<br><br><span class='initial'>FNP</span> Non-pregnant Females (all ages)<br><br><span class='initial'>FP</span> Pregnant Females (all ages)", 3, , , , , 3, "new_males", "/field?field=new_males",
+            "cum_males", "/field?field=cum_males"],
+        ["", "", 3, , , , , 0, "new_non_preg", "/field?field=new_non_preg",
+            "cum_non_preg", "/field?field=cum_non_preg"],
+        ["", "", 3, , , , , 0, "new_preg_all_age", "/field?field=new_preg_all_age",
+            "cum_preg_all_age", "/field?field=cum_preg_all_age"],
         ["&nbsp;", "&nbsp;", 1],
-        ["31<br><br>32<br><br>33", "<span class='initial'>A</span> Infants (0<24 months at ART initiation)<br><br><span class='initial'>B</span> Children (24 mths -14 yrs at ART initiation)<br><br><span class='initial'>C</span> Adults (15 years or older at ART initiation)", 3,,,,,3,"new_a", "/field?field=new_a",
-          "cum_a", "/field?field=cum_a"],
-        ["", "", 3,,,,,0,"new_b", "/field?field=new_b",
-          "cum_b", "/field?field=cum_b"],
-        ["", "", 3,,,,,0,"new_c", "/field?field=new_c",
-          "cum_c", "/field?field=cum_c"],
-        ["&nbsp;", "Unknown age", 3,,,,,,"new_unk_age", "/field?field=new_unk_age",
-          "cum_unk_age", "/field?field=cum_unk_age"],
+        ["31<br><br>32<br><br>33", "<span class='initial'>A</span> Infants (0<24 months at ART initiation)<br><br><span class='initial'>B</span> Children (24 mths -14 yrs at ART initiation)<br><br><span class='initial'>C</span> Adults (15 years or older at ART initiation)", 3, , , , , 3, "new_a", "/field?field=new_a",
+            "cum_a", "/field?field=cum_a"],
+        ["", "", 3, , , , , 0, "new_b", "/field?field=new_b",
+            "cum_b", "/field?field=cum_b"],
+        ["", "", 3, , , , , 0, "new_c", "/field?field=new_c",
+            "cum_c", "/field?field=cum_c"],
+        ["&nbsp;", "Unknown age", 3, , , , , , "new_unk_age", "/field?field=new_unk_age",
+            "cum_unk_age", "/field?field=cum_unk_age"],
         ["&nbsp;", "Reason for starting ART", 3, "&nbsp;"],
-        ["34<br><br>35<br><br>36<br><br>37<br><br>38<br><br>39<br><br>40<br><br>41<br><br>42<br><br>43<br>","<div id='who' class='verticalLine'>&nbsp;&nbsp;&nbsp;&nbsp;WHO stage 1 or 2 <hr width='150%'style='border-top: 2px dotted black;'></div><div id='pshd'><span class='initial move_left'>PSHD</span> Pres. Sev. HIV disease age <12 m <br><br><span class='initial'>PCR</span> Infants<12 mths PCR+<br><br><span class='initial'> U5 </span> Children 12-23 mths<br><br><span class='initial'> Preg </span> Pregnant women<br><br><span class='initial'>BF</span> Breastfeeding mothers<br><br><span class='initial'>CD4</span> CD4 below threshold<br><br><span class='initial'>TLC</span>  TLC<1,200/mm<sup>3</sup><br><br><span class='initial move_left'>3</span> WHO stage 3<br><br><span class='initial move_left'>4</span> WHO stage 4<br><br><span class='initial move_left'>Unk</span>  Unknown/reason outside guidelines</div>",
-        	 3,,,,,10,"new_pres_hiv", "/field?field=new_pres_hiv",
-          "cum_pres_hiv", "/field?field=cum_pres_hiv"],
-        ["", "", 3,,,,,0,"new_conf_hiv", "/field?field=new_conf_hiv",
-          "cum_conf_hiv", "/field?field=cum_conf_hiv"],
-				["", "", 3,,,,,0,"new_children", "/field?field=new_children",
-          "cum_children", "/field?field=cum_children"],
-        ["", "", 3,,,,,0,"new_preg", "/field?field=new_preg",
-          "cum_preg", "/field?field=cum_preg"],
-        ["", "", 3,,,,,0,"new_breastfeed", "/field?field=new_breastfeed",
-          "cum_breastfeed", "/field?field=cum_breastfeed"],
-        ["", "", 3,,,,,0,"new_who_1_2", "/field?field=new_who_1_2",
-          "cum_who_1_2", "/field?field=cum_who_1_2"],
-        ["", "", 3,,,,,0,"new_who_2", "/field?field=new_who_2",
-          "cum_who_2", "/field?field=cum_who_2"],
-        ["", "", 3,,,,,0,"new_who_3", "/field?field=new_who_3",
-          "cum_who_3", "/field?field=cum_who_3"],
-        ["", "", 3,,,,,0,"new_who_4", "/field?field=new_who_4",
-          "cum_who_4", "/field?field=cum_who_4"],
-        ["", "", 3,,,,,0,"new_other_reason", "/field?field=new_other_reason",
-          "cum_other_reason", "/field?field=cum_other_reason"],
-         ["&nbsp;", "&nbsp;", 3,,,,,,"news_unk_age", "",
-          "", ""],
+        ["34<br><br>35<br><br>36<br><br>37<br><br>38<br><br>39<br><br>40<br><br>41<br><br>42<br><br>43<br>", "<div id='who' class='verticalLine'>&nbsp;&nbsp;&nbsp;&nbsp;WHO stage 1 or 2 <hr width='150%'style='border-top: 2px dotted black;'></div><div id='pshd'><span class='initial move_left'>PSHD</span> Pres. Sev. HIV disease age <12 m <br><br><span class='initial'>PCR</span> Infants<12 mths PCR+<br><br><span class='initial'> U5 </span> Children 12-23 mths<br><br><span class='initial'> Preg </span> Pregnant women<br><br><span class='initial'>BF</span> Breastfeeding mothers<br><br><span class='initial'>CD4</span> CD4 below threshold<br><br><span class='initial'>TLC</span>  TLC<1,200/mm<sup>3</sup><br><br><span class='initial move_left'>3</span> WHO stage 3<br><br><span class='initial move_left'>4</span> WHO stage 4<br><br><span class='initial move_left'>Unk</span>  Unknown/reason outside guidelines</div>",
+            3, , , , , 10, "new_pres_hiv", "/field?field=new_pres_hiv",
+            "cum_pres_hiv", "/field?field=cum_pres_hiv"],
+        ["", "", 3, , , , , 0, "new_conf_hiv", "/field?field=new_conf_hiv",
+            "cum_conf_hiv", "/field?field=cum_conf_hiv"],
+        ["", "", 3, , , , , 0, "new_children", "/field?field=new_children",
+            "cum_children", "/field?field=cum_children"],
+        ["", "", 3, , , , , 0, "new_preg", "/field?field=new_preg",
+            "cum_preg", "/field?field=cum_preg"],
+        ["", "", 3, , , , , 0, "new_breastfeed", "/field?field=new_breastfeed",
+            "cum_breastfeed", "/field?field=cum_breastfeed"],
+        ["", "", 3, , , , , 0, "new_who_1_2", "/field?field=new_who_1_2",
+            "cum_who_1_2", "/field?field=cum_who_1_2"],
+        ["", "", 3, , , , , 0, "new_who_2", "/field?field=new_who_2",
+            "cum_who_2", "/field?field=cum_who_2"],
+        ["", "", 3, , , , , 0, "new_who_3", "/field?field=new_who_3",
+            "cum_who_3", "/field?field=cum_who_3"],
+        ["", "", 3, , , , , 0, "new_who_4", "/field?field=new_who_4",
+            "cum_who_4", "/field?field=cum_who_4"],
+        ["", "", 3, , , , , 0, "new_other_reason", "/field?field=new_other_reason",
+            "cum_other_reason", "/field?field=cum_other_reason"],
+        ["&nbsp;", "&nbsp;", 3, , , , , , "news_unk_age", "",
+            "", ""],
         ["&nbsp;", "Stage defining conditions at ART initiation", 3, "&nbsp;"],
-        ["44<br><br>45<br><br>46", "<span class='initial_ex'>Nev/&gt;2yrs </span> No TB <br><br> <span class='initial_ex'>Last 2yrs </span> TB within the last 2 years<br><br><span class='initial_ex'>Curr</span> Current episode of TB", 3,,,,,3,"new_no_tb", "/field?field=new_no_tb",
-          "cum_no_tb", "/field?field=cum_no_tb"],
-        ["", "", 3,,,,,0,"new_tb_w2yrs", "/field?field=new_tb_w2yrs",
-          "cum_tb_w2yrs", "/field?field=cum_tb_w2yrs"],
-        ["", "", 3,,,,,0,"new_current_tb", "/field?field=new_current_tb",
-          "cum_current_tb", "/field?field=cum_current_tb"],
+        ["44<br><br>45<br><br>46", "<span class='initial_ex'>Nev/&gt;2yrs </span> No TB <br><br> <span class='initial_ex'>Last 2yrs </span> TB within the last 2 years<br><br><span class='initial_ex'>Curr</span> Current episode of TB", 3, , , , , 3, "new_no_tb", "/field?field=new_no_tb",
+            "cum_no_tb", "/field?field=cum_no_tb"],
+        ["", "", 3, , , , , 0, "new_tb_w2yrs", "/field?field=new_tb_w2yrs",
+            "cum_tb_w2yrs", "/field?field=cum_tb_w2yrs"],
+        ["", "", 3, , , , , 0, "new_current_tb", "/field?field=new_current_tb",
+            "cum_current_tb", "/field?field=cum_current_tb"],
         ["&nbsp;", "&nbsp;", 2],
-        [47, "<span class='initial'>KS</span> Kaposis Sarcoma", 3,,,,,,"new_ks", "/field?field=new_ks",
-          "cum_ks", "/field?field=cum_ks"],
+        [47, "<span class='initial'>KS</span> Kaposis Sarcoma", 3, , , , , , "new_ks", "/field?field=new_ks",
+            "cum_ks", "/field?field=cum_ks"],
         ["&nbsp;", "Primary outcomes as of the end of the quarter evaluated (only cumulative)", 2,
-          "Cumulative ever registered"],
-        [48, "Total alive and on ART", 2,,,,,,"total_on_art", "/field?field=total_on_art"],
+            "Cumulative ever registered"],
+        [48, "Total alive and on ART", 2, , , , , , "total_on_art", "/field?field=total_on_art"],
         ["&nbsp;", "&nbsp;", 2],
-        ["49<br><br>50<br><br>51<br><br>52", "<span class='initial_d'>M1</span> Died within the 1<sup>st</sup> month after ART initiation<br><br><span class='initial_d'>M2</span> Died within the 2<sup>nd</sup> month after ART initiation<br><br><span class='initial_d'>M3</span> Died within the 3<sup>rd</sup> month after ART initiation<br><br><span class='initial_d'>M4+</span> Died after the end of the 3<sup>rd</sup> month after ART initiation", 2,,,,,4,"died_1st_month",
-          "/field?field=died_1st_month"],
-        [50, "", 2,,,,,0,
-          "died_2nd_month", "/field?field=died_2nd_month"],
-        [51, "", 2,,,,,0,
-          "died_3rd_month", "/field?field=died_3rd_month"],
-        [52, "", 2,,,,,0,
-          "died_after_3rd_month", "/field?field=died_after_3rd_month"],
-        ["53<br><br>54<br><br>55<br><br>56", "<b>D</b>ied total<br><br><b>Def</b>aulted (more than 2 months overdue after expected to have run out of ARVs)<br><br><b>Stop</b>ped taking ARVs (clinician or patient own decision, last known alive)<br><br><b>T</b>ransfered <b>O</b>ut", 2,,,,,4,"died_total", "/field?field=died_total"],
-        ["", "", 2,,,,,0,
-          "defaulted", "/field?field=defaulted"],
-        ["", "", 2,,,,,0,"stopped",
-          "/field?field=stopped"],
-        ["", "", 2,,,,,0,"transfered", "/field?field=transfered"],
-        ["&nbsp;", "Unknown outcome", 2,,,,,,"unknown_outcome", "/field?field=unknown_outcome"],
+        ["49<br><br>50<br><br>51<br><br>52", "<span class='initial_d'>M1</span> Died within the 1<sup>st</sup> month after ART initiation<br><br><span class='initial_d'>M2</span> Died within the 2<sup>nd</sup> month after ART initiation<br><br><span class='initial_d'>M3</span> Died within the 3<sup>rd</sup> month after ART initiation<br><br><span class='initial_d'>M4+</span> Died after the end of the 3<sup>rd</sup> month after ART initiation", 2, , , , , 4, "died_1st_month",
+            "/field?field=died_1st_month"],
+        [50, "", 2, , , , , 0,
+            "died_2nd_month", "/field?field=died_2nd_month"],
+        [51, "", 2, , , , , 0,
+            "died_3rd_month", "/field?field=died_3rd_month"],
+        [52, "", 2, , , , , 0,
+            "died_after_3rd_month", "/field?field=died_after_3rd_month"],
+        ["53<br><br>54<br><br>55<br><br>56", "<b>D</b>ied total<br><br><b>Def</b>aulted (more than 2 months overdue after expected to have run out of ARVs)<br><br><b>Stop</b>ped taking ARVs (clinician or patient own decision, last known alive)<br><br><b>T</b>ransfered <b>O</b>ut", 2, , , , , 4, "died_total", "/field?field=died_total"],
+        ["", "", 2, , , , , 0,
+            "defaulted", "/field?field=defaulted"],
+        ["", "", 2, , , , , 0, "stopped",
+            "/field?field=stopped"],
+        ["", "", 2, , , , , 0, "transfered", "/field?field=transfered"],
+        ["&nbsp;", "Unknown outcome", 2, , , , , , "unknown_outcome", "/field?field=unknown_outcome"],
         ["&nbsp;", "Secondary outcomes of those alive on ART as of last visit before end of quarter", 1, "&nbsp;"],
-        ["&nbsp;<br><br>59<br><br>60<br><br>61<br><br>62<br><br>63<br><br>64", "ARV regimens <span id='paed'><b>Paediatric</b> formulations (blue card)</span>", 3, null, "&nbsp;", "&nbsp;", "&nbsp;", 7,,,,, null, null],
-        ["59<br><br>60", "", 3, null, "Regimen <b>0P</b>", "&nbsp;", "&nbsp;", 0,,,"n0p",,"n0p", "/field?field=n0p"],
-        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>1P</b>", "&nbsp;", "&nbsp;", 0,,,"n1p",,"n1p", "/field?field=n1p"],
-				["61<br><br>62", "&nbsp;", 3, null, "Regimen <b>2P</b>", "&nbsp;", "&nbsp;", 0,,,"n2p",,"n2p", "/field?field=n2p"],
-        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>3P</b>", "&nbsp;", "&nbsp;", 0,,,"n3p",, "n3p", "/field?field=n3p"],
-        ["63<br><br>64", "&nbsp;", 3, null, "Regimen <b>4P</b>", "&nbsp;", "&nbsp;", 0,,,"n4p",, "n4p", "/field?field=n4p"],
-        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>9P</b>", "&nbsp;", "&nbsp;", 0,,,"n9p",, "n9p", "/field?field=n9p"], 
-        ["65<br><br>66<br><br>67<br><br>68<br><br>69<br><br>70<br><br>71<br><br>72<br><br>73<br><br>74", "<span id='adult'><b>Adult</b> formulations (yellow card)</span>", 3, null, "Regimen <b>0A</b>", "&nbsp;", "&nbsp;",10,,,"n0a",,"n0a", "/field?field=n0a"],
-        ["&nbsp;", "&nbsp;", 3, null,"Regimen <b>1A</b>", "&nbsp;", "&nbsp;", 0,,,"n1a",,"n1a", "/field?field=n1a"],
-        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>2A</b>", "&nbsp;", "&nbsp;", 0,,,"n2a",, "n2a", "/field?field=n2a"],
-		["&nbsp;", "&nbsp;", 3, null,"Regimen <b>3A</b>", "&nbsp;", "&nbsp;", 0,,,"n3a",,"n3a", "/field?field=n3a"],
-        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>4A</b>", "&nbsp;", "&nbsp;", 0,,,"n4a",, "n4a", "/field?field=n4a"],
-        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>5A</b>", "&nbsp;", "&nbsp;", 0,,,"n5a",, "n5a", "/field?field=n5a"],
-        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>6A</b>", "&nbsp;", "&nbsp;", 0,,,"n6a",, "n6a", "/field?field=n6a"],
-        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>7A</b>", "&nbsp;", "&nbsp;", 0,,,"n7a",, "n7a", "/field?field=n7a"],
-        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>8A</b>", "&nbsp;", "&nbsp;", 0,,, "n8a",, "n8a", "/field?field=n8a"],
-        ["&nbsp;", "&nbsp;", 3, null, "Other (paed. /adult)", "&nbsp;", "&nbsp;", 0,,,"non_std",, "non_std",
-          "/field?field=non_std"],
+        ["&nbsp;<br><br>59<br><br>60<br><br>61<br><br>62<br><br>63<br><br>64", "ARV regimens <span id='paed'><b>Paediatric</b> formulations (blue card)</span>", 3, null, "&nbsp;", "&nbsp;", "&nbsp;", 7, , , , , null, null],
+        ["59<br><br>60", "", 3, null, "Regimen <b>0P</b>", "&nbsp;", "&nbsp;", 0, , , "n0p", , "n0p", "/field?field=n0p"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>1P</b>", "&nbsp;", "&nbsp;", 0, , , "n1p", , "n1p", "/field?field=n1p"],
+        ["61<br><br>62", "&nbsp;", 3, null, "Regimen <b>2P</b>", "&nbsp;", "&nbsp;", 0, , , "n2p", , "n2p", "/field?field=n2p"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>3P</b>", "&nbsp;", "&nbsp;", 0, , , "n3p", , "n3p", "/field?field=n3p"],
+        ["63<br><br>64", "&nbsp;", 3, null, "Regimen <b>4P</b>", "&nbsp;", "&nbsp;", 0, , , "n4p", , "n4p", "/field?field=n4p"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>9P</b>", "&nbsp;", "&nbsp;", 0, , , "n9p", , "n9p", "/field?field=n9p"],
+        ["65<br><br>66<br><br>67<br><br>68<br><br>69<br><br>70<br><br>71<br><br>72<br><br>73<br><br>74", "<span id='adult'><b>Adult</b> formulations (yellow card)</span>", 3, null, "Regimen <b>0A</b>", "&nbsp;", "&nbsp;", 10, , , "n0a", , "n0a", "/field?field=n0a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>1A</b>", "&nbsp;", "&nbsp;", 0, , , "n1a", , "n1a", "/field?field=n1a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>2A</b>", "&nbsp;", "&nbsp;", 0, , , "n2a", , "n2a", "/field?field=n2a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>3A</b>", "&nbsp;", "&nbsp;", 0, , , "n3a", , "n3a", "/field?field=n3a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>4A</b>", "&nbsp;", "&nbsp;", 0, , , "n4a", , "n4a", "/field?field=n4a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>5A</b>", "&nbsp;", "&nbsp;", 0, , , "n5a", , "n5a", "/field?field=n5a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>6A</b>", "&nbsp;", "&nbsp;", 0, , , "n6a", , "n6a", "/field?field=n6a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>7A</b>", "&nbsp;", "&nbsp;", 0, , , "n7a", , "n7a", "/field?field=n7a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Regimen <b>8A</b>", "&nbsp;", "&nbsp;", 0, , , "n8a", , "n8a", "/field?field=n8a"],
+        ["&nbsp;", "&nbsp;", 3, null, "Other (paed. /adult)", "&nbsp;", "&nbsp;", 0, , , "non_std", , "non_std",
+            "/field?field=non_std"],
         ["&nbsp;", " ", 1],
-        ["75<br><br>76<br><br>77", "<div class='side'><b>Side effects</b> </div><div class='side'>(as of the last visit end of qurter) </div><div class='side'> <b>None</b><br><br><b>Any</b> side effects<br><br><b>Unk</b>nown (not circled)</div>", 2,,,,,3,"no_effects","/field?field=no_effects"],
-        ["", "", 2,,,,,0,"any_effects","/field?field=side_effects"],
-        ["", "", 2,,,,,0,"unk_effects","/field?field=unk_effects"],
+        ["75<br><br>76<br><br>77", "<div class='side'><b>Side effects</b> </div><div class='side'>(as of the last visit end of qurter) </div><div class='side'> <b>None</b><br><br><b>Any</b> side effects<br><br><b>Unk</b>nown (not circled)</div>", 2, , , , , 3, "no_effects", "/field?field=no_effects"],
+        ["", "", 2, , , , , 0, "any_effects", "/field?field=side_effects"],
+        ["", "", 2, , , , , 0, "unk_effects", "/field?field=unk_effects"],
         ["&nbsp;", "&nbsp;", 1],
-        ["78<br><br>79<br><br>80", "<div class='side'><b>Adherence</b> </div><div class='side'>(as of the last visit end of qurter) </div><div class='side'> <b>0 - 3</b> doses missed<br><br><b>4+</b> doses missed<br><br><b>Unk</b>nown (not circled)</div>", 2,,,,,3, "missed_0_6","/field?field=missed_0_6"],
-        ["79", "", 2,,,,,0,
-          "missed_7plus","/field?field=missed_7plus"],
-        ["80", "", 2,,,,,0,"unknown_adherence","/field?field=unknown_adherence"],
+        ["78<br><br>79<br><br>80", "<div class='side'><b>Adherence</b> </div><div class='side'>(as of the last visit end of qurter) </div><div class='side'> <b>0 - 3</b> doses missed<br><br><b>4+</b> doses missed<br><br><b>Unk</b>nown (not circled)</div>", 2, , , , , 3, "missed_0_6", "/field?field=missed_0_6"],
+        ["79", "", 2, , , , , 0,
+            "missed_7plus", "/field?field=missed_7plus"],
+        ["80", "", 2, , , , , 0, "unknown_adherence", "/field?field=unknown_adherence"],
         ["&nbsp;", "&nbsp;", 1],
-        ["81<br><br>82<br><br>83<br><br>84<br><br>85", "<div class='side'><b>Current TB status</b><br> any form of TB </div><div class='side'>(as of the last visit end of qurter) </div><div class='side'> TB <b>not</b> suspected<br><br>TB <b>suspected</b><br><br>TB conf., <b>not</b> Rx<br><br>TB conf., <b>on TB Rx</b><br><br>Unknown (not circled)</div>", 2, null, "",,,5,"tb_no_suspect",,"tb_no_suspect",
-          "/field?field=tb_no_suspect"],
-        ["", "&nbsp;", 2, null, "",,,0,"tb_suspected",,"tb_suspected", "/field?field=tb_suspected"],
-        ["", "&nbsp;", 2, null, "",,,0,"tb_confirm_not_treat",,
-          "tb_confirm_not_treat", "/field?field=tb_confirm_not_treat"],
-        ["", "&nbsp;", 2, null, "",,,0,"tb_confirmed",,"tb_confirmed",
-          "/field?field=tb_confirmed"],
-        ["", "&nbsp;", 2, null, "",,,0,"unknown_tb",,"unknown_tb", "/field?field=unknown_tb"],
+        ["81<br><br>82<br><br>83<br><br>84<br><br>85", "<div class='side'><b>Current TB status</b><br> any form of TB </div><div class='side'>(as of the last visit end of qurter) </div><div class='side'> TB <b>not</b> suspected<br><br>TB <b>suspected</b><br><br>TB conf., <b>not</b> Rx<br><br>TB conf., <b>on TB Rx</b><br><br>Unknown (not circled)</div>", 2, null, "", , , 5, "tb_no_suspect", , "tb_no_suspect",
+            "/field?field=tb_no_suspect"],
+        ["", "&nbsp;", 2, null, "", , , 0, "tb_suspected", , "tb_suspected", "/field?field=tb_suspected"],
+        ["", "&nbsp;", 2, null, "", , , 0, "tb_confirm_not_treat", ,
+            "tb_confirm_not_treat", "/field?field=tb_confirm_not_treat"],
+        ["", "&nbsp;", 2, null, "", , , 0, "tb_confirmed", , "tb_confirmed",
+            "/field?field=tb_confirmed"],
+        ["", "&nbsp;", 2, null, "", , , 0, "unknown_tb", , "unknown_tb", "/field?field=unknown_tb"],
         ["&nbsp;", "&nbsp;", 2, null, "&nbsp;"]
-      ];
-            
-      function __$(id){
+    ];
+
+    function __$(id) {
         return document.getElementById(id);
-      }
-            
-      function createTable(){
-        for(var i = 0; i < fields.length; i++){
-          var row = document.createElement("tr");
-                        
-          __$("report").getElementsByTagName("tbody")[0].appendChild(row);
-                                               
-          var cell0 = document.createElement("td");
-          cell0.innerHTML = fields[i][0];
-          cell0.style.textAlign = "right";
-          cell0.style.color = "#fff";
-          cell0.style.backgroundColor = (String(fields[i][0]).trim() != "&nbsp;" ? "#6281A7" : "#ccc");
-          cell0.rowSpan = (fields[i][7] != "undefined" && fields[i][7] != 0 ? fields[i][7] : 1);
-                        
-          if(typeof(fields[i][7]) != "undefined" && fields[i][7] != 0){
-            row.appendChild(cell0);
-          } else if(typeof(fields[i][7]) == "undefined"){
-            row.appendChild(cell0);
-          }
-                    
-          var cell1 = document.createElement("td");
-          cell1.innerHTML = fields[i][1];
-          cell1.className = (typeof(fields[i][3]) != "undefined" && fields[i][3] != null ?
-            "heading" : "normalcell");
-          cell1.colSpan = (fields[i][2] == 1 ? 4 : (fields[i][2] == 2 ? 2 : 1));
-          cell1.rowSpan = (fields[i][7] != "undefined" && fields[i][7] != 0 ? fields[i][7] : 1);
-                    
-          if(typeof(fields[i][7]) != "undefined" && fields[i][7] != 0){
-            row.appendChild(cell1);
-          } else if(typeof(fields[i][7]) == "undefined"){
-            row.appendChild(cell1);
-          }
-                    
-          if(fields[i][2] == 1){
-            continue;
-          }
-                    
-          var cell2 = document.createElement("td");
-          cell2.innerHTML = (fields[i][2] == 2 ? (typeof(fields[i][3]) != "undefined" && fields[i][3] != null ?
-            fields[i][3] : "&nbsp;") : (typeof(fields[i][4]) != "undefined" ? fields[i][4] : "&nbsp;"));
-                    
-          cell2.className = (typeof(fields[i][3]) != "undefined" && fields[i][3] != null ?
-            "heading" : "normalcell");
-          cell2.colSpan = (fields[i][2] == 2 ? 2 : 1);
-                    
-          if(typeof(fields[i][8]) != "undefined"){
-            cell2.id = fields[i][8];
-            cell2.className = "num normalcell";
-          }
-                    
-          row.appendChild(cell2);
-                    
-          if(fields[i][2] == 2){
-            continue;
-          }
-                    
-          var cell3 = document.createElement("td");
-          cell3.innerHTML = (typeof(fields[i][5]) != "undefined" ? fields[i][5] : "&nbsp;");
-          cell3.className = "normalcell";
-          cell3.colSpan = (fields[i][2] == 3 ? 2 : 1);
-                    
-          if(typeof(fields[i][10]) != "undefined"){
-            cell3.id = fields[i][10];
-            cell3.className = "num normalcell";
-          }
-                    
-          row.appendChild(cell3);
-                    
-          if(fields[i][2] == 3){
-            continue;
-          }
-                    
-          var cell4 = document.createElement("td");
-          cell4.innerHTML = (typeof(fields[i][6]) != "undefined" ? fields[i][6] : "&nbsp;");
-          cell4.className = "normalcell";
-                    
-          if(typeof(fields[i][12]) != "undefined"){
-            cell4.id = fields[i][12];
-            cell4.className = "num normalcell";
-          }
-                    
-          row.appendChild(cell4);
-                    
+    }
+
+    function createTable() {
+        for (var i = 0; i < fields.length; i++) {
+            var row = document.createElement("tr");
+
+            __$("report").getElementsByTagName("tbody")[0].appendChild(row);
+
+            var cell0 = document.createElement("td");
+            cell0.innerHTML = fields[i][0];
+            cell0.style.textAlign = "right";
+            cell0.style.color = "#fff";
+            cell0.style.backgroundColor = (String(fields[i][0]).trim() != "&nbsp;" ? "#6281A7" : "#ccc");
+            cell0.rowSpan = (fields[i][7] != "undefined" && fields[i][7] != 0 ? fields[i][7] : 1);
+
+            if (typeof(fields[i][7]) != "undefined" && fields[i][7] != 0) {
+                row.appendChild(cell0);
+            } else if (typeof(fields[i][7]) == "undefined") {
+                row.appendChild(cell0);
+            }
+
+            var cell1 = document.createElement("td");
+            cell1.innerHTML = fields[i][1];
+            cell1.className = (typeof(fields[i][3]) != "undefined" && fields[i][3] != null ?
+                    "heading" : "normalcell");
+            cell1.colSpan = (fields[i][2] == 1 ? 4 : (fields[i][2] == 2 ? 2 : 1));
+            cell1.rowSpan = (fields[i][7] != "undefined" && fields[i][7] != 0 ? fields[i][7] : 1);
+
+            if (typeof(fields[i][7]) != "undefined" && fields[i][7] != 0) {
+                row.appendChild(cell1);
+            } else if (typeof(fields[i][7]) == "undefined") {
+                row.appendChild(cell1);
+            }
+
+            if (fields[i][2] == 1) {
+                continue;
+            }
+
+            var cell2 = document.createElement("td");
+            cell2.innerHTML = (fields[i][2] == 2 ? (typeof(fields[i][3]) != "undefined" && fields[i][3] != null ?
+                    fields[i][3] : "&nbsp;") : (typeof(fields[i][4]) != "undefined" ? fields[i][4] : "&nbsp;"));
+
+            cell2.className = (typeof(fields[i][3]) != "undefined" && fields[i][3] != null ?
+                    "heading" : "normalcell");
+            cell2.colSpan = (fields[i][2] == 2 ? 2 : 1);
+
+            if (typeof(fields[i][8]) != "undefined") {
+                cell2.id = fields[i][8];
+                cell2.className = "num normalcell";
+            }
+
+            row.appendChild(cell2);
+
+            if (fields[i][2] == 2) {
+                continue;
+            }
+
+            var cell3 = document.createElement("td");
+            cell3.innerHTML = (typeof(fields[i][5]) != "undefined" ? fields[i][5] : "&nbsp;");
+            cell3.className = "normalcell";
+            cell3.colSpan = (fields[i][2] == 3 ? 2 : 1);
+
+            if (typeof(fields[i][10]) != "undefined") {
+                cell3.id = fields[i][10];
+                cell3.className = "num normalcell";
+            }
+
+            row.appendChild(cell3);
+
+            if (fields[i][2] == 3) {
+                continue;
+            }
+
+            var cell4 = document.createElement("td");
+            cell4.innerHTML = (typeof(fields[i][6]) != "undefined" ? fields[i][6] : "&nbsp;");
+            cell4.className = "normalcell";
+
+            if (typeof(fields[i][12]) != "undefined") {
+                cell4.id = fields[i][12];
+                cell4.className = "num normalcell";
+            }
+
+            row.appendChild(cell4);
+
         }
-      }
-            
-            
-      function ajaxRequest(aElement, aUrl, showLine=true) {
+    }
 
-          if (aUrl.match("undefined")){
 
-              console.log(aUrl + ":::" + aElement)
-          }
+    function ajaxRequest(aElement, aUrl, showLine=true) {
+
+        if (aUrl.match("undefined")) {
+
+            console.log(aUrl + ":::" + aElement)
+        }
 
         var httpRequest = new XMLHttpRequest();
-        	httpRequest.onreadystatechange = function() {
-          handleResult(aElement, httpRequest, showLine);
+        httpRequest.onreadystatechange = function () {
+            handleResult(aElement, httpRequest, showLine);
         };
         try {
-          httpRequest.open('GET', aUrl, true);
-          httpRequest.send(null);
-        } catch(e){
+            httpRequest.open('GET', aUrl, true);
+            httpRequest.send(null);
+        } catch (e) {
         }
-      }
+    }
 
-      function handleResult(element, aXMLHttpRequest, showLine) {
+    function handleResult(element, aXMLHttpRequest, showLine) {
         if (!aXMLHttpRequest) return;
 
         if (!element) return;
 
         if (aXMLHttpRequest.readyState == 4 && aXMLHttpRequest.status == 200) {
-          var result = aXMLHttpRequest.responseText;
-        
-          if(__$(element)){
-              __$(element).className += " success";
-            if(result.match(/\[/)){
-              var json = JSON.parse(result);
-                      
-              __$(element).innerHTML = "";
-              __$(element).style.padding = "0px";
+            var result = aXMLHttpRequest.responseText;
 
-              if(json.length > 0){
-                __$(element).style.verticalAlign = "middle";
-                
-                var frm = document.createElement("form");
-                frm.setAttribute("action", "/cohort/drill_down");
-                frm.setAttribute("method", "post");
-                frm.setAttribute("target", "_parent");
-                frm.style.padding = "0px";
-                frm.style.margin = "0px";
+            if (__$(element)) {
 
-                var startdate = document.createElement("input");
-                startdate.name = "start_date";
-                startdate.type = "hidden";
-                startdate.value = "<%= params[:start_date] %>"
+                __$(element).className += " success";
 
-                frm.appendChild(startdate);
+                var forms = document.getElementsByClassName("success");
+                var nodes = document.getElementsByClassName("num");
+                var percentage = parseInt((forms.length / nodes.length) * 100);
 
-                var enddate = document.createElement("input");
-                enddate.name = "end_date";
-                enddate.type = "hidden";
-                enddate.value = "<%= params[:end_date] %>"
+                $('.pie_progress').asPieProgress('go', (percentage + "%"));
 
-                frm.appendChild(enddate);
+                if (result.match(/\[/)) {
+                    var json = JSON.parse(result);
 
-                var textarea = document.createElement("textarea");
-                textarea.name = "field";
-                textarea.style.display = "none";
-                textarea.innerHTML = "";
-                textarea.style.margin = "0px";
+                    __$(element).innerHTML = "";
+                    __$(element).style.padding = "0px";
 
-                for(var j = 0; j < json.length; j++){
-                  textarea.innerHTML += json[j] + ","
+                    if (json.length > 0) {
+                        __$(element).style.verticalAlign = "middle";
+
+                        var frm = document.createElement("form");
+                        frm.setAttribute("action", "/cohort/drill_down");
+                        frm.setAttribute("method", "post");
+                        frm.setAttribute("target", "_parent");
+                        frm.style.padding = "0px";
+                        frm.style.margin = "0px";
+
+                        var startdate = document.createElement("input");
+                        startdate.name = "start_date";
+                        startdate.type = "hidden";
+                        startdate.value = "<%= params[:start_date] %>"
+
+                        frm.appendChild(startdate);
+
+                        var enddate = document.createElement("input");
+                        enddate.name = "end_date";
+                        enddate.type = "hidden";
+                        enddate.value = "<%= params[:end_date] %>"
+
+                        frm.appendChild(enddate);
+
+                        var textarea = document.createElement("textarea");
+                        textarea.name = "field";
+                        textarea.style.display = "none";
+                        textarea.innerHTML = "";
+                        textarea.style.margin = "0px";
+
+                        for (var j = 0; j < json.length; j++) {
+                            textarea.innerHTML += json[j] + ","
+                        }
+
+                        textarea.innerHTML = textarea.innerHTML.trim().substr(0, (textarea.innerHTML.trim().length - 1));
+
+                        frm.appendChild(textarea);
+
+                        var button = document.createElement("input");
+                        button.type = "submit";
+                        button.value = json.length;
+                        button.style.margin = "0px";
+                        button.style.color = "#000";
+                        button.style.width = "100%";
+                        button.style.border = "0px solid #fff";
+                        button.style.backgroundColor = "#fff";
+                        button.style.cursor = "pointer";
+
+                        frm.appendChild(button);
+
+                        if (showLine) {
+                            __$(element).innerHTML = "<span class='dataE'>" + frm.outerHTML + "</span> <span class='line'>&nbsp;</span><span class='dataE'> &nbsp; </span>";
+                        } else {
+                            __$(element).appendChild(frm);
+                        }
+                    } else {
+                        if (showLine) {
+                            __$(element).innerHTML = "<span class='dataE'>" + json.length + "</span> <span class='line'>&nbsp;</span><span class='dataE'> &nbsp; </span>";
+
+                        } else {
+                            __$(element).innerHTML = json.length;
+                        }
+
+                    }
+                } else {
+                    __$(element).innerHTML = result;
                 }
 
-                textarea.innerHTML = textarea.innerHTML.trim().substr(0, (textarea.innerHTML.trim().length - 1));
+                if (forms.length == nodes.length) {
 
-                frm.appendChild(textarea);
+                    $('.pie_progress').asPieProgress("finish");
+                    setTimeout(function () {
+                        document.getElementById("circle").style.display = "none";
+                    }, 100)
 
-                var button = document.createElement("input");
-                button.type = "submit";
-                button.value = json.length;
-                button.style.margin = "0px";
-                button.style.color = "#000";
-                button.style.width = "100%";
-                button.style.border = "0px solid #fff";
-                button.style.backgroundColor = "#fff";
-                button.style.cursor = "pointer";
-
-                frm.appendChild(button);
-              
-              	if (showLine) {
-              		__$(element).innerHTML = "<span class='dataE'>"+  frm.outerHTML + "</span> <span class='line'>&nbsp;</span><span class='dataE'> &nbsp; </span>";
-              	} else {
-              		__$(element).appendChild(frm); 
-              	}
-              } else {
-		            if (showLine) {
-		              __$(element).innerHTML ="<span class='dataE'>"+json.length + "</span> <span class='line'>&nbsp;</span><span class='dataE'> &nbsp; </span>";
-								
-		           } else {
-		            	__$(element).innerHTML = json.length;
-		            }
-
-              }
-            } else {
-              __$(element).innerHTML = result;
+                    console.log("Running data consistency checks");
+                    checkForConsistency();
+                }
             }
-          }
         }
-      }
-            
-      function loadFields(){
+    }
+
+    function loadFields() {
         ajaxRequest("site", "/field?field=current_site");
-                
+
         var start_date = null, end_date = null;
-                
+
         var path = window.location.href.match(/\?(.+)$/);
 
         var start = path[1].match(/start_date=\d{4}-\d{2}-\d{2}/);
 
         var end = path[1].match(/end_date=\d{4}-\d{2}-\d{2}/);
-                
-        if(start != null){
-          start_date = start[0].split("=")[1];
+
+        if (start != null) {
+            start_date = start[0].split("=")[1];
         }
-                
-        if(end != null){
-          end_date = end[0].split("=")[1];
+
+        if (end != null) {
+            end_date = end[0].split("=")[1];
         }
-                
+
         ajaxRequest("qtr", "/field?field=quarter&start_date=" +
-          start_date + "&end_date=" + end_date);
-                
-        for(var i = 0; i < fields.length; i++){
-          if(String(fields[i]).match(/field=/)){
-          if(typeof(fields[i][8]) != "undefined"){
-            if (fields[i][9] != null && fields[i][9] != undefined)
-            {
-                var link =  fields[i][9] + "&start_date=" + start_date + "&end_date=" + end_date
-                ajaxRequest(fields[i][8],link);
+                start_date + "&end_date=" + end_date);
+
+        for (var i = 0; i < fields.length; i++) {
+            if (String(fields[i]).match(/field=/)) {
+                if (typeof(fields[i][8]) != "undefined") {
+                    if (fields[i][9] != null && fields[i][9] != undefined) {
+                        var link = fields[i][9] + "&start_date=" + start_date + "&end_date=" + end_date
+                        ajaxRequest(fields[i][8], link);
+                    }
+                }
+                if (typeof(fields[i][10]) != "undefined") {
+                    if (fields[i][11] != null && fields[i][11] != undefined) {
+                        var link = fields[i][11] + "&start_date=" + start_date + "&end_date=" + end_date;
+                        ajaxRequest(fields[i][10], link);
+                    }
+                }
+                if (typeof(fields[i][12]) != "undefined") {
+                    if (fields[i][13] != null && fields[i][13] != undefined) {
+                        var link = fields[i][13] + "&start_date=" + start_date + "&end_date=" + end_date;
+                        ajaxRequest(fields[i][12], link, false);
+                    }
+                }
             }
-          }
-          if(typeof(fields[i][10]) != "undefined"){
-              if (fields[i][11] != null && fields[i][11] != undefined)
-              {
-                  var link = fields[i][11] + "&start_date=" + start_date + "&end_date=" + end_date;
-                  ajaxRequest(fields[i][10], link);
-              }
-          }
-          if(typeof(fields[i][12]) != "undefined"){
-              if (fields[i][13] != null && fields[i][13] != undefined)
-              {
-                  var link = fields[i][13] + "&start_date=" + start_date + "&end_date=" + end_date;
-                  ajaxRequest(fields[i][12], link, false);
-              }
-          }
-          }
         }
-          setTimeout("checkAjaxCompleteness()",2000);
-      }
+    }
 
-      /*
-       We are currently hard-coding this rules but soon will be pulling from the
-       database
-       */
-      var rules = <%= @rules.to_json%>;
-      var set_rules = [];
-      var set_rules_descriptions = [];
+    /*
+     We are currently hard-coding this rules but soon will be pulling from the
+     database
+     */
+    var rules = <%= @rules.to_json%>;
+    var set_rules = [];
+    var set_rules_descriptions = [];
 
-      /*assigning rules and rule descriptions from the ValidationRule table*/
-      function initSetRulesDescriptions() {
-          <%ValidationRule.find(:all,:conditions =>['type_id = 1']).each do |r| %>
-            set_rules.push("<%=r.expr%>");
-            set_rules_descriptions.push('Failed: ' + "<%=r.desc%>");
-          <%end%>
-      }
+    /*assigning rules and rule descriptions from the ValidationRule table*/
+    function initSetRulesDescriptions() {
+        <%ValidationRule.find(:all,:conditions =>['type_id = 1']).each do |r| %>
+        set_rules.push("<%=r.expr%>");
+        set_rules_descriptions.push('Failed: ' + "<%=r.desc%>");
+        <%end%>
+    }
 
-      /*This block is initializing the cohort_values hash to zero*/
-      var cohort_values = {};
-      function initCohortValues() {
-          for(var i = 0; i < rules.length; i++) {
-              cohort_values[rules[i]] = 0;
-          }
-          initSetRulesDescriptions();
-      }
+    /*This block is initializing the cohort_values hash to zero*/
+    var cohort_values = {};
+    function initCohortValues() {
+        for (var i = 0; i < rules.length; i++) {
+            cohort_values[rules[i]] = 0;
+        }
+        initSetRulesDescriptions();
+    }
 
-      /* This block of code is assigning cohort numbers(results) to their approiate
-       fields: the global val setCohortValues will hold the result against its field name.
-       */
-      function checkForConsistency() {
-          table = window.frames.document.body.getElementsByTagName('table')[0];
-          tdata = table.getElementsByTagName("td");
-          for(var i = 0; i < tdata.length; i++) {
-              for(var j = 0; j < rules.length; j++) {
-                  if (tdata[i].id == rules[j]){
-                      if(tdata[i].getElementsByTagName('form')){
-                          e = tdata[i].getElementsByTagName('form')[0];
-                          if (e) {
-                              for (var k = 0; k < e.length; k++) {
-                                  if(e[k].type == 'submit') {
-                                      setCohortValues(rules[j] , e[k].value);
-                                  }
-                              }
-                          }
-                      }
-                  }
-              }
-          }
-          showConsistencyCheckResults();
-      }
+    /* This block of code is assigning cohort numbers(results) to their approiate
+     fields: the global val setCohortValues will hold the result against its field name.
+     */
+    function checkForConsistency() {
+        table = window.frames.document.body.getElementsByTagName('table')[0];
+        tdata = table.getElementsByTagName("td");
+        for (var i = 0; i < tdata.length; i++) {
+            for (var j = 0; j < rules.length; j++) {
+                if (tdata[i].id == rules[j]) {
+                    if (tdata[i].getElementsByTagName('form')) {
+                        e = tdata[i].getElementsByTagName('form')[0];
+                        if (e) {
+                            for (var k = 0; k < e.length; k++) {
+                                if (e[k].type == 'submit') {
+                                    setCohortValues(rules[j], e[k].value);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        showConsistencyCheckResults();
+    }
 
-      /*assigning cohort values (results) to the hash cohort_values*/
-      function setCohortValues(rule, value) {
-          cohort_values[rule] = value;
-      }
-
-
-      /*This block is replacing the Text validation rules from the database with
-       the actual values of the cohort report
-       */
-      function showConsistencyCheckResults() {
-          for (var i = 0; i < rules.length; i++) {
-              rule = "{" + rules[i] + "}";
-              rule_value = cohort_values[rules[i]];
-              for (var x = 0; x < set_rules.length; x++) {
-                  set_rules[x] = set_rules[x].replace(rule,rule_value);
-              }
-          }
-          buildConsistencyTable();
-      }
+    /*assigning cohort values (results) to the hash cohort_values*/
+    function setCohortValues(rule, value) {
+        cohort_values[rule] = value;
+    }
 
 
-      function buildConsistencyTable() {
-          t = window.frames.document.body.getElementsByTagName('table')[0];
-          cTable = t.getElementsByClassName("consistency-section")[0];
-          tableRows = [];
-          cTable.innerHTML = null;
-
-          /*this block is where the rules are executed to determine those that have
-           failed or passed*/
-          for(var i = 0; i < set_rules.length; i++) {
-              if(!(eval(set_rules[i]))){
-                  tableRows.push(set_rules_descriptions[i]);
-              }
-          }
-          /* ..................................................................*/
-
-          var tRows = "";
-          if(tableRows.length < 1) {
-              tRows += "<tr><td class='pass-rows'>The report has passed all external consistency checks</td></tr>";
-          }else{
-              for(var i = 0; i < tableRows.length; i++) {
-                  tRows += "<tr><td class='err-rows err-num'>" + (i + 1) + "</td>";
-                  tRows += "<td class='err-rows'>" + tableRows[i] + "</td></tr>";
-              }
-          }
-          cTable.innerHTML = tRows;
-      }
-
-      function checkAjaxCompleteness(){
-
-          var forms = document.getElementsByClassName("success");
-          var nodes = document.getElementsByClassName("num");
-          var percentage = parseInt((forms.length / nodes.length) * 100);
-          $('.pie_progress').asPieProgress('go', (percentage + "%"));
-
-          console.log(forms.length + ":::::" + nodes.length);
-
-          if (forms.length == nodes.length){
-
-              $('.pie_progress').asPieProgress("finish");
-              setTimeout(function(){
-                  document.getElementById("circle").style.display = "none";
-              }, 1000)
-
-              console.log("Running data consistency checks");
-              checkForConsistency();
-          }else{
-              setTimeout("checkAjaxCompleteness()", 500);
-          }
-      }
+    /*This block is replacing the Text validation rules from the database with
+     the actual values of the cohort report
+     */
+    function showConsistencyCheckResults() {
+        for (var i = 0; i < rules.length; i++) {
+            rule = "{" + rules[i] + "}";
+            rule_value = cohort_values[rules[i]];
+            for (var x = 0; x < set_rules.length; x++) {
+                set_rules[x] = set_rules[x].replace(rule, rule_value);
+            }
+        }
+        buildConsistencyTable();
+    }
 
 
+    function buildConsistencyTable() {
+        t = window.frames.document.body.getElementsByTagName('table')[0];
+        cTable = t.getElementsByClassName("consistency-section")[0];
+        tableRows = [];
+        cTable.innerHTML = null;
 
-      jQuery(document).ready(function($){
-          $('.pie_progress').asPieProgress({
-              namespace: 'pie_progress',
-              min: 0,
-              max: 100,
-              goal: 100,
-              step: 1,
-              speed: 50,
-              size: 60,
-              numberCallback: function(n) {
-                  var percentage = this.getPercentage(n);
-                  return percentage + '%';
-              },
-              barcolor: "lightgreen",
-              barsize: 3
-          });
+        /*this block is where the rules are executed to determine those that have
+         failed or passed*/
+        for (var i = 0; i < set_rules.length; i++) {
+            if (!(eval(set_rules[i]))) {
+                tableRows.push(set_rules_descriptions[i]);
+            }
+        }
+        /* ..................................................................*/
 
-          $('.pie_progress').asPieProgress('go', "0%");
-      });
+        var tRows = "";
+        if (tableRows.length < 1) {
+            tRows += "<tr><td class='pass-rows'>The report has passed all external consistency checks</td></tr>";
+        } else {
+            for (var i = 0; i < tableRows.length; i++) {
+                tRows += "<tr><td class='err-rows err-num'>" + (i + 1) + "</td>";
+                tRows += "<td class='err-rows'>" + tableRows[i] + "</td></tr>";
+            }
+        }
+        cTable.innerHTML = tRows;
+    }
 
 
-      createTable();
-      loadFields();
-      initCohortValues();
-      //-->
-    </script>
-  </body>
+    jQuery(document).ready(function ($) {
+        $('.pie_progress').asPieProgress({
+            namespace: 'pie_progress',
+            min: 0,
+            max: 100,
+            goal: 100,
+            step: 1,
+            size: 100,
+            numberCallback: function(n) {
+                var percentage = this.getPercentage(n);
+                return "<span style='font-size: 0.8em;'>" + percentage + '%</span>';
+            },
+            barcolor: "lightgreen",
+            barsize: 4
+        });
+
+        $('.pie_progress').asPieProgress('go', "1%");
+    });
+
+
+    createTable();
+    loadFields();
+    initCohortValues();
+    //-->
+</script>
+</body>
 </html>
