@@ -135,7 +135,7 @@ def get_patients_data(patient_id)
                               side_effects_nightmares,
                               side_effects_diziness,
                               side_effects_psychosis,
-                              drug_inducedt_kidney_failure,
+                              drug_induced_kidney_failure,
                               drug_induced_nightmares, 
                               drug_induced_diziness,  
                               drug_induced_psychosis,
