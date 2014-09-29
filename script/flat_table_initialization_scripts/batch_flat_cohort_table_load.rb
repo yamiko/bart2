@@ -323,23 +323,23 @@ def process_flat_table_2(flat_table_2_data, type = 0) #type 0 normal encounter, 
       a_hash[:drug_induced_diziness] = patient.drug_induced_diziness
       a_hash[:drug_induced_psychosis] = patient.drug_induced_psychosis
       a_hash[:drug_induced_blurry_vision] = patient.drug_induced_blurry_vision
-      a_hash[:side_effects_peripheral_neuropathy_v_date] = patient.visit_date
-      a_hash[:side_effects_hepatitis_v_date] = patient.visit_date
-      a_hash[:side_effects_skin_rash_v_date] = patient.visit_date
-      a_hash[:side_effects_lipodystrophy_v_date] = patient.visit_date
-      a_hash[:side_effects_other_v_date] = patient.visit_date
-      a_hash[:side_effects_no_v_date] = patient.visit_date
-      a_hash[:side_effects_kidney_failure_v_date] = patient.visit_date
-      a_hash[:side_effects_nightmares_v_date] = patient.visit_date
-      a_hash[:side_effects_diziness_v_date] = patient.visit_date
-      a_hash[:side_effects_psychosis_v_date] = patient.visit_date
-      a_hash[:drug_inducedt_kidney_failure_v_date] = patient.visit_date
-      a_hash[:drug_induced_nightmares_v_date] = patient.visit_date 
-      a_hash[:drug_induced_diziness_v_date] = patient.visit_date  
-      a_hash[:drug_induced_psychosis_v_date] = patient.visit_date
-      a_hash[:drug_induced_blurry_vision_v_date] = patient.visit_date      
-   end
+      #a_hash[:side_effects_peripheral_neuropathy_v_date] = patient.visit_date
+      #a_hash[:side_effects_hepatitis_v_date] = patient.visit_date
+      #a_hash[:side_effects_skin_rash_v_date] = patient.visit_date
 
+      #a_hash[:side_effects_other_v_date] = patient.visit_date
+      #a_hash[:side_effects_no_v_date] = patient.visit_date
+      #a_hash[:side_effects_kidney_failure_v_date] = patient.visit_date
+      #a_hash[:side_effects_nightmares_v_date] = patient.visit_date
+      #a_hash[:side_effects_diziness_v_date] = patient.visit_date
+      #a_hash[:side_effects_psychosis_v_date] = patient.visit_date
+      #a_hash[:drug_induced_kidney_failure_v_date] = patient.visit_date
+      #a_hash[:drug_induced_nightmares_v_date] = patient.visit_date 
+      #a_hash[:drug_induced_diziness_v_date] = patient.visit_date  
+      #a_hash[:drug_induced_psychosis_v_date] = patient.visit_date
+      #a_hash[:drug_induced_blurry_vision_v_date] = patient.visit_date      
+   end
+      #a_hash[:side_effects_lipodystrophy_v_date] = patient.visit_date
     return generate_sql_string(a_hash)
 end
 
