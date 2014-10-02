@@ -67,7 +67,7 @@ class ValidationRule < ActiveRecord::Base
 
     patient_ids = connection.select_all("SELECT patient_id FROM flat_table2 WHERE
       DATE(visit_date) <= '#{visit_date}' AND patient_id in (#{art_patient_ids.join(',')})
-      AND current_hiv_program_state IS NULL").collect{|p|p["patient_id"]}
+      AND current_hiv_program_state IS NULL OR current_hiv_program_state = ''").collect{|p|p["patient_id"]}
     
    return patient_ids
 =begin
@@ -318,7 +318,7 @@ class ValidationRule < ActiveRecord::Base
 
   def self.validate_presence_of_vitals_without_weight(date = Date.today)
     # Developer   : Kenneth Kapundi
-    # Date        : 3/09/2014
+    # Date        : 3/09/2014 
     # Purpose     : Return Patient IDs for patients having Vitals encounters without weight 
     # Amendments  :
 
@@ -331,7 +331,7 @@ class ValidationRule < ActiveRecord::Base
                   JOIN flat_cohort_table fct
                     ON ft2.patient_id = fct.patient_id
                   WHERE COALESCE(#{enc_ids.join(',')}) IS NOT NULL
-                    AND Weight IS NULL AND DATE(ft2.visit_date) = ?", date.to_date]).map(&:patient_id)
+                    AND (Weight IS NULL OR Weight = '') AND DATE(ft2.visit_date) = ?", date.to_date]).map(&:patient_id)
 =begin
 
     weight_concept = ConceptName.find_by_name('weight').concept_id
@@ -393,7 +393,7 @@ class ValidationRule < ActiveRecord::Base
 			SELECT DISTINCT (enc.patient_id) FROM encounter enc
     			LEFT JOIN obs o ON o.encounter_id = enc.encounter_id
     			LEFT JOIN orders od ON od.encounter_id = enc.encounter_id
-			WHERE enc.voided = 0 AND o.encounter_id IS NULL AND od.encounter_id IS NULL
+			WHERE enc.voided = 0 AND (o.encounter_id IS NULL OR o.voided = 1) AND (od.encounter_id IS NULL OR od.voided = 1)
 			AND DATE(enc.encounter_datetime) <= ?", end_date.to_date
 			]).map(&:patient_id)		
 		
@@ -452,7 +452,7 @@ class ValidationRule < ActiveRecord::Base
 
     male_pats_with_preg_obs = FlatTable2.find_by_sql(["SELECT ft2.patient_id FROM flat_table2 ft2
                                   INNER JOIN flat_cohort_table fct ON fct.patient_id = ft2.patient_id
-                                  WHERE fct.gender = 'M' AND COALESCE(#{pregnant_fields.join(',')}) IS NOT NULL
+                 WHERE fct.gender IN ('Male', 'M') AND COALESCE(#{pregnant_fields.join(',')}) IS NOT NULL
                                   AND DATE(ft2.visit_date) <= ?", date.to_date]).map(&:patient_id)
 
 =begin
@@ -489,7 +489,7 @@ class ValidationRule < ActiveRecord::Base
     #Query pulling all male patients with breastfeeding observations
     male_pats_with_breastfeed_obs = FlatTable2.find_by_sql(["SELECT ft2.patient_id FROM flat_table2 ft2
                                   INNER JOIN flat_cohort_table fct ON fct.patient_id = ft2.patient_id
-                                  WHERE fct.gender = 'M' AND COALESCE(#{breastfeeding_fields.join(',')}) IS NOT NULL
+                   WHERE IN ('Male', 'M') AND COALESCE(#{breastfeeding_fields.join(',')}) IS NOT NULL
                                   AND DATE(ft2.visit_date) <= ?", date.to_date]).map(&:patient_id)
 =begin
     male_pats_with_breastfeed_obs = PatientProgram.find_by_sql("
@@ -518,7 +518,7 @@ class ValidationRule < ActiveRecord::Base
     #Query pulling all male patients with family planning methods observations
     male_pats_with_family_planning_obs = FlatTable2.find_by_sql(["SELECT ft2.patient_id FROM flat_table2 ft2
                               INNER JOIN flat_cohort_table fct ON fct.patient_id = ft2.patient_id
-                              WHERE fct.gender = 'M' AND COALESCE(#{family_planning_fields.join(',')})
+                 WHERE IN ('Male', 'M') AND COALESCE(#{family_planning_fields.join(',')}) IS NOT NULL
                               AND DATE(ft2.visit_date) <= ?", date.to_date]).map(&:patient_id)
 
 =begin
