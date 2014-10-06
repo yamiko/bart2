@@ -1315,6 +1315,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
 	:tt_onLoad => "checkInput(); removeButton();addButton();changeRegimen();set_patient_program_for_suggestions($('patient_program').value);setTimeout('setSelectedRow();setTextToAppear(\" (MoH Recommended)\")',1000);showCategory('Regimen');",
 	:condition => 'hasReasonForART() == true && $("prescribe_arvs").value == "YES" && $("continue_existing_regimen").value != "YES"',
 	:helpText => "Select ART regimen",
+        :optional => true,
 	:tt_onUnload => "resetRegimen();removeButton();"}%>
 
   <%= select_tag :regimen_concept_id_all, nil, {
