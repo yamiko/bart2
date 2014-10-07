@@ -74,7 +74,7 @@ The following block of code should be replaced by a more cleaner function
 
 
 
-      identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+      identifier_types = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
       identifiers = PatientIdentifierType.find(:all, :conditions=>["name IN (?)",
                                                                    identifier_types]).collect{| type |type.id }
 
@@ -3793,7 +3793,7 @@ EOF
     patient = Patient.find(params[:patient_id])
     encounter_type = EncounterType.find_by_name("REQUEST").id
 
-    identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_types = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
     identifier_types = PatientIdentifierType.find(:all,
       :conditions=>["name IN (?)",identifier_types]).collect{| type |type.id }
 

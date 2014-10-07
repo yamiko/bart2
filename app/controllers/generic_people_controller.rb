@@ -369,7 +369,7 @@ class GenericPeopleController < ApplicationController
 
 
 		@second_line_duration_in_months = PatientService.period_on_treatment(@second_line_treatment_start_date) rescue nil
-    @identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    @identifier_types = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
     identifier_types = PatientIdentifierType.find(:all,
       :conditions=>["name IN (?)",@identifier_types]
     ).collect{| type |type.id }
@@ -776,7 +776,7 @@ class GenericPeopleController < ApplicationController
   end
 
   def correct_tb_numbers
-    @identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    @identifier_types = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
       identifier_types = PatientIdentifierType.find(:all,
         :conditions=>["name IN (?)",@identifier_types]
       ).collect{| type |type.id }

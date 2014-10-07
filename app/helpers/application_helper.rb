@@ -427,7 +427,7 @@ module ApplicationHelper
 
     latest_viral_load = viral_loads.last.obs_datetime.to_date rescue nil
 
-    @identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    @identifier_types = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
 		identifier_types = PatientIdentifierType.find(:all,:conditions=>["name IN (?)",@identifier_types]).collect{| type |type.id }
 
 		patient_identifiers = PatientIdentifier.find(:all, :conditions=>["patient_id=? AND identifier_type IN (?)",
@@ -488,7 +488,7 @@ module ApplicationHelper
                   216 => [216,219], 240 => [240,243], 260 => [260,263]
                  }
 
-    identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_types = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
     identifier_types = PatientIdentifierType.find(:all,
       :conditions=>["name IN (?)",identifier_types]).collect{| type |type.id }
                                                                                 
@@ -543,7 +543,7 @@ module ApplicationHelper
                   216 => [216,219], 240 => [240,243], 260 => [260,263]
                  }
 
-    identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_types = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
     identifier_types = PatientIdentifierType.find(:all,
       :conditions=>["name IN (?)",identifier_types]).collect{| type |type.id }
 
@@ -700,7 +700,7 @@ module ApplicationHelper
                   216 => [216,219], 240 => [240,243], 260 => [260,263]
                  }
 
-    identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_types = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
     identifier_types = PatientIdentifierType.find(:all,
       :conditions=>["name IN (?)",identifier_types]).collect{| type |type.id }
 
@@ -820,7 +820,7 @@ module ApplicationHelper
   end
 
   def repeat_viral_load_requested(patient)
-    identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_types = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
     identifier_types = PatientIdentifierType.find(:all,
       :conditions=>["name IN (?)",identifier_types]).collect{| type |type.id }
 
@@ -862,7 +862,7 @@ module ApplicationHelper
     return false unless second_line_art_start_date.blank? #Patient already switched to second line
     #return false unless second_line_obs.blank? #Patient already switched to second line
     
-    identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_types = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
     identifier_types = PatientIdentifierType.find(:all,
       :conditions=>["name IN (?)",identifier_types]).collect{| type |type.id }
 
