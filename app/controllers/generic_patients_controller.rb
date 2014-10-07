@@ -3663,7 +3663,7 @@ The following block of code should be replaced by a more cleaner function
   def viral_load_page
     patient = Patient.find(params[:patient_id])
     @patient = patient
-    id_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    id_types = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
     identifier_types = PatientIdentifierType.find(:all, :conditions=>["name IN (?)",
         id_types]).collect{| type |type.id }
 
