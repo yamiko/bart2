@@ -28,7 +28,12 @@
 
 %>
 <script>
-   tt_cancel_destination = "/people/confirm?found_person_id=<%=params[:patient_id]%>";
+  <% if params[:go_to_patient_dashboard] %>
+    tt_cancel_destination = "/patients/show/<%= params[:patient_id]%>";
+  <%  else %>
+    tt_cancel_destination = "/people/confirm?found_person_id=<%=params[:patient_id]%>";
+  <% end %>
+    
    result_given_today = false;
    function changeValues(){
     elements =  document.getElementsByTagName('li');
