@@ -717,7 +717,7 @@
             if (counts[drug] > 1) {
 
                 jQ(".small").empty();
-                __$(drug).innerHTML = "<span class = 'red' style='color: red'>&nbsp" + counts[drug] + "&nbsp</span> " + drug
+                __$(drug).innerHTML = "<span class = 'red' style='color: red'>&nbsp" + counts[drug] + "&nbsp</span> " + drug_short_names[drug]
                 __$(drug).getElementsByTagName("span")[0].onmousedown = function () {
                     collapse(this.parentNode);
                 }
@@ -726,7 +726,7 @@
             } else if (counts[drug] == 1) {
 
                 jQ(".small").empty();
-                __$(drug).innerHTML = drug;
+                __$(drug).innerHTML = drug_short_names[drug];
             }
         }
 
@@ -840,7 +840,7 @@
             } else {
 
                 jQ(".small").remove();
-                node.innerHTML = "<span class = 'red' style='color: red'>&nbsp" + counts[node.id] + "&nbsp</span> " + node.id;
+                node.innerHTML = "<span class = 'red' style='color: red'>&nbsp" + counts[node.id] + "&nbsp</span> " + drug_short_names[node.id];
                 node.getElementsByTagName("span")[0].onmousedown = function () {
                     collapse(this.parentNode);
                 }
@@ -938,7 +938,8 @@
                     if (coll_nodes.length > 0)
                         jQ(".small").remove();
 
-                    __$(all_drugs[i]).innerHTML = "<span class = 'red' style='color: red'>&nbsp" + counts[all_drugs[i]] + "&nbsp</span> " + all_drugs[i];
+                    __$(all_drugs[i]).innerHTML = "<span class = 'red' style='color: red'>&nbsp" + counts[all_drugs[i]] +
+                            "&nbsp</span> " + drug_short_names[all_drugs[i]];
                     __$(all_drugs[i]).getElementsByTagName("span")[0].onmousedown = function () {
                         collapse(this.parentNode);
                     }
