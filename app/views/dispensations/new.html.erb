@@ -186,9 +186,11 @@
   }
 
   function setAvailableStockAttributes(){
-    document.getElementById('nextButton').onmousedown = function (){
-      checkAvailableStock();
-    }
+  <% if (CoreService.get_global_property_value('activate.drug.management').to_s == "true" rescue false) %>
+      document.getElementById('nextButton').onmousedown = function (){
+        checkAvailableStock();
+      }
+  <% end %>
   }
 </script>
 <form id='dispensation' action="/dispensations/create" method='post'>

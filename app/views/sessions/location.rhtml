@@ -22,7 +22,9 @@
     }
 
     function displayStocks(){
-      document.getElementById('stock').style.display='inline'
+      <% if @activate_drug_management %>
+        document.getElementById('stock').style.display='inline'
+      <% end %>
     }
 
   </script>
@@ -143,6 +145,7 @@
     <%= submit_tag :value => "Submit" %>
 </form>
 
+<% if @activate_drug_management %>
 <div id="stock" style="display:none;">
       <div style="position: absolute; width:100%;">
           <table cellspacing='0' style="position:absolute; width:100%; left: 0%;">
@@ -182,3 +185,4 @@
           </table>
       </div>
 </div>
+<% end %>

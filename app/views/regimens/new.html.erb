@@ -144,7 +144,9 @@
 
   #tt_page_duration_of_prescribed_drugs .inputFrameClass {
     height: 86%;
+    <% if (CoreService.get_global_property_value('activate.drug.management').to_s == "true" rescue false) %>
     width: 35%;
+    <%end%>
   }
 
 
@@ -953,164 +955,171 @@ element.setAttribute("onmousedown", "gotoNextPage()")
   }
 
   function showAvailableStock(){
-    available_options = document.getElementsByTagName('li');
-    for(i=0; i<available_options.length; i++){
-      available_options[i].onclick = function(){
-        showDrugStockDetails(parseInt(this.getAttribute("tstvalue")));
-      }
-    }
-
-    clearButton = document.getElementById('clearButton');
-    clearButton.onclick = function(){
-      showAvailableStock();
-    }
-
-    jQuery.ajax({
-      type: "POST",
-      url: "/regimens/check_stock_levels",
-      data: "regimen=" + regimen_id + "&duration=30",
-      success: function(result){
-        stock_hash = result;
-        element = document.getElementsByClassName("stock_level_details")[0];
-        html = "<table cellspacing='0' style='width:100%; border-collapse: separate;'>";
-        html+="<tr style='line-height: 2em;'>";
-        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-left-radius: 15px; '><span class='theader'>Drug Name</span></td>";
-        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; '><span class='theader'>Current Stock</span></td>";
-        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-right-radius: 15px;'><span class='drug_pack_size_header'>Pack Size</span></td>";
-        html+="</tr>";
-        for (var drug_id in stock_hash){
-          html+="<tr style='line-height:1.8em;'>";
-          drug_name = drug_id;
-          current_stock = stock_hash[drug_id]["current_stock"];
-          drug_pack_size = stock_hash[drug_id]["drug_pack_size"];
-
-          html+="<td style='border-bottom:1px solid;'><span style='position:relative;'>" + drug_name + "</span></td>";
-          html+="<td style='border-bottom:1px solid;'><span style='position:relative; left:30%;'>" + current_stock + "</span></td>";
-          html+="<td style='border-bottom:1px solid;'><span style='position:relative; left:30%;'>" + drug_pack_size + "</span></td>";
-          html+="</tr>";
+    <% if (CoreService.get_global_property_value('activate.drug.management').to_s == "true" rescue false) %>
+        available_options = document.getElementsByTagName('li');
+        for(i=0; i<available_options.length; i++){
+          available_options[i].onclick = function(){
+            showDrugStockDetails(parseInt(this.getAttribute("tstvalue")));
+          }
         }
-        html+="</table>";
-        element.style.display='inline';
-        element.innerHTML = html;
-      }
-    });
+
+        clearButton = document.getElementById('clearButton');
+        clearButton.onclick = function(){
+          showAvailableStock();
+        }
+
+        jQuery.ajax({
+          type: "POST",
+          url: "/regimens/check_stock_levels",
+          data: "regimen=" + regimen_id + "&duration=30",
+          success: function(result){
+            stock_hash = result;
+            element = document.getElementsByClassName("stock_level_details")[0];
+            html = "<table cellspacing='0' style='width:100%; border-collapse: separate;'>";
+            html+="<tr style='line-height: 2em;'>";
+            html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-left-radius: 15px; '><span class='theader'>Drug Name</span></td>";
+            html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; '><span class='theader'>Current Stock</span></td>";
+            html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-right-radius: 15px;'><span class='drug_pack_size_header'>Pack Size</span></td>";
+            html+="</tr>";
+            for (var drug_id in stock_hash){
+              html+="<tr style='line-height:1.8em;'>";
+              drug_name = drug_id;
+              current_stock = stock_hash[drug_id]["current_stock"];
+              drug_pack_size = stock_hash[drug_id]["drug_pack_size"];
+
+              html+="<td style='border-bottom:1px solid;'><span style='position:relative;'>" + drug_name + "</span></td>";
+              html+="<td style='border-bottom:1px solid;'><span style='position:relative; left:30%;'>" + current_stock + "</span></td>";
+              html+="<td style='border-bottom:1px solid;'><span style='position:relative; left:30%;'>" + drug_pack_size + "</span></td>";
+              html+="</tr>";
+            }
+            html+="</table>";
+            element.style.display='inline';
+            element.innerHTML = html;
+          }
+        });
+    <% end %>
   }
   
   function showDrugStockDetails(duration){
-    jQuery.ajax({
-      type: "POST",
-      url: "/regimens/check_stock_levels",
-      data: "regimen=" + regimen_id + "&duration=" + duration,
-      beforeSend:function(){
-        data = "<span class='stock_loading_message'>Loading ...</span>"
-        document.getElementsByClassName('stock_level_details')[0].innerHTML=data;
-      },
-      success: function(result){
-        stock_hash = result;
-        element = document.getElementsByClassName("stock_level_details")[0];
-        html = "<table cellspacing='0' style='width:100%; border-collapse: separate;'>";
-        html+="<tr style='line-height: 2em;'>";
-        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-left-radius: 15px; '><span class='theader'>Drug Name</span></td>";
-        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1;'><span class='theader'>Amount prescribed</span></td>";
-        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1;'><span class='theader'>Current Stock</span></td>";
-        html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-right-radius: 15px;'><span class='drug_pack_size_header'>Pack Size</span></td>";
-     
-        html+="</tr>";
-        low_stock_drugs = []
-        for (var drug_id in stock_hash){
-          html+="<tr style='line-height:1.8em;'>";
-          drug_name = drug_id;
-          current_stock = stock_hash[drug_id]["current_stock"];
-          required_amount = stock_hash[drug_id]["required_amount"];
-          drug_pack_size = stock_hash[drug_id]["drug_pack_size"];
-          low_stock_warning = stock_hash[drug_id]["low_stock_warning"];
-          
-          html+="<td style='border-bottom:1px solid;'><span style='position:relative;'>" + drug_name + "</span></td>";
-          html+="<td style='text-align:right; border-bottom:1px solid'><span style='position:relative; right:46%;'>" + required_amount + "</span></td>";
-          html+="<td style='text-align:right; border-bottom:1px solid;'><span style='position:relative; right:46%;'>" + current_stock + "</span></td>";
-          html+="<td style='text-align:right; border-bottom:1px solid;'><span style='position:relative; right:46%;'>" + drug_pack_size + "</span></td>";
-         
-          if (low_stock_warning){
-            low_stock_drugs.push(drug_name);
-          }
-          
-          html+="</tr>";
-        }
+  <% if (CoreService.get_global_property_value('activate.drug.management').to_s == "true" rescue false) %>
+        jQuery.ajax({
+          type: "POST",
+          url: "/regimens/check_stock_levels",
+          data: "regimen=" + regimen_id + "&duration=" + duration,
+          beforeSend:function(){
+            data = "<span class='stock_loading_message'>Loading ...</span>"
+            document.getElementsByClassName('stock_level_details')[0].innerHTML=data;
+          },
+          success: function(result){
+            stock_hash = result;
+            element = document.getElementsByClassName("stock_level_details")[0];
+            html = "<table cellspacing='0' style='width:100%; border-collapse: separate;'>";
+            html+="<tr style='line-height: 2em;'>";
+            html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-left-radius: 15px; '><span class='theader'>Drug Name</span></td>";
+            html+="<td style='border-bottom:1px solid; background-color: #CDC8B1;'><span class='theader'>Amount prescribed</span></td>";
+            html+="<td style='border-bottom:1px solid; background-color: #CDC8B1;'><span class='theader'>Current Stock</span></td>";
+            html+="<td style='border-bottom:1px solid; background-color: #CDC8B1; border-top-right-radius: 15px;'><span class='drug_pack_size_header'>Pack Size</span></td>";
 
-        if (low_stock_drugs.length >= 1){
-          html+="<tr style='line-height:0.5em;'><td colspan='4'>&nbsp;</td></tr>";
-          html+="<tr><td colspan='4'><i style='color:green; font-weight:bold;'>Notes:</i></td></tr>";
-          for (i=0; i<low_stock_drugs.length; i++){
-            drug_id = low_stock_drugs[i];
-            recommended_duration = stock_hash[drug_id]["recommended_duration"];
-            html+="<tr>";
-            html+="<td colspan='4' style='border-bottom:1px solid;'><span style='position:relative; left:2%;'>"
-            html+="<i>" + low_stock_drugs[i] + "</i> <i style='color:red; font-weight:bold;'>(Low Stock)</i></span> "
-            html+="<sub style='color:green; font-weight:bold;'><%='&nbsp;' * 6 + ' '+ ' *' * 5; %></sub> <i style='font-weight:bold;'>Recommendation:</i>"
-            html+= "<sub style='color:green; font-weight:bold;'><%='&nbsp;' * 2 + ' '+ ' *' * 5 + '' + '&nbsp;' * 2; %></sub><b style='color:green;'>(<i>" + recommended_duration + "</i>)</b></td>";
             html+="</tr>";
-          }
-        }
+            low_stock_drugs = []
+            for (var drug_id in stock_hash){
+              html+="<tr style='line-height:1.8em;'>";
+              drug_name = drug_id;
+              current_stock = stock_hash[drug_id]["current_stock"];
+              required_amount = stock_hash[drug_id]["required_amount"];
+              drug_pack_size = stock_hash[drug_id]["drug_pack_size"];
+              low_stock_warning = stock_hash[drug_id]["low_stock_warning"];
 
-        html+="</table>";
-        element.style.display='inline';
-        element.innerHTML = html;
-      }
-    });
+              html+="<td style='border-bottom:1px solid;'><span style='position:relative;'>" + drug_name + "</span></td>";
+              html+="<td style='text-align:right; border-bottom:1px solid'><span style='position:relative; right:46%;'>" + required_amount + "</span></td>";
+              html+="<td style='text-align:right; border-bottom:1px solid;'><span style='position:relative; right:46%;'>" + current_stock + "</span></td>";
+              html+="<td style='text-align:right; border-bottom:1px solid;'><span style='position:relative; right:46%;'>" + drug_pack_size + "</span></td>";
+
+              if (low_stock_warning){
+                low_stock_drugs.push(drug_name);
+              }
+
+              html+="</tr>";
+            }
+
+            if (low_stock_drugs.length >= 1){
+              html+="<tr style='line-height:0.5em;'><td colspan='4'>&nbsp;</td></tr>";
+              html+="<tr><td colspan='4'><i style='color:green; font-weight:bold;'>Notes:</i></td></tr>";
+              for (i=0; i<low_stock_drugs.length; i++){
+                drug_id = low_stock_drugs[i];
+                recommended_duration = stock_hash[drug_id]["recommended_duration"];
+                html+="<tr>";
+                html+="<td colspan='4' style='border-bottom:1px solid;'><span style='position:relative; left:2%;'>"
+                html+="<i>" + low_stock_drugs[i] + "</i> <i style='color:red; font-weight:bold;'>(Low Stock)</i></span> "
+                html+="<sub style='color:green; font-weight:bold;'><%='&nbsp;' * 6 + ' '+ ' *' * 5; %></sub> <i style='font-weight:bold;'>Recommendation:</i>"
+                html+= "<sub style='color:green; font-weight:bold;'><%='&nbsp;' * 2 + ' '+ ' *' * 5 + '' + '&nbsp;' * 2; %></sub><b style='color:green;'>(<i>" + recommended_duration + "</i>)</b></td>";
+                html+="</tr>";
+              }
+            }
+
+            html+="</table>";
+            element.style.display='inline';
+            element.innerHTML = html;
+          }
+        });
+   <% end %>
   }
   
   function showDrugStockAvailability(reg_id){
-    jQuery.ajax({
-      type: "POST",
-      url: "/regimens/drug_stock_availability",
-      data: "concept_id=" + reg_id + "&patient_id=<%= @patient.id %>",
-      success: function(result){
-        drug_stock = document.getElementById('drug_stock');
-        stock_hash = result;
-        html = "<div id='stock'>";
-        html += "<div style='position: absolute; width:100%;'>";
-        html += "<table cellspacing='0' style='position:absolute; width:100%; left: 0%;'>";
-        html += "<tr>";
-        html += "<td class='table_header' colspan='5'><center><span>Drug Stock Availability</span></center></td>";
-        html += "</tr>";
+    <% if (CoreService.get_global_property_value('activate.drug.management').to_s == "true" rescue false) %>
+        jQuery.ajax({
+          type: "POST",
+          url: "/regimens/drug_stock_availability",
+          data: "concept_id=" + reg_id + "&patient_id=<%= @patient.id %>",
+          success: function(result){
+            drug_stock = document.getElementById('drug_stock');
+            stock_hash = result;
+            html = "<div id='stock'>";
+            html += "<div style='position: absolute; width:100%;'>";
+            html += "<table cellspacing='0' style='position:absolute; width:100%; left: 0%;'>";
+            html += "<tr>";
+            html += "<td class='table_header' colspan='5'><center><span>Drug Stock Availability</span></center></td>";
+            html += "</tr>";
 
-        html += "<tr style='background-color: #CDC8B1; line-height: 2em; font-size: 18px;'>";
-        html += "<td style='min-width: 130px;'><span class='stock_header_left'>Drug Name</span></td>";
-        html += "<td style='min-width: 130px;'><span class='consumption_rate_header'>Consumption Rate</span></td>";
-        html += "<td style='min-width: 100px;'><span class='stock_header_right'>Available Stock</span></td>";
-        html += "<td style='min-width: 100px;'><span class='drug_pack_size_header'>Pack Size</span></td>";
-        
-        html += "<td style='min-width: 100px;'><span class='estimated_stock_out_date_header'>Estimated stock out date</span></td>";
-        html += "</tr>";
+            html += "<tr style='background-color: #CDC8B1; line-height: 2em; font-size: 18px;'>";
+            html += "<td style='min-width: 130px;'><span class='stock_header_left'>Drug Name</span></td>";
+            html += "<td style='min-width: 130px;'><span class='consumption_rate_header'>Consumption Rate</span></td>";
+            html += "<td style='min-width: 100px;'><span class='stock_header_right'>Available Stock</span></td>";
+            html += "<td style='min-width: 100px;'><span class='drug_pack_size_header'>Pack Size</span></td>";
 
-        html += "<tbody>";
-        for (var drug_id in stock_hash){
-          drug_name = stock_hash[drug_id]["drug_name"];
-          current_stock = stock_hash[drug_id]["current_stock"];
-          consumption_rate = stock_hash[drug_id]["consumption_rate"];
-          estimated_stock_out_date = stock_hash[drug_id]["estimated_stock_out_date"];
-          drug_pack_size = stock_hash[drug_id]["drug_pack_size"];
+            html += "<td style='min-width: 100px;'><span class='estimated_stock_out_date_header'>Estimated stock out date</span></td>";
+            html += "</tr>";
 
-          html += "<tr>";
-          html += "<td><span class='drug_name'>" + drug_name + "</span></td>";
-          html += "<td><span class='consumption_rate'>" + consumption_rate + "</span></td>";
-          html += "<td><span class='current_stock'>" + current_stock + "</span></td>";
-          html += "<td><span class='drug_pack_size'>" + drug_pack_size + "</span></td>";
-          html += "<td><span class='estimated_stock_out_date'>" + estimated_stock_out_date + "</span></td>";
-          html += "</tr>";
-        }
-        
-        html += "<tbody>";
-        html += "</table>";
-        html += "</div>";
-        html += "</div>";
-        drug_stock.style.display='inline';
-        drug_stock.innerHTML = html;
-      }
-    });
+            html += "<tbody>";
+            for (var drug_id in stock_hash){
+              drug_name = stock_hash[drug_id]["drug_name"];
+              current_stock = stock_hash[drug_id]["current_stock"];
+              consumption_rate = stock_hash[drug_id]["consumption_rate"];
+              estimated_stock_out_date = stock_hash[drug_id]["estimated_stock_out_date"];
+              drug_pack_size = stock_hash[drug_id]["drug_pack_size"];
+
+              html += "<tr>";
+              html += "<td><span class='drug_name'>" + drug_name + "</span></td>";
+              html += "<td><span class='consumption_rate'>" + consumption_rate + "</span></td>";
+              html += "<td><span class='current_stock'>" + current_stock + "</span></td>";
+              html += "<td><span class='drug_pack_size'>" + drug_pack_size + "</span></td>";
+              html += "<td><span class='estimated_stock_out_date'>" + estimated_stock_out_date + "</span></td>";
+              html += "</tr>";
+            }
+
+            html += "<tbody>";
+            html += "</table>";
+            html += "</div>";
+            html += "</div>";
+            drug_stock.style.display='inline';
+            drug_stock.innerHTML = html;
+          }
+        });
+    <% end %>
   }
 
   function showDrugStock(){
+    <% if (CoreService.get_global_property_value('activate.drug.management').to_s == "true" rescue false) %>
         drug_stock = document.getElementById('drug_stock');
         html = "<div id='stock'>";
         html += "<div style='position: absolute; width:100%;'>";
@@ -1153,10 +1162,11 @@ element.setAttribute("onmousedown", "gotoNextPage()")
         drug_stock.style.display='inline';
         drug_stock.innerHTML = html;
         
-
+     <% end %>
   }
 
   function showCptDrugStock(){
+    <% if (CoreService.get_global_property_value('activate.drug.management').to_s == "true" rescue false) %>
         drug_stock = document.getElementById('drug_stock');
         html = "<div id='stock'>";
         html += "<div style='position: absolute; width:100%;'>";
@@ -1198,7 +1208,7 @@ element.setAttribute("onmousedown", "gotoNextPage()")
         html += "</div>";
         drug_stock.style.display='inline';
         drug_stock.innerHTML = html;
-
+<%end%>
 
   }
   
