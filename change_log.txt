@@ -135,4 +135,5 @@ Version (1.0.0)
    DN - added guardian_present_unknown field
 2014-09-29
    DN - commented out side_effects visit_date fields
-
+2014-10-14
+   DN - uncommented the section of HIV staging observations in mastercard_demographics method

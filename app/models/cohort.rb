@@ -374,6 +374,9 @@ class Cohort
 				cohort_report['7A'] = regimens['7A']
 				cohort_report['8A'] = regimens['8A']
 				cohort_report['9P'] = regimens['9P']
+				cohort_report['0A'] = regimens['0A']
+				cohort_report['0P'] = regimens['0P']
+
 				cohort_report['non-standard'] = cohort_report['Total alive and on ART'] -
 				                                  ((cohort_report['1A'] || []) +
   				                                 (cohort_report['1P'] || []) +
@@ -387,7 +390,9 @@ class Cohort
   				                                 (cohort_report['6A'] || []) +
   				                                 (cohort_report['7A'] || []) +
   				                                 (cohort_report['8A'] || []) +
-  				                                 (cohort_report['9P'] || []))
+  				                                 (cohort_report['9P'] || []) +
+  				                                 (cohort_report['0A'] || []) +
+  				                                 (cohort_report['0P'] || []))
 		  #rescue Exception => e
 		   # Thread.current[:exception] = e
 		  #end
