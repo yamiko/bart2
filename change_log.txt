@@ -137,3 +137,5 @@ Version (1.0.0)
    DN - commented out side_effects visit_date fields
 2014-10-14
    DN - uncommented the section of HIV staging observations in mastercard_demographics method
+   DN - added 0A and 0P to cohort_validation model. Also included 0A and 0P to the calculation of non-standard regimen
+        cohort model
