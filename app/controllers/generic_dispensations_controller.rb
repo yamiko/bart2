@@ -20,19 +20,22 @@ class GenericDispensationsController < ApplicationController
     end
 
     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if (CoreService.get_global_property_value('activate.drug.management').to_s == "true" rescue false)
       insufficient_stock = false
       preformat_regimens = GenericDrugController.new.preformat_regimen
       my_drug = Drug.find(params[:drug_id]) rescue nil
       missing_quantity = 0
-     if (preformat_regimens.include?(my_drug.name))
-       current_stock = Pharmacy.current_drug_stock(my_drug.id).to_i
-       quantity = params[:quantity].to_i
-       if (quantity >= current_stock)
-         params[:quantity] = current_stock
-         insufficient_stock = true if (quantity > current_stock)
-         missing_quantity = (quantity - current_stock) if (quantity > current_stock)
+      
+       if (preformat_regimens.include?(my_drug.name))
+         current_stock = Pharmacy.current_drug_stock(my_drug.id).to_i
+         quantity = params[:quantity].to_i
+         if (quantity >= current_stock)
+           params[:quantity] = current_stock
+           insufficient_stock = true if (quantity > current_stock)
+           missing_quantity = (quantity - current_stock) if (quantity > current_stock)
+         end
        end
-     end
+    end
     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     @patient = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
