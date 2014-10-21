@@ -94,68 +94,101 @@
               <% current_day = session[:datetime].strftime('%Y-%m-%d') rescue 'Today'%>
               <div style="height:220px;">
               <% if not @prescriptions.blank? %>
-              <table id = 'dispensation' cellspacing='0' style="width:100%; left: 0%;">
-                <tr>
-                  <td colspan="6"><span class="table_header"><center> <%=current_day%>'s Treatment (possibly filtered)</center></span></td>
-                </tr>
-                <tr style="text-align: left; background-color: #CDC8B1; line-height: 2em; font-size: 16px;">
-                  <th style="background-color: white; min-width: 29.5px;">&nbsp;</th>
-                  <th style="border-bottom: 2px solid black; max-width: 100px;"><span class="amount_needed">Amount needed</span></th>
-                  <th style="border-bottom: 2px solid black;"><span class="drug_name">Drug</span></th>
-                  <th style="text-align:right; border-bottom: 2px solid black;"><span class="amount_dispensed">Amount dispensed</span></th>
-                  <th style="text-align:right; border-bottom: 2px solid black;"><span class="available_stock">Available Stock (tins)</span></th>
-                </tr>
-                
-                <tbody>
-                 <td colspan="5">
-                        <div class="scrollit">
-                          <table cellspacing='0' style="width:100%; left: 0%;">
-                <% @prescriptions.each do |order| %>
-                      <%
-                         amounts_dispensed = Observation.all(:conditions => ['concept_id = ? AND order_id = ?', 
-                                             ConceptName.find_by_name("AMOUNT DISPENSED").concept_id , order.id])
-                         total_dispensed = amounts_dispensed.sum{|amount| amount.value_numeric}
-                      %>
-                      <script>
-                        total_dispensed += parseFloat("<%=total_dispensed%>");
-                      </script>
-                      <tr class = 'dispensation_data' id = "<%=order.id%>">
-                        <% unless order.drug_order.quantity.to_i == 0 %>
-                        <td style="text-align:center;vertical-align: middle;" onmousedown = "voiding('<%=order.id%>');">
-                          <img src="/images/cancel_flat_small.png"/>
-                        </td>
-                        <% else %>
-                        <td style="text-align:center;vertical-align: middle; min-width: 23.5px; border-left: 2px solid black; border-top: 1px solid black;">&nbsp;</td>
-                        <% end %>
-
-                        <% total_required = order.drug_order.total_required
-                          drug_unit  =  order.drug_order.units
-                          if total_required > total_dispensed then color = 'red' else color = '' end
-                        %>
-                        <td style="color:<%=color%>;"><%="#{total_required} #{drug_unit}"%></td>
-                        <td style="max-width: 200px;"><%=order.drug_order.drug.name%></td>
-                        <td style="min-width: 70px;"><span style="float:right;"><%= total_dispensed %></span></td>
-                        <%
-                          preformat_regimens = GenericDrugController.new.preformat_regimen
-                          drug_name = order.drug_order.drug.name
-                        %>
-                        <td><span style="float:right;">
-                          <% if (preformat_regimens.include?(drug_name)) %>
-                              <% drug_pack_size = Pharmacy.pack_size(order.drug_order.drug.id) %>
-                              <%= (Pharmacy.current_drug_stock(order.drug_order.drug.id)/drug_pack_size).to_i %>
-                          <% else %>
-                              <%= '(N/A)' %>
-                          <% end %>
-                            </span>
-                        </td>
+                <% if (CoreService.get_global_property_value('activate.drug.management').to_s == "true" rescue false) %>
+                    <table id = 'dispensation' cellspacing='0' style="width:100%; left: 0%;">
+                      <tr>
+                        <td colspan="6"><span class="table_header"><center> <%=current_day%>'s Treatment (possibly filtered)</center></span></td>
                       </tr>
-                <% end %>
-                  </table>
-                  </div>
-                 </td>
-              </tbody>
-              
+                      <tr style="text-align: left; background-color: #CDC8B1; line-height: 2em; font-size: 16px;">
+                        <th style="background-color: white; min-width: 29.5px;">&nbsp;</th>
+                        <th style="border-bottom: 2px solid black; max-width: 100px;"><span class="amount_needed">Amount needed</span></th>
+                        <th style="border-bottom: 2px solid black;"><span class="drug_name">Drug</span></th>
+                        <th style="text-align:right; border-bottom: 2px solid black;"><span class="amount_dispensed">Amount dispensed</span></th>
+                        <th style="text-align:right; border-bottom: 2px solid black;"><span class="available_stock">Available Stock (tins)</span></th>
+                      </tr>
+
+                      <tbody>
+                       <td colspan="5">
+                              <div class="scrollit">
+                                <table cellspacing='0' style="width:100%; left: 0%;">
+                      <% @prescriptions.each do |order| %>
+                            <%
+                               amounts_dispensed = Observation.all(:conditions => ['concept_id = ? AND order_id = ?',
+                                                   ConceptName.find_by_name("AMOUNT DISPENSED").concept_id , order.id])
+                               total_dispensed = amounts_dispensed.sum{|amount| amount.value_numeric}
+                            %>
+                            <script>
+                              total_dispensed += parseFloat("<%=total_dispensed%>");
+                            </script>
+                            <tr class = 'dispensation_data' id = "<%=order.id%>">
+                              <% unless order.drug_order.quantity.to_i == 0 %>
+                              <td style="text-align:center;vertical-align: middle;" onmousedown = "voiding('<%=order.id%>');">
+                                <img src="/images/cancel_flat_small.png"/>
+                              </td>
+                              <% else %>
+                              <td style="text-align:center;vertical-align: middle; min-width: 23.5px; border-left: 2px solid black; border-top: 1px solid black;">&nbsp;</td>
+                              <% end %>
+
+                              <% total_required = order.drug_order.total_required
+                                drug_unit  =  order.drug_order.units
+                                if total_required > total_dispensed then color = 'red' else color = '' end
+                              %>
+                              <td style="color:<%=color%>;"><%="#{total_required} #{drug_unit}"%></td>
+                              <td style="max-width: 200px;"><%=order.drug_order.drug.name%></td>
+                              <td style="min-width: 70px;"><span style="float:right;"><%= total_dispensed %></span></td>
+                              <%
+                                preformat_regimens = GenericDrugController.new.preformat_regimen
+                                drug_name = order.drug_order.drug.name
+                              %>
+                              <td><span style="float:right;">
+                                <% if (preformat_regimens.include?(drug_name)) %>
+                                    <% drug_pack_size = Pharmacy.pack_size(order.drug_order.drug.id) %>
+                                    <%= (Pharmacy.current_drug_stock(order.drug_order.drug.id)/drug_pack_size).to_i %>
+                                <% else %>
+                                    <%= '(N/A)' %>
+                                <% end %>
+                                  </span>
+                              </td>
+                            </tr>
+                      <% end %>
+                        </table>
+                        </div>
+                       </td>
+                      </tbody>
+                      </table>
+                <%  else %>
+                  <table id = 'dispensation' style = "width:100%;">
+                      <tr style="text-align:left;">
+                        <th>&nbsp;</th>
+                        <th>Amount needed</th>
+                        <th>Drug</th>
+                        <th style="text-align:right;">Amount dispensed</th>
+                      </tr>
+                      <% @prescriptions.each do |order| %>
+                          <!--div class="void"><img src="/images/cancel_flat_small.png"/></div-->
+                            <%
+                               amounts_dispensed = Observation.all(:conditions => ['concept_id = ? AND order_id = ?',
+                                                   ConceptName.find_by_name("AMOUNT DISPENSED").concept_id , order.id])
+                               total_dispensed = amounts_dispensed.sum{|amount| amount.value_numeric}
+                            %>
+                            <script>
+                              total_dispensed += parseFloat("<%=total_dispensed%>");
+                            </script>
+                            <tr class = 'dispensation_data' id = "<%=order.id%>">
+                              <td style="text-align:center;vertical-align: middle;" onmousedown = "voiding('<%=order.id%>');">
+                                <img src="/images/cancel_flat_small.png"/>
+                              </td>
+                              <% total_required = order.drug_order.total_required
+                                drug_unit  =  order.drug_order.units
+                                if total_required > total_dispensed then color = 'red' else color = '' end
+                              %>
+                              <td style="color:<%=color%>;"><%="#{total_required} #{drug_unit}"%></td>
+                              <td><%=order.drug_order.drug.name%></td>
+                              <td style="text-align:right;"><%= total_dispensed %></td>
+                            </tr>
+                      <% end %>
                 </table>
+                 <% end %>
 
                 <% else %>
                   <div class="data">No prescriptions are available for this patient (<%=current_day%>)</div>
