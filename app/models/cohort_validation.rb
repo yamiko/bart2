@@ -537,7 +537,7 @@ def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
   def validate_sum_of_all_regimens_should_equal_to_total_alive_and_on_art
     #validating all regimens should add up to total_alive_and_on_art
 
-    validation_rule = ValidationRule.find_by_expr("{total_on_art} == {n1a} + {n1p} + {n2a} + {n2p} + {n3a} + {n3p} + {n4a} + {n4p} + {n5a} + {n6a} + {n7a} + {n8a} + {n9p} + {non_std}")
+    validation_rule = ValidationRule.find_by_expr("{total_on_art} == {n0a} + {n0p} + {n1a} + {n1p} + {n2a} + {n2p} + {n3a} + {n3p} + {n4a} + {n4p} + {n5a} + {n6a} + {n7a} + {n8a} + {n9p} + {non_std}")
     return nil if validation_rule.blank? ||  self.cohort_object['Regimens'].blank?
 
     values = [self.cohort_object['Total alive and on ART'] ||= [],
@@ -554,6 +554,8 @@ def validate_sum_of_stage_defining_conditions_needs_to_equal_total_registered
               self.cohort_object['Regimens']['7A'] ||= [],
               self.cohort_object['Regimens']['8A'] ||= [],
               self.cohort_object['Regimens']['9P'] ||= [],
+              self.cohort_object['Regimens']['0A'] ||= [],
+              self.cohort_object['Regimens']['0P'] ||= [],              
               self.cohort_object['non-standard'] ||= []]
 
    return self.feed_values(validation_rule, values)

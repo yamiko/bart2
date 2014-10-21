@@ -158,4 +158,8 @@ Version (1.0.0)
    DN - added guardian_present_unknown field
 2014-09-29
    DN - commented out side_effects visit_date fields
-
+2014-10-14
+   DN - uncommented the section of HIV staging observations in mastercard_demographics method
+   DN - added 0A and 0P to cohort_validation model. Also included 0A and 0P to the calculation of non-standard regimen
+        cohort model
+   PB - Added a check to ensure that patients with no start reason are added to unknown reason in reason for starting in app/models/cohort.rb
