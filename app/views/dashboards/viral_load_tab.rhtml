@@ -1,0 +1,428 @@
+<script>
+
+  function updateVl(){
+    content = window.parent.document.getElementById('content');
+    vl_menu = document.getElementById('new_vl_menu');
+    vl_menu.style.display='inline'
+    content.appendChild(vl_menu);
+    
+    vl_lab_trail_cover = document.getElementById('vl_lab_trail_cover');
+    vl_lab_trail_cover.style.display='inline';
+    content.appendChild(vl_lab_trail_cover);
+  }
+
+  function showVlLabTrail(){
+    content = window.parent.document.getElementById('content');
+    vl_lab_trail = document.getElementById('vl_lab_trail');
+    vl_lab_trail.style.display='inline';
+    content.appendChild(vl_lab_trail);
+    
+    vl_lab_trail_cover = document.getElementById('vl_lab_trail_cover');
+    vl_lab_trail_cover.style.display='inline';
+    content.appendChild(vl_lab_trail_cover);
+  }
+  
+</script>
+<style>
+div, table{
+  -moz-user-select:none;
+}
+  
+#vl_lab_trail, #new_vl_menu, .new_vl_menu{
+  position: absolute;
+  width: 95%;
+  height: 70%;
+  top: 10%;
+  z-index: 991;
+  left: 3%;
+  border: 1px solid black;
+  background-color: #FEE0C6;
+  border-radius: 15px;
+}
+
+#vl_lab_trail_header, #new_vl_menu_header, .new_vl_menu_header{
+  padding: 10px;
+  background-color: gray;
+  color: white;
+  border-radius: 15px 15px 0px 0px;
+}
+
+#vl_lab_trail_footer, #new_vl_menu_footer, .new_vl_menu_footer{
+  background-color: gray;
+  height: 60px;
+  width: 100%;
+  position: absolute;
+  width: 100%;
+  position: absolute;
+  bottom: 0px;
+  border-radius: 0px 0px 15px 15px;
+}
+
+#vl_lab_trail_footer span{
+  border-radius: 13px;
+  background-color: #C1CDCD;
+  position: absolute;
+  padding: 12px 20%;
+  left: 27%;
+  bottom: 8px;
+  cursor: pointer;
+}
+
+#new_vl_menu_footer span, .new_vl_menu_footer span{
+ border-radius: 8px;
+  background-color: #C1CDCD;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  position: absolute;
+  width: 98%;
+  left: 1%;
+  bottom: 5px;
+  cursor: pointer;
+}
+
+.vl_tbody td{
+  border-bottom: 1px solid black;
+  border-right: 1px solid black;
+}
+
+.vl_table_header td{
+  border-bottom: 1px solid black;
+  border-top: 1px solid black;
+}
+
+
+#new_vl_menu_content table td, .new_vl_menu_content table td{
+  border-bottom: 1px solid black;
+}
+
+#new_vl_menu_content span, .new_vl_menu_content span{
+  font-size: 14pt;
+  margin-left: 32% !important;
+}
+
+#new_vl_menu_content tr:hover, .new_vl_menu_content tr:hover{
+  background-color: white;
+}
+
+#new_vl_menu_content tr, .new_vl_menu_content tr{
+  cursor: pointer;
+}
+      
+#vl_data{
+  position: absolute;
+  -moz-user-select: none;
+  background-color: #FFFFFF;
+  border: 1px solid #999999;
+  border-radius: 20px 20px 20px 20px;
+  display: table;
+  margin: 5px;
+  overflow: hidden;
+  padding: 10px;
+  width: 55%;
+  z-index: 800;
+  left: 22%;
+  top: 10%;
+  height: 55%;
+}
+
+#vl_data_footer{
+  background-color: #FEFEF2;
+  height: 69px;
+  width: 100%;
+  position: absolute;
+  width: 99.5%;
+  position: absolute;
+  bottom: 2px;
+  border-radius: 0px 0px 15px 15px;
+  left: 1px;
+  border-top: 2px solid black;
+}
+
+#update_span {
+  position: absolute;
+  padding: 2% 13.5%;
+  background-color: #5F9EA0;
+  color: white !important;
+  left: 1.4%;
+  bottom: 8.5px;
+  font-size: 14pt;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+#lab_trail_span{
+  position: absolute;
+  padding: 2% 11.5%;
+  background-color: #5F9EA0;
+  color: white !important;
+  right: 1%;
+  bottom: 8.5px;
+  font-size: 14pt;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+</style>
+
+<div id="vl_data">
+
+<% if @second_line_treatment_start_date.blank? %>
+      <% unless @latest_result.blank?%>
+          <% if @latest_result.to_i >= 1000 %>
+              <span style="letter-spacing: 8px;font-weight:bold; font-family: Nimbus Sans L; margin-left: 13%; color: red; font-size: 19px"><blink>HIGH VIRAL LOAD</blink></span>
+          <% else %>
+              <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">VIRAL LOAD</span>
+          <% end %>
+      <% else %>
+        <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">VIRAL LOAD</span>
+      <% end %>
+
+      <hr style="margin-left:-2%; width:104%;"></hr>
+      <div id="vl_details">
+        <table style="position:absolute; left:14%; width: 80%;">
+          <tr>
+            <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Last Viral load </td>
+            <% unless @latest_result.blank?%>
+                <% if @latest_result.to_i >= 1000 %>
+                  <td style="color:red; font-weight: bold; font-size: 14px"><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
+                <% else %>
+                  <td style=""><%= (@modifier + ' ' + @latest_result.to_s) rescue nil %></td>
+                <% end %>
+            <% else %>
+                <% if @vl_request == "YES" || @repeat_vl_request == "REPEAT" %>
+                  <td><span style="margin-left: 8%; font-weight: bold; color: red">(Requested)</span></td>
+                <%  else %>
+                    <td><span style="margin-left: 4%; font-weight: bold; color: red">(Not requested)</span></td>
+                <% end %>
+            <% end %>
+          </tr>
+          <tr>
+            <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Date of Sample</td>
+            <% unless  @latest_date.blank?%>
+            <td style=""><%= @latest_date.strftime("%d-%b-%Y") rescue nil %></td>
+            <% else %>
+              <td id="" style="">----------------------------</td>
+            <% end %>
+          </tr>
+          <tr>
+              <td style="font-weight: bold; font-size: 1em; padding: 2px; max-width: 61%;">Date given to patient</td>
+              <% if vl_available_and_result_given(@patient) == true %>
+                  <td style=""><%= @date_vl_result_given.strftime("%d-%b-%Y") %></td>
+              <% else %>
+                  <td id="" style="">----------------------------</td>
+              <% end %>
+          </tr>
+        </table>
+      </div>
+<% else %>
+    <span style="font-weight:bold; font-family: Nimbus Sans L; margin-left: 35%;">VIRAL LOAD</span>
+    <hr style="margin-left:-2%; width:104%;"></hr>
+    <div id="vl_details">
+      <table style="position:absolute; left:14%; width: 80%;">
+        <tr>
+          <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Last Viral load </td>
+          <td><span style="margin-left: 1%; font-weight: bold; color: red">(Switched to 2<sup>nd</sup>Line)</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight: bold; font-size: 1em; padding: 2px; ">Date of Sample</td>
+          <td id="" style="">---------------------------------</td>
+        </tr>
+        <tr>
+          <td style="font-weight: bold; font-size: 1em; padding: 2px; max-width: 61%;">Date given to patient</td>
+          <td id="" style="">---------------------------------</td>
+        </tr>
+      </table>
+     </div>
+<% end %>
+    
+<div id="vl_data_footer">
+  <span onclick="updateVl();" id="update_span" style="color: white;">Update</span>
+  <span onclick="showVlLabTrail();" id="lab_trail_span" style="color: white;">VL Trail</span>
+</div>
+
+</div>
+
+
+
+<!-------------------------->
+<% if @vl_request == "YES" %>
+    <div id="popup" style="display:none; border:0px; width: 0px; height: 0px; padding: 0px;">
+      <div class="new_vl_menu" style="position:fixed; width:40%; height: 45%; left:30%;">
+          <div class="new_vl_menu_header">
+            <span style="font-size: 15pt;">Routine Viral Load Screening<br/>
+            Viral load result available?</span>
+          </div>
+
+          <div class="new_vl_menu_content">
+            <table cellspacing="0" style="position:absolute; width: 100%; height:75%;">
+              <tr onclick="newVlResultPathWithParam();" style="line-height: 3em;"><td><span>Enter VL result</span></td></tr>
+              <tr onclick="hidePopup();" style="line-height: 3em;"><td><span>No VL result available</span></td></tr>
+            </table>
+          </div>
+
+          <div class="new_vl_menu_footer" style="height: 0px;">
+          </div>
+      </div>
+    </div>
+      <!-------------------------------------------->
+<% else %>
+      <div id="popup" style="display:none">
+        <div class="art_container">
+          <div class="header" style="position: absolute; left: 20%">
+            <div id="viral_header">
+              <u>Routine Viral Load Screening Due</u><br />
+              <u>Assess Adherence:</u> <br />
+            </div>
+            <div id="more_details" style="font-size: 16pt; font-weight:bold; ">
+              If good then request VL today <br />
+              If poor then defer VL for three months after intensive adherence support
+            </div>
+          </div>
+          
+          <table  border=0.5 style = "border-radius:10px;">
+            <tr>
+              <td><span>ART start date</span></td>
+              <td style='text-align:left'><span><%= @art_start_date.strftime("%A, %d %B %Y") rescue '' %></span></td>
+            </tr>
+            <tr><td colspan =2><hr/></td></tr>
+            <tr>
+              <td><span>Duration on ART (Months)</span></td>
+              <td style='text-align:left'><span><%= @duration_in_months %></span></td>
+            </tr>
+            <tr><td colspan =2><hr/></td></tr>
+
+            <% unless @second_line_treatment_start_date.blank? %>
+              <tr>
+                <td><span>Duration on 2<sup>nd</sup>Line ART (Months)</span></td>
+                <td style='text-align:left'><span><%= @second_line_duration_in_months %></span></td>
+              </tr>
+              <tr><td colspan =2><hr/></td></tr>
+            <% end  %>
+
+            <% unless @results.blank?%>
+              <tr>
+                <td><span>Latest viral load (<%= @latest_date.strftime("%A, %d %B %Y")%>)</span></td>
+                <td style='text-align:left'><span><%= @modifier + ' ' + @latest_result.to_s %></span></td>
+              </tr>
+              <tr><td colspan =2><hr/></td></tr>
+            <% end %>
+
+            <tr>
+              <td><span>Outcome</span></td>
+              <td style='text-align:left'><span><%= @outcome %></span></td>
+            </tr>
+            <tr><td colspan =2><hr/></td></tr>
+            <tr>
+              <td><span>Reason for starting</span></td>
+              <td style='text-align:left'><span><%=@reason_for_art%></span></td>
+            </tr>
+
+          </table>
+        </div>
+
+        <hr class="popup_hr"></hr>
+        <a id='viral_load_done' onclick = "viral_load_requested_today();" ><span>VL Requested Today</span></a>
+        <a id='viral_load_already_done' onclick="removePopup();"><span>VL Not Requested Today</span></a>
+      </div>
+      <% end %>
+
+<div id="cover">
+</div>
+<div id="update_vl_menu" style="display:none">
+  <div><br />
+    <% unless @latest_result.blank?%>
+          <span id="update_vl_button" onclick="giveResultPath();">Result given to patient</span><br />
+    <% else %>
+          <span id="update_vl_button_gray" onclick="">Result given to patient</span><br />
+    <%  end %>
+    <%  if @enter_lab_results %>
+          <span id="update_vl_button" onclick="newVlResultPath();">Enter new VL result</span><br />
+    <% else %>
+          <span id="update_vl_button_gray" onclick=";">Enter new VL result</span><br />
+    <% end %>
+    <span id="update_vl_button" onclick="secondlineSwitchPath();">Patient switched to second line</span><br />
+    <span id="update_vl_button" onClick="removeUpdateVlMenu();">Back to milestone screening</span>
+  </div>
+</div>
+
+      <div id="vl_lab_trail_cover" style="display:none;">
+
+      </div>
+
+      <div id="vl_lab_trail" style="display:none;">
+        <div id="vl_lab_trail_header">
+          <span style="font-size: 16pt; margin-left: 4.5%;">Viral load lab trail</span>
+        </div>
+
+        <div id="vl_lab_trail_content">
+          <div style="position: relative; overflow:auto; height: 80%;">
+          <table cellspacing='0' style="position:absolute; width:94%; top:10%; left: 3%;">
+            <tr class="vl_table_header" style="background-color: #A2CD5A; line-height: 2em; font-size: 18px;">
+              <td style="min-width: 130px;"><span><center>Date of Sample</center></span></td>
+              <td style="min-width: 120px;"><span><center>Result</center></span></td>
+              <td><span><center>Result given?</center></span></td>
+              <td><span><center>Date result given</center></span></td>
+              <td><span><center>Switched to second line?</center></span></td>
+            </tr>
+          <% (@vl_result_hash || {}).each do |sample_id, result| %>
+            <tr style="line-height: 3em;" class="vl_tbody">
+              <td style="border-left: 1px solid black;">
+                  <span><center>  <%= result["date_of_sample"].strftime("%d-%b-%Y") %></center></span>
+              </td>
+              <td><span><center><%= result["result"] %></center></span></td>
+              <td><span><center><%= result["result_given"].capitalize %></center></span></td>
+              <td><span><center><%= result["date_result_given"].strftime("%d-%b-%Y") rescue "------" %></center></span></td>
+              <td><span><center><%= result["second_line_switch"].capitalize %></center></span></td>
+            </tr>
+          <% end %>
+          </table>
+          </div>
+        </div>
+
+        <div id="vl_lab_trail_footer">
+          <span onclick="hideVlLabTrail();">Done</span>
+        </div>
+      </div>      
+
+
+<div id="vl_lab_trail_cover" style="display:none;">
+</div>
+
+<div id="new_vl_menu" style="display: none; width:40%; height: 56%; left:30%; position: absolute;">
+    <div id="new_vl_menu_header">
+      <span style="font-size: 15pt;">Select action</span>
+    </div>
+    <div id="new_vl_menu_content">
+      <table cellspacing="0" style="position:absolute; width: 100%; height:75%;">
+        <% unless @latest_result.blank?%>
+          <tr onclick="giveResultPath();" style="line-height: 3em;"><td><span>Result given to patient</span></td></tr>
+        <% else %>
+          <tr onclick="" style="line-height: 3em; background-color: #FEE0C6;"><td><span style="color:gray;">Result given to patient</span></td></tr>
+        <% end %>
+        <tr onclick="newVlResultPath();" style="line-height: 3em;"><td><span>Enter new VL result</span></td></tr>
+        <!--<tr onclick="secondlineSwitchPath();" style="line-height: 3em;"><td><span>Patient switched to second line</span></td></tr>
+        <tr onclick="removeUpdateVlMenu();" style="line-height: 3em;"><td><span>Back to milestone screening</span></td></tr>-->
+        <tr onclick="repeat_vl_requested();" style="line-height: 3em;"><td><span>Request VL today</span></td></tr>
+      </table>
+    </div>
+    <div id="new_vl_menu_footer">
+      <span onclick="removeUpdateVlMenu();"><b style="margin-left: 45%;">Cancel</b></span>
+    </div>
+</div>
+
+<div id="vl_repeat_popup" style="display: none;">
+  <div class="new_vl_menu" style="position:fixed; width:40%; height: 45%; left:30%;">
+      <div class="new_vl_menu_header">
+        <span style="font-size: 15pt;"><center>Repeat viral load was requested<br/>
+        Viral load result available?</center></span>
+      </div>
+      <div class="new_vl_menu_content">
+        <table cellspacing="0" style="position:absolute; width: 100%; height:75%;">
+          <tr onclick="newVlResultPathWithParam();" style="line-height: 3em;"><td><span>Enter VL result</span></td></tr>
+          <tr onclick="hidePopup();" style="line-height: 3em;"><td><span>No VL result available</span></td></tr>
+        </table>
+      </div>
+      <div class="new_vl_menu_footer" style="height: 0px;">
+      </div>
+  </div>
+</div>

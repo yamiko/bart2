@@ -16,8 +16,12 @@
 </style>
 
 <script>
-   tt_cancel_destination = "/people/confirm?found_person_id=<%=@patient.id%>";
-
+  <% if params[:go_to_patient_dashboard] %>
+    tt_cancel_destination = "/patients/show/<%=@patient.id%>";
+  <%  else %>
+    tt_cancel_destination = "/people/confirm?found_person_id=<%=@patient.id%>";
+  <% end %>
+    
 function setImportantAttributes(){
   //#lessthan , #greaterthan , #equals, #decimal
   lessthan = document.getElementById('lessthan');
@@ -189,6 +193,10 @@ function resetPad() {
 
 <% if params[:go_to_next_task] %>
   <%= hidden_field_tag "go_to_next_task", "true" %>
+<% end  %>
+
+<% if params[:go_to_patient_dashboard] %>
+  <%= hidden_field_tag "go_to_patient_dashboard", "true" %>
 <% end  %>
 
 <%end%>

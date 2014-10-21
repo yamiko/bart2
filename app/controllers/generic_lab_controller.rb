@@ -179,6 +179,11 @@ class GenericLabController < ApplicationController
     lab_parameter.Range = test_modifier
     lab_parameter.save
 
+    unless params[:go_to_patient_dashboard].blank?
+      redirect_to ("/lab/give_result?patient_id=#{params[:patient_id]}&go_to_patient_dashboard=true") and return if params[:result_given].match(/YES/i)
+      redirect_to ("/patients/show/#{params[:patient_id]}") and return
+    end
+    
     unless params[:go_to_next_task].blank?
       patient = Patient.find(params[:patient_id])
       redirect_to ("/lab/give_result?patient_id=#{params[:patient_id]}&go_to_next_task=true") and return if params[:result_given].match(/YES/i)
@@ -251,6 +256,10 @@ class GenericLabController < ApplicationController
       obs.save
     end
 
+    unless params[:go_to_patient_dashboard].blank?
+      redirect_to ("/patients/show/#{params[:patient_id]}") and return
+    end
+    
     unless params[:go_to_next_task].blank?
       patient = Patient.find(params[:patient_id])
       redirect_to next_task(patient) and return

@@ -4,20 +4,250 @@
     <title>Patient Dashboard</title>
     <script type="text/javascript" language="javascript"
     src="/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js" defer  ></script>
+    <%= javascript_include_tag("jquery") %>
     <meta http-equiv='content-type' content='text/html;charset=UTF-8' />
     <script language="javascript">
       tstUsername = "";
       tstCurrentDate = "<%= @date %>";
       //tt_cancel_destination = '/clinic';
       tt_cancel_show = '/clinic';
+      
+      function removeUpdateVlMenu(){
+        content = window.parent.document.getElementById('content');
+        vl_menu = document.getElementById('new_vl_menu');
+        vl_menu.style.display='none';
+        
+        viral_load_frame_body = window.frames['hiv_viral_load'].contentDocument.body;
+        viral_load_frame_body.appendChild(vl_menu);
+        
+        vl_lab_trail_cover = document.getElementById('vl_lab_trail_cover');
+        vl_lab_trail_cover.style.display='none';
+        viral_load_frame_body.appendChild(vl_lab_trail_cover);
+      }
+
+      function hideVlLabTrail(){
+        content = window.parent.document.getElementById('content');
+        vl_lab_trail = document.getElementById('vl_lab_trail')
+        vl_lab_trail.style.display='none';
+
+        viral_load_frame_body = window.frames['hiv_viral_load'].contentDocument.body;
+        viral_load_frame_body.appendChild(vl_lab_trail);
+
+        vl_lab_trail_cover = document.getElementById('vl_lab_trail_cover');
+        vl_lab_trail_cover.style.display='none';
+        viral_load_frame_body.appendChild(vl_lab_trail_cover);
+      }
+      
+      function newVlResultPath(){
+        window.location = "/lab/viral_load_result?patient_id=<%= @patient.id %>&go_to_patient_dashboard=true"
+      }
+
+      function newVlResultPathWithParam(){
+        window.location = "/lab/viral_load_result?patient_id=<%= @patient.id %>&go_to_next_task=true"
+      }
+
+      function giveResultPath(){
+        window.location = "/lab/give_result?patient_id=<%= @patient.id %>&go_to_patient_dashboard=true"
+      }
+
+      function repeat_vl_requested(){
+          jQuery.ajax({
+          type: "POST",
+          url: "/patients/repeat_viral_load_request",
+          data: "patient_id=<%=@patient.id %>",
+          success: function(){
+            window.location="/patients/show/<%=@patient.id%>"
+          }
+        });
+      }
     </script>
     <style>
+      #tab6 {
+        background-color: white;
+        border: 0 none;
+        color: black;
+        font-weight: bold;
+      }
+      <% if vl_routine_check_activated %>
+      #tab5 {
+        background-color: green;
+        border: 0 none;
+        color: white;
+        font-weight: bold;
+        border-left: 3px outset yellow;
+        border-radius: 10px;
+        border-right: 3px outset yellow;
+        border-top: 3px outset yellow;
+      }
+
+      .active-tab#tab5{
+        background-color: white !important;
+        border: 0 none;
+        color: black !important;
+        font-weight: bold;
+        border-left: 3px outset #333;
+        border-radius: 10px;
+        border-right: 3px outset #333;
+        border-top: 3px outset #333;
+        color: #fff;
+        cursor: pointer;
+        float: left;
+        font-size: 18px;
+        padding: 3px 8px 8px;
+        font-weight: normal;
+      }
+
+      #vl_lab_trail, #new_vl_menu, .new_vl_menu{
+        position: absolute;
+        width: 95%;
+        height: 70%;
+        top: 10%;
+        z-index: 991;
+        left: 3%;
+        border: 1px solid black;
+        background-color: #FEE0C6;
+        border-radius: 15px;
+      }
+
+      #vl_lab_trail_header, #new_vl_menu_header, .new_vl_menu_header{
+        padding: 10px;
+        background-color: gray;
+        color: white;
+        border-radius: 15px 15px 0px 0px;
+      }
+
+      #vl_lab_trail_footer, #new_vl_menu_footer, .new_vl_menu_footer{
+        background-color: gray;
+        height: 60px;
+        width: 100%;
+        position: absolute;
+        width: 100%;
+        position: absolute;
+        bottom: 0px;
+        border-radius: 0px 0px 15px 15px;
+      }
+
+      #vl_lab_trail_footer span{
+        border-radius: 13px;
+        background-color: #C1CDCD;
+        position: absolute;
+        padding: 12px 20%;
+        left: 27%;
+        bottom: 8px;
+        cursor: pointer;
+      }
+
+      #new_vl_menu_footer span, .new_vl_menu_footer span{
+       border-radius: 8px;
+        background-color: #C1CDCD;
+        padding-top: 14px;
+        padding-bottom: 14px;
+        position: absolute;
+        width: 98%;
+        left: 1%;
+        bottom: 5px;
+        cursor: pointer;
+      }
+
+      .vl_tbody td{
+        border-bottom: 1px solid black;
+        border-right: 1px solid black;
+      }
+
+      .vl_table_header td{
+        border-bottom: 1px solid black;
+        border-top: 1px solid black;
+      }
+
+      #vl_lab_trail_cover{
+        position: absolute;
+        background-color: black;
+        width: 100%;
+        height: 102%;
+        left: 0%;
+        top: 0%;
+        z-index: 990;
+        opacity: 0.3;
+      }
+
+      #new_vl_menu_content table td, .new_vl_menu_content table td{
+        border-bottom: 1px solid black;
+      }
+
+      #new_vl_menu_content span, .new_vl_menu_content span{
+        font-size: 14pt;
+        margin-left: 32% !important;
+      }
+
+      #new_vl_menu_content tr:hover, .new_vl_menu_content tr:hover{
+        background-color: white;
+      }
+
+      #new_vl_menu_content tr, .new_vl_menu_content tr{
+        cursor: pointer;
+      }
+
+      #vl_data{
+        position: absolute;
+        -moz-user-select: none;
+        background-color: #FFFFFF;
+        border: 1px solid #999999;
+        border-radius: 20px 20px 20px 20px;
+        display: table;
+        margin: 5px;
+        overflow: hidden;
+        padding: 10px;
+        width: 55%;
+        z-index: 800;
+        left: 22%;
+        top: 10%;
+        height: 55%;
+      }
+
+      #vl_data_footer{
+        background-color: #FEFEF2;
+        height: 69px;
+        width: 100%;
+        position: absolute;
+        width: 99.5%;
+        position: absolute;
+        bottom: 2px;
+        border-radius: 0px 0px 15px 15px;
+        left: 1px;
+        border-top: 2px solid black;
+      }
+
+      #update_span {
+        position: absolute;
+        padding: 2% 13.5%;
+        background-color: #5F9EA0;
+        color: white !important;
+        left: 1.4%;
+        bottom: 8.5px;
+        font-size: 14pt;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+
+      #lab_trail_span{
+        position: absolute;
+        padding: 2% 11.5%;
+        background-color: #5F9EA0;
+        color: white !important;
+        right: 1%;
+        bottom: 8.5px;
+        font-size: 14pt;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      <%  else %>
       #tab5 {
         background-color: white;
         border: 0 none;
         color: black;
         font-weight: bold;
       }
+      <% end %>
     </style>
   </head>
   <body><div id='content'>
@@ -107,9 +337,15 @@
               <option value='/patients/visit_history?patient_id=<%= @patient.id %>'>Current Visit</option>
               <option value='/patients/past_visits_summary?patient_id=<%= @patient.id %>'>Past Visits</option>
               <option value='/patients/personal/<%= @patient.id -%>'>Printouts/Other</option>
+              
+              <% if vl_routine_check_activated %>
+                <option value='/patients/viral_load_page?patient_id=<%= @patient.id %>'>HIV viral load</option>
+              <% end %>
+
               <option value='/patients/next_task_description?task_id=<%= task.id -%>'>
                 NEXT TASK: <%= task_name.gsub('_',' ') %>
               </option>
+              
             </select>
             <% if @died == 1%>
               <select id="links">

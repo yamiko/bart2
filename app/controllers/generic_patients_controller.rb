@@ -74,7 +74,7 @@ The following block of code should be replaced by a more cleaner function
 
 
 
-      identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+      identifier_types = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
       identifiers = PatientIdentifierType.find(:all, :conditions=>["name IN (?)",
                                                                    identifier_types]).collect{| type |type.id }
 
@@ -3660,6 +3660,45 @@ The following block of code should be replaced by a more cleaner function
     render :text => "true" and return
   end
 
+  def viral_load_page
+    patient = Patient.find(params[:patient_id])
+    @patient = patient
+    id_types = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
+    identifier_types = PatientIdentifierType.find(:all, :conditions=>["name IN (?)",
+        id_types]).collect{| type |type.id }
+
+		patient_identifiers = PatientIdentifier.find(:all, :conditions=>["patient_id=? AND
+     identifier_type IN (?)", patient.id,identifier_types]).collect{| i | i.identifier }
+    
+    @results = Lab.latest_result_by_test_type(patient, 'HIV_viral_load', patient_identifiers) rescue nil
+    @latest_date = @results[0].split('::')[0].to_date rescue nil
+    @latest_result = @results[1]["TestValue"] rescue nil
+    @modifier = @results[1]["Range"] rescue nil
+    @reason_for_art = PatientService.reason_for_art_eligibility(patient)
+    @vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ? AND value_coded IS NOT NULL",
+      patient.patient_id, Concept.find_by_name("Viral load").concept_id]
+    ).answer_string.squish.upcase rescue nil
+
+    @repeat_vl_request = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?
+        AND value_text =?", patient.patient_id, Concept.find_by_name("Viral load").concept_id,
+        "Repeat"]).answer_string.squish.upcase rescue nil
+
+    @repeat_vl_obs_date = Observation.find(:last, :conditions => ["person_id = ? AND concept_id = ?
+      AND value_text =?", patient.patient_id, Concept.find_by_name("Viral load").concept_id,
+      "Repeat"]).obs_datetime.to_date rescue nil
+
+    @date_vl_result_given = Observation.find(:last, :conditions => ["
+    person_id =? AND concept_id =? AND value_text REGEXP ?", patient.id,
+    Concept.find_by_name("Viral load").concept_id, 'Result given to patient']).value_datetime rescue nil
+
+    @enter_lab_results = GlobalProperty.find_by_property('enter.lab.results').property_value == 'true' rescue false
+
+    @vl_result_hash = Patient.vl_result_hash(patient)
+
+    render :template => 'dashboards/viral_load_tab', :layout => false
+    
+  end
+  
   def confirm_merge
     master = params[:master_id]
     slaves = params[:slaves_ids]
@@ -3793,7 +3832,7 @@ EOF
     patient = Patient.find(params[:patient_id])
     encounter_type = EncounterType.find_by_name("REQUEST").id
 
-    identifier_types = ["Legacy Pediatric id","National id","Legacy National id"]
+    identifier_types = ["Legacy Pediatric id","National id","Legacy National id","Old Identification Number"]
     identifier_types = PatientIdentifierType.find(:all,
       :conditions=>["name IN (?)",identifier_types]).collect{| type |type.id }
 

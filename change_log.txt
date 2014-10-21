@@ -149,4 +149,7 @@ Version (1.0.0)
    KK - Rewrote validation rule queries to suite flat tables for checking age against birth date and death date; and for checking vitals enc without weight
    TM - Changed validation rule for checking whether patients have reason for starting to work with flat tables
    TM - Changed validation rule checking tha each outcome is tied to a date to work on flat tables
+   DN - added guardian_present_unknown field
+2014-09-29
+   DN - commented out side_effects visit_date fields
 

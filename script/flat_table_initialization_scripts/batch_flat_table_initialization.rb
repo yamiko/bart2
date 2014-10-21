@@ -954,7 +954,60 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
         elsif obs.value_coded == 29 && obs.value_coded_name_id == 30
           a_hash[:symptom_present_hepatitis] = 'Yes'
           a_hash[:symptom_present_hepatitis_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 9242 && obs.value_coded_name_id == 12434
+          a_hash[:symptom_present_kidney_failure] = 'Yes'
+          a_hash[:symptom_present_kidney_failure_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 2150 && obs.value_coded_name_id == 2328
+          a_hash[:symptom_present_nightmares] = 'Yes'
+          a_hash[:symptom_present_nightmares_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 877 && obs.value_coded_name_id == 897
+          a_hash[:symptom_present_diziness] = 'Yes'
+          a_hash[:symptom_present_diziness_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 219 && obs.value_coded_name_id == 231
+          a_hash[:symptom_present_psychosis] = 'Yes'
+          a_hash[:symptom_present_psychosis_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 5953 && obs.value_coded_name_id == 4325
+          a_hash[:symptom_present_blurry_vision] = 'Yes'
+          a_hash[:symptom_present_blurry_vision_enc_id] = encounter.encounter_id          
         end
+     elsif obs.concept_id == 7755 #side_effects
+        if obs.value_coded == 1066 && obs.value_coded_name_id == 1103
+          a_hash[:side_effects_no] = 'Yes'
+          a_hash[:side_effects_no_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 821 && obs.value_coded_name_id == 838
+          a_hash[:side_effects_peripheral_neuropathy] = 'Yes'
+          a_hash[:side_effects_peripheral_neuropathy_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 29 && obs.value_coded_name_id == 30
+          a_hash[:side_effects_hepatitis] = 'Yes'
+          a_hash[:side_effects_hepatitis_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 512 && obs.value_coded_name_id == 524
+          a_hash[:side_effects_skin_rash] = 'Yes'
+          a_hash[:side_effects_skin_rash_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 2148 && obs.value_coded_name_id == 2325
+          a_hash[:side_effects_lipodystrophy] = 'Yes'
+          a_hash[:side_effects_lipodystrophy_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 6408 && obs.value_coded_name_id == 8873
+          a_hash[:side_effects_other] = 'Yes'
+          a_hash[:side_effects_other_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 9242 && obs.value_coded_name_id == 12434
+          a_hash[:side_effects_kidney_failure] = 'Yes'
+          a_hash[:side_effects_kidney_failure_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 2150 && obs.value_coded_name_id == 2328
+          a_hash[:side_effects_nightmares] = 'Yes'
+          a_hash[:side_effects_nightmares_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 877 && obs.value_coded_name_id == 897
+          a_hash[:side_effects_diziness] = 'Yes'
+          a_hash[:side_effects_diziness_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 219 && obs.value_coded_name_id == 231
+          a_hash[:side_effects_psychosis] = 'Yes'
+          a_hash[:side_effects_psychosis_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 5953 && obs.value_coded_name_id == 4325
+          a_hash[:side_effects_blurry_vision] = 'Yes'
+          a_hash[:side_effects_blurry_vision_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 29 && obs.value_coded_name_id == 30
+          a_hash[:symptom_present_hepatitis] = 'Yes'
+          a_hash[:symptom_present_hepatitis_enc_id] = encounter.encounter_id
+        end        
       elsif obs.concept_id == 8012 #allergic to sulpher
         if obs.value_coded == 1065 && obs.value_coded_name_id == 1102
           a_hash[:allergic_to_sulphur_yes] = 'Yes'
@@ -993,6 +1046,7 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
 		      a_hash[:routine_tb_screening_weight_loss_failure] = 'Yes'
           a_hash[:routine_tb_screening_weight_loss_failure_enc_id] = encounter.encounter_id
 	      end
+=begin	      
      	elsif obs.concept_id == 2146 #side effects
 	      if obs.value_coded == 821 && obs.value_coded_name_id == 838
 		      a_hash[:side_effects_peripheral_neuropathy] = 'Yes'
@@ -1010,6 +1064,7 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
 		      a_hash[:side_effects_other] = 'Yes'
           a_hash[:side_effects_other_enc_id] = encounter.encounter_id
 	      end
+=end      
       elsif obs.concept_id == 7567 #drug induced symptoms
         if obs.value_coded == 2148 && obs.value_coded_name_id == 2325
           a_hash[:drug_induced_lipodystrophy] = 'Yes'
@@ -1056,6 +1111,21 @@ def process_hiv_clinic_consultation_encounter(encounter, type = 0) #type 0 norma
         elsif obs.value_coded == 29 && obs.value_coded_name_id == 30
           a_hash[:drug_induced_hepatitis] = 'Yes'
           a_hash[:drug_induced_hepatitis_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 9242 && obs.value_coded_name_id == 12434
+          a_hash[:drug_induced_kidney_failure] = 'Yes'
+          a_hash[:drug_induced_kidney_failure_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 2150 && obs.value_coded_name_id == 2328
+          a_hash[:drug_induced_nightmares] = 'Yes'
+          a_hash[:drug_induced_nightmares_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 877 && obs.value_coded_name_id == 897
+          a_hash[:drug_induced_diziness] = 'Yes'
+          a_hash[:drug_induced_diziness_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 219 && obs.value_coded_name_id == 231
+          a_hash[:drug_induced_psychosis] = 'Yes'
+          a_hash[:drug_induced_psychosis_enc_id] = encounter.encounter_id
+        elsif obs.value_coded == 5953 && obs.value_coded_name_id == 4325
+          a_hash[:drug_induced_blurry_vision] = 'Yes'
+          a_hash[:drug_induced_blurry_vision_enc_id] = encounter.encounter_id           
         end
      	end
     end
