@@ -39,6 +39,10 @@ module ApplicationHelper
     get_global_property_value("activate.vl.routine.check").to_s == "true" rescue false
   end
 
+  def drug_management_activated
+    get_global_property_value("activate.drug.management").to_s == "true" rescue false
+  end
+  
   def ask_home_village
     get_global_property_value("demographics.home_village").to_s == "true" rescue false
   end

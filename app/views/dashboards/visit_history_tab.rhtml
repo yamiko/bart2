@@ -16,6 +16,10 @@
         if (status == 'success') {
           document.getElementById('observations').innerHTML = '';
           node.parent().remove();
+          enc_name = node.parent().attr('enc_name');
+          if (enc_name.match(/TREATMENT/i)){
+            $("[enc_name=DISPENSING]").remove();
+          }
         }
       })
     }, function() { hideConfirmation(); });
@@ -27,6 +31,7 @@
     recent = $('#encounters li.data:first');
     if (recent) select(recent);
   })
+    
 </script>
   <div id="encounters" style="border: 1px solid #eee; padding: 10px; border-radius: 15px;">
     <% current_day = session[:datetime].strftime('%Y-%m-%d') rescue 'Today'%>
@@ -37,7 +42,7 @@
         <div style="display: table-cell; width: 50%; padding: 10px; vertical-align: top;">
           <ul class="list" style="clear:both; height: 230px; border-radius: 15px;">
             <% for encounter in @encounters.reverse do %>
-                <li class="data <%= cycle('even', 'odd') %>" encounter="<%= encounter.id %>">
+                <li class="data <%= cycle('even', 'odd') %>" encounter="<%= encounter.id %>" enc_name="<%= encounter.type.name %>">
                   <div class="void"><img src="/images/cancel_flat_small.png"/></div>
                   <% if encounter.name.humanize.include?('Hiv') %>
                     <div class="encounter"><%=(h encounter.name.humanize).gsub('Hiv','HIV').gsub('Tb','TB') %> at <%=h encounter.encounter_datetime.strftime("%k:%M") %> by <%=@creator_name[encounter.creator]%></div>

@@ -75,7 +75,8 @@ class ClinicController < GenericClinicController
 				["Export Cohort Data", "/properties/export_cohort_data"],
         ["Extended Family Planning","/properties/creation?value=extended_family_planning"],
         ["Mailing List", "/properties/mailing_management"],
-        ["Activate VL routine check", "/properties/creation?value=activate_viral_load_routine_check"]
+        ["Activate VL routine check", "/properties/creation?value=activate_viral_load_routine_check"],
+        ["Activate Drug Management","/properties/creation?value=activate_drug_management"]
       ]
     else
       @settings = []
