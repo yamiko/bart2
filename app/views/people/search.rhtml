@@ -50,6 +50,9 @@ pos = 1
       people[<%= pos %>]["Ancestral Traditional Authority(T/A)"] = null;
     }
     try {
+      <%= if person.current_residence.match(/!map:HashWithIndifferentAccess/i)
+            person.current_residence = ""
+      end %>
       people[<%= pos %>]["Current Residence"] = "<%=h person.current_residence -%>";
     }catch(e){
       people[<%= pos %>]["Current Residence"] = null;
