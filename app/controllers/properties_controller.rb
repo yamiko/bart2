@@ -30,5 +30,22 @@ class PropertiesController < GenericPropertiesController
 			 end
       redirect_to '/clinic' and return
     end
-	end
+  end
+
+ def set_htn_age_threshold
+
+  if request.post?
+   age_threshold = GlobalProperty.find_by_property('htn.screening.age.threshold')
+
+   if age_threshold.blank?
+    age_threshold = GlobalProperty.new()
+    age_threshold.property = "htn.screening.age.threshold"
+    age_threshold.description = "Defines the age at which patients will start being screened for hypertension"
+   end
+
+   age_threshold.property_value = params[:value]
+   age_threshold.save
+   redirect_to "/clinic" and return
+  end
+ end
 end

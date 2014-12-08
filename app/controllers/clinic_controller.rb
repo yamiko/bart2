@@ -75,7 +75,9 @@ class ClinicController < GenericClinicController
 				["Export Cohort Data", "/properties/export_cohort_data"],
         ["Extended Family Planning","/properties/creation?value=extended_family_planning"],
         ["Mailing List", "/properties/mailing_management"],
-        ["Activate VL routine check", "/properties/creation?value=activate_viral_load_routine_check"]
+        ["Activate VL routine check", "/properties/creation?value=activate_viral_load_routine_check"],
+        ["Activate Hypertension Screening","/properties/creation?value=activate_hypertension_enhancement"],
+        ["Set Hypertension Screening Age", "/properties/set_htn_age_threshold"]
       ]
     else
       @settings = []

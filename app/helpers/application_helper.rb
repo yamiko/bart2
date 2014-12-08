@@ -95,7 +95,11 @@ module ApplicationHelper
   def use_extended_staging_questions
     get_global_property_value('use.extended.staging.questions').to_s == "true" rescue false
   end
-  
+
+  def htn_activated
+   get_global_property_value('activate.htn.enhancement').to_s == "true" rescue false
+  end
+
   def prefix
     get_global_property_value("dc.number.prefix") rescue ""
   end

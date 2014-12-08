@@ -461,7 +461,7 @@ class CohortToolController < GenericCohortToolController
 
     @encounters = records_that_were_corrected(@quarter)
 
-     render:layout =>"report"
+     render :layout =>"report"
   end
 
   def records_that_were_corrected(quarter)
