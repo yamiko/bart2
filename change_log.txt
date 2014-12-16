@@ -142,3 +142,5 @@ Version (1.0.0)
    PB - Added a check to ensure that patients with no start reason are added to unknown reason in reason for starting in app/models/cohort.rb
 2014-10-16
    PB - Fixed list_patients_details.rhtml not to crash on patients with unknown age
+2014-12-16
+   KK - Added functionality for running htn application as a plugin from vendor/plugins
