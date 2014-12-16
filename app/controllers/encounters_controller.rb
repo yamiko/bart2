@@ -2,6 +2,11 @@ class EncountersController < GenericEncountersController
 	def new
 		#raise params.to_yaml
 		@patient = Patient.find(params[:patient_id] || session[:patient_id] || params[:id])
+		
+		if params[:encounter_type] && params[:encounter_type].upcase == "VITALS" && htn_client?(@patient)
+      redirect_to "/htn_encounter/vitals?patient_id=#{@patient.id}" and return
+		end
+
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
 
@@ -13,7 +18,7 @@ class EncountersController < GenericEncountersController
       render :action => params[:encounter_type] and return
 		end
 
-    session[:return_uri] = params[:return_ip] if ! params[:return_ip].blank?
+    session[:return_uri] = params[:return_ip] if !params[:return_ip].blank?
     
     @hiv_status = tb_art_patient(@patient,"hiv program") rescue ""
     @tb_status = tb_art_patient(@patient,"TB program") rescue ""

@@ -27,7 +27,18 @@ class Patient < ActiveRecord::Base
     self.orders.each {|row| row.void(reason) }
     self.encounters.each {|row| row.void(reason) }
   end
-  
+
+def current_bp(date = Date.today)
+  encounter_id = self.encounters.last(:conditions => ["encounter_type = ? AND DATE(encounter_datetime) = ?",
+                                                      EncounterType.find_by_name("VITALS").id, date.to_date]).id rescue nil
+
+  [(Observation.last(:conditions => ["encounter_id = ? AND concept_id = ?", encounter_id,
+                                     ConceptName.find_by_name("SYSTOLIC BLOOD PRESSURE").concept_id]).answer_string.to_f rescue nil),
+   (Observation.last(:conditions => ["encounter_id = ? AND concept_id = ?", encounter_id,
+                                     ConceptName.find_by_name("DIASTOLIC BLOOD PRESSURE").concept_id]).answer_string.to_f rescue nil)
+  ]
+end
+
 def physical_address
     return PersonAddress.find_by_person_id(self.id, :conditions => "voided = 0").city_village rescue nil
 end

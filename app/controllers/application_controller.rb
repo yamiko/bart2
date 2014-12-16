@@ -1,5 +1,18 @@
 class ApplicationController < GenericApplicationController
  
+
+  def htn_client?(patient)
+    link_to_htn = CoreService.get_global_property_value("activate.htn.enhancement")
+    htn_min_age = CoreService.get_global_property_value("htn.screening.age.threshold")
+    age = patient.person.age rescue 0
+    htn_patient = false
+
+    if ((link_to_htn.to_s == "true" && htn_min_age.to_i <= age) rescue false)
+      htn_patient = true
+    end
+    return htn_patient
+  end
+
   def next_task(patient)
     session_date = session[:datetime].to_date rescue Date.today
     task = main_next_task(Location.current_location, patient,session_date)
