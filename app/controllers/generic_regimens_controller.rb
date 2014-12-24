@@ -518,6 +518,7 @@ class GenericRegimensController < ApplicationController
 		end
 
     (params[:htn_drugs] || []).each do |drg|
+
       if !params[:duration].blank?
         auto_htn_expire_date = session[:datetime] + params[:duration].to_i.days +
             arvs_buffer.days rescue Time.now + params[:duration].to_i.days + arvs_buffer.days
@@ -531,6 +532,29 @@ class GenericRegimensController < ApplicationController
                          1,"OD",false, "#{drug.name}: Once a day", 1)
     end
 
+    if (!params[:htn_drugs].blank?)
+      ht_program_id = Program.find_by_name("HYPERTENSION PROGRAM").id
+      program = PatientProgram.find(:last,:conditions => ["patient_id = ? AND
+                                               program_id = ?", @patient.id,
+                                                          ht_program_id])
+
+      state = PatientState.find(:last, :conditions => ["patient_program_id = ?", program.id]) rescue nil
+      current_state = ConceptName.find_by_concept_id(state.program_workflow_state.concept_id).name rescue nil
+
+      if state.present? && (current_state.downcase.strip != "on treatment")
+        on_treatment_state = ProgramWorkflowState.find(:first,
+                                                       :conditions => ["program_workflow_id = ? AND concept_id = ?",
+                                                                       ProgramWorkflow.find(:first,
+                                                                                            :conditions => ["program_id = ?",
+                                                                                                            ht_program_id]).id,
+                                                                       Concept.find_by_name("On Treatment").id]).id
+
+        PatientState.create(:patient_program_id => program.id,
+                            :start_date => (session[:datetime].to_date rescue Date.today),
+                            :state => on_treatment_state)
+        state.update_attributes(:end_date => (session[:datetime].to_date rescue Date.today))
+      end
+    end
 
     params[:regimen] = params[:regimen_all] if ! params[:regimen_all].blank?
 		reduced = false
