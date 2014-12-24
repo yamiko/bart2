@@ -6,10 +6,17 @@ class ApplicationController < GenericApplicationController
     htn_min_age = CoreService.get_global_property_value("htn.screening.age.threshold")
     age = patient.person.age rescue 0
     htn_patient = false
+    refer_to_clinician = (Observation.last(:conditions => ["person_id = ? AND voided = 0 AND concept_id = ?
+                                                          AND DATE(obs_datetime) = ?",
+                                                          patient.person.id,
+                                                          ConceptName.find_by_name("REFER TO ART CLINICIAN").concept_id,
+                                                          (session[:datetime].to_date rescue Date.today)
+    ]).answer_string.downcase.strip rescue nil) == "yes"
 
-    if ((link_to_htn.to_s == "true" && htn_min_age.to_i <= age) rescue false)
+    if ((!refer_to_clinician && link_to_htn.to_s == "true" && htn_min_age.to_i <= age) rescue false)
       htn_patient = true
     end
+
     return htn_patient
   end
 

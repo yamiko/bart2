@@ -33,9 +33,9 @@ def current_bp(date = Date.today)
                                                       EncounterType.find_by_name("VITALS").id, date.to_date]).id rescue nil
 
   [(Observation.last(:conditions => ["encounter_id = ? AND concept_id = ?", encounter_id,
-                                     ConceptName.find_by_name("SYSTOLIC BLOOD PRESSURE").concept_id]).answer_string.to_f rescue nil),
+                                     ConceptName.find_by_name("SYSTOLIC BLOOD PRESSURE").concept_id]).answer_string.to_i rescue nil),
    (Observation.last(:conditions => ["encounter_id = ? AND concept_id = ?", encounter_id,
-                                     ConceptName.find_by_name("DIASTOLIC BLOOD PRESSURE").concept_id]).answer_string.to_f rescue nil)
+                                     ConceptName.find_by_name("DIASTOLIC BLOOD PRESSURE").concept_id]).answer_string.to_i rescue nil)
   ]
 end
 

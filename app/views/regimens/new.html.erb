@@ -1101,6 +1101,14 @@ element.setAttribute("onmousedown", "gotoNextPage()")
       document.getElementById('touchscreenInput'+tstCurrentPage).value = "";
     }
   }
+
+  function prescribeHypertensionDrugs(){
+      <% if !params[:auto_rx].blank?%>
+        return true
+      <% else%>
+        return false
+      <% end %>
+  }
 </script>
 
 <%
@@ -1431,10 +1439,20 @@ element.setAttribute("onmousedown", "gotoNextPage()")
           :tt_onLoad => "showCategory('Regimen');"} %>
 
     <%= select_tag :cpt_duration, optionsString,
-	  {	:condition => '($("prescribe_arvs").value == "NO" || $("prescribe_arvs").value == "") && ($("cpt_given").value == "YES" || $("ipt_given").value == "YES"  || $("pyridoxine").value == "YES")',
+	  {	:condition => '($("prescribe_arvs").value == "NO" || $("prescribe_arvs").value == "")
+	            && ($("cpt_given").value == "YES" ||
+	            $("ipt_given").value == "YES"  ||
+                    $("pyridoxine").value == "YES" || prescribeHypertensionDrugs())',
 	  :tt_onLoad => "__$('keyboard').style.display = 'none';showCategory('Regimen');",
 	  :helpText => 'Duration' } %>
 
+  <% if !params[:auto_rx].blank? #htn drugs to be prescribed
+    params[:auto_rx].each do |htn_drg|
+  %>
+      <%= hidden_field_tag "htn_drugs[]", htn_drg%>
+  <%
+     end
+     end %>
 
    <%#= select_tag :ipt_duration, optionsString,
 	  {	:condition => '$("prescribe_arvs").value == "NO" && $("ipt_given").value == "YES"',

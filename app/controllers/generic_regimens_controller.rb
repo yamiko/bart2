@@ -517,6 +517,21 @@ class GenericRegimensController < ApplicationController
 			end if prescribe_tb_continuation_drugs
 		end
 
+    (params[:htn_drugs] || []).each do |drg|
+      if !params[:duration].blank?
+        auto_htn_expire_date = session[:datetime] + params[:duration].to_i.days +
+            arvs_buffer.days rescue Time.now + params[:duration].to_i.days + arvs_buffer.days
+      else
+        auto_htn_expire_date = session[:datetime] + params[:cpt_duration].to_i.days +
+            arvs_buffer.days rescue Time.now + params[:cpt_duration].to_i.days + arvs_buffer.days
+      end
+
+      drug = Drug.find_by_name(drg)
+      DrugOrder.write_order(encounter, @patient, nil, drug, start_date, auto_htn_expire_date,
+                         1,"OD",false, "#{drug.name}: Once a day", 1)
+    end
+
+
     params[:regimen] = params[:regimen_all] if ! params[:regimen_all].blank?
 		reduced = false
 		orders = RegimenDrugOrder.all(:conditions => {:regimen_id => params[:regimen]})
@@ -558,7 +573,7 @@ class GenericRegimensController < ApplicationController
 				auto_expire_date, 
 				order.dose, 
 				order.frequency, 
-				order.prn, 
+				order.prn,
 				"#{drug.name}: #{order.instructions} (#{regimen_name})",
 				order.equivalent_daily_dose)    
 			end if prescribe_arvs
