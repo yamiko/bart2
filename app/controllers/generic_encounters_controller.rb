@@ -501,8 +501,8 @@ class GenericEncountersController < ApplicationController
       end
     end
 
-    if params['encounter']['encounter_type_name'] == "HIV CLINIC CONSULTATION" && htn_client?(@patient)
-      bp = @patient.current_bp()
+    if params['encounter']['encounter_type_name'] == "HIV CLINIC CONSULTATION" && htn_client?(@patient)			
+      bp = @patient.current_bp((session[:datetime] || Time.now()))
 
       if !bp.blank? && ((!bp[0].blank? && bp[0] > 140) || (!bp[1].blank?  && bp[1] > 90))
        redirect_to "/htn_encounter/bp_alert?patient_id=#{@patient.id}" and return
