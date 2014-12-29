@@ -507,6 +507,20 @@ class GenericEncountersController < ApplicationController
       if !bp.blank? && ((!bp[0].blank? && bp[0] > 140) || (!bp[1].blank?  && bp[1] > 90))
        redirect_to "/htn_encounter/bp_alert?patient_id=#{@patient.id}" and return
       end
+
+			if @patient.programs.map{|x| x.name}.include?("HYPERTENSION PROGRAM")
+	      htn_program_id = Program.find_by_name("HYPERTENSION PROGRAM").id
+	      program = PatientProgram.find(:last,:conditions => ["patient_id = ? AND program_id = ? AND date_enrolled <= ?", 
+																						@patient.id,htn_program_id, (session[:datetime] || Time.now())])
+				unless program.blank?
+  		    state = PatientState.find(:last, :conditions => ["patient_program_id = ? AND start_date >= ? AND COALESCE(end_date, '#{encounter.encounter_datetime.to_date}') <= ?", program.id, (session[:datetime].to_date || Time.now().to_date),(session[:datetime].to_date || Time.now().to_date)]) rescue nil
+		      current_state = ConceptName.find_by_concept_id(state.program_workflow_state.concept_id).name rescue ""
+
+					if current_state.upcase == "ON TREATMENT"
+			       redirect_to "/htn_encounter/bp_management?patient_id=#{@patient.id}" and return
+					end
+				end
+			end
     end
 
     # if params['encounter']['encounter_type_name'] == "APPOINTMENT"
