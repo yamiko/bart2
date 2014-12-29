@@ -534,11 +534,14 @@ class GenericRegimensController < ApplicationController
 
     if (!params[:htn_drugs].blank?)
       ht_program_id = Program.find_by_name("HYPERTENSION PROGRAM").id
-      program = PatientProgram.find(:last,:conditions => ["patient_id = ? AND
-                                               program_id = ?", @patient.id,
+      program = PatientProgram.find(:last,
+                                    :conditions => ["DATE(date_enrolled) <= ? AND patient_id = ? AND program_id = ?",
+                                                          (session[:datetime].to_date rescue Date.today), @patient.id,
                                                           ht_program_id])
 
-      state = PatientState.find(:last, :conditions => ["patient_program_id = ?", program.id]) rescue nil
+      state = PatientState.find(:last,
+                                :conditions => ["patient_program_id = ? AND DATE(start_date) <= ?",
+                                                program.id, (session[:datetime].to_date rescue Date.today)]) rescue nil
       current_state = ConceptName.find_by_concept_id(state.program_workflow_state.concept_id).name rescue nil
 
       if state.present? && (current_state.downcase.strip != "on treatment")
