@@ -500,7 +500,7 @@ class GenericEncountersController < ApplicationController
         end
       end
     end
-
+=begin
     if params['encounter']['encounter_type_name'] == "HIV CLINIC CONSULTATION" && patient_present(@patient.id,(session[:datetime] || Date.today)) && htn_client?(@patient)
       bp = @patient.current_bp((session[:datetime] || Time.now()))
 
@@ -523,7 +523,7 @@ class GenericEncountersController < ApplicationController
 				end
 			end
     end
-
+=end
     # if params['encounter']['encounter_type_name'] == "APPOINTMENT"
     #  redirect_to "/patients/treatment_dashboard/#{@patient.id}" and return
     # else

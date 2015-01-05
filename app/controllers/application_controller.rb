@@ -2,10 +2,11 @@ class ApplicationController < GenericApplicationController
  
 
   def htn_client?(patient)
-    link_to_htn = CoreService.get_global_property_value("activate.htn.enhancement")
+#    link_to_htn = CoreService.get_global_property_value("activate.htn.enhancement")
     htn_min_age = CoreService.get_global_property_value("htn.screening.age.threshold")
     age = patient.person.age rescue 0
     htn_patient = false
+=begin
     refer_to_clinician = (Observation.last(:conditions => ["person_id = ? AND voided = 0 AND concept_id = ?
                                                           AND DATE(obs_datetime) = ?",
                                                           patient.person.id,
@@ -16,13 +17,20 @@ class ApplicationController < GenericApplicationController
     if ((!refer_to_clinician && link_to_htn.to_s == "true" && htn_min_age.to_i <= age) rescue false)
       htn_patient = true
     end
-
+=end
+  if ((htn_min_age.to_i <= age) rescue false)
+   htn_patient = true
+  end
     return htn_patient
   end
 
   def next_task(patient)
     session_date = session[:datetime].to_date rescue Date.today
     task = main_next_task(Location.current_location, patient,session_date)
+
+    if CoreService.get_global_property_value("activate.htn.enhancement").to_s == "true" && patient_present(patient, session_date) && htn_client?(patient)
+     task = check_htn_workflow(patient, task)
+    end
     begin
       return task.url if task.present? && task.url.present?
       return "/patients/show/#{patient.id}" 
@@ -1417,4 +1425,39 @@ class ApplicationController < GenericApplicationController
    patient_present = reception.match(/PATIENT PRESENT FOR CONSULTATION: YES/i)
    return patient_present
   end
+
+ def check_htn_workflow(patient, task)
+
+  if task.present? && task.url.present?
+   if task.url.match(/VITALS/i)
+    return Task.new( :url=> "/htn_encounter/vitals?patient_id=#{patient.id}", :encounter_type => "Vitals")
+   elsif task.url.match(/REGIMENS/i)
+    bp = patient.current_bp((session[:datetime] || Time.now()))
+
+    if !bp.blank? && ((!bp[0].blank? && bp[0] > 140) || (!bp[1].blank?  && bp[1] > 90))
+     return Task.new(:url => "/htn_encounter/bp_alert?patient_id=#{patient.id}", :encounter_type => "BP Alert")
+    end
+
+    if patient.programs.map{|x| x.name}.include?("HYPERTENSION PROGRAM")
+     htn_program_id = Program.find_by_name("HYPERTENSION PROGRAM").id
+     program = PatientProgram.find(:last,:conditions => ["patient_id = ? AND program_id = ? AND date_enrolled <= ?",
+                                                         patient.id,htn_program_id, (session[:datetime] || Time.now())])
+     unless program.blank?
+      todays_encounters = patient.encounters.find_by_date(session_date)
+      todays_encounter_types = todays_encounters.map{|e| e.type.name rescue ''}.uniq rescue []
+      if ! todays_encounters.map{ | e | e.name }.include?('HYPERTENSION MANAGEMENT')
+       state = PatientState.find(:last, :conditions => ["patient_program_id = ? AND start_date <= ? ", program.id, (session[:datetime].to_date rescue Time.now().to_date)]) rescue nil
+ 
+       current_state = ConceptName.find_by_concept_id(state.program_workflow_state.concept_id).name rescue ""
+
+       if current_state.upcase == "ON TREATMENT"
+        return Task.new(:url => "/htn_encounter/bp_management?patient_id=#{patient.id}",:encounter_type => "BP Management")
+       end
+      end
+     end
+    end
+   end
+  end
+  return task
+ end
 end

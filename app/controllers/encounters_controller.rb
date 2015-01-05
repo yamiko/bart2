@@ -2,10 +2,6 @@ class EncountersController < GenericEncountersController
 	def new
 		#raise params.to_yaml
 		@patient = Patient.find(params[:patient_id] || session[:patient_id] || params[:id])
-		
-		if params[:encounter_type] && params[:encounter_type].upcase == "VITALS" && patient_present(@patient.id,(session[:datetime].to_date rescue Date.today)) && htn_client?(@patient)
-      redirect_to "/htn_encounter/vitals?patient_id=#{@patient.id}" and return
-		end
 
 		@patient_bean = PatientService.get_patient(@patient.person)
 		session_date = session[:datetime].to_date rescue Date.today
