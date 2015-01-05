@@ -501,7 +501,7 @@ class GenericEncountersController < ApplicationController
       end
     end
 
-    if params['encounter']['encounter_type_name'] == "HIV CLINIC CONSULTATION" && htn_client?(@patient)			
+    if params['encounter']['encounter_type_name'] == "HIV CLINIC CONSULTATION" && patient_present(@patient.id,(session[:datetime] || Date.today)) && htn_client?(@patient)
       bp = @patient.current_bp((session[:datetime] || Time.now()))
 
       if !bp.blank? && ((!bp[0].blank? && bp[0] > 140) || (!bp[1].blank?  && bp[1] > 90))

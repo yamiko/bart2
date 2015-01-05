@@ -1405,4 +1405,16 @@ class ApplicationController < GenericApplicationController
     GlobalProperty.find_by_property("activate.vl.routine.check").property_value.to_s == "true" rescue false
   end
 
+  def patient_present(patient_id, date = Date.today)
+   start_date = date.strftime("%Y-%m-%d 00:00:00")
+   end_date = date.strftime("%Y-%m-%d 23:59:59")
+   reception = Encounter.find(:first,:order => "encounter_datetime DESC,date_created DESC",
+                              :conditions =>["patient_id = ? AND DATE(encounter_datetime) = ? AND encounter_type = ?
+	AND encounter_datetime >= ? AND encounter_datetime <=?",patient_id,date,
+                                             EncounterType.find_by_name('HIV RECEPTION').id,start_date,end_date])
+
+   reception = reception.observations.collect{|r|r.to_s.squish}.join(',') rescue ''
+   patient_present = reception.match(/PATIENT PRESENT FOR CONSULTATION: YES/i)
+   return patient_present
+  end
 end
