@@ -1454,13 +1454,21 @@ class ApplicationController < GenericApplicationController
        (!current_user_roles.include?('Clinician') || !current_user_roles.include?('Doctor'))
     end
    elsif task.url.match(/SHOW/i) && task.encounter_type == "NONE"
+    #Alert and BP mgmt for patients on HTN or with two high BP readings
+    bp = patient.current_bp((session[:datetime] || Time.now()))
+    #Check if latest BP was high for alert
+    if !bp.blank? && ((!bp[0].blank? && bp[0] > 140) || (!bp[1].blank?  && bp[1] > 90))
+     return Task.new(:url => "/htn_encounter/bp_alert?patient_id=#{patient.id}", :encounter_type => "BP Alert")
+    end
     todays_encounters = patient.encounters.find_by_date((session[:datetime].to_date rescue Time.now().to_date))
     if !todays_encounters.map{ | e | e.name }.include?("HYPERTENSION MANAGEMENT") &&
       is_patient_on_htn_treatment?(patient, (session[:datetime].to_date rescue Time.now().to_date))
      #If patient is on treatment but does not have a BP Specific encounter, manage patient
+     unless (referred_to_clinician && (!current_user_roles.include?('Clinician') || !current_user_roles.include?('Doctor')))
      return Task.new(:url => "/htn_encounter/bp_management?patient_id=#{patient.id}",
-                     :encounter_type => "HYPERTENSION MANAGEMENT")unless referred_to_clinician &&
-       (!current_user_roles.include?('Clinician') || !current_user_roles.include?('Doctor'))
+                     :encounter_type => "HYPERTENSION MANAGEMENT")
+     end
+
     end
    end
   end
