@@ -1427,37 +1427,60 @@ class ApplicationController < GenericApplicationController
   end
 
  def check_htn_workflow(patient, task)
+ #This function is for managing interaction with HTN
+  referred_to_clinician = (Observation.last(:conditions => ["person_id = ? AND voided = 0 AND concept_id = ?
+                                                          AND DATE(obs_datetime) = ?",
+                                                         patient.person.id,
+                                                         ConceptName.find_by_name("REFER PATIENT TO CLINICIAN").concept_id,
+                                                         (session[:datetime].to_date rescue Date.today)
+  ]).answer_string.downcase.strip rescue nil) == "yes"
 
   if task.present? && task.url.present?
+   #patients eligible for HTN will have their vitals taken with HTN module
    if task.url.match(/VITALS/i)
     return Task.new( :url=> "/htn_encounter/vitals?patient_id=#{patient.id}", :encounter_type => "Vitals")
    elsif task.url.match(/REGIMENS/i)
+    #Alert and BP mgmt for patients on HTN or with two high BP readings
     bp = patient.current_bp((session[:datetime] || Time.now()))
-
+    #Check if latest BP was high for alert
     if !bp.blank? && ((!bp[0].blank? && bp[0] > 140) || (!bp[1].blank?  && bp[1] > 90))
      return Task.new(:url => "/htn_encounter/bp_alert?patient_id=#{patient.id}", :encounter_type => "BP Alert")
     end
 
-    if patient.programs.map{|x| x.name}.include?("HYPERTENSION PROGRAM")
-     htn_program_id = Program.find_by_name("HYPERTENSION PROGRAM").id
-     program = PatientProgram.find(:last,:conditions => ["patient_id = ? AND program_id = ? AND date_enrolled <= ?",
-                                                         patient.id,htn_program_id, (session[:datetime] || Time.now())])
-     unless program.blank?
-      todays_encounters = patient.encounters.find_by_date(session_date)
-      todays_encounter_types = todays_encounters.map{|e| e.type.name rescue ''}.uniq rescue []
-      if ! todays_encounters.map{ | e | e.name }.include?('HYPERTENSION MANAGEMENT')
-       state = PatientState.find(:last, :conditions => ["patient_program_id = ? AND start_date <= ? ", program.id, (session[:datetime].to_date rescue Time.now().to_date)]) rescue nil
- 
-       current_state = ConceptName.find_by_concept_id(state.program_workflow_state.concept_id).name rescue ""
-
-       if current_state.upcase == "ON TREATMENT"
-        return Task.new(:url => "/htn_encounter/bp_management?patient_id=#{patient.id}",:encounter_type => "BP Management")
-       end
-      end
-     end
+    #If BP was not high, check if patient is on BP treatment
+    if is_patient_on_htn_treatment?(patient, (session[:datetime].to_date rescue Time.now().to_date))
+     return Task.new(:url => "/htn_encounter/bp_management?patient_id=#{patient.id}",
+                     :encounter_type => "HYPERTENSION MANAGEMENT") unless referred_to_clinician &&
+       (!current_user_roles.include?('Clinician') || !current_user_roles.include?('Doctor'))
+    end
+   elsif task.url.match(/SHOW/i) && task.encounter_type == "NONE"
+    todays_encounters = patient.encounters.find_by_date((session[:datetime].to_date rescue Time.now().to_date))
+    if !todays_encounters.map{ | e | e.name }.include?("HYPERTENSION MANAGEMENT") &&
+      is_patient_on_htn_treatment?(patient, (session[:datetime].to_date rescue Time.now().to_date))
+     #If patient is on treatment but does not have a BP Specific encounter, manage patient
+     return Task.new(:url => "/htn_encounter/bp_management?patient_id=#{patient.id}",
+                     :encounter_type => "HYPERTENSION MANAGEMENT")unless referred_to_clinician &&
+       (!current_user_roles.include?('Clinician') || !current_user_roles.include?('Doctor'))
     end
    end
   end
+
   return task
+ end
+
+ def is_patient_on_htn_treatment?(patient, date)
+  if patient.programs.map{|x| x.name}.include?("HYPERTENSION PROGRAM")
+   htn_program_id = Program.find_by_name("HYPERTENSION PROGRAM").id
+   program = PatientProgram.find(:last,:conditions => ["patient_id = ? AND program_id = ? AND date_enrolled <= ?",
+                                                       patient.id,htn_program_id, date])
+   unless program.blank?
+     state = PatientState.find(:last, :conditions => ["patient_program_id = ? AND start_date <= ? ", program.id, date]) rescue nil
+     current_state = ConceptName.find_by_concept_id(state.program_workflow_state.concept_id).name rescue ""
+     if current_state.upcase == "ON TREATMENT"
+      return true
+     end
+   end
+  end
+  return false
  end
 end
