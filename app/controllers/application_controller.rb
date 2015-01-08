@@ -1435,6 +1435,8 @@ class ApplicationController < GenericApplicationController
                                                          (session[:datetime].to_date rescue Date.today)
   ]).answer_string.downcase.strip rescue nil) == "yes"
 
+    todays_encounters = patient.encounters.find_by_date((session[:datetime].to_date rescue Time.now().to_date))
+
   if task.present? && task.url.present?
    #patients eligible for HTN will have their vitals taken with HTN module
    if task.url.match(/VITALS/i)
@@ -1443,12 +1445,12 @@ class ApplicationController < GenericApplicationController
     #Alert and BP mgmt for patients on HTN or with two high BP readings
     bp = patient.current_bp((session[:datetime] || Time.now()))
     #Check if latest BP was high for alert
-    if !bp.blank? && ((!bp[0].blank? && bp[0] > 140) || (!bp[1].blank?  && bp[1] > 90))
+    if !bp.blank? && todays_encounters.map{ | e | e.name }.count("VITALS") == 1 && ((!bp[0].blank? && bp[0] > 140) || (!bp[1].blank?  && bp[1] > 90))
      return Task.new(:url => "/htn_encounter/bp_alert?patient_id=#{patient.id}", :encounter_type => "BP Alert")
     end
 
     #If BP was not high, check if patient is on BP treatment
-    if is_patient_on_htn_treatment?(patient, (session[:datetime].to_date rescue Time.now().to_date))
+    if is_patient_on_htn_treatment?(patient, (session[:datetime].to_date rescue Time.now().to_date)) && !todays_encounters.map{ | e | e.name }.include?("HYPERTENSION MANAGEMENT")
      return Task.new(:url => "/htn_encounter/bp_management?patient_id=#{patient.id}",
                      :encounter_type => "HYPERTENSION MANAGEMENT") unless referred_to_clinician &&
        (!current_user_roles.include?('Clinician') || !current_user_roles.include?('Doctor'))
@@ -1457,10 +1459,10 @@ class ApplicationController < GenericApplicationController
     #Alert and BP mgmt for patients on HTN or with two high BP readings
     bp = patient.current_bp((session[:datetime] || Time.now()))
     #Check if latest BP was high for alert
-    if !bp.blank? && ((!bp[0].blank? && bp[0] > 140) || (!bp[1].blank?  && bp[1] > 90))
+    if !bp.blank? && todays_encounters.map{ | e | e.name }.count("VITALS") == 1 && ((!bp[0].blank? && bp[0] > 140) || (!bp[1].blank?  && bp[1] > 90))
      return Task.new(:url => "/htn_encounter/bp_alert?patient_id=#{patient.id}", :encounter_type => "BP Alert")
     end
-    todays_encounters = patient.encounters.find_by_date((session[:datetime].to_date rescue Time.now().to_date))
+
     if !todays_encounters.map{ | e | e.name }.include?("HYPERTENSION MANAGEMENT") &&
       is_patient_on_htn_treatment?(patient, (session[:datetime].to_date rescue Time.now().to_date))
      #If patient is on treatment but does not have a BP Specific encounter, manage patient
