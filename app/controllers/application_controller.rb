@@ -1447,6 +1447,11 @@ class ApplicationController < GenericApplicationController
     #Check if latest BP was high for alert
     if !bp.blank? && todays_encounters.map{ | e | e.name }.count("VITALS") == 1 && ((!bp[0].blank? && bp[0] > 140) || (!bp[1].blank?  && bp[1] > 90))
      return Task.new(:url => "/htn_encounter/bp_alert?patient_id=#{patient.id}", :encounter_type => "BP Alert")
+
+		elsif !bp.blank? && todays_encounters.map{ | e | e.name }.count("VITALS") > 1 && ((!bp[0].blank? && bp[0] > 140) || (!bp[1].blank?  && bp[1] > 90))
+			return Task.new(:url => "/htn_encounter/bp_management?patient_id=#{patient.id}",
+						               :encounter_type => "HYPERTENSION MANAGEMENT") unless referred_to_clinician &&
+						 (!current_user_roles.include?('Clinician') || !current_user_roles.include?('Doctor'))
     end
 
     #If BP was not high, check if patient is on BP treatment
@@ -1474,7 +1479,6 @@ class ApplicationController < GenericApplicationController
     end
    end
   end
-
   return task
  end
 
