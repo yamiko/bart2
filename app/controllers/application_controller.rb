@@ -1448,26 +1448,26 @@ class ApplicationController < GenericApplicationController
     if !bp.blank? && todays_encounters.map{ | e | e.name }.count("VITALS") == 1 && ((!bp[0].blank? && bp[0] > 140) || (!bp[1].blank?  && bp[1] > 90))
      return Task.new(:url => "/htn_encounter/bp_alert?patient_id=#{patient.id}", :encounter_type => "BP Alert")
 
-		elsif !bp.blank? && todays_encounters.map{ | e | e.name }.count("VITALS") > 1 && ((!bp[0].blank? && bp[0] > 140) || (!bp[1].blank?  && bp[1] > 90))
+    elsif !bp.blank? && todays_encounters.map{ | e | e.name }.count("VITALS") > 1 && ((!bp[0].blank? && bp[0] > 140) || (!bp[1].blank?  && bp[1] > 90))
 
-			if (referred_to_clinician && (!current_user_roles.include?('Clinician') || !current_user_roles.include?('Doctor')))
-				return Task.new(:url => "/patients/show/#{patient.id}",
-						               :encounter_type => "HYPERTENSION MANAGEMENT") 
-			else
-				return Task.new(:url => "/htn_encounter/bp_management?patient_id=#{patient.id}",
-						               :encounter_type => "HYPERTENSION MANAGEMENT") 
-			end
+     if (referred_to_clinician && (!current_user_roles.include?('Clinician') || !current_user_roles.include?('Doctor')))
+      return Task.new(:url => "/patients/show/#{patient.id}",
+                       :encounter_type => "HYPERTENSION MANAGEMENT")
+     else
+      return Task.new(:url => "/htn_encounter/bp_management?patient_id=#{patient.id}",
+                       :encounter_type => "HYPERTENSION MANAGEMENT")
+     end
     end
 
     #If BP was not high, check if patient is on BP treatment
     if is_patient_on_htn_treatment?(patient, (session[:datetime].to_date rescue Time.now().to_date)) && !todays_encounters.map{ | e | e.name }.include?("HYPERTENSION MANAGEMENT")
-			if (referred_to_clinician && (!current_user_roles.include?('Clinician') || !current_user_roles.include?('Doctor')))
-				return Task.new(:url => "/patients/show/#{patient.id}",
-						               :encounter_type => "HYPERTENSION MANAGEMENT") 
-			else
-				return Task.new(:url => "/htn_encounter/bp_management?patient_id=#{patient.id}",
-						               :encounter_type => "HYPERTENSION MANAGEMENT") 
-			end
+      if (referred_to_clinician && (!current_user_roles.include?('Clinician') || !current_user_roles.include?('Doctor')))
+       return Task.new(:url => "/patients/show/#{patient.id}",
+                        :encounter_type => "HYPERTENSION MANAGEMENT")
+      else
+       return Task.new(:url => "/htn_encounter/bp_management?patient_id=#{patient.id}",
+                        :encounter_type => "HYPERTENSION MANAGEMENT")
+      end
     end
    elsif task.url.match(/SHOW/i) && task.encounter_type == "NONE"
     #Alert and BP mgmt for patients on HTN or with two high BP readings

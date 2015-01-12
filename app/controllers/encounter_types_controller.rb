@@ -25,14 +25,21 @@ class EncounterTypesController < GenericEncounterTypesController
 
     @available_encounter_types -= @available_encounter_types - @encounter_types
 
-
     @available_encounter_types = ((@available_encounter_types) - ((@available_encounter_types - roles_for_the_user) + (roles_for_the_user - @available_encounter_types)))
+    if CoreService.get_global_property_value("activate.htn.enhancement").to_s == "true" && patient_present(Patient.find(params[:patient_id]), (session[:datetime].to_date rescue Date.today)) && htn_client?(Patient.find(params[:patient_id]))
+     @available_encounter_types << "BP Management"
+    end
     @available_encounter_types = @available_encounter_types.sort
-    
+
   end
 
   def show
-  redirect_to "/encounters/new/#{params["encounter_type"].downcase.gsub(/ /,"_")}?#{params.to_param}" and return
+   if params["encounter_type"].downcase == "bp management"
+    redirect_to "/htn_encounter/bp_management?#{params.to_param}" and return
+   else
+    redirect_to "/encounters/new/#{params["encounter_type"].downcase.gsub(/ /,"_")}?#{params.to_param}" and return
+   end
+
   end
 
 end

@@ -110,5 +110,9 @@ class PatientProgram < ActiveRecord::Base
   def closed?
     (self.date_completed.blank? == false)
   end
-        
+
+  def current_state(date = Date.today)
+   state = PatientState.find(:last, :conditions => ["patient_program_id = ? AND start_date <= ? ", self.patient_program_id, date]) rescue nil
+   return ConceptName.find_by_concept_id(state.program_workflow_state.concept_id).name.upcase rescue ""
+  end
 end
