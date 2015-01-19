@@ -31,6 +31,19 @@ sudo apt-get install ruby build-essential libopenssl-ruby ruby1.8-dev
 ruby-dev mysql-client mysql-server git-core libmysql-ruby 
 libmysqlclient-dev unzip rubygems 
 
+For Ubuntu 14.XX and above run the following commands in terminal:
+
+sudo -H gedit /etc/apt/sources.list
+
+And then add deb http://gb.archive.ubuntu.com/ubuntu/ saucy main restricted after the first set.
+Save the file and exit the editor.
+
+Then run the following commands in terminal:
+
+sudo apt-get update
+sudo apt-get install ruby1.8
+sudo apt-get install build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev libxml2-dev libxslt1-dev libcurl4-openssl-dev
+
 Check if the ruby version is the correct one by running: (ruby -v) expected 1.8.7
 
 Step 2: Downgrade Rubygems
@@ -38,6 +51,11 @@ Step 2: Downgrade Rubygems
 wget http://rubyforge.org/frs/download.php/70697/rubygems-1.3.7.zip 
 unzip rubygems-1.3.7.zip
 ruby rubygems-1.3.7/setup.rb 
+
+For ubuntu 14.XX and above, run the following commands in terminal:
+
+sudo gem install rubygems-update -v 1.3.7
+sudo update_rubygems _1.3.7_
 
 Check if the rubygems version is the correct one by running: (gem -v)   expected 1.3.7 
 
