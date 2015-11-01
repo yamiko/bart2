@@ -513,8 +513,9 @@ class GenericEncountersController < ApplicationController
 	      program = PatientProgram.find(:last,:conditions => ["patient_id = ? AND program_id = ? AND date_enrolled <= ?", 
 																						@patient.id,htn_program_id, (session[:datetime] || Time.now())])
 				unless program.blank?
-  		    state = PatientState.find(:last, :conditions => ["patient_program_id = ? AND start_date <= ? ", program.id, (session[:datetime].to_date || Time.now().to_date)]) rescue nil
-		      current_state = ConceptName.find_by_concept_id(state.program_workflow_state.concept_id).name rescue ""
+  		    state = PatientState.find(:last, :conditions => ["patient_program_id = ? AND start_date <= ? ", program.id, (session[:datetime].to_date rescue Time.now().to_date)]) rescue nil
+
+          current_state = ConceptName.find_by_concept_id(state.program_workflow_state.concept_id).name rescue ""
 
 					if current_state.upcase == "ON TREATMENT"
 			       redirect_to "/htn_encounter/bp_management?patient_id=#{@patient.id}" and return
