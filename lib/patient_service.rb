@@ -1461,7 +1461,6 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
       return [] if p.blank?
       return "found duplicate identifiers" if p.count > 1
       p = p.first
-
       passed_national_id = (p["person"]["patient"]["identifiers"]["National id"])rescue nil
       if passed_national_id.blank?
        return [DDEService.get_remote_person(p["person"]["id"])]
@@ -1488,8 +1487,8 @@ people = Person.find(:all, :include => [{:names => [:person_name_code]}, :patien
        "patient"=>{"identifiers"=>{"National id" => p["person"]["value"]}},
        "birth_day"=>birthdate_day,
        "home_phone_number"=>p["person"]["data"]["attributes"]["home_phone_number"],
-       "names"=>{"family_name"=>p["person"]["family_name"],
-       "given_name"=>p["person"]["given_name"],
+       "names"=>{"family_name"=>p["person"]["data"]["names"]["family_name"],
+       "given_name"=>p["person"]["data"]["names"]["given_name"],
        "middle_name"=>""},
        "birth_year"=>birthdate_year},
        "filter_district"=>"",
