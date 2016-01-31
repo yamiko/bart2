@@ -27,6 +27,7 @@ class GenericPatientsController < ApplicationController
 		#@tb_status = PatientService.patient_tb_status(@patient)
 		#raise @tb_status.downcase.to_yaml
 		@art_start_date = definitive_state_date(@patient, "ON ARV")
+    @second_line_treatment_start_date = PatientService.date_started_second_line_regimen(@patient)
 		@date = (session[:datetime].to_date rescue Date.today).strftime("%Y-%m-%d")
 
 		@location = Location.find(session[:location_id]).name rescue ""
