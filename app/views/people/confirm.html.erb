@@ -45,8 +45,7 @@
 
 			function changeAttributes(){
 				document.getElementById("btnNext").innerHTML = "<span>Continue</span>" 
-				<% if modified_viral_load_check(@person.patient) == true &&
-            (@task.encounter_type.upcase == "HIV CLINIC CONSULTATION" || @task.encounter_type.upcase == "HIV STAGING") && show_lab_results &&
+				<% if improved_viral_load_check(@person.patient) == true && show_lab_results &&
 	 	(current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
 					document.getElementById("btnNext").setAttribute("onclick","showPopup();")
 				<% end %>
@@ -134,6 +133,13 @@
                                                 <span value="<%= @art_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date</span>
                                                 <span value="<%= @duration_in_months.to_s + ' Months'  rescue "" %>">Duration on ART</span>
                                         <% end %>
+                                        <% unless @second_line_treatment_start_date.blank? %>
+                                                <span value="<%= @second_line_treatment_start_date.strftime("%d-%b-%Y") rescue "" %>">ART start date(2<sup>nd</sup> Line)</span>
+                                                <span value="<%= @second_line_duration_in_months.to_s + ' Months'  rescue "" %>">Duration on 2<sup>nd</sup> Line ART</span>
+                                        <% end %>
+                                       <% unless @results.blank? %>
+                                                <span value="<%= @modifier + ' ' + @latest_result.to_s + ' (' + @latest_date.strftime("%d-%b-%Y").to_s + ')' %>">Latest Viral load</span>
+                                        <% end %>
 				<% end %>
 			</div>
 
@@ -149,10 +155,19 @@
 			<input type='submit' value='Finish' />
 		</form>
 		
-	<% if modified_viral_load_check(@person.patient) == true &&
-            (@task.encounter_type.upcase == "HIV CLINIC CONSULTATION" || @task.encounter_type.upcase == "HIV STAGING") && show_lab_results &&
+	<% if improved_viral_load_check(@person.patient) == true && show_lab_results &&
 	 	(current_user_roles.include?("Nurse") || current_user_roles.include?("Clinician") || current_user_roles.include?("Doctor"))%>
-		<div id="popup" style="display:none">
+
+          <%
+
+
+
+
+
+
+          %>
+
+          <div id="popup" style="display:none">
             
             <div class="art_container">
                     <div class="header" style="position: absolute; left: 150px">
@@ -207,9 +222,9 @@
             </div>
            
 			<hr class="popup_hr"></hr>
-            <a id='viral_load_done' onclick = "viral_done();" ><span>VL Requested Today</span></a>
+            <a id='viral_load_done' onclick = "viral_load_requested_today();" ><span>VL Requested Today</span></a>
 			<!--<a id='lab_trail' onclick="window.location='/lab/results/<%=@person.id%>'"><span>View Lab Trail</span></a>-->
-			<a id='reminder' onclick="removePopup();"><span>VL Not Requested Today</span></a>
+			<a id='reminder' onclick="viral_load_not_requested_today(); removePopup();"><span>VL Not Requested Today</span></a>
 		</div>
 
 		<div id="cover">
@@ -232,19 +247,29 @@
 				<% end %>	
 			}
 			
-			function viral_done(){
+			function viral_load_requested_today(){
 			
 				jQuery.ajax({
 					type: "POST",
-					url: "/patients/viral_load_test_done",
+					url: "/patients/viral_load_request",
+					data: "patient_id="+<%=@person.patient.id %> + "&requested_today=true",
+					success: function(){
+						window.location="<%= next_task(@person.patient)%>"
+					}
+					
+				});
+			}
+
+                        function viral_load_not_requested_today(){
+
+				jQuery.ajax({
+					type: "POST",
+					url: "/patients/viral_load_request",
 					data: "patient_id="+<%=@person.patient.id %>,
 					success: function(){
 						window.location="<%= next_task(@person.patient)%>"
-					},
-					error: function() {
-						alert("Unable to change patient status")
 					}
-					
+
 				});
 			}
 		</script>
